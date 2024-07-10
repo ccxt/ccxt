@@ -216,7 +216,7 @@ public partial class poloniexfutures
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -484,7 +484,7 @@ public partial class poloniexfutures
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.till</term>
+    /// <term>params.until</term>
     /// <description>
     /// int : end time in ms
     /// </description>
@@ -537,7 +537,7 @@ public partial class poloniexfutures
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.till</term>
+    /// <term>params.until</term>
     /// <description>
     /// int : end time in ms
     /// </description>

@@ -11,7 +11,7 @@ abstract class wazirx extends \ccxt\Exchange {
         return $this->request('exchangeInfo', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function public_get_depth($params = array()) {
-        return $this->request('depth', 'public', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('depth', 'public', 'GET', $params, null, null, array("cost" => 0.5));
     }
     public function public_get_ping($params = array()) {
         return $this->request('ping', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -55,6 +55,21 @@ abstract class wazirx extends \ccxt\Exchange {
     public function private_get_mytrades($params = array()) {
         return $this->request('myTrades', 'private', 'GET', $params, null, null, array("cost" => 0.5));
     }
+    public function private_get_coins($params = array()) {
+        return $this->request('coins', 'private', 'GET', $params, null, null, array("cost" => 12));
+    }
+    public function private_get_crypto_withdraws($params = array()) {
+        return $this->request('crypto/withdraws', 'private', 'GET', $params, null, null, array("cost" => 12));
+    }
+    public function private_get_crypto_deposits_address($params = array()) {
+        return $this->request('crypto/deposits/address', 'private', 'GET', $params, null, null, array("cost" => 60));
+    }
+    public function private_get_sub_account_fund_transfer_history($params = array()) {
+        return $this->request('sub_account/fund_transfer/history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function private_get_sub_account_accounts($params = array()) {
+        return $this->request('sub_account/accounts', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_post_order($params = array()) {
         return $this->request('order', 'private', 'POST', $params, null, null, array("cost" => 0.1));
     }
@@ -74,7 +89,7 @@ abstract class wazirx extends \ccxt\Exchange {
         return $this->request('exchangeInfo', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     public function publicGetDepth($params = array()) {
-        return $this->request('depth', 'public', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('depth', 'public', 'GET', $params, null, null, array("cost" => 0.5));
     }
     public function publicGetPing($params = array()) {
         return $this->request('ping', 'public', 'GET', $params, null, null, array("cost" => 1));
@@ -117,6 +132,21 @@ abstract class wazirx extends \ccxt\Exchange {
     }
     public function privateGetMyTrades($params = array()) {
         return $this->request('myTrades', 'private', 'GET', $params, null, null, array("cost" => 0.5));
+    }
+    public function privateGetCoins($params = array()) {
+        return $this->request('coins', 'private', 'GET', $params, null, null, array("cost" => 12));
+    }
+    public function privateGetCryptoWithdraws($params = array()) {
+        return $this->request('crypto/withdraws', 'private', 'GET', $params, null, null, array("cost" => 12));
+    }
+    public function privateGetCryptoDepositsAddress($params = array()) {
+        return $this->request('crypto/deposits/address', 'private', 'GET', $params, null, null, array("cost" => 60));
+    }
+    public function privateGetSubAccountFundTransferHistory($params = array()) {
+        return $this->request('sub_account/fund_transfer/history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function privateGetSubAccountAccounts($params = array()) {
+        return $this->request('sub_account/accounts', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     public function privatePostOrder($params = array()) {
         return $this->request('order', 'private', 'POST', $params, null, null, array("cost" => 0.1));

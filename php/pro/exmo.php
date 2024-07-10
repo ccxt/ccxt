@@ -527,18 +527,17 @@ class exmo extends \ccxt\async\exmo {
         $orderBook = $this->safe_value($message, 'data', array());
         $messageHash = 'orderbook:' . $symbol;
         $timestamp = $this->safe_integer($message, 'ts');
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
-            $orderbook = $this->order_book(array());
-            $this->orderbooks[$symbol] = $orderbook;
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book(array());
         }
+        $orderbook = $this->orderbooks[$symbol];
         $event = $this->safe_string($message, 'event');
         if ($event === 'snapshot') {
             $snapshot = $this->parse_order_book($orderBook, $symbol, $timestamp, 'bid', 'ask');
             $orderbook->reset ($snapshot);
         } else {
-            $asks = $this->safe_value($orderBook, 'ask', array());
-            $bids = $this->safe_value($orderBook, 'bid', array());
+            $asks = $this->safe_list($orderBook, 'ask', array());
+            $bids = $this->safe_list($orderBook, 'bid', array());
             $this->handle_deltas($orderbook['asks'], $asks);
             $this->handle_deltas($orderbook['bids'], $bids);
             $orderbook['timestamp'] = $timestamp;
@@ -652,28 +651,30 @@ class exmo extends \ccxt\async\exmo {
     }
 
     public function authenticate($params = array ()) {
-        $messageHash = 'authenticated';
-        list($type, $query) = $this->handle_market_type_and_params('authenticate', null, $params);
-        $url = $this->urls['api']['ws'][$type];
-        $client = $this->client($url);
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
-            $time = $this->milliseconds();
-            $this->check_required_credentials();
-            $requestId = $this->request_id();
-            $signData = $this->apiKey . (string) $time;
-            $sign = $this->hmac($this->encode($signData), $this->encode($this->secret), 'sha512', 'base64');
-            $request = array(
-                'method' => 'login',
-                'id' => $requestId,
-                'api_key' => $this->apiKey,
-                'sign' => $sign,
-                'nonce' => $time,
-            );
-            $message = array_merge($request, $query);
-            $future = $this->watch($url, $messageHash, $message);
-            $client->subscriptions[$messageHash] = $future;
-        }
-        return $future;
+        return Async\async(function () use ($params) {
+            $messageHash = 'authenticated';
+            list($type, $query) = $this->handle_market_type_and_params('authenticate', null, $params);
+            $url = $this->urls['api']['ws'][$type];
+            $client = $this->client($url);
+            $future = $this->safe_value($client->subscriptions, $messageHash);
+            if ($future === null) {
+                $time = $this->milliseconds();
+                $this->check_required_credentials();
+                $requestId = $this->request_id();
+                $signData = $this->apiKey . (string) $time;
+                $sign = $this->hmac($this->encode($signData), $this->encode($this->secret), 'sha512', 'base64');
+                $request = array(
+                    'method' => 'login',
+                    'id' => $requestId,
+                    'api_key' => $this->apiKey,
+                    'sign' => $sign,
+                    'nonce' => $time,
+                );
+                $message = $this->extend($request, $query);
+                $future = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+                $client->subscriptions[$messageHash] = $future;
+            }
+            return $future;
+        }) ();
     }
 }

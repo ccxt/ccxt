@@ -9,8 +9,11 @@ import { implicitReturnType } from '../base/types.js';
 import _binance from '../binance.js';
 
 interface binance {
+    sapiGetCopyTradingFuturesUserStatus (params?: {}): Promise<implicitReturnType>;
+    sapiGetCopyTradingFuturesLeadSymbol (params?: {}): Promise<implicitReturnType>;
     sapiGetSystemStatus (params?: {}): Promise<implicitReturnType>;
     sapiGetAccountSnapshot (params?: {}): Promise<implicitReturnType>;
+    sapiGetAccountInfo (params?: {}): Promise<implicitReturnType>;
     sapiGetMarginAsset (params?: {}): Promise<implicitReturnType>;
     sapiGetMarginPair (params?: {}): Promise<implicitReturnType>;
     sapiGetMarginAllAssets (params?: {}): Promise<implicitReturnType>;
@@ -79,8 +82,6 @@ interface binance {
     sapiGetLoanFlexibleBorrowHistory (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanFlexibleRepayHistory (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanFlexibleLtvAdjustmentHistory (params?: {}): Promise<implicitReturnType>;
-    sapiGetLoanFlexibleLoanableData (params?: {}): Promise<implicitReturnType>;
-    sapiGetLoanFlexibleCollateralData (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipOngoingOrders (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipRepayHistory (params?: {}): Promise<implicitReturnType>;
     sapiGetLoanVipCollateralAccount (params?: {}): Promise<implicitReturnType>;
@@ -96,6 +97,7 @@ interface binance {
     sapiGetCapitalDepositSubAddress (params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalDepositSubHisrec (params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalWithdrawHistory (params?: {}): Promise<implicitReturnType>;
+    sapiGetCapitalWithdrawAddressList (params?: {}): Promise<implicitReturnType>;
     sapiGetCapitalContractConvertibleCoins (params?: {}): Promise<implicitReturnType>;
     sapiGetConvertTradeFlow (params?: {}): Promise<implicitReturnType>;
     sapiGetConvertExchangeInfo (params?: {}): Promise<implicitReturnType>;
@@ -251,6 +253,9 @@ interface binance {
     sapiGetSimpleEarnFlexibleHistoryRewardsRecord (params?: {}): Promise<implicitReturnType>;
     sapiGetSimpleEarnLockedHistoryRewardsRecord (params?: {}): Promise<implicitReturnType>;
     sapiGetSimpleEarnFlexibleHistoryCollateralRecord (params?: {}): Promise<implicitReturnType>;
+    sapiGetDciProductList (params?: {}): Promise<implicitReturnType>;
+    sapiGetDciProductPositions (params?: {}): Promise<implicitReturnType>;
+    sapiGetDciProductAccounts (params?: {}): Promise<implicitReturnType>;
     sapiGetAssetAssetDistributionHistory (params?: {}): Promise<implicitReturnType>;
     sapiGetAssetQueryTradingFee (params?: {}): Promise<implicitReturnType>;
     sapiGetAssetQueryTradingVolume (params?: {}): Promise<implicitReturnType>;
@@ -372,7 +377,6 @@ interface binance {
     sapiPostLoanRepay (params?: {}): Promise<implicitReturnType>;
     sapiPostLoanAdjustLtv (params?: {}): Promise<implicitReturnType>;
     sapiPostLoanCustomizeMarginCall (params?: {}): Promise<implicitReturnType>;
-    sapiPostLoanFlexibleBorrow (params?: {}): Promise<implicitReturnType>;
     sapiPostLoanFlexibleRepay (params?: {}): Promise<implicitReturnType>;
     sapiPostLoanFlexibleAdjustLtv (params?: {}): Promise<implicitReturnType>;
     sapiPostLoanVipRepay (params?: {}): Promise<implicitReturnType>;
@@ -396,6 +400,8 @@ interface binance {
     sapiPostSimpleEarnLockedRedeem (params?: {}): Promise<implicitReturnType>;
     sapiPostSimpleEarnFlexibleSetAutoSubscribe (params?: {}): Promise<implicitReturnType>;
     sapiPostSimpleEarnLockedSetAutoSubscribe (params?: {}): Promise<implicitReturnType>;
+    sapiPostDciProductSubscribe (params?: {}): Promise<implicitReturnType>;
+    sapiPostDciProductAutoCompoundEdit (params?: {}): Promise<implicitReturnType>;
     sapiPostOtcQuotes (params?: {}): Promise<implicitReturnType>;
     sapiPostOtcOrders (params?: {}): Promise<implicitReturnType>;
     sapiPostFiatpaymentWithdrawApply (params?: {}): Promise<implicitReturnType>;
@@ -427,10 +433,19 @@ interface binance {
     sapiV2GetSubAccountFuturesAccount (params?: {}): Promise<implicitReturnType>;
     sapiV2GetSubAccountFuturesAccountSummary (params?: {}): Promise<implicitReturnType>;
     sapiV2GetSubAccountFuturesPositionRisk (params?: {}): Promise<implicitReturnType>;
+    sapiV2GetLoanFlexibleOngoingOrders (params?: {}): Promise<implicitReturnType>;
+    sapiV2GetLoanFlexibleBorrowHistory (params?: {}): Promise<implicitReturnType>;
+    sapiV2GetLoanFlexibleRepayHistory (params?: {}): Promise<implicitReturnType>;
+    sapiV2GetLoanFlexibleLtvAdjustmentHistory (params?: {}): Promise<implicitReturnType>;
+    sapiV2GetLoanFlexibleLoanableData (params?: {}): Promise<implicitReturnType>;
+    sapiV2GetLoanFlexibleCollateralData (params?: {}): Promise<implicitReturnType>;
     sapiV2GetClAccount (params?: {}): Promise<implicitReturnType>;
     sapiV2GetClAlertHistory (params?: {}): Promise<implicitReturnType>;
     sapiV2PostEthStakingEthStake (params?: {}): Promise<implicitReturnType>;
     sapiV2PostSubAccountSubAccountApiIpRestriction (params?: {}): Promise<implicitReturnType>;
+    sapiV2PostLoanFlexibleBorrow (params?: {}): Promise<implicitReturnType>;
+    sapiV2PostLoanFlexibleRepay (params?: {}): Promise<implicitReturnType>;
+    sapiV2PostLoanFlexibleAdjustLtv (params?: {}): Promise<implicitReturnType>;
     sapiV3GetSubAccountAssets (params?: {}): Promise<implicitReturnType>;
     sapiV3GetAccountStatus (params?: {}): Promise<implicitReturnType>;
     sapiV3GetApiTradingStatus (params?: {}): Promise<implicitReturnType>;
@@ -512,6 +527,7 @@ interface binance {
     fapiPublicGetContinuousKlines (params?: {}): Promise<implicitReturnType>;
     fapiPublicGetMarkPriceKlines (params?: {}): Promise<implicitReturnType>;
     fapiPublicGetIndexPriceKlines (params?: {}): Promise<implicitReturnType>;
+    fapiPublicGetPremiumIndexKlines (params?: {}): Promise<implicitReturnType>;
     fapiPublicGetFundingRate (params?: {}): Promise<implicitReturnType>;
     fapiPublicGetFundingInfo (params?: {}): Promise<implicitReturnType>;
     fapiPublicGetPremiumIndex (params?: {}): Promise<implicitReturnType>;
@@ -545,6 +561,7 @@ interface binance {
     fapiPrivateGetUserTrades (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetIncome (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetCommissionRate (params?: {}): Promise<implicitReturnType>;
+    fapiPrivateGetRateLimitOrder (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetApiTradingStatus (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetMultiAssetsMargin (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetApiReferralIfNewUser (params?: {}): Promise<implicitReturnType>;
@@ -564,6 +581,7 @@ interface binance {
     fapiPrivateGetOrderAsynId (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetTradeAsyn (params?: {}): Promise<implicitReturnType>;
     fapiPrivateGetTradeAsynId (params?: {}): Promise<implicitReturnType>;
+    fapiPrivateGetFeeBurn (params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostBatchOrders (params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostPositionSideDual (params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostPositionMargin (params?: {}): Promise<implicitReturnType>;
@@ -575,6 +593,7 @@ interface binance {
     fapiPrivatePostMultiAssetsMargin (params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostApiReferralCustomization (params?: {}): Promise<implicitReturnType>;
     fapiPrivatePostApiReferralUserCustomization (params?: {}): Promise<implicitReturnType>;
+    fapiPrivatePostFeeBurn (params?: {}): Promise<implicitReturnType>;
     fapiPrivatePutListenKey (params?: {}): Promise<implicitReturnType>;
     fapiPrivatePutOrder (params?: {}): Promise<implicitReturnType>;
     fapiPrivatePutBatchOrders (params?: {}): Promise<implicitReturnType>;
@@ -655,6 +674,9 @@ interface binance {
     privateGetMyAllocations (params?: {}): Promise<implicitReturnType>;
     privateGetAccountCommission (params?: {}): Promise<implicitReturnType>;
     privatePostOrderOco (params?: {}): Promise<implicitReturnType>;
+    privatePostOrderListOco (params?: {}): Promise<implicitReturnType>;
+    privatePostOrderListOto (params?: {}): Promise<implicitReturnType>;
+    privatePostOrderListOtoco (params?: {}): Promise<implicitReturnType>;
     privatePostSorOrder (params?: {}): Promise<implicitReturnType>;
     privatePostSorOrderTest (params?: {}): Promise<implicitReturnType>;
     privatePostOrder (params?: {}): Promise<implicitReturnType>;

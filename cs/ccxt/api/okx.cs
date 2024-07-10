@@ -296,6 +296,21 @@ public partial class okx : Exchange
         return await this.callAsync ("publicGetSprdPublicTrades",parameters);
     }
 
+    public async Task<object> publicGetMarketSprdTicker (object parameters = null)
+    {
+        return await this.callAsync ("publicGetMarketSprdTicker",parameters);
+    }
+
+    public async Task<object> publicGetMarketSprdCandles (object parameters = null)
+    {
+        return await this.callAsync ("publicGetMarketSprdCandles",parameters);
+    }
+
+    public async Task<object> publicGetMarketSprdHistoryCandles (object parameters = null)
+    {
+        return await this.callAsync ("publicGetMarketSprdHistoryCandles",parameters);
+    }
+
     public async Task<object> publicGetTradingBotGridAiParam (object parameters = null)
     {
         return await this.callAsync ("publicGetTradingBotGridAiParam",parameters);
@@ -329,6 +344,21 @@ public partial class okx : Exchange
     public async Task<object> publicGetFinanceSavingsLendingRateHistory (object parameters = null)
     {
         return await this.callAsync ("publicGetFinanceSavingsLendingRateHistory",parameters);
+    }
+
+    public async Task<object> publicGetFinanceFixedLoanLendingOffers (object parameters = null)
+    {
+        return await this.callAsync ("publicGetFinanceFixedLoanLendingOffers",parameters);
+    }
+
+    public async Task<object> publicGetFinanceFixedLoanLendingApyHistory (object parameters = null)
+    {
+        return await this.callAsync ("publicGetFinanceFixedLoanLendingApyHistory",parameters);
+    }
+
+    public async Task<object> publicGetFinanceFixedLoanPendingLendingVolume (object parameters = null)
+    {
+        return await this.callAsync ("publicGetFinanceFixedLoanPendingLendingVolume",parameters);
     }
 
     public async Task<object> publicGetFinanceSfpDcdProducts (object parameters = null)
@@ -711,6 +741,21 @@ public partial class okx : Exchange
         return await this.callAsync ("privateGetAccountMmpConfig",parameters);
     }
 
+    public async Task<object> privateGetAccountFixedLoanBorrowingLimit (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountFixedLoanBorrowingLimit",parameters);
+    }
+
+    public async Task<object> privateGetAccountFixedLoanBorrowingQuote (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountFixedLoanBorrowingQuote",parameters);
+    }
+
+    public async Task<object> privateGetAccountFixedLoanBorrowingOrdersList (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAccountFixedLoanBorrowingOrdersList",parameters);
+    }
+
     public async Task<object> privateGetUsersSubaccountList (object parameters = null)
     {
         return await this.callAsync ("privateGetUsersSubaccountList",parameters);
@@ -1071,6 +1116,11 @@ public partial class okx : Exchange
         return await this.callAsync ("privatePostSprdAmendOrder",parameters);
     }
 
+    public async Task<object> privatePostSprdCancelAllAfter (object parameters = null)
+    {
+        return await this.callAsync ("privatePostSprdCancelAllAfter",parameters);
+    }
+
     public async Task<object> privatePostTradeOrder (object parameters = null)
     {
         return await this.callAsync ("privatePostTradeOrder",parameters);
@@ -1231,6 +1281,11 @@ public partial class okx : Exchange
         return await this.callAsync ("privatePostAccountSimulatedMargin",parameters);
     }
 
+    public async Task<object> privatePostAccountPositionBuilder (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountPositionBuilder",parameters);
+    }
+
     public async Task<object> privatePostAccountSetRiskOffsetType (object parameters = null)
     {
         return await this.callAsync ("privatePostAccountSetRiskOffsetType",parameters);
@@ -1259,6 +1314,26 @@ public partial class okx : Exchange
     public async Task<object> privatePostAccountMmpConfig (object parameters = null)
     {
         return await this.callAsync ("privatePostAccountMmpConfig",parameters);
+    }
+
+    public async Task<object> privatePostAccountFixedLoanBorrowingOrder (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountFixedLoanBorrowingOrder",parameters);
+    }
+
+    public async Task<object> privatePostAccountFixedLoanAmendBorrowingOrder (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountFixedLoanAmendBorrowingOrder",parameters);
+    }
+
+    public async Task<object> privatePostAccountFixedLoanManualReborrow (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountFixedLoanManualReborrow",parameters);
+    }
+
+    public async Task<object> privatePostAccountFixedLoanRepayBorrowingOrder (object parameters = null)
+    {
+        return await this.callAsync ("privatePostAccountFixedLoanRepayBorrowingOrder",parameters);
     }
 
     public async Task<object> privatePostUsersSubaccountModifyApikey (object parameters = null)
@@ -1329,6 +1404,11 @@ public partial class okx : Exchange
     public async Task<object> privatePostTradingBotGridMinInvestment (object parameters = null)
     {
         return await this.callAsync ("privatePostTradingBotGridMinInvestment",parameters);
+    }
+
+    public async Task<object> privatePostTradingBotGridAdjustInvestment (object parameters = null)
+    {
+        return await this.callAsync ("privatePostTradingBotGridAdjustInvestment",parameters);
     }
 
     public async Task<object> privatePostTradingBotSignalCreateSignal (object parameters = null)

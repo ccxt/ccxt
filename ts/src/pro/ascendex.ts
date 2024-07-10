@@ -5,7 +5,7 @@ import ascendexRest from '../ascendex.js';
 import { AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Str, OrderBook, Order, Trade, OHLCV, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, OHLCV, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -52,7 +52,7 @@ export default class ascendex extends ascendexRest {
     async watchPublic (messageHash, params = {}) {
         const url = this.urls['api']['ws']['public'];
         const id = this.nonce ();
-        const request = {
+        const request: Dict = {
             'id': id.toString (),
             'op': 'sub',
         };
@@ -66,7 +66,7 @@ export default class ascendex extends ascendexRest {
         let url = this.urls['api']['ws']['private'];
         url = this.implodeParams (url, { 'accountGroup': accountGroup });
         const id = this.nonce ();
-        const request = {
+        const request: Dict = {
             'id': id.toString (),
             'op': 'sub',
             'ch': channel,
@@ -218,7 +218,7 @@ export default class ascendex extends ascendexRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const channel = 'depth-realtime' + ':' + market['id'];
+        const channel = 'depth' + ':' + market['id'];
         params = this.extend (params, {
             'ch': channel,
         });
@@ -229,7 +229,7 @@ export default class ascendex extends ascendexRest {
     async watchOrderBookSnapshot (symbol: string, limit: Int = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const action = 'depth-snapshot-realtime';
+        const action = 'depth-snapshot';
         const channel = action + ':' + market['id'];
         params = this.extend (params, {
             'action': action,
@@ -240,6 +240,16 @@ export default class ascendex extends ascendexRest {
         });
         const orderbook = await this.watchPublic (channel, params);
         return orderbook.limit ();
+    }
+
+    async fetchOrderBookSnapshot (symbol: string, limit: Int = undefined, params = {}) {
+        const restOrderBook = await this.fetchRestOrderBookSafe (symbol, limit, params);
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ();
+        }
+        const orderbook = this.orderbooks[symbol];
+        orderbook.reset (restOrderBook);
+        return orderbook;
     }
 
     handleOrderBookSnapshot (client: Client, message) {
@@ -297,10 +307,10 @@ export default class ascendex extends ascendexRest {
         const marketId = this.safeString (message, 'symbol');
         const symbol = this.safeSymbol (marketId);
         const messageHash = channel + ':' + marketId;
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook ({});
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ({});
         }
+        const orderbook = this.orderbooks[symbol];
         if (orderbook['nonce'] === undefined) {
             orderbook.cache.push (message);
         } else {
@@ -878,12 +888,12 @@ export default class ascendex extends ascendexRest {
         // }
         //
         const subject = this.safeString (message, 'm');
-        const methods = {
+        const methods: Dict = {
             'ping': this.handlePing,
             'auth': this.handleAuthenticate,
             'sub': this.handleSubscriptionStatus,
-            'depth-realtime': this.handleOrderBook,
-            'depth-snapshot-realtime': this.handleOrderBookSnapshot,
+            'depth': this.handleOrderBook,
+            'depth-snapshot': this.handleOrderBookSnapshot,
             'trades': this.handleTrades,
             'bar': this.handleOHLCV,
             'balance': this.handleBalance,
@@ -911,7 +921,7 @@ export default class ascendex extends ascendexRest {
         //     { m: 'sub', id: "1647515701", ch: "depth:BTC/USDT", code: 0 }
         //
         const channel = this.safeString (message, 'ch', '');
-        if (channel.indexOf ('depth-realtime') > -1) {
+        if (channel.indexOf ('depth') > -1 && !(channel.indexOf ('depth-snapshot') > -1)) {
             this.handleOrderBookSubscription (client, message);
         }
         return message;
@@ -921,12 +931,17 @@ export default class ascendex extends ascendexRest {
         const channel = this.safeString (message, 'ch');
         const parts = channel.split (':');
         const marketId = parts[1];
-        const symbol = this.safeSymbol (marketId);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
         this.orderbooks[symbol] = this.orderBook ({});
-        this.spawn (this.watchOrderBookSnapshot, symbol);
+        if (this.options['defaultType'] === 'swap' || market['contract']) {
+            this.spawn (this.fetchOrderBookSnapshot, symbol);
+        } else {
+            this.spawn (this.watchOrderBookSnapshot, symbol);
+        }
     }
 
     async pong (client, message) {
@@ -959,14 +974,14 @@ export default class ascendex extends ascendexRest {
             const auth = timestamp + '+' + version + '/' + path;
             const secret = this.base64ToBinary (this.secret);
             const signature = this.hmac (this.encode (auth), secret, sha256, 'base64');
-            const request = {
+            const request: Dict = {
                 'op': 'auth',
                 'id': this.nonce ().toString (),
                 't': timestamp,
                 'key': this.apiKey,
                 'sig': signature,
             };
-            future = this.watch (url, messageHash, this.extend (request, params));
+            future = await this.watch (url, messageHash, this.extend (request, params), messageHash);
             client.subscriptions[messageHash] = future;
         }
         return future;

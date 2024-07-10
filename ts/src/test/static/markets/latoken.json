@@ -304,5 +304,56 @@
         "maker": 0.0049,
         "feeSide": "get",
         "created": 1572957215231
+    },
+    "ETH/USDT": {
+        "id": "1e8c0f3b-b117-4d76-93a5-5172a5c33741",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
+        "quoteId": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.0049,
+        "maker": 0.0049,
+        "precision": {
+            "amount": 0.00001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 0.00001
+            },
+            "price": {},
+            "cost": {}
+        },
+        "created": 1572957250706,
+        "info": {
+            "id": "1e8c0f3b-b117-4d76-93a5-5172a5c33741",
+            "status": "PAIR_STATUS_ACTIVE",
+            "baseCurrency": "620f2019-33c0-423b-8a9d-cde4d7f8ef7f",
+            "quoteCurrency": "0c3a106d-bde3-4c13-a26e-3fd2394529e5",
+            "priceTick": "0.010000000000000000",
+            "priceDecimals": "2",
+            "quantityTick": "0.000010000",
+            "quantityDecimals": "5",
+            "costDisplayDecimals": "2",
+            "created": "1572957250706",
+            "minOrderQuantity": "0.00001",
+            "maxOrderCostUsd": "999999999999999999",
+            "minOrderCostUsd": "0",
+            "externalSymbol": "",
+            "popularity": "80"
+        },
+        "tierBased": false,
+        "percentage": true,
+        "feeSide": "get"
     }
 }

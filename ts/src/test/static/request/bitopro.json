@@ -1,6 +1,60 @@
 {
     "exchange": "bitopro",
-    "skipKeys": [],
+    "skipKeys": ["from", "to"],
     "outputType": "json",
-    "methods": {}
+    "methods": {
+        "fetchTrades": [
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.bitopro.com/v3/trades/btc_usdt",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.bitopro.com/v3/order-book/btc_usdt",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api.bitopro.com/v3/tickers/btc_usdt",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api.bitopro.com/v3/tickers",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api.bitopro.com/v3/trading-history/btc_usdt?resolution=1m&to=1709992985&from=1709962985",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ]
+    }
 }

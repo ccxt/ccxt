@@ -169,5 +169,62 @@
             "maxMarketSize": "4500",
             "state": "live"
         }
+    },
+    "ETH/USDT:USDT": {
+        "id": "ETH-USDT",
+        "symbol": "ETH/USDT:USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.0006,
+        "maker": 0.0002,
+        "contractSize": 0.01,
+        "precision": {
+            "amount": 1,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 150
+            },
+            "amount": {
+                "min": 1
+            },
+            "price": {},
+            "cost": {}
+        },
+        "created": 1669869031395,
+        "info": {
+            "instId": "ETH-USDT",
+            "baseCurrency": "ETH",
+            "quoteCurrency": "USDT",
+            "contractValue": "0.01",
+            "listTime": "1669869031395",
+            "expireTime": "1890748800000",
+            "maxLeverage": "150",
+            "minSize": "1",
+            "lotSize": "1",
+            "tickSize": "0.01",
+            "instType": "SWAP",
+            "contractType": "linear",
+            "maxLimitSize": "100000000",
+            "maxMarketSize": "150000",
+            "state": "live"
+        }
     }
 }

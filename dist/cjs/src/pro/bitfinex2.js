@@ -53,7 +53,7 @@ class bitfinex2 extends bitfinex2$1 {
             'symbol': marketId,
         };
         const result = await this.watch(url, messageHash, this.deepExtend(request, params), messageHash, { 'checksum': false });
-        const checksum = this.safeValue(this.options, 'checksum', true);
+        const checksum = this.safeBool(this.options, 'checksum', true);
         if (checksum && !client.subscriptions[messageHash]['checksum'] && (channel === 'book')) {
             client.subscriptions[messageHash]['checksum'] = true;
             await client.send({
@@ -320,9 +320,12 @@ class bitfinex2 extends bitfinex2$1 {
         const messageLength = message.length;
         if (messageLength === 2) {
             // initial snapshot
-            const trades = this.safeValue(message, 1, []);
-            for (let i = 0; i < trades.length; i++) {
-                const parsed = this.parseWsTrade(trades[i], market);
+            const trades = this.safeList(message, 1, []);
+            // needs to be reversed to make chronological order
+            const length = trades.length;
+            for (let i = 0; i < length; i++) {
+                const index = length - i - 1;
+                const parsed = this.parseWsTrade(trades[index], market);
                 stored.append(parsed);
             }
         }
@@ -574,8 +577,7 @@ class bitfinex2 extends bitfinex2$1 {
         const prec = this.safeString(subscription, 'prec', 'P0');
         const isRaw = (prec === 'R0');
         // if it is an initial snapshot
-        let orderbook = this.safeValue(this.orderbooks, symbol);
-        if (orderbook === undefined) {
+        if (!(symbol in this.orderbooks)) {
             const limit = this.safeInteger(subscription, 'len');
             if (isRaw) {
                 // raw order books
@@ -585,7 +587,7 @@ class bitfinex2 extends bitfinex2$1 {
                 // P0, P1, P2, P3, P4
                 this.orderbooks[symbol] = this.countedOrderBook({}, limit);
             }
-            orderbook = this.orderbooks[symbol];
+            const orderbook = this.orderbooks[symbol];
             if (isRaw) {
                 const deltas = message[1];
                 for (let i = 0; i < deltas.length; i++) {
@@ -596,7 +598,7 @@ class bitfinex2 extends bitfinex2$1 {
                     const bookside = orderbook[side];
                     const idString = this.safeString(delta, 0);
                     const price = this.safeFloat(delta, 1);
-                    bookside.store(price, size, idString);
+                    bookside.storeArray([price, size, idString]);
                 }
             }
             else {
@@ -609,13 +611,14 @@ class bitfinex2 extends bitfinex2$1 {
                     const size = (amount < 0) ? -amount : amount;
                     const side = (amount < 0) ? 'asks' : 'bids';
                     const bookside = orderbook[side];
-                    bookside.store(price, size, counter);
+                    bookside.storeArray([price, size, counter]);
                 }
             }
             orderbook['symbol'] = symbol;
             client.resolve(orderbook, messageHash);
         }
         else {
+            const orderbook = this.orderbooks[symbol];
             const deltas = message[1];
             const orderbookItem = this.orderbooks[symbol];
             if (isRaw) {
@@ -627,7 +630,7 @@ class bitfinex2 extends bitfinex2$1 {
                 // price = 0 means that you have to remove the order from your book
                 const amount = Precise["default"].stringGt(price, '0') ? size : '0';
                 const idString = this.safeString(deltas, 0);
-                bookside.store(this.parseNumber(price), this.parseNumber(amount), idString);
+                bookside.storeArray([this.parseNumber(price), this.parseNumber(amount), idString]);
             }
             else {
                 const amount = this.safeString(deltas, 2);
@@ -636,7 +639,7 @@ class bitfinex2 extends bitfinex2$1 {
                 const size = Precise["default"].stringLt(amount, '0') ? Precise["default"].stringNeg(amount) : amount;
                 const side = Precise["default"].stringLt(amount, '0') ? 'asks' : 'bids';
                 const bookside = orderbookItem[side];
-                bookside.store(this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter));
+                bookside.storeArray([this.parseNumber(price), this.parseNumber(size), this.parseNumber(counter)]);
             }
             client.resolve(orderbook, messageHash);
         }
@@ -679,6 +682,8 @@ class bitfinex2 extends bitfinex2$1 {
         const responseChecksum = this.safeInteger(message, 2);
         if (responseChecksum !== localChecksum) {
             const error = new errors.InvalidNonce(this.id + ' invalid checksum');
+            delete client.subscriptions[messageHash];
+            delete this.orderbooks[symbol];
             client.reject(error, messageHash);
         }
     }
@@ -858,7 +863,7 @@ class bitfinex2 extends bitfinex2$1 {
             const message = this.extend(request, params);
             this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
     handleAuthenticationMessage(client, message) {
         const messageHash = 'authenticated';

@@ -61,6 +61,7 @@ public partial class poloniex : Exchange
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
                 { "fetchWithdrawals", true },
+                { "sandbox", true },
                 { "transfer", true },
                 { "withdraw", true },
             } },
@@ -1306,7 +1307,7 @@ public partial class poloniex : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] *spot only* The price at which a trigger order is triggered at
         * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
@@ -1342,7 +1343,8 @@ public partial class poloniex : Exchange
         //     }
         //
         response = this.extend(response, new Dictionary<string, object>() {
-            { "type", side },
+            { "type", type },
+            { "side", side },
         });
         return this.parseOrder(response, market);
     }
@@ -1427,7 +1429,7 @@ public partial class poloniex : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} [amount] how much of the currency you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1461,7 +1463,8 @@ public partial class poloniex : Exchange
         //     }
         //
         response = this.extend(response, new Dictionary<string, object>() {
-            { "type", side },
+            { "side", side },
+            { "type", type },
         });
         return this.parseOrder(response, market);
     }
@@ -1970,12 +1973,11 @@ public partial class poloniex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object currency = this.currency(code);
-        amount = this.currencyToPrecision(code, amount);
         object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
         object fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         object toId = this.safeString(accountsByType, toAccount, fromAccount);
         object request = new Dictionary<string, object>() {
-            { "amount", amount },
+            { "amount", this.currencyToPrecision(code, amount) },
             { "currency", getValue(currency, "id") },
             { "fromAccount", fromId },
             { "toAccount", toId },

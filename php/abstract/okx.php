@@ -178,6 +178,15 @@ abstract class okx extends \ccxt\Exchange {
     public function public_get_sprd_public_trades($params = array()) {
         return $this->request('sprd/public-trades', 'public', 'GET', $params, null, null, array("cost" => 0.2));
     }
+    public function public_get_market_sprd_ticker($params = array()) {
+        return $this->request('market/sprd-ticker', 'public', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function public_get_market_sprd_candles($params = array()) {
+        return $this->request('market/sprd-candles', 'public', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function public_get_market_sprd_history_candles($params = array()) {
+        return $this->request('market/sprd-history-candles', 'public', 'GET', $params, null, null, array("cost" => 2));
+    }
     public function public_get_tradingbot_grid_ai_param($params = array()) {
         return $this->request('tradingBot/grid/ai-param', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -198,6 +207,15 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function public_get_finance_savings_lending_rate_history($params = array()) {
         return $this->request('finance/savings/lending-rate-history', 'public', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    public function public_get_finance_fixed_loan_lending_offers($params = array()) {
+        return $this->request('finance/fixed-loan/lending-offers', 'public', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function public_get_finance_fixed_loan_lending_apy_history($params = array()) {
+        return $this->request('finance/fixed-loan/lending-apy-history', 'public', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function public_get_finance_fixed_loan_pending_lending_volume($params = array()) {
+        return $this->request('finance/fixed-loan/pending-lending-volume', 'public', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
     }
     public function public_get_finance_sfp_dcd_products($params = array()) {
         return $this->request('finance/sfp/dcd/products', 'public', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
@@ -427,6 +445,15 @@ abstract class okx extends \ccxt\Exchange {
     public function private_get_account_mmp_config($params = array()) {
         return $this->request('account/mmp-config', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
+    public function private_get_account_fixed_loan_borrowing_limit($params = array()) {
+        return $this->request('account/fixed-loan/borrowing-limit', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function private_get_account_fixed_loan_borrowing_quote($params = array()) {
+        return $this->request('account/fixed-loan/borrowing-quote', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_account_fixed_loan_borrowing_orders_list($params = array()) {
+        return $this->request('account/fixed-loan/borrowing-orders-list', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function private_get_users_subaccount_list($params = array()) {
         return $this->request('users/subaccount/list', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -643,6 +670,9 @@ abstract class okx extends \ccxt\Exchange {
     public function private_post_sprd_amend_order($params = array()) {
         return $this->request('sprd/amend-order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_sprd_cancel_all_after($params = array()) {
+        return $this->request('sprd/cancel-all-after', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
     public function private_post_trade_order($params = array()) {
         return $this->request('trade/order', 'private', 'POST', $params, null, null, array("cost" => 0.3333333333333333));
     }
@@ -739,6 +769,9 @@ abstract class okx extends \ccxt\Exchange {
     public function private_post_account_simulated_margin($params = array()) {
         return $this->request('account/simulated_margin', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
+    public function private_post_account_position_builder($params = array()) {
+        return $this->request('account/position-builder', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
     public function private_post_account_set_riskoffset_type($params = array()) {
         return $this->request('account/set-riskOffset-type', 'private', 'POST', $params, null, null, array("cost" => 2));
     }
@@ -756,6 +789,18 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function private_post_account_mmp_config($params = array()) {
         return $this->request('account/mmp-config', 'private', 'POST', $params, null, null, array("cost" => 100));
+    }
+    public function private_post_account_fixed_loan_borrowing_order($params = array()) {
+        return $this->request('account/fixed-loan/borrowing-order', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function private_post_account_fixed_loan_amend_borrowing_order($params = array()) {
+        return $this->request('account/fixed-loan/amend-borrowing-order', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function private_post_account_fixed_loan_manual_reborrow($params = array()) {
+        return $this->request('account/fixed-loan/manual-reborrow', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function private_post_account_fixed_loan_repay_borrowing_order($params = array()) {
+        return $this->request('account/fixed-loan/repay-borrowing-order', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function private_post_users_subaccount_modify_apikey($params = array()) {
         return $this->request('users/subaccount/modify-apikey', 'private', 'POST', $params, null, null, array("cost" => 10));
@@ -798,6 +843,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function private_post_tradingbot_grid_min_investment($params = array()) {
         return $this->request('tradingBot/grid/min-investment', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function private_post_tradingbot_grid_adjust_investment($params = array()) {
+        return $this->request('tradingBot/grid/adjust-investment', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function private_post_tradingbot_signal_create_signal($params = array()) {
         return $this->request('tradingBot/signal/create-signal', 'private', 'POST', $params, null, null, array("cost" => 1));
@@ -1093,6 +1141,15 @@ abstract class okx extends \ccxt\Exchange {
     public function publicGetSprdPublicTrades($params = array()) {
         return $this->request('sprd/public-trades', 'public', 'GET', $params, null, null, array("cost" => 0.2));
     }
+    public function publicGetMarketSprdTicker($params = array()) {
+        return $this->request('market/sprd-ticker', 'public', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function publicGetMarketSprdCandles($params = array()) {
+        return $this->request('market/sprd-candles', 'public', 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function publicGetMarketSprdHistoryCandles($params = array()) {
+        return $this->request('market/sprd-history-candles', 'public', 'GET', $params, null, null, array("cost" => 2));
+    }
     public function publicGetTradingBotGridAiParam($params = array()) {
         return $this->request('tradingBot/grid/ai-param', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1113,6 +1170,15 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function publicGetFinanceSavingsLendingRateHistory($params = array()) {
         return $this->request('finance/savings/lending-rate-history', 'public', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    public function publicGetFinanceFixedLoanLendingOffers($params = array()) {
+        return $this->request('finance/fixed-loan/lending-offers', 'public', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function publicGetFinanceFixedLoanLendingApyHistory($params = array()) {
+        return $this->request('finance/fixed-loan/lending-apy-history', 'public', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function publicGetFinanceFixedLoanPendingLendingVolume($params = array()) {
+        return $this->request('finance/fixed-loan/pending-lending-volume', 'public', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
     }
     public function publicGetFinanceSfpDcdProducts($params = array()) {
         return $this->request('finance/sfp/dcd/products', 'public', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
@@ -1342,6 +1408,15 @@ abstract class okx extends \ccxt\Exchange {
     public function privateGetAccountMmpConfig($params = array()) {
         return $this->request('account/mmp-config', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
+    public function privateGetAccountFixedLoanBorrowingLimit($params = array()) {
+        return $this->request('account/fixed-loan/borrowing-limit', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function privateGetAccountFixedLoanBorrowingQuote($params = array()) {
+        return $this->request('account/fixed-loan/borrowing-quote', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetAccountFixedLoanBorrowingOrdersList($params = array()) {
+        return $this->request('account/fixed-loan/borrowing-orders-list', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function privateGetUsersSubaccountList($params = array()) {
         return $this->request('users/subaccount/list', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -1558,6 +1633,9 @@ abstract class okx extends \ccxt\Exchange {
     public function privatePostSprdAmendOrder($params = array()) {
         return $this->request('sprd/amend-order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function privatePostSprdCancelAllAfter($params = array()) {
+        return $this->request('sprd/cancel-all-after', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
     public function privatePostTradeOrder($params = array()) {
         return $this->request('trade/order', 'private', 'POST', $params, null, null, array("cost" => 0.3333333333333333));
     }
@@ -1654,6 +1732,9 @@ abstract class okx extends \ccxt\Exchange {
     public function privatePostAccountSimulatedMargin($params = array()) {
         return $this->request('account/simulated_margin', 'private', 'POST', $params, null, null, array("cost" => 10));
     }
+    public function privatePostAccountPositionBuilder($params = array()) {
+        return $this->request('account/position-builder', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
     public function privatePostAccountSetRiskOffsetType($params = array()) {
         return $this->request('account/set-riskOffset-type', 'private', 'POST', $params, null, null, array("cost" => 2));
     }
@@ -1671,6 +1752,18 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function privatePostAccountMmpConfig($params = array()) {
         return $this->request('account/mmp-config', 'private', 'POST', $params, null, null, array("cost" => 100));
+    }
+    public function privatePostAccountFixedLoanBorrowingOrder($params = array()) {
+        return $this->request('account/fixed-loan/borrowing-order', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostAccountFixedLoanAmendBorrowingOrder($params = array()) {
+        return $this->request('account/fixed-loan/amend-borrowing-order', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostAccountFixedLoanManualReborrow($params = array()) {
+        return $this->request('account/fixed-loan/manual-reborrow', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostAccountFixedLoanRepayBorrowingOrder($params = array()) {
+        return $this->request('account/fixed-loan/repay-borrowing-order', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function privatePostUsersSubaccountModifyApikey($params = array()) {
         return $this->request('users/subaccount/modify-apikey', 'private', 'POST', $params, null, null, array("cost" => 10));
@@ -1713,6 +1806,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function privatePostTradingBotGridMinInvestment($params = array()) {
         return $this->request('tradingBot/grid/min-investment', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    public function privatePostTradingBotGridAdjustInvestment($params = array()) {
+        return $this->request('tradingBot/grid/adjust-investment', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     public function privatePostTradingBotSignalCreateSignal($params = array()) {
         return $this->request('tradingBot/signal/create-signal', 'private', 'POST', $params, null, null, array("cost" => 1));

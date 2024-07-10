@@ -1,5 +1,5 @@
 import upbitRest from '../upbit.js';
-import type { Int, OrderBook, Trade, Ticker } from '../base/types.js';
+import type { Int, Str, Order, OrderBook, Trade, Ticker, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class upbit extends upbitRest {
     describe(): any;
@@ -10,5 +10,17 @@ export default class upbit extends upbitRest {
     handleTicker(client: Client, message: any): void;
     handleOrderBook(client: Client, message: any): void;
     handleTrades(client: Client, message: any): void;
+    authenticate(params?: {}): Promise<import("../base/ws/WsClient.js").default>;
+    watchPrivate(symbol: any, channel: any, messageHash: any, params?: {}): Promise<any>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    parseWsOrderStatus(status: Str): string;
+    parseWsOrder(order: any, market?: any): Order;
+    parseWsTrade(trade: any, market?: any): Trade;
+    handleMyOrder(client: Client, message: any): void;
+    handleMyTrade(client: Client, message: any): void;
+    handleOrder(client: Client, message: any): void;
+    watchBalance(params?: {}): Promise<Balances>;
+    handleBalance(client: Client, message: any): void;
     handleMessage(client: Client, message: any): void;
 }

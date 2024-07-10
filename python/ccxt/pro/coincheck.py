@@ -60,7 +60,7 @@ class coincheck(ccxt.async_support.coincheck):
         market = self.market(symbol)
         messageHash = 'orderbook:' + market['symbol']
         url = self.urls['api']['ws']
-        request = {
+        request: dict = {
             'type': 'subscribe',
             'channel': market['id'] + '-orderbook',
         }
@@ -118,7 +118,7 @@ class coincheck(ccxt.async_support.coincheck):
         symbol = market['symbol']
         messageHash = 'trade:' + market['symbol']
         url = self.urls['api']['ws']
-        request = {
+        request: dict = {
             'type': 'subscribe',
             'channel': market['id'] + '-trades',
         }
@@ -157,7 +157,7 @@ class coincheck(ccxt.async_support.coincheck):
         messageHash = 'trade:' + symbol
         client.resolve(stored, messageHash)
 
-    def parse_ws_trade(self, trade, market: Market = None) -> Trade:
+    def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         #     [
         #         "1663318663",  # transaction timestamp(unix time)

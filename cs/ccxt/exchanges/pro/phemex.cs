@@ -20,6 +20,9 @@ public partial class phemex : ccxt.phemex
                 { "watchOrderBook", true },
                 { "watchOHLCV", true },
                 { "watchPositions", null },
+                { "watchOrderBookForSymbols", false },
+                { "watchTradesForSymbols", false },
+                { "watchOHLCVForSymbols", false },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "test", new Dictionary<string, object>() {
@@ -612,9 +615,10 @@ public partial class phemex : ccxt.phemex
         /**
         * @method
         * @name phemex#watchOrderBook
+        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-orderbook
         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#subscribe-orderbook-for-new-model
         * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-30-levels-orderbook
-        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#subscribe-orderbook
+        * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#subscribe-full-orderbook
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
@@ -762,12 +766,12 @@ public partial class phemex : ccxt.phemex
             callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
         } else
         {
-            object orderbook = this.safeValue(this.orderbooks, symbol);
-            if (isTrue(!isEqual(orderbook, null)))
+            if (isTrue(inOp(this.orderbooks, symbol)))
             {
-                object changes = this.safeValue2(message, "book", "orderbook_p", new Dictionary<string, object>() {});
-                object asks = this.safeValue(changes, "asks", new List<object>() {});
-                object bids = this.safeValue(changes, "bids", new List<object>() {});
+                object orderbook = getValue(this.orderbooks, symbol);
+                object changes = this.safeDict2(message, "book", "orderbook_p", new Dictionary<string, object>() {});
+                object asks = this.safeList(changes, "asks", new List<object>() {});
+                object bids = this.safeList(changes, "bids", new List<object>() {});
                 this.customHandleDeltas(getValue(orderbook, "asks"), asks, market);
                 this.customHandleDeltas(getValue(orderbook, "bids"), bids, market);
                 ((IDictionary<string,object>)orderbook)["nonce"] = nonce;
@@ -1630,7 +1634,7 @@ public partial class phemex : ccxt.phemex
             {
                 ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)subscriptionHash] = this.handleAuthenticate;
             }
-            future = this.watch(url, messageHash, message);
+            future = await this.watch(url, messageHash, message, messageHash);
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)messageHash] = future;
         }
         return future;

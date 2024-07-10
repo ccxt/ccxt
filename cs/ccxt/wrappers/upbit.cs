@@ -209,10 +209,10 @@ public partial class upbit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<TradingFeeInterface> FetchTradingFee(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchTradingFee(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new TradingFeeInterface(res);
     }
     /// <summary>
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -253,11 +253,12 @@ public partial class upbit
     /// </summary>
     /// <remarks>
     /// See <see href="https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -270,6 +271,12 @@ public partial class upbit
     /// <term>params.cost</term>
     /// <description>
     /// float : for market buy orders, the quote quantity that can be used as an alternative for the amount
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.timeInForce</term>
+    /// <description>
+    /// string : 'IOC' or 'FOK'
     /// </description>
     /// </item>
     /// </list>
@@ -336,6 +343,38 @@ public partial class upbit
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
     /// <summary>
+    /// fetch information on a deposit
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://global-docs.upbit.com/reference/individual-deposit-inquiry"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code of the currency deposited
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.txid</term>
+    /// <description>
+    /// string : withdrawal transaction id, the id argument is reserved for uuid
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    public async Task<Transaction> FetchDeposit(string id, string code = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchDeposit(id, code, parameters);
+        return new Transaction(res);
+    }
+    /// <summary>
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
@@ -369,18 +408,43 @@ public partial class upbit
         var res = await this.fetchWithdrawals(code, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Transaction(item)).ToList<Transaction>();
     }
-    public async Task<List<Order>> FetchOrdersByState(object state, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    /// <summary>
+    /// fetch data on a currency withdrawal via the withdrawal id
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://global-docs.upbit.com/reference/individual-withdrawal-inquiry"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code of the currency withdrawn
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.txid</term>
+    /// <description>
+    /// string : withdrawal transaction id, the id argument is reserved for uuid
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    public async Task<Transaction> FetchWithdrawal(string id, string code = null, Dictionary<string, object> parameters = null)
     {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchOrdersByState(state, symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+        var res = await this.fetchWithdrawal(id, code, parameters);
+        return new Transaction(res);
     }
     /// <summary>
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/open-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -391,13 +455,19 @@ public partial class upbit
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum number of  open orders structures to retrieve
+    /// int : the maximum number of open order structures to retrieve
     /// </description>
     /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.state</term>
+    /// <description>
+    /// string : default is 'wait', set to 'watch' for stop limit orders
     /// </description>
     /// </item>
     /// </list>
@@ -414,7 +484,7 @@ public partial class upbit
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/closed-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -434,6 +504,12 @@ public partial class upbit
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest order
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -448,7 +524,7 @@ public partial class upbit
     /// fetches information on multiple canceled orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/closed-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -466,6 +542,12 @@ public partial class upbit
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest order
     /// </description>
     /// </item>
     /// </list>
@@ -513,7 +595,7 @@ public partial class upbit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a list of [address structures]{@link https://docs.ccxt.com/#/?id=address-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositAddresses(List<string> codes = null, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, object>> FetchDepositAddresses(List<String> codes = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchDepositAddresses(codes, parameters);
         return ((Dictionary<string, object>)res);
@@ -574,7 +656,7 @@ public partial class upbit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
-    public async Task<Transaction> Withdraw(string code, double amount, object address, object tag = null, Dictionary<string, object> parameters = null)
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.withdraw(code, amount, address, tag, parameters);
         return new Transaction(res);

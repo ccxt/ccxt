@@ -50,8 +50,11 @@ public partial class coinspot : Exchange
                 { "fetchOpenInterestHistory", false },
                 { "fetchOrderBook", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -278,6 +281,7 @@ public partial class coinspot : Exchange
         * @method
         * @name coinspot#fetchBalance
         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+        * @see https://www.coinspot.com.au/api#listmybalance
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */
@@ -310,6 +314,7 @@ public partial class coinspot : Exchange
         * @method
         * @name coinspot#fetchOrderBook
         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @see https://www.coinspot.com.au/api#listopenorders
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -368,6 +373,7 @@ public partial class coinspot : Exchange
         * @method
         * @name coinspot#fetchTicker
         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @see https://www.coinspot.com.au/api#latestprices
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -391,7 +397,7 @@ public partial class coinspot : Exchange
         //         }
         //     }
         //
-        object ticker = this.safeValue(prices, id);
+        object ticker = this.safeDict(prices, id);
         return this.parseTicker(ticker, market);
     }
 
@@ -449,6 +455,7 @@ public partial class coinspot : Exchange
         * @method
         * @name coinspot#fetchTrades
         * @description get the list of most recent trades for a particular symbol
+        * @see https://www.coinspot.com.au/api#orderhistory
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
@@ -470,7 +477,7 @@ public partial class coinspot : Exchange
         //         ],
         //     }
         //
-        object trades = this.safeValue(response, "orders", new List<object>() {});
+        object trades = this.safeList(response, "orders", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -480,6 +487,7 @@ public partial class coinspot : Exchange
         * @method
         * @name coinspot#fetchMyTrades
         * @description fetch all trades made by the user
+        * @see https://www.coinspot.com.au/api#rotransaction
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trades structures to retrieve
@@ -623,7 +631,7 @@ public partial class coinspot : Exchange
         * @param {string} type must be 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -649,6 +657,8 @@ public partial class coinspot : Exchange
         * @method
         * @name coinspot#cancelOrder
         * @description cancels an open order
+        * @see https://www.coinspot.com.au/api#cancelbuyorder
+        * @see https://www.coinspot.com.au/api#cancelsellorder
         * @param {string} id order id
         * @param {string} symbol not used by coinspot cancelOrder ()
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -661,11 +671,23 @@ public partial class coinspot : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a side parameter, \"buy\" or \"sell\"")) ;
         }
         parameters = this.omit(parameters, "side");
-        object method = add(add("privatePostMy", this.capitalize(side)), "Cancel");
         object request = new Dictionary<string, object>() {
             { "id", id },
         };
-        return await ((Task<object>)callDynamically(this, method, new object[] { this.extend(request, parameters) }));
+        object response = null;
+        if (isTrue(isEqual(side, "buy")))
+        {
+            response = await this.privatePostMyBuyCancel(this.extend(request, parameters));
+        } else
+        {
+            response = await this.privatePostMySellCancel(this.extend(request, parameters));
+        }
+        //
+        // status - ok, error
+        //
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

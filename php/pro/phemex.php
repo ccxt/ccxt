@@ -25,6 +25,10 @@ class phemex extends \ccxt\async\phemex {
                 'watchOrderBook' => true,
                 'watchOHLCV' => true,
                 'watchPositions' => null, // TODO
+                // mutli-endpoints are not supported => https://github.com/ccxt/ccxt/pull/21490
+                'watchOrderBookForSymbols' => false,
+                'watchTradesForSymbols' => false,
+                'watchOHLCVForSymbols' => false,
             ),
             'urls' => array(
                 'test' => array(
@@ -576,9 +580,10 @@ class phemex extends \ccxt\async\phemex {
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
+             * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#$subscribe-$orderbook
              * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Hedged-Perpetual-API.md#$subscribe-$orderbook-for-new-model
              * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#$subscribe-30-levels-$orderbook
-             * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Spot-API-en.md#$subscribe-$orderbook
+             * @see https://github.com/phemex/phemex-api-docs/blob/master/Public-Contract-API-en.md#$subscribe-full-$orderbook
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
@@ -721,11 +726,11 @@ class phemex extends \ccxt\async\phemex {
             $this->orderbooks[$symbol] = $orderbook;
             $client->resolve ($orderbook, $messageHash);
         } else {
-            $orderbook = $this->safe_value($this->orderbooks, $symbol);
-            if ($orderbook !== null) {
-                $changes = $this->safe_value_2($message, 'book', 'orderbook_p', array());
-                $asks = $this->safe_value($changes, 'asks', array());
-                $bids = $this->safe_value($changes, 'bids', array());
+            if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+                $orderbook = $this->orderbooks[$symbol];
+                $changes = $this->safe_dict_2($message, 'book', 'orderbook_p', array());
+                $asks = $this->safe_list($changes, 'asks', array());
+                $bids = $this->safe_list($changes, 'bids', array());
                 $this->custom_handle_deltas($orderbook['asks'], $asks, $market);
                 $this->custom_handle_deltas($orderbook['bids'], $bids, $market);
                 $orderbook['nonce'] = $nonce;
@@ -756,7 +761,7 @@ class phemex extends \ccxt\async\phemex {
                 $symbol = $market['symbol'];
                 $messageHash = $messageHash . $market['symbol'];
                 if ($market['settle'] === 'USDT') {
-                    $params = array_merge($params);
+                    $params = $this->extend($params);
                     $params['settle'] = 'USDT';
                 }
             }
@@ -921,7 +926,7 @@ class phemex extends \ccxt\async\phemex {
                 $symbol = $market['symbol'];
                 $messageHash = $messageHash . $market['symbol'];
                 if ($market['settle'] === 'USDT') {
-                    $params = array_merge($params);
+                    $params = $this->extend($params);
                     $params['settle'] = 'USDT';
                 }
             }
@@ -1504,37 +1509,39 @@ class phemex extends \ccxt\async\phemex {
                 'method' => $channel,
                 'params' => array(),
             );
-            $request = array_merge($request, $params);
+            $request = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $request, $channel));
         }) ();
     }
 
     public function authenticate($params = array ()) {
-        $this->check_required_credentials();
-        $url = $this->urls['api']['ws'];
-        $client = $this->client($url);
-        $requestId = $this->request_id();
-        $messageHash = 'authenticated';
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
-            $expiryDelta = $this->safe_integer($this->options, 'expires', 120);
-            $expiration = $this->seconds() . $expiryDelta;
-            $payload = $this->apiKey . (string) $expiration;
-            $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256');
-            $method = 'user.auth';
-            $request = array(
-                'method' => $method,
-                'params' => array( 'API', $this->apiKey, $signature, $expiration ),
-                'id' => $requestId,
-            );
-            $subscriptionHash = (string) $requestId;
-            $message = array_merge($request, $params);
-            if (!(is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions))) {
-                $client->subscriptions[$subscriptionHash] = array($this, 'handle_authenticate');
+        return Async\async(function () use ($params) {
+            $this->check_required_credentials();
+            $url = $this->urls['api']['ws'];
+            $client = $this->client($url);
+            $requestId = $this->request_id();
+            $messageHash = 'authenticated';
+            $future = $this->safe_value($client->subscriptions, $messageHash);
+            if ($future === null) {
+                $expiryDelta = $this->safe_integer($this->options, 'expires', 120);
+                $expiration = $this->seconds() . $expiryDelta;
+                $payload = $this->apiKey . (string) $expiration;
+                $signature = $this->hmac($this->encode($payload), $this->encode($this->secret), 'sha256');
+                $method = 'user.auth';
+                $request = array(
+                    'method' => $method,
+                    'params' => array( 'API', $this->apiKey, $signature, $expiration ),
+                    'id' => $requestId,
+                );
+                $subscriptionHash = (string) $requestId;
+                $message = $this->extend($request, $params);
+                if (!(is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions))) {
+                    $client->subscriptions[$subscriptionHash] = array($this, 'handle_authenticate');
+                }
+                $future = Async\await($this->watch($url, $messageHash, $message, $messageHash));
+                $client->subscriptions[$messageHash] = $future;
             }
-            $future = $this->watch($url, $messageHash, $message);
-            $client->subscriptions[$messageHash] = $future;
-        }
-        return $future;
+            return $future;
+        }) ();
     }
 }

@@ -1292,10 +1292,6 @@ public partial class bitrue : Exchange
             };
             if (isTrue(!isEqual(limit, null)))
             {
-                if (isTrue(isGreaterThan(limit, 300)))
-                {
-                    limit = 300;
-                }
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
             if (isTrue(getValue(market, "linear")))
@@ -1315,10 +1311,6 @@ public partial class bitrue : Exchange
             };
             if (isTrue(!isEqual(limit, null)))
             {
-                if (isTrue(isGreaterThan(limit, 1440)))
-                {
-                    limit = 1440;
-                }
                 ((IDictionary<string,object>)request)["limit"] = limit;
             }
             if (isTrue(!isEqual(since, null)))
@@ -1895,7 +1887,7 @@ public partial class bitrue : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] *spot only* the price at which a trigger order is triggered at
         * @param {string} [params.clientOrderId] a unique id for the order, automatically generated if not sent
@@ -2596,7 +2588,7 @@ public partial class bitrue : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(data, currency, since, limit);
     }
 
@@ -2634,20 +2626,29 @@ public partial class bitrue : Exchange
         }
         object response = await this.spotV1PrivateGetWithdrawHistory(this.extend(request, parameters));
         //
-        //     {
-        //         "code": 200,
-        //         "msg": "succ",
-        //         "data": {
-        //             "msg": null,
-        //             "amount": 1000,
-        //             "fee": 1,
-        //             "ctime": null,
-        //             "coin": "usdt_erc20",
-        //             "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83"
-        //         }
-        //     }
+        //    {
+        //        "code": 200,
+        //        "msg": "succ",
+        //        "data": [
+        //            {
+        //                "id": 183745,
+        //                "symbol": "usdt_erc20",
+        //                "amount": "8.4000000000000000",
+        //                "fee": "1.6000000000000000",
+        //                "payAmount": "0.0000000000000000",
+        //                "createdAt": 1595336441000,
+        //                "updatedAt": 1595336576000,
+        //                "addressFrom": "",
+        //                "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83",
+        //                "txid": "",
+        //                "confirmations": 0,
+        //                "status": 6,
+        //                "tagType": null
+        //            }
+        //        ]
+        //    }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransactions(data, currency);
     }
 
@@ -2859,7 +2860,7 @@ public partial class bitrue : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTransaction(data, currency);
     }
 
@@ -2929,7 +2930,7 @@ public partial class bitrue : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.spotV1PublicGetExchangeInfo(parameters);
-        object coins = this.safeValue(response, "coins");
+        object coins = this.safeList(response, "coins");
         return this.parseDepositWithdrawFees(coins, codes, "coin");
     }
 
@@ -2973,7 +2974,7 @@ public partial class bitrue : Exchange
         };
     }
 
-    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    public async override Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
@@ -3033,7 +3034,7 @@ public partial class bitrue : Exchange
         //         }]
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTransfers(data, currency, since, limit);
     }
 
@@ -3071,7 +3072,7 @@ public partial class bitrue : Exchange
         //         'data': null
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTransfer(data, currency);
     }
 
@@ -3118,15 +3119,28 @@ public partial class bitrue : Exchange
         return response;
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
+        //
+        // setMargin
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "success"
+        //         "data": null
+        //     }
+        //
         return new Dictionary<string, object>() {
             { "info", data },
-            { "type", null },
-            { "amount", null },
-            { "code", null },
             { "symbol", getValue(market, "symbol") },
+            { "type", null },
+            { "marginMode", "isolated" },
+            { "amount", null },
+            { "total", null },
+            { "code", null },
             { "status", null },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 
@@ -3228,6 +3242,12 @@ public partial class bitrue : Exchange
                 object signMessage = add(add(timestamp, method), signPath);
                 if (isTrue(isEqual(method, "GET")))
                 {
+                    object keys = new List<object>(((IDictionary<string,object>)parameters).Keys);
+                    object keysLength = getArrayLength(keys);
+                    if (isTrue(isGreaterThan(keysLength, 0)))
+                    {
+                        signMessage = add(signMessage, add("?", this.urlencode(parameters)));
+                    }
                     object signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256);
                     headers = new Dictionary<string, object>() {
                         { "X-CH-APIKEY", this.apiKey },
@@ -3241,7 +3261,7 @@ public partial class bitrue : Exchange
                         { "recvWindow", recvWindow },
                     }, parameters);
                     body = this.json(query);
-                    signMessage = add(signMessage, json(body));
+                    signMessage = add(signMessage, body);
                     object signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256);
                     headers = new Dictionary<string, object>() {
                         { "Content-Type", "application/json" },

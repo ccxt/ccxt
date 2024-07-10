@@ -1,5 +1,6 @@
+import { Exchange } from "../../../ccxt";
 
-async function testSignIn (exchange, skippedProperties) {
+async function testSignIn (exchange: Exchange, skippedProperties: object) {
     const method = 'signIn';
     if (exchange.has[method]) {
         await exchange.signIn ();

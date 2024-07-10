@@ -189,7 +189,7 @@ public partial class lbank : ccxt.lbank
         //          },
         //          type: 'kbar',
         //          pair: 'btc_usdt',
-        //          TS: '2022-10-02T12:44:15.864'
+        //          TS: '2022-10-02T12:44:15.865'
         //      }
         //
         object marketId = this.safeString(message, "pair");
@@ -235,7 +235,7 @@ public partial class lbank : ccxt.lbank
         }
     }
 
-    public async virtual Task<object> fetchTickerWs(object symbol, object parameters = null)
+    public async override Task<object> fetchTickerWs(object symbol, object parameters = null)
     {
         /**
         * @method
@@ -451,7 +451,7 @@ public partial class lbank : ccxt.lbank
         //             "volume":6.3607,
         //             "amount":77148.9303,
         //             "price":12129,
-        //             "direction":"sell",
+        //             "direction":"sell", // or "sell_market"
         //             "TS":"2019-06-28T19:55:49.460"
         //         },
         //         "type":"trade",
@@ -495,7 +495,7 @@ public partial class lbank : ccxt.lbank
         //        "volume":6.3607,
         //        "amount":77148.9303,
         //        "price":12129,
-        //        "direction":"sell",
+        //        "direction":"sell", // or "sell_market"
         //        "TS":"2019-06-28T19:55:49.460"
         //    }
         //
@@ -505,6 +505,8 @@ public partial class lbank : ccxt.lbank
         {
             timestamp = this.parse8601(datetime);
         }
+        object side = this.safeString2(trade, "direction", 3);
+        side = ((string)side).Replace((string)"_market", (string)"");
         return this.safeTrade(new Dictionary<string, object>() {
             { "timestamp", timestamp },
             { "datetime", datetime },
@@ -513,7 +515,7 @@ public partial class lbank : ccxt.lbank
             { "order", null },
             { "type", null },
             { "takerOrMaker", null },
-            { "side", this.safeString2(trade, "direction", 3) },
+            { "side", side },
             { "price", this.safeString2(trade, "price", 1) },
             { "amount", this.safeString2(trade, "volume", 2) },
             { "cost", this.safeString(trade, "amount") },
@@ -829,12 +831,12 @@ public partial class lbank : ccxt.lbank
         object orderBook = this.safeValue(message, "depth", message);
         object datetime = this.safeString(message, "TS");
         object timestamp = this.parse8601(datetime);
-        object orderbook = this.safeValue(this.orderbooks, symbol);
-        if (isTrue(isEqual(orderbook, null)))
+        // let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
-            orderbook = this.orderBook(new Dictionary<string, object>() {});
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
         }
+        object orderbook = getValue(this.orderbooks, symbol);
         object snapshot = this.parseOrderBook(orderBook, symbol, timestamp, "bids", "asks");
         (orderbook as IOrderBook).reset(snapshot);
         object messageHash = add("orderbook:", symbol);

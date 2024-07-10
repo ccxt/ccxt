@@ -426,7 +426,8 @@ public partial class bitopro : ccxt.bitopro
                 } },
             } },
         };
-        this.options = this.extend(defaultOptions, this.options);
+        // this.options = this.extend (defaultOptions, this.options);
+        this.extendExchangeOptions(defaultOptions);
         object originalHeaders = getValue(getValue(getValue(this.options, "ws"), "options"), "headers");
         object headers = new Dictionary<string, object>() {
             { "X-BITOPRO-API", "ccxt" },

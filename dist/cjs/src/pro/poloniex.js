@@ -103,7 +103,7 @@ class poloniex extends poloniex$1 {
                 },
             };
             const message = this.extend(request, params);
-            future = await this.watch(url, messageHash, message);
+            future = await this.watch(url, messageHash, message, messageHash);
             //
             //    {
             //        "data": {
@@ -190,7 +190,7 @@ class poloniex extends poloniex$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the poloniex api endpoint
          * @param {string} [params.timeInForce] GTC (default), IOC, FOK
          * @param {string} [params.clientOrderId] Maximum 64-character length.*
@@ -314,7 +314,7 @@ class poloniex extends poloniex$1 {
         //        }]
         //    }
         //
-        const messageHash = this.safeInteger(message, 'id');
+        const messageHash = this.safeString(message, 'id');
         const data = this.safeValue(message, 'data', []);
         const orders = [];
         for (let i = 0; i < data.length; i++) {
@@ -652,8 +652,8 @@ class poloniex extends poloniex$1 {
             'type': this.safeStringLower(trade, 'type'),
             'side': this.safeStringLower2(trade, 'takerSide', 'side'),
             'takerOrMaker': takerMaker,
-            'price': this.omitZero(this.safeNumber2(trade, 'tradePrice', 'price')),
-            'amount': this.omitZero(this.safeNumber2(trade, 'filledQuantity', 'quantity')),
+            'price': this.omitZero(this.safeString2(trade, 'tradePrice', 'price')),
+            'amount': this.omitZero(this.safeString2(trade, 'filledQuantity', 'quantity')),
             'cost': this.safeString2(trade, 'amount', 'filledAmount'),
             'fee': {
                 'rate': undefined,

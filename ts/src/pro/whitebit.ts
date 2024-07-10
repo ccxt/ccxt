@@ -5,7 +5,7 @@ import whitebitRest from '../whitebit.js';
 import { Precise } from '../base/Precise.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -119,15 +119,19 @@ export default class whitebit extends whitebitRest {
             const symbol = market['symbol'];
             const messageHash = 'candles' + ':' + symbol;
             const parsed = this.parseOHLCV (data, market);
-            this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol);
-            let stored = this.ohlcvs[symbol];
-            if (stored === undefined) {
-                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-                stored = new ArrayCacheByTimestamp (limit);
-                this.ohlcvs[symbol] = stored;
+            // this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol);
+            if (!(symbol in this.ohlcvs)) {
+                this.ohlcvs[symbol] = {};
             }
-            stored.append (parsed);
-            client.resolve (stored, messageHash);
+            // let stored = this.ohlcvs[symbol]['unknown']; // we don't know the timeframe but we need to respect the type
+            if (!('unknown' in this.ohlcvs[symbol])) {
+                const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+                const stored = new ArrayCacheByTimestamp (limit);
+                this.ohlcvs[symbol]['unknown'] = stored;
+            }
+            const ohlcv = this.ohlcvs[symbol]['unknown'];
+            ohlcv.append (parsed);
+            client.resolve (ohlcv, messageHash);
         }
         return message;
     }
@@ -170,6 +174,7 @@ export default class whitebit extends whitebitRest {
         //     "params":[
         //        true,
         //        {
+        //           "timestamp": 1708679568.940867,
         //           "asks":[
         //              [ "21252.45","0.01957"],
         //              ["21252.55","0.126205"],
@@ -206,13 +211,14 @@ export default class whitebit extends whitebitRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const data = this.safeValue (params, 1);
-        let orderbook = undefined;
-        if (symbol in this.orderbooks) {
-            orderbook = this.orderbooks[symbol];
-        } else {
-            orderbook = this.orderBook ();
-            this.orderbooks[symbol] = orderbook;
+        const timestamp = this.safeTimestamp (data, 'timestamp');
+        if (!(symbol in this.orderbooks)) {
+            const ob = this.orderBook ();
+            this.orderbooks[symbol] = ob;
         }
+        const orderbook = this.orderbooks[symbol];
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
         if (isSnapshot) {
             const snapshot = this.parseOrderBook (data, symbol);
             orderbook.reset (snapshot);
@@ -638,7 +644,7 @@ export default class whitebit extends whitebitRest {
     }
 
     parseWsOrderType (status) {
-        const statuses = {
+        const statuses: Dict = {
             '1': 'limit',
             '2': 'market',
             '202': 'market',
@@ -717,7 +723,7 @@ export default class whitebit extends whitebitRest {
     async watchPublic (messageHash, method, reqParams = [], params = {}) {
         const url = this.urls['api']['ws'];
         const id = this.nonce ();
-        const request = {
+        const request: Dict = {
             'id': id,
             'method': method,
             'params': reqParams,
@@ -734,7 +740,7 @@ export default class whitebit extends whitebitRest {
         let request = undefined;
         let marketIds = [];
         if (client === undefined) {
-            const subscription = {};
+            const subscription: Dict = {};
             const market = this.market (symbol);
             const marketId = market['id'];
             subscription[marketId] = true;
@@ -769,7 +775,7 @@ export default class whitebit extends whitebitRest {
                 if (isNested) {
                     marketIdsNew = [ marketIdsNew ];
                 }
-                const resubRequest = {
+                const resubRequest: Dict = {
                     'id': id,
                     'method': method,
                     'params': marketIdsNew,
@@ -787,7 +793,7 @@ export default class whitebit extends whitebitRest {
         await this.authenticate ();
         const url = this.urls['api']['ws'];
         const id = this.nonce ();
-        const request = {
+        const request: Dict = {
             'id': id,
             'method': method,
             'params': reqParams,
@@ -812,7 +818,7 @@ export default class whitebit extends whitebitRest {
             //
             const token = this.safeString (authToken, 'websocket_token');
             const id = this.nonce ();
-            const request = {
+            const request: Dict = {
                 'id': id,
                 'method': 'authorize',
                 'params': [
@@ -820,7 +826,7 @@ export default class whitebit extends whitebitRest {
                     'public',
                 ],
             };
-            const subscription = {
+            const subscription: Dict = {
                 'id': id,
                 'method': this.handleAuthenticate,
             };
@@ -881,19 +887,17 @@ export default class whitebit extends whitebitRest {
         if (!this.handleErrorMessage (client, message)) {
             return;
         }
-        const result = this.safeValue (message, 'result', {});
-        if (result !== undefined) {
-            if (result === 'pong') {
-                this.handlePong (client, message);
-                return;
-            }
+        const result = this.safeString (message, 'result');
+        if (result === 'pong') {
+            this.handlePong (client, message);
+            return;
         }
         const id = this.safeInteger (message, 'id');
         if (id !== undefined) {
             this.handleSubscriptionStatus (client, message, id);
             return;
         }
-        const methods = {
+        const methods: Dict = {
             'market_update': this.handleTicker,
             'trades_update': this.handleTrades,
             'depth_update': this.handleOrderBook,

@@ -11,44 +11,49 @@ public partial class indodax : Exchange
 {
     public indodax (object args = null): base(args) {}
 
-    public async Task<object> publicGetServerTime (object parameters = null)
+    public async Task<object> publicGetApiServerTime (object parameters = null)
     {
-        return await this.callAsync ("publicGetServerTime",parameters);
+        return await this.callAsync ("publicGetApiServerTime",parameters);
     }
 
-    public async Task<object> publicGetPairs (object parameters = null)
+    public async Task<object> publicGetApiPairs (object parameters = null)
     {
-        return await this.callAsync ("publicGetPairs",parameters);
+        return await this.callAsync ("publicGetApiPairs",parameters);
     }
 
-    public async Task<object> publicGetPriceIncrements (object parameters = null)
+    public async Task<object> publicGetApiPriceIncrements (object parameters = null)
     {
-        return await this.callAsync ("publicGetPriceIncrements",parameters);
+        return await this.callAsync ("publicGetApiPriceIncrements",parameters);
     }
 
-    public async Task<object> publicGetSummaries (object parameters = null)
+    public async Task<object> publicGetApiSummaries (object parameters = null)
     {
-        return await this.callAsync ("publicGetSummaries",parameters);
+        return await this.callAsync ("publicGetApiSummaries",parameters);
     }
 
-    public async Task<object> publicGetTickerAll (object parameters = null)
+    public async Task<object> publicGetApiTickerPair (object parameters = null)
     {
-        return await this.callAsync ("publicGetTickerAll",parameters);
+        return await this.callAsync ("publicGetApiTickerPair",parameters);
     }
 
-    public async Task<object> publicGetPairTicker (object parameters = null)
+    public async Task<object> publicGetApiTickerAll (object parameters = null)
     {
-        return await this.callAsync ("publicGetPairTicker",parameters);
+        return await this.callAsync ("publicGetApiTickerAll",parameters);
     }
 
-    public async Task<object> publicGetPairTrades (object parameters = null)
+    public async Task<object> publicGetApiTradesPair (object parameters = null)
     {
-        return await this.callAsync ("publicGetPairTrades",parameters);
+        return await this.callAsync ("publicGetApiTradesPair",parameters);
     }
 
-    public async Task<object> publicGetPairDepth (object parameters = null)
+    public async Task<object> publicGetApiDepthPair (object parameters = null)
     {
-        return await this.callAsync ("publicGetPairDepth",parameters);
+        return await this.callAsync ("publicGetApiDepthPair",parameters);
+    }
+
+    public async Task<object> publicGetTradingviewHistoryV2 (object parameters = null)
+    {
+        return await this.callAsync ("publicGetTradingviewHistoryV2",parameters);
     }
 
     public async Task<object> privatePostGetInfo (object parameters = null)

@@ -11,11 +11,13 @@ import {
     CountedBids,
     IndexedAsks,
     IndexedBids,
+    IOrderBookSide
     // IncrementalAsks,
     // IncrementalBids,
     // IncrementalIndexedAsks,
     // IncrementalIndexedBids, // check this
 } from './OrderBookSide.js';
+import { Int, Str } from '../types.js';
 
 // ----------------------------------------------------------------------------
 // overwrites absolute volumes at price levels
@@ -27,6 +29,18 @@ interface CustomOrderBookProp  {
 class OrderBook implements CustomOrderBookProp {
 
     cache = [] // make prop visible so we use typed OrderBooks
+
+    asks: IOrderBookSide<any>;
+
+    bids: IOrderBookSide<any>;
+
+    timestamp: Int;
+
+    datetime: Str;
+
+    nonce: Int;
+
+    symbol: Str;
 
     constructor (snapshot = {}, depth = undefined) {
 

@@ -64,7 +64,7 @@ class coincheck extends \ccxt\async\coincheck {
                 'type' => 'subscribe',
                 'channel' => $market['id'] . '-orderbook',
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             return $orderbook->limit ();
         }) ();
@@ -127,7 +127,7 @@ class coincheck extends \ccxt\async\coincheck {
                 'type' => 'subscribe',
                 'channel' => $market['id'] . '-trades',
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             $trades = Async\await($this->watch($url, $messageHash, $message, $messageHash));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
@@ -168,7 +168,7 @@ class coincheck extends \ccxt\async\coincheck {
         $client->resolve ($stored, $messageHash);
     }
 
-    public function parse_ws_trade($trade, ?array $market = null): array {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         //     array(
         //         "1663318663", // transaction $timestamp (unix time)

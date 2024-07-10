@@ -321,6 +321,11 @@ public partial class mexc : Exchange
         return await this.callAsync ("spotPrivatePostCapitalWithdrawApply",parameters);
     }
 
+    public async Task<object> spotPrivatePostCapitalWithdraw (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivatePostCapitalWithdraw",parameters);
+    }
+
     public async Task<object> spotPrivatePostCapitalTransfer (object parameters = null)
     {
         return await this.callAsync ("spotPrivatePostCapitalTransfer",parameters);
@@ -389,6 +394,11 @@ public partial class mexc : Exchange
     public async Task<object> spotPrivateDeleteUserDataStream (object parameters = null)
     {
         return await this.callAsync ("spotPrivateDeleteUserDataStream",parameters);
+    }
+
+    public async Task<object> spotPrivateDeleteCapitalWithdraw (object parameters = null)
+    {
+        return await this.callAsync ("spotPrivateDeleteCapitalWithdraw",parameters);
     }
 
     public async Task<object> contractPublicGetPing (object parameters = null)

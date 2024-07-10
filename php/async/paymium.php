@@ -162,12 +162,12 @@ class paymium extends Exchange {
             $request = array(
                 'currency' => $market['id'],
             );
-            $response = Async\await($this->publicGetDataCurrencyDepth (array_merge($request, $params)));
+            $response = Async\await($this->publicGetDataCurrencyDepth ($this->extend($request, $params)));
             return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'price', 'amount');
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // {
         //     "high":"33740.82",
@@ -230,7 +230,7 @@ class paymium extends Exchange {
             $request = array(
                 'currency' => $market['id'],
             );
-            $ticker = Async\await($this->publicGetDataCurrencyTicker (array_merge($request, $params)));
+            $ticker = Async\await($this->publicGetDataCurrencyTicker ($this->extend($request, $params)));
             //
             // {
             //     "high":"33740.82",
@@ -253,7 +253,7 @@ class paymium extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         $timestamp = $this->safe_timestamp($trade, 'created_at_int');
         $id = $this->safe_string($trade, 'uuid');
         $market = $this->safe_market(null, $market);
@@ -294,7 +294,7 @@ class paymium extends Exchange {
             $request = array(
                 'currency' => $market['id'],
             );
-            $response = Async\await($this->publicGetDataCurrencyTrades (array_merge($request, $params)));
+            $response = Async\await($this->publicGetDataCurrencyTrades ($this->extend($request, $params)));
             return $this->parse_trades($response, $market, $since, $limit);
         }) ();
     }
@@ -335,7 +335,7 @@ class paymium extends Exchange {
             $request = array(
                 'address' => $code,
             );
-            $response = Async\await($this->privateGetUserAddressesAddress (array_merge($request, $params)));
+            $response = Async\await($this->privateGetUserAddressesAddress ($this->extend($request, $params)));
             //
             //     {
             //         "address" => "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
@@ -402,7 +402,7 @@ class paymium extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
@@ -417,7 +417,7 @@ class paymium extends Exchange {
             if ($type !== 'market') {
                 $request['price'] = $price;
             }
-            $response = Async\await($this->privatePostUserOrders (array_merge($request, $params)));
+            $response = Async\await($this->privatePostUserOrders ($this->extend($request, $params)));
             return $this->safe_order(array(
                 'info' => $response,
                 'id' => $response['uuid'],
@@ -439,7 +439,10 @@ class paymium extends Exchange {
             $request = array(
                 'uuid' => $id,
             );
-            return Async\await($this->privateDeleteUserOrdersUuidCancel (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteUserOrdersUuidCancel ($this->extend($request, $params)));
+            return $this->safe_order(array(
+                'info' => $response,
+            ));
         }) ();
     }
 
@@ -469,7 +472,7 @@ class paymium extends Exchange {
                 'email' => $toAccount,
                 // 'comment' => 'a small note explaining the transfer'
             );
-            $response = Async\await($this->privatePostUserEmailTransfers (array_merge($request, $params)));
+            $response = Async\await($this->privatePostUserEmailTransfers ($this->extend($request, $params)));
             //
             //     {
             //         "uuid" => "968f4580-e26c-4ad8-8bcd-874d23d55296",
@@ -506,7 +509,7 @@ class paymium extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //     {
         //         "uuid" => "968f4580-e26c-4ad8-8bcd-874d23d55296",
@@ -558,7 +561,7 @@ class paymium extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             'executed' => 'ok',
             // what are the other $statuses?
@@ -599,7 +602,7 @@ class paymium extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }
