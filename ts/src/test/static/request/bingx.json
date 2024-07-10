@@ -1242,6 +1242,14 @@
                 "input": [
                     "BTC/USDT"
                 ]
+            },
+            {
+                "description": "Inverse swap fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/market/ticker?symbol=SOL-USD&timestamp=1720647610512",
+                "input": [
+                  "SOL/USD:SOL"
+                ]
             }
         ],
         "fetchTickers": [
