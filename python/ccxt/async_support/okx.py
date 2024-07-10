@@ -950,6 +950,15 @@ class okx(Exchange, ImplicitAPI):
                     '70010': BadRequest,  # Timestamp parameters need to be in Unix timestamp format in milliseconds.
                     '70013': BadRequest,  # endTs needs to be bigger than or equal to beginTs.
                     '70016': BadRequest,  # Please specify your instrument settings for at least one instType.
+                    '1009': BadRequest,  # Request message exceeds the maximum frame length
+                    '4001': AuthenticationError,  # Login Failed
+                    '4002': BadRequest,  # Invalid Request
+                    '4003': RateLimitExceeded,  # APIKey subscription amount exceeds the limit 100
+                    '4004': NetworkError,  # No data received in 30s
+                    '4005': ExchangeNotAvailable,  # Buffer is full, cannot write data
+                    '4006': BadRequest,  # Abnormal disconnection
+                    '4007': AuthenticationError,  # API key has been updated or deleted. Please reconnect.
+                    '4008': RateLimitExceeded,  # The number of subscribed channels exceeds the maximum limit.
                 },
                 'broad': {
                     'Internal Server Error': ExchangeNotAvailable,  # {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"Internal Server Error","msg":"Internal Server Error"}
