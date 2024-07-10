@@ -396,16 +396,23 @@ function assertRoundMinuteTimestamp (exchange: Exchange, skippedProperties: obje
     assert (Precise.stringMod (ts, '60000') === '0', 'timestamp should be a multiple of 60 seconds (1 minute)' + logText);
 }
 
-function jsonReencode (entry: any[]) {
-    // const newArray = [];
-    // for (let i = 0; i < entry.length; i++) {
-    //     const item = entry[i];
-    //     if (item !== undefined) {
-    //         newArray.push (item);
-    //     }
-    // }
-    // return newArray;
-    return JSON.parse (JSON.stringify (entry));
+function redecodeList (entry: any[]) {
+    // return JSON.parse (JSON.stringify (entry)); // transpiler issue in c#, so use manual loop
+    const newArray = [];
+    for (let i = 0; i < entry.length; i++) {
+        newArray.push (entry[i]);
+    }
+    return newArray;
+}
+
+function redecodeDict (entry: any[]) {
+    const newDict = {};
+    const keys = Object.keys (entry);
+    for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+        newDict[key] = entry[key];
+    }
+    return newDict;
 }
 
 export default {
@@ -434,5 +441,6 @@ export default {
     setProxyOptions,
     assertNonEmtpyArray,
     assertRoundMinuteTimestamp,
-    jsonReencode,
+    redecodeList,
+    redecodeDict,
 };
