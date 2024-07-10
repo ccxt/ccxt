@@ -848,9 +848,9 @@ class NewTranspiler {
         }
         const options = { csharpFolder, exchanges }
 
-        // if (!baseOnly && !examplesOnly) {
-        //     await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
-        // }
+        if (!baseOnly && !examplesOnly) {
+            await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, !!(child || exchanges.length))
+        }
 
         // this.transpileExamples(); // disabled for now
 
@@ -920,26 +920,27 @@ class NewTranspiler {
             exchanges = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.ts'))))
         }
 
+        exchanges = ['binance.ts']
         // transpile using webworker
         const allFilesPath = exchanges.map (file => jsFolder + file );
         // const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
         log.blue('[csharp] Transpiling [', exchanges.join(', '), ']');
-        const transpiledFiles =  allFilesPath.map(file => this.transpiler.transpileCSharpByPath(file));
+        const transpiledFiles =  allFilesPath.map(file => this.transpiler.transpileGoByPath(file));
 
         if (!ws) {
             for (let i = 0; i < transpiledFiles.length; i++) {
-                const transpiled = transpiledFiles[i];
-                const exchangeName = exchanges[i].replace('.ts','');
-                const path = EXCHANGE_WRAPPER_FOLDER + exchangeName + '.go';
-                this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes)
+                // const transpiled = transpiledFiles[i];
+                // const exchangeName = exchanges[i].replace('.ts','');
+                // const path = EXCHANGE_WRAPPER_FOLDER + exchangeName + '.go';
+                // this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes)
             }
         } else {
             //
             for (let i = 0; i < transpiledFiles.length; i++) {
-                const transpiled = transpiledFiles[i];
-                const exchangeName = exchanges[i].replace('.ts','');
-                const path = EXCHANGE_WS_WRAPPER_FOLDER + exchangeName + '.go';
-                this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes, true)
+                // const transpiled = transpiledFiles[i];
+                // const exchangeName = exchanges[i].replace('.ts','');
+                // const path = EXCHANGE_WS_WRAPPER_FOLDER + exchangeName + '.go';
+                // this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes, true)
             }
         }
         exchanges.map ((file, idx) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws))
@@ -949,33 +950,33 @@ class NewTranspiler {
         return classes
     }
 
-    createCSharpClass(csharpVersion, ws = false) {
-        const csharpImports = this.getCsharpImports(csharpVersion, ws).join("\n") + "\n\n";
+    createGoExchange(csharpVersion, ws = false) {
+        const goImports = this.getGoImports(csharpVersion, ws).join("\n") + "\n\n";
         let content = csharpVersion.content;
 
-        const baseWsClassRegex = /class\s(\w+)\s+:\s(\w+)/;
-        const baseWsClassExec = baseWsClassRegex.exec(content);
-        const baseWsClass = baseWsClassExec ? baseWsClassExec[2] : '';
+        // const baseWsClassRegex = /class\s(\w+)\s+:\s(\w+)/;
+        // const baseWsClassExec = baseWsClassRegex.exec(content);
+        // const baseWsClass = baseWsClassExec ? baseWsClassExec[2] : '';
         if (!ws) {
-            content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, "public partial class $1 : $2");
+            content = content.replace(/base\./gm, "this.Exchange.");
         } else {
-            const wsParent =  baseWsClass.endsWith('Rest') ? 'ccxt.' + baseWsClass.replace('Rest', '') : baseWsClass;
-            content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, `public partial class $1 : ${wsParent}`);
+            // const wsParent =  baseWsClass.endsWith('Rest') ? 'ccxt.' + baseWsClass.replace('Rest', '') : baseWsClass;
+            // content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, `public partial class $1 : ${wsParent}`);
         }
-        content = content.replace(/binaryMessage.byteLength/gm, 'getValue(binaryMessage, "byteLength")'); // idex tmp fix
+        // content = content.replace(/binaryMessage.byteLength/gm, 'getValue(binaryMessage, "byteLength")'); // idex tmp fix
         // WS fixes
         if (ws) {
-            const wsRegexes = this.getWsRegexes();
-            content = this.regexAll (content, wsRegexes);
-            content = this.replaceImportedRestClasses (content, csharpVersion.imports);
-            const classNameRegex = /public\spartial\sclass\s(\w+)\s:\s(\w+)/gm;
-            const classNameExec = classNameRegex.exec(content);
-            const className = classNameExec ? classNameExec[1] : '';
-            const constructorLine = `\npublic partial class ${className} { public ${className}(object args = null) : base(args) { } }\n`
-            content = constructorLine  + content;
+            // const wsRegexes = this.getWsRegexes();
+            // content = this.regexAll (content, wsRegexes);
+            // content = this.replaceImportedRestClasses (content, csharpVersion.imports);
+            // const classNameRegex = /public\spartial\sclass\s(\w+)\s:\s(\w+)/gm;
+            // const classNameExec = classNameRegex.exec(content);
+            // const className = classNameExec ? classNameExec[1] : '';
+            // const constructorLine = `\npublic partial class ${className} { public ${className}(object args = null) : base(args) { } }\n`
+            // content = constructorLine  + content;
         }
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
-        return csharpImports + content;
+        return goImports + content;
     }
 
     replaceImportedRestClasses (content, imports) {
@@ -1000,7 +1001,7 @@ class NewTranspiler {
 
         const tsMtime = fs.statSync (tsPath).mtime.getTime ()
 
-        const csharp  = this.createCSharpClass (csharpResult, ws)
+        const csharp  = this.createGoExchange (csharpResult, ws)
 
         if (csharpFolder) {
             overwriteFileAndFolder (csharpFolder + csharpFilename, csharp)

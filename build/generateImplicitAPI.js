@@ -9,6 +9,7 @@ const PHP_PATH = './php/abstract/'
 const ASYNC_PHP_PATH = './php/async/abstract/'
 const CSHARP_PATH = './cs/ccxt/api/';
 const PY_PATH = './python/ccxt/abstract/'
+const GO_PATH = './go/ccxt/'
 const IDEN = '    ';
 
 const promisedWriteFile = promisify (fs.writeFile);
@@ -157,6 +158,27 @@ function createImplicitMethodsCSharp(){
 
 //-------------------------------------------------------------------------
 
+function createImplicitMethodsGo(){
+    const exchanges = Object.keys(storedCamelCaseMethods);
+    for (const index in exchanges) {
+        const exchange = exchanges[index];
+        const methodNames = storedCamelCaseMethods[exchange];
+
+        const methods = methodNames.map(method=> {
+            return [
+                `${IDEN}func (this *${exchange}) ${method} (parameters interface{}) interface{} {`,
+                `${IDEN}${IDEN}return this.call ("${method}", parameters);`,
+                `${IDEN}}`,
+                ``,
+            ].join('\n')
+        });
+       storedGoMethods[exchange] = storedGoMethods[exchange].concat (methods)
+    }
+}
+
+
+//-------------------------------------------------------------------------
+
 async function editFiles (path, methods, extension) {
     const exchanges = Object.keys (storedCamelCaseMethods);
     const files = exchanges.map (ex => path + ex + extension)
@@ -177,6 +199,14 @@ async function editAPIFilesCSharp(){
     const exchanges = Object.keys(storedCamelCaseMethods);
     const files = exchanges.map(ex => CSHARP_PATH + ex + '.cs');
     await Promise.all(files.map((path, idx) => promisedWriteFile(path, storedCSharpMethods[exchanges[idx]].join ('\n'))))
+}
+
+// -------------------------------------------------------------------------
+
+async function editAPIFilesGo(){
+    const exchanges = Object.keys(storedCamelCaseMethods);
+    const files = exchanges.map(ex => GO_PATH + ex + '_api.go');
+    await Promise.all(files.map((path, idx) => promisedWriteFile(path, storedGoMethods[exchanges[idx]].join ('\n'))))
 }
 
 //-------------------------------------------------------------------------
@@ -224,11 +254,19 @@ function createCSharpHeader(exchange, parent){
     storedCSharpMethods[exchange.id] = [ getPreamble(), namespace, '', header];
 }
 
+// -------------------------------------------------------------------------
+
+function createGoHeader(exchange, parent){
+    const namespace = 'package ccxt'
+    storedGoMethods[exchange.id] = [ getPreamble(), namespace, ''];
+}
+
 //-------------------------------------------------------------------------
 
 async function main() {
     log.bright.cyan ('Exporting TypeScript implicit api methods')
-    const exchanges = ccxt.exchanges;
+    // const exchanges = ccxt.exchanges;
+    const exchanges = ['binance']; // tmp
     for (const index in exchanges) {
         const exchange = exchanges[index];
         const exchangeClass = ccxt[exchange]
@@ -243,6 +281,7 @@ async function main() {
         createPhpHeader(instance, parent);
         createCSharpHeader(instance, parent);
         createPyHeader(instance, parent);
+        createGoHeader(instance, parent);
 
         storedCamelCaseMethods[exchange] = []
         storedCamelCaseMethods[exchange] = []
@@ -253,6 +292,7 @@ async function main() {
     }
     createImplicitMethodsPyPhp ()
     createImplicitMethodsCSharp()
+    createImplicitMethodsGo()
     await editFiles (TS_PATH, storedTypeScriptMethods, '.ts');
     log.bright.cyan ('TypeScript implicit api methods completed!')
     await editFiles (PHP_PATH, storedPhpMethods, '.php');
@@ -269,6 +309,9 @@ async function main() {
 
     await editFiles (PY_PATH, storedPyMethods, '.py');
     log.bright.cyan ('Python implicit api methods completed!')
+
+    await editAPIFilesGo()
+    log.bright.cyan ('GO implicit api methods completed!')
     await unlinkFiles (JS_PATH, '.js')
     await unlinkFiles (JS_PATH, '.d.ts')
 }
@@ -282,4 +325,5 @@ let storedCSharpMethods = {};
 let storedContext = {};
 let storedPhpMethods = {};
 let storedPyMethods = {};
+let storedGoMethods = {};
 main()
