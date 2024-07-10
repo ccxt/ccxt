@@ -396,6 +396,18 @@ function assertRoundMinuteTimestamp (exchange: Exchange, skippedProperties: obje
     assert (Precise.stringMod (ts, '60000') === '0', 'timestamp should be a multiple of 60 seconds (1 minute)' + logText);
 }
 
+function jsonReencode (entry: any[]) {
+    // const newArray = [];
+    // for (let i = 0; i < entry.length; i++) {
+    //     const item = entry[i];
+    //     if (item !== undefined) {
+    //         newArray.push (item);
+    //     }
+    // }
+    // return newArray;
+    return JSON.parse (JSON.stringify (entry));
+}
+
 export default {
     logTemplate,
     isTemporaryFailure,
@@ -422,4 +434,5 @@ export default {
     setProxyOptions,
     assertNonEmtpyArray,
     assertRoundMinuteTimestamp,
+    jsonReencode,
 };

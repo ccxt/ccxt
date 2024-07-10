@@ -90,6 +90,10 @@ class testMainClass extends baseMainTestClass {
         if (exchange.alias) {
             exitScript (0);
         }
+        // todo: ws orderbook temporary checksum skip for c#
+        if (this.wsTests && this.ext === 'cs') {
+            exchange.options['checksum'] = false;
+        }
         await this.importFiles (exchange);
         assert (Object.keys (this.testFiles).length > 0, 'Test files were not loaded'); // ensure test files are found & filled
         this.expandSettings (exchange);
@@ -101,7 +105,7 @@ class testMainClass extends baseMainTestClass {
     checkIfSpecificTestIsChosen (methodArgv) {
         if (methodArgv !== undefined) {
             const testFileNames = Object.keys (this.testFiles);
-            const possibleMethodNames = methodArgv.split (','); // i.e. `test.ts binance fetchBalance,fetchDeposits`
+            const possibleMethodNames = methodArgv.split (','); // i.e. `test.ts binance fetchBalance(),fetchDeposits()`
             if (possibleMethodNames.length >= 1) {
                 for (let i = 0; i < testFileNames.length; i++) {
                     const testFileName = testFileNames[i];
@@ -227,14 +231,6 @@ class testMainClass extends baseMainTestClass {
     }
 
     async testMethod (methodName: string, exchange: any, args: any[], isPublic: boolean) {
-        // todo: temporary skip for c#
-        if (methodName.indexOf ('OrderBook') >= 0 && this.ext === 'cs') {
-            exchange.options['checksum'] = false;
-        }
-        // todo: temporary skip for php
-        if (methodName.indexOf ('OrderBook') >= 0 && this.ext === 'php') {
-            return;
-        }
         const skippedPropertiesForMethod = this.getSkips (exchange, methodName);
         const isLoadMarkets = (methodName === 'loadMarkets');
         const isFetchCurrencies = (methodName === 'fetchCurrencies');
