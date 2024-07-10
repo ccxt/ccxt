@@ -1,8 +1,12 @@
 package ccxt
 
 import (
+	"encoding/json"
+	"fmt"
+	"math"
 	"reflect"
 	"strings"
+	"time"
 )
 
 func Add(a interface{}, b interface{}) interface{} {
@@ -484,4 +488,324 @@ func GetIndexOf(str interface{}, target interface{}) int {
 	}
 
 	return -1
+}
+
+// IsBool checks if the input is a boolean
+func IsBool(v interface{}) bool {
+	_, ok := v.(bool)
+	return ok
+}
+
+// IsDictionary checks if the input is a map (dictionary in Python)
+func IsDictionary(v interface{}) bool {
+	return reflect.TypeOf(v).Kind() == reflect.Map
+}
+
+// IsString checks if the input is a string
+func IsString(v interface{}) bool {
+	_, ok := v.(string)
+	return ok
+}
+
+// IsInt checks if the input is an integer
+func IsInt(v interface{}) bool {
+	_, ok := v.(int)
+	return ok
+}
+
+// IsFunction checks if the input is a function
+func IsFunction(v interface{}) bool {
+	return reflect.TypeOf(v).Kind() == reflect.Func
+}
+
+func IsNumber(v interface{}) bool {
+	switch v.(type) {
+	case int, int8, int16, int32, int64:
+		return true
+	case uint, uint8, uint16, uint32, uint64:
+		return true
+	case float32, float64:
+		return true
+	default:
+		return false
+	}
+}
+
+func IsObject(v interface{}) bool {
+	kind := reflect.TypeOf(v).Kind()
+	switch kind {
+	case reflect.Array, reflect.Chan, reflect.Func, reflect.Interface,
+		reflect.Map, reflect.Ptr, reflect.Slice, reflect.Struct, reflect.UnsafePointer:
+		return true
+	default:
+		return false
+	}
+}
+
+func ToLower(v interface{}) string {
+	if str, ok := v.(string); ok {
+		return strings.ToLower(str)
+	}
+	return ""
+}
+
+// ToUpper converts a string to uppercase
+func ToUpper(v interface{}) string {
+	if str, ok := v.(string); ok {
+		return strings.ToUpper(str)
+	}
+	return ""
+}
+
+// IsInt checks if the input is an integer
+// func IsInt(v interface{}) bool {
+// 	switch v.(type) {
+// 	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
+// 		return true
+// 	default:
+// 		return false
+// 	}
+// }
+
+// MathFloor returns the largest integer less than or equal to the given number
+func MathFloor(v interface{}) float64 {
+	if num, ok := v.(float64); ok {
+		return math.Floor(num)
+	}
+	return 0
+}
+
+// MathCeil returns the smallest integer greater than or equal to the given number
+func MathCeil(v interface{}) float64 {
+	if num, ok := v.(float64); ok {
+		return math.Ceil(num)
+	}
+	return 0
+}
+
+// MathRound returns the nearest integer, rounding half away from zero
+func MathRound(v interface{}) float64 {
+	if num, ok := v.(float64); ok {
+		return math.Round(num)
+	}
+	return 0
+}
+
+// StartsWith checks if the string starts with the specified prefix
+func StartsWith(v interface{}, prefix interface{}) bool {
+	if str, ok := v.(string); ok {
+		prefixStr := ToString(prefix)
+		return strings.HasPrefix(str, prefixStr)
+	}
+	return false
+}
+
+// EndsWith checks if the string ends with the specified suffix
+func EndsWith(v interface{}, suffix interface{}) bool {
+	if str, ok := v.(string); ok {
+		suffixStr := ToString(suffix)
+		return strings.HasSuffix(str, suffixStr)
+	}
+	return false
+}
+
+// IndexOf returns the index of the first occurrence of a substring
+func IndexOf(v interface{}, substr interface{}) int {
+	if str, ok := v.(string); ok {
+		substrStr := ToString(substr)
+		return strings.Index(str, substrStr)
+	}
+	return -1
+}
+
+// Trim removes leading and trailing whitespace from a string
+func Trim(v interface{}) string {
+	if str, ok := v.(string); ok {
+		return strings.TrimSpace(str)
+	}
+	return ""
+}
+
+// Contains checks if the string contains the specified substring
+func Contains(v interface{}, substr interface{}) bool {
+	if str, ok := v.(string); ok {
+		substrStr := ToString(substr)
+		return strings.Contains(str, substrStr)
+	}
+	return false
+}
+
+func ToString(v interface{}) string {
+	switch v := v.(type) {
+	case string:
+		return v
+	case int, int8, int16, int32, int64:
+		return fmt.Sprintf("%d", v)
+	case uint, uint8, uint16, uint32, uint64:
+		return fmt.Sprintf("%d", v)
+	case float32, float64:
+		return fmt.Sprintf("%f", v)
+	case bool:
+		return fmt.Sprintf("%t", v)
+	default:
+		return fmt.Sprintf("%v", v)
+	}
+}
+
+func Join(slice interface{}, sep interface{}) string {
+	sepStr := ToString(sep)
+	var strSlice []string
+
+	switch v := slice.(type) {
+	case []string:
+		strSlice = v
+	case []interface{}:
+		for _, elem := range v {
+			strSlice = append(strSlice, ToString(elem))
+		}
+	default:
+		return ""
+	}
+
+	return strings.Join(strSlice, sepStr)
+}
+
+// Split splits a string into a slice of substrings separated by a separator
+func Split(str interface{}, sep interface{}) []string {
+	strVal, ok := str.(string)
+	if !ok {
+		return nil
+	}
+
+	sepStr := ToString(sep)
+	return strings.Split(strVal, sepStr)
+}
+
+// ObjectKeys returns the keys of a map as a slice of strings
+func ObjectKeys(v interface{}) []string {
+	val := reflect.ValueOf(v)
+	if val.Kind() != reflect.Map {
+		return nil
+	}
+
+	keys := val.MapKeys()
+	strKeys := make([]string, len(keys))
+	for i, key := range keys {
+		strKeys[i] = ToString(key.Interface())
+	}
+	return strKeys
+}
+
+// ObjectValues returns the values of a map as a slice of interface{}
+func ObjectValues(v interface{}) []interface{} {
+	val := reflect.ValueOf(v)
+	if val.Kind() != reflect.Map {
+		return nil
+	}
+
+	keys := val.MapKeys()
+	values := make([]interface{}, len(keys))
+	for i, key := range keys {
+		values[i] = val.MapIndex(key).Interface()
+	}
+	return values
+}
+
+func JsonParse(jsonStr string) interface{} {
+	var result interface{}
+	err := json.Unmarshal([]byte(jsonStr), &result)
+	if err != nil {
+		return nil
+	}
+	return result
+}
+
+func IsArray(v interface{}) bool {
+	if v == nil {
+		return false
+	}
+	kind := reflect.TypeOf(v).Kind()
+	return kind == reflect.Slice || kind == reflect.Array
+}
+
+func Shift(slice interface{}) (interface{}, interface{}) {
+	sliceVal, ok := castToSlice(slice)
+	if !ok || len(sliceVal) == 0 {
+		return slice, nil
+	}
+	return sliceVal[1:], sliceVal[0]
+}
+
+// Reverse reverses the elements of a slice in place
+func Reverse(slice interface{}) interface{} {
+	sliceVal, ok := castToSlice(slice)
+	if !ok {
+		return slice
+	}
+	for i, j := 0, len(sliceVal)-1; i < j; i, j = i+1, j-1 {
+		sliceVal[i], sliceVal[j] = sliceVal[j], sliceVal[i]
+	}
+	return sliceVal
+}
+
+// Pop removes the last element from a slice and returns the new slice and the removed element
+func Pop(slice interface{}) (interface{}, interface{}) {
+	sliceVal, ok := castToSlice(slice)
+	if !ok || len(sliceVal) == 0 {
+		return slice, nil
+	}
+	return sliceVal[:len(sliceVal)-1], sliceVal[len(sliceVal)-1]
+}
+
+// Helper function to cast interface{} to []interface{}
+func castToSlice(slice interface{}) ([]interface{}, bool) {
+	val := reflect.ValueOf(slice)
+	if val.Kind() != reflect.Slice {
+		return nil, false
+	}
+
+	sliceVal := make([]interface{}, val.Len())
+	for i := 0; i < val.Len(); i++ {
+		sliceVal[i] = val.Index(i).Interface()
+	}
+	return sliceVal, true
+}
+
+func Replace(input interface{}, old interface{}, new interface{}) string {
+	str := ToString(input)
+	oldStr := ToString(old)
+	newStr := ToString(new)
+	return strings.ReplaceAll(str, oldStr, newStr)
+}
+
+// PadEnd pads the input string on the right with padStr until it reaches the specified length
+func PadEnd(input interface{}, length int, padStr interface{}) string {
+	str := ToString(input)
+	pad := ToString(padStr)
+	for len(str) < length {
+		str += pad
+	}
+	return str[:length]
+}
+
+// PadStart pads the input string on the left with padStr until it reaches the specified length
+func PadStart(input interface{}, length int, padStr interface{}) string {
+	str := ToString(input)
+	pad := ToString(padStr)
+	for len(str) < length {
+		str = pad + str
+	}
+	return str[len(str)-length:]
+}
+
+// DateNow returns the current date and time as a string
+func DateNow() string {
+	return time.Now().Format(time.RFC3339)
+}
+
+func GetArg(v []interface{}, index int, def interface{}) interface{} {
+	if len(v) <= index {
+		return def
+	}
+	return v[index]
 }

@@ -679,29 +679,26 @@ class NewTranspiler {
 
         // ---------------------------------------------------------------------
 
-        function csharpMakeErrorClassFile (name, parent) {
+        function GoMakeErrorFile (name, parent) {
             const exception =
-`   public class ${name} : ${parent}
-    {
-        public ${name}() : base() { }
-        public ${name}(string message) : base(message) { }
-        public ${name}(string message, ${parent} inner) : base(message, inner) { }
+`   func ${name}(v ...interface{}) interface{} {
+        return NewError("${name}", v...)
     }`;
             return exception
         }
 
-            const csharpBaseError =
-`   public class BaseError : Exception
-    {
-        public BaseError() : base() { }
-        public BaseError(string message) : base(message) { }
-        public BaseError(string message, Exception inner) : base(message, inner) { }
-    }`;
+//             const csharpBaseError =
+// `   public class BaseError : Exception
+//     {
+//         public BaseError() : base() { }
+//         public BaseError(string message) : base(message) { }
+//         public BaseError(string message, Exception inner) : base(message, inner) { }
+//     }`;
 
         // const pythonExports = [ 'error_hierarchy', 'BaseError' ]
         const csharpBody = undefined;
-        const csharpErrors = intellisense (root as any, 'BaseError', csharpMakeErrorClassFile, undefined)
-        const csharpBodyIntellisense = '\nnamespace ccxt;\n' + this.createGeneratedHeader().join('\n') + '\n' + csharpBaseError + '\n' + csharpErrors.join ('\n') + '\n'
+        const csharpErrors = intellisense (root as any, 'BaseError', GoMakeErrorFile, undefined)
+        const csharpBodyIntellisense = '\package ccxt\n' + this.createGeneratedHeader().join('\n') + '\n' + csharpErrors.join ('\n') + '\n'
         const csharpFile = ""
         if (fs.existsSync (ERRORS_FILE)) {
             log.bright.cyan (message, (ERRORS_FILE as any).yellow)
@@ -874,7 +871,7 @@ class NewTranspiler {
 
         // this.transpileTests()
 
-        // this.transpileErrorHierarchy ()
+        this.transpileErrorHierarchy ()
 
         log.bright.green ('Transpiled successfully.')
     }
