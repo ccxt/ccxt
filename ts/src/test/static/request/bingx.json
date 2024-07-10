@@ -1274,6 +1274,17 @@
                         "ETH/USDT:USDT"
                     ]
                 ]
+            },
+            {
+                "description": "Inverse swap fetch tickers",
+                "method": "fetchTickers",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/market/ticker?timestamp=1720648132166",
+                "input": [
+                  null,
+                  {
+                    "subType": "inverse"
+                  }
+                ]
             }
         ],
         "fetchOHLCV": [
