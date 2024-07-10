@@ -451,14 +451,14 @@ public partial class bingx : Exchange
         return await this.callAsync ("cswapV1PrivatePostTradeLeverage",parameters);
     }
 
-    public async Task<object> cswapV1PrivatePostTradeAllOpenOrders (object parameters = null)
-    {
-        return await this.callAsync ("cswapV1PrivatePostTradeAllOpenOrders",parameters);
-    }
-
     public async Task<object> cswapV1PrivatePostTradeCloseAllPositions (object parameters = null)
     {
         return await this.callAsync ("cswapV1PrivatePostTradeCloseAllPositions",parameters);
+    }
+
+    public async Task<object> cswapV1PrivateDeleteTradeAllOpenOrders (object parameters = null)
+    {
+        return await this.callAsync ("cswapV1PrivateDeleteTradeAllOpenOrders",parameters);
     }
 
     public async Task<object> contractV1PrivateGetAllPosition (object parameters = null)
