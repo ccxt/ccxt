@@ -741,7 +741,7 @@
         ],
         "cancelAllOrders": [
             {
-                "description": "Swap cancel all orders",
+                "description": "Linear swap cancel all orders",
                 "method": "cancelAllOrders",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/allOpenOrders?symbol=BTC-USDT&timestamp=1699071702130&signature=581d72f82f5c1c7d133bd0556f0513ae5f22445207a9e49babf5d13d70a421b4",
                 "input": [
@@ -749,7 +749,7 @@
                 ]
             },
             {
-                "description": "Cancel swap orders",
+                "description": "Linear swap cancel all orders",
                 "method": "cancelAllOrders",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/allOpenOrders?symbol=LTC-USDT&timestamp=1699458295121&signature=c2bdfd0494cee5e13259629af9f815637a9a42ed87fd47a2eb3b552c0574d945",
                 "input": [
@@ -757,11 +757,19 @@
                 ]
             },
             {
-                "description": "cancel spot orders",
+                "description": "Spot cancel all orders",
                 "method": "cancelAllOrders",
                 "url": "https://open-api.bingx.com/openApi/spot/v1/trade/cancelOpenOrders?symbol=LTC-USDT&timestamp=1703847561251&signature=e2c804484ea920957823019aed0ab49073125407426079dea637eef341ab0dc8",
                 "input": [
                     "LTC/USDT"
+                ]
+            },
+            {
+                "description": "Inverse swap cancel all orders",
+                "method": "cancelAllOrders",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/allOpenOrders?symbol=SOL-USD&timestamp=1720501467377&signature=19add2557b74a8a1803773daa42713b0a8862423abf6b68b6f7840ebdf1e2886",
+                "input": [
+                  "SOL/USD:SOL"
                 ]
             }
         ],
