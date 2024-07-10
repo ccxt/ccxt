@@ -948,6 +948,7 @@ export default class woo extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.marginMode] *for swap markets only* 'cross' or 'isolated', default 'cross'
          * @param {float} [params.triggerPrice] The price a trigger order is triggered at
          * @param {object} [params.takeProfit] *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
          * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
@@ -970,6 +971,11 @@ export default class woo extends Exchange {
             'symbol': market['id'],
             'side': orderSide,
         };
+        let marginMode: Str = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+        if (marginMode !== undefined) {
+            request['margin_mode'] = this.encodeMarginMode (marginMode);
+        }
         const stopPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
         const stopLoss = this.safeValue (params, 'stopLoss');
         const takeProfit = this.safeValue (params, 'takeProfit');
@@ -1121,6 +1127,14 @@ export default class woo extends Exchange {
         const order = this.parseOrder (response, market);
         order['type'] = type;
         return order;
+    }
+
+    encodeMarginMode (mode) {
+        const modes = {
+            'cross': 'CROSS',
+            'isolated': 'ISOLATED',
+        };
+        return this.safeString (modes, mode, mode);
     }
 
     async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
@@ -2998,24 +3012,54 @@ export default class woo extends Exchange {
         //
         //     {
         //         "success": true,
-        //         "data": {
+        //         "data":
+        //         {
         //             "positions": [
         //                 {
-        //                     "symbol": "0_symbol",
-        //                     "holding": 1,
-        //                     "pendingLongQty": 0,
-        //                     "pendingShortQty": 1,
-        //                     "settlePrice": 1,
-        //                     "averageOpenPrice": 1,
-        //                     "pnl24H": 1,
-        //                     "fee24H": 1,
-        //                     "markPrice": 1,
-        //                     "estLiqPrice": 1,
-        //                     "timestamp": 12321321
+        //                     "symbol": "PERP_ETH_USDT",
+        //                     "holding": -1.0,
+        //                     "pendingLongQty": 0.0,
+        //                     "pendingShortQty": 0.0,
+        //                     "settlePrice": 3143.2,
+        //                     "averageOpenPrice": 3143.2,
+        //                     "pnl24H": 0.0,
+        //                     "fee24H": 1.5716,
+        //                     "markPrice": 3134.97984158,
+        //                     "estLiqPrice": 3436.176349,
+        //                     "timestamp": 1720628031.463,
+        //                     "adlQuantile": 5,
+        //                     "positionSide": "BOTH",
+        //                     "marginMode": "ISOLATED",
+        //                     "isolatedMarginToken": "USDT",
+        //                     "isolatedMarginAmount": 314.62426,
+        //                     "isolatedFrozenLong": 0.0,
+        //                     "isolatedFrozenShort": 0.0,
+        //                     "leverage": 10
+        //                 },
+        //                 {
+        //                     "symbol": "PERP_SOL_USDT",
+        //                     "holding": -1.0,
+        //                     "pendingLongQty": 0.0,
+        //                     "pendingShortQty": 0.0,
+        //                     "settlePrice": 141.89933923,
+        //                     "averageOpenPrice": 171.38,
+        //                     "pnl24H": 0.0,
+        //                     "fee24H": 0.0,
+        //                     "markPrice": 141.65155427,
+        //                     "estLiqPrice": 4242.73548551,
+        //                     "timestamp": 1720616702.68,
+        //                     "adlQuantile": 5,
+        //                     "positionSide": "BOTH",
+        //                     "marginMode": "CROSS",
+        //                     "isolatedMarginToken": "",
+        //                     "isolatedMarginAmount": 0.0,
+        //                     "isolatedFrozenLong": 0.0,
+        //                     "isolatedFrozenShort": 0.0,
+        //                     "leverage": 10
         //                 }
         //             ]
         //         },
-        //         "timestamp": 1673323880342
+        //         "timestamp": 1720628675078
         //     }
         //
         const result = this.safeDict (response, 'data', {});
@@ -3026,18 +3070,26 @@ export default class woo extends Exchange {
     parsePosition (position: Dict, market: Market = undefined) {
         //
         //     {
-        //         "symbol": "0_symbol",
-        //         "holding": 1,
-        //         "pendingLongQty": 0,
-        //         "pendingShortQty": 1,
-        //         "settlePrice": 1,
-        //         "averageOpenPrice": 1,
-        //         "pnl24H": 1,
-        //         "fee24H": 1,
-        //         "markPrice": 1,
-        //         "estLiqPrice": 1,
-        //         "timestamp": 12321321
-        //     }
+        //         "symbol": "PERP_ETH_USDT",
+        //         "holding": -1.0,
+        //         "pendingLongQty": 0.0,
+        //         "pendingShortQty": 0.0,
+        //         "settlePrice": 3143.2,
+        //         "averageOpenPrice": 3143.2,
+        //         "pnl24H": 0.0,
+        //         "fee24H": 1.5716,
+        //         "markPrice": 3134.97984158,
+        //         "estLiqPrice": 3436.176349,
+        //         "timestamp": 1720628031.463,
+        //         "adlQuantile": 5,
+        //         "positionSide": "BOTH",
+        //         "marginMode": "ISOLATED",
+        //         "isolatedMarginToken": "USDT",
+        //         "isolatedMarginAmount": 314.62426,
+        //         "isolatedFrozenLong": 0.0,
+        //         "isolatedFrozenShort": 0.0,
+        //         "leverage": 10
+        //     },
         //
         const contract = this.safeString (position, 'symbol');
         market = this.safeMarket (contract, market);
@@ -3069,7 +3121,7 @@ export default class woo extends Exchange {
             'maintenanceMarginPercentage': undefined,
             'entryPrice': this.parseNumber (entryPrice),
             'notional': this.parseNumber (notional),
-            'leverage': undefined,
+            'leverage': this.safeNumber (position, 'leverage'),
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'contracts': this.parseNumber (size),
             'contractSize': this.parseNumber (contractSize),
@@ -3078,8 +3130,7 @@ export default class woo extends Exchange {
             'markPrice': this.parseNumber (markPrice),
             'lastPrice': undefined,
             'collateral': undefined,
-            'marginMode': 'cross',
-            'marginType': undefined,
+            'marginMode': this.safeStringLower (position, 'marginMode'),
             'side': side,
             'percentage': undefined,
             'hedged': undefined,
