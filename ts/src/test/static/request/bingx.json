@@ -1278,10 +1278,11 @@
             {
                 "description": "Inverse swap fetch tickers",
                 "method": "fetchTickers",
-                "url": "https://open-api.bingx.com/openApi/cswap/v1/market/ticker?timestamp=1720648132166",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/market/ticker?timestamp=1720649348918",
                 "input": [
                   null,
                   {
+                    "type": "swap",
                     "subType": "inverse"
                   }
                 ]
