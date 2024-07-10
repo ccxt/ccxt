@@ -12,12 +12,12 @@ import ansi from 'ansicolor'
 import log from 'ololog'
 import ps from 'child_process'
 ansi.nice
-/*  --------------------------------------------------------------------------- */
+//  --------------------------------------------------------------------------- //
 
 process.on ('uncaughtException',  e => { log.bright.red.error (e); process.exit (1) })
 process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit (1) })
 
-/*  --------------------------------------------------------------------------- */
+//  --------------------------------------------------------------------------- //
 
 const [,, ...args] = process.argv
 
@@ -74,7 +74,7 @@ const wsFlag = exchangeSpecificFlags['--ws'] ? 'WS': '';
 const timeoutSeconds = wsFlag ? 120 : 250;
 
 
-/*  --------------------------------------------------------------------------- */
+//  --------------------------------------------------------------------------- //
 
 const exchangeOptions = []
 for (const key of Object.keys (exchangeSpecificFlags)) {
@@ -82,7 +82,7 @@ for (const key of Object.keys (exchangeSpecificFlags)) {
         exchangeOptions.push (key)
     }
 }
-/*  --------------------------------------------------------------------------- */
+//  --------------------------------------------------------------------------- //
 
 const content = fs.readFileSync ('./skip-tests.json', 'utf8');
 const skipSettings = JSON.parse (content);
@@ -99,14 +99,14 @@ if (!exchanges.length) {
     exchanges = wsFlag ? exchangesFile.ws : exchangesFile.ids
 }
 
-/*  --------------------------------------------------------------------------- */
+//  --------------------------------------------------------------------------- //
 
 const sleep = s => new Promise (resolve => setTimeout (resolve, s*1000))
 const timeout = (s, promise) => Promise.race ([ promise, sleep (s).then (() => {
     throw new Error ('RUNTEST_TIMED_OUT');
 }) ])
 
-/*  --------------------------------------------------------------------------- */
+//  --------------------------------------------------------------------------- //
 
 const exec = (bin, ...args) => { 
 
@@ -196,7 +196,7 @@ const exec = (bin, ...args) => {
     } );
 };
 
-/*  ------------------------------------------------------------------------ */
+//  ------------------------------------------------------------------------ //
 
 // const execWithRetry = () => {
 
@@ -206,13 +206,11 @@ const exec = (bin, ...args) => {
 //     // until it eventually finalizes.
 // }
 
-/*  ------------------------------------------------------------------------ */
+//  ------------------------------------------------------------------------ //
 
 let numExchangesTested = 0
 
-/*  Tests of different languages for the same exchange should be run
-    sequentially to prevent the interleaving nonces problem.
-    ------------------------------------------------------------------------ */
+//  Tests of different languages for the same exchange should be run sequentially to prevent the interleaving nonces problem. //
 
 const sequentialMap = async (input, fn) => {
 
@@ -221,7 +219,7 @@ const sequentialMap = async (input, fn) => {
     return result
 }
 
-/*  ------------------------------------------------------------------------ */
+//  ------------------------------------------------------------------------ //
 
 const testExchange = async (exchange) => {
 
@@ -256,7 +254,7 @@ const testExchange = async (exchange) => {
         }
     }
 
-/*  Run tests for all/selected languages (in parallel)     */
+    //  Run tests for all/selected languages (in parallel)     //
     let args = [exchange];
     if (symbol !== undefined && symbol !== 'all') {
         args.push(symbol);
@@ -298,24 +296,22 @@ const testExchange = async (exchange) => {
         selectedTests = selectedTests.filter (t => t.key !== '--python' && t.key !== '--php');
     }
 
-        const completeTests  = await sequentialMap (selectedTests, async test => Object.assign (test, await  exec (...test.exec)))
-        , failed         = completeTests.find (test => test.failed)
-        , hasWarnings    = completeTests.find (test => test.warnings.length)
-        , warnings       = completeTests.reduce (
-            (total, { warnings }) => {
-                return total.concat(['\n\n']).concat (warnings)
-            }, []
-        )
-        , infos       = completeTests.reduce (
-            (total, { infos }) => {
-                return total.concat(['\n\n']).concat (infos)
-            }, []
-        )
+    const completeTests  = await sequentialMap (selectedTests, async test => Object.assign (test, await  exec (...test.exec)))
+    , failed         = completeTests.find (test => test.failed)
+    , hasWarnings    = completeTests.find (test => test.warnings.length)
+    , warnings       = completeTests.reduce (
+        (total, { warnings }) => {
+            return total.concat(['\n\n']).concat (warnings)
+        }, []
+    )
+    , infos       = completeTests.reduce (
+        (total, { infos }) => {
+            return total.concat(['\n\n']).concat (infos)
+        }, []
+    )
 
-/*  Print interactive log output    */
-
+    // Print interactive log output
     let logMessage = '';
-
     if (failed) {
         logMessage = 'FAIL'.red;
     } else if (hasWarnings) {
@@ -340,10 +336,9 @@ const testExchange = async (exchange) => {
             ).blue);
         }
     }
-/*  Return collected data to main loop     */
 
+    // Return collected data to main loop
     return {
-
         exchange,
         failed,
         hasWarnings,
@@ -367,7 +362,7 @@ const testExchange = async (exchange) => {
     }
 }
 
-/*  ------------------------------------------------------------------------ */
+//  ------------------------------------------------------------------------ //
 
 function TaskPool (maxConcurrency) {
 
@@ -402,7 +397,7 @@ function TaskPool (maxConcurrency) {
     }
 }
 
-/*  ------------------------------------------------------------------------ */
+//  ------------------------------------------------------------------------ //
 
 async function testAllExchanges () {
 
@@ -418,7 +413,7 @@ async function testAllExchanges () {
     return results
 }
 
-/*  ------------------------------------------------------------------------ */
+//  ------------------------------------------------------------------------ //
 
 (async function () {
 
@@ -460,4 +455,4 @@ async function testAllExchanges () {
 
 }) ();
 
-/*  ------------------------------------------------------------------------ */
+//  ------------------------------------------------------------------------ //
