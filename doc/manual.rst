@@ -4820,6 +4820,8 @@ Balance Structure
 
        'total': { ... },    // total (free + used), by currency
 
+       'debt': { ... },     // debt, by currency
+
        //-------------------------------------------------------------------------
        // indexed by currency first, then by availability of funds
 
