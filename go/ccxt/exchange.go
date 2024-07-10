@@ -1,9 +1,49 @@
 package ccxt
 
 type Exchange struct {
-	options map[string]interface{}
-	has     map[string]interface{}
-	verbose bool
+	version             string
+	id                  string
+	options             map[string]interface{}
+	has                 map[string]interface{}
+	api                 map[string]interface{}
+	transformedApi      map[string]interface{}
+	markets             map[string]interface{}
+	currencies          map[string]interface{}
+	requiredCredentials map[string]interface{}
+	markets_by_id       map[string]interface{}
+	timeframes          map[string]interface{}
+	exceptions          map[string]interface{}
+	precision           map[string]interface{}
+	urls                map[string]interface{}
+	verbose             bool
+	userAgent           string
+	enableRateLimit     bool
+	url                 string
+	hostname            string
+	baseCurrencies      map[string]interface{}
+	quoteCurrencies     map[string]interface{}
+	reloadingMarkets    bool
+	marketsLoading      bool
+	symbols             []string
+	codes               []string
+	ids                 []string
+	commonCurrencies    map[string]interface{}
+	precisionMode       int
+	// keys
+	secret        string
+	apiKey        string
+	password      string
+	uid           string
+	accountId     string
+	token         string
+	login         string
+	privateKey    string
+	walletAddress string
+
+	httpProxy   string
+	httpsProxy  string
+	http_proxy  string
+	https_proxy string
 }
 
 var DECIMAL_PLACES int = 0
