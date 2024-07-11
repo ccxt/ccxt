@@ -888,7 +888,8 @@ export default class timex extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        return await this.cancelOrders ([ id ], symbol, params);
+        const orders = await this.cancelOrders ([ id ], symbol, params);
+        return this.safeDict (orders, 0);
     }
 
     async cancelOrders (ids, symbol: Str = undefined, params = {}) {
@@ -931,7 +932,22 @@ export default class timex extends Exchange {
         //         ],
         //         "unchangedOrders": [ "string" ],
         //     }
-        return response;
+        //
+        const changedOrders = this.safeList (response, 'changedOrders', []);
+        const unchangedOrders = this.safeList (response, 'unchangedOrders', []);
+        const orders = [];
+        for (let i = 0; i < changedOrders.length; i++) {
+            const newOrder = this.safeDict (changedOrders[i], 'newOrder');
+            orders.push (this.parseOrder (newOrder));
+        }
+        for (let i = 0; i < unchangedOrders.length; i++) {
+            orders.push (this.safeOrder ({
+                'info': unchangedOrders[i],
+                'id': unchangedOrders[i],
+                'status': 'unchanged',
+            }));
+        }
+        return orders;
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
