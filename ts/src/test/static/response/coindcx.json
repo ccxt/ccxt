@@ -4,7 +4,7 @@
     "methods": {
         "fetchBalance": [
             {
-                "description": "Fetch balance for USDT",
+                "description": "Fetch balance",
                 "method": "fetchBalance",
                 "input": [],
                 "httpResponse": [
