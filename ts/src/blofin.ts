@@ -590,7 +590,7 @@ export default class blofin extends Exchange {
 
     parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
-        // response similar for REST & WS
+        // fetch trades (response similar for REST & WS)
         //
         //   {
         //       "tradeId": "3263934920",
