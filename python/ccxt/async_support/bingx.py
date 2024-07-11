@@ -303,8 +303,10 @@ class bingx(Exchange, ImplicitAPI):
                             'post': {
                                 'trade/order': 2,
                                 'trade/leverage': 2,
-                                'trade/allOpenOrders': 2,
                                 'trade/closeAllPositions': 2,
+                            },
+                            'delete': {
+                                'trade/allOpenOrders': 2,
                             },
                         },
                     },
@@ -2470,7 +2472,9 @@ class bingx(Exchange, ImplicitAPI):
         #            side: 'SELL'
         #        }
         #    }
+        #
         # stop loss order
+        #
         #    {
         #        "symbol": "ETH-USDT",
         #        "orderId": "1792461744476422144",
@@ -2489,6 +2493,52 @@ class bingx(Exchange, ImplicitAPI):
         #        "feeAsset": "USDT",
         #        "clientOrderID": ""
         #    }
+        #
+        # inverse swap cancelAllOrders
+        #
+        #     {
+        #         "symbol": "SOL-USD",
+        #         "orderId": "1809845251327672320",
+        #         "side": "BUY",
+        #         "positionSide": "LONG",
+        #         "type": "LIMIT",
+        #         "quantity": 1,
+        #         "origQty": "0",
+        #         "price": "90",
+        #         "executedQty": "0",
+        #         "avgPrice": "0",
+        #         "cumQuote": "0",
+        #         "stopPrice": "",
+        #         "profit": "0.0000",
+        #         "commission": "0.000000",
+        #         "status": "CANCELLED",
+        #         "time": 1720335707872,
+        #         "updateTime": 1720335707912,
+        #         "clientOrderId": "",
+        #         "leverage": "",
+        #         "takeProfit": {
+        #             "type": "",
+        #             "quantity": 0,
+        #             "stopPrice": 0,
+        #             "price": 0,
+        #             "workingType": "",
+        #             "stopGuaranteed": ""
+        #         },
+        #         "stopLoss": {
+        #             "type": "",
+        #             "quantity": 0,
+        #             "stopPrice": 0,
+        #             "price": 0,
+        #             "workingType": "",
+        #             "stopGuaranteed": ""
+        #         },
+        #         "advanceAttr": 0,
+        #         "positionID": 0,
+        #         "takeProfitEntrustPrice": 0,
+        #         "stopLossEntrustPrice": 0,
+        #         "orderType": "",
+        #         "workingType": ""
+        #     }
         #
         info = order
         newOrder = self.safe_dict_2(order, 'newOrderResponse', 'orderOpenResponse')
@@ -2670,6 +2720,7 @@ class bingx(Exchange, ImplicitAPI):
         cancel all open orders
         :see: https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20orders%20by%20symbol
         :see: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20All%20Orders
+        :see: https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Cancel%20all%20orders
         :param str [symbol]: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
@@ -2707,36 +2758,94 @@ class bingx(Exchange, ImplicitAPI):
             #     }
             #
         elif market['swap']:
-            response = await self.swapV2PrivateDeleteTradeAllOpenOrders(self.extend(request, params))
-            #
-            #    {
-            #        "code": 0,
-            #        "msg": "",
-            #        "data": {
-            #          "success": [
-            #            {
-            #              "symbol": "LINK-USDT",
-            #              "orderId": 1597783835095859200,
-            #              "side": "BUY",
-            #              "positionSide": "LONG",
-            #              "type": "TRIGGER_LIMIT",
-            #              "origQty": "5.0",
-            #              "price": "9.0000",
-            #              "executedQty": "0.0",
-            #              "avgPrice": "0.0000",
-            #              "cumQuote": "0",
-            #              "stopPrice": "9.5000",
-            #              "profit": "",
-            #              "commission": "",
-            #              "status": "NEW",
-            #              "time": 1669776326000,
-            #              "updateTime": 1669776326000
-            #            }
-            #          ],
-            #          "failed": null
-            #        }
-            #    }
-            #
+            if market['inverse']:
+                response = await self.cswapV1PrivateDeleteTradeAllOpenOrders(self.extend(request, params))
+                #
+                #     {
+                #         "code": 0,
+                #         "msg": "",
+                #         "timestamp": 1720501468364,
+                #         "data": {
+                #             "success": [
+                #                 {
+                #                     "symbol": "SOL-USD",
+                #                     "orderId": "1809845251327672320",
+                #                     "side": "BUY",
+                #                     "positionSide": "LONG",
+                #                     "type": "LIMIT",
+                #                     "quantity": 1,
+                #                     "origQty": "0",
+                #                     "price": "90",
+                #                     "executedQty": "0",
+                #                     "avgPrice": "0",
+                #                     "cumQuote": "0",
+                #                     "stopPrice": "",
+                #                     "profit": "0.0000",
+                #                     "commission": "0.000000",
+                #                     "status": "CANCELLED",
+                #                     "time": 1720335707872,
+                #                     "updateTime": 1720335707912,
+                #                     "clientOrderId": "",
+                #                     "leverage": "",
+                #                     "takeProfit": {
+                #                         "type": "",
+                #                         "quantity": 0,
+                #                         "stopPrice": 0,
+                #                         "price": 0,
+                #                         "workingType": "",
+                #                         "stopGuaranteed": ""
+                #                     },
+                #                     "stopLoss": {
+                #                         "type": "",
+                #                         "quantity": 0,
+                #                         "stopPrice": 0,
+                #                         "price": 0,
+                #                         "workingType": "",
+                #                         "stopGuaranteed": ""
+                #                     },
+                #                     "advanceAttr": 0,
+                #                     "positionID": 0,
+                #                     "takeProfitEntrustPrice": 0,
+                #                     "stopLossEntrustPrice": 0,
+                #                     "orderType": "",
+                #                     "workingType": ""
+                #                 }
+                #             ],
+                #             "failed": null
+                #         }
+                #     }
+                #
+            else:
+                response = await self.swapV2PrivateDeleteTradeAllOpenOrders(self.extend(request, params))
+                #
+                #    {
+                #        "code": 0,
+                #        "msg": "",
+                #        "data": {
+                #          "success": [
+                #            {
+                #              "symbol": "LINK-USDT",
+                #              "orderId": 1597783835095859200,
+                #              "side": "BUY",
+                #              "positionSide": "LONG",
+                #              "type": "TRIGGER_LIMIT",
+                #              "origQty": "5.0",
+                #              "price": "9.0000",
+                #              "executedQty": "0.0",
+                #              "avgPrice": "0.0000",
+                #              "cumQuote": "0",
+                #              "stopPrice": "9.5000",
+                #              "profit": "",
+                #              "commission": "",
+                #              "status": "NEW",
+                #              "time": 1669776326000,
+                #              "updateTime": 1669776326000
+                #            }
+                #          ],
+                #          "failed": null
+                #        }
+                #    }
+                #
         else:
             raise BadRequest(self.id + ' cancelAllOrders is only supported for spot and swap markets.')
         data = self.safe_dict(response, 'data', {})

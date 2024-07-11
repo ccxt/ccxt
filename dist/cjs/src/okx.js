@@ -924,7 +924,16 @@ class okx extends okx$1 {
                     '64003': errors.AccountNotEnabled,
                     '70010': errors.BadRequest,
                     '70013': errors.BadRequest,
-                    '70016': errors.BadRequest, // Please specify your instrument settings for at least one instType.
+                    '70016': errors.BadRequest,
+                    '1009': errors.BadRequest,
+                    '4001': errors.AuthenticationError,
+                    '4002': errors.BadRequest,
+                    '4003': errors.RateLimitExceeded,
+                    '4004': errors.NetworkError,
+                    '4005': errors.ExchangeNotAvailable,
+                    '4006': errors.BadRequest,
+                    '4007': errors.AuthenticationError,
+                    '4008': errors.RateLimitExceeded, // The number of subscribed channels exceeds the maximum limit.
                 },
                 'broad': {
                     'Internal Server Error': errors.ExchangeNotAvailable,

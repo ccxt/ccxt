@@ -7442,7 +7442,9 @@ public partial class binance : Exchange
             return this.parseOrders(response, market);
         } else
         {
-            return response;
+            return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
         }
     }
 

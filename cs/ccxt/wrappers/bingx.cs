@@ -609,6 +609,7 @@ public partial class bingx
     /// <remarks>
     /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20orders%20by%20symbol"/>  <br/>
     /// See <see href="https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20All%20Orders"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Cancel%20all%20orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
