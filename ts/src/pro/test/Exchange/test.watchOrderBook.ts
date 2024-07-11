@@ -20,8 +20,8 @@ async function testWatchOrderBook (exchange, skippedProperties, symbol) {
         }
         // below, `typeof .. = 'object'` turns as `is_array()` in PHP after transpilation, so to handle that
         // we need to transform the special PHP cacheTypes to normal arrays
-        // todo: in future, create language-specific function like 'isOrderBookObject()' or et
-        response = testSharedMethods.redecodeDict (response);
+        // todo: in future, we might edit cache classes itself
+        response = exchange.parseJson (exchange.jsonWithNull (response, true));
         assert (typeof response === 'object', exchange.id + ' ' + method + ' ' + symbol + ' must return an object. ' + exchange.json (response));
         now = exchange.milliseconds ();
         testOrderBook (exchange, skippedProperties, method, response, symbol);
