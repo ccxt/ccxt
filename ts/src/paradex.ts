@@ -928,7 +928,7 @@ export default class paradex extends Exchange {
             return {
                 'name': 'Paradex',
                 'chainId': systemConfig['l1_chain_id'],
-                'version': 1,
+                'version': '1',
             };
         }
         return {
