@@ -928,13 +928,13 @@ export default class paradex extends Exchange {
             return {
                 'name': 'Paradex',
                 'chainId': systemConfig['l1_chain_id'],
-                'version': '1',
+                'version': 1,
             };
         }
         return {
             'name': 'Paradex',
             'chainId': systemConfig['starknet_chain_id'],
-            'version': '1',
+            'version': 1,
         };
     }
 
@@ -985,7 +985,7 @@ export default class paradex extends Exchange {
     }
 
     async authenticateRest (params = {}) {
-        const cachedToken: String = this.safeString (this.options, 'authToken');
+        const cachedToken = this.safeString (this.options, 'authToken');
         if (cachedToken !== undefined) {
             return cachedToken;
         }
