@@ -28,8 +28,8 @@ func Add(a interface{}, b interface{}) interface{} {
 	return nil
 }
 
-func IsTrue(a interface{}, b interface{}) bool {
-	return EvalTruthy(a) && EvalTruthy(b)
+func IsTrue(a interface{}) bool {
+	return EvalTruthy(a)
 }
 
 // EvalTruthy determines if a single interface value is truthy.
