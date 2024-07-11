@@ -92,6 +92,9 @@ public partial class bitso : Exchange
                 { "api", new Dictionary<string, object>() {
                     { "rest", "https://api.bitso.com" },
                 } },
+                { "test", new Dictionary<string, object>() {
+                    { "rest", "https://sandbox.bitso.com/api" },
+                } },
                 { "www", "https://bitso.com" },
                 { "doc", "https://bitso.com/api_info" },
                 { "fees", "https://bitso.com/fees" },
