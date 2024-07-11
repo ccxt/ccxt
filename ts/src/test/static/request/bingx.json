@@ -1375,6 +1375,24 @@
                   "BTC/USD:BTC"
                 ]
             }
+        ],
+        "fetchLeverage": [
+            {
+                "description": "Linear swap fetch leverage",
+                "method": "fetchLeverage",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/leverage?symbol=BTC-USDT&timestamp=1720683570758&signature=313bec0e260abef0a888e7ffe2bbfe6c44a6c250ad5bf31b4795cb551cf7641a",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Inverse swap fetch leverage",
+                "method": "fetchLeverage",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/leverage?symbol=SOL-USD&timestamp=1720684074921&signature=8afc0c1f4a6a6cd3416479af6be10a2532718c8e5d50cc2e944bec2cbf55ad39",
+                "input": [
+                  "SOL/USD:SOL"
+                ]
+            }
         ]
     }
 }
