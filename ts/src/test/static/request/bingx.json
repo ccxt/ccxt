@@ -1413,6 +1413,32 @@
                   "SOL/USD:SOL"
                 ]
             }
+        ],
+        "setLeverage": [
+            {
+                "description": "Linear swap set leverage",
+                "method": "setLeverage",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/leverage?leverage=10&side=BOTH&symbol=BTC-USDT&timestamp=1720724882147&signature=e3fb41d7b2f23d667bf289c5998dc6fac9a3a45bf2e6f022ce3c6429a440dc75",
+                "input": [
+                  10,
+                  "BTC/USDT:USDT",
+                  {
+                    "side": "BOTH"
+                  }
+                ]
+            },
+            {
+                "description": "Inverse swap set leverage",
+                "method": "setLeverage",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/leverage?leverage=10&side=LONG&symbol=SOL-USD&timestamp=1720725057859&signature=c30d2e7a593d5e54304bf026193a21ad682492a2c4d026f63fe0a68a8c367b3f",
+                "input": [
+                  10,
+                  "SOL/USD:SOL",
+                  {
+                    "side": "LONG"
+                  }
+                ]
+            }
         ]
     }
 }
