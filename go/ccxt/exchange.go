@@ -1,5 +1,10 @@
 package ccxt
 
+import (
+	"errors"
+	"strconv"
+)
+
 type Exchange struct {
 	version             string
 	id                  string
@@ -40,10 +45,13 @@ type Exchange struct {
 	privateKey    string
 	walletAddress string
 
-	httpProxy   string
-	httpsProxy  string
-	http_proxy  string
-	https_proxy string
+	httpProxy        string
+	httpsProxy       string
+	http_proxy       string
+	https_proxy      string
+	proxy            string
+	proxyUrl         string
+	proxyUrlCallback interface{}
 }
 
 var DECIMAL_PLACES int = 0
@@ -400,4 +408,34 @@ func NewError(err interface{}, v ...interface{}) string {
 	// 	str += str + ToString(v[i])
 	// } // to do check this out later
 	return str
+}
+
+func ToSafeFloat(v interface{}) (float64, error) {
+	switch v := v.(type) {
+	case float64:
+		return v, nil
+	case float32:
+		return float64(v), nil
+	case int:
+		return float64(v), nil
+	case int64:
+		return float64(v), nil
+	case string:
+		return strconv.ParseFloat(v, 64)
+	default:
+		return 0, errors.New("cannot convert to float")
+	}
+}
+
+func (this *Exchange) parseNumber(v interface{}, a ...interface{}) interface{} {
+	f, err := ToSafeFloat(v)
+	if err == nil {
+		return f
+	}
+	return nil
+}
+
+func (this *Exchange) callDynamically(args ...interface{}) interface{} {
+	// to do
+	return nil
 }
