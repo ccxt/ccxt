@@ -60,8 +60,8 @@ function filter_argvs($argsArray, $needle, $include = true) {
 };
 
 function select_argv ($argsArray, $needle) {
-    $foundArray = array_values(array_filter($argsArray, function ($x) use ($needle) { return str_contains($x, $needle); }));
-    return count($foundArray) > 0 ? $foundArray[0] : null;
+    $foundArray = array_filter($argsArray, function ($x) use ($needle) { return str_contains($x, $needle); });
+    return count($foundArray) > 0 ? $foundArray : null;
 }
 
 $argvs_filtered = filter_argvs ($argv, '--', false);
