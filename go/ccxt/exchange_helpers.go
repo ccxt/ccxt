@@ -837,3 +837,36 @@ func IsInstance(value interface{}, typ interface{}) bool {
 	// Compare the two types
 	return valueType == typeType
 }
+
+func Slice(str2 interface{}, idx1 interface{}, idx2 interface{}) string {
+	if str2 == nil {
+		return ""
+	}
+	str := str2.(string)
+	start := -1
+	if idx1 != nil {
+		start = idx1.(int)
+	}
+	if idx2 == nil {
+		if start < 0 {
+			innerStart := len(str) + start
+			if innerStart < 0 {
+				innerStart = 0
+			}
+			return str[innerStart:]
+		}
+		return str[start:]
+	} else {
+		end := idx2.(int)
+		if start < 0 {
+			start = len(str) + start
+		}
+		if end < 0 {
+			end = len(str) + end
+		}
+		if end > len(str) {
+			end = len(str)
+		}
+		return str[start:end]
+	}
+}

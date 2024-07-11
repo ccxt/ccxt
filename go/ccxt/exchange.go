@@ -45,13 +45,30 @@ type Exchange struct {
 	privateKey    string
 	walletAddress string
 
-	httpProxy        string
-	httpsProxy       string
-	http_proxy       string
-	https_proxy      string
-	proxy            string
-	proxyUrl         string
-	proxyUrlCallback interface{}
+	httpProxy            string
+	httpsProxy           string
+	http_proxy           string
+	https_proxy          string
+	proxy                string
+	proxyUrl             string
+	proxyUrlCallback     interface{}
+	proxy_url            string
+	proxy_url_callback   interface{}
+	socksProxy           string
+	socks_proxy          string
+	socks_proxy_callback interface{}
+
+	httpsProxyCallback   interface{}
+	https_proxy_callback interface{}
+
+	wsSocksProxy   string
+	ws_socks_proxy string
+
+	wssProxy  string
+	wss_proxy string
+
+	ws_proxy string
+	wsProxy  string
 }
 
 var DECIMAL_PLACES int = 0
@@ -436,7 +453,11 @@ func (this *Exchange) parseNumber(v interface{}, a ...interface{}) interface{} {
 	return nil
 }
 
-func (this *Exchange) callDynamically(args ...interface{}) interface{} {
+func (this *Exchange) valueIsDefined(v interface{}) bool {
+	return v != nil
+}
+
+func callDynamically(args ...interface{}) interface{} {
 	// to do
 	return nil
 }
