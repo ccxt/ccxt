@@ -37,7 +37,7 @@ public partial class phemex : ccxt.phemex
                 { "OHLCVLimit", 1000 },
             } },
             { "streaming", new Dictionary<string, object>() {
-                { "keepAlive", 10000 },
+                { "keepAlive", 9000 },
             } },
         });
     }

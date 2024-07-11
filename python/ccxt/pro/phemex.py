@@ -45,7 +45,7 @@ class phemex(ccxt.async_support.phemex):
                 'OHLCVLimit': 1000,
             },
             'streaming': {
-                'keepAlive': 10000,
+                'keepAlive': 9000,
             },
         })
 

@@ -39,7 +39,7 @@ class phemex extends phemex$1 {
                 'OHLCVLimit': 1000,
             },
             'streaming': {
-                'keepAlive': 10000,
+                'keepAlive': 9000,
             },
         });
     }

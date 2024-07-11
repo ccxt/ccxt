@@ -42,7 +42,7 @@ export default class phemex extends phemexRest {
                 'OHLCVLimit': 1000,
             },
             'streaming': {
-                'keepAlive': 10000,
+                'keepAlive': 9000,
             },
         });
     }

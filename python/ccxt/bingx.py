@@ -1479,8 +1479,9 @@ class bingx(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        :see: https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Ticker
-        :see: https://bingx-api.github.io/docs/#/spot/market-api.html#24%E5%B0%8F%E6%97%B6%E4%BB%B7%E6%A0%BC%E5%8F%98%E5%8A%A8%E6%83%85%E5%86%B5
+        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Get%20Ticker
+        :see: https://bingx-api.github.io/docs/#/en-us/spot/market-api.html#24-hour%20price%20changes
+        :see: https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%2024-Hour%20Price%20Change
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -1494,7 +1495,38 @@ class bingx(Exchange, ImplicitAPI):
         if market['spot']:
             response = self.spotV1PublicGetTicker24hr(self.extend(request, params))
         else:
-            response = self.swapV2PublicGetQuoteTicker(self.extend(request, params))
+            if market['inverse']:
+                response = self.cswapV1PublicGetMarketTicker(self.extend(request, params))
+            else:
+                response = self.swapV2PublicGetQuoteTicker(self.extend(request, params))
+        #
+        # spot and swap
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "timestamp": 1720647285296,
+        #         "data": [
+        #             {
+        #                 "symbol": "SOL-USD",
+        #                 "priceChange": "-2.418",
+        #                 "priceChangePercent": "-1.6900%",
+        #                 "lastPrice": "140.574",
+        #                 "lastQty": "1",
+        #                 "highPrice": "146.190",
+        #                 "lowPrice": "138.586",
+        #                 "volume": "1464648.00",
+        #                 "quoteVolume": "102928.12",
+        #                 "openPrice": "142.994",
+        #                 "closeTime": "1720647284976",
+        #                 "bidPrice": "140.573",
+        #                 "bidQty": "372",
+        #                 "askPrice": "140.577",
+        #                 "askQty": "58"
+        #             }
+        #         ]
+        #     }
+        #
         data = self.safe_list(response, 'data')
         if data is not None:
             first = self.safe_dict(data, 0, {})
@@ -1505,7 +1537,9 @@ class bingx(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :see: https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Ticker
+        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Get%20Ticker
+        :see: https://bingx-api.github.io/docs/#/en-us/spot/market-api.html#24-hour%20price%20changes
+        :see: https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%2024-Hour%20Price%20Change
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -1519,11 +1553,45 @@ class bingx(Exchange, ImplicitAPI):
                 market = self.market(firstSymbol)
         type = None
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchTickers', market, params)
         response = None
         if type == 'spot':
             response = self.spotV1PublicGetTicker24hr(params)
         else:
-            response = self.swapV2PublicGetQuoteTicker(params)
+            if subType == 'inverse':
+                response = self.cswapV1PublicGetMarketTicker(params)
+            else:
+                response = self.swapV2PublicGetQuoteTicker(params)
+        #
+        # spot and swap
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "timestamp": 1720647285296,
+        #         "data": [
+        #             {
+        #                 "symbol": "SOL-USD",
+        #                 "priceChange": "-2.418",
+        #                 "priceChangePercent": "-1.6900%",
+        #                 "lastPrice": "140.574",
+        #                 "lastQty": "1",
+        #                 "highPrice": "146.190",
+        #                 "lowPrice": "138.586",
+        #                 "volume": "1464648.00",
+        #                 "quoteVolume": "102928.12",
+        #                 "openPrice": "142.994",
+        #                 "closeTime": "1720647284976",
+        #                 "bidPrice": "140.573",
+        #                 "bidQty": "372",
+        #                 "askPrice": "140.577",
+        #                 "askQty": "58"
+        #             },
+        #             ...
+        #         ]
+        #     }
+        #
         tickers = self.safe_list(response, 'data')
         return self.parse_tickers(tickers, symbols)
 
@@ -3819,6 +3887,7 @@ class bingx(Exchange, ImplicitAPI):
         """
         fetch the set leverage for a market
         :see: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20Leverage
+        :see: https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `leverage structure <https://docs.ccxt.com/#/?id=leverage-structure>`
@@ -3828,21 +3897,77 @@ class bingx(Exchange, ImplicitAPI):
         request: dict = {
             'symbol': market['id'],
         }
-        response = self.swapV2PrivateGetTradeLeverage(self.extend(request, params))
-        #
-        #    {
-        #        "code": 0,
-        #        "msg": "",
-        #        "data": {
-        #            "longLeverage": 6,
-        #            "shortLeverage": 6
-        #        }
-        #    }
-        #
+        response = None
+        if market['inverse']:
+            response = self.cswapV1PrivateGetTradeLeverage(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "timestamp": 1720683803391,
+            #         "data": {
+            #             "symbol": "SOL-USD",
+            #             "longLeverage": 5,
+            #             "shortLeverage": 5,
+            #             "maxLongLeverage": 50,
+            #             "maxShortLeverage": 50,
+            #             "availableLongVol": "4000000",
+            #             "availableShortVol": "4000000"
+            #         }
+            #     }
+            #
+        else:
+            response = self.swapV2PrivateGetTradeLeverage(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "data": {
+            #             "longLeverage": 5,
+            #             "shortLeverage": 5,
+            #             "maxLongLeverage": 125,
+            #             "maxShortLeverage": 125,
+            #             "availableLongVol": "0.0000",
+            #             "availableShortVol": "0.0000",
+            #             "availableLongVal": "0.0",
+            #             "availableShortVal": "0.0",
+            #             "maxPositionLongVal": "0.0",
+            #             "maxPositionShortVal": "0.0"
+            #         }
+            #     }
+            #
         data = self.safe_dict(response, 'data', {})
         return self.parse_leverage(data, market)
 
     def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
+        #
+        # linear swap
+        #
+        #     {
+        #         "longLeverage": 5,
+        #         "shortLeverage": 5,
+        #         "maxLongLeverage": 125,
+        #         "maxShortLeverage": 125,
+        #         "availableLongVol": "0.0000",
+        #         "availableShortVol": "0.0000",
+        #         "availableLongVal": "0.0",
+        #         "availableShortVal": "0.0",
+        #         "maxPositionLongVal": "0.0",
+        #         "maxPositionShortVal": "0.0"
+        #     }
+        #
+        # inverse swap
+        #
+        #     {
+        #         "symbol": "SOL-USD",
+        #         "longLeverage": 5,
+        #         "shortLeverage": 5,
+        #         "maxLongLeverage": 50,
+        #         "maxShortLeverage": 50,
+        #         "availableLongVol": "4000000",
+        #         "availableShortVol": "4000000"
+        #     }
+        #
         marketId = self.safe_string(leverage, 'symbol')
         return {
             'info': leverage,

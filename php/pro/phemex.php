@@ -43,7 +43,7 @@ class phemex extends \ccxt\async\phemex {
                 'OHLCVLimit' => 1000,
             ),
             'streaming' => array(
-                'keepAlive' => 10000,
+                'keepAlive' => 9000,
             ),
         ));
     }

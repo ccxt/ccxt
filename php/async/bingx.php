@@ -1561,8 +1561,9 @@ class bingx extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Ticker
-             * @see https://bingx-api.github.io/docs/#/spot/market-api.html#24%E5%B0%8F%E6%97%B6%E4%BB%B7%E6%A0%BC%E5%8F%98%E5%8A%A8%E6%83%85%E5%86%B5
+             * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Get%20Ticker
+             * @see https://bingx-api.github.io/docs/#/en-us/spot/market-api.html#24-hour%20price%20changes
+             * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%2024-Hour%20Price%20Change
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -1576,8 +1577,40 @@ class bingx extends Exchange {
             if ($market['spot']) {
                 $response = Async\await($this->spotV1PublicGetTicker24hr ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->swapV2PublicGetQuoteTicker ($this->extend($request, $params)));
+                if ($market['inverse']) {
+                    $response = Async\await($this->cswapV1PublicGetMarketTicker ($this->extend($request, $params)));
+                } else {
+                    $response = Async\await($this->swapV2PublicGetQuoteTicker ($this->extend($request, $params)));
+                }
             }
+            //
+            // spot and swap
+            //
+            //     {
+            //         "code" => 0,
+            //         "msg" => "",
+            //         "timestamp" => 1720647285296,
+            //         "data" => array(
+            //             {
+            //                 "symbol" => "SOL-USD",
+            //                 "priceChange" => "-2.418",
+            //                 "priceChangePercent" => "-1.6900%",
+            //                 "lastPrice" => "140.574",
+            //                 "lastQty" => "1",
+            //                 "highPrice" => "146.190",
+            //                 "lowPrice" => "138.586",
+            //                 "volume" => "1464648.00",
+            //                 "quoteVolume" => "102928.12",
+            //                 "openPrice" => "142.994",
+            //                 "closeTime" => "1720647284976",
+            //                 "bidPrice" => "140.573",
+            //                 "bidQty" => "372",
+            //                 "askPrice" => "140.577",
+            //                 "askQty" => "58"
+            //             }
+            //         )
+            //     }
+            //
             $data = $this->safe_list($response, 'data');
             if ($data !== null) {
                 $first = $this->safe_dict($data, 0, array());
@@ -1592,7 +1625,9 @@ class bingx extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
-             * @see https://bingx-api.github.io/docs/#/swapV2/market-api.html#Get%20Ticker
+             * @see https://bingx-api.github.io/docs/#/en-us/swapV2/market-api.html#Get%20Ticker
+             * @see https://bingx-api.github.io/docs/#/en-us/spot/market-api.html#24-hour%20price%20changes
+             * @see https://bingx-api.github.io/docs/#/en-us/cswap/market-api.html#Query%2024-Hour%20Price%20Change
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
@@ -1608,12 +1643,47 @@ class bingx extends Exchange {
             }
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params);
             $response = null;
             if ($type === 'spot') {
                 $response = Async\await($this->spotV1PublicGetTicker24hr ($params));
             } else {
-                $response = Async\await($this->swapV2PublicGetQuoteTicker ($params));
+                if ($subType === 'inverse') {
+                    $response = Async\await($this->cswapV1PublicGetMarketTicker ($params));
+                } else {
+                    $response = Async\await($this->swapV2PublicGetQuoteTicker ($params));
+                }
             }
+            //
+            // spot and swap
+            //
+            //     {
+            //         "code" => 0,
+            //         "msg" => "",
+            //         "timestamp" => 1720647285296,
+            //         "data" => array(
+            //             array(
+            //                 "symbol" => "SOL-USD",
+            //                 "priceChange" => "-2.418",
+            //                 "priceChangePercent" => "-1.6900%",
+            //                 "lastPrice" => "140.574",
+            //                 "lastQty" => "1",
+            //                 "highPrice" => "146.190",
+            //                 "lowPrice" => "138.586",
+            //                 "volume" => "1464648.00",
+            //                 "quoteVolume" => "102928.12",
+            //                 "openPrice" => "142.994",
+            //                 "closeTime" => "1720647284976",
+            //                 "bidPrice" => "140.573",
+            //                 "bidQty" => "372",
+            //                 "askPrice" => "140.577",
+            //                 "askQty" => "58"
+            //             ),
+            //             ...
+            //         )
+            //     }
+            //
             $tickers = $this->safe_list($response, 'data');
             return $this->parse_tickers($tickers, $symbols);
         }) ();
@@ -4098,6 +4168,7 @@ class bingx extends Exchange {
             /**
              * fetch the set leverage for a $market
              * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20Leverage
+             * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Leverage
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
@@ -4107,23 +4178,80 @@ class bingx extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->swapV2PrivateGetTradeLeverage ($this->extend($request, $params)));
-            //
-            //    {
-            //        "code" => 0,
-            //        "msg" => "",
-            //        "data" => {
-            //            "longLeverage" => 6,
-            //            "shortLeverage" => 6
-            //        }
-            //    }
-            //
+            $response = null;
+            if ($market['inverse']) {
+                $response = Async\await($this->cswapV1PrivateGetTradeLeverage ($this->extend($request, $params)));
+                //
+                //     {
+                //         "code" => 0,
+                //         "msg" => "",
+                //         "timestamp" => 1720683803391,
+                //         "data" => {
+                //             "symbol" => "SOL-USD",
+                //             "longLeverage" => 5,
+                //             "shortLeverage" => 5,
+                //             "maxLongLeverage" => 50,
+                //             "maxShortLeverage" => 50,
+                //             "availableLongVol" => "4000000",
+                //             "availableShortVol" => "4000000"
+                //         }
+                //     }
+                //
+            } else {
+                $response = Async\await($this->swapV2PrivateGetTradeLeverage ($this->extend($request, $params)));
+                //
+                //     {
+                //         "code" => 0,
+                //         "msg" => "",
+                //         "data" => {
+                //             "longLeverage" => 5,
+                //             "shortLeverage" => 5,
+                //             "maxLongLeverage" => 125,
+                //             "maxShortLeverage" => 125,
+                //             "availableLongVol" => "0.0000",
+                //             "availableShortVol" => "0.0000",
+                //             "availableLongVal" => "0.0",
+                //             "availableShortVal" => "0.0",
+                //             "maxPositionLongVal" => "0.0",
+                //             "maxPositionShortVal" => "0.0"
+                //         }
+                //     }
+                //
+            }
             $data = $this->safe_dict($response, 'data', array());
             return $this->parse_leverage($data, $market);
         }) ();
     }
 
     public function parse_leverage(array $leverage, ?array $market = null): array {
+        //
+        // linear swap
+        //
+        //     {
+        //         "longLeverage" => 5,
+        //         "shortLeverage" => 5,
+        //         "maxLongLeverage" => 125,
+        //         "maxShortLeverage" => 125,
+        //         "availableLongVol" => "0.0000",
+        //         "availableShortVol" => "0.0000",
+        //         "availableLongVal" => "0.0",
+        //         "availableShortVal" => "0.0",
+        //         "maxPositionLongVal" => "0.0",
+        //         "maxPositionShortVal" => "0.0"
+        //     }
+        //
+        // inverse swap
+        //
+        //     {
+        //         "symbol" => "SOL-USD",
+        //         "longLeverage" => 5,
+        //         "shortLeverage" => 5,
+        //         "maxLongLeverage" => 50,
+        //         "maxShortLeverage" => 50,
+        //         "availableLongVol" => "4000000",
+        //         "availableShortVol" => "4000000"
+        //     }
+        //
         $marketId = $this->safe_string($leverage, 'symbol');
         return array(
             'info' => $leverage,
