@@ -4087,6 +4087,7 @@ export default class bingx extends Exchange {
          * @name bingx#fetchLeverage
          * @description fetch the set leverage for a market
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20Leverage
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
@@ -4096,22 +4097,79 @@ export default class bingx extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const response = await this.swapV2PrivateGetTradeLeverage (this.extend (request, params));
-        //
-        //    {
-        //        "code": 0,
-        //        "msg": "",
-        //        "data": {
-        //            "longLeverage": 6,
-        //            "shortLeverage": 6
-        //        }
-        //    }
-        //
+        let response = undefined;
+        if (market['inverse']) {
+            response = await this.cswapV1PrivateGetTradeLeverage (this.extend (request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "",
+            //         "timestamp": 1720683803391,
+            //         "data": {
+            //             "symbol": "SOL-USD",
+            //             "longLeverage": 5,
+            //             "shortLeverage": 5,
+            //             "maxLongLeverage": 50,
+            //             "maxShortLeverage": 50,
+            //             "availableLongVol": "4000000",
+            //             "availableShortVol": "4000000"
+            //         }
+            //     }
+            //
+        } else {
+            response = await this.swapV2PrivateGetTradeLeverage (this.extend (request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "",
+            //         "data": {
+            //             "longLeverage": 5,
+            //             "shortLeverage": 5,
+            //             "maxLongLeverage": 125,
+            //             "maxShortLeverage": 125,
+            //             "availableLongVol": "0.0000",
+            //             "availableShortVol": "0.0000",
+            //             "availableLongVal": "0.0",
+            //             "availableShortVal": "0.0",
+            //             "maxPositionLongVal": "0.0",
+            //             "maxPositionShortVal": "0.0"
+            //         }
+            //     }
+            //
+        }
         const data = this.safeDict (response, 'data', {});
         return this.parseLeverage (data, market);
     }
 
     parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        //
+        // linear swap
+        //
+        //     {
+        //         "longLeverage": 5,
+        //         "shortLeverage": 5,
+        //         "maxLongLeverage": 125,
+        //         "maxShortLeverage": 125,
+        //         "availableLongVol": "0.0000",
+        //         "availableShortVol": "0.0000",
+        //         "availableLongVal": "0.0",
+        //         "availableShortVal": "0.0",
+        //         "maxPositionLongVal": "0.0",
+        //         "maxPositionShortVal": "0.0"
+        //     }
+        //
+        // inverse swap
+        //
+        //     {
+        //         "symbol": "SOL-USD",
+        //         "longLeverage": 5,
+        //         "shortLeverage": 5,
+        //         "maxLongLeverage": 50,
+        //         "maxShortLeverage": 50,
+        //         "availableLongVol": "4000000",
+        //         "availableShortVol": "4000000"
+        //     }
+        //
         const marketId = this.safeString (leverage, 'symbol');
         return {
             'info': leverage,
