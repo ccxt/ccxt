@@ -276,7 +276,7 @@ public partial class Exchange
         // return null;
     }
 
-    public object orderbookToDict(object obj)
+    public ccxt.pro.IOrderBook orderbookToDict(object obj)
     {
         return obj;
     }
