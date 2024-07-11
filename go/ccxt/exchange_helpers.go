@@ -803,9 +803,37 @@ func DateNow() string {
 	return time.Now().Format(time.RFC3339)
 }
 
+func GetLength(v interface{}) int {
+	val := reflect.ValueOf(v)
+	switch val.Kind() {
+	case reflect.String:
+		return len(val.String())
+	case reflect.Array, reflect.Slice:
+		return val.Len()
+	default:
+		return 0
+	}
+}
+
 func GetArg(v []interface{}, index int, def interface{}) interface{} {
 	if len(v) <= index {
 		return def
 	}
 	return v[index]
+}
+
+func Ternary(cond bool, whenTrue interface{}, whenFalse interface{}) interface{} {
+	if cond {
+		return whenTrue
+	}
+	return whenFalse
+}
+
+func IsInstance(value interface{}, typ interface{}) bool {
+	// Get the reflect.Type of the value and the type
+	valueType := reflect.TypeOf(value)
+	typeType := reflect.TypeOf(typ)
+
+	// Compare the two types
+	return valueType == typeType
 }

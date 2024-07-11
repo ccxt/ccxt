@@ -956,6 +956,7 @@ class NewTranspiler {
         // const baseWsClass = baseWsClassExec ? baseWsClassExec[2] : '';
         if (!ws) {
             content = content.replace(/base\./gm, "this.Exchange.");
+            content = content.replace(/new Precise/gm, "NewPrecise");
         } else {
             // const wsParent =  baseWsClass.endsWith('Rest') ? 'ccxt.' + baseWsClass.replace('Rest', '') : baseWsClass;
             // content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, `public partial class $1 : ${wsParent}`);
