@@ -299,6 +299,10 @@ func (this *Exchange) safeValue(obj interface{}, key interface{}, defaultValue .
 	return SafeValue(obj, key, defVal)
 }
 
+func (this *Exchange) safeValue2(obj interface{}, key interface{}, key2 interface{}, defaultValue ...interface{}) interface{} {
+	return SafeValueN(obj, []interface{}{key, key2}, defaultValue)
+}
+
 func (this *Exchange) safeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}) interface{} {
 	var defVal interface{} = nil
 	if len(defaultValue) > 0 {

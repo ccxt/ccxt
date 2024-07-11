@@ -2,6 +2,7 @@ package ccxt
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 )
 
@@ -38,6 +39,15 @@ type Exchange struct {
 	fees                map[string]interface{}
 	currencies_by_id    map[string]interface{}
 	reduceFees          bool
+
+	accountsById map[string]interface{}
+	accounts     map[string]interface{}
+
+	// timestamps
+	lastRestRequestTimestamp int64
+	last_request_headers     map[string]interface{}
+	last_request_body        string
+	last_request_url         string
 
 	// type check this
 	number interface{}
@@ -421,6 +431,11 @@ func (this *Exchange) describe() map[string]interface{} {
 			},
 		},
 	} // return
+}
+
+func (this *Exchange) log(args ...interface{}) {
+	// convert to str and print
+	fmt.Println(args)
 }
 
 func (this *Exchange) call(method interface{}, parameters interface{}) interface{} {
