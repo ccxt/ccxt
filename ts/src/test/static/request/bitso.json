@@ -3,6 +3,64 @@
     "skipKeys": [],
     "outputType": "json",
     "methods": {
+        "createOrder": [
+            {
+                "description": "market buy order",
+                "method": "createOrder",
+                "url": "https://api.bitso.com/v3/orders",
+                "input": [
+                  "XRP/USDT",
+                  "market",
+                  "buy",
+                  10
+                ],
+                "output": "{\"book\":\"xrp_usdt\",\"side\":\"buy\",\"type\":\"market\",\"major\":\"10\"}"
+            },
+            {
+                "description": "market sell order",
+                "method": "createOrder",
+                "url": "https://api.bitso.com/v3/orders",
+                "input": [
+                  "XRP/USDT",
+                  "market",
+                  "sell",
+                  10
+                ],
+                "output": "{\"book\":\"xrp_usdt\",\"side\":\"sell\",\"type\":\"market\",\"major\":\"10\"}"
+            },
+            {
+                "description": "limit buy order",
+                "method": "createOrder",
+                "url": "https://api.bitso.com/v3/orders",
+                "input": [
+                  "XRP/USDT",
+                  "limit",
+                  "buy",
+                  10,
+                  0.4
+                ],
+                "output": "{\"book\":\"xrp_usdt\",\"side\":\"buy\",\"type\":\"limit\",\"major\":\"10\",\"price\":\"0.4\"}"
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancel order",
+                "method": "cancelOrder",
+                "url": "https://api.bitso.com/v3/orders/hG5WlCiC4OWRt2up",
+                "input": [
+                  "hG5WlCiC4OWRt2up",
+                  "XRP/USDT"
+                ]
+            }
+        ],
+        "cancelAllOrders": [
+            {
+                "description": "cancelAllOrders",
+                "method": "cancelAllOrders",
+                "url": "https://api.bitso.com/v3/orders/all",
+                "input": []
+            }
+        ],
         "fetchBalance": [
             {
                 "description": "Fetch spot Balance",
