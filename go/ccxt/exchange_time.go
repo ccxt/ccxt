@@ -1,0 +1,122 @@
+package ccxt
+
+import (
+	"fmt"
+	"reflect"
+	"strconv"
+	"strings"
+	"time"
+)
+
+// milliseconds returns the current time in milliseconds since the Unix epoch.
+func milliseconds() int64 {
+	return time.Now().UnixNano() / int64(time.Millisecond)
+}
+
+// microseconds returns the current time in microseconds since the Unix epoch.
+func microseconds() int64 {
+	return time.Now().UnixNano() / int64(time.Microsecond)
+}
+
+// parseDate parses a date string and returns the timestamp in milliseconds since the Unix epoch.
+func parseDate(datetime2 interface{}) interface{} {
+	if datetime2 == nil || reflect.TypeOf(datetime2).Kind() != reflect.String {
+		return nil
+	}
+	datetime := datetime2.(string)
+	var timestamp int64
+	t, err := time.Parse(time.RFC3339, datetime)
+	if err != nil {
+		return nil
+	}
+	timestamp = t.UnixNano() / int64(time.Millisecond)
+	return timestamp
+}
+
+// Iso8601 converts a timestamp to an ISO 8601 formatted string.
+func Iso8601(ts interface{}) string {
+	if ts == nil {
+		return ""
+	}
+	startdatetime, err := strconv.ParseInt(fmt.Sprintf("%v", ts), 10, 64)
+	if err != nil || startdatetime < 0 {
+		return ""
+	}
+	date := time.Unix(0, startdatetime*int64(time.Millisecond))
+	return date.Format("2006-01-02T15:04:05.000Z")
+}
+
+// iso8601 is a wrapper for Iso8601.
+func iso8601(ts interface{}) string {
+	return Iso8601(ts)
+}
+
+// ymdhms converts a timestamp to a formatted date string "yyyy-MM-dd HH:mm:ss".
+func ymdhms(ts interface{}, infix interface{}) string {
+	if infix == nil {
+		infix = " "
+	}
+	if ts == nil {
+		return ""
+	}
+	startdatetime := ts.(int64)
+	date := time.Unix(0, startdatetime*int64(time.Millisecond))
+	return date.Format("2006-01-02" + infix.(string) + "15:04:05")
+}
+
+// yyyymmdd converts a timestamp to a formatted date string "yyyy-MM-dd".
+func yyyymmdd(ts interface{}, infix interface{}) string {
+	if infix == nil {
+		infix = "-"
+	}
+	if ts == nil {
+		return ""
+	}
+	startdatetime := ts.(int64)
+	date := time.Unix(0, startdatetime*int64(time.Millisecond))
+	return date.Format("2006" + infix.(string) + "01" + infix.(string) + "02")
+}
+
+// yymmdd converts a timestamp to a formatted date string "yy-MM-dd".
+func yymmdd(ts interface{}, infix interface{}) string {
+	if infix == nil {
+		infix = "-"
+	}
+	if ts == nil {
+		return ""
+	}
+	startdatetime := ts.(int64)
+	date := time.Unix(0, startdatetime*int64(time.Millisecond))
+	return date.Format("06" + infix.(string) + "01" + infix.(string) + "02")
+}
+
+// ymd converts a timestamp to a formatted date string "yyyy-MM-dd".
+func ymd(ts interface{}, infix interface{}) string {
+	if infix == nil {
+		infix = "-"
+	}
+	if ts == nil {
+		return ""
+	}
+	startdatetime := ts.(int64)
+	date := time.Unix(0, startdatetime*int64(time.Millisecond))
+	return date.Format("2006" + infix.(string) + "01" + infix.(string) + "02")
+}
+
+// parse8601 parses an ISO 8601 date string and returns the timestamp in milliseconds since the Unix epoch.
+func parse8601(datetime2 interface{}) *int64 {
+	if datetime2 == nil || reflect.TypeOf(datetime2).Kind() != reflect.String {
+		return nil
+	}
+	datetime := datetime2.(string)
+	if strings.Contains(datetime, "+0") {
+		parts := strings.Split(datetime, "+")
+		datetime = parts[0]
+	}
+	t, err := time.Parse(time.RFC3339, datetime)
+	if err != nil {
+		return nil
+	}
+	timestamp := t.UnixNano() / int64(time.Millisecond)
+	return &timestamp
+}

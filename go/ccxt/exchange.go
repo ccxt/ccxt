@@ -65,7 +65,8 @@ var PAD_WITH_ZERO int = 1
 
 var ROUND int = 0
 
-func (this *Exchange) loadMarkets(reload bool) {
+func (this *Exchange) loadMarkets(params ...interface{}) {
+	// to do
 	// this.safeBool()
 }
 
