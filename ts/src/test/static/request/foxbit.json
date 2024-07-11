@@ -1,0 +1,22 @@
+{
+  "exchange": "foxbit",
+  "skipKeys": [],
+  "outputType": "json",
+  "methods": {
+    "fetchCurrencies": {
+      "description": "Fill this with a description of the method call",
+      "method": "fetchCurrencies",
+      "url": "https://api.foxbit.com.br/rest/v3/currencies",
+      "input": [
+        "MANA"
+      ]
+    },
+    "fetchMarkets": {
+      "description": "Fill this with a description of the method call",
+      "method": "fetchMarkets",
+      "url": "https://api.foxbit.com.br/rest/v3/markets",
+      "input": []
+    }
+  }
+}
+

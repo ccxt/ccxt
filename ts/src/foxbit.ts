@@ -387,6 +387,7 @@ export default class foxbit extends Exchange {
     }
 
     async fetchCurrencies (params = {}): Promise<Currencies> {
+        await this.loadMarkets ();
         const response = await this.v3PublicGetRestV3Currencies (params);
         // {
         //   "data": [
@@ -416,11 +417,46 @@ export default class foxbit extends Exchange {
         const result: Dict = {};
         for (let i = 0; i < coins.length; i++) {
             const coin = coins[i];
+            const currency = data[coin];
+            const precison = this.safeString (currency, 'precision');
+            const currencyId = this.safeString (currency, 'symbol');
+            const name = this.safeString (currency, 'name');
+            const code = this.safeCurrencyCode (currencyId);
+            if (this.safeValue (result, code) === undefined) {
+                result[code] = {
+                    'id': currencyId,
+                    'numericId': undefined,
+                    'code': code,
+                    'info': undefined,
+                    'name': name,
+                    'active': true,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'precision': precison,
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
         }
         return result;
     }
 
     async fetchMarkets (params = {}): Promise<Market[]> {
+        await this.loadMarkets ();
+        const response = await this.v3PublicGetRestV3Markets (params);
         //  {
         //    "data": [
         //      {
@@ -470,8 +506,65 @@ export default class foxbit extends Exchange {
         //      }
         //    ]
         //  }
-
-        return [];
+        const markets = this.safeList (response, 'data', []);
+        const result = [];
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const id = this.safeString (market, 'symbol');
+            const baseAssets = this.safeValue (market, 'base');
+            const baseId = this.safeString (baseAssets, 'symbol');
+            const quoteAssets = this.safeValue (market, 'quote');
+            const quoteId = this.safeString2 (quoteAssets, 'quote', 'symbol');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'active': true,
+                'type': 'spot',
+                'spot': true,
+                'margin': undefined,
+                'future': undefined,
+                'swap': undefined,
+                'option': undefined,
+                'contract': undefined,
+                'settle': undefined,
+                'settleId': undefined,
+                'contractSize': undefined,
+                'linear': undefined,
+                'inverse': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'taker': undefined,
+                'maker': undefined,
+                'percentage': true,
+                'tierBased': false,
+                'feeSide': 'get',
+                'precision': {
+                    'price': undefined,
+                    'amount': undefined,
+                    'cost': undefined,
+                },
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {},
+                    'cost': {},
+                    'leverage': {},
+                },
+                'info': {},
+            });
+        }
+        return result;
     }
 
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
