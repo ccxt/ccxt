@@ -1689,7 +1689,6 @@
     },
     "xt": {
         "skipMethods": {
-            "fetchCurrencies": "a of lot fields are missing",
             "loadMarkets": {
                 "taker":"is undefined",
                 "maker":"is undefined",
