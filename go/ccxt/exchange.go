@@ -34,6 +34,13 @@ type Exchange struct {
 	ids                 []string
 	commonCurrencies    map[string]interface{}
 	precisionMode       int
+	limits              map[string]interface{}
+	fees                map[string]interface{}
+	currencies_by_id    map[string]interface{}
+	reduceFees          bool
+
+	// type check this
+	number interface{}
 	// keys
 	secret        string
 	apiKey        string
@@ -60,6 +67,9 @@ type Exchange struct {
 
 	httpsProxyCallback   interface{}
 	https_proxy_callback interface{}
+
+	httpProxyCallback   interface{}
+	http_proxy_callback interface{}
 
 	wsSocksProxy   string
 	ws_socks_proxy string
