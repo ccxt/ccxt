@@ -1704,8 +1704,7 @@
             "watchOrderBook": {
                 "timestamp": "not provided",
                 "spread": "bid-ask crossing"
-            },
-            "watchOHLCV": "weird return type"
+            }
         }
     },
     "vertex": {
