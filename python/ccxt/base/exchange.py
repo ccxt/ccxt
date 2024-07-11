@@ -1466,8 +1466,8 @@ class Exchange(object):
         return json.dumps(data, separators=(',', ':'))
 
     @staticmethod
-    def json_with_null(data):
-        return json(data)
+    def orderbook_to_dict(orderbook):
+        return orderbook
 
     @staticmethod
     def is_json_encoded_object(input):

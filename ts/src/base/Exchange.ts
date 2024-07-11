@@ -1251,14 +1251,8 @@ export default class Exchange {
         }
     }
 
-    jsonWithNull (object) {
-        const jsonString = JSON.stringify(object, (key, value) => {
-            if (value === undefined) {
-                return null;
-            }
-            return value; 
-        });
-        return jsonString;
+    orderbookToDict (orderbook) {
+        return orderbook;
     }
 
     getResponseHeaders (response) {

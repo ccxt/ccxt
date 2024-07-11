@@ -276,9 +276,9 @@ public partial class Exchange
         // return null;
     }
 
-    public string jsonWithNull(object obj)
+    public object orderbookToDict(object obj)
     {
-        return json(obj);
+        return obj;
     }
 
     public object ordered(object ob)

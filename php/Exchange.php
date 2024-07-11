@@ -1139,8 +1139,8 @@ class Exchange {
         return json_encode($data, $flags);
     }
 
-    public static function json_with_null($json_string) {
-        return self::json($json_string);
+    public static function orderbook_to_dict($orderbook) {
+        return json_decode(json_encode($orderbook), true);
     }
 
     public static function is_json_encoded_object($input) {
