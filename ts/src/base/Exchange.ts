@@ -1251,6 +1251,16 @@ export default class Exchange {
         }
     }
 
+    jsonWithNull (object) {
+        const jsonString = JSON.stringify(object, (key, value) => {
+            if (value === undefined) {
+                return null;
+            }
+            return value; 
+        });
+        return jsonString;
+    }
+
     getResponseHeaders (response) {
         const result = {}
         response.headers.forEach ((value, key) => {
@@ -1954,6 +1964,13 @@ export default class Exchange {
 
     handleDelta (bookside, delta) {
         throw new NotSupported (this.id + ' handleDelta not supported yet');
+    }
+
+    handleDeltasWithKeys (bookSide: any, deltas, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
+        for (let i = 0; i < deltas.length; i++) {
+            const bidAsk = this.parseBidAsk (deltas[i], priceKey, amountKey, countOrIdKey);
+            bookSide.storeArray (bidAsk);
+        }
     }
 
     getCacheIndex (orderbook, deltas) {

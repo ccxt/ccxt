@@ -276,6 +276,11 @@ public partial class Exchange
         // return null;
     }
 
+    public string jsonWithNull(object obj)
+    {
+        return json(obj);
+    }
+
     public object ordered(object ob)
     {
         return ob; //stub

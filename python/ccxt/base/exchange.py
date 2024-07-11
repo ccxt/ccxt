@@ -1466,6 +1466,10 @@ class Exchange(object):
         return json.dumps(data, separators=(',', ':'))
 
     @staticmethod
+    def json_with_null(data):
+        return json(data)
+
+    @staticmethod
     def is_json_encoded_object(input):
         return (isinstance(input, str) and
                 (len(input) >= 2) and

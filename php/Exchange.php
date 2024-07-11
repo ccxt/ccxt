@@ -1139,6 +1139,10 @@ class Exchange {
         return json_encode($data, $flags);
     }
 
+    public static function json_with_null($json_string) {
+        return self::json($json_string);
+    }
+
     public static function is_json_encoded_object($input) {
         return ('string' === gettype($input)) &&
                 (strlen($input) >= 2) &&
