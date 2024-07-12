@@ -18,6 +18,16 @@
                         "recvWindow": 5000
                     }
                 ]
+            },
+            {
+                "description": "Close all open inverse positions",
+                "method": "closeAllPositions",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/closeAllPositions?recvWindow=5000&timestamp=1720772255776&signature=f16320d5cea8782bb0a5f9a9865a642fd2280b212235b0e2051940965e7b9b5f",
+                "input": [
+                  {
+                    "subType": "inverse"
+                  }
+                ]
             }
         ],
         "closePosition": [
