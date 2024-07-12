@@ -4428,7 +4428,7 @@ export default class bybit extends Exchange {
         const types = await this.isUnifiedEnabled ();
         const enableUnifiedAccount = types[1];
         if (!enableUnifiedAccount) {
-            throw new NotSupported (this.id + ' cancelOrders() supports UTA accounts only');
+            throw new NotSupported (this.id + ' cancelOrdersForSymbols() supports UTA accounts only');
         }
         const ordersRequests = [];
         let category = undefined;
