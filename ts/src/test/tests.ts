@@ -239,7 +239,8 @@ class testMainClass extends baseMainTestClass {
         const skippedPropertiesForMethod = this.getSkips (exchange, methodName);
         const isLoadMarkets = (methodName === 'loadMarkets');
         const isFetchCurrencies = (methodName === 'fetchCurrencies');
-        const isProxyTest = (methodName === this.proxyTestFileName);
+        const isRegularTest = (methodName in this.testFiles);
+        const isMiscTest = (methodName in this.testFilesMisc) || (methodName === this.proxyTestFileName);
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
         if (!isPublic && (methodName in this.checkedPublicTests) && !isFetchCurrencies) {
             return;
@@ -248,11 +249,11 @@ class testMainClass extends baseMainTestClass {
         const supportedByExchange = (methodName in exchange.has) && exchange.has[methodName];
         if (!isLoadMarkets && (this.onlySpecificTests.length > 0 && !exchange.inArray (methodName, this.onlySpecificTests))) {
             skipMessage = '[INFO] IGNORED_TEST';
-        } else if (!isLoadMarkets && !supportedByExchange && !isProxyTest) {
+        } else if (!isLoadMarkets && !supportedByExchange && !isMiscTest) {
             skipMessage = '[INFO] UNSUPPORTED_TEST'; // keep it aligned with the longest message
         } else if (typeof skippedPropertiesForMethod === 'string') {
             skipMessage = '[INFO] SKIPPED_TEST';
-        } else if (!(methodName in this.testFiles)) {
+        } else if (!isRegularTest && !isMiscTest) {
             skipMessage = '[INFO] UNIMPLEMENTED_TEST';
         }
         // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
@@ -269,7 +270,8 @@ class testMainClass extends baseMainTestClass {
             const argsStringified = '(' + exchange.json (args) + ')'; // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
             dump (this.addPadding ('[INFO] TESTING', 25), this.exchangeHint (exchange), methodName, argsStringified);
         }
-        await callMethod (this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
+        const testfiles = isMiscTest ? this.testFilesMisc : this.testFiles;
+        await callMethod (testfiles, methodName, exchange, skippedPropertiesForMethod, args);
         if (this.info) {
             dump (this.addPadding ('[INFO] TESTING DONE', 25), this.exchangeHint (exchange), methodName);
         }
@@ -457,7 +459,7 @@ class testMainClass extends baseMainTestClass {
             const instance1 = initExchange (exchange.id, {}, this.wsTests);
             const instance2 = initExchange (exchange.id, {}, this.wsTests);
             tests = exchange.extend (tests, {
-                'wsOrderBookSynchronization': [ [ instance1, instance2, symbol ] ],
+                'wsOrderBookSynchronization': [ instance1, instance2, symbol ],
             });
         }
         const market = exchange.market (symbol);

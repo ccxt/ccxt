@@ -200,6 +200,7 @@ async function getTestFiles (properties, ws = false, misc = false) {
             // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
             tests[testName] = await importTestFile (filePath);
         }
+        return tests;
     }
     const finalPropList = properties.concat ([ proxyTestFileName ]);
     for (let i = 0; i < finalPropList.length; i++) {
