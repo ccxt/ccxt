@@ -4716,35 +4716,54 @@ export default class bingx extends Exchange {
          * @name bitget#closePositions
          * @description closes open positions for a market
          * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
-         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Close%20all%20positions%20in%20bulk
+         * @param {object} [params] extra parameters specific to the bingx api endpoint
          * @param {string} [params.recvWindow] request valid time window value
-         * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object[]} [a list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
         const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
         const recvWindow = this.safeInteger (this.parseParams, 'recvWindow', defaultRecvWindow);
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('closeAllPositions', undefined, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('closeAllPositions', undefined, params);
         if (marketType === 'margin') {
             throw new BadRequest (this.id + ' closePositions () cannot be used for ' + marketType + ' markets');
         }
         const request: Dict = {
             'recvWindow': recvWindow,
         };
-        const response = await this.swapV2PrivatePostTradeCloseAllPositions (this.extend (request, params));
-        //
-        //    {
-        //        "code": 0,
-        //        "msg": "",
-        //        "data": {
-        //            "success": [
-        //                1727686766700486656,
-        //                1727686767048613888
-        //            ],
-        //            "failed": null
-        //        }
-        //    }
-        //
+        let response = undefined;
+        if (subType === 'inverse') {
+            response = await this.cswapV1PrivatePostTradeCloseAllPositions (this.extend (request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "",
+            //         "timestamp": 1720771601428,
+            //         "data": {
+            //             "success": ["1811673520637231104"],
+            //             "failed": null
+            //         }
+            //     }
+            //
+        } else {
+            response = await this.swapV2PrivatePostTradeCloseAllPositions (this.extend (request, params));
+            //
+            //    {
+            //        "code": 0,
+            //        "msg": "",
+            //        "data": {
+            //            "success": [
+            //                1727686766700486656,
+            //                1727686767048613888
+            //            ],
+            //            "failed": null
+            //        }
+            //    }
+            //
+        }
         const data = this.safeDict (response, 'data', {});
         const success = this.safeList (data, 'success', []);
         const positions = [];
