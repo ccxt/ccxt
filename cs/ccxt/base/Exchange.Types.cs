@@ -1582,7 +1582,7 @@ public struct CurrencyLimits
     {
         var currencyLimits = (Dictionary<string, object>)currencyLimits2;
         amount = currencyLimits.ContainsKey("amount") ? new MinMax(currencyLimits["amount"]) : null;
-        withdraw = currencyLimits.ContainsKey("amount") ? new MinMax(currencyLimits["amount"]) : null;
+        withdraw = currencyLimits.ContainsKey("withdraw") ? new MinMax(currencyLimits["withdraw"]) : null;
     }
 }
 
