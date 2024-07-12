@@ -837,7 +837,7 @@ class xt extends Exchange {
                     'name' => $this->safe_string($entry, 'fullName'),
                     'active' => $active,
                     'fee' => $this->parse_number($minWithdrawFeeString),
-                    'precision' => null,
+                    'precision' => $minPrecision,
                     'deposit' => $deposit,
                     'withdraw' => $withdraw,
                     'networks' => $networks,

@@ -823,17 +823,25 @@ public partial class cryptocom : Exchange
             { "instrument_name", getValue(market, "id") },
             { "timeframe", this.safeString(this.timeframes, timeframe, timeframe) },
         };
-        if (isTrue(!isEqual(since, null)))
-        {
-            ((IDictionary<string,object>)request)["start_ts"] = since;
-        }
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        object until = this.safeInteger(parameters, "until");
+        object now = this.microseconds();
+        object duration = this.parseTimeframe(timeframe);
+        object until = this.safeInteger(parameters, "until", now);
         parameters = this.omit(parameters, new List<object>() {"until"});
-        if (isTrue(!isEqual(until, null)))
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["start_ts"] = since;
+            if (isTrue(!isEqual(limit, null)))
+            {
+                ((IDictionary<string,object>)request)["end_ts"] = subtract(this.sum(since, multiply(multiply(duration, (add(limit, 1))), 1000)), 1);
+            } else
+            {
+                ((IDictionary<string,object>)request)["end_ts"] = until;
+            }
+        } else
         {
             ((IDictionary<string,object>)request)["end_ts"] = until;
         }

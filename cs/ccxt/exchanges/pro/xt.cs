@@ -284,7 +284,12 @@ public partial class xt : ccxt.xt
         await this.loadMarkets();
         object market = this.market(symbol);
         object name = add(add(add("kline@", getValue(market, "id")), ","), timeframe);
-        return await this.subscribe(name, "public", "watchOHLCV", market, null, parameters);
+        object ohlcv = await this.subscribe(name, "public", "watchOHLCV", market, null, parameters);
+        if (isTrue(this.newUpdates))
+        {
+            limit = callDynamically(ohlcv, "getLimit", new object[] {symbol, limit});
+        }
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
 
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)

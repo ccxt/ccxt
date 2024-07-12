@@ -230,7 +230,10 @@ class xt(ccxt.async_support.xt):
         await self.load_markets()
         market = self.market(symbol)
         name = 'kline@' + market['id'] + ',' + timeframe
-        return await self.subscribe(name, 'public', 'watchOHLCV', market, None, params)
+        ohlcv = await self.subscribe(name, 'public', 'watchOHLCV', market, None, params)
+        if self.newUpdates:
+            limit = ohlcv.getLimit(symbol, limit)
+        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """

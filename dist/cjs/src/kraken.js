@@ -1049,7 +1049,7 @@ class kraken extends kraken$1 {
         else {
             direction = 'in';
         }
-        const timestamp = this.safeTimestamp(item, 'time');
+        const timestamp = this.safeIntegerProduct(item, 'time', 1000);
         return {
             'info': item,
             'id': id,

@@ -4267,6 +4267,7 @@ class bingx extends Exchange {
             /**
              * set the level of $leverage for a $market
              * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Switch%20Leverage
+             * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Modify%20Leverage
              * @param {float} $leverage the rate of $leverage
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4285,17 +4286,43 @@ class bingx extends Exchange {
                 'side' => $side,
                 'leverage' => $leverage,
             );
-            //
-            //    {
-            //        "code" => 0,
-            //        "msg" => "",
-            //        "data" => {
-            //            "leverage" => 6,
-            //            "symbol" => "BTC-USDT"
-            //        }
-            //    }
-            //
-            return Async\await($this->swapV2PrivatePostTradeLeverage ($this->extend($request, $params)));
+            if ($market['inverse']) {
+                return Async\await($this->cswapV1PrivatePostTradeLeverage ($this->extend($request, $params)));
+                //
+                //     {
+                //         "code" => 0,
+                //         "msg" => "",
+                //         "timestamp" => 1720725058059,
+                //         "data" => {
+                //             "symbol" => "SOL-USD",
+                //             "longLeverage" => 10,
+                //             "shortLeverage" => 5,
+                //             "maxLongLeverage" => 50,
+                //             "maxShortLeverage" => 50,
+                //             "availableLongVol" => "4000000",
+                //             "availableShortVol" => "4000000"
+                //         }
+                //     }
+                //
+            } else {
+                return Async\await($this->swapV2PrivatePostTradeLeverage ($this->extend($request, $params)));
+                //
+                //     {
+                //         "code" => 0,
+                //         "msg" => "",
+                //         "data" => {
+                //             "leverage" => 10,
+                //             "symbol" => "BTC-USDT",
+                //             "availableLongVol" => "0.0000",
+                //             "availableShortVol" => "0.0000",
+                //             "availableLongVal" => "0.0",
+                //             "availableShortVal" => "0.0",
+                //             "maxPositionLongVal" => "0.0",
+                //             "maxPositionShortVal" => "0.0"
+                //         }
+                //     }
+                //
+            }
         }) ();
     }
 
@@ -4656,61 +4683,69 @@ class bingx extends Exchange {
             /**
              * closes open positions for a $market
              * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
+             * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Close%20all%20positions%20in%20bulk
              * @param {string} $symbol Unified CCXT $market $symbol
              * @param {string} [$side] not used by bingx
              * @param {array} [$params] extra parameters specific to the bingx api endpoint
-             * @param {string|null} [$params->positionId] it is recommended to property_exists($this, fill) parameter when closing a position
+             * @param {string|null} [$params->positionId] the id of the position you would like to close
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
+            $market = $this->market($symbol);
             $positionId = $this->safe_string($params, 'positionId');
-            $params = $this->omit($params, 'positionId');
+            $request = array();
             $response = null;
             if ($positionId !== null) {
-                $request = array(
-                    'positionId' => $positionId,
-                );
                 $response = Async\await($this->swapV1PrivatePostTradeClosePosition ($this->extend($request, $params)));
+                //
+                //    {
+                //        "code" => 0,
+                //        "msg" => "",
+                //        "timestamp" => 1710992264190,
+                //        "data" => {
+                //            "orderId" => 1770656007907930112,
+                //            "positionId" => "1751667128353910784",
+                //            "symbol" => "LTC-USDT",
+                //            "side" => "Ask",
+                //            "type" => "MARKET",
+                //            "positionSide" => "Long",
+                //            "origQty" => "0.2"
+                //        }
+                //    }
+                //
             } else {
-                $market = $this->market($symbol);
-                $request = array(
-                    'symbol' => $market['id'],
-                );
-                $response = Async\await($this->swapV2PrivatePostTradeCloseAllPositions ($this->extend($request, $params)));
+                $request['symbol'] = $market['id'];
+                if ($market['inverse']) {
+                    $response = Async\await($this->cswapV1PrivatePostTradeCloseAllPositions ($this->extend($request, $params)));
+                    //
+                    //     {
+                    //         "code" => 0,
+                    //         "msg" => "",
+                    //         "timestamp" => 1720771601428,
+                    //         "data" => {
+                    //             "success" => ["1811673520637231104"],
+                    //             "failed" => null
+                    //         }
+                    //     }
+                    //
+                } else {
+                    $response = Async\await($this->swapV2PrivatePostTradeCloseAllPositions ($this->extend($request, $params)));
+                    //
+                    //    {
+                    //        "code" => 0,
+                    //        "msg" => "",
+                    //        "data" => {
+                    //            "success" => array(
+                    //                1727686766700486656,
+                    //            ),
+                    //            "failed" => null
+                    //        }
+                    //    }
+                    //
+                }
             }
-            //
-            // swapV1PrivatePostTradeClosePosition
-            //
-            //    {
-            //        "code" => 0,
-            //        "msg" => "",
-            //        "timestamp" => 1710992264190,
-            //        "data" => {
-            //            "orderId" => 1770656007907930112,
-            //            "positionId" => "1751667128353910784",
-            //            "symbol" => "LTC-USDT",
-            //            "side" => "Ask",
-            //            "type" => "MARKET",
-            //            "positionSide" => "Long",
-            //            "origQty" => "0.2"
-            //        }
-            //    }
-            //
-            // swapV2PrivatePostTradeCloseAllPositions
-            //
-            //    {
-            //        "code" => 0,
-            //        "msg" => "",
-            //        "data" => {
-            //            "success" => array(
-            //                1727686766700486656,
-            //            ),
-            //            "failed" => null
-            //        }
-            //    }
-            //
             $data = $this->safe_dict($response, 'data');
-            return $this->parse_order($data);
+            return $this->parse_order($data, $market);
         }) ();
     }
 
@@ -4719,35 +4754,54 @@ class bingx extends Exchange {
             /**
              * closes open $positions for a market
              * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
-             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Close%20all%20positions%20in%20bulk
+             * @param {array} [$params] extra parameters specific to the bingx api endpoint
              * @param {string} [$params->recvWindow] $request valid time window value
-             * @return {array[]} ~@link https://docs.ccxt.com/#/?id=$position-structure A list of $position structures~
+             * @return {array[]} ~@link https://docs.ccxt.com/#/?id=$position-structure a list of $position structures~
              */
             Async\await($this->load_markets());
             $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');
             $recvWindow = $this->safe_integer(array($this, 'parse_params'), 'recvWindow', $defaultRecvWindow);
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('closeAllPositions', null, $params);
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('closeAllPositions', null, $params);
             if ($marketType === 'margin') {
                 throw new BadRequest($this->id . ' closePositions () cannot be used for ' . $marketType . ' markets');
             }
             $request = array(
                 'recvWindow' => $recvWindow,
             );
-            $response = Async\await($this->swapV2PrivatePostTradeCloseAllPositions ($this->extend($request, $params)));
-            //
-            //    {
-            //        "code" => 0,
-            //        "msg" => "",
-            //        "data" => {
-            //            "success" => array(
-            //                1727686766700486656,
-            //                1727686767048613888
-            //            ),
-            //            "failed" => null
-            //        }
-            //    }
-            //
+            $response = null;
+            if ($subType === 'inverse') {
+                $response = Async\await($this->cswapV1PrivatePostTradeCloseAllPositions ($this->extend($request, $params)));
+                //
+                //     {
+                //         "code" => 0,
+                //         "msg" => "",
+                //         "timestamp" => 1720771601428,
+                //         "data" => {
+                //             "success" => ["1811673520637231104"],
+                //             "failed" => null
+                //         }
+                //     }
+                //
+            } else {
+                $response = Async\await($this->swapV2PrivatePostTradeCloseAllPositions ($this->extend($request, $params)));
+                //
+                //    {
+                //        "code" => 0,
+                //        "msg" => "",
+                //        "data" => {
+                //            "success" => array(
+                //                1727686766700486656,
+                //                1727686767048613888
+                //            ),
+                //            "failed" => null
+                //        }
+                //    }
+                //
+            }
             $data = $this->safe_dict($response, 'data', array());
             $success = $this->safe_list($data, 'success', array());
             $positions = array();

@@ -41,6 +41,9 @@ public partial class kucoin : ccxt.kucoin
                     { "snapshotMaxRetries", 3 },
                     { "method", "/market/level2" },
                 } },
+                { "watchMyTrades", new Dictionary<string, object>() {
+                    { "method", "/spotMarket/tradeOrders" },
+                } },
             } },
             { "streaming", new Dictionary<string, object>() {
                 { "ping", this.ping },
@@ -1093,12 +1096,15 @@ public partial class kucoin : ccxt.kucoin
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trade structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.method] '/spotMarket/tradeOrders' or '/spot/tradeFills' default is '/spotMarket/tradeOrders'
         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object url = await this.negotiate(true);
-        object topic = "/spotMarket/tradeOrders";
+        object options = this.safeDict(this.options, "watchMyTrades");
+        object defaultMethod = this.safeString(parameters, "method", "/spotMarket/tradeOrders");
+        object topic = ((bool) isTrue((!isEqual(defaultMethod, null)))) ? defaultMethod : this.safeString(options, "method");
         object request = new Dictionary<string, object>() {
             { "privateChannel", true },
         };
@@ -1164,6 +1170,8 @@ public partial class kucoin : ccxt.kucoin
     public override object parseWsTrade(object trade, object market = null)
     {
         //
+        // /spotMarket/tradeOrders
+        //
         //     {
         //         "symbol": "KCS-USDT",
         //         "orderType": "limit",
@@ -1185,6 +1193,22 @@ public partial class kucoin : ccxt.kucoin
         //         "ts": 1670329987311000000
         //     }
         //
+        // /spot/tradeFills
+        //
+        //    {
+        //        "fee": 0.00262148,
+        //        "feeCurrency": "USDT",
+        //        "feeRate": 0.001,
+        //        "orderId": "62417436b29df8000183df2f",
+        //        "orderType": "market",
+        //        "price": 131.074,
+        //        "side": "sell",
+        //        "size": 0.02,
+        //        "symbol": "LTC-USDT",
+        //        "time": "1648456758734571745",
+        //        "tradeId": "624174362e113d2f467b3043"
+        //    }
+        //
         object marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market, "-");
         object symbol = getValue(market, "symbol");
@@ -1194,7 +1218,10 @@ public partial class kucoin : ccxt.kucoin
         object price = this.safeString(trade, "matchPrice");
         object amount = this.safeString(trade, "matchSize");
         object order = this.safeString(trade, "orderId");
-        object timestamp = this.safeIntegerProduct(trade, "ts", 0.000001);
+        object timestamp = this.safeIntegerProduct2(trade, "ts", "time", 0.000001);
+        object feeCurrency = getValue(market, "quote");
+        object feeRate = this.safeString(trade, "feeRate");
+        object feeCost = this.safeString(trade, "fee");
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "timestamp", timestamp },
@@ -1208,7 +1235,11 @@ public partial class kucoin : ccxt.kucoin
             { "price", price },
             { "amount", amount },
             { "cost", null },
-            { "fee", null },
+            { "fee", new Dictionary<string, object>() {
+                { "cost", feeCost },
+                { "rate", feeRate },
+                { "currency", feeCurrency },
+            } },
         }, market);
     }
 
@@ -1328,6 +1359,7 @@ public partial class kucoin : ccxt.kucoin
             { "account.balance", this.handleBalance },
             { "orderChange", this.handleOrder },
             { "stopOrder", this.handleOrder },
+            { "/spot/tradeFills", this.handleMyTrade },
         };
         object method = this.safeValue(methods, subject);
         if (isTrue(!isEqual(method, null)))

@@ -814,15 +814,23 @@ class cryptocom extends cryptocom$1 {
             'instrument_name': market['id'],
             'timeframe': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        if (since !== undefined) {
-            request['start_ts'] = since;
-        }
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger(params, 'until');
+        const now = this.microseconds();
+        const duration = this.parseTimeframe(timeframe);
+        const until = this.safeInteger(params, 'until', now);
         params = this.omit(params, ['until']);
-        if (until !== undefined) {
+        if (since !== undefined) {
+            request['start_ts'] = since;
+            if (limit !== undefined) {
+                request['end_ts'] = this.sum(since, duration * (limit + 1) * 1000) - 1;
+            }
+            else {
+                request['end_ts'] = until;
+            }
+        }
+        else {
             request['end_ts'] = until;
         }
         const response = await this.v1PublicGetPublicGetCandlestick(this.extend(request, params));

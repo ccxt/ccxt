@@ -4386,6 +4386,7 @@ public partial class bingx : Exchange
         * @name bingx#setLeverage
         * @description set the level of leverage for a market
         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Switch%20Leverage
+        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Modify%20Leverage
         * @param {float} leverage the rate of leverage
         * @param {string} symbol unified market symbol
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4406,17 +4407,13 @@ public partial class bingx : Exchange
             { "side", side },
             { "leverage", leverage },
         };
-        //
-        //    {
-        //        "code": 0,
-        //        "msg": "",
-        //        "data": {
-        //            "leverage": 6,
-        //            "symbol": "BTC-USDT"
-        //        }
-        //    }
-        //
-        return await this.swapV2PrivatePostTradeLeverage(this.extend(request, parameters));
+        if (isTrue(getValue(market, "inverse")))
+        {
+            return await this.cswapV1PrivatePostTradeLeverage(this.extend(request, parameters));
+        } else
+        {
+            return await this.swapV2PrivatePostTradeLeverage(this.extend(request, parameters));
+        }
     }
 
     public async override Task<object> fetchMyTrades(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -4773,64 +4770,35 @@ public partial class bingx : Exchange
         * @name bingx#closePosition
         * @description closes open positions for a market
         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
+        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Close%20all%20positions%20in%20bulk
         * @param {string} symbol Unified CCXT market symbol
         * @param {string} [side] not used by bingx
         * @param {object} [params] extra parameters specific to the bingx api endpoint
-        * @param {string|undefined} [params.positionId] it is recommended to fill in this parameter when closing a position
+        * @param {string|undefined} [params.positionId] the id of the position you would like to close
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object market = this.market(symbol);
         object positionId = this.safeString(parameters, "positionId");
-        parameters = this.omit(parameters, "positionId");
+        object request = new Dictionary<string, object>() {};
         object response = null;
         if (isTrue(!isEqual(positionId, null)))
         {
-            object request = new Dictionary<string, object>() {
-                { "positionId", positionId },
-            };
             response = await this.swapV1PrivatePostTradeClosePosition(this.extend(request, parameters));
         } else
         {
-            object market = this.market(symbol);
-            object request = new Dictionary<string, object>() {
-                { "symbol", getValue(market, "id") },
-            };
-            response = await this.swapV2PrivatePostTradeCloseAllPositions(this.extend(request, parameters));
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            if (isTrue(getValue(market, "inverse")))
+            {
+                response = await this.cswapV1PrivatePostTradeCloseAllPositions(this.extend(request, parameters));
+            } else
+            {
+                response = await this.swapV2PrivatePostTradeCloseAllPositions(this.extend(request, parameters));
+            }
         }
-        //
-        // swapV1PrivatePostTradeClosePosition
-        //
-        //    {
-        //        "code": 0,
-        //        "msg": "",
-        //        "timestamp": 1710992264190,
-        //        "data": {
-        //            "orderId": 1770656007907930112,
-        //            "positionId": "1751667128353910784",
-        //            "symbol": "LTC-USDT",
-        //            "side": "Ask",
-        //            "type": "MARKET",
-        //            "positionSide": "Long",
-        //            "origQty": "0.2"
-        //        }
-        //    }
-        //
-        // swapV2PrivatePostTradeCloseAllPositions
-        //
-        //    {
-        //        "code": 0,
-        //        "msg": "",
-        //        "data": {
-        //            "success": [
-        //                1727686766700486656,
-        //            ],
-        //            "failed": null
-        //        }
-        //    }
-        //
         object data = this.safeDict(response, "data");
-        return this.parseOrder(data);
+        return this.parseOrder(data, market);
     }
 
     public async override Task<object> closeAllPositions(object parameters = null)
@@ -4840,9 +4808,10 @@ public partial class bingx : Exchange
         * @name bitget#closePositions
         * @description closes open positions for a market
         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
-        * @param {object} [params] extra parameters specific to the okx api endpoint
+        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Close%20all%20positions%20in%20bulk
+        * @param {object} [params] extra parameters specific to the bingx api endpoint
         * @param {string} [params.recvWindow] request valid time window value
-        * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+        * @returns {object[]} [a list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -4852,6 +4821,10 @@ public partial class bingx : Exchange
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("closeAllPositions", null, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("closeAllPositions", null, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
         if (isTrue(isEqual(marketType, "margin")))
         {
             throw new BadRequest ((string)add(add(add(this.id, " closePositions () cannot be used for "), marketType), " markets")) ;
@@ -4859,20 +4832,14 @@ public partial class bingx : Exchange
         object request = new Dictionary<string, object>() {
             { "recvWindow", recvWindow },
         };
-        object response = await this.swapV2PrivatePostTradeCloseAllPositions(this.extend(request, parameters));
-        //
-        //    {
-        //        "code": 0,
-        //        "msg": "",
-        //        "data": {
-        //            "success": [
-        //                1727686766700486656,
-        //                1727686767048613888
-        //            ],
-        //            "failed": null
-        //        }
-        //    }
-        //
+        object response = null;
+        if (isTrue(isEqual(subType, "inverse")))
+        {
+            response = await this.cswapV1PrivatePostTradeCloseAllPositions(this.extend(request, parameters));
+        } else
+        {
+            response = await this.swapV2PrivatePostTradeCloseAllPositions(this.extend(request, parameters));
+        }
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object success = this.safeList(data, "success", new List<object>() {});
         object positions = new List<object>() {};

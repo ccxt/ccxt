@@ -1090,6 +1090,7 @@ public partial class bingx
     /// </summary>
     /// <remarks>
     /// See <see href="https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Switch%20Leverage"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Modify%20Leverage"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
