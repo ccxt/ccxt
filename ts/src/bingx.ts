@@ -4645,61 +4645,69 @@ export default class bingx extends Exchange {
          * @name bingx#closePosition
          * @description closes open positions for a market
          * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Close%20all%20positions%20in%20bulk
          * @param {string} symbol Unified CCXT market symbol
          * @param {string} [side] not used by bingx
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @param {string|undefined} [params.positionId] it is recommended to fill in this parameter when closing a position
+         * @param {string|undefined} [params.positionId] the id of the position you would like to close
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const positionId = this.safeString (params, 'positionId');
-        params = this.omit (params, 'positionId');
+        const request: Dict = {};
         let response = undefined;
         if (positionId !== undefined) {
-            const request: Dict = {
-                'positionId': positionId,
-            };
             response = await this.swapV1PrivatePostTradeClosePosition (this.extend (request, params));
+            //
+            //    {
+            //        "code": 0,
+            //        "msg": "",
+            //        "timestamp": 1710992264190,
+            //        "data": {
+            //            "orderId": 1770656007907930112,
+            //            "positionId": "1751667128353910784",
+            //            "symbol": "LTC-USDT",
+            //            "side": "Ask",
+            //            "type": "MARKET",
+            //            "positionSide": "Long",
+            //            "origQty": "0.2"
+            //        }
+            //    }
+            //
         } else {
-            const market = this.market (symbol);
-            const request: Dict = {
-                'symbol': market['id'],
-            };
-            response = await this.swapV2PrivatePostTradeCloseAllPositions (this.extend (request, params));
+            request['symbol'] = market['id'];
+            if (market['inverse']) {
+                response = await this.cswapV1PrivatePostTradeCloseAllPositions (this.extend (request, params));
+                //
+                //     {
+                //         "code": 0,
+                //         "msg": "",
+                //         "timestamp": 1720771601428,
+                //         "data": {
+                //             "success": ["1811673520637231104"],
+                //             "failed": null
+                //         }
+                //     }
+                //
+            } else {
+                response = await this.swapV2PrivatePostTradeCloseAllPositions (this.extend (request, params));
+                //
+                //    {
+                //        "code": 0,
+                //        "msg": "",
+                //        "data": {
+                //            "success": [
+                //                1727686766700486656,
+                //            ],
+                //            "failed": null
+                //        }
+                //    }
+                //
+            }
         }
-        //
-        // swapV1PrivatePostTradeClosePosition
-        //
-        //    {
-        //        "code": 0,
-        //        "msg": "",
-        //        "timestamp": 1710992264190,
-        //        "data": {
-        //            "orderId": 1770656007907930112,
-        //            "positionId": "1751667128353910784",
-        //            "symbol": "LTC-USDT",
-        //            "side": "Ask",
-        //            "type": "MARKET",
-        //            "positionSide": "Long",
-        //            "origQty": "0.2"
-        //        }
-        //    }
-        //
-        // swapV2PrivatePostTradeCloseAllPositions
-        //
-        //    {
-        //        "code": 0,
-        //        "msg": "",
-        //        "data": {
-        //            "success": [
-        //                1727686766700486656,
-        //            ],
-        //            "failed": null
-        //        }
-        //    }
-        //
         const data = this.safeDict (response, 'data');
-        return this.parseOrder (data);
+        return this.parseOrder (data, market);
     }
 
     async closeAllPositions (params = {}): Promise<Position[]> {
