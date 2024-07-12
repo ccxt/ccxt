@@ -1421,16 +1421,16 @@ class Exchange(object):
     def starknet_encode_structured_data (domain, messageTypes, messageData, address):
         types = list(messageTypes.keys())
         if len(types) > 1:
-            raise NotSupported (this.id + 'starknetEncodeStructuredData only support single type')
+            raise NotSupported(this.id + 'starknetEncodeStructuredData only support single type')
 
         request = {
             'domain': domain,
             'primaryType': types[0],
-            'types': Exchange.extend ({
+            'types': Exchange.extend({
                 'StarkNetDomain': [
-                    { 'name': "name", 'type': "felt" },
-                    { 'name': "chainId", 'type': "felt" },
-                    { 'name': "version", 'type': "felt" },
+                    {'name': "name", 'type': "felt"},
+                    {'name': "chainId", 'type': "felt"},
+                    {'name': "version", 'type': "felt"},
                 ],
             }, messageTypes),
             'message': messageData,
@@ -1442,8 +1442,8 @@ class Exchange(object):
     @staticmethod
     def starknet_sign (hash, pri):
         # // TODO: unify to ecdsa
-        r, s = message_signature (hash, pri)
-        return Exchange.json([ hex(r), hex(s)])
+        r, s = message_signature(hash, pri)
+        return Exchange.json([hex(r), hex(s)])
 
     @staticmethod
     def packb(o):
