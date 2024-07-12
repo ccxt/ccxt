@@ -1,10 +1,13 @@
 import assert from 'assert';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import { ExchangeError, ArgumentsRequired } from '../../../base/errors.js';
-import { Exchange, Tickers } from '../../../../ccxt.js';
+import ccxt, { Exchange } from '../../../../ccxt.js';
 
 
-async function testWsOrderBookSynchronization (exchange1: Exchange, exchange2: Exchange, symbol: string) {
+async function testWsOrderBookSynchronization (exchange: Exchange, skippedProperties: any, symbol: string) {
+    const id = exchange.id;
+    const exchange1 = exchange;
+    const exchange2 = new ccxt.pro[id] ();
     const now = exchange1.milliseconds ();
     const ends = now + 30000; // run at max 30 seconds
     const promise_1 = testWsObSyncingFirstLoop (exchange1, exchange2, symbol, ends);
@@ -26,11 +29,11 @@ async function testWsObSyncingFirstLoop (currentInstance: Exchange, otherInstanc
             const logText = testSharedMethods.logTemplate (currentInstance, 'watchOrderBook', ob);
             throw new ExchangeError ('nonce is undefined, tests can not proceed' + logText);
         }
-        const nonceString = (ob['nonce']).toString ();
-        currentInstance.options['tempObNonces'][nonce] = ob;
-        if (!('tempObNonce' in otherInstance.options)) {
+        const nonceString = nonce.toString ();
+        currentInstance.options['tempObNonces'][nonceString] = ob;
+        if (!('tempObNonces' in otherInstance.options)) {
             // if seoncd loop hasn't yet started
-            break;
+            continue;
         } else {
             // if second loop has started, but this nonce does not exist there, then continue
             if (!(nonceString in otherInstance.options['tempObNonces'])) {
