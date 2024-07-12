@@ -4672,61 +4672,69 @@ export default class bingx extends Exchange {
          * @name bingx#closePosition
          * @description closes open positions for a market
          * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Close%20all%20positions%20in%20bulk
          * @param {string} symbol Unified CCXT market symbol
          * @param {string} [side] not used by bingx
          * @param {object} [params] extra parameters specific to the bingx api endpoint
-         * @param {string|undefined} [params.positionId] it is recommended to fill in this parameter when closing a position
+         * @param {string|undefined} [params.positionId] the id of the position you would like to close
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const positionId = this.safeString (params, 'positionId');
-        params = this.omit (params, 'positionId');
+        const request: Dict = {};
         let response = undefined;
         if (positionId !== undefined) {
-            const request: Dict = {
-                'positionId': positionId,
-            };
             response = await this.swapV1PrivatePostTradeClosePosition (this.extend (request, params));
+            //
+            //    {
+            //        "code": 0,
+            //        "msg": "",
+            //        "timestamp": 1710992264190,
+            //        "data": {
+            //            "orderId": 1770656007907930112,
+            //            "positionId": "1751667128353910784",
+            //            "symbol": "LTC-USDT",
+            //            "side": "Ask",
+            //            "type": "MARKET",
+            //            "positionSide": "Long",
+            //            "origQty": "0.2"
+            //        }
+            //    }
+            //
         } else {
-            const market = this.market (symbol);
-            const request: Dict = {
-                'symbol': market['id'],
-            };
-            response = await this.swapV2PrivatePostTradeCloseAllPositions (this.extend (request, params));
+            request['symbol'] = market['id'];
+            if (market['inverse']) {
+                response = await this.cswapV1PrivatePostTradeCloseAllPositions (this.extend (request, params));
+                //
+                //     {
+                //         "code": 0,
+                //         "msg": "",
+                //         "timestamp": 1720771601428,
+                //         "data": {
+                //             "success": ["1811673520637231104"],
+                //             "failed": null
+                //         }
+                //     }
+                //
+            } else {
+                response = await this.swapV2PrivatePostTradeCloseAllPositions (this.extend (request, params));
+                //
+                //    {
+                //        "code": 0,
+                //        "msg": "",
+                //        "data": {
+                //            "success": [
+                //                1727686766700486656,
+                //            ],
+                //            "failed": null
+                //        }
+                //    }
+                //
+            }
         }
-        //
-        // swapV1PrivatePostTradeClosePosition
-        //
-        //    {
-        //        "code": 0,
-        //        "msg": "",
-        //        "timestamp": 1710992264190,
-        //        "data": {
-        //            "orderId": 1770656007907930112,
-        //            "positionId": "1751667128353910784",
-        //            "symbol": "LTC-USDT",
-        //            "side": "Ask",
-        //            "type": "MARKET",
-        //            "positionSide": "Long",
-        //            "origQty": "0.2"
-        //        }
-        //    }
-        //
-        // swapV2PrivatePostTradeCloseAllPositions
-        //
-        //    {
-        //        "code": 0,
-        //        "msg": "",
-        //        "data": {
-        //            "success": [
-        //                1727686766700486656,
-        //            ],
-        //            "failed": null
-        //        }
-        //    }
-        //
         const data = this.safeDict (response, 'data');
-        return this.parseOrder (data);
+        return this.parseOrder (data, market);
     }
 
     async closeAllPositions (params = {}): Promise<Position[]> {
@@ -4735,35 +4743,54 @@ export default class bingx extends Exchange {
          * @name bitget#closePositions
          * @description closes open positions for a market
          * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
-         * @param {object} [params] extra parameters specific to the okx api endpoint
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Close%20all%20positions%20in%20bulk
+         * @param {object} [params] extra parameters specific to the bingx api endpoint
          * @param {string} [params.recvWindow] request valid time window value
-         * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object[]} [a list of position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
         const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
         const recvWindow = this.safeInteger (this.parseParams, 'recvWindow', defaultRecvWindow);
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('closeAllPositions', undefined, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('closeAllPositions', undefined, params);
         if (marketType === 'margin') {
             throw new BadRequest (this.id + ' closePositions () cannot be used for ' + marketType + ' markets');
         }
         const request: Dict = {
             'recvWindow': recvWindow,
         };
-        const response = await this.swapV2PrivatePostTradeCloseAllPositions (this.extend (request, params));
-        //
-        //    {
-        //        "code": 0,
-        //        "msg": "",
-        //        "data": {
-        //            "success": [
-        //                1727686766700486656,
-        //                1727686767048613888
-        //            ],
-        //            "failed": null
-        //        }
-        //    }
-        //
+        let response = undefined;
+        if (subType === 'inverse') {
+            response = await this.cswapV1PrivatePostTradeCloseAllPositions (this.extend (request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "",
+            //         "timestamp": 1720771601428,
+            //         "data": {
+            //             "success": ["1811673520637231104"],
+            //             "failed": null
+            //         }
+            //     }
+            //
+        } else {
+            response = await this.swapV2PrivatePostTradeCloseAllPositions (this.extend (request, params));
+            //
+            //    {
+            //        "code": 0,
+            //        "msg": "",
+            //        "data": {
+            //            "success": [
+            //                1727686766700486656,
+            //                1727686767048613888
+            //            ],
+            //            "failed": null
+            //        }
+            //    }
+            //
+        }
         const data = this.safeDict (response, 'data', {});
         const success = this.safeList (data, 'success', []);
         const positions = [];
