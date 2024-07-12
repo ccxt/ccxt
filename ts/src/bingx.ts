@@ -4256,6 +4256,7 @@ export default class bingx extends Exchange {
          * @name bingx#setLeverage
          * @description set the level of leverage for a market
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Switch%20Leverage
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Modify%20Leverage
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4274,17 +4275,43 @@ export default class bingx extends Exchange {
             'side': side,
             'leverage': leverage,
         };
-        //
-        //    {
-        //        "code": 0,
-        //        "msg": "",
-        //        "data": {
-        //            "leverage": 6,
-        //            "symbol": "BTC-USDT"
-        //        }
-        //    }
-        //
-        return await this.swapV2PrivatePostTradeLeverage (this.extend (request, params));
+        if (market['inverse']) {
+            return await this.cswapV1PrivatePostTradeLeverage (this.extend (request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "",
+            //         "timestamp": 1720725058059,
+            //         "data": {
+            //             "symbol": "SOL-USD",
+            //             "longLeverage": 10,
+            //             "shortLeverage": 5,
+            //             "maxLongLeverage": 50,
+            //             "maxShortLeverage": 50,
+            //             "availableLongVol": "4000000",
+            //             "availableShortVol": "4000000"
+            //         }
+            //     }
+            //
+        } else {
+            return await this.swapV2PrivatePostTradeLeverage (this.extend (request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "",
+            //         "data": {
+            //             "leverage": 10,
+            //             "symbol": "BTC-USDT",
+            //             "availableLongVol": "0.0000",
+            //             "availableShortVol": "0.0000",
+            //             "availableLongVal": "0.0",
+            //             "availableShortVal": "0.0",
+            //             "maxPositionLongVal": "0.0",
+            //             "maxPositionShortVal": "0.0"
+            //         }
+            //     }
+            //
+        }
     }
 
     async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
