@@ -1,6 +1,7 @@
 package ccxt
 
 import (
+	j "encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -468,6 +469,15 @@ func ToSafeFloat(v interface{}) (float64, error) {
 	default:
 		return 0, errors.New("cannot convert to float")
 	}
+}
+
+// json converts an object to a JSON string
+func (this *Exchange) json(object interface{}) interface{} {
+	jsonBytes, err := j.Marshal(object)
+	if err != nil {
+		return nil
+	}
+	return string(jsonBytes)
 }
 
 func (this *Exchange) parseNumber(v interface{}, a ...interface{}) interface{} {
