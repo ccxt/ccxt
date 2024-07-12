@@ -121,6 +121,7 @@ class testMainClass extends baseMainTestClass {
         const properties = Object.keys (exchange.has);
         properties.push ('loadMarkets');
         this.testFiles = await getTestFiles (properties, this.wsTests);
+        this.testFilesMisc = await getTestFiles (properties, this.wsTests, true);
     }
 
     loadCredentialsFromEnv (exchange: Exchange) {

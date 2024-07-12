@@ -139,6 +139,7 @@ class baseMainTestClass():
     skipped_methods = {}
     check_public_tests = {}
     test_files = {}
+    test_files_misc = {}
     public_tests = {}
     new_line = '\n'
     root_dir = rootDir

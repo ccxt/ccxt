@@ -22,6 +22,7 @@ public partial class testMainClass : BaseTest
     public bool sandbox = false;
     public object envVars = null;
     public dict testFiles = new dict();
+    public dict testFilesMisc = new dict();
     public bool privateTestOnly = Tests.privateOnly;
     public bool privateTest = Tests.privateTests;
     public bool info = Tests.info;
