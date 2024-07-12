@@ -6,7 +6,8 @@ import (
 	"math"
 	"reflect"
 	"strings"
-	"time"
+	"time",
+	"sync"
 )
 
 func Add(a interface{}, b interface{}) interface{} {
@@ -869,4 +870,64 @@ func Slice(str2 interface{}, idx1 interface{}, idx2 interface{}) string {
 		}
 		return str[start:end]
 	}
+}
+
+
+type Task func() interface{}
+
+// promiseAll resolves a list of tasks asynchronously and returns a list with the results
+func promiseAll(tasks []interface{}) []interface{} {
+	var wg sync.WaitGroup
+	results := make([]interface{}, len(tasks))
+	wg.Add(len(tasks))
+
+	for i, task := range tasks {
+		go func(i int, task interface{}) {
+			defer wg.Done()
+			if t, ok := task.(Task); ok {
+				results[i] = t()
+			} else {
+				results[i] = nil // Handle case where task is not of type Task
+			}
+		}(i, task)
+	}
+
+	wg.Wait()
+	return results
+}
+
+func parseInt(number interface{}) int64 {
+	switch v := number.(type) {
+	case int:
+		return int64(v)
+	case int8:
+		return int64(v)
+	case int16:
+		return int64(v)
+	case int32:
+		return int64(v)
+	case int64:
+		return v
+	case uint:
+		return int64(v)
+	case uint8:
+		return int64(v)
+	case uint16:
+		return int64(v)
+	case uint32:
+		return int64(v)
+	case uint64:
+		if v <= uint64(^int64(0)) {
+			return int64(v)
+		}
+	case float32:
+		return int64(v)
+	case float64:
+		return int64(v)
+	case string:
+		if i, err := strconv.ParseInt(v, 10, 64); err == nil {
+			return i
+		}
+	}
+	return 0 // Default value if conversion is not possible
 }

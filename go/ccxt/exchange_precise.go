@@ -263,9 +263,9 @@ func StringSub(string1, string2 interface{}) string {
 	return NewPrecise(string1.(string)).Sub(NewPrecise(string2.(string))).String()
 }
 
-func (this *PreciseStruct) stringSub(string1, string2 interface{}) string {
-	return StringSub(string1, string2)
-}
+// func (this *PreciseStruct) stringSub(string1, string2 interface{}) string {
+// 	return StringSub(string1, string2)
+// }
 
 func StringAdd(string1, string2 interface{}) string {
 	if string1 == nil && string2 == nil {
