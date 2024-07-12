@@ -33,6 +33,10 @@ namespace ccxt;
 use MessagePack\MessagePack;
 use kornrunner\Keccak;
 use Web3\Contracts\TypedDataEncoder;
+use StarkNet\Crypto\Curve;
+use StarkNet\Crypto\Key;
+use StarkNet\Hash;
+use StarkNet\TypedData;
 use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
@@ -1392,6 +1396,43 @@ class Exchange {
             hex2bin(str_replace('0x', '', $typedDataEncoder->hashDomain($domainData))),
             hex2bin(str_replace('0x', '', $typedDataEncoder->hashEIP712Message($messageTypes, $messageData)))
         );
+    }
+
+    public function retrieve_stark_account($signature, $accountClassHash, $accountProxyClassHash) {
+        $privKey = Key::ethSigToPrivate($signature);
+        $publicKey = Key::getStarkKey($privKey);
+        $calldata = [
+            $accountClassHash,
+            Hash::getSelectorFromName("initialize"),
+            2,
+            $publicKey,
+            0,
+        ];
+
+        $address = Hash::computeAddress(
+            $accountProxyClassHash,
+            $calldata,
+            $publicKey,
+        );
+        return [
+            'pri' => $privKey,
+            'pub' => $publicKey,
+            'address' => $address
+        ];
+    }
+
+    public function starknet_encode_structured_data($domain, $messageTypes, $messageData, $address) {
+        if (count($messageTypes) > 1) {
+            throw new NotSupported ($this->id + 'starknetEncodeStructuredData only support single type');
+        }
+        $msgHash = TypedData::messageHash($domain, $messageTypes, $messageData, $address);
+        return $msgHash;
+    }
+
+    public function starknet_sign($hash, $pri) {
+        # // TODO: unify to ecdsa
+        $signature = Curve::sign ('0x' . $pri, $hash);
+        return $this->json($signature);
     }
 
     public function packb($data) {
