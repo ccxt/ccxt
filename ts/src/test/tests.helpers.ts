@@ -204,14 +204,17 @@ async function getTestFiles (properties, ws = false) {
         }
     }
     // misc
-    const errorHierarchyKeys = path + '/misc/';
-    for (let i = 0; i < errorHierarchyKeys.length; i++) {
-        const name = errorHierarchyKeys[i];
-        const filePathWoExt = path + '/base/errors/test.' + name;
-        if (ioFileExists (filePathWoExt + '.' + ext)) {
-            // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-            tests[name] = await importTestFile (filePathWoExt);
-        }
+    const miscPath = path + '/misc/';
+    const miscFiles = ioDirExists (miscPath) ? ioDirRead (miscPath) : [];
+    for (let i = 0; i < miscFiles.length; i++) {
+        const fileName = miscFiles[i]; // i.e. test.wsOrderBookSync.ts
+        let testName = fileName.replace ('test.', '');
+        testName = testName.replace ('test_', '');
+        testName = testName.replace ('test_', '');
+        testName = testName.replace ('.' + ext, '');
+        const filePath = miscPath + fileName;
+        // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
+        tests[testName] = await importTestFile (filePath);
     }
     return tests;
 }

@@ -452,6 +452,12 @@ class testMainClass extends baseMainTestClass {
                 'watchTrades': [ symbol ],
                 'watchTradesForSymbols': [ [ symbol ] ],
             };
+            // add misc tests
+            const instance1 = initExchange (exchange.id, {}, this.wsTests);
+            const instance2 = initExchange (exchange.id, {}, this.wsTests);
+            tests = exchange.extend (tests, {
+                'wsOrderBookSynchronization': [ [ instance1, instance2, symbol ] ],
+            });
         }
         const market = exchange.market (symbol);
         const isSpot = market['spot'];

@@ -4,12 +4,13 @@ import { ExchangeError, ArgumentsRequired } from '../../../base/errors.js';
 import { Exchange, Tickers } from '../../../../ccxt.js';
 
 
-async function testWsObSyncing (exchange1: Exchange, exchange2: Exchange, symbol: string) {
+async function testWsOrderBookSynchronization (exchange1: Exchange, exchange2: Exchange, symbol: string) {
     const now = exchange1.milliseconds ();
     const ends = now + 30000; // run at max 30 seconds
     const promise_1 = testWsObSyncingFirstLoop (exchange1, exchange2, symbol, ends);
     await exchange1.sleep (8000);
     const promise_2 = testWsObSyncingFirstLoop (exchange2, exchange1, symbol, ends);
+    await Promise.all ([ promise_1, promise_2 ]); // keep c# runtime until both promises are resolved
 }
 
 async function testWsObSyncingFirstLoop (currentInstance: Exchange, otherInstance: Exchange, symbol: string, ends: number) {
@@ -37,10 +38,10 @@ async function testWsObSyncingFirstLoop (currentInstance: Exchange, otherInstanc
             }
             // if nonce exits, then compare the orderbooks
             const ob2 = otherInstance.options['tempObNonces'][nonceString];
-            assert.deepStrictEqual (ob, ob2);
+            testSharedMethods.deepEqual (ob, ob2);
         }
         now = currentInstance.milliseconds ();
     }
 }
 
-export default testWsObSyncing;
+export default testWsOrderBookSynchronization;
