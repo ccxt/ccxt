@@ -7,7 +7,7 @@ use \React\Promise;
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\NotSupported;
-use ccxt\ProxyError;
+use ccxt\InvalidProxySettings;
 use ccxt\OperationFailed;
 use ccxt\ExchangeNotAvailable;
 use ccxt\OnMaintenance;
@@ -1012,7 +1012,7 @@ class testMainClass extends baseMainTestClass {
                 call_exchange_method_dynamically_sync($exchange, $method, $this->sanitize_data_input($data['input']));
             }
         } catch(\Throwable $e) {
-            if (!($e instanceof ProxyError)) {
+            if (!($e instanceof InvalidProxySettings)) {
                 throw $e;
             }
             $output = $exchange->last_request_body;

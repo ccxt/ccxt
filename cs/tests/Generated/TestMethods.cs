@@ -1222,7 +1222,7 @@ public partial class testMainClass : BaseTest
             }
         } catch(Exception e)
         {
-            if (!isTrue((e is ProxyError)))
+            if (!isTrue((e is InvalidProxySettings)))
             {
                 throw e;
             }

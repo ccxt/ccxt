@@ -1129,6 +1129,26 @@ public partial class bitopro : Exchange
         return this.parseOrder(response, market);
     }
 
+    public virtual object parseCancelOrders(object data)
+    {
+        object dataKeys = new List<object>(((IDictionary<string,object>)data).Keys);
+        object orders = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(dataKeys)); postFixIncrement(ref i))
+        {
+            object marketId = getValue(dataKeys, i);
+            object orderIds = getValue(data, marketId);
+            for (object j = 0; isLessThan(j, getArrayLength(orderIds)); postFixIncrement(ref j))
+            {
+                ((IList<object>)orders).Add(this.safeOrder(new Dictionary<string, object>() {
+                    { "info", getValue(orderIds, j) },
+                    { "id", getValue(orderIds, j) },
+                    { "symbol", this.safeSymbol(marketId) },
+                }));
+            }
+        }
+        return orders;
+    }
+
     public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         /**
@@ -1162,7 +1182,8 @@ public partial class bitopro : Exchange
         //         }
         //     }
         //
-        return response;
+        object data = this.safeDict(response, "data");
+        return this.parseCancelOrders(data);
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -1189,7 +1210,7 @@ public partial class bitopro : Exchange
         {
             response = await this.privateDeleteOrdersAll(this.extend(request, parameters));
         }
-        object result = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         //
         //     {
         //         "data":{
@@ -1200,7 +1221,7 @@ public partial class bitopro : Exchange
         //         }
         //     }
         //
-        return result;
+        return this.parseCancelOrders(data);
     }
 
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)

@@ -102,6 +102,9 @@ export default class bitso extends Exchange {
                 'api': {
                     'rest': 'https://api.bitso.com',
                 },
+                'test': {
+                    'rest': 'https://sandbox.bitso.com/api',
+                },
                 'www': 'https://bitso.com',
                 'doc': 'https://bitso.com/api_info',
                 'fees': 'https://bitso.com/fees',

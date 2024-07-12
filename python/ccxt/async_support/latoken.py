@@ -1344,7 +1344,11 @@ class latoken(Exchange, ImplicitAPI):
         #         "status":"SUCCESS"
         #     }
         #
-        return response
+        return [
+            self.safe_order({
+                'info': response,
+            }),
+        ]
 
     async def fetch_transactions(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """

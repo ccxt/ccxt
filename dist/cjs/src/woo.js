@@ -306,7 +306,7 @@ class woo extends woo$1 {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
-                    '-1000': errors.ExchangeError,
+                    '-1000': errors.OperationFailed,
                     '-1001': errors.AuthenticationError,
                     '-1002': errors.AuthenticationError,
                     '-1003': errors.RateLimitExceeded,

@@ -97,10 +97,10 @@ export default class bingx extends bingxRest {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const [marketType, query] = this.handleMarketTypeAndParams('watchTrades', market, params);
+        const [marketType, query] = this.handleMarketTypeAndParams('watchTicker', market, params);
         const url = this.safeValue(this.urls['api']['ws'], marketType);
         if (url === undefined) {
-            throw new BadRequest(this.id + ' watchTrades is not supported for ' + marketType + ' markets.');
+            throw new BadRequest(this.id + ' watchTicker is not supported for ' + marketType + ' markets.');
         }
         const subscriptionHash = market['id'] + '@ticker';
         const messageHash = this.getMessageHash('ticker', market['symbol']);
@@ -448,21 +448,23 @@ export default class bingx extends bingxRest {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const [marketType, query] = this.handleMarketTypeAndParams('watchTrades', market, params);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('watchTrades', market, params);
         const url = this.safeValue(this.urls['api']['ws'], marketType);
         if (url === undefined) {
             throw new BadRequest(this.id + ' watchTrades is not supported for ' + marketType + ' markets.');
         }
-        const messageHash = market['id'] + '@trade';
+        const rawHash = market['id'] + '@trade';
+        const messageHash = 'trade::' + symbol;
         const uuid = this.uuid();
         const request = {
             'id': uuid,
-            'dataType': messageHash,
+            'dataType': rawHash,
         };
         if (marketType === 'swap') {
             request['reqType'] = 'sub';
         }
-        const trades = await this.watch(url, messageHash, this.extend(request, query), messageHash);
+        const trades = await this.watch(url, messageHash, this.extend(request, params), messageHash);
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
@@ -529,12 +531,13 @@ export default class bingx extends bingxRest {
         //    }
         //
         const data = this.safeValue(message, 'data', []);
-        const messageHash = this.safeString(message, 'dataType');
-        const marketId = messageHash.split('@')[0];
+        const rawHash = this.safeString(message, 'dataType');
+        const marketId = rawHash.split('@')[0];
         const isSwap = client.url.indexOf('swap') >= 0;
         const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
+        const messageHash = 'trade::' + symbol;
         let trades = undefined;
         if (Array.isArray(data)) {
             trades = this.parseTrades(data, market);

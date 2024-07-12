@@ -11,7 +11,7 @@ public partial class coinone : Exchange
             { "id", "coinone" },
             { "name", "CoinOne" },
             { "countries", new List<object>() {"KR"} },
-            { "rateLimit", 667 },
+            { "rateLimit", 50 },
             { "version", "v2" },
             { "pro", false },
             { "has", new Dictionary<string, object>() {
@@ -115,10 +115,10 @@ public partial class coinone : Exchange
             } },
             { "precisionMode", TICK_SIZE },
             { "exceptions", new Dictionary<string, object>() {
-                { "405", typeof(OnMaintenance) },
                 { "104", typeof(OrderNotFound) },
-                { "108", typeof(BadSymbol) },
                 { "107", typeof(BadRequest) },
+                { "108", typeof(BadSymbol) },
+                { "405", typeof(OnMaintenance) },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "SOC", "Soda Coin" },
@@ -1175,24 +1175,18 @@ public partial class coinone : Exchange
     {
         if (isTrue(isEqual(response, null)))
         {
-            return null;
+            return null;  // fallback to default error handler
         }
-        if (isTrue(inOp(response, "result")))
+        //
+        //     {"result":"error","error_code":"107","error_msg":"Parameter value is wrong"}
+        //     {"result":"error","error_code":"108","error_msg":"Unknown CryptoCurrency"}
+        //
+        object errorCode = this.safeString(response, "error_code");
+        if (isTrue(isTrue(!isEqual(errorCode, null)) && isTrue(!isEqual(errorCode, "0"))))
         {
-            object result = getValue(response, "result");
-            if (isTrue(!isEqual(result, "success")))
-            {
-                //
-                //    {  "errorCode": "405",  "status": "maintenance",  "result": "error"}
-                //
-                object errorCode = this.safeString(response, "errorCode");
-                object feedback = add(add(this.id, " "), body);
-                this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
-                throw new ExchangeError ((string)feedback) ;
-            }
-        } else
-        {
-            throw new ExchangeError ((string)add(add(this.id, " "), body)) ;
+            object feedback = add(add(this.id, " "), body);
+            this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
+            throw new ExchangeError ((string)feedback) ;
         }
         return null;
     }

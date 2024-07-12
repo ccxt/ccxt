@@ -733,9 +733,9 @@ export default class Exchange {
     parseFundingRateHistory(info: any, market?: Market): FundingRateHistory;
     parseBorrowInterest(info: Dict, market?: Market): BorrowInterest;
     parseIsolatedBorrowRate(info: Dict, market?: Market): IsolatedBorrowRate;
-    parseWsTrade(trade: any, market?: Market): Trade;
-    parseWsOrder(order: any, market?: Market): Order;
-    parseWsOrderTrade(trade: any, market?: Market): Trade;
+    parseWsTrade(trade: Dict, market?: Market): Trade;
+    parseWsOrder(order: Dict, market?: Market): Order;
+    parseWsOrderTrade(trade: Dict, market?: Market): Trade;
     parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchFundingRates(symbols?: Strings, params?: {}): Promise<{}>;
     watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;

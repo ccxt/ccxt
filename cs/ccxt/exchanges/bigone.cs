@@ -1616,7 +1616,29 @@ public partial class bigone : Exchange
         //         }
         //     }
         //
-        return response;
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object cancelled = this.safeList(data, "cancelled", new List<object>() {});
+        object failed = this.safeList(data, "failed", new List<object>() {});
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(cancelled)); postFixIncrement(ref i))
+        {
+            object orderId = getValue(cancelled, i);
+            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "info", orderId },
+                { "id", orderId },
+                { "status", "canceled" },
+            }));
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(failed)); postFixIncrement(ref i))
+        {
+            object orderId = getValue(failed, i);
+            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "info", orderId },
+                { "id", orderId },
+                { "status", "failed" },
+            }));
+        }
+        return result;
     }
 
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)

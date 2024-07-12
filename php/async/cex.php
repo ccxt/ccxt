@@ -9,8 +9,8 @@ use Exception; // a common import
 use ccxt\async\abstract\cex as Exchange;
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
-use ccxt\NullResponse;
 use ccxt\InvalidOrder;
+use ccxt\NullResponse;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;

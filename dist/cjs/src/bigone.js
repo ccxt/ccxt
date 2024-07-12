@@ -1621,7 +1621,27 @@ class bigone extends bigone$1 {
         //         }
         //     }
         //
-        return response;
+        const data = this.safeDict(response, 'data', {});
+        const cancelled = this.safeList(data, 'cancelled', []);
+        const failed = this.safeList(data, 'failed', []);
+        const result = [];
+        for (let i = 0; i < cancelled.length; i++) {
+            const orderId = cancelled[i];
+            result.push(this.safeOrder({
+                'info': orderId,
+                'id': orderId,
+                'status': 'canceled',
+            }));
+        }
+        for (let i = 0; i < failed.length; i++) {
+            const orderId = failed[i];
+            result.push(this.safeOrder({
+                'info': orderId,
+                'id': orderId,
+                'status': 'failed',
+            }));
+        }
+        return result;
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**

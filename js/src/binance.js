@@ -1546,7 +1546,7 @@ export default class binance extends Exchange {
                         '-3042': BadRequest,
                         '-3043': PermissionDenied,
                         '-3044': OperationFailed,
-                        '-3045': OperationFailed,
+                        '-3045': OperationRejected,
                         '-3999': PermissionDenied,
                         //
                         //        4xxx (different from contract markets)
@@ -1565,7 +1565,7 @@ export default class binance extends Exchange {
                         '-4011': BadRequest,
                         '-4012': PermissionDenied,
                         '-4013': AuthenticationError,
-                        '-4014': OperationFailed,
+                        '-4014': OperationRejected,
                         '-4015': PermissionDenied,
                         '-4016': PermissionDenied,
                         '-4017': PermissionDenied,
@@ -1574,7 +1574,7 @@ export default class binance extends Exchange {
                         '-4020': ExchangeError,
                         '-4021': BadRequest,
                         '-4022': BadRequest,
-                        '-4023': OperationFailed,
+                        '-4023': OperationRejected,
                         '-4024': InsufficientFunds,
                         '-4025': InsufficientFunds,
                         '-4026': InsufficientFunds,
@@ -1583,7 +1583,7 @@ export default class binance extends Exchange {
                         '-4029': BadRequest,
                         '-4030': BadResponse,
                         '-4031': OperationFailed,
-                        '-4032': OperationFailed,
+                        '-4032': OperationRejected,
                         '-4033': BadRequest,
                         '-4034': OperationRejected,
                         '-4035': PermissionDenied,
@@ -1706,7 +1706,7 @@ export default class binance extends Exchange {
                         '-5003': InsufficientFunds,
                         '-5004': OperationRejected,
                         '-5005': OperationRejected,
-                        '-5006': OperationFailed,
+                        '-5006': OperationRejected,
                         '-5007': BadRequest,
                         '-5008': OperationRejected,
                         '-5009': BadSymbol,
@@ -1724,8 +1724,8 @@ export default class binance extends Exchange {
                         '-6004': BadRequest,
                         '-6005': BadRequest,
                         '-6006': BadRequest,
-                        '-6007': OperationFailed,
-                        '-6008': OperationFailed,
+                        '-6007': OperationRejected,
+                        '-6008': OperationRejected,
                         '-6009': RateLimitExceeded,
                         '-6011': OperationRejected,
                         '-6012': InsufficientFunds,
@@ -7105,31 +7105,73 @@ export default class binance extends Exchange {
         let response = undefined;
         if (market['option']) {
             response = await this.eapiPrivateDeleteAllOpenOrders(this.extend(request, params));
+            //
+            //    {
+            //        "code": 0,
+            //        "msg": "success"
+            //    }
+            //
         }
         else if (market['linear']) {
             if (isPortfolioMargin) {
                 if (isConditional) {
                     response = await this.papiDeleteUmConditionalAllOpenOrders(this.extend(request, params));
+                    //
+                    //    {
+                    //        "code": "200",
+                    //        "msg": "The operation of cancel all conditional open order is done."
+                    //    }
+                    //
                 }
                 else {
                     response = await this.papiDeleteUmAllOpenOrders(this.extend(request, params));
+                    //
+                    //    {
+                    //        "code": 200,
+                    //        "msg": "The operation of cancel all open order is done."
+                    //    }
+                    //
                 }
             }
             else {
                 response = await this.fapiPrivateDeleteAllOpenOrders(this.extend(request, params));
+                //
+                //    {
+                //        "code": 200,
+                //        "msg": "The operation of cancel all open order is done."
+                //    }
+                //
             }
         }
         else if (market['inverse']) {
             if (isPortfolioMargin) {
                 if (isConditional) {
                     response = await this.papiDeleteCmConditionalAllOpenOrders(this.extend(request, params));
+                    //
+                    //    {
+                    //        "code": "200",
+                    //        "msg": "The operation of cancel all conditional open order is done."
+                    //    }
+                    //
                 }
                 else {
                     response = await this.papiDeleteCmAllOpenOrders(this.extend(request, params));
+                    //
+                    //    {
+                    //        "code": 200,
+                    //        "msg": "The operation of cancel all open order is done."
+                    //    }
+                    //
                 }
             }
             else {
                 response = await this.dapiPrivateDeleteAllOpenOrders(this.extend(request, params));
+                //
+                //    {
+                //        "code": 200,
+                //        "msg": "The operation of cancel all open order is done."
+                //    }
+                //
             }
         }
         else if ((type === 'margin') || (marginMode !== undefined) || isPortfolioMargin) {
@@ -7141,16 +7183,63 @@ export default class binance extends Exchange {
                     request['isIsolated'] = true;
                 }
                 response = await this.sapiDeleteMarginOpenOrders(this.extend(request, params));
+                //
+                //    [
+                //        {
+                //          "symbol": "BTCUSDT",
+                //          "isIsolated": true,       // if isolated margin
+                //          "origClientOrderId": "E6APeyTJvkMvLMYMqu1KQ4",
+                //          "orderId": 11,
+                //          "orderListId": -1,
+                //          "clientOrderId": "pXLV6Hz6mprAcVYpVMTGgx",
+                //          "price": "0.089853",
+                //          "origQty": "0.178622",
+                //          "executedQty": "0.000000",
+                //          "cummulativeQuoteQty": "0.000000",
+                //          "status": "CANCELED",
+                //          "timeInForce": "GTC",
+                //          "type": "LIMIT",
+                //          "side": "BUY",
+                //          "selfTradePreventionMode": "NONE"
+                //        },
+                //        ...
+                //    ]
+                //
             }
         }
         else {
             response = await this.privateDeleteOpenOrders(this.extend(request, params));
+            //
+            //    [
+            //        {
+            //            "symbol": "ADAUSDT",
+            //            "origClientOrderId": "x-R4BD3S82662cde7a90114475b86e21",
+            //            "orderId": 3935107,
+            //            "orderListId": -1,
+            //            "clientOrderId": "bqM2w1oTlugfRAjnTIFBE8",
+            //            "transactTime": 1720589016657,
+            //            "price": "0.35000000",
+            //            "origQty": "30.00000000",
+            //            "executedQty": "0.00000000",
+            //            "cummulativeQuoteQty": "0.00000000",
+            //            "status": "CANCELED",
+            //            "timeInForce": "GTC",
+            //            "type": "LIMIT",
+            //            "side": "BUY",
+            //            "selfTradePreventionMode": "EXPIRE_MAKER"
+            //        }
+            //    ]
+            //
         }
         if (Array.isArray(response)) {
             return this.parseOrders(response, market);
         }
         else {
-            return response;
+            return [
+                this.safeOrder({
+                    'info': response,
+                }),
+            ];
         }
     }
     async cancelOrders(ids, symbol = undefined, params = {}) {

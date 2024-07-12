@@ -1862,7 +1862,7 @@ public partial class okx : ccxt.okx
         {
             object method = this.safeString(message, "op");
             object stringMsg = this.json(message);
-            this.handleErrors(null, null, client.url, method, null, stringMsg, stringMsg, null, null);
+            this.handleErrors(null, null, client.url, method, null, stringMsg, message, null, null);
         }
         object orders = this.parseOrders(args, null, null, null);
         object first = this.safeDict(orders, 0, new Dictionary<string, object>() {});
@@ -2066,8 +2066,8 @@ public partial class okx : ccxt.okx
 
     public override object ping(WebSocketClient client)
     {
-        // okex does not support built-in ws protocol-level ping-pong
-        // instead it requires custom text-based ping-pong
+        // OKX does not support the built-in WebSocket protocol-level ping-pong.
+        // Instead, it requires a custom text-based ping-pong mechanism.
         return "ping";
     }
 

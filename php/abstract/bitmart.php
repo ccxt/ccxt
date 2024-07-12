@@ -184,6 +184,9 @@ abstract class bitmart extends \ccxt\Exchange {
     public function private_get_contract_private_trades($params = array()) {
         return $this->request('contract/private/trades', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function private_get_contract_private_position_risk($params = array()) {
+        return $this->request('contract/private/position-risk', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function private_post_account_sub_account_main_v1_sub_to_main($params = array()) {
         return $this->request('account/sub-account/main/v1/sub-to-main', 'private', 'POST', $params, null, null, array("cost" => 30));
     }
@@ -468,6 +471,9 @@ abstract class bitmart extends \ccxt\Exchange {
     }
     public function privateGetContractPrivateTrades($params = array()) {
         return $this->request('contract/private/trades', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function privateGetContractPrivatePositionRisk($params = array()) {
+        return $this->request('contract/private/position-risk', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
     public function privatePostAccountSubAccountMainV1SubToMain($params = array()) {
         return $this->request('account/sub-account/main/v1/sub-to-main', 'private', 'POST', $params, null, null, array("cost" => 30));

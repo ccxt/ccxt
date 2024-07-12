@@ -1543,7 +1543,7 @@ class binance extends binance$1 {
                         '-3042': errors.BadRequest,
                         '-3043': errors.PermissionDenied,
                         '-3044': errors.OperationFailed,
-                        '-3045': errors.OperationFailed,
+                        '-3045': errors.OperationRejected,
                         '-3999': errors.PermissionDenied,
                         //
                         //        4xxx (different from contract markets)
@@ -1562,7 +1562,7 @@ class binance extends binance$1 {
                         '-4011': errors.BadRequest,
                         '-4012': errors.PermissionDenied,
                         '-4013': errors.AuthenticationError,
-                        '-4014': errors.OperationFailed,
+                        '-4014': errors.OperationRejected,
                         '-4015': errors.PermissionDenied,
                         '-4016': errors.PermissionDenied,
                         '-4017': errors.PermissionDenied,
@@ -1571,7 +1571,7 @@ class binance extends binance$1 {
                         '-4020': errors.ExchangeError,
                         '-4021': errors.BadRequest,
                         '-4022': errors.BadRequest,
-                        '-4023': errors.OperationFailed,
+                        '-4023': errors.OperationRejected,
                         '-4024': errors.InsufficientFunds,
                         '-4025': errors.InsufficientFunds,
                         '-4026': errors.InsufficientFunds,
@@ -1580,7 +1580,7 @@ class binance extends binance$1 {
                         '-4029': errors.BadRequest,
                         '-4030': errors.BadResponse,
                         '-4031': errors.OperationFailed,
-                        '-4032': errors.OperationFailed,
+                        '-4032': errors.OperationRejected,
                         '-4033': errors.BadRequest,
                         '-4034': errors.OperationRejected,
                         '-4035': errors.PermissionDenied,
@@ -1703,7 +1703,7 @@ class binance extends binance$1 {
                         '-5003': errors.InsufficientFunds,
                         '-5004': errors.OperationRejected,
                         '-5005': errors.OperationRejected,
-                        '-5006': errors.OperationFailed,
+                        '-5006': errors.OperationRejected,
                         '-5007': errors.BadRequest,
                         '-5008': errors.OperationRejected,
                         '-5009': errors.BadSymbol,
@@ -1721,8 +1721,8 @@ class binance extends binance$1 {
                         '-6004': errors.BadRequest,
                         '-6005': errors.BadRequest,
                         '-6006': errors.BadRequest,
-                        '-6007': errors.OperationFailed,
-                        '-6008': errors.OperationFailed,
+                        '-6007': errors.OperationRejected,
+                        '-6008': errors.OperationRejected,
                         '-6009': errors.RateLimitExceeded,
                         '-6011': errors.OperationRejected,
                         '-6012': errors.InsufficientFunds,
@@ -7102,31 +7102,73 @@ class binance extends binance$1 {
         let response = undefined;
         if (market['option']) {
             response = await this.eapiPrivateDeleteAllOpenOrders(this.extend(request, params));
+            //
+            //    {
+            //        "code": 0,
+            //        "msg": "success"
+            //    }
+            //
         }
         else if (market['linear']) {
             if (isPortfolioMargin) {
                 if (isConditional) {
                     response = await this.papiDeleteUmConditionalAllOpenOrders(this.extend(request, params));
+                    //
+                    //    {
+                    //        "code": "200",
+                    //        "msg": "The operation of cancel all conditional open order is done."
+                    //    }
+                    //
                 }
                 else {
                     response = await this.papiDeleteUmAllOpenOrders(this.extend(request, params));
+                    //
+                    //    {
+                    //        "code": 200,
+                    //        "msg": "The operation of cancel all open order is done."
+                    //    }
+                    //
                 }
             }
             else {
                 response = await this.fapiPrivateDeleteAllOpenOrders(this.extend(request, params));
+                //
+                //    {
+                //        "code": 200,
+                //        "msg": "The operation of cancel all open order is done."
+                //    }
+                //
             }
         }
         else if (market['inverse']) {
             if (isPortfolioMargin) {
                 if (isConditional) {
                     response = await this.papiDeleteCmConditionalAllOpenOrders(this.extend(request, params));
+                    //
+                    //    {
+                    //        "code": "200",
+                    //        "msg": "The operation of cancel all conditional open order is done."
+                    //    }
+                    //
                 }
                 else {
                     response = await this.papiDeleteCmAllOpenOrders(this.extend(request, params));
+                    //
+                    //    {
+                    //        "code": 200,
+                    //        "msg": "The operation of cancel all open order is done."
+                    //    }
+                    //
                 }
             }
             else {
                 response = await this.dapiPrivateDeleteAllOpenOrders(this.extend(request, params));
+                //
+                //    {
+                //        "code": 200,
+                //        "msg": "The operation of cancel all open order is done."
+                //    }
+                //
             }
         }
         else if ((type === 'margin') || (marginMode !== undefined) || isPortfolioMargin) {
@@ -7138,16 +7180,63 @@ class binance extends binance$1 {
                     request['isIsolated'] = true;
                 }
                 response = await this.sapiDeleteMarginOpenOrders(this.extend(request, params));
+                //
+                //    [
+                //        {
+                //          "symbol": "BTCUSDT",
+                //          "isIsolated": true,       // if isolated margin
+                //          "origClientOrderId": "E6APeyTJvkMvLMYMqu1KQ4",
+                //          "orderId": 11,
+                //          "orderListId": -1,
+                //          "clientOrderId": "pXLV6Hz6mprAcVYpVMTGgx",
+                //          "price": "0.089853",
+                //          "origQty": "0.178622",
+                //          "executedQty": "0.000000",
+                //          "cummulativeQuoteQty": "0.000000",
+                //          "status": "CANCELED",
+                //          "timeInForce": "GTC",
+                //          "type": "LIMIT",
+                //          "side": "BUY",
+                //          "selfTradePreventionMode": "NONE"
+                //        },
+                //        ...
+                //    ]
+                //
             }
         }
         else {
             response = await this.privateDeleteOpenOrders(this.extend(request, params));
+            //
+            //    [
+            //        {
+            //            "symbol": "ADAUSDT",
+            //            "origClientOrderId": "x-R4BD3S82662cde7a90114475b86e21",
+            //            "orderId": 3935107,
+            //            "orderListId": -1,
+            //            "clientOrderId": "bqM2w1oTlugfRAjnTIFBE8",
+            //            "transactTime": 1720589016657,
+            //            "price": "0.35000000",
+            //            "origQty": "30.00000000",
+            //            "executedQty": "0.00000000",
+            //            "cummulativeQuoteQty": "0.00000000",
+            //            "status": "CANCELED",
+            //            "timeInForce": "GTC",
+            //            "type": "LIMIT",
+            //            "side": "BUY",
+            //            "selfTradePreventionMode": "EXPIRE_MAKER"
+            //        }
+            //    ]
+            //
         }
         if (Array.isArray(response)) {
             return this.parseOrders(response, market);
         }
         else {
-            return response;
+            return [
+                this.safeOrder({
+                    'info': response,
+                }),
+            ];
         }
     }
     async cancelOrders(ids, symbol = undefined, params = {}) {

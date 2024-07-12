@@ -291,7 +291,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $client->resolve ($trades, $messageHash);
     }
 
-    public function parse_ws_trade($trade, ?array $market = null): array {
+    public function parse_ws_trade(array $trade, ?array $market = null): array {
         //
         // fetchMyTrades
         //
