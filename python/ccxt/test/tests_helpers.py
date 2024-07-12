@@ -179,6 +179,10 @@ def io_file_exists(path):
     return os.path.isfile(path)
 
 
+def io_dir_exists(path):
+    return os.path.isdir(path)
+
+
 def io_file_read(path, decode=True):
     fs = open(path, "r", encoding="utf-8")
     content = fs.read()

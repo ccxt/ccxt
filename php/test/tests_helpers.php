@@ -152,6 +152,10 @@ function io_file_exists($path) {
     return file_exists($path);
 }
 
+function io_dir_exists($path) {
+    return is_dir($path);
+}
+
 function io_file_read($path, $decode = true) {
     $content = file_get_contents($path);
     return $decode ? json_decode($content, true) : $content;

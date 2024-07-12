@@ -118,6 +118,10 @@ function ioFileExists (path) {
     return fs.existsSync (path);
 }
 
+function ioDirExists (path) {
+    return fs.existsSync (path);
+}
+
 function ioFileRead (path, decode = true) {
     const content = fs.readFileSync (path, 'utf8');
     return decode ? JSON.parse (content) : content;
@@ -191,6 +195,16 @@ async function getTestFiles (properties, ws = false) {
     }
     // errors tests
     const errorHierarchyKeys = Object.keys (errorsHierarchy);
+    for (let i = 0; i < errorHierarchyKeys.length; i++) {
+        const name = errorHierarchyKeys[i];
+        const filePathWoExt = path + '/base/errors/test.' + name;
+        if (ioFileExists (filePathWoExt + '.' + ext)) {
+            // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
+            tests[name] = await importTestFile (filePathWoExt);
+        }
+    }
+    // misc
+    const errorHierarchyKeys = path + '/misc/';
     for (let i = 0; i < errorHierarchyKeys.length; i++) {
         const name = errorHierarchyKeys[i];
         const filePathWoExt = path + '/base/errors/test.' + name;

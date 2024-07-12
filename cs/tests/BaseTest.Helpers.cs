@@ -160,6 +160,13 @@ public partial class testMainClass : BaseTest
         return exists;
     }
 
+    public static bool ioDirExists(object path2)
+    {
+        var path = path2 as string;
+        var exists = System.IO.Directory.Exists(path);
+        return exists;
+    }
+
     public static object ioFileRead(object path2)
     {
         var path = path2 as string;
