@@ -28,6 +28,14 @@
                 "input": [
                     "LTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "close inverse position",
+                "method": "closePosition",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/closeAllPositions?symbol=SOL-USD&timestamp=1720771600788&signature=0cc7ae4bf764a09c5b80b9bc1fb3af691830eff7eb3d0062cdc0e9b796892d49",
+                "input": [
+                  "SOL/USD:SOL"
+                ]
             }
         ],
         "createOrder": [
