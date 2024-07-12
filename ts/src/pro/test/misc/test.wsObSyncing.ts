@@ -1,6 +1,6 @@
 import assert from 'assert';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
-// import errors, { ArgumentsRequired } from '../../../base/errors.js';
+import { ExchangeError, ArgumentsRequired } from '../../../base/errors.js';
 import { Exchange, Tickers } from '../../../../ccxt.js';
 
 
@@ -10,15 +10,6 @@ async function testWsObSyncing (exchange1: Exchange, exchange2: Exchange, symbol
     const promise_1 = testWsObSyncingFirstLoop (exchange1, exchange2, symbol, ends);
     await exchange1.sleep (8000);
     const promise_2 = testWsObSyncingFirstLoop (exchange2, exchange1, symbol, ends);
-    while (true) {
-        const p1 = exchange1.watchOrderBook (symbol);
-        const p2 = exchange2.watchOrderBook (symbol);
-        const results = await Promise.all ([ p1, p2 ]);
-        const [ ob1, ob2 ] = results;
-        const nonce1 = ob1['nonce'];
-        const nonce2 = ob2['nonce'];
-
-    }
 }
 
 async function testWsObSyncingFirstLoop (currentInstance: Exchange, otherInstance: Exchange, symbol: string, ends: number) {
@@ -29,12 +20,27 @@ async function testWsObSyncingFirstLoop (currentInstance: Exchange, otherInstanc
             break;
         }
         const ob = await currentInstance.watchOrderBook (symbol);
-        const nonce = (ob['nonce']).toString ();
+        const nonce = ob['nonce'];
+        if (nonce === undefined) {
+            const logText = testSharedMethods.logTemplate (currentInstance, 'watchOrderBook', ob);
+            throw new ExchangeError ('nonce is undefined, tests can not proceed' + logText);
+        }
+        const nonceString = (ob['nonce']).toString ();
         currentInstance.options['tempObNonces'][nonce] = ob;
         if (!('tempObNonce' in otherInstance.options)) {
             // if seoncd loop hasn't yet started
             break;
+        } else {
+            // if second loop has started, but this nonce does not exist there, then continue
+            if (!(nonceString in otherInstance.options['tempObNonces'])) {
+                continue;
+            }
+            // if nonce exits, then compare the orderbooks
+            const ob2 = otherInstance.options['tempObNonces'][nonceString];
+            assert.deepStrictEqual (ob, ob2);
         }
         now = currentInstance.milliseconds ();
     }
 }
+
+export default testWsObSyncing;
