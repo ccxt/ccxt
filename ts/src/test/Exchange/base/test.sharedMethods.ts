@@ -396,6 +396,10 @@ function assertRoundMinuteTimestamp (exchange: Exchange, skippedProperties: obje
     assert (Precise.stringMod (ts, '60000') === '0', 'timestamp should be a multiple of 60 seconds (1 minute)' + logText);
 }
 
+function deepEqual (a: any, b: any) {
+    return JSON.stringify (a) === JSON.stringify (b);
+}
+
 export default {
     logTemplate,
     isTemporaryFailure,
@@ -422,4 +426,5 @@ export default {
     setProxyOptions,
     assertNonEmtpyArray,
     assertRoundMinuteTimestamp,
+    deepEqual,
 };
