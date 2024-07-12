@@ -876,7 +876,12 @@ func Slice(str2 interface{}, idx1 interface{}, idx2 interface{}) string {
 type Task func() interface{}
 
 // promiseAll resolves a list of tasks asynchronously and returns a list with the results
-func promiseAll(tasks []interface{}) []interface{} {
+func promiseAll(tasksInterface interface{}) []interface{} {
+	tasks, ok := tasksInterface.([]interface{})
+	if !ok {
+		return nil // Return nil if the input is not a slice of interfaces
+	}
+
 	var wg sync.WaitGroup
 	results := make([]interface{}, len(tasks))
 	wg.Add(len(tasks))
