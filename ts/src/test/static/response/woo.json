@@ -354,80 +354,91 @@
             }
         ],
         "fetchPositions": [
-            {
-                "description": "Linear swap position",
-                "method": "fetchPositions",
-                "input": [],
-                "httpResponse": {
-                    "success": true,
-                    "data": {
-                        "positions": [
-                            {
-                                "symbol": "PERP_LTC_USDT",
-                                "holding": "0.1",
-                                "pendingLongQty": "0.0",
-                                "pendingShortQty": "0.0",
-                                "settlePrice": "68.04",
-                                "averageOpenPrice": "68.04",
-                                "pnl24H": "0.0",
-                                "fee24H": "0.003402",
-                                "markPrice": "68.03842319",
-                                "estLiqPrice": "0.0",
-                                "timestamp": "1706704671.097",
-                                "adlQuantile": "5",
-                                "positionSide": "BOTH"
-                            }
-                        ]
-                    },
-                    "timestamp": "1706704700930"
-                },
-                "parsedResponse": [
-                    {
-                        "info": {
-                            "symbol": "PERP_LTC_USDT",
-                            "holding": "0.1",
-                            "pendingLongQty": "0.0",
-                            "pendingShortQty": "0.0",
-                            "settlePrice": "68.04",
-                            "averageOpenPrice": "68.04",
-                            "pnl24H": "0.0",
-                            "fee24H": "0.003402",
-                            "markPrice": "68.03842319",
-                            "estLiqPrice": "0.0",
-                            "timestamp": "1706704671.097",
-                            "adlQuantile": "5",
-                            "positionSide": "BOTH"
-                        },
-                        "id": null,
-                        "symbol": "LTC/USDT:USDT",
-                        "timestamp": 1706704671097,
-                        "datetime": "2024-01-31T12:37:51.097Z",
-                        "lastUpdateTimestamp": null,
-                        "initialMargin": null,
-                        "initialMarginPercentage": null,
-                        "maintenanceMargin": null,
-                        "maintenanceMarginPercentage": null,
-                        "entryPrice": 68.04,
-                        "notional": 6.803842319,
-                        "leverage": null,
-                        "unrealizedPnl": -0.000157681,
-                        "contracts": 0.1,
-                        "contractSize": 1,
-                        "marginRatio": null,
-                        "liquidationPrice": 0,
-                        "markPrice": 68.03842319,
-                        "lastPrice": null,
-                        "collateral": null,
-                        "marginMode": "cross",
-                        "marginType": null,
-                        "side": "long",
-                        "percentage": null,
-                        "hedged": null,
-                        "stopLossPrice": null,
-                        "takeProfitPrice": null
-                    }
+          {
+            "description": "Linear swap position",
+            "method": "fetchPositions",
+            "input": [],
+            "httpResponse": {
+              "success": true,
+              "data": {
+                "positions": [
+                  {
+                    "symbol": "PERP_BTC_USDT",
+                    "holding": "0.0",
+                    "pendingLongQty": "0.0",
+                    "pendingShortQty": "0.0",
+                    "settlePrice": "0.0",
+                    "averageOpenPrice": "0.0",
+                    "pnl24H": "34.9725",
+                    "fee24H": "0.09084705",
+                    "markPrice": "58619.98870456",
+                    "estLiqPrice": "0.0",
+                    "timestamp": "1720892478.738",
+                    "adlQuantile": "1",
+                    "positionSide": "BOTH",
+                    "marginMode": "CROSS",
+                    "isolatedMarginToken": "",
+                    "isolatedMarginAmount": "0.0",
+                    "isolatedFrozenLong": "0.0",
+                    "isolatedFrozenShort": "0.0",
+                    "leverage": "10"
+                  }
                 ]
-            }
+              },
+              "timestamp": "1720899104106"
+            },
+            "parsedResponse": [
+              {
+                "info": {
+                  "symbol": "PERP_BTC_USDT",
+                  "holding": "0.0",
+                  "pendingLongQty": "0.0",
+                  "pendingShortQty": "0.0",
+                  "settlePrice": "0.0",
+                  "averageOpenPrice": "0.0",
+                  "pnl24H": "34.9725",
+                  "fee24H": "0.09084705",
+                  "markPrice": "58619.98870456",
+                  "estLiqPrice": "0.0",
+                  "timestamp": "1720892478.738",
+                  "adlQuantile": "1",
+                  "positionSide": "BOTH",
+                  "marginMode": "CROSS",
+                  "isolatedMarginToken": "",
+                  "isolatedMarginAmount": "0.0",
+                  "isolatedFrozenLong": "0.0",
+                  "isolatedFrozenShort": "0.0",
+                  "leverage": "10"
+                },
+                "id": null,
+                "symbol": "BTC/USDT:USDT",
+                "timestamp": 1720892478738,
+                "datetime": "2024-07-13T17:41:18.738Z",
+                "lastUpdateTimestamp": null,
+                "initialMargin": null,
+                "initialMarginPercentage": null,
+                "maintenanceMargin": null,
+                "maintenanceMarginPercentage": null,
+                "entryPrice": 0,
+                "notional": 0,
+                "leverage": 10,
+                "unrealizedPnl": 0,
+                "contracts": 0,
+                "contractSize": 1,
+                "marginRatio": null,
+                "liquidationPrice": 0,
+                "markPrice": 58619.98870456,
+                "lastPrice": null,
+                "collateral": null,
+                "marginMode": "cross",
+                "side": "short",
+                "percentage": null,
+                "hedged": false,
+                "stopLossPrice": null,
+                "takeProfitPrice": null
+              }
+            ]
+          }
         ],
         "fetchTrades": [
             {
