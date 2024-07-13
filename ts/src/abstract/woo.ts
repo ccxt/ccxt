@@ -61,6 +61,7 @@ interface Exchange {
     v1PrivatePostClientPositionMode (params?: {}): Promise<implicitReturnType>;
     v1PrivatePostClientLeverage (params?: {}): Promise<implicitReturnType>;
     v1PrivatePostClientFuturesLeverage (params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostClientIsolatedMargin (params?: {}): Promise<implicitReturnType>;
     v1PrivateDeleteOrder (params?: {}): Promise<implicitReturnType>;
     v1PrivateDeleteClientOrder (params?: {}): Promise<implicitReturnType>;
     v1PrivateDeleteOrders (params?: {}): Promise<implicitReturnType>;
