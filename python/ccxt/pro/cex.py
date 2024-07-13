@@ -961,7 +961,7 @@ class cex(ccxt.async_support.cex):
         #     }
         #
         data = self.safe_value(message, 'data', {})
-        incrementalId = self.safe_number(data, 'id')
+        incrementalId = self.safe_integer(data, 'id')
         pair = self.safe_string(data, 'pair', '')
         symbol = self.pair_to_symbol(pair)
         storedOrderBook = self.safe_value(self.orderbooks, symbol)

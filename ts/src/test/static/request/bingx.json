@@ -18,6 +18,16 @@
                         "recvWindow": 5000
                     }
                 ]
+            },
+            {
+                "description": "Close all open inverse positions",
+                "method": "closeAllPositions",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/closeAllPositions?recvWindow=5000&timestamp=1720772255776&signature=f16320d5cea8782bb0a5f9a9865a642fd2280b212235b0e2051940965e7b9b5f",
+                "input": [
+                  {
+                    "subType": "inverse"
+                  }
+                ]
             }
         ],
         "closePosition": [
@@ -27,6 +37,14 @@
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/closeAllPositions?symbol=LTC-USDT&timestamp=1703414588459&signature=f42b4b61669032b0d38c746d6d9bb156f24355c7ca8055942aa61b9b512e40ae",
                 "input": [
                     "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "close inverse position",
+                "method": "closePosition",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/closeAllPositions?symbol=SOL-USD&timestamp=1720771600788&signature=0cc7ae4bf764a09c5b80b9bc1fb3af691830eff7eb3d0062cdc0e9b796892d49",
+                "input": [
+                  "SOL/USD:SOL"
                 ]
             }
         ],
@@ -1411,6 +1429,32 @@
                 "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/leverage?symbol=SOL-USD&timestamp=1720684074921&signature=8afc0c1f4a6a6cd3416479af6be10a2532718c8e5d50cc2e944bec2cbf55ad39",
                 "input": [
                   "SOL/USD:SOL"
+                ]
+            }
+        ],
+        "setLeverage": [
+            {
+                "description": "Linear swap set leverage",
+                "method": "setLeverage",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/leverage?leverage=10&side=BOTH&symbol=BTC-USDT&timestamp=1720724882147&signature=e3fb41d7b2f23d667bf289c5998dc6fac9a3a45bf2e6f022ce3c6429a440dc75",
+                "input": [
+                  10,
+                  "BTC/USDT:USDT",
+                  {
+                    "side": "BOTH"
+                  }
+                ]
+            },
+            {
+                "description": "Inverse swap set leverage",
+                "method": "setLeverage",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/leverage?leverage=10&side=LONG&symbol=SOL-USD&timestamp=1720725057859&signature=c30d2e7a593d5e54304bf026193a21ad682492a2c4d026f63fe0a68a8c367b3f",
+                "input": [
+                  10,
+                  "SOL/USD:SOL",
+                  {
+                    "side": "LONG"
+                  }
                 ]
             }
         ]

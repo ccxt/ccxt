@@ -827,7 +827,7 @@ export default class xt extends Exchange {
                 'name': this.safeString(entry, 'fullName'),
                 'active': active,
                 'fee': this.parseNumber(minWithdrawFeeString),
-                'precision': undefined,
+                'precision': minPrecision,
                 'deposit': deposit,
                 'withdraw': withdraw,
                 'networks': networks,

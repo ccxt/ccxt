@@ -1689,7 +1689,6 @@
     },
     "xt": {
         "skipMethods": {
-            "fetchCurrencies": "a of lot fields are missing",
             "loadMarkets": {
                 "taker":"is undefined",
                 "maker":"is undefined",
@@ -1705,8 +1704,7 @@
             "watchOrderBook": {
                 "timestamp": "not provided",
                 "spread": "bid-ask crossing"
-            },
-            "watchOHLCV": "weird return type"
+            }
         }
     },
     "vertex": {

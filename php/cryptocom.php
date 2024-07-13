@@ -802,15 +802,21 @@ class cryptocom extends Exchange {
             'instrument_name' => $market['id'],
             'timeframe' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
-        if ($since !== null) {
-            $request['start_ts'] = $since;
-        }
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $until = $this->safe_integer($params, 'until');
+        $now = $this->microseconds();
+        $duration = $this->parse_timeframe($timeframe);
+        $until = $this->safe_integer($params, 'until', $now);
         $params = $this->omit($params, array( 'until' ));
-        if ($until !== null) {
+        if ($since !== null) {
+            $request['start_ts'] = $since;
+            if ($limit !== null) {
+                $request['end_ts'] = $this->sum($since, $duration * ($limit + 1) * 1000) - 1;
+            } else {
+                $request['end_ts'] = $until;
+            }
+        } else {
             $request['end_ts'] = $until;
         }
         $response = $this->v1PublicGetPublicGetCandlestick ($this->extend($request, $params));

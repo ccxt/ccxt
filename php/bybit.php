@@ -4262,6 +4262,11 @@ class bybit extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
+        $types = $this->is_unified_enabled();
+        $enableUnifiedAccount = $types[1];
+        if (!$enableUnifiedAccount) {
+            throw new NotSupported($this->id . ' cancelOrders() supports UTA accounts only');
+        }
         $category = null;
         list($category, $params) = $this->get_bybit_type('cancelOrders', $market, $params);
         if ($category === 'inverse') {
@@ -4368,6 +4373,11 @@ class bybit extends Exchange {
          * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structures~
          */
         $this->load_markets();
+        $types = $this->is_unified_enabled();
+        $enableUnifiedAccount = $types[1];
+        if (!$enableUnifiedAccount) {
+            throw new NotSupported($this->id . ' cancelOrdersForSymbols() supports UTA accounts only');
+        }
         $ordersRequests = array();
         $category = null;
         for ($i = 0; $i < count($orders); $i++) {
