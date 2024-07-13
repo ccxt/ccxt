@@ -1028,3 +1028,77 @@ func parseTimeframe(timeframe interface{}) *int {
 	result := amount * scale
 	return &result
 }
+
+// parseInt tries to convert various types of input to an int
+func parseInt(input interface{}) interface{} {
+	switch v := input.(type) {
+	case int:
+		return v
+	case int8:
+		return int(v)
+	case int16:
+		return int(v)
+	case int32:
+		return int(v)
+	case int64:
+		return int(v)
+	case uint:
+		return int(v)
+	case uint8:
+		return int(v)
+	case uint16:
+		return int(v)
+	case uint32:
+		return int(v)
+	case uint64:
+		return int(v)
+	case float32:
+		return int(v)
+	case float64:
+		return int(v)
+	case string:
+		if result, err := strconv.Atoi(v); err == nil {
+			return result
+		}
+		return nil
+	default:
+		return nil
+	}
+}
+
+// parseFloat tries to convert various types of input to a float64
+func parseFloat(input interface{}) interface{} {
+	switch v := input.(type) {
+	case float32:
+		return float64(v)
+	case float64:
+		return v
+	case int:
+		return float64(v)
+	case int8:
+		return float64(v)
+	case int16:
+		return float64(v)
+	case int32:
+		return float64(v)
+	case int64:
+		return float64(v)
+	case uint:
+		return float64(v)
+	case uint8:
+		return float64(v)
+	case uint16:
+		return float64(v)
+	case uint32:
+		return float64(v)
+	case uint64:
+		return float64(v)
+	case string:
+		if result, err := strconv.ParseFloat(v, 64); err == nil {
+			return result
+		}
+		return nil
+	default:
+		return nil
+	}
+}
