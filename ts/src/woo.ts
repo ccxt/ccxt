@@ -3025,7 +3025,7 @@ export default class woo extends Exchange {
         const spotLeverage = this.safeInteger (leverage, 'leverage');
         let longLeverage = spotLeverage;
         let shortLeverage = spotLeverage;
-        const details = this.safeDict (leverage, 'details', []);
+        const details = this.safeList (leverage, 'details', []);
         for (let i = 0; i < details.length; i++) {
             const position = this.safeDict (details, i, {});
             const positionLeverage = this.safeInteger (position, 'leverage');
@@ -3078,6 +3078,8 @@ export default class woo extends Exchange {
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLeverage', params);
             request['margin_mode'] = this.encodeMarginMode (marginMode);
             return await this.v1PrivatePostClientFuturesLeverage (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' fetchLeverage() is not supported for ' + market['type'] + ' markets');
         }
     }
 
