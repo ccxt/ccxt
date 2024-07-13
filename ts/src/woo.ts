@@ -6,7 +6,7 @@ import { AuthenticationError, RateLimitExceeded, BadRequest, OperationFailed, Ex
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, TransferEntries, int } from './base/types.js';
+import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, TransferEntries, int } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -32,7 +32,7 @@ export default class woo extends Exchange {
                 'swap': true,
                 'future': false,
                 'option': false,
-                'addMargin': false,
+                'addMargin': true,
                 'cancelAllOrders': true,
                 'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
@@ -216,6 +216,7 @@ export default class woo extends Exchange {
                             'client/position_mode': 5,
                             'client/leverage': 120,
                             'client/futures_leverage': 30,
+                            'client/isolated_margin': 30,
                         },
                         'delete': {
                             'order': 1,
@@ -956,11 +957,12 @@ export default class woo extends Exchange {
          * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
          * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
          * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-         * @param {float} [params.algoType] 'STOP'or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
+         * @param {float} [params.algoType] 'STOP' or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
          * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
          * @param {string} [params.trailingAmount] the quote amount to trail away from the current market price
          * @param {string} [params.trailingPercent] the percent to trail away from the current market price
          * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
+         * @param {string} [params.position_side] 'SHORT' or 'LONG' - if position mode is HEDGE_MODE and the trading involves futures, then is required, otherwise this parameter is not required
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const reduceOnly = this.safeBool2 (params, 'reduceOnly', 'reduce_only');
@@ -3079,6 +3081,48 @@ export default class woo extends Exchange {
         }
     }
 
+    async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+        /**
+         * @method
+         * @name woo#addMargin
+         * @description add margin
+         * @see https://docs.woo.org/#update-isolated-margin-setting
+         * @param {string} symbol unified market symbol
+         * @param {float} amount amount of margin to add
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.position_side] 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
+         */
+        return await this.modifyMarginHelper (symbol, amount, 'ADD', params);
+    }
+
+    async reduceMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
+        /**
+         * @method
+         * @name woo#reduceMargin
+         * @description remove margin from a position
+         * @see https://docs.woo.org/#update-isolated-margin-setting
+         * @param {string} symbol unified market symbol
+         * @param {float} amount amount of margin to remove
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.position_side] 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
+         * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
+         */
+        return await this.modifyMarginHelper (symbol, amount, 'REDUCE', params);
+    }
+
+    async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+            'adjust_token': 'USDT', // todo check
+            'adjust_amount': amount,
+            'action': type,
+        };
+        return await this.v1PrivatePostClientIsolatedMargin (this.extend (request, params)) as MarginModification;
+    }
+
     async fetchPosition (symbol: Str = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3240,6 +3284,7 @@ export default class woo extends Exchange {
         const unrealisedPnl = Precise.stringMul (priceDifference, size);
         size = Precise.stringAbs (size);
         const notional = Precise.stringMul (size, markPrice);
+        const positionSide = this.safeString (position, 'positionSide'); // 'SHORT' or 'LONG' for hedged, 'BOTH' for non-hedged
         return this.safePosition ({
             'info': position,
             'id': undefined,
@@ -3265,7 +3310,7 @@ export default class woo extends Exchange {
             'marginMode': this.safeStringLower2 (position, 'marginMode', 'margin_mode'),
             'side': side,
             'percentage': undefined,
-            'hedged': undefined,
+            'hedged': positionSide !== 'BOTH',
             'stopLossPrice': undefined,
             'takeProfitPrice': undefined,
         });
