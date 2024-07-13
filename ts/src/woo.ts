@@ -3009,6 +3009,8 @@ export default class woo extends Exchange {
             //         "timestamp": 1720886810317
             //     }
             //
+        } else {
+            throw new NotSupported (this.id + ' fetchLeverage() is not supported for ' + market['type'] + ' markets');
         }
         const data = this.safeDict (response, 'data', {});
         return this.parseLeverage (data, market);
@@ -3045,14 +3047,36 @@ export default class woo extends Exchange {
     }
 
     async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#setLeverage
+         * @description set the level of leverage for a market
+         * @see https://docs.woo.org/#update-leverage-setting
+         * @see https://docs.woo.org/#update-futures-leverage-setting
+         * @param {float} leverage the rate of leverage (1, 2, 3, 4 or 5 for spot markets, 1, 2, 3, 4, 5, 10, 15, 20 for swap markets)
+         * @param {string} [symbo] unified market symbol (is mandatory for swap markets)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.marginMode] *for swap markets only* 'cross' or 'isolated'
+         * @param {string} [params.position_side] *for swap markets only* 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode.
+         * @returns {object} response from the exchange
+         */
         await this.loadMarkets ();
-        if ((leverage < 1) || (leverage > 20)) {
-            throw new BadRequest (this.id + ' leverage should be between 1 and 20');
-        }
         const request: Dict = {
             'leverage': leverage,
         };
-        return await this.v1PrivatePostClientLeverage (this.extend (request, params));
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        if ((symbol === undefined) || market['spot']) {
+            return await this.v1PrivatePostClientLeverage (this.extend (request, params));
+        } else if (market['swap']) {
+            request['symbol'] = market['id'];
+            let marginMode: Str = undefined;
+            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLeverage', params);
+            request['margin_mode'] = this.encodeMarginMode (marginMode);
+            return await this.v1PrivatePostClientFuturesLeverage (this.extend (request, params));
+        }
     }
 
     async fetchPosition (symbol: Str = undefined, params = {}) {
