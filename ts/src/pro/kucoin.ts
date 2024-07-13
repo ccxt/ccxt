@@ -1017,9 +1017,8 @@ export default class kucoin extends kucoinRest {
          */
         await this.loadMarkets ();
         const url = await this.negotiate (true);
-        const options = this.safeDict (this.options, 'watchMyTrades');
-        const defaultMethod = this.safeString (options, 'method', '/spotMarket/tradeOrders');
-        const topic = this.safeString (params, 'method', defaultMethod);
+        let topic: Str = undefined;
+        [ topic, params ] = this.handleOptionAndParams (params, 'watchMyTrades', 'method', '/spotMarket/tradeOrders');
         const request: Dict = {
             'privateChannel': true,
         };
