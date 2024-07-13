@@ -400,6 +400,11 @@ function deepEqual (a: any, b: any) {
     return JSON.stringify (a) === JSON.stringify (b);
 }
 
+function assertDeepEqual (exchange: Exchange, skippedProperties: object, method: string, a: any, b: any) {
+    const logText = logTemplate (exchange, method, {});
+    assert (deepEqual (a, b), 'two dicts does not match' + logText);
+}
+
 export default {
     logTemplate,
     isTemporaryFailure,
@@ -427,4 +432,5 @@ export default {
     assertNonEmtpyArray,
     assertRoundMinuteTimestamp,
     deepEqual,
+    assertDeepEqual,
 };
