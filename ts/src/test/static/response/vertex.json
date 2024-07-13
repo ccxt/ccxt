@@ -4,7 +4,6 @@
     "methods": {
         "fetchCurrencies": [
             {
-                "disabled": true,
                 "description": "fetch Currencies",
                 "method": "fetchCurrencies",
                 "input": [],
@@ -43,7 +42,16 @@
                         "withdraw": true,
                         "networks": null,
                         "fee": null,
-                        "limits": null
+                        "limits": {
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "withdraw": {
+                                "min": null,
+                                "max": null
+                            }
+                        }
                     }
                 }
             }
