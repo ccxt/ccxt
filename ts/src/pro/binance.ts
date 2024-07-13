@@ -745,7 +745,6 @@ export default class binance extends binanceRest {
             // Get a depth snapshot from fetchOrderBook
             // todo: this is a synch blocking call - make it async
             // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-            this.tryInitializeOrderBook (symbol, subscription);
             const snapshot = await this.fetchRestOrderBookSafe (symbol, limit, params);
             if (!(symbol in this.orderbooks)) {
                 // if the orderbook is dropped before the snapshot is received
@@ -915,6 +914,7 @@ export default class binance extends binanceRest {
         // handle list of symbols
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
+            this.tryInitializeOrderBook (symbol, subscription);
             subscription = this.extend (subscription, { 'symbol': symbol });
             // fetch the snapshot in a separate async call
             this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
