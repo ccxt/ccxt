@@ -920,9 +920,8 @@ class kucoin(ccxt.async_support.kucoin):
         """
         await self.load_markets()
         url = await self.negotiate(True)
-        options = self.safe_dict(self.options, 'watchMyTrades')
-        defaultMethod = self.safe_string(params, 'method', '/spotMarket/tradeOrders')
-        topic = defaultMethod if (defaultMethod is not None) else self.safe_string(options, 'method')
+        topic: Str = None
+        topic, params = self.handle_option_and_params(params, 'watchMyTrades', 'method', '/spotMarket/tradeOrders')
         request: dict = {
             'privateChannel': True,
         }

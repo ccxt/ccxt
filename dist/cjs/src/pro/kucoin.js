@@ -991,9 +991,8 @@ class kucoin extends kucoin$1 {
          */
         await this.loadMarkets();
         const url = await this.negotiate(true);
-        const options = this.safeDict(this.options, 'watchMyTrades');
-        const defaultMethod = this.safeString(params, 'method', '/spotMarket/tradeOrders');
-        const topic = (defaultMethod !== undefined) ? defaultMethod : this.safeString(options, 'method');
+        let topic = undefined;
+        [topic, params] = this.handleOptionAndParams(params, 'watchMyTrades', 'method', '/spotMarket/tradeOrders');
         const request = {
             'privateChannel': true,
         };

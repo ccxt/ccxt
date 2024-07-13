@@ -1029,9 +1029,8 @@ class kucoin extends \ccxt\async\kucoin {
              */
             Async\await($this->load_markets());
             $url = Async\await($this->negotiate(true));
-            $options = $this->safe_dict($this->options, 'watchMyTrades');
-            $defaultMethod = $this->safe_string($params, 'method', '/spotMarket/tradeOrders');
-            $topic = ($defaultMethod !== null) ? $defaultMethod : $this->safe_string($options, 'method');
+            $topic = null;
+            list($topic, $params) = $this->handle_option_and_params($params, 'watchMyTrades', 'method', '/spotMarket/tradeOrders');
             $request = array(
                 'privateChannel' => true,
             );

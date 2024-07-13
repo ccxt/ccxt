@@ -248,8 +248,16 @@ class hyperliquid extends hyperliquid$1 {
                 'withdraw': undefined,
                 'networks': undefined,
                 'fee': undefined,
-                // 'fees': fees,
-                'limits': undefined,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
             };
         }
         return result;

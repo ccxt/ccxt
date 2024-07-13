@@ -1102,9 +1102,10 @@ public partial class kucoin : ccxt.kucoin
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object url = await this.negotiate(true);
-        object options = this.safeDict(this.options, "watchMyTrades");
-        object defaultMethod = this.safeString(parameters, "method", "/spotMarket/tradeOrders");
-        object topic = ((bool) isTrue((!isEqual(defaultMethod, null)))) ? defaultMethod : this.safeString(options, "method");
+        object topic = null;
+        var topicparametersVariable = this.handleOptionAndParams(parameters, "watchMyTrades", "method", "/spotMarket/tradeOrders");
+        topic = ((IList<object>)topicparametersVariable)[0];
+        parameters = ((IList<object>)topicparametersVariable)[1];
         object request = new Dictionary<string, object>() {
             { "privateChannel", true },
         };

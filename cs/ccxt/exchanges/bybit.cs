@@ -4564,6 +4564,12 @@ public partial class bybit : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
+        object types = await this.isUnifiedEnabled();
+        object enableUnifiedAccount = getValue(types, 1);
+        if (!isTrue(enableUnifiedAccount))
+        {
+            throw new NotSupported ((string)add(this.id, " cancelOrders() supports UTA accounts only")) ;
+        }
         object category = null;
         var categoryparametersVariable = this.getBybitType("cancelOrders", market, parameters);
         category = ((IList<object>)categoryparametersVariable)[0];
@@ -4685,6 +4691,12 @@ public partial class bybit : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object types = await this.isUnifiedEnabled();
+        object enableUnifiedAccount = getValue(types, 1);
+        if (!isTrue(enableUnifiedAccount))
+        {
+            throw new NotSupported ((string)add(this.id, " cancelOrdersForSymbols() supports UTA accounts only")) ;
+        }
         object ordersRequests = new List<object>() {};
         object category = null;
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
