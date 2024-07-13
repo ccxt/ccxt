@@ -4,6 +4,7 @@
     "methods": {
         "fetchCurrencies": [
             {
+                "disabled": true,
                 "description": "fetch Currencies",
                 "method": "fetchCurrencies",
                 "input": [],
