@@ -2990,17 +2990,26 @@ export default class woo extends Exchange {
         const response = await this.v1PrivateGetPositionSymbol (this.extend (request, params));
         //
         //     {
-        //         "symbol":"PERP_ETC_USDT",
-        //         "holding":0.0,
-        //         "pnl_24_h":0,
-        //         "settle_price":0.0,
-        //         "average_open_price":0,
-        //         "success":true,
-        //         "mark_price":22.6955,
-        //         "pending_short_qty":0.0,
-        //         "pending_long_qty":0.0,
-        //         "fee_24_h":0,
-        //         "timestamp":"1652231044.920"
+        //         "symbol": "PERP_ETH_USDT",
+        //         "position_side": "BOTH",
+        //         "leverage": 10,
+        //         "margin_mode": "CROSS",
+        //         "average_open_price": 3139.9,
+        //         "isolated_margin_amount": 0.0,
+        //         "isolated_margin_token": "",
+        //         "opening_time": "1720627963.094",
+        //         "mark_price": 3155.19169891,
+        //         "pending_short_qty": 0.0,
+        //         "pending_long_qty": 0.0,
+        //         "holding": -0.7,
+        //         "pnl_24_h": 0.0,
+        //         "est_liq_price": 9107.40055552,
+        //         "settle_price": 3151.0319904,
+        //         "success": true,
+        //         "fee_24_h": 0.0,
+        //         "isolated_frozen_long": 0.0,
+        //         "isolated_frozen_short": 0.0,
+        //         "timestamp": "1720867502.544"
         //     }
         //
         return this.parsePosition (response, market);
@@ -3069,27 +3078,52 @@ export default class woo extends Exchange {
 
     parsePosition (position: Dict, market: Market = undefined) {
         //
+        // v1PrivateGetPositionSymbol
+        //     {
+        //         "symbol": "PERP_ETH_USDT",
+        //         "position_side": "BOTH",
+        //         "leverage": 10,
+        //         "margin_mode": "CROSS",
+        //         "average_open_price": 3139.9,
+        //         "isolated_margin_amount": 0.0,
+        //         "isolated_margin_token": "",
+        //         "opening_time": "1720627963.094",
+        //         "mark_price": 3155.19169891,
+        //         "pending_short_qty": 0.0,
+        //         "pending_long_qty": 0.0,
+        //         "holding": -0.7,
+        //         "pnl_24_h": 0.0,
+        //         "est_liq_price": 9107.40055552,
+        //         "settle_price": 3151.0319904,
+        //         "success": true,
+        //         "fee_24_h": 0.0,
+        //         "isolated_frozen_long": 0.0,
+        //         "isolated_frozen_short": 0.0,
+        //         "timestamp": "1720867502.544"
+        //     }
+        //
+        // v3PrivateGetPositions
         //     {
         //         "symbol": "PERP_ETH_USDT",
         //         "holding": -1.0,
-        //         "pendingLongQty": 0.0,
-        //         "pendingShortQty": 0.0,
+        //         "pendingLongQty": 0.0, // todo: check
+        //         "pendingShortQty": 0.0, // todo: check
         //         "settlePrice": 3143.2,
         //         "averageOpenPrice": 3143.2,
-        //         "pnl24H": 0.0,
-        //         "fee24H": 1.5716,
+        //         "pnl24H": 0.0, // todo: check
+        //         "fee24H": 1.5716, // todo: check
         //         "markPrice": 3134.97984158,
         //         "estLiqPrice": 3436.176349,
         //         "timestamp": 1720628031.463,
         //         "adlQuantile": 5,
         //         "positionSide": "BOTH",
         //         "marginMode": "ISOLATED",
-        //         "isolatedMarginToken": "USDT",
-        //         "isolatedMarginAmount": 314.62426,
-        //         "isolatedFrozenLong": 0.0,
-        //         "isolatedFrozenShort": 0.0,
+        //         "isolatedMarginToken": "USDT", // todo: check
+        //         "isolatedMarginAmount": 314.62426, // todo: check
+        //         "isolatedFrozenLong": 0.0, // todo: check
+        //         "isolatedFrozenShort": 0.0, // todo: check
         //         "leverage": 10
-        //     },
+        //     }
         //
         const contract = this.safeString (position, 'symbol');
         market = this.safeMarket (contract, market);
@@ -3101,9 +3135,9 @@ export default class woo extends Exchange {
             side = 'short';
         }
         const contractSize = this.safeString (market, 'contractSize');
-        const markPrice = this.safeString (position, 'markPrice');
+        const markPrice = this.safeString2 (position, 'markPrice', 'mark_price');
         const timestamp = this.safeTimestamp (position, 'timestamp');
-        const entryPrice = this.safeString (position, 'averageOpenPrice');
+        const entryPrice = this.safeString2 (position, 'averageOpenPrice', 'average_open_price');
         const priceDifference = Precise.stringSub (markPrice, entryPrice);
         const unrealisedPnl = Precise.stringMul (priceDifference, size);
         size = Precise.stringAbs (size);
@@ -3126,11 +3160,11 @@ export default class woo extends Exchange {
             'contracts': this.parseNumber (size),
             'contractSize': this.parseNumber (contractSize),
             'marginRatio': undefined,
-            'liquidationPrice': this.safeNumber (position, 'estLiqPrice'),
+            'liquidationPrice': this.safeNumber2 (position, 'estLiqPrice', 'est_liq_price'),
             'markPrice': this.parseNumber (markPrice),
             'lastPrice': undefined,
             'collateral': undefined,
-            'marginMode': this.safeStringLower (position, 'marginMode'),
+            'marginMode': this.safeStringLower2 (position, 'marginMode', 'margin_mode'),
             'side': side,
             'percentage': undefined,
             'hedged': undefined,
