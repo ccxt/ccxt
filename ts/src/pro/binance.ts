@@ -737,7 +737,8 @@ export default class binance extends binanceRest {
             // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
             // todo: this is a synch blocking call - make it async
             // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-            const snapshot = await this.fetchRestOrderBookSafe (symbol, limit, params);
+            const retries = this.handleOption ('watchOrderBook', 'maxRetries', 3);
+            const snapshot = await this.retryMethod ('fetchOrderBook', [ symbol, limit, params ], retries);
             if (this.safeValue (this.orderbooks, symbol) === undefined) {
                 // if the orderbook is dropped before the snapshot is received
                 return;

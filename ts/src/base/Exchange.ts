@@ -2316,6 +2316,36 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchMarginModes () is not supported yet');
     }
 
+    async retryMethod (methodName: string, args: any[], retries: Int = undefined) {
+        if (retries === undefined) {
+            retries = this.handleOption (methodName, 'maxRetries', 3);
+        }
+        for (let i = 0; i < retries; i++) {
+            try {
+                const length = args.length;
+                // to simplify transpilation (instead of ...args), manually use arguments
+                if (length === 0) {
+                    return await this[methodName] ();
+                } else if (length === 1) {
+                    return await this[methodName] (args[0]);
+                } else if (length === 2) {
+                    return await this[methodName] (args[0], args[1]);
+                } else if (length === 3) {
+                    return await this[methodName] (args[0], args[1], args[2]);
+                } else if (length === 4) {
+                    return await this[methodName] (args[0], args[1], args[2], args[3]);
+                } else if (length === 5) {
+                    return await this[methodName] (args[0], args[1], args[2], args[3], args[4]);
+                }
+            } catch (e) {
+                if ((i + 1) === retries) {
+                    throw e;
+                }
+            }
+        }
+        return undefined;
+    }
+
     async fetchRestOrderBookSafe (symbol, limit = undefined, params = {}) {
         const fetchSnapshotMaxRetries = this.handleOption ('watchOrderBook', 'maxRetries', 3);
         for (let i = 0; i < fetchSnapshotMaxRetries; i++) {
