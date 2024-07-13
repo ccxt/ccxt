@@ -202,6 +202,7 @@ export default class woo extends Exchange {
                             'positions': 3.33, // 30 requests per 10 seconds
                             'position/{symbol}': 3.33,
                             'client/transaction_history': 60,
+                            'client/futures_leverage': 60,
                         },
                         'post': {
                             'order': 5, // 2 requests per 1 second per symbol
@@ -214,6 +215,7 @@ export default class woo extends Exchange {
                             'client/account_mode': 120,
                             'client/position_mode': 5,
                             'client/leverage': 120,
+                            'client/futures_leverage': 30,
                         },
                         'delete': {
                             'order': 1,
@@ -2922,51 +2924,123 @@ export default class woo extends Exchange {
          * @see https://docs.woo.org/#get-account-information-new
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.marginMode] *for swap markets only* 'cross' or 'isolated'
+         * @param {string} [params.position_mode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
          * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const response = await this.v3PrivateGetAccountinfo (params);
-        //
-        //     {
-        //         "success": true,
-        //         "data": {
-        //             "applicationId": "dsa",
-        //             "account": "dsa",
-        //             "alias": "haha",
-        //             "accountMode": "MARGIN",
-        //             "leverage": 1,
-        //             "takerFeeRate": 1,
-        //             "makerFeeRate": 1,
-        //             "interestRate": 1,
-        //             "futuresTakerFeeRate": 1,
-        //             "futuresMakerFeeRate": 1,
-        //             "otpauth": true,
-        //             "marginRatio": 1,
-        //             "openMarginRatio": 1,
-        //             "initialMarginRatio": 1,
-        //             "maintenanceMarginRatio": 1,
-        //             "totalCollateral": 1,
-        //             "freeCollateral": 1,
-        //             "totalAccountValue": 1,
-        //             "totalVaultValue": 1,
-        //             "totalStakingValue": 1
-        //         },
-        //         "timestamp": 1673323685109
-        //     }
-        //
+        let response: Dict = undefined;
+        if (market['spot']) {
+            response = await this.v3PrivateGetAccountinfo (params);
+            //
+            //     {
+            //         "success": true,
+            //         "data": {
+            //             "applicationId": "dsa",
+            //             "account": "dsa",
+            //             "alias": "haha",
+            //             "accountMode": "MARGIN",
+            //             "leverage": 1,
+            //             "takerFeeRate": 1,
+            //             "makerFeeRate": 1,
+            //             "interestRate": 1,
+            //             "futuresTakerFeeRate": 1,
+            //             "futuresMakerFeeRate": 1,
+            //             "otpauth": true,
+            //             "marginRatio": 1,
+            //             "openMarginRatio": 1,
+            //             "initialMarginRatio": 1,
+            //             "maintenanceMarginRatio": 1,
+            //             "totalCollateral": 1,
+            //             "freeCollateral": 1,
+            //             "totalAccountValue": 1,
+            //             "totalVaultValue": 1,
+            //             "totalStakingValue": 1
+            //         },
+            //         "timestamp": 1673323685109
+            //     }
+            //
+        } else if (market['swap']) {
+            const request: Dict = {
+                'symbol': market['id'],
+            };
+            let marginMode: Str = undefined;
+            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLeverage', params);
+            request['margin_mode'] = this.encodeMarginMode (marginMode);
+            response = await this.v1PrivateGetClientFuturesLeverage (this.extend (request, params));
+            //
+            // HEDGE_MODE
+            //     {
+            //         "success": true,
+            //         "data":
+            //             {
+            //                 "symbol": "PERP_ETH_USDT",
+            //                 "default_margin_mode": "CROSS",
+            //                 "position_mode": "HEDGE_MODE",
+            //                 "details":  [
+            //                     {
+            //                         "position_side": "LONG",
+            //                         "leverage": 10
+            //                     },
+            //                     {
+            //                         "position_side": "SHORT",
+            //                         "leverage": 10
+            //                     }
+            //                 ]
+            //             },
+            //         "timestamp": 1720886470482
+            //     }
+            //
+            // ONE_WAY
+            //     {
+            //         "success": true,
+            //         "data": {
+            //             "symbol": "PERP_ETH_USDT",
+            //             "default_margin_mode": "ISOLATED",
+            //             "position_mode": "ONE_WAY",
+            //             "details": [
+            //                 {
+            //                     "position_side": "BOTH",
+            //                     "leverage": 10
+            //                 }
+            //             ]
+            //         },
+            //         "timestamp": 1720886810317
+            //     }
+            //
+        }
         const data = this.safeDict (response, 'data', {});
         return this.parseLeverage (data, market);
     }
 
     parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
-        const leverageValue = this.safeInteger (leverage, 'leverage');
+        const marketId = this.safeString (leverage, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const marginMode = this.safeStringLower (leverage, 'default_margin_mode');
+        const spotLeverage = this.safeInteger (leverage, 'leverage');
+        let longLeverage = spotLeverage;
+        let shortLeverage = spotLeverage;
+        const details = this.safeDict (leverage, 'details', []);
+        for (let i = 0; i < details.length; i++) {
+            const position = this.safeDict (details, i, {});
+            const positionLeverage = this.safeInteger (position, 'leverage');
+            const side = this.safeString (position, 'position_side');
+            if (side === 'BOTH') {
+                longLeverage = positionLeverage;
+                shortLeverage = positionLeverage;
+            } else if (side === 'LONG') {
+                longLeverage = positionLeverage;
+            } else if (side === 'SHORT') {
+                shortLeverage = positionLeverage;
+            }
+        }
         return {
             'info': leverage,
             'symbol': market['symbol'],
-            'marginMode': undefined,
-            'longLeverage': leverageValue,
-            'shortLeverage': leverageValue,
+            'marginMode': marginMode,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
         } as Leverage;
     }
 
