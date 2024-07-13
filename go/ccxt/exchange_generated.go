@@ -12,7 +12,7 @@ func  (this *Exchange) safeBoolN(dictionaryOrList interface{}, keys interface{},
     */
     defaultValue := GetArg(optionalArgs, 2, nil)
     _ = defaultValue
-    value := this.safeValueN(dictionaryOrList, keys, defaultValue)
+    var value interface{} = this.safeValueN(dictionaryOrList, keys, defaultValue)
     if IsTrue(IsBool(value)) {
         return value
     }
@@ -49,7 +49,7 @@ func  (this *Exchange) safeDictN(dictionaryOrList interface{}, keys interface{},
     */
     defaultValue := GetArg(optionalArgs, 2, nil)
     _ = defaultValue
-    value := this.safeValueN(dictionaryOrList, keys, defaultValue)
+    var value interface{} = this.safeValueN(dictionaryOrList, keys, defaultValue)
     if IsTrue(IsEqual(value, nil)) {
         return defaultValue
     }
@@ -69,7 +69,7 @@ func  (this *Exchange) safeDict(dictionary interface{}, key interface{}, optiona
     _ = defaultValue
     return this.safeDictN(dictionary, []interface{}{key}, defaultValue)
 }
-func  (this *Exchange) safeDict2(dictionary interface{}, key1 interface{}, key2 string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) safeDict2(dictionary interface{}, key1 interface{}, key2 interface{}, optionalArgs ...interface{}) interface{}  {
     /**
     * @ignore
     * @method
@@ -89,7 +89,7 @@ func  (this *Exchange) safeListN(dictionaryOrList interface{}, keys interface{},
     */
     defaultValue := GetArg(optionalArgs, 2, nil)
     _ = defaultValue
-    value := this.safeValueN(dictionaryOrList, keys, defaultValue)
+    var value interface{} = this.safeValueN(dictionaryOrList, keys, defaultValue)
     if IsTrue(IsEqual(value, nil)) {
         return defaultValue
     }
@@ -98,7 +98,7 @@ func  (this *Exchange) safeListN(dictionaryOrList interface{}, keys interface{},
     }
     return defaultValue
 }
-func  (this *Exchange) safeList2(dictionaryOrList interface{}, key1 interface{}, key2 string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) safeList2(dictionaryOrList interface{}, key1 interface{}, key2 interface{}, optionalArgs ...interface{}) interface{}  {
     /**
     * @ignore
     * @method
@@ -138,9 +138,9 @@ func  (this *Exchange) findTimeframe(timeframe interface{}, optionalArgs ...inte
     if IsTrue(IsEqual(timeframes, nil)) {
         timeframes = this.timeframes
     }
-    keys := ObjectKeys(timeframes)
+    var keys interface{} = ObjectKeys(timeframes)
     for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
-        key := GetValue(keys, i)
+        var key interface{} = GetValue(keys, i)
         if IsTrue(IsEqual(GetValue(timeframes, key), timeframe)) {
             return key
         }
@@ -156,7 +156,7 @@ func  (this *Exchange) checkProxyUrlSettings(optionalArgs ...interface{}) interf
     _ = headers
     body := GetArg(optionalArgs, 3, nil)
     _ = body
-    usedProxies := []interface{}{}
+    var usedProxies interface{} = []interface{}{}
     var proxyUrl interface{} = nil
     if IsTrue(!IsEqual(this.proxyUrl, nil)) {
         usedProxies = AppendToArray(usedProxies,"proxyUrl").([]interface{})
@@ -183,9 +183,9 @@ func  (this *Exchange) checkProxyUrlSettings(optionalArgs ...interface{}) interf
             proxyUrl = this.proxy
         }
     }
-    length := GetArrayLength(usedProxies)
+    var length interface{} =     GetArrayLength(usedProxies)
     if IsTrue(IsGreaterThan(length, 1)) {
-        joinedProxyNames := Join(usedProxies, ",")
+        var joinedProxyNames interface{} = Join(usedProxies, ",")
         panic(ProxyError(Add(Add(Add(this.id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback")))
     }
     return proxyUrl
@@ -199,7 +199,7 @@ func  (this *Exchange) checkProxySettings(optionalArgs ...interface{}) interface
     _ = headers
     body := GetArg(optionalArgs, 3, nil)
     _ = body
-    usedProxies := []interface{}{}
+    var usedProxies interface{} = []interface{}{}
     var httpProxy interface{} = nil
     var httpsProxy interface{} = nil
     var socksProxy interface{} = nil
@@ -255,15 +255,15 @@ func  (this *Exchange) checkProxySettings(optionalArgs ...interface{}) interface
         socksProxy = callDynamically("socks_proxy_callback", url, method, headers, body)
     }
     // check
-    length := GetArrayLength(usedProxies)
+    var length interface{} =     GetArrayLength(usedProxies)
     if IsTrue(IsGreaterThan(length, 1)) {
-        joinedProxyNames := Join(usedProxies, ",")
+        var joinedProxyNames interface{} = Join(usedProxies, ",")
         panic(ProxyError(Add(Add(Add(this.id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback")))
     }
     return []interface{}{httpProxy, httpsProxy, socksProxy}
 }
 func  (this *Exchange) checkWsProxySettings() interface{}  {
-    usedProxies := []interface{}{}
+    var usedProxies interface{} = []interface{}{}
     var wsProxy interface{} = nil
     var wssProxy interface{} = nil
     var wsSocksProxy interface{} = nil
@@ -295,9 +295,9 @@ func  (this *Exchange) checkWsProxySettings() interface{}  {
         wsSocksProxy = this.ws_socks_proxy
     }
     // check
-    length := GetArrayLength(usedProxies)
+    var length interface{} =     GetArrayLength(usedProxies)
     if IsTrue(IsGreaterThan(length, 1)) {
-        joinedProxyNames := Join(usedProxies, ",")
+        var joinedProxyNames interface{} = Join(usedProxies, ",")
         panic(ProxyError(Add(Add(Add(this.id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from: wsProxy, wssProxy, wsSocksProxy")))
     }
     return []interface{}{wsProxy, wssProxy, wsSocksProxy}
@@ -307,11 +307,11 @@ func  (this *Exchange) checkConflictingProxies(proxyAgentSet interface{}, proxyU
         panic(ProxyError(Add(this.id, " you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy")))
     }
 }
-func  (this *Exchange) findMessageHashes(client interface{}, element string) interface{}  {
-    result := []interface{}{}
-    messageHashes := ObjectKeys(client.futures)
+func  (this *Exchange) findMessageHashes(client interface{}, element interface{}) interface{}  {
+    var result interface{} = []interface{}{}
+    var messageHashes interface{} = ObjectKeys(client.futures)
     for i := 0; IsLessThan(i, GetArrayLength(messageHashes)); i++ {
-        messageHash := GetValue(messageHashes, i)
+        var messageHash interface{} = GetValue(messageHashes, i)
         if IsTrue(IsGreaterThanOrEqual(GetIndexOf(messageHash, element), 0)) {
             result = AppendToArray(result,messageHash).([]interface{})
         }
@@ -326,12 +326,12 @@ func  (this *Exchange) filterByLimit(array interface{}, optionalArgs ...interfac
     fromStart := GetArg(optionalArgs, 3, false)
     _ = fromStart
     if IsTrue(this.valueIsDefined(limit)) {
-        arrayLength := GetArrayLength(array)
+        var arrayLength interface{} =         GetArrayLength(array)
         if IsTrue(IsGreaterThan(arrayLength, 0)) {
-            ascending := true
+            var ascending interface{} = true
             if IsTrue((InOp(GetValue(array, 0), key))) {
-                first := GetValue(GetValue(array, 0), key)
-                last := GetValue(GetValue(array, Subtract(arrayLength, 1)), key)
+                var first interface{} = GetValue(GetValue(array, 0), key)
+                var last interface{} = GetValue(GetValue(array, Subtract(arrayLength, 1)), key)
                 if IsTrue(IsTrue(!IsEqual(first, nil)) && IsTrue(!IsEqual(last, nil))) {
                     ascending = IsLessThanOrEqual(first, last) // true if array is sorted in ascending order based on 'timestamp'
                 }
@@ -357,14 +357,14 @@ func  (this *Exchange) filterBySinceLimit(array interface{}, optionalArgs ...int
     _ = key
     tail := GetArg(optionalArgs, 4, false)
     _ = tail
-    sinceIsDefined := this.valueIsDefined(since)
-    parsedArray := this.toArray(array)
-    result := parsedArray
+    var sinceIsDefined interface{} = this.valueIsDefined(since)
+    var parsedArray interface{} = this.toArray(array)
+    var result interface{} = parsedArray
     if IsTrue(sinceIsDefined) {
         result = []interface{}{}
         for i := 0; IsLessThan(i, GetArrayLength(parsedArray)); i++ {
-            entry := GetValue(parsedArray, i)
-            value := this.safeValue(entry, key)
+            var entry interface{} = GetValue(parsedArray, i)
+            var value interface{} = this.safeValue(entry, key)
             if IsTrue(IsTrue(value) && IsTrue((IsGreaterThanOrEqual(value, since)))) {
                 result = AppendToArray(result,entry).([]interface{})
             }
@@ -375,7 +375,7 @@ func  (this *Exchange) filterBySinceLimit(array interface{}, optionalArgs ...int
     }
     // if the user provided a 'since' argument
     // we want to limit the result starting from the 'since'
-    shouldFilterFromStart := !IsTrue(tail) && IsTrue(sinceIsDefined)
+    var shouldFilterFromStart interface{} = !IsTrue(tail) && IsTrue(sinceIsDefined)
     return this.filterByLimit(result, limit, key, shouldFilterFromStart)
 }
 func  (this *Exchange) filterByValueSinceLimit(array interface{}, field interface{}, optionalArgs ...interface{}) interface{}  {
@@ -389,20 +389,20 @@ func  (this *Exchange) filterByValueSinceLimit(array interface{}, field interfac
     _ = key
     tail := GetArg(optionalArgs, 6, false)
     _ = tail
-    valueIsDefined := this.valueIsDefined(value)
-    sinceIsDefined := this.valueIsDefined(since)
-    parsedArray := this.toArray(array)
-    result := parsedArray
+    var valueIsDefined interface{} = this.valueIsDefined(value)
+    var sinceIsDefined interface{} = this.valueIsDefined(since)
+    var parsedArray interface{} = this.toArray(array)
+    var result interface{} = parsedArray
     // single-pass filter for both symbol and since
     if IsTrue(IsTrue(valueIsDefined) || IsTrue(sinceIsDefined)) {
         result = []interface{}{}
         for i := 0; IsLessThan(i, GetArrayLength(parsedArray)); i++ {
-            entry := GetValue(parsedArray, i)
-            entryFiledEqualValue := IsEqual(GetValue(entry, field), value)
-            firstCondition := Ternary(IsTrue(valueIsDefined), entryFiledEqualValue, true)
-            entryKeyValue := this.safeValue(entry, key)
-            entryKeyGESince := IsTrue(IsTrue((entryKeyValue)) && IsTrue(since)) && IsTrue((IsGreaterThanOrEqual(entryKeyValue, since)))
-            secondCondition := Ternary(IsTrue(sinceIsDefined), entryKeyGESince, true)
+            var entry interface{} = GetValue(parsedArray, i)
+            var entryFiledEqualValue interface{} = IsEqual(GetValue(entry, field), value)
+            var firstCondition interface{} = Ternary(IsTrue(valueIsDefined), entryFiledEqualValue, true)
+            var entryKeyValue interface{} = this.safeValue(entry, key)
+            var entryKeyGESince interface{} = IsTrue(IsTrue((entryKeyValue)) && IsTrue(since)) && IsTrue((IsGreaterThanOrEqual(entryKeyValue, since)))
+            var secondCondition interface{} = Ternary(IsTrue(sinceIsDefined), entryKeyGESince, true)
             if IsTrue(IsTrue(firstCondition) && IsTrue(secondCondition)) {
                 result = AppendToArray(result,entry).([]interface{})
             }
@@ -413,7 +413,7 @@ func  (this *Exchange) filterByValueSinceLimit(array interface{}, field interfac
     }
     return this.filterByLimit(result, limit, key, sinceIsDefined)
 }
-func  (this *Exchange) setSandboxMode(enabled bool)  {
+func  (this *Exchange) setSandboxMode(enabled interface{})  {
     if IsTrue(enabled) {
         if IsTrue(InOp(this.urls, "test")) {
             if IsTrue(IsString(GetValue(this.urls, "api"))) {
@@ -432,7 +432,7 @@ func  (this *Exchange) setSandboxMode(enabled bool)  {
         } else {
             AddElementToObject(this.urls, "api", this.clone(GetValue(this.urls, "apiBackup")))
         }
-        newUrls := this.omit(this.urls, "apiBackup")
+        var newUrls interface{} = this.omit(this.urls, "apiBackup")
         this.urls = newUrls
     }
 }
@@ -454,7 +454,7 @@ func  (this *Exchange) fetchAccounts(optionalArgs ...interface{}) interface{}  {
     _ = params
     panic(NotSupported(Add(this.id, " fetchAccounts() is not supported yet")))
 }
-func  (this *Exchange) fetchTrades(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchTrades(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     since := GetArg(optionalArgs, 1, nil)
     _ = since
     limit := GetArg(optionalArgs, 2, nil)
@@ -463,7 +463,7 @@ func  (this *Exchange) fetchTrades(symbol string, optionalArgs ...interface{}) i
     _ = params
     panic(NotSupported(Add(this.id, " fetchTrades() is not supported yet")))
 }
-func  (this *Exchange) fetchTradesWs(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchTradesWs(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     since := GetArg(optionalArgs, 1, nil)
     _ = since
     limit := GetArg(optionalArgs, 2, nil)
@@ -472,7 +472,7 @@ func  (this *Exchange) fetchTradesWs(symbol string, optionalArgs ...interface{})
     _ = params
     panic(NotSupported(Add(this.id, " fetchTradesWs() is not supported yet")))
 }
-func  (this *Exchange) watchLiquidations(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) watchLiquidations(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     since := GetArg(optionalArgs, 1, nil)
     _ = since
     limit := GetArg(optionalArgs, 2, nil)
@@ -493,7 +493,7 @@ func  (this *Exchange) watchLiquidationsForSymbols(symbols interface{}, optional
     _ = params
     panic(NotSupported(Add(this.id, " watchLiquidationsForSymbols() is not supported yet")))
 }
-func  (this *Exchange) watchMyLiquidations(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) watchMyLiquidations(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     since := GetArg(optionalArgs, 1, nil)
     _ = since
     limit := GetArg(optionalArgs, 2, nil)
@@ -514,7 +514,7 @@ func  (this *Exchange) watchMyLiquidationsForSymbols(symbols interface{}, option
     _ = params
     panic(NotSupported(Add(this.id, " watchMyLiquidationsForSymbols() is not supported yet")))
 }
-func  (this *Exchange) watchTrades(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) watchTrades(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     since := GetArg(optionalArgs, 1, nil)
     _ = since
     limit := GetArg(optionalArgs, 2, nil)
@@ -573,18 +573,18 @@ func  (this *Exchange) fetchDepositAddresses(optionalArgs ...interface{}) interf
     _ = params
     panic(NotSupported(Add(this.id, " fetchDepositAddresses() is not supported yet")))
 }
-func  (this *Exchange) fetchOrderBook(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchOrderBook(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     limit := GetArg(optionalArgs, 1, nil)
     _ = limit
     params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " fetchOrderBook() is not supported yet")))
 }
-func  (this *Exchange) fetchMarginMode(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchMarginMode(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     if IsTrue(GetValue(this.has, "fetchMarginModes")) {
-        marginModes := this.fetchMarginModes([]interface{}{symbol}, params)
+        var marginModes interface{} = this.fetchMarginModes([]interface{}{symbol}, params)
         return this.safeDict(marginModes, symbol)
     } else {
         panic(NotSupported(Add(this.id, " fetchMarginMode() is not supported yet")))
@@ -602,7 +602,7 @@ func  (this *Exchange) fetchRestOrderBookSafe(symbol interface{}, optionalArgs .
     _ = limit
     params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
-    fetchSnapshotMaxRetries := this.handleOption("watchOrderBook", "maxRetries", 3)
+    var fetchSnapshotMaxRetries interface{} = this.handleOption("watchOrderBook", "maxRetries", 3)
     for i := 0; IsLessThan(i, fetchSnapshotMaxRetries); i++ {
         
         {		ret__ := func(this *Exchange) (ret_ interface{}) {
@@ -618,7 +618,7 @@ func  (this *Exchange) fetchRestOrderBookSafe(symbol interface{}, optionalArgs .
         			}
         		}()
         		// try block:
-                            orderBook := this.fetchOrderBook(symbol, limit, params)
+                            var orderBook interface{} = this.fetchOrderBook(symbol, limit, params)
                     return orderBook
         		return nil
         	}(this)
@@ -629,7 +629,7 @@ func  (this *Exchange) fetchRestOrderBookSafe(symbol interface{}, optionalArgs .
     }
     return nil
 }
-func  (this *Exchange) watchOrderBook(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) watchOrderBook(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     limit := GetArg(optionalArgs, 1, nil)
     _ = limit
     params := GetArg(optionalArgs, 2, map[string]interface{} {})
@@ -652,7 +652,7 @@ func  (this *Exchange) parseMarket(market interface{}) interface{}  {
     panic(NotSupported(Add(this.id, " parseMarket() is not supported yet")))
 }
 func  (this *Exchange) parseMarkets(markets interface{}) interface{}  {
-    result := []interface{}{}
+    var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
         result = AppendToArray(result,this.parseMarket(GetValue(markets, i))).([]interface{})
     }
@@ -765,7 +765,7 @@ func  (this *Exchange) fetchFundingRates(optionalArgs ...interface{}) interface{
     _ = params
     panic(NotSupported(Add(this.id, " fetchFundingRates() is not supported yet")))
 }
-func  (this *Exchange) watchFundingRate(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) watchFundingRate(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " watchFundingRate() is not supported yet")))
@@ -780,19 +780,19 @@ func  (this *Exchange) watchFundingRatesForSymbols(symbols interface{}, optional
     _ = params
     return this.watchFundingRates(symbols, params)
 }
-func  (this *Exchange) transfer(code string, amount interface{}, fromAccount string, toAccount string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) transfer(code interface{}, amount interface{}, fromAccount interface{}, toAccount interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 4, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " transfer() is not supported yet")))
 }
-func  (this *Exchange) withdraw(code string, amount interface{}, address string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) interface{}  {
     tag := GetArg(optionalArgs, 3, nil)
     _ = tag
     params := GetArg(optionalArgs, 4, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " withdraw() is not supported yet")))
 }
-func  (this *Exchange) createDepositAddress(code string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createDepositAddress(code interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " createDepositAddress() is not supported yet")))
@@ -804,11 +804,11 @@ func  (this *Exchange) setLeverage(leverage interface{}, optionalArgs ...interfa
     _ = params
     panic(NotSupported(Add(this.id, " setLeverage() is not supported yet")))
 }
-func  (this *Exchange) fetchLeverage(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchLeverage(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     if IsTrue(GetValue(this.has, "fetchLeverages")) {
-        leverages := this.fetchLeverages([]interface{}{symbol}, params)
+        var leverages interface{} = this.fetchLeverages([]interface{}{symbol}, params)
         return this.safeDict(leverages, symbol)
     } else {
         panic(NotSupported(Add(this.id, " fetchLeverage() is not supported yet")))
@@ -821,24 +821,24 @@ func  (this *Exchange) fetchLeverages(optionalArgs ...interface{}) interface{}  
     _ = params
     panic(NotSupported(Add(this.id, " fetchLeverages() is not supported yet")))
 }
-func  (this *Exchange) setPositionMode(hedged bool, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) setPositionMode(hedged interface{}, optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 1, nil)
     _ = symbol
     params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " setPositionMode() is not supported yet")))
 }
-func  (this *Exchange) addMargin(symbol string, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) addMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " addMargin() is not supported yet")))
 }
-func  (this *Exchange) reduceMargin(symbol string, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) reduceMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " reduceMargin() is not supported yet")))
 }
-func  (this *Exchange) setMargin(symbol string, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) setMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " setMargin() is not supported yet")))
@@ -856,19 +856,19 @@ func  (this *Exchange) fetchMarginAdjustmentHistory(optionalArgs ...interface{})
     _ = params
     panic(NotSupported(Add(this.id, " fetchMarginAdjustmentHistory() is not supported yet")))
 }
-func  (this *Exchange) setMarginMode(marginMode string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) setMarginMode(marginMode interface{}, optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 1, nil)
     _ = symbol
     params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " setMarginMode() is not supported yet")))
 }
-func  (this *Exchange) fetchDepositAddressesByNetwork(code string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchDepositAddressesByNetwork(code interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " fetchDepositAddressesByNetwork() is not supported yet")))
 }
-func  (this *Exchange) fetchOpenInterestHistory(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchOpenInterestHistory(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     timeframe := GetArg(optionalArgs, 1, "1h")
     _ = timeframe
     since := GetArg(optionalArgs, 2, nil)
@@ -879,7 +879,7 @@ func  (this *Exchange) fetchOpenInterestHistory(symbol string, optionalArgs ...i
     _ = params
     panic(NotSupported(Add(this.id, " fetchOpenInterestHistory() is not supported yet")))
 }
-func  (this *Exchange) fetchOpenInterest(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchOpenInterest(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " fetchOpenInterest() is not supported yet")))
@@ -897,12 +897,12 @@ func  (this *Exchange) fetchPaymentMethods(optionalArgs ...interface{}) interfac
 func  (this *Exchange) parseToInt(number interface{}) interface{}  {
     // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
     // using a number as parameter which is not valid in ts
-    stringifiedNumber := this.numberToString(number)
-    convertedNumber := parseFloat(stringifiedNumber)
+    var stringifiedNumber interface{} = this.numberToString(number)
+    var convertedNumber interface{} = parseFloat(stringifiedNumber)
     return parseInt(convertedNumber)
 }
 func  (this *Exchange) parseToNumeric(number interface{}) interface{}  {
-    stringVersion := this.numberToString(number) // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
+    var stringVersion interface{} = this.numberToString(number) // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
     // keep this in mind:
     // in JS: 1 == 1.0 is true;  1 === 1.0 is true
     // in Python: 1 == 1.0 is true
@@ -915,13 +915,13 @@ func  (this *Exchange) parseToNumeric(number interface{}) interface{}  {
 func  (this *Exchange) isRoundNumber(value interface{}) interface{}  {
     // this method is similar to isInteger, but this is more loyal and does not check for types.
     // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
-    res := this.parseToNumeric((Mod(value, 1)))
+    var res interface{} = this.parseToNumeric((Mod(value, 1)))
     return IsEqual(res, 0)
 }
 func  (this *Exchange) safeIntegerOmitZero(obj interface{}, key interface{}, optionalArgs ...interface{}) interface{}  {
     defaultValue := GetArg(optionalArgs, 2, nil)
     _ = defaultValue
-    timestamp := this.safeInteger(obj, key, defaultValue)
+    var timestamp interface{} = this.safeInteger(obj, key, defaultValue)
     if IsTrue(IsTrue(IsEqual(timestamp, nil)) || IsTrue(IsEqual(timestamp, 0))) {
         return nil
     }
@@ -932,7 +932,7 @@ func  (this *Exchange) afterConstruct()  {
 }
 func  (this *Exchange) createNetworksByIdObject()  {
     // automatically generate network-id-to-code mappings
-    networkIdsToCodesGenerated := this.invertFlatStringDictionary(this.safeValue(this.options, "networks", map[string]interface{} {})) // invert defined networks dictionary
+    var networkIdsToCodesGenerated interface{} = this.invertFlatStringDictionary(this.safeValue(this.options, "networks", map[string]interface{} {})) // invert defined networks dictionary
     AddElementToObject(this.options, "networksById", this.extend(networkIdsToCodesGenerated, this.safeValue(this.options, "networksById", map[string]interface{} {}))) // support manually overriden "networksById" dictionary too
 }
 func  (this *Exchange) getDefaultOptions() interface{}  {
@@ -954,10 +954,10 @@ func  (this *Exchange) safeLedgerEntry(entry interface{}, optionalArgs ...interf
     currency := GetArg(optionalArgs, 1, nil)
     _ = currency
     currency = this.safeCurrency(nil, currency)
-    direction := this.safeString(entry, "direction")
-    before := this.safeString(entry, "before")
-    after := this.safeString(entry, "after")
-    amount := this.safeString(entry, "amount")
+    var direction interface{} = this.safeString(entry, "direction")
+    var before interface{} = this.safeString(entry, "before")
+    var after interface{} = this.safeString(entry, "after")
+    var amount interface{} = this.safeString(entry, "amount")
     if IsTrue(!IsEqual(amount, nil)) {
         if IsTrue(IsTrue(IsEqual(before, nil)) && IsTrue(!IsEqual(after, nil))) {
             before = Precise.stringSub(after, amount)
@@ -975,12 +975,12 @@ func  (this *Exchange) safeLedgerEntry(entry interface{}, optionalArgs ...interf
             }
         }
     }
-    fee := this.safeValue(entry, "fee")
+    var fee interface{} = this.safeValue(entry, "fee")
     if IsTrue(!IsEqual(fee, nil)) {
         AddElementToObject(fee, "cost", this.safeNumber(fee, "cost"))
     }
-    timestamp := this.safeInteger(entry, "timestamp")
-    info := this.safeDict(entry, "info", map[string]interface{} {})
+    var timestamp interface{} = this.safeInteger(entry, "timestamp")
+    var info interface{} = this.safeDict(entry, "info", map[string]interface{} {})
     return map[string]interface{} {
         "id": this.safeString(entry, "id"),
         "timestamp": timestamp,
@@ -1029,7 +1029,7 @@ func  (this *Exchange) safeCurrencyStructure(currency interface{}) interface{}  
 func  (this *Exchange) safeMarketStructure(optionalArgs ...interface{}) interface{}  {
     market := GetArg(optionalArgs, 0, nil)
     _ = market
-    cleanStructure := map[string]interface{} {
+    var cleanStructure interface{} = map[string]interface{} {
         "id": nil,
         "lowercaseId": nil,
         "symbol": nil,
@@ -1087,7 +1087,7 @@ func  (this *Exchange) safeMarketStructure(optionalArgs ...interface{}) interfac
         "info": nil,
     }
     if IsTrue(!IsEqual(market, nil)) {
-        result := this.extend(cleanStructure, market)
+        var result interface{} = this.extend(cleanStructure, market)
         // set undefined swap/future/etc
         if IsTrue(GetValue(result, "spot")) {
             if IsTrue(IsEqual(GetValue(result, "contract"), nil)) {
@@ -1113,19 +1113,19 @@ func  (this *Exchange) safeMarketStructure(optionalArgs ...interface{}) interfac
 func  (this *Exchange) setMarkets(markets interface{}, optionalArgs ...interface{}) interface{}  {
     currencies := GetArg(optionalArgs, 1, nil)
     _ = currencies
-    values := []interface{}{}
+    var values interface{} = []interface{}{}
     this.markets_by_id = map[string]interface{} {}
     // handle marketId conflicts
     // we insert spot markets first
-    marketValues := this.sortBy(this.toArray(markets), "spot", true, true)
+    var marketValues interface{} = this.sortBy(this.toArray(markets), "spot", true, true)
     for i := 0; IsLessThan(i, GetArrayLength(marketValues)); i++ {
-        value := GetValue(marketValues, i)
+        var value interface{} = GetValue(marketValues, i)
         if IsTrue(InOp(this.markets_by_id, GetValue(value, "id"))) {
             GetValue(this.markets_by_id, GetValue(value, "id")) = AppendToArray(GetValue(this.markets_by_id, GetValue(value, "id")),value).([]interface{})
         } else {
             AddElementToObject(this.markets_by_id, GetValue(value, "id"), []interface{}{value})
         }
-        market := this.deepExtend(this.safeMarketStructure(), map[string]interface{} {
+        var market interface{} = this.deepExtend(this.safeMarketStructure(), map[string]interface{} {
             "precision": this.precision,
             "limits": this.limits,
         }, GetValue(this.fees, "trading"), value)
@@ -1139,22 +1139,22 @@ func  (this *Exchange) setMarkets(markets interface{}, optionalArgs ...interface
         values = AppendToArray(values,market).([]interface{})
     }
     this.markets = this.indexBy(values, "symbol")
-    marketsSortedBySymbol := this.keysort(this.markets)
-    marketsSortedById := this.keysort(this.markets_by_id)
+    var marketsSortedBySymbol interface{} = this.keysort(this.markets)
+    var marketsSortedById interface{} = this.keysort(this.markets_by_id)
     this.symbols = ObjectKeys(marketsSortedBySymbol)
     this.ids = ObjectKeys(marketsSortedById)
     if IsTrue(!IsEqual(currencies, nil)) {
         // currencies is always undefined when called in constructor but not when called from loadMarkets
         this.currencies = this.deepExtend(this.currencies, currencies)
     } else {
-        baseCurrencies := []interface{}{}
-        quoteCurrencies := []interface{}{}
+        var baseCurrencies interface{} = []interface{}{}
+        var quoteCurrencies interface{} = []interface{}{}
         for i := 0; IsLessThan(i, GetArrayLength(values)); i++ {
-            market := GetValue(values, i)
-            defaultCurrencyPrecision := Ternary(IsTrue((IsEqual(this.precisionMode, DECIMAL_PLACES))), 8, this.parseNumber("1e-8"))
-            marketPrecision := this.safeDict(market, "precision", map[string]interface{} {})
+            var market interface{} = GetValue(values, i)
+            var defaultCurrencyPrecision interface{} = Ternary(IsTrue((IsEqual(this.precisionMode, DECIMAL_PLACES))), 8, this.parseNumber("1e-8"))
+            var marketPrecision interface{} = this.safeDict(market, "precision", map[string]interface{} {})
             if IsTrue(InOp(market, "base")) {
-                currency := this.safeCurrencyStructure(map[string]interface{} {
+                var currency interface{} = this.safeCurrencyStructure(map[string]interface{} {
                     "id": this.safeString2(market, "baseId", "base"),
                     "numericId": this.safeInteger(market, "baseNumericId"),
                     "code": this.safeString(market, "base"),
@@ -1163,7 +1163,7 @@ func  (this *Exchange) setMarkets(markets interface{}, optionalArgs ...interface
                 baseCurrencies = AppendToArray(baseCurrencies,currency).([]interface{})
             }
             if IsTrue(InOp(market, "quote")) {
-                currency := this.safeCurrencyStructure(map[string]interface{} {
+                var currency interface{} = this.safeCurrencyStructure(map[string]interface{} {
                     "id": this.safeString2(market, "quoteId", "quote"),
                     "numericId": this.safeInteger(market, "quoteNumericId"),
                     "code": this.safeString(market, "quote"),
@@ -1176,16 +1176,16 @@ func  (this *Exchange) setMarkets(markets interface{}, optionalArgs ...interface
         quoteCurrencies = this.sortBy(quoteCurrencies, "code", false, "")
         this.baseCurrencies = this.indexBy(baseCurrencies, "code")
         this.quoteCurrencies = this.indexBy(quoteCurrencies, "code")
-        allCurrencies := this.arrayConcat(baseCurrencies, quoteCurrencies)
-        groupedCurrencies := this.groupBy(allCurrencies, "code")
-        codes := ObjectKeys(groupedCurrencies)
-        resultingCurrencies := []interface{}{}
+        var allCurrencies interface{} = this.arrayConcat(baseCurrencies, quoteCurrencies)
+        var groupedCurrencies interface{} = this.groupBy(allCurrencies, "code")
+        var codes interface{} = ObjectKeys(groupedCurrencies)
+        var resultingCurrencies interface{} = []interface{}{}
         for i := 0; IsLessThan(i, GetArrayLength(codes)); i++ {
-            code := GetValue(codes, i)
-            groupedCurrenciesCode := this.safeList(groupedCurrencies, code, []interface{}{})
-            highestPrecisionCurrency := this.safeValue(groupedCurrenciesCode, 0)
+            var code interface{} = GetValue(codes, i)
+            var groupedCurrenciesCode interface{} = this.safeList(groupedCurrencies, code, []interface{}{})
+            var highestPrecisionCurrency interface{} = this.safeValue(groupedCurrenciesCode, 0)
             for j := 1; IsLessThan(j, GetArrayLength(groupedCurrenciesCode)); j++ {
-                currentCurrency := GetValue(groupedCurrenciesCode, j)
+                var currentCurrency interface{} = GetValue(groupedCurrenciesCode, j)
                 if IsTrue(IsEqual(this.precisionMode, TICK_SIZE)) {
                     highestPrecisionCurrency = Ternary(IsTrue((IsLessThan(GetValue(currentCurrency, "precision"), GetValue(highestPrecisionCurrency, "precision")))), currentCurrency, highestPrecisionCurrency)
                 } else {
@@ -1194,32 +1194,32 @@ func  (this *Exchange) setMarkets(markets interface{}, optionalArgs ...interface
             }
             resultingCurrencies = AppendToArray(resultingCurrencies,highestPrecisionCurrency).([]interface{})
         }
-        sortedCurrencies := this.sortBy(resultingCurrencies, "code")
+        var sortedCurrencies interface{} = this.sortBy(resultingCurrencies, "code")
         this.currencies = this.deepExtend(this.currencies, this.indexBy(sortedCurrencies, "code"))
     }
     this.currencies_by_id = this.indexBy(this.currencies, "id")
-    currenciesSortedByCode := this.keysort(this.currencies)
+    var currenciesSortedByCode interface{} = this.keysort(this.currencies)
     this.codes = ObjectKeys(currenciesSortedByCode)
     return this.markets
 }
 func  (this *Exchange) getDescribeForExtendedWsExchange(currentRestInstance interface{}, parentRestInstance interface{}, wsBaseDescribe interface{}) interface{}  {
-    extendedRestDescribe := this.deepExtend(parentRestInstance.describe(), currentRestInstance.describe())
-    superWithRestDescribe := this.deepExtend(extendedRestDescribe, wsBaseDescribe)
+    var extendedRestDescribe interface{} = this.deepExtend(parentRestInstance.describe(), currentRestInstance.describe())
+    var superWithRestDescribe interface{} = this.deepExtend(extendedRestDescribe, wsBaseDescribe)
     return superWithRestDescribe
 }
 func  (this *Exchange) safeBalance(balance interface{}) interface{}  {
-    balances := this.omit(balance, []interface{}{"info", "timestamp", "datetime", "free", "used", "total"})
-    codes := ObjectKeys(balances)
+    var balances interface{} = this.omit(balance, []interface{}{"info", "timestamp", "datetime", "free", "used", "total"})
+    var codes interface{} = ObjectKeys(balances)
     AddElementToObject(balance, "free", map[string]interface{} {})
     AddElementToObject(balance, "used", map[string]interface{} {})
     AddElementToObject(balance, "total", map[string]interface{} {})
-    debtBalance := map[string]interface{} {}
+    var debtBalance interface{} = map[string]interface{} {}
     for i := 0; IsLessThan(i, GetArrayLength(codes)); i++ {
-        code := GetValue(codes, i)
-        total := this.safeString(GetValue(balance, code), "total")
-        free := this.safeString(GetValue(balance, code), "free")
-        used := this.safeString(GetValue(balance, code), "used")
-        debt := this.safeString(GetValue(balance, code), "debt")
+        var code interface{} = GetValue(codes, i)
+        var total interface{} = this.safeString(GetValue(balance, code), "total")
+        var free interface{} = this.safeString(GetValue(balance, code), "free")
+        var used interface{} = this.safeString(GetValue(balance, code), "used")
+        var debt interface{} = this.safeString(GetValue(balance, code), "debt")
         if IsTrue(IsTrue(IsTrue((IsEqual(total, nil))) && IsTrue((!IsEqual(free, nil)))) && IsTrue((!IsEqual(used, nil)))) {
             total = Precise.stringAdd(free, used)
         }
@@ -1240,8 +1240,8 @@ func  (this *Exchange) safeBalance(balance interface{}) interface{}  {
             AddElementToObject(debtBalance, code, GetValue(GetValue(balance, code), "debt"))
         }
     }
-    debtBalanceArray := ObjectKeys(debtBalance)
-    length := GetArrayLength(debtBalanceArray)
+    var debtBalanceArray interface{} = ObjectKeys(debtBalance)
+    var length interface{} =     GetArrayLength(debtBalanceArray)
     if IsTrue(length) {
         AddElementToObject(balance, "debt", debtBalance)
     }
@@ -1252,44 +1252,44 @@ func  (this *Exchange) safeOrder(order interface{}, optionalArgs ...interface{})
     // * it is important pass the trades as unparsed rawTrades
     market := GetArg(optionalArgs, 1, nil)
     _ = market
-    amount := this.omitZero(this.safeString(order, "amount"))
-    remaining := this.safeString(order, "remaining")
-    filled := this.safeString(order, "filled")
-    cost := this.safeString(order, "cost")
-    average := this.omitZero(this.safeString(order, "average"))
-    price := this.omitZero(this.safeString(order, "price"))
-    lastTradeTimeTimestamp := this.safeInteger(order, "lastTradeTimestamp")
-    symbol := this.safeString(order, "symbol")
-    side := this.safeString(order, "side")
-    status := this.safeString(order, "status")
-    parseFilled := (IsEqual(filled, nil))
-    parseCost := (IsEqual(cost, nil))
-    parseLastTradeTimeTimestamp := (IsEqual(lastTradeTimeTimestamp, nil))
-    fee := this.safeValue(order, "fee")
-    parseFee := (IsEqual(fee, nil))
-    parseFees := IsEqual(this.safeValue(order, "fees"), nil)
-    parseSymbol := IsEqual(symbol, nil)
-    parseSide := IsEqual(side, nil)
-    shouldParseFees := IsTrue(parseFee) || IsTrue(parseFees)
-    fees := this.safeList(order, "fees", []interface{}{})
-    trades := []interface{}{}
-    isTriggerOrSLTpOrder := (IsTrue((IsTrue(!IsEqual(this.safeString(order, "triggerPrice"), nil)) || IsTrue((!IsEqual(this.safeString(order, "stopLossPrice"), nil))))) || IsTrue((!IsEqual(this.safeString(order, "takeProfitPrice"), nil))))
+    var amount interface{} = this.omitZero(this.safeString(order, "amount"))
+    var remaining interface{} = this.safeString(order, "remaining")
+    var filled interface{} = this.safeString(order, "filled")
+    var cost interface{} = this.safeString(order, "cost")
+    var average interface{} = this.omitZero(this.safeString(order, "average"))
+    var price interface{} = this.omitZero(this.safeString(order, "price"))
+    var lastTradeTimeTimestamp interface{} = this.safeInteger(order, "lastTradeTimestamp")
+    var symbol interface{} = this.safeString(order, "symbol")
+    var side interface{} = this.safeString(order, "side")
+    var status interface{} = this.safeString(order, "status")
+    var parseFilled interface{} =     (IsEqual(filled, nil))
+    var parseCost interface{} =     (IsEqual(cost, nil))
+    var parseLastTradeTimeTimestamp interface{} =     (IsEqual(lastTradeTimeTimestamp, nil))
+    var fee interface{} = this.safeValue(order, "fee")
+    var parseFee interface{} =     (IsEqual(fee, nil))
+    var parseFees interface{} = IsEqual(this.safeValue(order, "fees"), nil)
+    var parseSymbol interface{} = IsEqual(symbol, nil)
+    var parseSide interface{} = IsEqual(side, nil)
+    var shouldParseFees interface{} = IsTrue(parseFee) || IsTrue(parseFees)
+    var fees interface{} = this.safeList(order, "fees", []interface{}{})
+    var trades interface{} = []interface{}{}
+    var isTriggerOrSLTpOrder interface{} =     (IsTrue((IsTrue(!IsEqual(this.safeString(order, "triggerPrice"), nil)) || IsTrue((!IsEqual(this.safeString(order, "stopLossPrice"), nil))))) || IsTrue((!IsEqual(this.safeString(order, "takeProfitPrice"), nil))))
     if IsTrue(IsTrue(IsTrue(parseFilled) || IsTrue(parseCost)) || IsTrue(shouldParseFees)) {
-        rawTrades := this.safeValue(order, "trades", trades)
-        oldNumber := this.number
+        var rawTrades interface{} = this.safeValue(order, "trades", trades)
+        var oldNumber interface{} = this.number
         // we parse trades as strings here!
         this.number = String
-        firstTrade := this.safeValue(rawTrades, 0)
+        var firstTrade interface{} = this.safeValue(rawTrades, 0)
         // parse trades if they haven't already been parsed
-        tradesAreParsed := (IsTrue(IsTrue((!IsEqual(firstTrade, nil))) && IsTrue((InOp(firstTrade, "info")))) && IsTrue((InOp(firstTrade, "id"))))
+        var tradesAreParsed interface{} =         (IsTrue(IsTrue((!IsEqual(firstTrade, nil))) && IsTrue((InOp(firstTrade, "info")))) && IsTrue((InOp(firstTrade, "id"))))
         if !IsTrue(tradesAreParsed) {
             trades = this.parseTrades(rawTrades, market)
         } else {
             trades = rawTrades
         }
         this.number = oldNumber
-        tradesLength := 0
-        isArray := IsArray(trades)
+        var tradesLength interface{} = 0
+        var isArray interface{} = IsArray(trades)
         if IsTrue(isArray) {
             tradesLength = GetArrayLength(trades)
         }
@@ -1314,12 +1314,12 @@ func  (this *Exchange) safeOrder(order interface{}, optionalArgs ...interface{})
                 cost = "0"
             }
             for i := 0; IsLessThan(i, GetArrayLength(trades)); i++ {
-                trade := GetValue(trades, i)
-                tradeAmount := this.safeString(trade, "amount")
+                var trade interface{} = GetValue(trades, i)
+                var tradeAmount interface{} = this.safeString(trade, "amount")
                 if IsTrue(IsTrue(parseFilled) && IsTrue((!IsEqual(tradeAmount, nil)))) {
                     filled = Precise.stringAdd(filled, tradeAmount)
                 }
-                tradeCost := this.safeString(trade, "cost")
+                var tradeCost interface{} = this.safeString(trade, "cost")
                 if IsTrue(IsTrue(parseCost) && IsTrue((!IsEqual(tradeCost, nil)))) {
                     cost = Precise.stringAdd(cost, tradeCost)
                 }
@@ -1329,7 +1329,7 @@ func  (this *Exchange) safeOrder(order interface{}, optionalArgs ...interface{})
                 if IsTrue(parseSide) {
                     side = this.safeString(trade, "side")
                 }
-                tradeTimestamp := this.safeValue(trade, "timestamp")
+                var tradeTimestamp interface{} = this.safeValue(trade, "timestamp")
                 if IsTrue(IsTrue(parseLastTradeTimeTimestamp) && IsTrue((!IsEqual(tradeTimestamp, nil)))) {
                     if IsTrue(IsEqual(lastTradeTimeTimestamp, nil)) {
                         lastTradeTimeTimestamp = tradeTimestamp
@@ -1338,14 +1338,14 @@ func  (this *Exchange) safeOrder(order interface{}, optionalArgs ...interface{})
                     }
                 }
                 if IsTrue(shouldParseFees) {
-                    tradeFees := this.safeValue(trade, "fees")
+                    var tradeFees interface{} = this.safeValue(trade, "fees")
                     if IsTrue(!IsEqual(tradeFees, nil)) {
                         for j := 0; IsLessThan(j, GetArrayLength(tradeFees)); j++ {
-                            tradeFee := GetValue(tradeFees, j)
+                            var tradeFee interface{} = GetValue(tradeFees, j)
                             fees = AppendToArray(fees,this.extend(map[string]interface{} {}, tradeFee)).([]interface{})
                         }
                     } else {
-                        tradeFee := this.safeValue(trade, "fee")
+                        var tradeFee interface{} = this.safeValue(trade, "fee")
                         if IsTrue(!IsEqual(tradeFee, nil)) {
                             fees = AppendToArray(fees,this.extend(map[string]interface{} {}, tradeFee)).([]interface{})
                         }
@@ -1355,8 +1355,8 @@ func  (this *Exchange) safeOrder(order interface{}, optionalArgs ...interface{})
         }
     }
     if IsTrue(shouldParseFees) {
-        reducedFees := Ternary(IsTrue(this.reduceFees), this.reduceFeesByCurrency(fees), fees)
-        reducedLength := GetArrayLength(reducedFees)
+        var reducedFees interface{} = Ternary(IsTrue(this.reduceFees), this.reduceFeesByCurrency(fees), fees)
+        var reducedLength interface{} =         GetArrayLength(reducedFees)
         for i := 0; IsLessThan(i, reducedLength); i++ {
             AddElementToObject(GetValue(reducedFees, i), "cost", this.safeNumber(GetValue(reducedFees, i), "cost"))
             if IsTrue(InOp(GetValue(reducedFees, i), "rate")) {
@@ -1365,7 +1365,7 @@ func  (this *Exchange) safeOrder(order interface{}, optionalArgs ...interface{})
         }
         if IsTrue(!IsTrue(parseFee) && IsTrue((IsEqual(reducedLength, 0)))) {
             // copy fee to avoid modification by reference
-            feeCopy := this.deepExtend(fee)
+            var feeCopy interface{} = this.deepExtend(fee)
             AddElementToObject(feeCopy, "cost", this.safeNumber(feeCopy, "cost"))
             if IsTrue(InOp(feeCopy, "rate")) {
                 AddElementToObject(feeCopy, "rate", this.safeNumber(feeCopy, "rate"))
@@ -1400,8 +1400,8 @@ func  (this *Exchange) safeOrder(order interface{}, optionalArgs ...interface{})
         }
     }
     // ensure that the average field is calculated correctly
-    inverse := this.safeBool(market, "inverse", false)
-    contractSize := this.numberToString(this.safeValue(market, "contractSize", 1))
+    var inverse interface{} = this.safeBool(market, "inverse", false)
+    var contractSize interface{} = this.numberToString(this.safeValue(market, "contractSize", 1))
     // inverse
     // price = filled * contract size / cost
     //
@@ -1409,7 +1409,7 @@ func  (this *Exchange) safeOrder(order interface{}, optionalArgs ...interface{})
     // price = cost / (filled * contract size)
     if IsTrue(IsEqual(average, nil)) {
         if IsTrue(IsTrue(IsTrue((!IsEqual(filled, nil))) && IsTrue((!IsEqual(cost, nil)))) && IsTrue(Precise.stringGt(filled, "0"))) {
-            filledTimesContractSize := Precise.stringMul(filled, contractSize)
+            var filledTimesContractSize interface{} = Precise.stringMul(filled, contractSize)
             if IsTrue(inverse) {
                 average = Precise.stringDiv(filledTimesContractSize, cost)
             } else {
@@ -1423,7 +1423,7 @@ func  (this *Exchange) safeOrder(order interface{}, optionalArgs ...interface{})
     //
     // linear
     // cost = filled * contract size * price
-    costPriceExists := IsTrue((!IsEqual(average, nil))) || IsTrue((!IsEqual(price, nil)))
+    var costPriceExists interface{} = IsTrue((!IsEqual(average, nil))) || IsTrue((!IsEqual(price, nil)))
     if IsTrue(IsTrue(IsTrue(parseCost) && IsTrue((!IsEqual(filled, nil)))) && IsTrue(costPriceExists)) {
         var multiplyPrice interface{} = nil
         if IsTrue(IsEqual(average, nil)) {
@@ -1432,7 +1432,7 @@ func  (this *Exchange) safeOrder(order interface{}, optionalArgs ...interface{})
             multiplyPrice = average
         }
         // contract trading
-        filledTimesContractSize := Precise.stringMul(filled, contractSize)
+        var filledTimesContractSize interface{} = Precise.stringMul(filled, contractSize)
         if IsTrue(inverse) {
             cost = Precise.stringDiv(filledTimesContractSize, multiplyPrice)
         } else {
@@ -1440,31 +1440,31 @@ func  (this *Exchange) safeOrder(order interface{}, optionalArgs ...interface{})
         }
     }
     // support for market orders
-    orderType := this.safeValue(order, "type")
-    emptyPrice := IsTrue((IsEqual(price, nil))) || IsTrue(Precise.stringEquals(price, "0"))
+    var orderType interface{} = this.safeValue(order, "type")
+    var emptyPrice interface{} = IsTrue((IsEqual(price, nil))) || IsTrue(Precise.stringEquals(price, "0"))
     if IsTrue(IsTrue(emptyPrice) && IsTrue((IsEqual(orderType, "market")))) {
         price = average
     }
     // we have trades with string values at this point so we will mutate them
     for i := 0; IsLessThan(i, GetArrayLength(trades)); i++ {
-        entry := GetValue(trades, i)
+        var entry interface{} = GetValue(trades, i)
         AddElementToObject(entry, "amount", this.safeNumber(entry, "amount"))
         AddElementToObject(entry, "price", this.safeNumber(entry, "price"))
         AddElementToObject(entry, "cost", this.safeNumber(entry, "cost"))
-        tradeFee := this.safeDict(entry, "fee", map[string]interface{} {})
+        var tradeFee interface{} = this.safeDict(entry, "fee", map[string]interface{} {})
         AddElementToObject(tradeFee, "cost", this.safeNumber(tradeFee, "cost"))
         if IsTrue(InOp(tradeFee, "rate")) {
             AddElementToObject(tradeFee, "rate", this.safeNumber(tradeFee, "rate"))
         }
-        entryFees := this.safeList(entry, "fees", []interface{}{})
+        var entryFees interface{} = this.safeList(entry, "fees", []interface{}{})
         for j := 0; IsLessThan(j, GetArrayLength(entryFees)); j++ {
             AddElementToObject(GetValue(entryFees, j), "cost", this.safeNumber(GetValue(entryFees, j), "cost"))
         }
         AddElementToObject(entry, "fees", entryFees)
         AddElementToObject(entry, "fee", tradeFee)
     }
-    timeInForce := this.safeString(order, "timeInForce")
-    postOnly := this.safeValue(order, "postOnly")
+    var timeInForce interface{} = this.safeString(order, "timeInForce")
+    var postOnly interface{} = this.safeValue(order, "postOnly")
     // timeInForceHandling
     if IsTrue(IsEqual(timeInForce, nil)) {
         if IsTrue(!IsTrue(isTriggerOrSLTpOrder) && IsTrue((IsEqual(this.safeString(order, "type"), "market")))) {
@@ -1478,15 +1478,15 @@ func  (this *Exchange) safeOrder(order interface{}, optionalArgs ...interface{})
         // timeInForce is not undefined here
         postOnly = IsEqual(timeInForce, "PO")
     }
-    timestamp := this.safeInteger(order, "timestamp")
-    lastUpdateTimestamp := this.safeInteger(order, "lastUpdateTimestamp")
-    datetime := this.safeString(order, "datetime")
+    var timestamp interface{} = this.safeInteger(order, "timestamp")
+    var lastUpdateTimestamp interface{} = this.safeInteger(order, "lastUpdateTimestamp")
+    var datetime interface{} = this.safeString(order, "datetime")
     if IsTrue(IsEqual(datetime, nil)) {
         datetime = this.iso8601(timestamp)
     }
-    triggerPrice := this.parseNumber(this.safeString2(order, "triggerPrice", "stopPrice"))
-    takeProfitPrice := this.parseNumber(this.safeString(order, "takeProfitPrice"))
-    stopLossPrice := this.parseNumber(this.safeString(order, "stopLossPrice"))
+    var triggerPrice interface{} = this.parseNumber(this.safeString2(order, "triggerPrice", "stopPrice"))
+    var takeProfitPrice interface{} = this.parseNumber(this.safeString(order, "takeProfitPrice"))
+    var stopLossPrice interface{} = this.parseNumber(this.safeString(order, "stopLossPrice"))
     return this.extend(order, map[string]interface{} {
         "id": this.safeString(order, "id"),
         "clientOrderId": this.safeString(order, "clientOrderId"),
@@ -1545,27 +1545,27 @@ func  (this *Exchange) parseOrders(orders interface{}, optionalArgs ...interface
     _ = limit
     params := GetArg(optionalArgs, 4, map[string]interface{} {})
     _ = params
-    results := []interface{}{}
+    var results interface{} = []interface{}{}
     if IsTrue(IsArray(orders)) {
         for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
-            order := this.extend(this.parseOrder(GetValue(orders, i), market), params)
+            var order interface{} = this.extend(this.parseOrder(GetValue(orders, i), market), params)
             results = AppendToArray(results,order).([]interface{})
         }
     } else {
-        ids := ObjectKeys(orders)
+        var ids interface{} = ObjectKeys(orders)
         for i := 0; IsLessThan(i, GetArrayLength(ids)); i++ {
-            id := GetValue(ids, i)
-            order := this.extend(this.parseOrder(this.extend(map[string]interface{} {
+            var id interface{} = GetValue(ids, i)
+            var order interface{} = this.extend(this.parseOrder(this.extend(map[string]interface{} {
                 "id": id,
             }, GetValue(orders, id)), market), params)
             results = AppendToArray(results,order).([]interface{})
         }
     }
     results = this.sortBy(results, "timestamp")
-    symbol := Ternary(IsTrue((!IsEqual(market, nil))), GetValue(market, "symbol"), nil)
+    var symbol interface{} = Ternary(IsTrue((!IsEqual(market, nil))), GetValue(market, "symbol"), nil)
     return this.filterBySymbolSinceLimit(results, symbol, since, limit)
 }
-func  (this *Exchange) calculateFee(symbol string, typeVar string, side string, amount interface{}, price interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) calculateFee(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, price interface{}, optionalArgs ...interface{}) interface{}  {
     /**
     * @method
     * @description calculates the presumptive fee that would be charged for an order
@@ -1585,8 +1585,8 @@ func  (this *Exchange) calculateFee(symbol string, typeVar string, side string, 
     if IsTrue(IsTrue(IsEqual(typeVar, "market")) && IsTrue(IsEqual(takerOrMaker, "maker"))) {
         panic(ArgumentsRequired(Add(this.id, " calculateFee() - you have provided incompatible arguments - \"market\" type order can not be \"maker\". Change either the \"type\" or the \"takerOrMaker\" argument to calculate the fee.")))
     }
-    market := GetValue(this.markets, symbol)
-    feeSide := this.safeString(market, "feeSide", "quote")
+    var market interface{} = GetValue(this.markets, symbol)
+    var feeSide interface{} = this.safeString(market, "feeSide", "quote")
     var useQuote interface{} = nil
     if IsTrue(IsEqual(feeSide, "get")) {
         // the fee is always in the currency you get
@@ -1598,10 +1598,10 @@ func  (this *Exchange) calculateFee(symbol string, typeVar string, side string, 
         // the fee is always in feeSide currency
         useQuote = IsEqual(feeSide, "quote")
     }
-    cost := this.numberToString(amount)
+    var cost interface{} = this.numberToString(amount)
     var key interface{} = nil
     if IsTrue(useQuote) {
-        priceString := this.numberToString(price)
+        var priceString interface{} = this.numberToString(price)
         cost = Precise.stringMul(cost, priceString)
         key = "quote"
     } else {
@@ -1615,7 +1615,7 @@ func  (this *Exchange) calculateFee(symbol string, typeVar string, side string, 
     if IsTrue(IsEqual(typeVar, "market")) {
         takerOrMaker = "taker"
     }
-    rate := this.safeString(market, takerOrMaker)
+    var rate interface{} = this.safeString(market, takerOrMaker)
     cost = Precise.stringMul(cost, rate)
     return map[string]interface{} {
         "type": takerOrMaker,
@@ -1627,11 +1627,11 @@ func  (this *Exchange) calculateFee(symbol string, typeVar string, side string, 
 func  (this *Exchange) safeLiquidation(liquidation interface{}, optionalArgs ...interface{}) interface{}  {
     market := GetArg(optionalArgs, 1, nil)
     _ = market
-    contracts := this.safeString(liquidation, "contracts")
-    contractSize := this.safeString(market, "contractSize")
-    price := this.safeString(liquidation, "price")
-    baseValue := this.safeString(liquidation, "baseValue")
-    quoteValue := this.safeString(liquidation, "quoteValue")
+    var contracts interface{} = this.safeString(liquidation, "contracts")
+    var contractSize interface{} = this.safeString(market, "contractSize")
+    var price interface{} = this.safeString(liquidation, "price")
+    var baseValue interface{} = this.safeString(liquidation, "baseValue")
+    var quoteValue interface{} = this.safeString(liquidation, "quoteValue")
     if IsTrue(IsTrue(IsTrue(IsTrue((IsEqual(baseValue, nil))) && IsTrue((!IsEqual(contracts, nil)))) && IsTrue((!IsEqual(contractSize, nil)))) && IsTrue((!IsEqual(price, nil)))) {
         baseValue = Precise.stringMul(contracts, contractSize)
     }
@@ -1648,15 +1648,15 @@ func  (this *Exchange) safeLiquidation(liquidation interface{}, optionalArgs ...
 func  (this *Exchange) safeTrade(trade interface{}, optionalArgs ...interface{}) interface{}  {
     market := GetArg(optionalArgs, 1, nil)
     _ = market
-    amount := this.safeString(trade, "amount")
-    price := this.safeString(trade, "price")
-    cost := this.safeString(trade, "cost")
+    var amount interface{} = this.safeString(trade, "amount")
+    var price interface{} = this.safeString(trade, "price")
+    var cost interface{} = this.safeString(trade, "cost")
     if IsTrue(IsEqual(cost, nil)) {
         // contract trading
-        contractSize := this.safeString(market, "contractSize")
-        multiplyPrice := price
+        var contractSize interface{} = this.safeString(market, "contractSize")
+        var multiplyPrice interface{} = price
         if IsTrue(!IsEqual(contractSize, nil)) {
-            inverse := this.safeBool(market, "inverse", false)
+            var inverse interface{} = this.safeBool(market, "inverse", false)
             if IsTrue(inverse) {
                 multiplyPrice = Precise.stringDiv("1", price)
             }
@@ -1664,14 +1664,14 @@ func  (this *Exchange) safeTrade(trade interface{}, optionalArgs ...interface{})
         }
         cost = Precise.stringMul(multiplyPrice, amount)
     }
-    parseFee := IsEqual(this.safeValue(trade, "fee"), nil)
-    parseFees := IsEqual(this.safeValue(trade, "fees"), nil)
-    shouldParseFees := IsTrue(parseFee) || IsTrue(parseFees)
-    fees := []interface{}{}
-    fee := this.safeValue(trade, "fee")
+    var parseFee interface{} = IsEqual(this.safeValue(trade, "fee"), nil)
+    var parseFees interface{} = IsEqual(this.safeValue(trade, "fees"), nil)
+    var shouldParseFees interface{} = IsTrue(parseFee) || IsTrue(parseFees)
+    var fees interface{} = []interface{}{}
+    var fee interface{} = this.safeValue(trade, "fee")
     if IsTrue(shouldParseFees) {
-        reducedFees := Ternary(IsTrue(this.reduceFees), this.reduceFeesByCurrency(fees), fees)
-        reducedLength := GetArrayLength(reducedFees)
+        var reducedFees interface{} = Ternary(IsTrue(this.reduceFees), this.reduceFeesByCurrency(fees), fees)
+        var reducedLength interface{} =         GetArrayLength(reducedFees)
         for i := 0; IsLessThan(i, reducedLength); i++ {
             AddElementToObject(GetValue(reducedFees, i), "cost", this.safeNumber(GetValue(reducedFees, i), "cost"))
             if IsTrue(InOp(GetValue(reducedFees, i), "rate")) {
@@ -1680,7 +1680,7 @@ func  (this *Exchange) safeTrade(trade interface{}, optionalArgs ...interface{})
         }
         if IsTrue(!IsTrue(parseFee) && IsTrue((IsEqual(reducedLength, 0)))) {
             // copy fee to avoid modification by reference
-            feeCopy := this.deepExtend(fee)
+            var feeCopy interface{} = this.deepExtend(fee)
             AddElementToObject(feeCopy, "cost", this.safeNumber(feeCopy, "cost"))
             if IsTrue(InOp(feeCopy, "rate")) {
                 AddElementToObject(feeCopy, "rate", this.safeNumber(feeCopy, "rate"))
@@ -1693,7 +1693,7 @@ func  (this *Exchange) safeTrade(trade interface{}, optionalArgs ...interface{})
         if IsTrue(IsTrue(parseFee) && IsTrue((IsEqual(reducedLength, 1)))) {
             AddElementToObject(trade, "fee", GetValue(reducedFees, 0))
         }
-        tradeFee := this.safeValue(trade, "fee")
+        var tradeFee interface{} = this.safeValue(trade, "fee")
         if IsTrue(!IsEqual(tradeFee, nil)) {
             AddElementToObject(tradeFee, "cost", this.safeNumber(tradeFee, "cost"))
             if IsTrue(InOp(tradeFee, "rate")) {
@@ -1709,9 +1709,9 @@ func  (this *Exchange) safeTrade(trade interface{}, optionalArgs ...interface{})
 }
 func  (this *Exchange) findNearestCeiling(arr interface{}, providedValue interface{}) interface{}  {
     //  i.e. findNearestCeiling ([ 10, 30, 50],  23) returns 30
-    length := GetArrayLength(arr)
+    var length interface{} =     GetArrayLength(arr)
     for i := 0; IsLessThan(i, length); i++ {
-        current := GetValue(arr, i)
+        var current interface{} = GetValue(arr, i)
         if IsTrue(IsLessThanOrEqual(providedValue, current)) {
             return current
         }
@@ -1719,11 +1719,11 @@ func  (this *Exchange) findNearestCeiling(arr interface{}, providedValue interfa
     return GetValue(arr, Subtract(length, 1))
 }
 func  (this *Exchange) invertFlatStringDictionary(dict interface{}) interface{}  {
-    reversed := map[string]interface{} {}
-    keys := ObjectKeys(dict)
+    var reversed interface{} = map[string]interface{} {}
+    var keys interface{} = ObjectKeys(dict)
     for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
-        key := GetValue(keys, i)
-        value := GetValue(dict, key)
+        var key interface{} = GetValue(keys, i)
+        var value interface{} = GetValue(dict, key)
         if IsTrue(IsString(value)) {
             AddElementToObject(reversed, value, key)
         }
@@ -1776,20 +1776,20 @@ func  (this *Exchange) reduceFeesByCurrency(fees interface{}) interface{}  {
     //         { 'currency': 'USDT', 'cost': 12.3456 },
     //     ]
     //
-    reduced := map[string]interface{} {}
+    var reduced interface{} = map[string]interface{} {}
     for i := 0; IsLessThan(i, GetArrayLength(fees)); i++ {
-        fee := GetValue(fees, i)
-        feeCurrencyCode := this.safeString(fee, "currency")
+        var fee interface{} = GetValue(fees, i)
+        var feeCurrencyCode interface{} = this.safeString(fee, "currency")
         if IsTrue(!IsEqual(feeCurrencyCode, nil)) {
-            rate := this.safeString(fee, "rate")
-            cost := this.safeValue(fee, "cost")
+            var rate interface{} = this.safeString(fee, "rate")
+            var cost interface{} = this.safeValue(fee, "cost")
             if IsTrue(Precise.stringEq(cost, "0")) {
                 continue
             }
             if !IsTrue((InOp(reduced, feeCurrencyCode))) {
                 AddElementToObject(reduced, feeCurrencyCode, map[string]interface{} {})
             }
-            rateKey := Ternary(IsTrue((IsEqual(rate, nil))), "", rate)
+            var rateKey interface{} = Ternary(IsTrue((IsEqual(rate, nil))), "", rate)
             if IsTrue(InOp(GetValue(reduced, feeCurrencyCode), rateKey)) {
                 AddElementToObject(GetValue(GetValue(reduced, feeCurrencyCode), rateKey), "cost", Precise.stringAdd(GetValue(GetValue(GetValue(reduced, feeCurrencyCode), rateKey), "cost"), cost))
             } else {
@@ -1803,10 +1803,10 @@ func  (this *Exchange) reduceFeesByCurrency(fees interface{}) interface{}  {
             }
         }
     }
-    result := []interface{}{}
-    feeValues := ObjectValues(reduced)
+    var result interface{} = []interface{}{}
+    var feeValues interface{} = ObjectValues(reduced)
     for i := 0; IsLessThan(i, GetArrayLength(feeValues)); i++ {
-        reducedFeeValues := ObjectValues(GetValue(feeValues, i))
+        var reducedFeeValues interface{} = ObjectValues(GetValue(feeValues, i))
         result = this.arrayConcat(result, reducedFeeValues)
     }
     return result
@@ -1814,15 +1814,15 @@ func  (this *Exchange) reduceFeesByCurrency(fees interface{}) interface{}  {
 func  (this *Exchange) safeTicker(ticker interface{}, optionalArgs ...interface{}) interface{}  {
     market := GetArg(optionalArgs, 1, nil)
     _ = market
-    open := this.omitZero(this.safeString(ticker, "open"))
-    close := this.omitZero(this.safeString(ticker, "close"))
-    last := this.omitZero(this.safeString(ticker, "last"))
-    change := this.omitZero(this.safeString(ticker, "change"))
-    percentage := this.omitZero(this.safeString(ticker, "percentage"))
-    average := this.omitZero(this.safeString(ticker, "average"))
-    vwap := this.omitZero(this.safeString(ticker, "vwap"))
-    baseVolume := this.safeString(ticker, "baseVolume")
-    quoteVolume := this.safeString(ticker, "quoteVolume")
+    var open interface{} = this.omitZero(this.safeString(ticker, "open"))
+    var close interface{} = this.omitZero(this.safeString(ticker, "close"))
+    var last interface{} = this.omitZero(this.safeString(ticker, "last"))
+    var change interface{} = this.omitZero(this.safeString(ticker, "change"))
+    var percentage interface{} = this.omitZero(this.safeString(ticker, "percentage"))
+    var average interface{} = this.omitZero(this.safeString(ticker, "average"))
+    var vwap interface{} = this.omitZero(this.safeString(ticker, "vwap"))
+    var baseVolume interface{} = this.safeString(ticker, "baseVolume")
+    var quoteVolume interface{} = this.safeString(ticker, "quoteVolume")
     if IsTrue(IsEqual(vwap, nil)) {
         vwap = Precise.stringDiv(this.omitZero(quoteVolume), baseVolume)
     }
@@ -1869,46 +1869,46 @@ func  (this *Exchange) safeTicker(ticker interface{}, optionalArgs ...interface{
         "previousClose": this.safeNumber(ticker, "previousClose"),
     })
 }
-func  (this *Exchange) fetchBorrowRate(code string, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchBorrowRate(code interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " fetchBorrowRate is deprecated, please use fetchCrossBorrowRate or fetchIsolatedBorrowRate instead")))
 }
-func  (this *Exchange) repayCrossMargin(code string, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) repayCrossMargin(code interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " repayCrossMargin is not support yet")))
 }
-func  (this *Exchange) repayIsolatedMargin(symbol string, code string, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) repayIsolatedMargin(symbol interface{}, code interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " repayIsolatedMargin is not support yet")))
 }
-func  (this *Exchange) borrowCrossMargin(code string, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) borrowCrossMargin(code interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " borrowCrossMargin is not support yet")))
 }
-func  (this *Exchange) borrowIsolatedMargin(symbol string, code string, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) borrowIsolatedMargin(symbol interface{}, code interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " borrowIsolatedMargin is not support yet")))
 }
-func  (this *Exchange) borrowMargin(code string, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) borrowMargin(code interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 2, nil)
     _ = symbol
     params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead")))
 }
-func  (this *Exchange) repayMargin(code string, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) repayMargin(code interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 2, nil)
     _ = symbol
     params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead")))
 }
-func  (this *Exchange) fetchOHLCV(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchOHLCV(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     timeframe := GetArg(optionalArgs, 1, "1m")
     _ = timeframe
     since := GetArg(optionalArgs, 2, nil)
@@ -1917,13 +1917,13 @@ func  (this *Exchange) fetchOHLCV(symbol string, optionalArgs ...interface{}) in
     _ = limit
     params := GetArg(optionalArgs, 4, map[string]interface{} {})
     _ = params
-    message := ""
+    var message interface{} = ""
     if IsTrue(GetValue(this.has, "fetchTrades")) {
         message = ". If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see \"build-ohlcv-bars\" file"
     }
     panic(NotSupported(Add(Add(this.id, " fetchOHLCV() is not supported yet"), message)))
 }
-func  (this *Exchange) fetchOHLCVWs(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchOHLCVWs(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     timeframe := GetArg(optionalArgs, 1, "1m")
     _ = timeframe
     since := GetArg(optionalArgs, 2, nil)
@@ -1932,13 +1932,13 @@ func  (this *Exchange) fetchOHLCVWs(symbol string, optionalArgs ...interface{}) 
     _ = limit
     params := GetArg(optionalArgs, 4, map[string]interface{} {})
     _ = params
-    message := ""
+    var message interface{} = ""
     if IsTrue(GetValue(this.has, "fetchTradesWs")) {
         message = ". If you want to build OHLCV candles from trade executions data, visit https://github.com/ccxt/ccxt/tree/master/examples/ and see \"build-ohlcv-bars\" file"
     }
     panic(NotSupported(Add(Add(this.id, " fetchOHLCVWs() is not supported yet. Try using fetchOHLCV instead."), message)))
 }
-func  (this *Exchange) watchOHLCV(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) watchOHLCV(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     timeframe := GetArg(optionalArgs, 1, "1m")
     _ = timeframe
     since := GetArg(optionalArgs, 2, nil)
@@ -1964,13 +1964,13 @@ func  (this *Exchange) convertTradingViewToOHLCV(ohlcvs interface{}, optionalArg
     _ = volume
     ms := GetArg(optionalArgs, 7, false)
     _ = ms
-    result := []interface{}{}
-    timestamps := this.safeList(ohlcvs, timestamp, []interface{}{})
-    opens := this.safeList(ohlcvs, open, []interface{}{})
-    highs := this.safeList(ohlcvs, high, []interface{}{})
-    lows := this.safeList(ohlcvs, low, []interface{}{})
-    closes := this.safeList(ohlcvs, close, []interface{}{})
-    volumes := this.safeList(ohlcvs, volume, []interface{}{})
+    var result interface{} = []interface{}{}
+    var timestamps interface{} = this.safeList(ohlcvs, timestamp, []interface{}{})
+    var opens interface{} = this.safeList(ohlcvs, open, []interface{}{})
+    var highs interface{} = this.safeList(ohlcvs, high, []interface{}{})
+    var lows interface{} = this.safeList(ohlcvs, low, []interface{}{})
+    var closes interface{} = this.safeList(ohlcvs, close, []interface{}{})
+    var volumes interface{} = this.safeList(ohlcvs, volume, []interface{}{})
     for i := 0; IsLessThan(i, GetArrayLength(timestamps)); i++ {
         result = AppendToArray(result,[]interface{}{Ternary(IsTrue(ms), this.safeInteger(timestamps, i), this.safeTimestamp(timestamps, i)), this.safeValue(opens, i), this.safeValue(highs, i), this.safeValue(lows, i), this.safeValue(closes, i), this.safeValue(volumes, i)}).([]interface{})
     }
@@ -1991,7 +1991,7 @@ func  (this *Exchange) convertOHLCVToTradingView(ohlcvs interface{}, optionalArg
     _ = volume
     ms := GetArg(optionalArgs, 7, false)
     _ = ms
-    result := map[string]interface{} {}
+    var result interface{} = map[string]interface{} {}
     AddElementToObject(result, timestamp, []interface{}{})
     AddElementToObject(result, open, []interface{}{})
     AddElementToObject(result, high, []interface{}{})
@@ -1999,7 +1999,7 @@ func  (this *Exchange) convertOHLCVToTradingView(ohlcvs interface{}, optionalArg
     AddElementToObject(result, close, []interface{}{})
     AddElementToObject(result, volume, []interface{}{})
     for i := 0; IsLessThan(i, GetArrayLength(ohlcvs)); i++ {
-        ts := Ternary(IsTrue(ms), GetValue(GetValue(ohlcvs, i), 0), this.parseToInt(Divide(GetValue(GetValue(ohlcvs, i), 0), 1000)))
+        var ts interface{} = Ternary(IsTrue(ms), GetValue(GetValue(ohlcvs, i), 0), this.parseToInt(Divide(GetValue(GetValue(ohlcvs, i), 0), 1000)))
         GetValue(result, timestamp) = AppendToArray(GetValue(result, timestamp),ts).([]interface{})
         GetValue(result, open) = AppendToArray(GetValue(result, open),GetValue(GetValue(ohlcvs, i), 1)).([]interface{})
         GetValue(result, high) = AppendToArray(GetValue(result, high),GetValue(GetValue(ohlcvs, i), 2)).([]interface{})
@@ -2014,9 +2014,9 @@ func  (this *Exchange) fetchWebEndpoint(method interface{}, endpointMethod inter
     _ = startRegex
     endRegex := GetArg(optionalArgs, 4, nil)
     _ = endRegex
-    errorMessage := ""
-    options := this.safeValue(this.options, method, map[string]interface{} {})
-    muteOnFailure := this.safeBool(options, "webApiMuteFailure", true)
+    var errorMessage interface{} = ""
+    var options interface{} = this.safeValue(this.options, method, map[string]interface{} {})
+    var muteOnFailure interface{} = this.safeBool(options, "webApiMuteFailure", true)
     
     {		ret__ := func(this *Exchange) (ret_ interface{}) {
     		defer func() {
@@ -2033,9 +2033,9 @@ func  (this *Exchange) fetchWebEndpoint(method interface{}, endpointMethod inter
             if IsTrue(!IsEqual(this.safeBool(options, "webApiEnable", true), true)) {
                 return nil
             }
-            maxRetries := this.safeValue(options, "webApiRetries", 10)
+            var maxRetries interface{} = this.safeValue(options, "webApiRetries", 10)
             var response interface{} = nil
-            retry := 0
+            var retry interface{} = 0
             for IsLessThan(retry, maxRetries) {
                 
                 {		ret__ := func(this *Exchange) (ret_ interface{}) {
@@ -2061,17 +2061,17 @@ func  (this *Exchange) fetchWebEndpoint(method interface{}, endpointMethod inter
                 	}
                 }
             }
-            content := response
+            var content interface{} = response
             if IsTrue(!IsEqual(startRegex, nil)) {
-                splitted_by_start := Split(content, startRegex)
+                var splitted_by_start interface{} = Split(content, startRegex)
                 content = GetValue(splitted_by_start, 1) // we need second part after start
             }
             if IsTrue(!IsEqual(endRegex, nil)) {
-                splitted_by_end := Split(content, endRegex)
+                var splitted_by_end interface{} = Split(content, endRegex)
                 content = GetValue(splitted_by_end, 0) // we need first part after start
             }
             if IsTrue(IsTrue(returnAsJson) && IsTrue((IsString(content)))) {
-                jsoned := this.parseJson(Trim(content)) // content should be trimmed before json parsing
+                var jsoned interface{} = this.parseJson(Trim(content)) // content should be trimmed before json parsing
                 if IsTrue(jsoned) {
                     return jsoned  // if parsing was not successfull, exception should be thrown
                 } else {
@@ -2098,7 +2098,7 @@ func  (this *Exchange) marketIds(optionalArgs ...interface{}) interface{}  {
     if IsTrue(IsEqual(symbols, nil)) {
         return symbols
     }
-    result := []interface{}{}
+    var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
         result = AppendToArray(result,this.marketId(GetValue(symbols, i))).([]interface{})
     }
@@ -2110,7 +2110,7 @@ func  (this *Exchange) marketsForSymbols(optionalArgs ...interface{}) interface{
     if IsTrue(IsEqual(symbols, nil)) {
         return symbols
     }
-    result := []interface{}{}
+    var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
         result = AppendToArray(result,this.market(GetValue(symbols, i))).([]interface{})
     }
@@ -2133,18 +2133,18 @@ func  (this *Exchange) marketSymbols(optionalArgs ...interface{}) interface{}  {
         }
         return symbols
     }
-    symbolsLength := GetArrayLength(symbols)
+    var symbolsLength interface{} =     GetArrayLength(symbols)
     if IsTrue(IsEqual(symbolsLength, 0)) {
         if !IsTrue(allowEmpty) {
             panic(ArgumentsRequired(Add(this.id, " empty list of symbols is not supported")))
         }
         return symbols
     }
-    result := []interface{}{}
+    var result interface{} = []interface{}{}
     var marketType interface{} = nil
     var isLinearSubType interface{} = nil
     for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
-        market := this.market(GetValue(symbols, i))
+        var market interface{} = this.market(GetValue(symbols, i))
         if IsTrue(IsTrue(sameTypeOnly) && IsTrue((!IsEqual(marketType, nil)))) {
             if IsTrue(!IsEqual(GetValue(market, "type"), marketType)) {
                 panic(BadRequest(Add(Add(Add(Add(Add(this.id, " symbols must be of the same type, either "), marketType), " or "), GetValue(market, "type")), ".")))
@@ -2162,7 +2162,7 @@ func  (this *Exchange) marketSymbols(optionalArgs ...interface{}) interface{}  {
         if !IsTrue(GetValue(market, "spot")) {
             isLinearSubType = GetValue(market, "linear")
         }
-        symbol := this.safeString(market, "symbol", GetValue(symbols, i))
+        var symbol interface{} = this.safeString(market, "symbol", GetValue(symbols, i))
         result = AppendToArray(result,symbol).([]interface{})
     }
     return result
@@ -2173,7 +2173,7 @@ func  (this *Exchange) marketCodes(optionalArgs ...interface{}) interface{}  {
     if IsTrue(IsEqual(codes, nil)) {
         return codes
     }
-    result := []interface{}{}
+    var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(codes)); i++ {
         result = AppendToArray(result,this.commonCurrencyCode(GetValue(codes, i))).([]interface{})
     }
@@ -2187,18 +2187,18 @@ func  (this *Exchange) parseBidsAsks(bidasks interface{}, optionalArgs ...interf
     countOrIdKey := GetArg(optionalArgs, 3, 2)
     _ = countOrIdKey
     bidasks = this.toArray(bidasks)
-    result := []interface{}{}
+    var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(bidasks)); i++ {
         result = AppendToArray(result,this.parseBidAsk(GetValue(bidasks, i), priceKey, amountKey, countOrIdKey)).([]interface{})
     }
     return result
 }
-func  (this *Exchange) fetchL2OrderBook(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchL2OrderBook(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     limit := GetArg(optionalArgs, 1, nil)
     _ = limit
     params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
-    orderbook := this.fetchOrderBook(symbol, limit, params)
+    var orderbook interface{} = this.fetchOrderBook(symbol, limit, params)
     return this.extend(orderbook, map[string]interface{} {
         "asks": this.sortBy(this.aggregate(GetValue(orderbook, "asks")), 0),
         "bids": this.sortBy(this.aggregate(GetValue(orderbook, "bids")), 0, true),
@@ -2210,9 +2210,9 @@ func  (this *Exchange) filterBySymbol(objects interface{}, optionalArgs ...inter
     if IsTrue(IsEqual(symbol, nil)) {
         return objects
     }
-    result := []interface{}{}
+    var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(objects)); i++ {
-        objectSymbol := this.safeString(GetValue(objects, i), "symbol")
+        var objectSymbol interface{} = this.safeString(GetValue(objects, i), "symbol")
         if IsTrue(IsEqual(objectSymbol, symbol)) {
             result = AppendToArray(result,GetValue(objects, i)).([]interface{})
         }
@@ -2227,7 +2227,7 @@ func  (this *Exchange) parseOHLCV(ohlcv interface{}, optionalArgs ...interface{}
     }
     return ohlcv
 }
-func  (this *Exchange) networkCodeToId(networkCode string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) networkCodeToId(networkCode interface{}, optionalArgs ...interface{}) interface{}  {
     /**
     * @ignore
     * @method
@@ -2242,16 +2242,16 @@ func  (this *Exchange) networkCodeToId(networkCode string, optionalArgs ...inter
     if IsTrue(IsEqual(networkCode, nil)) {
         return nil
     }
-    networkIdsByCodes := this.safeValue(this.options, "networks", map[string]interface{} {})
-    networkId := this.safeString(networkIdsByCodes, networkCode)
+    var networkIdsByCodes interface{} = this.safeValue(this.options, "networks", map[string]interface{} {})
+    var networkId interface{} = this.safeString(networkIdsByCodes, networkCode)
     // for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
     if IsTrue(IsEqual(networkId, nil)) {
         if IsTrue(IsEqual(currencyCode, nil)) {
-            currencies := ObjectValues(this.currencies)
+            var currencies interface{} = ObjectValues(this.currencies)
             for i := 0; IsLessThan(i, GetArrayLength(currencies)); i++ {
-                currency := []interface{}{i}
-                networks := this.safeDict(currency, "networks")
-                network := this.safeDict(networks, networkCode)
+                var currency interface{} = []interface{}{i}
+                var networks interface{} = this.safeDict(currency, "networks")
+                var network interface{} = this.safeDict(networks, networkCode)
                 networkId = this.safeString(network, "id")
                 if IsTrue(!IsEqual(networkId, nil)) {
                     break
@@ -2259,14 +2259,14 @@ func  (this *Exchange) networkCodeToId(networkCode string, optionalArgs ...inter
             }
         } else {
             // if currencyCode was provided, then we try to find if that currencyCode has a replacement (i.e. ERC20 for ETH) or is in the currency
-            defaultNetworkCodeReplacements := this.safeValue(this.options, "defaultNetworkCodeReplacements", map[string]interface{} {})
+            var defaultNetworkCodeReplacements interface{} = this.safeValue(this.options, "defaultNetworkCodeReplacements", map[string]interface{} {})
             if IsTrue(InOp(defaultNetworkCodeReplacements, currencyCode)) {
                 // if there is a replacement for the passed networkCode, then we use it to find network-id in `options->networks` object
-                replacementObject := GetValue(defaultNetworkCodeReplacements, currencyCode) // i.e. { 'ERC20': 'ETH' }
-                keys := ObjectKeys(replacementObject)
+                var replacementObject interface{} = GetValue(defaultNetworkCodeReplacements, currencyCode) // i.e. { 'ERC20': 'ETH' }
+                var keys interface{} = ObjectKeys(replacementObject)
                 for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
-                    key := GetValue(keys, i)
-                    value := GetValue(replacementObject, key)
+                    var key interface{} = GetValue(keys, i)
+                    var value interface{} = GetValue(replacementObject, key)
                     // if value matches to provided unified networkCode, then we use it's key to find network-id in `options->networks` object
                     if IsTrue(IsEqual(value, networkCode)) {
                         networkId = this.safeString(networkIdsByCodes, key)
@@ -2275,9 +2275,9 @@ func  (this *Exchange) networkCodeToId(networkCode string, optionalArgs ...inter
                 }
             } else {
                 // serach for network inside currency
-                currency := this.safeDict(this.currencies, currencyCode)
-                networks := this.safeDict(currency, "networks")
-                network := this.safeDict(networks, networkCode)
+                var currency interface{} = this.safeDict(this.currencies, currencyCode)
+                var networks interface{} = this.safeDict(currency, "networks")
+                var network interface{} = this.safeDict(networks, networkCode)
                 networkId = this.safeString(network, "id")
             }
         }
@@ -2305,35 +2305,35 @@ func  (this *Exchange) networkIdToCode(optionalArgs ...interface{}) interface{} 
     if IsTrue(IsEqual(networkId, nil)) {
         return nil
     }
-    networkCodesByIds := this.safeDict(this.options, "networksById", map[string]interface{} {})
-    networkCode := this.safeString(networkCodesByIds, networkId, networkId)
+    var networkCodesByIds interface{} = this.safeDict(this.options, "networksById", map[string]interface{} {})
+    var networkCode interface{} = this.safeString(networkCodesByIds, networkId, networkId)
     // replace mainnet network-codes (i.e. ERC20->ETH)
     if IsTrue(!IsEqual(currencyCode, nil)) {
-        defaultNetworkCodeReplacements := this.safeDict(this.options, "defaultNetworkCodeReplacements", map[string]interface{} {})
+        var defaultNetworkCodeReplacements interface{} = this.safeDict(this.options, "defaultNetworkCodeReplacements", map[string]interface{} {})
         if IsTrue(InOp(defaultNetworkCodeReplacements, currencyCode)) {
-            replacementObject := this.safeDict(defaultNetworkCodeReplacements, currencyCode, map[string]interface{} {})
+            var replacementObject interface{} = this.safeDict(defaultNetworkCodeReplacements, currencyCode, map[string]interface{} {})
             networkCode = this.safeString(replacementObject, networkCode, networkCode)
         }
     }
     return networkCode
 }
 func  (this *Exchange) handleNetworkCodeAndParams(params interface{}) interface{}  {
-    networkCodeInParams := this.safeString2(params, "networkCode", "network")
+    var networkCodeInParams interface{} = this.safeString2(params, "networkCode", "network")
     if IsTrue(!IsEqual(networkCodeInParams, nil)) {
         params = this.omit(params, []interface{}{"networkCode", "network"})
     }
     // if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
     return []interface{}{networkCodeInParams, params}
 }
-func  (this *Exchange) defaultNetworkCode(currencyCode string) interface{}  {
+func  (this *Exchange) defaultNetworkCode(currencyCode interface{}) interface{}  {
     var defaultNetworkCode interface{} = nil
-    defaultNetworks := this.safeDict(this.options, "defaultNetworks", map[string]interface{} {})
+    var defaultNetworks interface{} = this.safeDict(this.options, "defaultNetworks", map[string]interface{} {})
     if IsTrue(InOp(defaultNetworks, currencyCode)) {
         // if currency had set its network in "defaultNetworks", use it
         defaultNetworkCode = GetValue(defaultNetworks, currencyCode)
     } else {
         // otherwise, try to use the global-scope 'defaultNetwork' value (even if that network is not supported by currency, it doesn't make any problem, this will be just used "at first" if currency supports this network at all)
-        defaultNetwork := this.safeDict(this.options, "defaultNetwork")
+        var defaultNetwork interface{} = this.safeDict(this.options, "defaultNetwork")
         if IsTrue(!IsEqual(defaultNetwork, nil)) {
             defaultNetworkCode = defaultNetwork
         }
@@ -2351,14 +2351,14 @@ func  (this *Exchange) selectNetworkKeyFromNetworks(currencyCode interface{}, ne
     isIndexedByUnifiedNetworkCode := GetArg(optionalArgs, 3, false)
     _ = isIndexedByUnifiedNetworkCode
     var chosenNetworkId interface{} = nil
-    availableNetworkIds := ObjectKeys(indexedNetworkEntries)
-    responseNetworksLength := GetArrayLength(availableNetworkIds)
+    var availableNetworkIds interface{} = ObjectKeys(indexedNetworkEntries)
+    var responseNetworksLength interface{} =     GetArrayLength(availableNetworkIds)
     if IsTrue(!IsEqual(networkCode, nil)) {
         if IsTrue(IsEqual(responseNetworksLength, 0)) {
             panic(NotSupported(Add(Add(Add(Add(this.id, " - "), networkCode), " network did not return any result for "), currencyCode)))
         } else {
             // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
-            networkId := Ternary(IsTrue(isIndexedByUnifiedNetworkCode), networkCode, this.networkCodeToId(networkCode, currencyCode))
+            var networkId interface{} = Ternary(IsTrue(isIndexedByUnifiedNetworkCode), networkCode, this.networkCodeToId(networkCode, currencyCode))
             if IsTrue(InOp(indexedNetworkEntries, networkId)) {
                 chosenNetworkId = networkId
             } else {
@@ -2370,8 +2370,8 @@ func  (this *Exchange) selectNetworkKeyFromNetworks(currencyCode interface{}, ne
             panic(NotSupported(Add(Add(this.id, " - no networks were returned for "), currencyCode)))
         } else {
             // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
-            defaultNetworkCode := this.defaultNetworkCode(currencyCode)
-            defaultNetworkId := Ternary(IsTrue(isIndexedByUnifiedNetworkCode), defaultNetworkCode, this.networkCodeToId(defaultNetworkCode, currencyCode))
+            var defaultNetworkCode interface{} = this.defaultNetworkCode(currencyCode)
+            var defaultNetworkId interface{} = Ternary(IsTrue(isIndexedByUnifiedNetworkCode), defaultNetworkCode, this.networkCodeToId(defaultNetworkCode, currencyCode))
             chosenNetworkId = Ternary(IsTrue((InOp(indexedNetworkEntries, defaultNetworkId))), defaultNetworkId, GetValue(availableNetworkIds, 0))
         }
     }
@@ -2380,10 +2380,10 @@ func  (this *Exchange) selectNetworkKeyFromNetworks(currencyCode interface{}, ne
 func  (this *Exchange) safeNumber2(dictionary interface{}, key1 interface{}, key2 interface{}, optionalArgs ...interface{}) interface{}  {
     d := GetArg(optionalArgs, 3, nil)
     _ = d
-    value := this.safeString2(dictionary, key1, key2)
+    var value interface{} = this.safeString2(dictionary, key1, key2)
     return this.parseNumber(value, d)
 }
-func  (this *Exchange) parseOrderBook(orderbook interface{}, symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) parseOrderBook(orderbook interface{}, symbol interface{}, optionalArgs ...interface{}) interface{}  {
     timestamp := GetArg(optionalArgs, 2, nil)
     _ = timestamp
     bidsKey := GetArg(optionalArgs, 3, "bids")
@@ -2396,8 +2396,8 @@ func  (this *Exchange) parseOrderBook(orderbook interface{}, symbol string, opti
     _ = amountKey
     countOrIdKey := GetArg(optionalArgs, 7, 2)
     _ = countOrIdKey
-    bids := this.parseBidsAsks(this.safeValue(orderbook, bidsKey, []interface{}{}), priceKey, amountKey, countOrIdKey)
-    asks := this.parseBidsAsks(this.safeValue(orderbook, asksKey, []interface{}{}), priceKey, amountKey, countOrIdKey)
+    var bids interface{} = this.parseBidsAsks(this.safeValue(orderbook, bidsKey, []interface{}{}), priceKey, amountKey, countOrIdKey)
+    var asks interface{} = this.parseBidsAsks(this.safeValue(orderbook, asksKey, []interface{}{}), priceKey, amountKey, countOrIdKey)
     return map[string]interface{} {
         "symbol": symbol,
         "bids": this.sortBy(bids, 0, true),
@@ -2416,11 +2416,11 @@ func  (this *Exchange) parseOHLCVs(ohlcvs interface{}, optionalArgs ...interface
     _ = since
     limit := GetArg(optionalArgs, 4, nil)
     _ = limit
-    results := []interface{}{}
+    var results interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(ohlcvs)); i++ {
         results = AppendToArray(results,this.parseOHLCV(GetValue(ohlcvs, i), market)).([]interface{})
     }
-    sorted := this.sortBy(results, 0)
+    var sorted interface{} = this.sortBy(results, 0)
     return this.filterBySinceLimit(sorted, since, limit, 0)
 }
 func  (this *Exchange) parseLeverageTiers(response interface{}, optionalArgs ...interface{}) interface{}  {
@@ -2430,31 +2430,31 @@ func  (this *Exchange) parseLeverageTiers(response interface{}, optionalArgs ...
     marketIdKey := GetArg(optionalArgs, 2, nil)
     _ = marketIdKey
     symbols = this.marketSymbols(symbols)
-    tiers := map[string]interface{} {}
-    symbolsLength := 0
+    var tiers interface{} = map[string]interface{} {}
+    var symbolsLength interface{} = 0
     if IsTrue(!IsEqual(symbols, nil)) {
         symbolsLength = GetArrayLength(symbols)
     }
-    noSymbols := IsTrue((IsEqual(symbols, nil))) || IsTrue((IsEqual(symbolsLength, 0)))
+    var noSymbols interface{} = IsTrue((IsEqual(symbols, nil))) || IsTrue((IsEqual(symbolsLength, 0)))
     if IsTrue(IsArray(response)) {
         for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-            item := GetValue(response, i)
-            id := this.safeString(item, marketIdKey)
-            market := this.safeMarket(id, nil, nil, "swap")
-            symbol := GetValue(market, "symbol")
-            contract := this.safeBool(market, "contract", false)
+            var item interface{} = GetValue(response, i)
+            var id interface{} = this.safeString(item, marketIdKey)
+            var market interface{} = this.safeMarket(id, nil, nil, "swap")
+            var symbol interface{} = GetValue(market, "symbol")
+            var contract interface{} = this.safeBool(market, "contract", false)
             if IsTrue(IsTrue(contract) && IsTrue((IsTrue(noSymbols) || IsTrue(this.inArray(symbol, symbols))))) {
                 AddElementToObject(tiers, symbol, this.parseMarketLeverageTiers(item, market))
             }
         }
     } else {
-        keys := ObjectKeys(response)
+        var keys interface{} = ObjectKeys(response)
         for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
-            marketId := GetValue(keys, i)
-            item := GetValue(response, marketId)
-            market := this.safeMarket(marketId, nil, nil, "swap")
-            symbol := GetValue(market, "symbol")
-            contract := this.safeBool(market, "contract", false)
+            var marketId interface{} = GetValue(keys, i)
+            var item interface{} = GetValue(response, marketId)
+            var market interface{} = this.safeMarket(marketId, nil, nil, "swap")
+            var symbol interface{} = GetValue(market, "symbol")
+            var contract interface{} = this.safeBool(market, "contract", false)
             if IsTrue(IsTrue(contract) && IsTrue((IsTrue(noSymbols) || IsTrue(this.inArray(symbol, symbols))))) {
                 AddElementToObject(tiers, symbol, this.parseMarketLeverageTiers(item, market))
             }
@@ -2471,9 +2471,9 @@ func  (this *Exchange) loadTradingLimits(optionalArgs ...interface{}) interface{
     _ = params
     if IsTrue(GetValue(this.has, "fetchTradingLimits")) {
         if IsTrue(IsTrue(reload) || !IsTrue((InOp(this.options, "limitsLoaded")))) {
-            response := this.fetchTradingLimits(symbols)
+            var response interface{} = this.fetchTradingLimits(symbols)
             for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
-                symbol := GetValue(symbols, i)
+                var symbol interface{} = GetValue(symbols, i)
                 AddElementToObject(this.markets, symbol, this.deepExtend(GetValue(this.markets, symbol), GetValue(response, symbol)))
             }
             AddElementToObject(this.options, "limitsLoaded", this.milliseconds())
@@ -2483,20 +2483,20 @@ func  (this *Exchange) loadTradingLimits(optionalArgs ...interface{}) interface{
 }
 func  (this *Exchange) safePosition(position interface{}) interface{}  {
     // simplified version of: /pull/12765/
-    unrealizedPnlString := this.safeString(position, "unrealisedPnl")
-    initialMarginString := this.safeString(position, "initialMargin")
+    var unrealizedPnlString interface{} = this.safeString(position, "unrealisedPnl")
+    var initialMarginString interface{} = this.safeString(position, "initialMargin")
     //
     // PERCENTAGE
     //
-    percentage := this.safeValue(position, "percentage")
+    var percentage interface{} = this.safeValue(position, "percentage")
     if IsTrue(IsTrue(IsTrue((IsEqual(percentage, nil))) && IsTrue((!IsEqual(unrealizedPnlString, nil)))) && IsTrue((!IsEqual(initialMarginString, nil)))) {
         // as it was done in all implementations ( aax, btcex, bybit, deribit, ftx, gate, kucoinfutures, phemex )
-        percentageString := Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), "100")
+        var percentageString interface{} = Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), "100")
         AddElementToObject(position, "percentage", this.parseNumber(percentageString))
     }
     // if contractSize is undefined get from market
-    contractSize := this.safeNumber(position, "contractSize")
-    symbol := this.safeString(position, "symbol")
+    var contractSize interface{} = this.safeNumber(position, "contractSize")
+    var symbol interface{} = this.safeString(position, "symbol")
     var market interface{} = nil
     if IsTrue(!IsEqual(symbol, nil)) {
         market = this.safeValue(this.markets, symbol)
@@ -2514,9 +2514,9 @@ func  (this *Exchange) parsePositions(positions interface{}, optionalArgs ...int
     _ = params
     symbols = this.marketSymbols(symbols)
     positions = this.toArray(positions)
-    result := []interface{}{}
+    var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(positions)); i++ {
-        position := this.extend(this.parsePosition(GetValue(positions, i), nil), params)
+        var position interface{} = this.extend(this.parsePosition(GetValue(positions, i), nil), params)
         result = AppendToArray(result,position).([]interface{})
     }
     return this.filterByArrayPositions(result, "symbol", symbols, false)
@@ -2525,9 +2525,9 @@ func  (this *Exchange) parseAccounts(accounts interface{}, optionalArgs ...inter
     params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     accounts = this.toArray(accounts)
-    result := []interface{}{}
+    var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(accounts)); i++ {
-        account := this.extend(this.parseAccount(GetValue(accounts, i)), params)
+        var account interface{} = this.extend(this.parseAccount(GetValue(accounts, i)), params)
         result = AppendToArray(result,account).([]interface{})
     }
     return result
@@ -2542,13 +2542,13 @@ func  (this *Exchange) parseTrades(trades interface{}, optionalArgs ...interface
     params := GetArg(optionalArgs, 4, map[string]interface{} {})
     _ = params
     trades = this.toArray(trades)
-    result := []interface{}{}
+    var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(trades)); i++ {
-        trade := this.extend(this.parseTrade(GetValue(trades, i), market), params)
+        var trade interface{} = this.extend(this.parseTrade(GetValue(trades, i), market), params)
         result = AppendToArray(result,trade).([]interface{})
     }
     result = this.sortBy2(result, "timestamp", "id")
-    symbol := Ternary(IsTrue((!IsEqual(market, nil))), GetValue(market, "symbol"), nil)
+    var symbol interface{} = Ternary(IsTrue((!IsEqual(market, nil))), GetValue(market, "symbol"), nil)
     return this.filterBySymbolSinceLimit(result, symbol, since, limit)
 }
 func  (this *Exchange) parseTransactions(transactions interface{}, optionalArgs ...interface{}) interface{}  {
@@ -2561,13 +2561,13 @@ func  (this *Exchange) parseTransactions(transactions interface{}, optionalArgs 
     params := GetArg(optionalArgs, 4, map[string]interface{} {})
     _ = params
     transactions = this.toArray(transactions)
-    result := []interface{}{}
+    var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(transactions)); i++ {
-        transaction := this.extend(this.parseTransaction(GetValue(transactions, i), currency), params)
+        var transaction interface{} = this.extend(this.parseTransaction(GetValue(transactions, i), currency), params)
         result = AppendToArray(result,transaction).([]interface{})
     }
     result = this.sortBy(result, "timestamp")
-    code := Ternary(IsTrue((!IsEqual(currency, nil))), GetValue(currency, "code"), nil)
+    var code interface{} = Ternary(IsTrue((!IsEqual(currency, nil))), GetValue(currency, "code"), nil)
     return this.filterByCurrencySinceLimit(result, code, since, limit)
 }
 func  (this *Exchange) parseTransfers(transfers interface{}, optionalArgs ...interface{}) interface{}  {
@@ -2580,13 +2580,13 @@ func  (this *Exchange) parseTransfers(transfers interface{}, optionalArgs ...int
     params := GetArg(optionalArgs, 4, map[string]interface{} {})
     _ = params
     transfers = this.toArray(transfers)
-    result := []interface{}{}
+    var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(transfers)); i++ {
-        transfer := this.extend(this.parseTransfer(GetValue(transfers, i), currency), params)
+        var transfer interface{} = this.extend(this.parseTransfer(GetValue(transfers, i), currency), params)
         result = AppendToArray(result,transfer).([]interface{})
     }
     result = this.sortBy(result, "timestamp")
-    code := Ternary(IsTrue((!IsEqual(currency, nil))), GetValue(currency, "code"), nil)
+    var code interface{} = Ternary(IsTrue((!IsEqual(currency, nil))), GetValue(currency, "code"), nil)
     return this.filterByCurrencySinceLimit(result, code, since, limit)
 }
 func  (this *Exchange) parseLedger(data interface{}, optionalArgs ...interface{}) interface{}  {
@@ -2598,10 +2598,10 @@ func  (this *Exchange) parseLedger(data interface{}, optionalArgs ...interface{}
     _ = limit
     params := GetArg(optionalArgs, 4, map[string]interface{} {})
     _ = params
-    result := []interface{}{}
-    arrayData := this.toArray(data)
+    var result interface{} = []interface{}{}
+    var arrayData interface{} = this.toArray(data)
     for i := 0; IsLessThan(i, GetArrayLength(arrayData)); i++ {
-        itemOrItems := this.parseLedgerEntry(GetValue(arrayData, i), currency)
+        var itemOrItems interface{} = this.parseLedgerEntry(GetValue(arrayData, i), currency)
         if IsTrue(IsArray(itemOrItems)) {
             for j := 0; IsLessThan(j, GetArrayLength(itemOrItems)); j++ {
                 result = AppendToArray(result,this.extend(GetValue(itemOrItems, j), params)).([]interface{})
@@ -2611,7 +2611,7 @@ func  (this *Exchange) parseLedger(data interface{}, optionalArgs ...interface{}
         }
     }
     result = this.sortBy(result, "timestamp")
-    code := Ternary(IsTrue((!IsEqual(currency, nil))), GetValue(currency, "code"), nil)
+    var code interface{} = Ternary(IsTrue((!IsEqual(currency, nil))), GetValue(currency, "code"), nil)
     return this.filterByCurrencySinceLimit(result, code, since, limit)
 }
 func  (this *Exchange) nonce() interface{}  {
@@ -2620,66 +2620,66 @@ func  (this *Exchange) nonce() interface{}  {
 func  (this *Exchange) setHeaders(headers interface{}) interface{}  {
     return headers
 }
-func  (this *Exchange) marketId(symbol string) interface{}  {
-    market := this.market(symbol)
+func  (this *Exchange) marketId(symbol interface{}) interface{}  {
+    var market interface{} = this.market(symbol)
     if IsTrue(!IsEqual(market, nil)) {
         return GetValue(market, "id")
     }
     return symbol
 }
-func  (this *Exchange) symbol(symbol string) interface{}  {
-    market := this.market(symbol)
+func  (this *Exchange) symbol(symbol interface{}) interface{}  {
+    var market interface{} = this.market(symbol)
     return this.safeString(market, "symbol", symbol)
 }
-func  (this *Exchange) handleParamString(params interface{}, paramName string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) handleParamString(params interface{}, paramName interface{}, optionalArgs ...interface{}) interface{}  {
     defaultValue := GetArg(optionalArgs, 2, nil)
     _ = defaultValue
-    value := this.safeString(params, paramName, defaultValue)
+    var value interface{} = this.safeString(params, paramName, defaultValue)
     if IsTrue(!IsEqual(value, nil)) {
         params = this.omit(params, paramName)
     }
     return []interface{}{value, params}
 }
-func  (this *Exchange) handleParamString2(params interface{}, paramName1 string, paramName2 string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) handleParamString2(params interface{}, paramName1 interface{}, paramName2 interface{}, optionalArgs ...interface{}) interface{}  {
     defaultValue := GetArg(optionalArgs, 3, nil)
     _ = defaultValue
-    value := this.safeString2(params, paramName1, paramName2, defaultValue)
+    var value interface{} = this.safeString2(params, paramName1, paramName2, defaultValue)
     if IsTrue(!IsEqual(value, nil)) {
         params = this.omit(params, []interface{}{paramName1, paramName2})
     }
     return []interface{}{value, params}
 }
-func  (this *Exchange) handleParamInteger(params interface{}, paramName string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) handleParamInteger(params interface{}, paramName interface{}, optionalArgs ...interface{}) interface{}  {
     defaultValue := GetArg(optionalArgs, 2, nil)
     _ = defaultValue
-    value := this.safeInteger(params, paramName, defaultValue)
+    var value interface{} = this.safeInteger(params, paramName, defaultValue)
     if IsTrue(!IsEqual(value, nil)) {
         params = this.omit(params, paramName)
     }
     return []interface{}{value, params}
 }
-func  (this *Exchange) handleParamInteger2(params interface{}, paramName1 string, paramName2 string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) handleParamInteger2(params interface{}, paramName1 interface{}, paramName2 interface{}, optionalArgs ...interface{}) interface{}  {
     defaultValue := GetArg(optionalArgs, 3, nil)
     _ = defaultValue
-    value := this.safeInteger2(params, paramName1, paramName2, defaultValue)
+    var value interface{} = this.safeInteger2(params, paramName1, paramName2, defaultValue)
     if IsTrue(!IsEqual(value, nil)) {
         params = this.omit(params, []interface{}{paramName1, paramName2})
     }
     return []interface{}{value, params}
 }
-func  (this *Exchange) handleParamBool(params interface{}, paramName string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) handleParamBool(params interface{}, paramName interface{}, optionalArgs ...interface{}) interface{}  {
     defaultValue := GetArg(optionalArgs, 2, nil)
     _ = defaultValue
-    value := this.safeBool(params, paramName, defaultValue)
+    var value interface{} = this.safeBool(params, paramName, defaultValue)
     if IsTrue(!IsEqual(value, nil)) {
         params = this.omit(params, paramName)
     }
     return []interface{}{value, params}
 }
-func  (this *Exchange) handleParamBool2(params interface{}, paramName1 string, paramName2 string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) handleParamBool2(params interface{}, paramName1 interface{}, paramName2 interface{}, optionalArgs ...interface{}) interface{}  {
     defaultValue := GetArg(optionalArgs, 3, nil)
     _ = defaultValue
-    value := this.safeBool2(params, paramName1, paramName2, defaultValue)
+    var value interface{} = this.safeBool2(params, paramName1, paramName2, defaultValue)
     if IsTrue(!IsEqual(value, nil)) {
         params = this.omit(params, []interface{}{paramName1, paramName2})
     }
@@ -2689,8 +2689,8 @@ func  (this *Exchange) resolvePath(path interface{}, params interface{}) interfa
     return []interface{}{this.implodeParams(path, params), this.omit(params, this.extractParams(path))}
 }
 func  (this *Exchange) getListFromObjectValues(objects interface{}, key interface{}) interface{}  {
-    newArray := this.toArray(objects)
-    results := []interface{}{}
+    var newArray interface{} = this.toArray(objects)
+    var results interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(newArray)); i++ {
         results = AppendToArray(results,GetValue(GetValue(newArray, i), key)).([]interface{})
     }
@@ -2705,7 +2705,7 @@ func  (this *Exchange) getSymbolsForMarketType(optionalArgs ...interface{}) inte
     _ = symbolWithActiveStatus
     symbolWithUnknownStatus := GetArg(optionalArgs, 3, true)
     _ = symbolWithUnknownStatus
-    filteredMarkets := this.markets
+    var filteredMarkets interface{} = this.markets
     if IsTrue(!IsEqual(marketType, nil)) {
         filteredMarkets = this.filterBy(filteredMarkets, "type", marketType)
     }
@@ -2713,7 +2713,7 @@ func  (this *Exchange) getSymbolsForMarketType(optionalArgs ...interface{}) inte
         this.checkRequiredArgument("getSymbolsForMarketType", subType, "subType", []interface{}{"linear", "inverse", "quanto"})
         filteredMarkets = this.filterBy(filteredMarkets, "subType", subType)
     }
-    activeStatuses := []interface{}{}
+    var activeStatuses interface{} = []interface{}{}
     if IsTrue(symbolWithActiveStatus) {
         activeStatuses = AppendToArray(activeStatuses,true).([]interface{})
     }
@@ -2733,7 +2733,7 @@ func  (this *Exchange) filterByArray(objects interface{}, key interface{}, optio
     if IsTrue(IsTrue(IsEqual(values, nil)) || !IsTrue(values)) {
         return Ternary(IsTrue(indexed), this.indexBy(objects, key), objects)
     }
-    results := []interface{}{}
+    var results interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(objects)); i++ {
         if IsTrue(this.inArray(GetValue(GetValue(objects, i), key), values)) {
             results = AppendToArray(results,GetValue(objects, i)).([]interface{})
@@ -2755,11 +2755,11 @@ func  (this *Exchange) fetch2(path interface{}, optionalArgs ...interface{}) int
     config := GetArg(optionalArgs, 6, map[string]interface{} {})
     _ = config
     if IsTrue(this.enableRateLimit) {
-        cost := this.calculateRateLimiterCost(api, method, path, params, config)
+        var cost interface{} = this.calculateRateLimiterCost(api, method, path, params, config)
         this.throttle(cost)
     }
     this.lastRestRequestTimestamp = this.milliseconds()
-    request := this.sign(path, api, method, params, headers, body)
+    var request interface{} = this.sign(path, api, method, params, headers, body)
     this.last_request_headers = GetValue(request, "headers")
     this.last_request_body = GetValue(request, "body")
     this.last_request_url = GetValue(request, "url")
@@ -2806,29 +2806,29 @@ func  (this *Exchange) buildOHLCVC(trades interface{}, optionalArgs ...interface
     _ = since
     limit := GetArg(optionalArgs, 3, 2147483647)
     _ = limit
-    ms := Multiply(this.parseTimeframe(timeframe), 1000)
-    ohlcvs := []interface{}{}
-    i_timestamp := 0
+    var ms interface{} = Multiply(this.parseTimeframe(timeframe), 1000)
+    var ohlcvs interface{} = []interface{}{}
+    var i_timestamp interface{} = 0
     // const open = 1;
-    i_high := 2
-    i_low := 3
-    i_close := 4
-    i_volume := 5
-    i_count := 6
-    tradesLength := GetArrayLength(trades)
-    oldest := mathMin(tradesLength, limit)
+    var i_high interface{} = 2
+    var i_low interface{} = 3
+    var i_close interface{} = 4
+    var i_volume interface{} = 5
+    var i_count interface{} = 6
+    var tradesLength interface{} =     GetArrayLength(trades)
+    var oldest interface{} = mathMin(tradesLength, limit)
     for i := 0; IsLessThan(i, oldest); i++ {
-        trade := GetValue(trades, i)
-        ts := GetValue(trade, "timestamp")
+        var trade interface{} = GetValue(trades, i)
+        var ts interface{} = GetValue(trade, "timestamp")
         if IsTrue(IsLessThan(ts, since)) {
             continue
         }
-        openingTime := Multiply(MathFloor(Divide(ts, ms)), ms) // shift to the edge of m/h/d (but not M)
+        var openingTime interface{} = Multiply(MathFloor(Divide(ts, ms)), ms) // shift to the edge of m/h/d (but not M)
         if IsTrue(IsLessThan(openingTime, since)) {
             continue
         }
-        ohlcv_length := GetArrayLength(ohlcvs)
-        candle := Subtract(ohlcv_length, 1)
+        var ohlcv_length interface{} =         GetArrayLength(ohlcvs)
+        var candle interface{} = Subtract(ohlcv_length, 1)
         if IsTrue(IsTrue((IsEqual(candle, -1))) || IsTrue((IsGreaterThanOrEqual(openingTime, this.sum(GetValue(GetValue(ohlcvs, candle), i_timestamp), ms))))) {
             // moved to a new timeframe -> create a new candle from opening trade
             ohlcvs = AppendToArray(ohlcvs,[]interface{}{openingTime, GetValue(trade, "price"), GetValue(trade, "price"), GetValue(trade, "price"), GetValue(trade, "price"), GetValue(trade, "amount"), 1}).([]interface{})
@@ -2852,31 +2852,31 @@ func  (this *Exchange) parseTradingViewOHLCV(ohlcvs interface{}, optionalArgs ..
     _ = since
     limit := GetArg(optionalArgs, 4, nil)
     _ = limit
-    result := this.convertTradingViewToOHLCV(ohlcvs)
+    var result interface{} = this.convertTradingViewToOHLCV(ohlcvs)
     return this.parseOHLCVs(result, market, timeframe, since, limit)
 }
-func  (this *Exchange) editLimitBuyOrder(id string, symbol string, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) editLimitBuyOrder(id interface{}, symbol interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     price := GetArg(optionalArgs, 3, nil)
     _ = price
     params := GetArg(optionalArgs, 4, map[string]interface{} {})
     _ = params
     return this.editLimitOrder(id, symbol, "buy", amount, price, params)
 }
-func  (this *Exchange) editLimitSellOrder(id string, symbol string, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) editLimitSellOrder(id interface{}, symbol interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     price := GetArg(optionalArgs, 3, nil)
     _ = price
     params := GetArg(optionalArgs, 4, map[string]interface{} {})
     _ = params
     return this.editLimitOrder(id, symbol, "sell", amount, price, params)
 }
-func  (this *Exchange) editLimitOrder(id string, symbol string, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) editLimitOrder(id interface{}, symbol interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     price := GetArg(optionalArgs, 4, nil)
     _ = price
     params := GetArg(optionalArgs, 5, map[string]interface{} {})
     _ = params
     return this.editOrder(id, symbol, "limit", side, amount, price, params)
 }
-func  (this *Exchange) editOrder(id string, symbol string, typeVar interface{}, side interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) editOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) interface{}  {
     amount := GetArg(optionalArgs, 4, nil)
     _ = amount
     price := GetArg(optionalArgs, 5, nil)
@@ -2886,7 +2886,7 @@ func  (this *Exchange) editOrder(id string, symbol string, typeVar interface{}, 
     this.cancelOrder(id, symbol)
     return this.createOrder(symbol, typeVar, side, amount, price, params)
 }
-func  (this *Exchange) editOrderWs(id string, symbol string, typeVar interface{}, side interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) editOrderWs(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) interface{}  {
     amount := GetArg(optionalArgs, 4, nil)
     _ = amount
     price := GetArg(optionalArgs, 5, nil)
@@ -2901,12 +2901,12 @@ func  (this *Exchange) fetchPermissions(optionalArgs ...interface{}) interface{}
     _ = params
     panic(NotSupported(Add(this.id, " fetchPermissions() is not supported yet")))
 }
-func  (this *Exchange) fetchPosition(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchPosition(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " fetchPosition() is not supported yet")))
 }
-func  (this *Exchange) fetchPositionWs(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchPositionWs(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " fetchPositionWs() is not supported yet")))
@@ -2940,12 +2940,12 @@ func  (this *Exchange) watchPositionForSymbols(optionalArgs ...interface{}) inte
     _ = params
     return this.watchPositions(symbols, since, limit, params)
 }
-func  (this *Exchange) fetchPositionsForSymbol(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchPositionsForSymbol(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " fetchPositionsForSymbol() is not supported yet")))
 }
-func  (this *Exchange) fetchPositionsForSymbolWs(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchPositionsForSymbolWs(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " fetchPositionsForSymbol() is not supported yet")))
@@ -3002,7 +3002,7 @@ func  (this *Exchange) fetchLedger(optionalArgs ...interface{}) interface{}  {
     _ = params
     panic(NotSupported(Add(this.id, " fetchLedger() is not supported yet")))
 }
-func  (this *Exchange) fetchLedgerEntry(id string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchLedgerEntry(id interface{}, optionalArgs ...interface{}) interface{}  {
     code := GetArg(optionalArgs, 1, nil)
     _ = code
     params := GetArg(optionalArgs, 2, map[string]interface{} {})
@@ -3016,10 +3016,10 @@ func  (this *Exchange) parseBidAsk(bidask interface{}, optionalArgs ...interface
     _ = amountKey
     countOrIdKey := GetArg(optionalArgs, 3, 2)
     _ = countOrIdKey
-    price := this.safeNumber(bidask, priceKey)
-    amount := this.safeNumber(bidask, amountKey)
-    countOrId := this.safeInteger(bidask, countOrIdKey)
-    bidAsk := []interface{}{price, amount}
+    var price interface{} = this.safeNumber(bidask, priceKey)
+    var amount interface{} = this.safeNumber(bidask, amountKey)
+    var countOrId interface{} = this.safeInteger(bidask, countOrIdKey)
+    var bidAsk interface{} = []interface{}{price, amount}
     if IsTrue(!IsEqual(countOrId, nil)) {
         bidAsk = AppendToArray(bidAsk,countOrId).([]interface{})
     }
@@ -3034,7 +3034,7 @@ func  (this *Exchange) safeCurrency(currencyId interface{}, optionalArgs ...inte
     if IsTrue(IsTrue(IsTrue((!IsEqual(this.currencies_by_id, nil))) && IsTrue((InOp(this.currencies_by_id, currencyId)))) && IsTrue((!IsEqual(GetValue(this.currencies_by_id, currencyId), nil)))) {
         return GetValue(this.currencies_by_id, currencyId)
     }
-    code := currencyId
+    var code interface{} = currencyId
     if IsTrue(!IsEqual(currencyId, nil)) {
         code = this.commonCurrencyCode(ToUpper(currencyId))
     }
@@ -3051,14 +3051,14 @@ func  (this *Exchange) safeMarket(marketId interface{}, optionalArgs ...interfac
     _ = delimiter
     marketType := GetArg(optionalArgs, 3, nil)
     _ = marketType
-    result := this.safeMarketStructure(map[string]interface{} {
+    var result interface{} = this.safeMarketStructure(map[string]interface{} {
         "symbol": marketId,
         "marketId": marketId,
     })
     if IsTrue(!IsEqual(marketId, nil)) {
         if IsTrue(IsTrue((!IsEqual(this.markets_by_id, nil))) && IsTrue((InOp(this.markets_by_id, marketId)))) {
-            markets := GetValue(this.markets_by_id, marketId)
-            numMarkets := GetArrayLength(markets)
+            var markets interface{} = GetValue(this.markets_by_id, marketId)
+            var numMarkets interface{} =             GetArrayLength(markets)
             if IsTrue(IsEqual(numMarkets, 1)) {
                 return GetValue(markets, 0)
             } else {
@@ -3070,15 +3070,15 @@ func  (this *Exchange) safeMarket(marketId interface{}, optionalArgs ...interfac
                     }
                 }
                 for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
-                    currentMarket := GetValue(markets, i)
+                    var currentMarket interface{} = GetValue(markets, i)
                     if IsTrue(GetValue(currentMarket, marketType)) {
                         return currentMarket
                     }
                 }
             }
         } else if IsTrue(IsTrue(!IsEqual(delimiter, nil)) && IsTrue(!IsEqual(delimiter, ""))) {
-            parts := Split(marketId, delimiter)
-            partsLength := GetArrayLength(parts)
+            var parts interface{} = Split(marketId, delimiter)
+            var partsLength interface{} =             GetArrayLength(parts)
             if IsTrue(IsEqual(partsLength, 2)) {
                 AddElementToObject(result, "baseId", this.safeString(parts, 0))
                 AddElementToObject(result, "quoteId", this.safeString(parts, 1))
@@ -3105,9 +3105,9 @@ func  (this *Exchange) checkRequiredCredentials(optionalArgs ...interface{}) int
     */
     error := GetArg(optionalArgs, 0, true)
     _ = error
-    keys := ObjectKeys(this.requiredCredentials)
+    var keys interface{} = ObjectKeys(this.requiredCredentials)
     for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
-        key := GetValue(keys, i)
+        var key interface{} = GetValue(keys, i)
         if IsTrue(IsTrue(GetValue(this.requiredCredentials, key)) && !IsTrue(GetValue(this, key))) {
             if IsTrue(error) {
                 panic(AuthenticationError(Add(Add(Add(this.id, " requires \""), key), "\" credential")))
@@ -3146,7 +3146,7 @@ func  (this *Exchange) watchBalance(optionalArgs ...interface{}) interface{}  {
 func  (this *Exchange) fetchPartialBalance(part interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
-    balance := this.fetchBalance(params)
+    var balance interface{} = this.fetchBalance(params)
     return GetValue(balance, part)
 }
 func  (this *Exchange) fetchFreeBalance(optionalArgs ...interface{}) interface{}  {
@@ -3169,7 +3169,7 @@ func  (this *Exchange) fetchStatus(optionalArgs ...interface{}) interface{}  {
     _ = params
     panic(NotSupported(Add(this.id, " fetchStatus() is not supported yet")))
 }
-func  (this *Exchange) fetchTransactionFee(code string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchTransactionFee(code interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     if !IsTrue(GetValue(this.has, "fetchTransactionFees")) {
@@ -3191,13 +3191,13 @@ func  (this *Exchange) fetchDepositWithdrawFees(optionalArgs ...interface{}) int
     _ = params
     panic(NotSupported(Add(this.id, " fetchDepositWithdrawFees() is not supported yet")))
 }
-func  (this *Exchange) fetchDepositWithdrawFee(code string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchDepositWithdrawFee(code interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     if !IsTrue(GetValue(this.has, "fetchDepositWithdrawFees")) {
         panic(NotSupported(Add(this.id, " fetchDepositWithdrawFee() is not supported yet")))
     }
-    fees := this.fetchDepositWithdrawFees([]interface{}{code}, params)
+    var fees interface{} = this.fetchDepositWithdrawFees([]interface{}{code}, params)
     return this.safeValue(fees, code)
 }
 func  (this *Exchange) getSupportedMapping(key interface{}, optionalArgs ...interface{}) interface{}  {
@@ -3209,41 +3209,41 @@ func  (this *Exchange) getSupportedMapping(key interface{}, optionalArgs ...inte
         panic(NotSupported(Add(Add(Add(this.id, " "), key), " does not have a value in mapping")))
     }
 }
-func  (this *Exchange) fetchCrossBorrowRate(code string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchCrossBorrowRate(code interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     this.loadMarkets()
     if !IsTrue(GetValue(this.has, "fetchBorrowRates")) {
         panic(NotSupported(Add(this.id, " fetchCrossBorrowRate() is not supported yet")))
     }
-    borrowRates := this.fetchCrossBorrowRates(params)
-    rate := this.safeValue(borrowRates, code)
+    var borrowRates interface{} = this.fetchCrossBorrowRates(params)
+    var rate interface{} = this.safeValue(borrowRates, code)
     if IsTrue(IsEqual(rate, nil)) {
         panic(ExchangeError(Add(Add(this.id, " fetchCrossBorrowRate() could not find the borrow rate for currency code "), code)))
     }
     return rate
 }
-func  (this *Exchange) fetchIsolatedBorrowRate(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchIsolatedBorrowRate(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     this.loadMarkets()
     if !IsTrue(GetValue(this.has, "fetchBorrowRates")) {
         panic(NotSupported(Add(this.id, " fetchIsolatedBorrowRate() is not supported yet")))
     }
-    borrowRates := this.fetchIsolatedBorrowRates(params)
-    rate := this.safeDict(borrowRates, symbol)
+    var borrowRates interface{} = this.fetchIsolatedBorrowRates(params)
+    var rate interface{} = this.safeDict(borrowRates, symbol)
     if IsTrue(IsEqual(rate, nil)) {
         panic(ExchangeError(Add(Add(this.id, " fetchIsolatedBorrowRate() could not find the borrow rate for market symbol "), symbol)))
     }
     return rate
 }
-func  (this *Exchange) handleOptionAndParams(params interface{}, methodName string, optionName string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) handleOptionAndParams(params interface{}, methodName interface{}, optionName interface{}, optionalArgs ...interface{}) interface{}  {
     // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
     defaultValue := GetArg(optionalArgs, 3, nil)
     _ = defaultValue
-    defaultOptionName := Add("default", this.capitalize(optionName)) // we also need to check the 'defaultXyzWhatever'
+    var defaultOptionName interface{} = Add("default", this.capitalize(optionName)) // we also need to check the 'defaultXyzWhatever'
     // check if params contain the key
-    value := this.safeValue2(params, optionName, defaultOptionName)
+    var value interface{} = this.safeValue2(params, optionName, defaultOptionName)
     if IsTrue(!IsEqual(value, nil)) {
         params = this.omit(params, []interface{}{optionName, defaultOptionName})
     } else {
@@ -3252,7 +3252,7 @@ func  (this *Exchange) handleOptionAndParams(params interface{}, methodName stri
         methodName = GetValue(methodNameparamsVariable,0);
         params = GetValue(methodNameparamsVariable,1)
         // check if exchange has properties for this method
-        exchangeWideMethodOptions := this.safeValue(this.options, methodName)
+        var exchangeWideMethodOptions interface{} = this.safeValue(this.options, methodName)
         if IsTrue(!IsEqual(exchangeWideMethodOptions, nil)) {
             // check if the option is defined inside this method's props
             value = this.safeValue2(exchangeWideMethodOptions, optionName, defaultOptionName)
@@ -3266,7 +3266,7 @@ func  (this *Exchange) handleOptionAndParams(params interface{}, methodName stri
     }
     return []interface{}{value, params}
 }
-func  (this *Exchange) handleOptionAndParams2(params interface{}, methodName1 string, optionName1 string, optionName2 string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) handleOptionAndParams2(params interface{}, methodName1 interface{}, optionName1 interface{}, optionName2 interface{}, optionalArgs ...interface{}) interface{}  {
     defaultValue := GetArg(optionalArgs, 4, nil)
     _ = defaultValue
     var value interface{} = nil
@@ -3280,7 +3280,7 @@ func  (this *Exchange) handleOptionAndParams2(params interface{}, methodName1 st
     params = GetValue(value2paramsVariable,1)
     return []interface{}{value2, params}
 }
-func  (this *Exchange) handleOption(methodName string, optionName string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) handleOption(methodName interface{}, optionName interface{}, optionalArgs ...interface{}) interface{}  {
     // eslint-disable-next-line no-unused-vars
     defaultValue := GetArg(optionalArgs, 2, nil)
     _ = defaultValue
@@ -3289,7 +3289,7 @@ func  (this *Exchange) handleOption(methodName string, optionName string, option
     empty := GetValue(resultemptyVariable,1)
     return result
 }
-func  (this *Exchange) handleMarketTypeAndParams(methodName string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) handleMarketTypeAndParams(methodName interface{}, optionalArgs ...interface{}) interface{}  {
     /**
     * @ignore
     * @method
@@ -3308,12 +3308,12 @@ func  (this *Exchange) handleMarketTypeAndParams(methodName string, optionalArgs
     _ = params
     defaultValue := GetArg(optionalArgs, 3, nil)
     _ = defaultValue
-    defaultType := this.safeString2(this.options, "defaultType", "type", "spot")
+    var defaultType interface{} = this.safeString2(this.options, "defaultType", "type", "spot")
     if IsTrue(IsEqual(defaultValue, nil)) {
         defaultValue = defaultType
     }
-    methodOptions := this.safeDict(this.options, methodName)
-    methodType := defaultValue
+    var methodOptions interface{} = this.safeDict(this.options, methodName)
+    var methodType interface{} = defaultValue
     if IsTrue(!IsEqual(methodOptions, nil)) {
         if IsTrue(IsString(methodOptions)) {
             methodType = methodOptions
@@ -3321,12 +3321,12 @@ func  (this *Exchange) handleMarketTypeAndParams(methodName string, optionalArgs
             methodType = this.safeString2(methodOptions, "defaultType", "type", methodType)
         }
     }
-    marketType := Ternary(IsTrue((IsEqual(market, nil))), methodType, GetValue(market, "type"))
-    typeVar := this.safeString2(params, "defaultType", "type", marketType)
+    var marketType interface{} = Ternary(IsTrue((IsEqual(market, nil))), methodType, GetValue(market, "type"))
+    var typeVar interface{} = this.safeString2(params, "defaultType", "type", marketType)
     params = this.omit(params, []interface{}{"defaultType", "type"})
     return []interface{}{typeVar, params}
 }
-func  (this *Exchange) handleSubTypeAndParams(methodName string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) handleSubTypeAndParams(methodName interface{}, optionalArgs ...interface{}) interface{}  {
     market := GetArg(optionalArgs, 1, nil)
     _ = market
     params := GetArg(optionalArgs, 2, map[string]interface{} {})
@@ -3335,7 +3335,7 @@ func  (this *Exchange) handleSubTypeAndParams(methodName string, optionalArgs ..
     _ = defaultValue
     var subType interface{} = nil
     // if set in params, it takes precedence
-    subTypeInParams := this.safeString2(params, "subType", "defaultSubType")
+    var subTypeInParams interface{} = this.safeString2(params, "subType", "defaultSubType")
     // avoid omitting if it's not present
     if IsTrue(!IsEqual(subTypeInParams, nil)) {
         subType = subTypeInParams
@@ -3351,13 +3351,13 @@ func  (this *Exchange) handleSubTypeAndParams(methodName string, optionalArgs ..
         }
         // if it was not defined in market object
         if IsTrue(IsEqual(subType, nil)) {
-            values := this.handleOptionAndParams(map[string]interface{} {}, methodName, "subType", defaultValue) // no need to re-test params here
+            var values interface{} = this.handleOptionAndParams(map[string]interface{} {}, methodName, "subType", defaultValue) // no need to re-test params here
             subType = GetValue(values, 0)
         }
     }
     return []interface{}{subType, params}
 }
-func  (this *Exchange) handleMarginModeAndParams(methodName string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) handleMarginModeAndParams(methodName interface{}, optionalArgs ...interface{}) interface{}  {
     /**
     * @ignore
     * @method
@@ -3379,16 +3379,16 @@ func  (this *Exchange) throwExactlyMatchedException(exact interface{}, string in
     }
 }
 func  (this *Exchange) throwBroadlyMatchedException(broad interface{}, string interface{}, message interface{})  {
-    broadKey := this.findBroadlyMatchedKey(broad, string)
+    var broadKey interface{} = this.findBroadlyMatchedKey(broad, string)
     if IsTrue(!IsEqual(broadKey, nil)) {
         throwDynamicException(GetValue(broad, broadKey), message);
     }
 }
 func  (this *Exchange) findBroadlyMatchedKey(broad interface{}, string interface{}) interface{}  {
     // a helper for matching error strings exactly vs broadly
-    keys := ObjectKeys(broad)
+    var keys interface{} = ObjectKeys(broad)
     for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
-        key := GetValue(keys, i)
+        var key interface{} = GetValue(keys, i)
         if IsTrue(!IsEqual(string, nil)) {
             if IsTrue(IsGreaterThanOrEqual(GetIndexOf(string, key), 0)) {
                 return key
@@ -3397,7 +3397,7 @@ func  (this *Exchange) findBroadlyMatchedKey(broad interface{}, string interface
     }
     return nil
 }
-func  (this *Exchange) handleErrors(statusCode interface{}, statusText string, url string, method string, responseHeaders interface{}, responseBody string, response interface{}, requestHeaders interface{}, requestBody interface{}) interface{}  {
+func  (this *Exchange) handleErrors(statusCode interface{}, statusText interface{}, url interface{}, method interface{}, responseHeaders interface{}, responseBody interface{}, response interface{}, requestHeaders interface{}, requestBody interface{}) interface{}  {
     // it is a stub method that must be overrided in the derived exchange classes
     // throw new NotSupported (this.id + ' handleErrors() not implemented yet');
     return nil
@@ -3407,15 +3407,15 @@ func  (this *Exchange) calculateRateLimiterCost(api interface{}, method interfac
     _ = config
     return this.safeValue(config, "cost", 1)
 }
-func  (this *Exchange) fetchTicker(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchTicker(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     if IsTrue(GetValue(this.has, "fetchTickers")) {
         this.loadMarkets()
-        market := this.market(symbol)
+        var market interface{} = this.market(symbol)
         symbol = GetValue(market, "symbol")
-        tickers := this.fetchTickers([]interface{}{symbol}, params)
-        ticker := this.safeDict(tickers, symbol)
+        var tickers interface{} = this.fetchTickers([]interface{}{symbol}, params)
+        var ticker interface{} = this.safeDict(tickers, symbol)
         if IsTrue(IsEqual(ticker, nil)) {
             panic(NullResponse(Add(Add(this.id, " fetchTickers() could not find a ticker for "), symbol)))
         } else {
@@ -3425,15 +3425,15 @@ func  (this *Exchange) fetchTicker(symbol string, optionalArgs ...interface{}) i
         panic(NotSupported(Add(this.id, " fetchTicker() is not supported yet")))
     }
 }
-func  (this *Exchange) fetchTickerWs(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchTickerWs(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     if IsTrue(GetValue(this.has, "fetchTickersWs")) {
         this.loadMarkets()
-        market := this.market(symbol)
+        var market interface{} = this.market(symbol)
         symbol = GetValue(market, "symbol")
-        tickers := this.fetchTickerWs(symbol, params)
-        ticker := this.safeDict(tickers, symbol)
+        var tickers interface{} = this.fetchTickerWs(symbol, params)
+        var ticker interface{} = this.safeDict(tickers, symbol)
         if IsTrue(IsEqual(ticker, nil)) {
             panic(NullResponse(Add(Add(this.id, " fetchTickers() could not find a ticker for "), symbol)))
         } else {
@@ -3443,7 +3443,7 @@ func  (this *Exchange) fetchTickerWs(symbol string, optionalArgs ...interface{})
         panic(NotSupported(Add(this.id, " fetchTicker() is not supported yet")))
     }
 }
-func  (this *Exchange) watchTicker(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) watchTicker(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " watchTicker() is not supported yet")))
@@ -3485,28 +3485,28 @@ func  (this *Exchange) watchTickers(optionalArgs ...interface{}) interface{}  {
     _ = params
     panic(NotSupported(Add(this.id, " watchTickers() is not supported yet")))
 }
-func  (this *Exchange) fetchOrder(id string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchOrder(id interface{}, optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 1, nil)
     _ = symbol
     params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " fetchOrder() is not supported yet")))
 }
-func  (this *Exchange) fetchOrderWs(id string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchOrderWs(id interface{}, optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 1, nil)
     _ = symbol
     params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " fetchOrderWs() is not supported yet")))
 }
-func  (this *Exchange) fetchOrderStatus(id string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchOrderStatus(id interface{}, optionalArgs ...interface{}) interface{}  {
     // TODO: TypeScript: change method signature by replacing
     // Promise<string> with Promise<Order['status']>.
     symbol := GetArg(optionalArgs, 1, nil)
     _ = symbol
     params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
-    order := this.fetchOrder(id, symbol, params)
+    var order interface{} = this.fetchOrder(id, symbol, params)
     return GetValue(order, "status")
 }
 func  (this *Exchange) fetchUnifiedOrder(order interface{}, optionalArgs ...interface{}) interface{}  {
@@ -3514,14 +3514,14 @@ func  (this *Exchange) fetchUnifiedOrder(order interface{}, optionalArgs ...inte
     _ = params
     return this.fetchOrder(this.safeString(order, "id"), this.safeString(order, "symbol"), params)
 }
-func  (this *Exchange) createOrder(symbol string, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     price := GetArg(optionalArgs, 4, nil)
     _ = price
     params := GetArg(optionalArgs, 5, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " createOrder() is not supported yet")))
 }
-func  (this *Exchange) createTrailingAmountOrder(symbol string, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createTrailingAmountOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     /**
     * @method
     * @name createTrailingAmountOrder
@@ -3556,7 +3556,7 @@ func  (this *Exchange) createTrailingAmountOrder(symbol string, typeVar interfac
     }
     panic(NotSupported(Add(this.id, " createTrailingAmountOrder() is not supported yet")))
 }
-func  (this *Exchange) createTrailingAmountOrderWs(symbol string, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createTrailingAmountOrderWs(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     /**
     * @method
     * @name createTrailingAmountOrderWs
@@ -3591,7 +3591,7 @@ func  (this *Exchange) createTrailingAmountOrderWs(symbol string, typeVar interf
     }
     panic(NotSupported(Add(this.id, " createTrailingAmountOrderWs() is not supported yet")))
 }
-func  (this *Exchange) createTrailingPercentOrder(symbol string, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createTrailingPercentOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     /**
     * @method
     * @name createTrailingPercentOrder
@@ -3626,7 +3626,7 @@ func  (this *Exchange) createTrailingPercentOrder(symbol string, typeVar interfa
     }
     panic(NotSupported(Add(this.id, " createTrailingPercentOrder() is not supported yet")))
 }
-func  (this *Exchange) createTrailingPercentOrderWs(symbol string, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createTrailingPercentOrderWs(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     /**
     * @method
     * @name createTrailingPercentOrderWs
@@ -3661,7 +3661,7 @@ func  (this *Exchange) createTrailingPercentOrderWs(symbol string, typeVar inter
     }
     panic(NotSupported(Add(this.id, " createTrailingPercentOrderWs() is not supported yet")))
 }
-func  (this *Exchange) createMarketOrderWithCost(symbol string, side interface{}, cost interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createMarketOrderWithCost(symbol interface{}, side interface{}, cost interface{}, optionalArgs ...interface{}) interface{}  {
     /**
     * @method
     * @name createMarketOrderWithCost
@@ -3679,7 +3679,7 @@ func  (this *Exchange) createMarketOrderWithCost(symbol string, side interface{}
     }
     panic(NotSupported(Add(this.id, " createMarketOrderWithCost() is not supported yet")))
 }
-func  (this *Exchange) createMarketBuyOrderWithCost(symbol string, cost interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createMarketBuyOrderWithCost(symbol interface{}, cost interface{}, optionalArgs ...interface{}) interface{}  {
     /**
     * @method
     * @name createMarketBuyOrderWithCost
@@ -3696,7 +3696,7 @@ func  (this *Exchange) createMarketBuyOrderWithCost(symbol string, cost interfac
     }
     panic(NotSupported(Add(this.id, " createMarketBuyOrderWithCost() is not supported yet")))
 }
-func  (this *Exchange) createMarketSellOrderWithCost(symbol string, cost interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createMarketSellOrderWithCost(symbol interface{}, cost interface{}, optionalArgs ...interface{}) interface{}  {
     /**
     * @method
     * @name createMarketSellOrderWithCost
@@ -3713,7 +3713,7 @@ func  (this *Exchange) createMarketSellOrderWithCost(symbol string, cost interfa
     }
     panic(NotSupported(Add(this.id, " createMarketSellOrderWithCost() is not supported yet")))
 }
-func  (this *Exchange) createMarketOrderWithCostWs(symbol string, side interface{}, cost interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createMarketOrderWithCostWs(symbol interface{}, side interface{}, cost interface{}, optionalArgs ...interface{}) interface{}  {
     /**
     * @method
     * @name createMarketOrderWithCostWs
@@ -3731,7 +3731,7 @@ func  (this *Exchange) createMarketOrderWithCostWs(symbol string, side interface
     }
     panic(NotSupported(Add(this.id, " createMarketOrderWithCostWs() is not supported yet")))
 }
-func  (this *Exchange) createTriggerOrder(symbol string, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createTriggerOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     /**
     * @method
     * @name createTriggerOrder
@@ -3760,7 +3760,7 @@ func  (this *Exchange) createTriggerOrder(symbol string, typeVar interface{}, si
     }
     panic(NotSupported(Add(this.id, " createTriggerOrder() is not supported yet")))
 }
-func  (this *Exchange) createTriggerOrderWs(symbol string, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createTriggerOrderWs(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     /**
     * @method
     * @name createTriggerOrderWs
@@ -3789,7 +3789,7 @@ func  (this *Exchange) createTriggerOrderWs(symbol string, typeVar interface{}, 
     }
     panic(NotSupported(Add(this.id, " createTriggerOrderWs() is not supported yet")))
 }
-func  (this *Exchange) createStopLossOrder(symbol string, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createStopLossOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     /**
     * @method
     * @name createStopLossOrder
@@ -3818,7 +3818,7 @@ func  (this *Exchange) createStopLossOrder(symbol string, typeVar interface{}, s
     }
     panic(NotSupported(Add(this.id, " createStopLossOrder() is not supported yet")))
 }
-func  (this *Exchange) createStopLossOrderWs(symbol string, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createStopLossOrderWs(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     /**
     * @method
     * @name createStopLossOrderWs
@@ -3847,7 +3847,7 @@ func  (this *Exchange) createStopLossOrderWs(symbol string, typeVar interface{},
     }
     panic(NotSupported(Add(this.id, " createStopLossOrderWs() is not supported yet")))
 }
-func  (this *Exchange) createTakeProfitOrder(symbol string, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createTakeProfitOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     /**
     * @method
     * @name createTakeProfitOrder
@@ -3876,7 +3876,7 @@ func  (this *Exchange) createTakeProfitOrder(symbol string, typeVar interface{},
     }
     panic(NotSupported(Add(this.id, " createTakeProfitOrder() is not supported yet")))
 }
-func  (this *Exchange) createTakeProfitOrderWs(symbol string, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createTakeProfitOrderWs(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     /**
     * @method
     * @name createTakeProfitOrderWs
@@ -3905,7 +3905,7 @@ func  (this *Exchange) createTakeProfitOrderWs(symbol string, typeVar interface{
     }
     panic(NotSupported(Add(this.id, " createTakeProfitOrderWs() is not supported yet")))
 }
-func  (this *Exchange) createOrderWithTakeProfitAndStopLoss(symbol string, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createOrderWithTakeProfitAndStopLoss(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     /**
     * @method
     * @name createOrderWithTakeProfitAndStopLoss
@@ -3942,7 +3942,7 @@ func  (this *Exchange) createOrderWithTakeProfitAndStopLoss(symbol string, typeV
     }
     panic(NotSupported(Add(this.id, " createOrderWithTakeProfitAndStopLoss() is not supported yet")))
 }
-func  (this *Exchange) setTakeProfitAndStopLossParams(symbol string, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) setTakeProfitAndStopLossParams(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     price := GetArg(optionalArgs, 4, nil)
     _ = price
     takeProfit := GetArg(optionalArgs, 5, nil)
@@ -3964,14 +3964,14 @@ func  (this *Exchange) setTakeProfitAndStopLossParams(symbol string, typeVar int
     "triggerPrice": stopLoss,
 })
     }
-    takeProfitType := this.safeString(params, "takeProfitType")
-    takeProfitPriceType := this.safeString(params, "takeProfitPriceType")
-    takeProfitLimitPrice := this.safeString(params, "takeProfitLimitPrice")
-    takeProfitAmount := this.safeString(params, "takeProfitAmount")
-    stopLossType := this.safeString(params, "stopLossType")
-    stopLossPriceType := this.safeString(params, "stopLossPriceType")
-    stopLossLimitPrice := this.safeString(params, "stopLossLimitPrice")
-    stopLossAmount := this.safeString(params, "stopLossAmount")
+    var takeProfitType interface{} = this.safeString(params, "takeProfitType")
+    var takeProfitPriceType interface{} = this.safeString(params, "takeProfitPriceType")
+    var takeProfitLimitPrice interface{} = this.safeString(params, "takeProfitLimitPrice")
+    var takeProfitAmount interface{} = this.safeString(params, "takeProfitAmount")
+    var stopLossType interface{} = this.safeString(params, "stopLossType")
+    var stopLossPriceType interface{} = this.safeString(params, "stopLossPriceType")
+    var stopLossLimitPrice interface{} = this.safeString(params, "stopLossLimitPrice")
+    var stopLossAmount interface{} = this.safeString(params, "stopLossAmount")
     if IsTrue(!IsEqual(takeProfitType, nil)) {
         AddElementToObject(GetValue(params, "takeProfit"), "type", takeProfitType)
     }
@@ -3999,7 +3999,7 @@ func  (this *Exchange) setTakeProfitAndStopLossParams(symbol string, typeVar int
     params = this.omit(params, []interface{}{"takeProfitType", "takeProfitPriceType", "takeProfitLimitPrice", "takeProfitAmount", "stopLossType", "stopLossPriceType", "stopLossLimitPrice", "stopLossAmount"})
     return params
 }
-func  (this *Exchange) createOrderWithTakeProfitAndStopLossWs(symbol string, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createOrderWithTakeProfitAndStopLossWs(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     /**
     * @method
     * @name createOrderWithTakeProfitAndStopLossWs
@@ -4041,21 +4041,21 @@ func  (this *Exchange) createOrders(orders interface{}, optionalArgs ...interfac
     _ = params
     panic(NotSupported(Add(this.id, " createOrders() is not supported yet")))
 }
-func  (this *Exchange) createOrderWs(symbol string, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createOrderWs(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     price := GetArg(optionalArgs, 4, nil)
     _ = price
     params := GetArg(optionalArgs, 5, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " createOrderWs() is not supported yet")))
 }
-func  (this *Exchange) cancelOrder(id string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) cancelOrder(id interface{}, optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 1, nil)
     _ = symbol
     params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " cancelOrder() is not supported yet")))
 }
-func  (this *Exchange) cancelOrderWs(id string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) cancelOrderWs(id interface{}, optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 1, nil)
     _ = symbol
     params := GetArg(optionalArgs, 2, map[string]interface{} {})
@@ -4123,7 +4123,7 @@ func  (this *Exchange) fetchOrdersWs(optionalArgs ...interface{}) interface{}  {
     _ = params
     panic(NotSupported(Add(this.id, " fetchOrdersWs() is not supported yet")))
 }
-func  (this *Exchange) fetchOrderTrades(id string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchOrderTrades(id interface{}, optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 1, nil)
     _ = symbol
     since := GetArg(optionalArgs, 2, nil)
@@ -4155,7 +4155,7 @@ func  (this *Exchange) fetchOpenOrders(optionalArgs ...interface{}) interface{} 
     params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     if IsTrue(GetValue(this.has, "fetchOrders")) {
-        orders := this.fetchOrders(symbol, since, limit, params)
+        var orders interface{} = this.fetchOrders(symbol, since, limit, params)
         return this.filterBy(orders, "status", "open")
     }
     panic(NotSupported(Add(this.id, " fetchOpenOrders() is not supported yet")))
@@ -4170,7 +4170,7 @@ func  (this *Exchange) fetchOpenOrdersWs(optionalArgs ...interface{}) interface{
     params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     if IsTrue(GetValue(this.has, "fetchOrdersWs")) {
-        orders := this.fetchOrdersWs(symbol, since, limit, params)
+        var orders interface{} = this.fetchOrdersWs(symbol, since, limit, params)
         return this.filterBy(orders, "status", "open")
     }
     panic(NotSupported(Add(this.id, " fetchOpenOrdersWs() is not supported yet")))
@@ -4185,7 +4185,7 @@ func  (this *Exchange) fetchClosedOrders(optionalArgs ...interface{}) interface{
     params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     if IsTrue(GetValue(this.has, "fetchOrders")) {
-        orders := this.fetchOrders(symbol, since, limit, params)
+        var orders interface{} = this.fetchOrders(symbol, since, limit, params)
         return this.filterBy(orders, "status", "closed")
     }
     panic(NotSupported(Add(this.id, " fetchClosedOrders() is not supported yet")))
@@ -4211,7 +4211,7 @@ func  (this *Exchange) fetchClosedOrdersWs(optionalArgs ...interface{}) interfac
     params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     if IsTrue(GetValue(this.has, "fetchOrdersWs")) {
-        orders := this.fetchOrdersWs(symbol, since, limit, params)
+        var orders interface{} = this.fetchOrdersWs(symbol, since, limit, params)
         return this.filterBy(orders, "status", "closed")
     }
     panic(NotSupported(Add(this.id, " fetchClosedOrdersWs() is not supported yet")))
@@ -4238,7 +4238,7 @@ func  (this *Exchange) fetchMyLiquidations(optionalArgs ...interface{}) interfac
     _ = params
     panic(NotSupported(Add(this.id, " fetchMyLiquidations() is not supported yet")))
 }
-func  (this *Exchange) fetchLiquidations(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchLiquidations(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     since := GetArg(optionalArgs, 1, nil)
     _ = since
     limit := GetArg(optionalArgs, 2, nil)
@@ -4269,22 +4269,22 @@ func  (this *Exchange) watchMyTrades(optionalArgs ...interface{}) interface{}  {
     _ = params
     panic(NotSupported(Add(this.id, " watchMyTrades() is not supported yet")))
 }
-func  (this *Exchange) fetchGreeks(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchGreeks(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " fetchGreeks() is not supported yet")))
 }
-func  (this *Exchange) fetchOptionChain(code string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchOptionChain(code interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " fetchOptionChain() is not supported yet")))
 }
-func  (this *Exchange) fetchOption(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchOption(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.id, " fetchOption() is not supported yet")))
 }
-func  (this *Exchange) fetchConvertQuote(fromCode string, toCode string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchConvertQuote(fromCode interface{}, toCode interface{}, optionalArgs ...interface{}) interface{}  {
     amount := GetArg(optionalArgs, 2, nil)
     _ = amount
     params := GetArg(optionalArgs, 3, map[string]interface{} {})
@@ -4368,7 +4368,7 @@ func  (this *Exchange) fetchFundingHistory(optionalArgs ...interface{}) interfac
     _ = params
     panic(NotSupported(Add(this.id, " fetchFundingHistory() is not supported yet")))
 }
-func  (this *Exchange) closePosition(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) closePosition(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     side := GetArg(optionalArgs, 1, nil)
     _ = side
     params := GetArg(optionalArgs, 2, map[string]interface{} {})
@@ -4380,7 +4380,7 @@ func  (this *Exchange) closeAllPositions(optionalArgs ...interface{}) interface{
     _ = params
     panic(NotSupported(Add(this.id, " closeAllPositions() is not supported yet")))
 }
-func  (this *Exchange) fetchL3OrderBook(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchL3OrderBook(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     limit := GetArg(optionalArgs, 1, nil)
     _ = limit
     params := GetArg(optionalArgs, 2, map[string]interface{} {})
@@ -4392,26 +4392,26 @@ func  (this *Exchange) parseLastPrice(price interface{}, optionalArgs ...interfa
     _ = market
     panic(NotSupported(Add(this.id, " parseLastPrice() is not supported yet")))
 }
-func  (this *Exchange) fetchDepositAddress(code string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchDepositAddress(code interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     if IsTrue(GetValue(this.has, "fetchDepositAddresses")) {
-        depositAddresses := this.fetchDepositAddresses([]interface{}{code}, params)
-        depositAddress := this.safeValue(depositAddresses, code)
+        var depositAddresses interface{} = this.fetchDepositAddresses([]interface{}{code}, params)
+        var depositAddress interface{} = this.safeValue(depositAddresses, code)
         if IsTrue(IsEqual(depositAddress, nil)) {
             panic(InvalidAddress(Add(Add(Add(this.id, " fetchDepositAddress() could not find a deposit address for "), code), ", make sure you have created a corresponding deposit address in your wallet on the exchange website")))
         } else {
             return depositAddress
         }
     } else if IsTrue(GetValue(this.has, "fetchDepositAddressesByNetwork")) {
-        network := this.safeString(params, "network")
+        var network interface{} = this.safeString(params, "network")
         params = this.omit(params, "network")
-        addressStructures := this.fetchDepositAddressesByNetwork(code, params)
+        var addressStructures interface{} = this.fetchDepositAddressesByNetwork(code, params)
         if IsTrue(!IsEqual(network, nil)) {
             return this.safeDict(addressStructures, network)
         } else {
-            keys := ObjectKeys(addressStructures)
-            key := this.safeString(keys, 0)
+            var keys interface{} = ObjectKeys(addressStructures)
+            var key interface{} = this.safeString(keys, 0)
             return this.safeDict(addressStructures, key)
         }
     } else {
@@ -4425,13 +4425,13 @@ func  (this *Exchange) account() interface{}  {
         "total": nil,
     }
 }
-func  (this *Exchange) commonCurrencyCode(code string) interface{}  {
+func  (this *Exchange) commonCurrencyCode(code interface{}) interface{}  {
     if !IsTrue(this.substituteCommonCurrencyCodes) {
         return code
     }
     return this.safeString(this.commonCurrencies, code, code)
 }
-func  (this *Exchange) currency(code string) interface{}  {
+func  (this *Exchange) currency(code interface{}) interface{}  {
     if IsTrue(IsEqual(this.currencies, nil)) {
         panic(ExchangeError(Add(this.id, " currencies not loaded")))
     }
@@ -4444,17 +4444,17 @@ func  (this *Exchange) currency(code string) interface{}  {
     }
     panic(ExchangeError(Add(Add(this.id, " does not have currency code "), code)))
 }
-func  (this *Exchange) market(symbol string) interface{}  {
+func  (this *Exchange) market(symbol interface{}) interface{}  {
     if IsTrue(IsEqual(this.markets, nil)) {
         panic(ExchangeError(Add(this.id, " markets not loaded")))
     }
     if IsTrue(InOp(this.markets, symbol)) {
         return GetValue(this.markets, symbol)
     } else if IsTrue(InOp(this.markets_by_id, symbol)) {
-        markets := GetValue(this.markets_by_id, symbol)
-        defaultType := this.safeString2(this.options, "defaultType", "defaultSubType", "spot")
+        var markets interface{} = GetValue(this.markets_by_id, symbol)
+        var defaultType interface{} = this.safeString2(this.options, "defaultType", "defaultSubType", "spot")
         for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
-            market := GetValue(markets, i)
+            var market interface{} = GetValue(markets, i)
             if IsTrue(GetValue(market, defaultType)) {
                 return market
             }
@@ -4465,7 +4465,7 @@ func  (this *Exchange) market(symbol string) interface{}  {
     }
     panic(BadSymbol(Add(Add(this.id, " does not have market symbol "), symbol)))
 }
-func  (this *Exchange) createExpiredOptionMarket(symbol string) interface{}  {
+func  (this *Exchange) createExpiredOptionMarket(symbol interface{}) interface{}  {
     panic(NotSupported(Add(this.id, " createExpiredOptionMarket () is not supported yet")))
 }
 func  (this *Exchange) handleWithdrawTagAndParams(tag interface{}, params interface{}) interface{}  {
@@ -4481,102 +4481,102 @@ func  (this *Exchange) handleWithdrawTagAndParams(tag interface{}, params interf
     }
     return []interface{}{tag, params}
 }
-func  (this *Exchange) createLimitOrder(symbol string, side interface{}, amount interface{}, price interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createLimitOrder(symbol interface{}, side interface{}, amount interface{}, price interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 4, map[string]interface{} {})
     _ = params
     return this.createOrder(symbol, "limit", side, amount, price, params)
 }
-func  (this *Exchange) createLimitOrderWs(symbol string, side interface{}, amount interface{}, price interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createLimitOrderWs(symbol interface{}, side interface{}, amount interface{}, price interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 4, map[string]interface{} {})
     _ = params
     return this.createOrderWs(symbol, "limit", side, amount, price, params)
 }
-func  (this *Exchange) createMarketOrder(symbol string, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createMarketOrder(symbol interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     price := GetArg(optionalArgs, 3, nil)
     _ = price
     params := GetArg(optionalArgs, 4, map[string]interface{} {})
     _ = params
     return this.createOrder(symbol, "market", side, amount, price, params)
 }
-func  (this *Exchange) createMarketOrderWs(symbol string, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createMarketOrderWs(symbol interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     price := GetArg(optionalArgs, 3, nil)
     _ = price
     params := GetArg(optionalArgs, 4, map[string]interface{} {})
     _ = params
     return this.createOrderWs(symbol, "market", side, amount, price, params)
 }
-func  (this *Exchange) createLimitBuyOrder(symbol string, amount interface{}, price interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createLimitBuyOrder(symbol interface{}, amount interface{}, price interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     return this.createOrder(symbol, "limit", "buy", amount, price, params)
 }
-func  (this *Exchange) createLimitBuyOrderWs(symbol string, amount interface{}, price interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createLimitBuyOrderWs(symbol interface{}, amount interface{}, price interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     return this.createOrderWs(symbol, "limit", "buy", amount, price, params)
 }
-func  (this *Exchange) createLimitSellOrder(symbol string, amount interface{}, price interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createLimitSellOrder(symbol interface{}, amount interface{}, price interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     return this.createOrder(symbol, "limit", "sell", amount, price, params)
 }
-func  (this *Exchange) createLimitSellOrderWs(symbol string, amount interface{}, price interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createLimitSellOrderWs(symbol interface{}, amount interface{}, price interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     return this.createOrderWs(symbol, "limit", "sell", amount, price, params)
 }
-func  (this *Exchange) createMarketBuyOrder(symbol string, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createMarketBuyOrder(symbol interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     return this.createOrder(symbol, "market", "buy", amount, nil, params)
 }
-func  (this *Exchange) createMarketBuyOrderWs(symbol string, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createMarketBuyOrderWs(symbol interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     return this.createOrderWs(symbol, "market", "buy", amount, nil, params)
 }
-func  (this *Exchange) createMarketSellOrder(symbol string, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createMarketSellOrder(symbol interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     return this.createOrder(symbol, "market", "sell", amount, nil, params)
 }
-func  (this *Exchange) createMarketSellOrderWs(symbol string, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createMarketSellOrderWs(symbol interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     return this.createOrderWs(symbol, "market", "sell", amount, nil, params)
 }
-func  (this *Exchange) costToPrecision(symbol string, cost interface{}) interface{}  {
-    market := this.market(symbol)
+func  (this *Exchange) costToPrecision(symbol interface{}, cost interface{}) interface{}  {
+    var market interface{} = this.market(symbol)
     return this.decimalToPrecision(cost, TRUNCATE, GetValue(GetValue(market, "precision"), "price"), this.precisionMode, this.paddingMode)
 }
-func  (this *Exchange) priceToPrecision(symbol string, price interface{}) interface{}  {
-    market := this.market(symbol)
-    result := this.decimalToPrecision(price, ROUND, GetValue(GetValue(market, "precision"), "price"), this.precisionMode, this.paddingMode)
+func  (this *Exchange) priceToPrecision(symbol interface{}, price interface{}) interface{}  {
+    var market interface{} = this.market(symbol)
+    var result interface{} = this.decimalToPrecision(price, ROUND, GetValue(GetValue(market, "precision"), "price"), this.precisionMode, this.paddingMode)
     if IsTrue(IsEqual(result, "0")) {
         panic(InvalidOrder(Add(Add(Add(Add(this.id, " price of "), GetValue(market, "symbol")), " must be greater than minimum price precision of "), this.numberToString(GetValue(GetValue(market, "precision"), "price")))))
     }
     return result
 }
-func  (this *Exchange) amountToPrecision(symbol string, amount interface{}) interface{}  {
-    market := this.market(symbol)
-    result := this.decimalToPrecision(amount, TRUNCATE, GetValue(GetValue(market, "precision"), "amount"), this.precisionMode, this.paddingMode)
+func  (this *Exchange) amountToPrecision(symbol interface{}, amount interface{}) interface{}  {
+    var market interface{} = this.market(symbol)
+    var result interface{} = this.decimalToPrecision(amount, TRUNCATE, GetValue(GetValue(market, "precision"), "amount"), this.precisionMode, this.paddingMode)
     if IsTrue(IsEqual(result, "0")) {
         panic(InvalidOrder(Add(Add(Add(Add(this.id, " amount of "), GetValue(market, "symbol")), " must be greater than minimum amount precision of "), this.numberToString(GetValue(GetValue(market, "precision"), "amount")))))
     }
     return result
 }
-func  (this *Exchange) feeToPrecision(symbol string, fee interface{}) interface{}  {
-    market := this.market(symbol)
+func  (this *Exchange) feeToPrecision(symbol interface{}, fee interface{}) interface{}  {
+    var market interface{} = this.market(symbol)
     return this.decimalToPrecision(fee, ROUND, GetValue(GetValue(market, "precision"), "price"), this.precisionMode, this.paddingMode)
 }
-func  (this *Exchange) currencyToPrecision(code string, fee interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) currencyToPrecision(code interface{}, fee interface{}, optionalArgs ...interface{}) interface{}  {
     networkCode := GetArg(optionalArgs, 2, nil)
     _ = networkCode
-    currency := GetValue(this.currencies, code)
-    precision := this.safeValue(currency, "precision")
+    var currency interface{} = GetValue(this.currencies, code)
+    var precision interface{} = this.safeValue(currency, "precision")
     if IsTrue(!IsEqual(networkCode, nil)) {
-        networks := this.safeDict(currency, "networks", map[string]interface{} {})
-        networkItem := this.safeDict(networks, networkCode, map[string]interface{} {})
+        var networks interface{} = this.safeDict(currency, "networks", map[string]interface{} {})
+        var networkItem interface{} = this.safeDict(networks, networkCode, map[string]interface{} {})
         precision = this.safeValue(networkItem, "precision", precision)
     }
     if IsTrue(IsEqual(precision, nil)) {
@@ -4603,16 +4603,16 @@ func  (this *Exchange) isSignificantPrecision() interface{}  {
 func  (this *Exchange) safeNumber(obj interface{}, key interface{}, optionalArgs ...interface{}) interface{}  {
     defaultNumber := GetArg(optionalArgs, 2, nil)
     _ = defaultNumber
-    value := this.safeString(obj, key)
+    var value interface{} = this.safeString(obj, key)
     return this.parseNumber(value, defaultNumber)
 }
 func  (this *Exchange) safeNumberN(obj interface{}, arr interface{}, optionalArgs ...interface{}) interface{}  {
     defaultNumber := GetArg(optionalArgs, 2, nil)
     _ = defaultNumber
-    value := this.safeStringN(obj, arr)
+    var value interface{} = this.safeStringN(obj, arr)
     return this.parseNumber(value, defaultNumber)
 }
-func  (this *Exchange) parsePrecision(precision string) interface{}  {
+func  (this *Exchange) parsePrecision(precision interface{}) interface{}  {
     /**
      * @ignore
      * @method
@@ -4622,11 +4622,11 @@ func  (this *Exchange) parsePrecision(precision string) interface{}  {
     if IsTrue(IsEqual(precision, nil)) {
         return nil
     }
-    precisionNumber := parseInt(precision)
+    var precisionNumber interface{} = parseInt(precision)
     if IsTrue(IsEqual(precisionNumber, 0)) {
         return "1"
     }
-    parsedPrecision := "0."
+    var parsedPrecision interface{} = "0."
     for i := 0; IsLessThan(i, Subtract(precisionNumber, 1)); i++ {
         parsedPrecision = Add(parsedPrecision, "0")
     }
@@ -4646,9 +4646,9 @@ func  (this *Exchange) integerPrecisionToAmount(precision interface{}) interface
     if IsTrue(Precise.stringGe(precision, "0")) {
         return this.parsePrecision(precision)
     } else {
-        positivePrecisionString := Precise.stringAbs(precision)
-        positivePrecision := parseInt(positivePrecisionString)
-        parsedPrecision := "1"
+        var positivePrecisionString interface{} = Precise.stringAbs(precision)
+        var positivePrecision interface{} = parseInt(positivePrecisionString)
+        var parsedPrecision interface{} = "1"
         for i := 0; IsLessThan(i, Subtract(positivePrecision, 1)); i++ {
             parsedPrecision = Add(parsedPrecision, "0")
         }
@@ -4658,31 +4658,31 @@ func  (this *Exchange) integerPrecisionToAmount(precision interface{}) interface
 func  (this *Exchange) loadTimeDifference(optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
-    serverTime := this.fetchTime(params)
-    after := this.milliseconds()
+    var serverTime interface{} = this.fetchTime(params)
+    var after interface{} = this.milliseconds()
     AddElementToObject(this.options, "timeDifference", Subtract(after, serverTime))
     return GetValue(this.options, "timeDifference")
 }
-func  (this *Exchange) implodeHostname(url string) interface{}  {
+func  (this *Exchange) implodeHostname(url interface{}) interface{}  {
     return this.implodeParams(url, map[string]interface{} {
         "hostname": this.hostname,
     })
 }
-func  (this *Exchange) fetchMarketLeverageTiers(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchMarketLeverageTiers(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     if IsTrue(GetValue(this.has, "fetchLeverageTiers")) {
-        market := this.market(symbol)
+        var market interface{} = this.market(symbol)
         if !IsTrue(GetValue(market, "contract")) {
             panic(BadSymbol(Add(this.id, " fetchMarketLeverageTiers() supports contract markets only")))
         }
-        tiers := this.fetchLeverageTiers([]interface{}{symbol})
+        var tiers interface{} = this.fetchLeverageTiers([]interface{}{symbol})
         return this.safeValue(tiers, symbol)
     } else {
         panic(NotSupported(Add(this.id, " fetchMarketLeverageTiers() is not supported yet")))
     }
 }
-func  (this *Exchange) createPostOnlyOrder(symbol string, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createPostOnlyOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     price := GetArg(optionalArgs, 4, nil)
     _ = price
     params := GetArg(optionalArgs, 5, map[string]interface{} {})
@@ -4690,12 +4690,12 @@ func  (this *Exchange) createPostOnlyOrder(symbol string, typeVar interface{}, s
     if !IsTrue(GetValue(this.has, "createPostOnlyOrder")) {
         panic(NotSupported(Add(this.id, "createPostOnlyOrder() is not supported yet")))
     }
-    query := this.extend(params, map[string]interface{} {
+    var query interface{} = this.extend(params, map[string]interface{} {
         "postOnly": true,
     })
     return this.createOrder(symbol, typeVar, side, amount, price, query)
 }
-func  (this *Exchange) createPostOnlyOrderWs(symbol string, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createPostOnlyOrderWs(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     price := GetArg(optionalArgs, 4, nil)
     _ = price
     params := GetArg(optionalArgs, 5, map[string]interface{} {})
@@ -4703,12 +4703,12 @@ func  (this *Exchange) createPostOnlyOrderWs(symbol string, typeVar interface{},
     if !IsTrue(GetValue(this.has, "createPostOnlyOrderWs")) {
         panic(NotSupported(Add(this.id, "createPostOnlyOrderWs() is not supported yet")))
     }
-    query := this.extend(params, map[string]interface{} {
+    var query interface{} = this.extend(params, map[string]interface{} {
         "postOnly": true,
     })
     return this.createOrderWs(symbol, typeVar, side, amount, price, query)
 }
-func  (this *Exchange) createReduceOnlyOrder(symbol string, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createReduceOnlyOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     price := GetArg(optionalArgs, 4, nil)
     _ = price
     params := GetArg(optionalArgs, 5, map[string]interface{} {})
@@ -4716,12 +4716,12 @@ func  (this *Exchange) createReduceOnlyOrder(symbol string, typeVar interface{},
     if !IsTrue(GetValue(this.has, "createReduceOnlyOrder")) {
         panic(NotSupported(Add(this.id, "createReduceOnlyOrder() is not supported yet")))
     }
-    query := this.extend(params, map[string]interface{} {
+    var query interface{} = this.extend(params, map[string]interface{} {
         "reduceOnly": true,
     })
     return this.createOrder(symbol, typeVar, side, amount, price, query)
 }
-func  (this *Exchange) createReduceOnlyOrderWs(symbol string, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createReduceOnlyOrderWs(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     price := GetArg(optionalArgs, 4, nil)
     _ = price
     params := GetArg(optionalArgs, 5, map[string]interface{} {})
@@ -4729,12 +4729,12 @@ func  (this *Exchange) createReduceOnlyOrderWs(symbol string, typeVar interface{
     if !IsTrue(GetValue(this.has, "createReduceOnlyOrderWs")) {
         panic(NotSupported(Add(this.id, "createReduceOnlyOrderWs() is not supported yet")))
     }
-    query := this.extend(params, map[string]interface{} {
+    var query interface{} = this.extend(params, map[string]interface{} {
         "reduceOnly": true,
     })
     return this.createOrderWs(symbol, typeVar, side, amount, price, query)
 }
-func  (this *Exchange) createStopOrder(symbol string, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createStopOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     price := GetArg(optionalArgs, 4, nil)
     _ = price
     stopPrice := GetArg(optionalArgs, 5, nil)
@@ -4747,12 +4747,12 @@ func  (this *Exchange) createStopOrder(symbol string, typeVar interface{}, side 
     if IsTrue(IsEqual(stopPrice, nil)) {
         panic(ArgumentsRequired(Add(this.id, " create_stop_order() requires a stopPrice argument")))
     }
-    query := this.extend(params, map[string]interface{} {
+    var query interface{} = this.extend(params, map[string]interface{} {
         "stopPrice": stopPrice,
     })
     return this.createOrder(symbol, typeVar, side, amount, price, query)
 }
-func  (this *Exchange) createStopOrderWs(symbol string, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createStopOrderWs(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
     price := GetArg(optionalArgs, 4, nil)
     _ = price
     stopPrice := GetArg(optionalArgs, 5, nil)
@@ -4765,51 +4765,51 @@ func  (this *Exchange) createStopOrderWs(symbol string, typeVar interface{}, sid
     if IsTrue(IsEqual(stopPrice, nil)) {
         panic(ArgumentsRequired(Add(this.id, " createStopOrderWs() requires a stopPrice argument")))
     }
-    query := this.extend(params, map[string]interface{} {
+    var query interface{} = this.extend(params, map[string]interface{} {
         "stopPrice": stopPrice,
     })
     return this.createOrderWs(symbol, typeVar, side, amount, price, query)
 }
-func  (this *Exchange) createStopLimitOrder(symbol string, side interface{}, amount interface{}, price interface{}, stopPrice interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createStopLimitOrder(symbol interface{}, side interface{}, amount interface{}, price interface{}, stopPrice interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 5, map[string]interface{} {})
     _ = params
     if !IsTrue(GetValue(this.has, "createStopLimitOrder")) {
         panic(NotSupported(Add(this.id, " createStopLimitOrder() is not supported yet")))
     }
-    query := this.extend(params, map[string]interface{} {
+    var query interface{} = this.extend(params, map[string]interface{} {
         "stopPrice": stopPrice,
     })
     return this.createOrder(symbol, "limit", side, amount, price, query)
 }
-func  (this *Exchange) createStopLimitOrderWs(symbol string, side interface{}, amount interface{}, price interface{}, stopPrice interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createStopLimitOrderWs(symbol interface{}, side interface{}, amount interface{}, price interface{}, stopPrice interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 5, map[string]interface{} {})
     _ = params
     if !IsTrue(GetValue(this.has, "createStopLimitOrderWs")) {
         panic(NotSupported(Add(this.id, " createStopLimitOrderWs() is not supported yet")))
     }
-    query := this.extend(params, map[string]interface{} {
+    var query interface{} = this.extend(params, map[string]interface{} {
         "stopPrice": stopPrice,
     })
     return this.createOrderWs(symbol, "limit", side, amount, price, query)
 }
-func  (this *Exchange) createStopMarketOrder(symbol string, side interface{}, amount interface{}, stopPrice interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createStopMarketOrder(symbol interface{}, side interface{}, amount interface{}, stopPrice interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 4, map[string]interface{} {})
     _ = params
     if !IsTrue(GetValue(this.has, "createStopMarketOrder")) {
         panic(NotSupported(Add(this.id, " createStopMarketOrder() is not supported yet")))
     }
-    query := this.extend(params, map[string]interface{} {
+    var query interface{} = this.extend(params, map[string]interface{} {
         "stopPrice": stopPrice,
     })
     return this.createOrder(symbol, "market", side, amount, nil, query)
 }
-func  (this *Exchange) createStopMarketOrderWs(symbol string, side interface{}, amount interface{}, stopPrice interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) createStopMarketOrderWs(symbol interface{}, side interface{}, amount interface{}, stopPrice interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 4, map[string]interface{} {})
     _ = params
     if !IsTrue(GetValue(this.has, "createStopMarketOrderWs")) {
         panic(NotSupported(Add(this.id, " createStopMarketOrderWs() is not supported yet")))
     }
-    query := this.extend(params, map[string]interface{} {
+    var query interface{} = this.extend(params, map[string]interface{} {
         "stopPrice": stopPrice,
     })
     return this.createOrderWs(symbol, "market", side, amount, nil, query)
@@ -4851,7 +4851,7 @@ func  (this *Exchange) filterBySymbolsSinceLimit(array interface{}, optionalArgs
     _ = limit
     tail := GetArg(optionalArgs, 4, false)
     _ = tail
-    result := this.filterByArray(array, "symbol", symbols, false)
+    var result interface{} = this.filterByArray(array, "symbol", symbols, false)
     return this.filterBySinceLimit(result, since, limit, "timestamp", tail)
 }
 func  (this *Exchange) parseLastPrices(pricesData interface{}, optionalArgs ...interface{}) interface{}  {
@@ -4878,18 +4878,18 @@ func  (this *Exchange) parseLastPrices(pricesData interface{}, optionalArgs ...i
     _ = symbols
     params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
-    results := []interface{}{}
+    var results interface{} = []interface{}{}
     if IsTrue(IsArray(pricesData)) {
         for i := 0; IsLessThan(i, GetArrayLength(pricesData)); i++ {
-            priceData := this.extend(this.parseLastPrice(GetValue(pricesData, i)), params)
+            var priceData interface{} = this.extend(this.parseLastPrice(GetValue(pricesData, i)), params)
             results = AppendToArray(results,priceData).([]interface{})
         }
     } else {
-        marketIds := ObjectKeys(pricesData)
+        var marketIds interface{} = ObjectKeys(pricesData)
         for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
-            marketId := GetValue(marketIds, i)
-            market := this.safeMarket(marketId)
-            priceData := this.extend(this.parseLastPrice(GetValue(pricesData, marketId), market), params)
+            var marketId interface{} = GetValue(marketIds, i)
+            var market interface{} = this.safeMarket(marketId)
+            var priceData interface{} = this.extend(this.parseLastPrice(GetValue(pricesData, marketId), market), params)
             results = AppendToArray(results,priceData).([]interface{})
         }
     }
@@ -4923,18 +4923,18 @@ func  (this *Exchange) parseTickers(tickers interface{}, optionalArgs ...interfa
     _ = symbols
     params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
-    results := []interface{}{}
+    var results interface{} = []interface{}{}
     if IsTrue(IsArray(tickers)) {
         for i := 0; IsLessThan(i, GetArrayLength(tickers)); i++ {
-            ticker := this.extend(this.parseTicker(GetValue(tickers, i)), params)
+            var ticker interface{} = this.extend(this.parseTicker(GetValue(tickers, i)), params)
             results = AppendToArray(results,ticker).([]interface{})
         }
     } else {
-        marketIds := ObjectKeys(tickers)
+        var marketIds interface{} = ObjectKeys(tickers)
         for i := 0; IsLessThan(i, GetArrayLength(marketIds)); i++ {
-            marketId := GetValue(marketIds, i)
-            market := this.safeMarket(marketId)
-            ticker := this.extend(this.parseTicker(GetValue(tickers, marketId), market), params)
+            var marketId interface{} = GetValue(marketIds, i)
+            var market interface{} = this.safeMarket(marketId)
+            var ticker interface{} = this.extend(this.parseTicker(GetValue(tickers, marketId), market), params)
             results = AppendToArray(results,ticker).([]interface{})
         }
     }
@@ -4948,9 +4948,9 @@ func  (this *Exchange) parseDepositAddresses(addresses interface{}, optionalArgs
     _ = indexed
     params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
-    result := []interface{}{}
+    var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(addresses)); i++ {
-        address := this.extend(this.parseDepositAddress(GetValue(addresses, i)), params)
+        var address interface{} = this.extend(this.parseDepositAddress(GetValue(addresses, i)), params)
         result = AppendToArray(result,address).([]interface{})
     }
     if IsTrue(!IsEqual(codes, nil)) {
@@ -4964,19 +4964,19 @@ func  (this *Exchange) parseDepositAddresses(addresses interface{}, optionalArgs
 func  (this *Exchange) parseBorrowInterests(response interface{}, optionalArgs ...interface{}) interface{}  {
     market := GetArg(optionalArgs, 1, nil)
     _ = market
-    interests := []interface{}{}
+    var interests interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-        row := GetValue(response, i)
+        var row interface{} = GetValue(response, i)
         interests = AppendToArray(interests,this.parseBorrowInterest(row, market)).([]interface{})
     }
     return interests
 }
 func  (this *Exchange) parseIsolatedBorrowRates(info interface{}) interface{}  {
-    result := map[string]interface{} {}
+    var result interface{} = map[string]interface{} {}
     for i := 0; IsLessThan(i, GetArrayLength(info)); i++ {
-        item := GetValue(info, i)
-        borrowRate := this.parseIsolatedBorrowRate(item)
-        symbol := this.safeString(borrowRate, "symbol")
+        var item interface{} = GetValue(info, i)
+        var borrowRate interface{} = this.parseIsolatedBorrowRate(item)
+        var symbol interface{} = this.safeString(borrowRate, "symbol")
         AddElementToObject(result, symbol, borrowRate)
     }
     return result
@@ -4988,13 +4988,13 @@ func  (this *Exchange) parseFundingRateHistories(response interface{}, optionalA
     _ = since
     limit := GetArg(optionalArgs, 3, nil)
     _ = limit
-    rates := []interface{}{}
+    var rates interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-        entry := GetValue(response, i)
+        var entry interface{} = GetValue(response, i)
         rates = AppendToArray(rates,this.parseFundingRateHistory(entry, market)).([]interface{})
     }
-    sorted := this.sortBy(rates, "timestamp")
-    symbol := Ternary(IsTrue((IsEqual(market, nil))), nil, GetValue(market, "symbol"))
+    var sorted interface{} = this.sortBy(rates, "timestamp")
+    var symbol interface{} = Ternary(IsTrue((IsEqual(market, nil))), nil, GetValue(market, "symbol"))
     return this.filterBySymbolSinceLimit(sorted, symbol, since, limit)
 }
 func  (this *Exchange) safeSymbol(marketId interface{}, optionalArgs ...interface{}) interface{}  {
@@ -5007,7 +5007,7 @@ func  (this *Exchange) safeSymbol(marketId interface{}, optionalArgs ...interfac
     market = this.safeMarket(marketId, market, delimiter, marketType)
     return GetValue(market, "symbol")
 }
-func  (this *Exchange) parseFundingRate(contract string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) parseFundingRate(contract interface{}, optionalArgs ...interface{}) interface{}  {
     market := GetArg(optionalArgs, 1, nil)
     _ = market
     panic(NotSupported(Add(this.id, " parseFundingRate() is not supported yet")))
@@ -5015,15 +5015,15 @@ func  (this *Exchange) parseFundingRate(contract string, optionalArgs ...interfa
 func  (this *Exchange) parseFundingRates(response interface{}, optionalArgs ...interface{}) interface{}  {
     market := GetArg(optionalArgs, 1, nil)
     _ = market
-    result := map[string]interface{} {}
+    var result interface{} = map[string]interface{} {}
     for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-        parsed := this.parseFundingRate(GetValue(response, i), market)
+        var parsed interface{} = this.parseFundingRate(GetValue(response, i), market)
         AddElementToObject(result, GetValue(parsed, "symbol"), parsed)
     }
     return result
 }
 func  (this *Exchange) handleTriggerAndParams(params interface{}) interface{}  {
-    isTrigger := this.safeBool2(params, "trigger", "stop")
+    var isTrigger interface{} = this.safeBool2(params, "trigger", "stop")
     if IsTrue(isTrigger) {
         params = this.omit(params, []interface{}{"trigger", "stop"})
     }
@@ -5033,7 +5033,7 @@ func  (this *Exchange) isTriggerOrder(params interface{}) interface{}  {
     // for backwards compatibility
     return this.handleTriggerAndParams(params)
 }
-func  (this *Exchange) isPostOnly(isMarketOrder bool, exchangeSpecificParam interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) isPostOnly(isMarketOrder interface{}, exchangeSpecificParam interface{}, optionalArgs ...interface{}) interface{}  {
     /**
     * @ignore
     * @method
@@ -5044,12 +5044,12 @@ func  (this *Exchange) isPostOnly(isMarketOrder bool, exchangeSpecificParam inte
     */
     params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
-    timeInForce := this.safeStringUpper(params, "timeInForce")
-    postOnly := this.safeBool2(params, "postOnly", "post_only", false)
+    var timeInForce interface{} = this.safeStringUpper(params, "timeInForce")
+    var postOnly interface{} = this.safeBool2(params, "postOnly", "post_only", false)
     // we assume timeInForce is uppercase from safeStringUpper (params, 'timeInForce')
-    ioc := IsEqual(timeInForce, "IOC")
-    fok := IsEqual(timeInForce, "FOK")
-    timeInForcePostOnly := IsEqual(timeInForce, "PO")
+    var ioc interface{} = IsEqual(timeInForce, "IOC")
+    var fok interface{} = IsEqual(timeInForce, "FOK")
+    var timeInForcePostOnly interface{} = IsEqual(timeInForce, "PO")
     postOnly = IsTrue(IsTrue(postOnly) || IsTrue(timeInForcePostOnly)) || IsTrue(exchangeSpecificParam)
     if IsTrue(postOnly) {
         if IsTrue(IsTrue(ioc) || IsTrue(fok)) {
@@ -5063,7 +5063,7 @@ func  (this *Exchange) isPostOnly(isMarketOrder bool, exchangeSpecificParam inte
         return false
     }
 }
-func  (this *Exchange) handlePostOnly(isMarketOrder bool, exchangeSpecificPostOnlyOption bool, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) handlePostOnly(isMarketOrder interface{}, exchangeSpecificPostOnlyOption interface{}, optionalArgs ...interface{}) interface{}  {
     /**
     * @ignore
     * @method
@@ -5074,11 +5074,11 @@ func  (this *Exchange) handlePostOnly(isMarketOrder bool, exchangeSpecificPostOn
     */
     params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
-    timeInForce := this.safeStringUpper(params, "timeInForce")
-    postOnly := this.safeBool(params, "postOnly", false)
-    ioc := IsEqual(timeInForce, "IOC")
-    fok := IsEqual(timeInForce, "FOK")
-    po := IsEqual(timeInForce, "PO")
+    var timeInForce interface{} = this.safeStringUpper(params, "timeInForce")
+    var postOnly interface{} = this.safeBool(params, "postOnly", false)
+    var ioc interface{} = IsEqual(timeInForce, "IOC")
+    var fok interface{} = IsEqual(timeInForce, "FOK")
+    var po interface{} = IsEqual(timeInForce, "PO")
     postOnly = IsTrue(IsTrue(postOnly) || IsTrue(po)) || IsTrue(exchangeSpecificPostOnlyOption)
     if IsTrue(postOnly) {
         if IsTrue(IsTrue(ioc) || IsTrue(fok)) {
@@ -5112,13 +5112,13 @@ func  (this *Exchange) fetchTradingFeesWs(optionalArgs ...interface{}) interface
     _ = params
     panic(NotSupported(Add(this.id, " fetchTradingFeesWs() is not supported yet")))
 }
-func  (this *Exchange) fetchTradingFee(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchTradingFee(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     if !IsTrue(GetValue(this.has, "fetchTradingFees")) {
         panic(NotSupported(Add(this.id, " fetchTradingFee() is not supported yet")))
     }
-    fees := this.fetchTradingFees(params)
+    var fees interface{} = this.fetchTradingFees(params)
     return this.safeDict(fees, symbol)
 }
 func  (this *Exchange) fetchConvertCurrencies(optionalArgs ...interface{}) interface{}  {
@@ -5138,28 +5138,28 @@ func  (this *Exchange) parseOpenInterests(response interface{}, optionalArgs ...
     _ = since
     limit := GetArg(optionalArgs, 3, nil)
     _ = limit
-    interests := []interface{}{}
+    var interests interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-        entry := GetValue(response, i)
-        interest := this.parseOpenInterest(entry, market)
+        var entry interface{} = GetValue(response, i)
+        var interest interface{} = this.parseOpenInterest(entry, market)
         interests = AppendToArray(interests,interest).([]interface{})
     }
-    sorted := this.sortBy(interests, "timestamp")
-    symbol := this.safeString(market, "symbol")
+    var sorted interface{} = this.sortBy(interests, "timestamp")
+    var symbol interface{} = this.safeString(market, "symbol")
     return this.filterBySymbolSinceLimit(sorted, symbol, since, limit)
 }
-func  (this *Exchange) fetchFundingRate(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchFundingRate(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     if IsTrue(GetValue(this.has, "fetchFundingRates")) {
         this.loadMarkets()
-        market := this.market(symbol)
+        var market interface{} = this.market(symbol)
         symbol = GetValue(market, "symbol")
         if !IsTrue(GetValue(market, "contract")) {
             panic(BadSymbol(Add(this.id, " fetchFundingRate() supports contract markets only")))
         }
-        rates := this.fetchFundingRates([]interface{}{symbol}, params)
-        rate := this.safeValue(rates, symbol)
+        var rates interface{} = this.fetchFundingRates([]interface{}{symbol}, params)
+        var rate interface{} = this.safeValue(rates, symbol)
         if IsTrue(IsEqual(rate, nil)) {
             panic(NullResponse(Add(Add(this.id, " fetchFundingRate () returned no data for "), symbol)))
         } else {
@@ -5190,7 +5190,7 @@ func  (this *Exchange) fetchMarkOHLCV(symbol interface{}, optionalArgs ...interf
     params := GetArg(optionalArgs, 4, map[string]interface{} {})
     _ = params
     if IsTrue(GetValue(this.has, "fetchMarkOHLCV")) {
-        request := map[string]interface{} {
+        var request interface{} = map[string]interface{} {
             "price": "mark",
         }
         return this.fetchOHLCV(symbol, timeframe, since, limit, this.extend(request, params))
@@ -5198,7 +5198,7 @@ func  (this *Exchange) fetchMarkOHLCV(symbol interface{}, optionalArgs ...interf
         panic(NotSupported(Add(this.id, " fetchMarkOHLCV () is not supported yet")))
     }
 }
-func  (this *Exchange) fetchIndexOHLCV(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchIndexOHLCV(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     /**
     * @method
     * @name exchange#fetchIndexOHLCV
@@ -5219,7 +5219,7 @@ func  (this *Exchange) fetchIndexOHLCV(symbol string, optionalArgs ...interface{
     params := GetArg(optionalArgs, 4, map[string]interface{} {})
     _ = params
     if IsTrue(GetValue(this.has, "fetchIndexOHLCV")) {
-        request := map[string]interface{} {
+        var request interface{} = map[string]interface{} {
             "price": "index",
         }
         return this.fetchOHLCV(symbol, timeframe, since, limit, this.extend(request, params))
@@ -5227,7 +5227,7 @@ func  (this *Exchange) fetchIndexOHLCV(symbol string, optionalArgs ...interface{
         panic(NotSupported(Add(this.id, " fetchIndexOHLCV () is not supported yet")))
     }
 }
-func  (this *Exchange) fetchPremiumIndexOHLCV(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchPremiumIndexOHLCV(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     /**
     * @method
     * @name exchange#fetchPremiumIndexOHLCV
@@ -5248,7 +5248,7 @@ func  (this *Exchange) fetchPremiumIndexOHLCV(symbol string, optionalArgs ...int
     params := GetArg(optionalArgs, 4, map[string]interface{} {})
     _ = params
     if IsTrue(GetValue(this.has, "fetchPremiumIndexOHLCV")) {
-        request := map[string]interface{} {
+        var request interface{} = map[string]interface{} {
             "price": "premiumIndex",
         }
         return this.fetchOHLCV(symbol, timeframe, since, limit, this.extend(request, params))
@@ -5265,9 +5265,9 @@ func  (this *Exchange) handleTimeInForce(optionalArgs ...interface{}) interface{
     */
     params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
-    timeInForce := this.safeStringUpper(params, "timeInForce") // supported values GTC, IOC, PO
+    var timeInForce interface{} = this.safeStringUpper(params, "timeInForce") // supported values GTC, IOC, PO
     if IsTrue(!IsEqual(timeInForce, nil)) {
-        exchangeValue := this.safeString(GetValue(this.options, "timeInForce"), timeInForce)
+        var exchangeValue interface{} = this.safeString(GetValue(this.options, "timeInForce"), timeInForce)
         if IsTrue(IsEqual(exchangeValue, nil)) {
             panic(ExchangeError(Add(Add(Add(this.id, " does not support timeInForce \""), timeInForce), "\"")))
         }
@@ -5283,18 +5283,18 @@ func  (this *Exchange) convertTypeToAccount(account interface{}) interface{}  {
      * @param {string} account key for account name in this.options['accountsByType']
      * @returns the exchange specific account name or the isolated margin id for transfers
      */
-    accountsByType := this.safeDict(this.options, "accountsByType", map[string]interface{} {})
-    lowercaseAccount := ToLower(account)
+    var accountsByType interface{} = this.safeDict(this.options, "accountsByType", map[string]interface{} {})
+    var lowercaseAccount interface{} = ToLower(account)
     if IsTrue(InOp(accountsByType, lowercaseAccount)) {
         return GetValue(accountsByType, lowercaseAccount)
     } else if IsTrue(IsTrue((InOp(this.markets, account))) || IsTrue((InOp(this.markets_by_id, account)))) {
-        market := this.market(account)
+        var market interface{} = this.market(account)
         return GetValue(market, "id")
     } else {
         return account
     }
 }
-func  (this *Exchange) checkRequiredArgument(methodName string, argument interface{}, argumentName interface{}, optionalArgs ...interface{})  {
+func  (this *Exchange) checkRequiredArgument(methodName interface{}, argument interface{}, argumentName interface{}, optionalArgs ...interface{})  {
     /**
     * @ignore
     * @method
@@ -5306,17 +5306,17 @@ func  (this *Exchange) checkRequiredArgument(methodName string, argument interfa
     */
     options := GetArg(optionalArgs, 3, []interface{}{})
     _ = options
-    optionsLength := GetArrayLength(options)
+    var optionsLength interface{} =     GetArrayLength(options)
     if IsTrue(IsTrue((IsEqual(argument, nil))) || IsTrue((IsTrue((IsGreaterThan(optionsLength, 0))) && IsTrue((!IsTrue((this.inArray(argument, options)))))))) {
-        messageOptions := Join(options, ", ")
-        message := Add(Add(Add(Add(Add(this.id, " "), methodName), "() requires a "), argumentName), " argument")
+        var messageOptions interface{} = Join(options, ", ")
+        var message interface{} = Add(Add(Add(Add(Add(this.id, " "), methodName), "() requires a "), argumentName), " argument")
         if IsTrue(!IsEqual(messageOptions, "")) {
             message = Add(message, Add(Add(Add(", one of ", "("), messageOptions), ")"))
         }
         panic(ArgumentsRequired(message))
     }
 }
-func  (this *Exchange) checkRequiredMarginArgument(methodName string, symbol interface{}, marginMode string)  {
+func  (this *Exchange) checkRequiredMarginArgument(methodName interface{}, symbol interface{}, marginMode interface{})  {
     /**
      * @ignore
      * @method
@@ -5343,18 +5343,18 @@ func  (this *Exchange) parseDepositWithdrawFees(response interface{}, optionalAr
     _ = codes
     currencyIdKey := GetArg(optionalArgs, 2, nil)
     _ = currencyIdKey
-    depositWithdrawFees := map[string]interface{} {}
-    isArray := IsArray(response)
-    responseKeys := response
+    var depositWithdrawFees interface{} = map[string]interface{} {}
+    var isArray interface{} = IsArray(response)
+    var responseKeys interface{} = response
     if !IsTrue(isArray) {
         responseKeys = ObjectKeys(response)
     }
     for i := 0; IsLessThan(i, GetArrayLength(responseKeys)); i++ {
-        entry := GetValue(responseKeys, i)
-        dictionary := Ternary(IsTrue(isArray), entry, GetValue(response, entry))
-        currencyId := Ternary(IsTrue(isArray), this.safeString(dictionary, currencyIdKey), entry)
-        currency := this.safeCurrency(currencyId)
-        code := this.safeString(currency, "code")
+        var entry interface{} = GetValue(responseKeys, i)
+        var dictionary interface{} = Ternary(IsTrue(isArray), entry, GetValue(response, entry))
+        var currencyId interface{} = Ternary(IsTrue(isArray), this.safeString(dictionary, currencyIdKey), entry)
+        var currency interface{} = this.safeCurrency(currencyId)
+        var code interface{} = this.safeString(currency, "code")
         if IsTrue(IsTrue((IsEqual(codes, nil))) || IsTrue((this.inArray(code, codes)))) {
             AddElementToObject(depositWithdrawFees, code, this.parseDepositWithdrawFee(dictionary, currency))
         }
@@ -5391,16 +5391,16 @@ func  (this *Exchange) assignDefaultDepositWithdrawFees(fee interface{}, optiona
     */
     currency := GetArg(optionalArgs, 1, nil)
     _ = currency
-    networkKeys := ObjectKeys(GetValue(fee, "networks"))
-    numNetworks := GetArrayLength(networkKeys)
+    var networkKeys interface{} = ObjectKeys(GetValue(fee, "networks"))
+    var numNetworks interface{} =     GetArrayLength(networkKeys)
     if IsTrue(IsEqual(numNetworks, 1)) {
         AddElementToObject(fee, "withdraw", GetValue(GetValue(GetValue(fee, "networks"), GetValue(networkKeys, 0)), "withdraw"))
         AddElementToObject(fee, "deposit", GetValue(GetValue(GetValue(fee, "networks"), GetValue(networkKeys, 0)), "deposit"))
         return fee
     }
-    currencyCode := this.safeString(currency, "code")
+    var currencyCode interface{} = this.safeString(currency, "code")
     for i := 0; IsLessThan(i, numNetworks); i++ {
-        network := GetValue(networkKeys, i)
+        var network interface{} = GetValue(networkKeys, i)
         if IsTrue(IsEqual(network, currencyCode)) {
             AddElementToObject(fee, "withdraw", GetValue(GetValue(GetValue(fee, "networks"), GetValue(networkKeys, i)), "withdraw"))
             AddElementToObject(fee, "deposit", GetValue(GetValue(GetValue(fee, "networks"), GetValue(networkKeys, i)), "deposit"))
@@ -5430,13 +5430,13 @@ func  (this *Exchange) parseIncomes(incomes interface{}, optionalArgs ...interfa
     _ = since
     limit := GetArg(optionalArgs, 3, nil)
     _ = limit
-    result := []interface{}{}
+    var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(incomes)); i++ {
-        entry := GetValue(incomes, i)
-        parsed := this.parseIncome(entry, market)
+        var entry interface{} = GetValue(incomes, i)
+        var parsed interface{} = this.parseIncome(entry, market)
         result = AppendToArray(result,parsed).([]interface{})
     }
-    sorted := this.sortBy(result, "timestamp")
+    var sorted interface{} = this.sortBy(result, "timestamp")
     return this.filterBySinceLimit(sorted, since, limit)
 }
 func  (this *Exchange) getMarketFromSymbols(optionalArgs ...interface{}) interface{}  {
@@ -5445,8 +5445,8 @@ func  (this *Exchange) getMarketFromSymbols(optionalArgs ...interface{}) interfa
     if IsTrue(IsEqual(symbols, nil)) {
         return nil
     }
-    firstMarket := this.safeString(symbols, 0)
-    market := this.market(firstMarket)
+    var firstMarket interface{} = this.safeString(symbols, 0)
+    var market interface{} = this.market(firstMarket)
     return market
 }
 func  (this *Exchange) parseWsOHLCVs(ohlcvs interface{}, optionalArgs ...interface{}) interface{}  {
@@ -5458,7 +5458,7 @@ func  (this *Exchange) parseWsOHLCVs(ohlcvs interface{}, optionalArgs ...interfa
     _ = since
     limit := GetArg(optionalArgs, 4, nil)
     _ = limit
-    results := []interface{}{}
+    var results interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(ohlcvs)); i++ {
         results = AppendToArray(results,this.parseWsOHLCV(GetValue(ohlcvs, i), market)).([]interface{})
     }
@@ -5514,13 +5514,13 @@ func  (this *Exchange) filterByArrayTickers(objects interface{}, key interface{}
     _ = indexed
     return this.filterByArray(objects, key, values, indexed)
 }
-func  (this *Exchange) createOHLCVObject(symbol string, timeframe string, data interface{}) interface{}  {
-    res := map[string]interface{} {}
+func  (this *Exchange) createOHLCVObject(symbol interface{}, timeframe interface{}, data interface{}) interface{}  {
+    var res interface{} = map[string]interface{} {}
     AddElementToObject(res, symbol, map[string]interface{} {})
     AddElementToObject(GetValue(res, symbol), timeframe, data)
     return res
 }
-func  (this *Exchange) handleMaxEntriesPerRequestAndParams(method string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) handleMaxEntriesPerRequestAndParams(method interface{}, optionalArgs ...interface{}) interface{}  {
     maxEntriesPerRequest := GetArg(optionalArgs, 1, nil)
     _ = maxEntriesPerRequest
     params := GetArg(optionalArgs, 2, map[string]interface{} {})
@@ -5537,7 +5537,7 @@ func  (this *Exchange) handleMaxEntriesPerRequestAndParams(method string, option
     }
     return []interface{}{maxEntriesPerRequest, params}
 }
-func  (this *Exchange) fetchPaginatedCallDynamic(method string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchPaginatedCallDynamic(method interface{}, optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 1, nil)
     _ = symbol
     since := GetArg(optionalArgs, 2, nil)
@@ -5561,10 +5561,10 @@ func  (this *Exchange) fetchPaginatedCallDynamic(method string, optionalArgs ...
     paginationDirection = GetValue(paginationDirectionparamsVariable,0);
     params = GetValue(paginationDirectionparamsVariable,1)
     var paginationTimestamp interface{} = nil
-    calls := 0
-    result := []interface{}{}
-    errors := 0
-    until := this.safeInteger2(params, "untill", "till") // do not omit it from params here
+    var calls interface{} = 0
+    var result interface{} = []interface{}{}
+    var errors interface{} = 0
+    var until interface{} = this.safeInteger2(params, "untill", "till") // do not omit it from params here
     maxEntriesPerRequestparamsVariable := this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params);
     maxEntriesPerRequest = GetValue(maxEntriesPerRequestparamsVariable,0);
     params = GetValue(maxEntriesPerRequestparamsVariable,1)
@@ -5597,10 +5597,10 @@ func  (this *Exchange) fetchPaginatedCallDynamic(method string, optionalArgs ...
                         if IsTrue(!IsEqual(paginationTimestamp, nil)) {
                             AddElementToObject(params, "until", Subtract(paginationTimestamp, 1))
                         }
-                        response := callDynamically(method, symbol, nil, maxEntriesPerRequest, params)
-                        responseLength := GetArrayLength(response)
+                        var response interface{} = callDynamically(method, symbol, nil, maxEntriesPerRequest, params)
+                        var responseLength interface{} =                 GetArrayLength(response)
                         if IsTrue(this.verbose) {
-                            backwardMessage := Add(Add(Add(Add(Add("Dynamic pagination call ", this.numberToString(calls)), " method "), method), " response length "), this.numberToString(responseLength))
+                            var backwardMessage interface{} = Add(Add(Add(Add(Add("Dynamic pagination call ", this.numberToString(calls)), " method "), method), " response length "), this.numberToString(responseLength))
                             if IsTrue(!IsEqual(paginationTimestamp, nil)) {
                                 backwardMessage = Add(backwardMessage, Add(" timestamp ", this.numberToString(paginationTimestamp)))
                             }
@@ -5611,17 +5611,17 @@ func  (this *Exchange) fetchPaginatedCallDynamic(method string, optionalArgs ...
                         }
                         errors = 0
                         result = this.arrayConcat(result, response)
-                        firstElement := this.safeValue(response, 0)
+                        var firstElement interface{} = this.safeValue(response, 0)
                         paginationTimestamp = this.safeInteger2(firstElement, "timestamp", 0)
                         if IsTrue(IsTrue((!IsEqual(since, nil))) && IsTrue((IsLessThanOrEqual(paginationTimestamp, since)))) {
                             break
                         }
                     } else {
                         // do it forwards, starting from the since
-                        response := callDynamically(method, symbol, paginationTimestamp, maxEntriesPerRequest, params)
-                        responseLength := GetArrayLength(response)
+                        var response interface{} = callDynamically(method, symbol, paginationTimestamp, maxEntriesPerRequest, params)
+                        var responseLength interface{} =                 GetArrayLength(response)
                         if IsTrue(this.verbose) {
-                            forwardMessage := Add(Add(Add(Add(Add("Dynamic pagination call ", this.numberToString(calls)), " method "), method), " response length "), this.numberToString(responseLength))
+                            var forwardMessage interface{} = Add(Add(Add(Add(Add("Dynamic pagination call ", this.numberToString(calls)), " method "), method), " response length "), this.numberToString(responseLength))
                             if IsTrue(!IsEqual(paginationTimestamp, nil)) {
                                 forwardMessage = Add(forwardMessage, Add(" timestamp ", this.numberToString(paginationTimestamp)))
                             }
@@ -5632,7 +5632,7 @@ func  (this *Exchange) fetchPaginatedCallDynamic(method string, optionalArgs ...
                         }
                         errors = 0
                         result = this.arrayConcat(result, response)
-                        last := this.safeValue(response, Subtract(responseLength, 1))
+                        var last interface{} = this.safeValue(response, Subtract(responseLength, 1))
                         paginationTimestamp = Subtract(this.safeInteger(last, "timestamp"), 1)
                         if IsTrue(IsTrue((!IsEqual(until, nil))) && IsTrue((IsGreaterThanOrEqual(paginationTimestamp, until)))) {
                             break
@@ -5645,11 +5645,11 @@ func  (this *Exchange) fetchPaginatedCallDynamic(method string, optionalArgs ...
         	}
         }
     }
-    uniqueResults := this.removeRepeatedElementsFromArray(result)
-    key := Ternary(IsTrue((IsEqual(method, "fetchOHLCV"))), 0, "timestamp")
+    var uniqueResults interface{} = this.removeRepeatedElementsFromArray(result)
+    var key interface{} = Ternary(IsTrue((IsEqual(method, "fetchOHLCV"))), 0, "timestamp")
     return this.filterBySinceLimit(uniqueResults, since, limit, key)
 }
-func  (this *Exchange) safeDeterministicCall(method string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) safeDeterministicCall(method interface{}, optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 1, nil)
     _ = symbol
     since := GetArg(optionalArgs, 2, nil)
@@ -5664,7 +5664,7 @@ func  (this *Exchange) safeDeterministicCall(method string, optionalArgs ...inte
     maxRetriesparamsVariable := this.handleOptionAndParams(params, method, "maxRetries", 3);
     maxRetries = GetValue(maxRetriesparamsVariable,0);
     params = GetValue(maxRetriesparamsVariable,1)
-    errors := 0
+    var errors interface{} = 0
     for IsLessThanOrEqual(errors, maxRetries) {
         
         {		ret__ := func(this *Exchange) (ret_ interface{}) {
@@ -5698,7 +5698,7 @@ func  (this *Exchange) safeDeterministicCall(method string, optionalArgs ...inte
     }
     return []interface{}{}
 }
-func  (this *Exchange) fetchPaginatedCallDeterministic(method string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchPaginatedCallDeterministic(method interface{}, optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 1, nil)
     _ = symbol
     since := GetArg(optionalArgs, 2, nil)
@@ -5718,19 +5718,19 @@ func  (this *Exchange) fetchPaginatedCallDeterministic(method string, optionalAr
     maxEntriesPerRequestparamsVariable := this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params);
     maxEntriesPerRequest = GetValue(maxEntriesPerRequestparamsVariable,0);
     params = GetValue(maxEntriesPerRequestparamsVariable,1)
-    current := this.milliseconds()
-    tasks := []interface{}{}
-    time := Multiply(this.parseTimeframe(timeframe), 1000)
-    step := Multiply(time, maxEntriesPerRequest)
-    currentSince := Subtract(Subtract(current, (Multiply(maxCalls, step))), 1)
+    var current interface{} = this.milliseconds()
+    var tasks interface{} = []interface{}{}
+    var time interface{} = Multiply(this.parseTimeframe(timeframe), 1000)
+    var step interface{} = Multiply(time, maxEntriesPerRequest)
+    var currentSince interface{} = Subtract(Subtract(current, (Multiply(maxCalls, step))), 1)
     if IsTrue(!IsEqual(since, nil)) {
         currentSince = mathMax(currentSince, since)
     } else {
         currentSince = mathMax(currentSince, 1241440531000) // avoid timestamps older than 2009
     }
-    until := this.safeInteger2(params, "until", "till") // do not omit it here
+    var until interface{} = this.safeInteger2(params, "until", "till") // do not omit it here
     if IsTrue(!IsEqual(until, nil)) {
-        requiredCalls := MathCeil(Divide((Subtract(until, since)), step))
+        var requiredCalls interface{} = MathCeil(Divide((Subtract(until, since)), step))
         if IsTrue(IsGreaterThan(requiredCalls, maxCalls)) {
             panic(BadRequest(Add(Add(Add(Add(this.id, " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is "), ToString(maxCalls)), " required calls is "), ToString(requiredCalls))))
         }
@@ -5745,16 +5745,16 @@ func  (this *Exchange) fetchPaginatedCallDeterministic(method string, optionalAr
         tasks = AppendToArray(tasks,this.safeDeterministicCall(method, symbol, currentSince, maxEntriesPerRequest, timeframe, params)).([]interface{})
         currentSince = Subtract(this.sum(currentSince, step), 1)
     }
-    results := promiseAll(tasks)
-    result := []interface{}{}
+    var results interface{} = promiseAll(tasks)
+    var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(results)); i++ {
         result = this.arrayConcat(result, GetValue(results, i))
     }
-    uniqueResults := this.removeRepeatedElementsFromArray(result)
-    key := Ternary(IsTrue((IsEqual(method, "fetchOHLCV"))), 0, "timestamp")
+    var uniqueResults interface{} = this.removeRepeatedElementsFromArray(result)
+    var key interface{} = Ternary(IsTrue((IsEqual(method, "fetchOHLCV"))), 0, "timestamp")
     return this.filterBySinceLimit(uniqueResults, since, limit, key)
 }
-func  (this *Exchange) fetchPaginatedCallCursor(method string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchPaginatedCallCursor(method interface{}, optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 1, nil)
     _ = symbol
     since := GetArg(optionalArgs, 2, nil)
@@ -5783,9 +5783,9 @@ func  (this *Exchange) fetchPaginatedCallCursor(method string, optionalArgs ...i
     maxEntriesPerRequest = GetValue(maxEntriesPerRequestparamsVariable,0);
     params = GetValue(maxEntriesPerRequestparamsVariable,1)
     var cursorValue interface{} = nil
-    i := 0
-    errors := 0
-    result := []interface{}{}
+    var i interface{} = 0
+    var errors interface{} = 0
+    var result interface{} = []interface{}{}
     for IsLessThan(i, maxCalls) {
         
         {		ret__ := func(this *Exchange) (ret_ interface{}) {
@@ -5817,23 +5817,23 @@ func  (this *Exchange) fetchPaginatedCallCursor(method string, optionalArgs ...i
                         response = callDynamically(method, symbol, since, maxEntriesPerRequest, params)
                     }
                     errors = 0
-                    responseLength := GetArrayLength(response)
+                    var responseLength interface{} =             GetArrayLength(response)
                     if IsTrue(this.verbose) {
-                        cursorString := Ternary(IsTrue((IsEqual(cursorValue, nil))), "", cursorValue)
-                        iteration := (Add(i, 1))
-                        cursorMessage := Add(Add(Add(Add(Add(Add(Add("Cursor pagination call ", ToString(iteration)), " method "), method), " response length "), ToString(responseLength)), " cursor "), cursorString)
+                        var cursorString interface{} = Ternary(IsTrue((IsEqual(cursorValue, nil))), "", cursorValue)
+                        var iteration interface{} =                 (Add(i, 1))
+                        var cursorMessage interface{} = Add(Add(Add(Add(Add(Add(Add("Cursor pagination call ", ToString(iteration)), " method "), method), " response length "), ToString(responseLength)), " cursor "), cursorString)
                         this.log(cursorMessage)
                     }
                     if IsTrue(IsEqual(responseLength, 0)) {
                         break
                     }
                     result = this.arrayConcat(result, response)
-                    last := this.safeValue(response, Subtract(responseLength, 1))
+                    var last interface{} = this.safeValue(response, Subtract(responseLength, 1))
                     cursorValue = this.safeValue(GetValue(last, "info"), cursorReceived)
                     if IsTrue(IsEqual(cursorValue, nil)) {
                         break
                     }
-                    lastTimestamp := this.safeInteger(last, "timestamp")
+                    var lastTimestamp interface{} = this.safeInteger(last, "timestamp")
                     if IsTrue(IsTrue(!IsEqual(lastTimestamp, nil)) && IsTrue(IsLessThan(lastTimestamp, since))) {
                         break
                     }
@@ -5845,11 +5845,11 @@ func  (this *Exchange) fetchPaginatedCallCursor(method string, optionalArgs ...i
         }
         i = Add(i, 1)
     }
-    sorted := this.sortCursorPaginatedResult(result)
-    key := Ternary(IsTrue((IsEqual(method, "fetchOHLCV"))), 0, "timestamp")
+    var sorted interface{} = this.sortCursorPaginatedResult(result)
+    var key interface{} = Ternary(IsTrue((IsEqual(method, "fetchOHLCV"))), 0, "timestamp")
     return this.filterBySinceLimit(sorted, since, limit, key)
 }
-func  (this *Exchange) fetchPaginatedCallIncremental(method string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchPaginatedCallIncremental(method interface{}, optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 1, nil)
     _ = symbol
     since := GetArg(optionalArgs, 2, nil)
@@ -5873,9 +5873,9 @@ func  (this *Exchange) fetchPaginatedCallIncremental(method string, optionalArgs
     maxEntriesPerRequestparamsVariable := this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, params);
     maxEntriesPerRequest = GetValue(maxEntriesPerRequestparamsVariable,0);
     params = GetValue(maxEntriesPerRequestparamsVariable,1)
-    i := 0
-    errors := 0
-    result := []interface{}{}
+    var i interface{} = 0
+    var errors interface{} = 0
+    var result interface{} = []interface{}{}
     for IsLessThan(i, maxCalls) {
         
         {		ret__ := func(this *Exchange) (ret_ interface{}) {
@@ -5893,12 +5893,12 @@ func  (this *Exchange) fetchPaginatedCallIncremental(method string, optionalArgs
         		}()
         		// try block:
                             AddElementToObject(params, pageKey, Add(i, 1))
-                    response := callDynamically(method, symbol, since, maxEntriesPerRequest, params)
+                    var response interface{} = callDynamically(method, symbol, since, maxEntriesPerRequest, params)
                     errors = 0
-                    responseLength := GetArrayLength(response)
+                    var responseLength interface{} =             GetArrayLength(response)
                     if IsTrue(this.verbose) {
-                        iteration := ToString((Add(i, 1)))
-                        incrementalMessage := Add(Add(Add(Add(Add("Incremental pagination call ", iteration), " method "), method), " response length "), ToString(responseLength))
+                        var iteration interface{} = ToString((Add(i, 1)))
+                        var incrementalMessage interface{} = Add(Add(Add(Add(Add("Incremental pagination call ", iteration), " method "), method), " response length "), ToString(responseLength))
                         this.log(incrementalMessage)
                     }
                     if IsTrue(IsEqual(responseLength, 0)) {
@@ -5913,12 +5913,12 @@ func  (this *Exchange) fetchPaginatedCallIncremental(method string, optionalArgs
         }
         i = Add(i, 1)
     }
-    sorted := this.sortCursorPaginatedResult(result)
-    key := Ternary(IsTrue((IsEqual(method, "fetchOHLCV"))), 0, "timestamp")
+    var sorted interface{} = this.sortCursorPaginatedResult(result)
+    var key interface{} = Ternary(IsTrue((IsEqual(method, "fetchOHLCV"))), 0, "timestamp")
     return this.filterBySinceLimit(sorted, since, limit, key)
 }
 func  (this *Exchange) sortCursorPaginatedResult(result interface{}) interface{}  {
-    first := this.safeValue(result, 0)
+    var first interface{} = this.safeValue(result, 0)
     if IsTrue(!IsEqual(first, nil)) {
         if IsTrue(InOp(first, "timestamp")) {
             return this.sortBy(result, "timestamp", true)
@@ -5930,16 +5930,16 @@ func  (this *Exchange) sortCursorPaginatedResult(result interface{}) interface{}
     return result
 }
 func  (this *Exchange) removeRepeatedElementsFromArray(input interface{}) interface{}  {
-    uniqueResult := map[string]interface{} {}
+    var uniqueResult interface{} = map[string]interface{} {}
     for i := 0; IsLessThan(i, GetArrayLength(input)); i++ {
-        entry := GetValue(input, i)
-        id := this.safeString(entry, "id")
+        var entry interface{} = GetValue(input, i)
+        var id interface{} = this.safeString(entry, "id")
         if IsTrue(!IsEqual(id, nil)) {
             if IsTrue(IsEqual(this.safeString(uniqueResult, id), nil)) {
                 AddElementToObject(uniqueResult, id, entry)
             }
         } else {
-            timestamp := this.safeInteger2(entry, "timestamp", 0)
+            var timestamp interface{} = this.safeInteger2(entry, "timestamp", 0)
             if IsTrue(!IsEqual(timestamp, nil)) {
                 if IsTrue(IsEqual(this.safeString(uniqueResult, timestamp), nil)) {
                     AddElementToObject(uniqueResult, timestamp, entry)
@@ -5947,17 +5947,17 @@ func  (this *Exchange) removeRepeatedElementsFromArray(input interface{}) interf
             }
         }
     }
-    values := ObjectValues(uniqueResult)
-    valuesLength := GetArrayLength(values)
+    var values interface{} = ObjectValues(uniqueResult)
+    var valuesLength interface{} =     GetArrayLength(values)
     if IsTrue(IsGreaterThan(valuesLength, 0)) {
         return values
     }
     return input
 }
-func  (this *Exchange) handleUntilOption(key string, request interface{}, params interface{}, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) handleUntilOption(key interface{}, request interface{}, params interface{}, optionalArgs ...interface{}) interface{}  {
     multiplier := GetArg(optionalArgs, 3, 1)
     _ = multiplier
-    until := this.safeInteger2(params, "until", "till")
+    var until interface{} = this.safeInteger2(params, "until", "till")
     if IsTrue(!IsEqual(until, nil)) {
         AddElementToObject(request, key, this.parseToInt(Multiply(until, multiplier)))
         params = this.omit(params, []interface{}{"until", "till"})
@@ -6000,14 +6000,14 @@ func  (this *Exchange) parseLiquidations(liquidations interface{}, optionalArgs 
     _ = since
     limit := GetArg(optionalArgs, 3, nil)
     _ = limit
-    result := []interface{}{}
+    var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(liquidations)); i++ {
-        entry := GetValue(liquidations, i)
-        parsed := this.parseLiquidation(entry, market)
+        var entry interface{} = GetValue(liquidations, i)
+        var parsed interface{} = this.parseLiquidation(entry, market)
         result = AppendToArray(result,parsed).([]interface{})
     }
-    sorted := this.sortBy(result, "timestamp")
-    symbol := this.safeString(market, "symbol")
+    var sorted interface{} = this.sortBy(result, "timestamp")
+    var symbol interface{} = this.safeString(market, "symbol")
     return this.filterBySymbolSinceLimit(sorted, symbol, since, limit)
 }
 func  (this *Exchange) parseGreeks(greeks interface{}, optionalArgs ...interface{}) interface{}  {
@@ -6027,13 +6027,13 @@ func  (this *Exchange) parseOptionChain(response interface{}, optionalArgs ...in
     _ = currencyKey
     symbolKey := GetArg(optionalArgs, 2, nil)
     _ = symbolKey
-    optionStructures := map[string]interface{} {}
+    var optionStructures interface{} = map[string]interface{} {}
     for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-        info := GetValue(response, i)
-        currencyId := this.safeString(info, currencyKey)
-        currency := this.safeCurrency(currencyId)
-        marketId := this.safeString(info, symbolKey)
-        market := this.safeMarket(marketId, nil, nil, "option")
+        var info interface{} = GetValue(response, i)
+        var currencyId interface{} = this.safeString(info, currencyKey)
+        var currency interface{} = this.safeCurrency(currencyId)
+        var marketId interface{} = this.safeString(info, symbolKey)
+        var market interface{} = this.safeMarket(marketId, nil, nil, "option")
         AddElementToObject(optionStructures, GetValue(market, "symbol"), this.parseOption(info, currency, market))
     }
     return optionStructures
@@ -6045,14 +6045,14 @@ func  (this *Exchange) parseMarginModes(response interface{}, optionalArgs ...in
     _ = symbolKey
     marketType := GetArg(optionalArgs, 3, nil)
     _ = marketType
-    marginModeStructures := map[string]interface{} {}
+    var marginModeStructures interface{} = map[string]interface{} {}
     if IsTrue(IsEqual(marketType, nil)) {
         marketType = "swap" // default to swap
     }
     for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-        info := GetValue(response, i)
-        marketId := this.safeString(info, symbolKey)
-        market := this.safeMarket(marketId, nil, nil, marketType)
+        var info interface{} = GetValue(response, i)
+        var marketId interface{} = this.safeString(info, symbolKey)
+        var market interface{} = this.safeMarket(marketId, nil, nil, marketType)
         if IsTrue(IsTrue((IsEqual(symbols, nil))) || IsTrue(this.inArray(GetValue(market, "symbol"), symbols))) {
             AddElementToObject(marginModeStructures, GetValue(market, "symbol"), this.parseMarginMode(info, market))
         }
@@ -6071,14 +6071,14 @@ func  (this *Exchange) parseLeverages(response interface{}, optionalArgs ...inte
     _ = symbolKey
     marketType := GetArg(optionalArgs, 3, nil)
     _ = marketType
-    leverageStructures := map[string]interface{} {}
+    var leverageStructures interface{} = map[string]interface{} {}
     if IsTrue(IsEqual(marketType, nil)) {
         marketType = "swap" // default to swap
     }
     for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-        info := GetValue(response, i)
-        marketId := this.safeString(info, symbolKey)
-        market := this.safeMarket(marketId, nil, nil, marketType)
+        var info interface{} = GetValue(response, i)
+        var marketId interface{} = this.safeString(info, symbolKey)
+        var market interface{} = this.safeMarket(marketId, nil, nil, marketType)
         if IsTrue(IsTrue((IsEqual(symbols, nil))) || IsTrue(this.inArray(GetValue(market, "symbol"), symbols))) {
             AddElementToObject(leverageStructures, GetValue(market, "symbol"), this.parseLeverage(info, market))
         }
@@ -6104,23 +6104,23 @@ func  (this *Exchange) parseConversions(conversions interface{}, optionalArgs ..
     params := GetArg(optionalArgs, 6, map[string]interface{} {})
     _ = params
     conversions = this.toArray(conversions)
-    result := []interface{}{}
+    var result interface{} = []interface{}{}
     var fromCurrency interface{} = nil
     var toCurrency interface{} = nil
     for i := 0; IsLessThan(i, GetArrayLength(conversions)); i++ {
-        entry := GetValue(conversions, i)
-        fromId := this.safeString(entry, fromCurrencyKey)
-        toId := this.safeString(entry, toCurrencyKey)
+        var entry interface{} = GetValue(conversions, i)
+        var fromId interface{} = this.safeString(entry, fromCurrencyKey)
+        var toId interface{} = this.safeString(entry, toCurrencyKey)
         if IsTrue(!IsEqual(fromId, nil)) {
             fromCurrency = this.safeCurrency(fromId)
         }
         if IsTrue(!IsEqual(toId, nil)) {
             toCurrency = this.safeCurrency(toId)
         }
-        conversion := this.extend(this.parseConversion(entry, fromCurrency, toCurrency), params)
+        var conversion interface{} = this.extend(this.parseConversion(entry, fromCurrency, toCurrency), params)
         result = AppendToArray(result,conversion).([]interface{})
     }
-    sorted := this.sortBy(result, "timestamp")
+    var sorted interface{} = this.sortBy(result, "timestamp")
     var currency interface{} = nil
     if IsTrue(!IsEqual(code, nil)) {
         currency = this.safeCurrency(code)
@@ -6129,9 +6129,9 @@ func  (this *Exchange) parseConversions(conversions interface{}, optionalArgs ..
     if IsTrue(IsEqual(code, nil)) {
         return this.filterBySinceLimit(sorted, since, limit)
     }
-    fromConversion := this.filterBy(sorted, "fromCurrency", code)
-    toConversion := this.filterBy(sorted, "toCurrency", code)
-    both := this.arrayConcat(fromConversion, toConversion)
+    var fromConversion interface{} = this.filterBy(sorted, "fromCurrency", code)
+    var toConversion interface{} = this.filterBy(sorted, "toCurrency", code)
+    var both interface{} = this.arrayConcat(fromConversion, toConversion)
     return this.filterBySinceLimit(both, since, limit)
 }
 func  (this *Exchange) parseConversion(conversion interface{}, optionalArgs ...interface{}) interface{}  {
@@ -6141,20 +6141,20 @@ func  (this *Exchange) parseConversion(conversion interface{}, optionalArgs ...i
     _ = toCurrency
     panic(NotSupported(Add(this.id, " parseConversion () is not supported yet")))
 }
-func  (this *Exchange) convertExpireDate(date string) interface{}  {
+func  (this *Exchange) convertExpireDate(date interface{}) interface{}  {
     // parse YYMMDD to datetime string
-    year := Slice(date, 0, 2)
-    month := Slice(date, 2, 4)
-    day := Slice(date, 4, 6)
-    reconstructedDate := Add(Add(Add(Add(Add(Add("20", year), "-"), month), "-"), day), "T00:00:00Z")
+    var year interface{} = Slice(date, 0, 2)
+    var month interface{} = Slice(date, 2, 4)
+    var day interface{} = Slice(date, 4, 6)
+    var reconstructedDate interface{} = Add(Add(Add(Add(Add(Add("20", year), "-"), month), "-"), day), "T00:00:00Z")
     return reconstructedDate
 }
-func  (this *Exchange) convertExpireDateToMarketIdDate(date string) interface{}  {
+func  (this *Exchange) convertExpireDateToMarketIdDate(date interface{}) interface{}  {
     // parse 240119 to 19JAN24
-    year := Slice(date, 0, 2)
-    monthRaw := Slice(date, 2, 4)
+    var year interface{} = Slice(date, 0, 2)
+    var monthRaw interface{} = Slice(date, 2, 4)
     var month interface{} = nil
-    day := Slice(date, 4, 6)
+    var day interface{} = Slice(date, 4, 6)
     if IsTrue(IsEqual(monthRaw, "01")) {
         month = "JAN"
     } else if IsTrue(IsEqual(monthRaw, "02")) {
@@ -6180,12 +6180,12 @@ func  (this *Exchange) convertExpireDateToMarketIdDate(date string) interface{} 
     } else if IsTrue(IsEqual(monthRaw, "12")) {
         month = "DEC"
     }
-    reconstructedDate := Add(Add(day, month), year)
+    var reconstructedDate interface{} = Add(Add(day, month), year)
     return reconstructedDate
 }
-func  (this *Exchange) convertMarketIdExpireDate(date string) interface{}  {
+func  (this *Exchange) convertMarketIdExpireDate(date interface{}) interface{}  {
     // parse 03JAN24 to 240103
-    monthMappping := map[string]interface{} {
+    var monthMappping interface{} = map[string]interface{} {
         "JAN": "01",
         "FEB": "02",
         "MAR": "03",
@@ -6203,14 +6203,14 @@ func  (this *Exchange) convertMarketIdExpireDate(date string) interface{}  {
     if IsTrue(IsEqual(GetLength(date), 6)) {
         date = Add("0", date)
     }
-    year := Slice(date, 0, 2)
-    monthName := Slice(date, 2, 5)
-    month := this.safeString(monthMappping, monthName)
-    day := Slice(date, 5, 7)
-    reconstructedDate := Add(Add(day, month), year)
+    var year interface{} = Slice(date, 0, 2)
+    var monthName interface{} = Slice(date, 2, 5)
+    var month interface{} = this.safeString(monthMappping, monthName)
+    var day interface{} = Slice(date, 5, 7)
+    var reconstructedDate interface{} = Add(Add(day, month), year)
     return reconstructedDate
 }
-func  (this *Exchange) fetchPositionHistory(symbol string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchPositionHistory(symbol interface{}, optionalArgs ...interface{}) interface{}  {
     /**
     * @method
     * @name exchange#fetchPositionHistory
@@ -6228,7 +6228,7 @@ func  (this *Exchange) fetchPositionHistory(symbol string, optionalArgs ...inter
     params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     if IsTrue(GetValue(this.has, "fetchPositionsHistory")) {
-        positions := this.fetchPositionsHistory([]interface{}{symbol}, since, limit, params)
+        var positions interface{} = this.fetchPositionsHistory([]interface{}{symbol}, since, limit, params)
         return this.safeDict(positions, 0)
     } else {
         panic(NotSupported(Add(this.id, " fetchPositionHistory () is not supported yet")))
@@ -6257,18 +6257,18 @@ func  (this *Exchange) parseMarginModifications(response interface{}, optionalAr
     _ = symbolKey
     marketType := GetArg(optionalArgs, 3, nil)
     _ = marketType
-    marginModifications := []interface{}{}
+    var marginModifications interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-        info := GetValue(response, i)
-        marketId := this.safeString(info, symbolKey)
-        market := this.safeMarket(marketId, nil, nil, marketType)
+        var info interface{} = GetValue(response, i)
+        var marketId interface{} = this.safeString(info, symbolKey)
+        var market interface{} = this.safeMarket(marketId, nil, nil, marketType)
         if IsTrue(IsTrue((IsEqual(symbols, nil))) || IsTrue(this.inArray(GetValue(market, "symbol"), symbols))) {
             marginModifications = AppendToArray(marginModifications,this.parseMarginModification(info, market)).([]interface{})
         }
     }
     return marginModifications
 }
-func  (this *Exchange) fetchTransfer(id string, optionalArgs ...interface{}) interface{}  {
+func  (this *Exchange) fetchTransfer(id interface{}, optionalArgs ...interface{}) interface{}  {
     code := GetArg(optionalArgs, 1, nil)
     _ = code
     params := GetArg(optionalArgs, 2, map[string]interface{} {})

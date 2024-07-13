@@ -235,6 +235,24 @@ func (this *Exchange) safeString(obj interface{}, key interface{}, defaultValue 
 	return SafeString(obj, key, defVal)
 }
 
+func (this *Exchange) safeStringUpper(obj interface{}, key interface{}, defaultValue ...interface{}) string {
+	// return strings.ToUpper(this.safeString(obj, key, defaultValue...))
+	res := this.safeString(obj, key, defaultValue...)
+	if res != "" {
+		return strings.ToUpper(res)
+	}
+	return "" // check this return type
+}
+
+func (this *Exchange) safeStringLower(obj interface{}, key interface{}, defaultValue ...interface{}) string {
+	// return strings.ToUpper(this.safeString(obj, key, defaultValue...))
+	res := this.safeString(obj, key, defaultValue...)
+	if res != "" {
+		return strings.ToLower(res)
+	}
+	return "" // check this return type
+}
+
 func (this *Exchange) safeString2(obj interface{}, key interface{}, key2 interface{}, defaultValue ...interface{}) string {
 	var defVal interface{} = nil
 	if len(defaultValue) > 0 {
@@ -303,12 +321,13 @@ func (this *Exchange) safeValue2(obj interface{}, key interface{}, key2 interfac
 	return SafeValueN(obj, []interface{}{key, key2}, defaultValue)
 }
 
-func (this *Exchange) safeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}) interface{} {
+func (this *Exchange) safeValueN(obj interface{}, keys interface{}, defaultValue ...interface{}) interface{} {
+	keysArray := keys.([]interface{})
 	var defVal interface{} = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
-	return SafeValueN(obj, keys, defVal)
+	return SafeValueN(obj, keysArray, defVal)
 }
 
 func (this *Exchange) safeTimestamp(obj interface{}, key interface{}, defaultValue ...interface{}) int64 {

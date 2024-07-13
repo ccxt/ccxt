@@ -1,7 +1,6 @@
 package ccxt
 
 import (
-	"errors"
 	"fmt"
 	"math"
 	"regexp"
@@ -104,17 +103,17 @@ func (this *Exchange) precisionFromString(str string) int {
 	return 0
 }
 
-func (this *Exchange) decimalToPrecision(x interface{}, roundingMode, numPrecisionDigits, countingMode, paddingMode int) (string, error) {
+func (this *Exchange) decimalToPrecision(x interface{}, roundingMode, numPrecisionDigits, countingMode, paddingMode int) string {
 	return this._decimalToPrecision(x, roundingMode, numPrecisionDigits, countingMode, paddingMode)
 }
 
-func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode, numPrecisionDigits, countingMode, paddingMode int) (string, error) {
+func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode, numPrecisionDigits, countingMode, paddingMode int) string {
 	if countingMode == TICK_SIZE {
 		if numPrecisionDigitsStr, ok := numPrecisionDigits.(string); ok {
 			numPrecisionDigits, _ = strconv.ParseFloat(numPrecisionDigitsStr, 64)
 		}
 		if numPrecisionDigits <= 0 {
-			return "", errors.New("TICK_SIZE can't be used with negative or zero numPrecisionDigits")
+			return ""
 		}
 	}
 	if numPrecisionDigits < 0 {

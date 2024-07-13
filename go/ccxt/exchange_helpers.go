@@ -921,10 +921,10 @@ func parseInt(number interface{}) int64 {
 		return int64(v)
 	case uint32:
 		return int64(v)
-	case uint64:
-		if v <= uint64(^int64(0)) {
-			return int64(v)
-		}
+	// case uint64:
+	// 	if v <= uint64(^int64(0)) {
+	// 		return int64(v)
+	// 	}
 	case float32:
 		return int64(v)
 	case float64:
@@ -935,4 +935,96 @@ func parseInt(number interface{}) int64 {
 		}
 	}
 	return 0 // Default value if conversion is not possible
+}
+
+func mathMin(a, b interface{}) interface{} {
+	switch a := a.(type) {
+	case int:
+		b := b.(int)
+		if a < b {
+			return a
+		}
+		return b
+	case float64:
+		b := b.(float64)
+		if a < b {
+			return a
+		}
+		return b
+	case string:
+		b := b.(string)
+		if a < b {
+			return a
+		}
+		return b
+	default:
+		return nil
+	}
+}
+
+// mathMax returns the maximum of two values of the same type.
+// It supports int, float64, and string types.
+func mathMax(a, b interface{}) interface{} {
+	switch a := a.(type) {
+	case int:
+		b := b.(int)
+		if a > b {
+			return a
+		}
+		return b
+	case float64:
+		b := b.(float64)
+		if a > b {
+			return a
+		}
+		return b
+	case string:
+		b := b.(string)
+		if a > b {
+			return a
+		}
+		return b
+	default:
+		return nil
+	}
+}
+
+func parseTimeframe(timeframe interface{}) *int {
+	str, ok := timeframe.(string)
+	if !ok {
+		return nil
+	}
+
+	if len(str) < 2 {
+		return nil
+	}
+
+	amount, err := strconv.Atoi(str[:len(str)-1])
+	if err != nil {
+		return nil
+	}
+
+	unit := str[len(str)-1:]
+	scale := 0
+	switch unit {
+	case "y":
+		scale = 60 * 60 * 24 * 365
+	case "M":
+		scale = 60 * 60 * 24 * 30
+	case "w":
+		scale = 60 * 60 * 24 * 7
+	case "d":
+		scale = 60 * 60 * 24
+	case "h":
+		scale = 60 * 60
+	case "m":
+		scale = 60
+	case "s":
+		scale = 1
+	default:
+		return nil
+	}
+
+	result := amount * scale
+	return &result
 }

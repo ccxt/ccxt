@@ -4,6 +4,7 @@ import (
 	j "encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"strconv"
 )
 
@@ -81,6 +82,7 @@ type Exchange struct {
 
 	httpProxyCallback   interface{}
 	http_proxy_callback interface{}
+	socksProxyCallback  interface{}
 
 	wsSocksProxy   string
 	ws_socks_proxy string
@@ -90,6 +92,8 @@ type Exchange struct {
 
 	ws_proxy string
 	wsProxy  string
+
+	substituteCommonCurrencyCodes bool
 }
 
 var DECIMAL_PLACES int = 0
@@ -495,4 +499,88 @@ func (this *Exchange) valueIsDefined(v interface{}) bool {
 func callDynamically(args ...interface{}) interface{} {
 	// to do
 	return nil
+}
+
+// clone creates a deep copy of the input object. It supports arrays, slices, and maps.
+func (this *Exchange) clone(object interface{}) interface{} {
+	return this.deepCopy(reflect.ValueOf(object)).Interface()
+}
+
+func (this *Exchange) deepCopy(value reflect.Value) reflect.Value {
+	switch value.Kind() {
+	case reflect.Array, reflect.Slice:
+		// Create a new slice/array of the same type and length
+		copy := reflect.MakeSlice(value.Type(), value.Len(), value.Cap())
+		for i := 0; i < value.Len(); i++ {
+			copy.Index(i).Set(this.deepCopy(value.Index(i)))
+		}
+		return copy
+	case reflect.Map:
+		// Create a new map of the same type
+		copy := reflect.MakeMap(value.Type())
+		for _, key := range value.MapKeys() {
+			copy.SetMapIndex(key, this.deepCopy(value.MapIndex(key)))
+		}
+		return copy
+	default:
+		// For other types, just return the value
+		return reflect.ValueOf(value.Interface())
+	}
+}
+
+type ArrayCache interface {
+	ToArray() []interface{}
+}
+
+func (this *Exchange) arraySlice(array interface{}, first interface{}, second ...interface{}) interface{} {
+	firstInt := reflect.ValueOf(first).Convert(reflect.TypeOf(0)).Interface().(int)
+	parsedArray := reflect.ValueOf(array)
+
+	if parsedArray.Kind() != reflect.Slice {
+		return nil
+	}
+
+	length := parsedArray.Len()
+	isArrayCache := reflect.TypeOf(array).Implements(reflect.TypeOf((*ArrayCache)(nil)).Elem())
+
+	if len(second) == 0 {
+		if firstInt < 0 {
+			index := length + firstInt
+			if index < 0 {
+				index = 0
+			}
+			if isArrayCache {
+				return reflect.ValueOf(array).Interface().(ArrayCache).ToArray()[index:]
+			}
+			return this.sliceToInterface(parsedArray.Slice(index, length))
+		}
+		if isArrayCache {
+			return reflect.ValueOf(array).Interface().(ArrayCache).ToArray()[firstInt:]
+		}
+		return this.sliceToInterface(parsedArray.Slice(firstInt, length))
+	}
+
+	secondInt := reflect.ValueOf(second[0]).Convert(reflect.TypeOf(0)).Interface().(int)
+	if isArrayCache {
+		return reflect.ValueOf(array).Interface().(ArrayCache).ToArray()[firstInt:secondInt]
+	}
+	return this.sliceToInterface(parsedArray.Slice(firstInt, secondInt))
+}
+
+func (this *Exchange) sliceToInterface(value reflect.Value) []interface{} {
+	length := value.Len()
+	result := make([]interface{}, length)
+	for i := 0; i < length; i++ {
+		result[i] = value.Index(i).Interface()
+	}
+	return result
+}
+
+// Example ArrayCache implementation for testing
+type exampleArrayCache struct {
+	data []interface{}
+}
+
+func (e *exampleArrayCache) ToArray() []interface{} {
+	return e.data
 }
