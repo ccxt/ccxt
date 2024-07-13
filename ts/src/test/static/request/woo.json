@@ -260,24 +260,24 @@
         ],
         "fetchPositions": [
             {
-                "description": "Fetch linear position",
+                "description": "Fetch linear position for spot margin market",
                 "method": "fetchPositions",
                 "url": "https://api.woo.org/v3/positions",
                 "input": [
                     [
-                        "LTC/USDT:USDT"
+                        "LTC/USDT"
                     ]
                 ]
             }
         ],
         "setLeverage": [
             {
-                "description": "Set linear leverage",
+                "description": "Set linear leverage for spot margin market",
                 "method": "setLeverage",
                 "url": "https://api.woo.org/v1/client/leverage",
                 "input": [
                     5,
-                    "LTC/USDT:USDT"
+                    "LTC/USDT"
                 ],
                 "output": "leverage=5"
             }
