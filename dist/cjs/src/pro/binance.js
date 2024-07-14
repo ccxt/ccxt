@@ -711,10 +711,8 @@ class binance extends binance$1 {
         client.resolve(orderbook, messageHash);
     }
     async fetchOrderBookSnapshot(client, message, subscription) {
-        const name = this.safeString(subscription, 'name');
         const symbol = this.safeString(subscription, 'symbol');
-        const market = this.market(symbol);
-        const messageHash = market['lowercaseId'] + '@' + name;
+        const messageHash = 'orderbook::' + symbol;
         try {
             const defaultLimit = this.safeInteger(this.options, 'watchOrderBookLimit', 1000);
             const type = this.safeValue(subscription, 'type');
@@ -3553,7 +3551,7 @@ class binance extends binance$1 {
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.portfolioMargin] set to true if you would like to watch trades in a portfolio margin account
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         let type = undefined;
