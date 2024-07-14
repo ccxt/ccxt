@@ -10298,9 +10298,10 @@ export default class binance extends Exchange {
         //
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const parsed = this.parsePositionRisk (response[i]);
-            const entryPrice = this.safeString (parsed, 'entryPrice');
+            const rawPosition = response[i];
+            const entryPrice = this.safeString (rawPosition, 'entryPrice');
             if ((entryPrice !== '0') && (entryPrice !== '0.0') && (entryPrice !== '0.00000000')) {
+                const parsed = this.parsePositionRisk (response[i]);
                 result.push (parsed);
             }
         }
