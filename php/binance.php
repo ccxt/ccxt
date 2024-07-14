@@ -9537,37 +9537,42 @@ class binance extends Exchange {
         if ($marginMode === 'cross') {
             // calculate $collateral
             $precision = $this->safe_dict($market, 'precision', array());
-            if ($linear) {
-                // walletBalance = ($liquidationPrice * (±1 . mmp) ± $entryPrice) * $contracts
-                $onePlusMaintenanceMarginPercentageString = null;
-                $entryPriceSignString = $entryPriceString;
-                if ($side === 'short') {
-                    $onePlusMaintenanceMarginPercentageString = Precise::string_add('1', $maintenanceMarginPercentageString);
-                    $entryPriceSignString = Precise::string_mul('-1', $entryPriceSignString);
+            $basePrecisionValue = $this->safe_string($precision, 'base');
+            $quotePrecisionValue = $this->safe_string_2($precision, 'quote', 'price');
+            $precisionIsUndefined = ($basePrecisionValue === null) && ($quotePrecisionValue === null);
+            if (!$precisionIsUndefined) {
+                if ($linear) {
+                    // walletBalance = ($liquidationPrice * (±1 . mmp) ± $entryPrice) * $contracts
+                    $onePlusMaintenanceMarginPercentageString = null;
+                    $entryPriceSignString = $entryPriceString;
+                    if ($side === 'short') {
+                        $onePlusMaintenanceMarginPercentageString = Precise::string_add('1', $maintenanceMarginPercentageString);
+                        $entryPriceSignString = Precise::string_mul('-1', $entryPriceSignString);
+                    } else {
+                        $onePlusMaintenanceMarginPercentageString = Precise::string_add('-1', $maintenanceMarginPercentageString);
+                    }
+                    $inner = Precise::string_mul($liquidationPriceString, $onePlusMaintenanceMarginPercentageString);
+                    $leftSide = Precise::string_add($inner, $entryPriceSignString);
+                    $quotePrecision = $this->precision_from_string($this->safe_string_2($precision, 'quote', 'price'));
+                    if ($quotePrecision !== null) {
+                        $collateralString = Precise::string_div(Precise::string_mul($leftSide, $contractsAbs), '1', $quotePrecision);
+                    }
                 } else {
-                    $onePlusMaintenanceMarginPercentageString = Precise::string_add('-1', $maintenanceMarginPercentageString);
-                }
-                $inner = Precise::string_mul($liquidationPriceString, $onePlusMaintenanceMarginPercentageString);
-                $leftSide = Precise::string_add($inner, $entryPriceSignString);
-                $quotePrecision = $this->precision_from_string($this->safe_string_2($precision, 'quote', 'price'));
-                if ($quotePrecision !== null) {
-                    $collateralString = Precise::string_div(Precise::string_mul($leftSide, $contractsAbs), '1', $quotePrecision);
-                }
-            } else {
-                // walletBalance = ($contracts * $contractSize) * (±1/entryPrice - (±1 - mmp) / $liquidationPrice)
-                $onePlusMaintenanceMarginPercentageString = null;
-                $entryPriceSignString = $entryPriceString;
-                if ($side === 'short') {
-                    $onePlusMaintenanceMarginPercentageString = Precise::string_sub('1', $maintenanceMarginPercentageString);
-                } else {
-                    $onePlusMaintenanceMarginPercentageString = Precise::string_sub('-1', $maintenanceMarginPercentageString);
-                    $entryPriceSignString = Precise::string_mul('-1', $entryPriceSignString);
-                }
-                $leftSide = Precise::string_mul($contractsAbs, $contractSizeString);
-                $rightSide = Precise::string_sub(Precise::string_div('1', $entryPriceSignString), Precise::string_div($onePlusMaintenanceMarginPercentageString, $liquidationPriceString));
-                $basePrecision = $this->precision_from_string($this->safe_string($precision, 'base'));
-                if ($basePrecision !== null) {
-                    $collateralString = Precise::string_div(Precise::string_mul($leftSide, $rightSide), '1', $basePrecision);
+                    // walletBalance = ($contracts * $contractSize) * (±1/entryPrice - (±1 - mmp) / $liquidationPrice)
+                    $onePlusMaintenanceMarginPercentageString = null;
+                    $entryPriceSignString = $entryPriceString;
+                    if ($side === 'short') {
+                        $onePlusMaintenanceMarginPercentageString = Precise::string_sub('1', $maintenanceMarginPercentageString);
+                    } else {
+                        $onePlusMaintenanceMarginPercentageString = Precise::string_sub('-1', $maintenanceMarginPercentageString);
+                        $entryPriceSignString = Precise::string_mul('-1', $entryPriceSignString);
+                    }
+                    $leftSide = Precise::string_mul($contractsAbs, $contractSizeString);
+                    $rightSide = Precise::string_sub(Precise::string_div('1', $entryPriceSignString), Precise::string_div($onePlusMaintenanceMarginPercentageString, $liquidationPriceString));
+                    $basePrecision = $this->precision_from_string($this->safe_string($precision, 'base'));
+                    if ($basePrecision !== null) {
+                        $collateralString = Precise::string_div(Precise::string_mul($leftSide, $rightSide), '1', $basePrecision);
+                    }
                 }
             }
         } else {
@@ -10174,9 +10179,10 @@ class binance extends Exchange {
         //
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
-            $parsed = $this->parse_position_risk($response[$i]);
-            $entryPrice = $this->safe_string($parsed, 'entryPrice');
+            $rawPosition = $response[$i];
+            $entryPrice = $this->safe_string($rawPosition, 'entryPrice');
             if (($entryPrice !== '0') && ($entryPrice !== '0.0') && ($entryPrice !== '0.00000000')) {
+                $parsed = $this->parse_position_risk($response[$i]);
                 $result[] = $parsed;
             }
         }
