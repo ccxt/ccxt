@@ -1254,7 +1254,7 @@ class bybit extends bybit$1 {
         const rawLiquidation = this.safeDict(message, 'data', {});
         const marketId = this.safeString(rawLiquidation, 'symbol');
         const market = this.safeMarket(marketId, undefined, '', 'contract');
-        const symbol = this.safeSymbol(marketId);
+        const symbol = market['symbol'];
         const liquidation = this.parseWsLiquidation(rawLiquidation, market);
         let liquidations = this.safeValue(this.liquidations, symbol);
         if (liquidations === undefined) {
@@ -1281,7 +1281,7 @@ class bybit extends bybit$1 {
         const timestamp = this.safeInteger(liquidation, 'updatedTime');
         return this.safeLiquidation({
             'info': liquidation,
-            'symbol': this.safeSymbol(marketId, market),
+            'symbol': market['symbol'],
             'contracts': this.safeNumber(liquidation, 'size'),
             'contractSize': this.safeNumber(market, 'contractSize'),
             'price': this.safeNumber(liquidation, 'price'),

@@ -1282,7 +1282,7 @@ class bybit extends \ccxt\async\bybit {
         $rawLiquidation = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($rawLiquidation, 'symbol');
         $market = $this->safe_market($marketId, null, '', 'contract');
-        $symbol = $this->safe_symbol($marketId);
+        $symbol = $market['symbol'];
         $liquidation = $this->parse_ws_liquidation($rawLiquidation, $market);
         $liquidations = $this->safe_value($this->liquidations, $symbol);
         if ($liquidations === null) {
@@ -1310,7 +1310,7 @@ class bybit extends \ccxt\async\bybit {
         $timestamp = $this->safe_integer($liquidation, 'updatedTime');
         return $this->safe_liquidation(array(
             'info' => $liquidation,
-            'symbol' => $this->safe_symbol($marketId, $market),
+            'symbol' => $market['symbol'],
             'contracts' => $this->safe_number($liquidation, 'size'),
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'price' => $this->safe_number($liquidation, 'price'),

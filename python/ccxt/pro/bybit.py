@@ -1174,7 +1174,7 @@ class bybit(ccxt.async_support.bybit):
         rawLiquidation = self.safe_dict(message, 'data', {})
         marketId = self.safe_string(rawLiquidation, 'symbol')
         market = self.safe_market(marketId, None, '', 'contract')
-        symbol = self.safe_symbol(marketId)
+        symbol = market['symbol']
         liquidation = self.parse_ws_liquidation(rawLiquidation, market)
         liquidations = self.safe_value(self.liquidations, symbol)
         if liquidations is None:
@@ -1200,7 +1200,7 @@ class bybit(ccxt.async_support.bybit):
         timestamp = self.safe_integer(liquidation, 'updatedTime')
         return self.safe_liquidation({
             'info': liquidation,
-            'symbol': self.safe_symbol(marketId, market),
+            'symbol': market['symbol'],
             'contracts': self.safe_number(liquidation, 'size'),
             'contractSize': self.safe_number(market, 'contractSize'),
             'price': self.safe_number(liquidation, 'price'),

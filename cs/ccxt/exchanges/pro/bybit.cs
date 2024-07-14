@@ -1374,7 +1374,7 @@ public partial class bybit : ccxt.bybit
         object rawLiquidation = this.safeDict(message, "data", new Dictionary<string, object>() {});
         object marketId = this.safeString(rawLiquidation, "symbol");
         object market = this.safeMarket(marketId, null, "", "contract");
-        object symbol = this.safeSymbol(marketId);
+        object symbol = getValue(market, "symbol");
         object liquidation = this.parseWsLiquidation(rawLiquidation, market);
         object liquidations = this.safeValue(this.liquidations, symbol);
         if (isTrue(isEqual(liquidations, null)))
@@ -1404,7 +1404,7 @@ public partial class bybit : ccxt.bybit
         object timestamp = this.safeInteger(liquidation, "updatedTime");
         return this.safeLiquidation(new Dictionary<string, object>() {
             { "info", liquidation },
-            { "symbol", this.safeSymbol(marketId, market) },
+            { "symbol", getValue(market, "symbol") },
             { "contracts", this.safeNumber(liquidation, "size") },
             { "contractSize", this.safeNumber(market, "contractSize") },
             { "price", this.safeNumber(liquidation, "price") },
