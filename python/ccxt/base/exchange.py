@@ -2724,9 +2724,21 @@ class Exchange(object):
             if amount is not None and filled is not None:
                 remaining = Precise.string_sub(amount, filled)
         # ensure that the average field is calculated correctly
+        inverse = self.safe_bool(market, 'inverse', False)
+        contractSize = self.number_to_string(self.safe_value(market, 'contractSize', 1))
+        # inverse
+        # price = filled * contract size / cost
+        #
+        # linear
+        # price = cost / (filled * contract size)
         if average is None:
             if (filled is not None) and (cost is not None) and Precise.string_gt(filled, '0'):
-                average = Precise.string_div(cost, filled)
+                filledTimesContractSize = Precise.string_mul(filled, contractSize)
+                if inverse:
+                    average = Precise.string_div(filledTimesContractSize, cost)
+                else:
+                    average = Precise.string_div(cost, filledTimesContractSize)
+
         # also ensure the cost field is calculated correctly
         costPriceExists = (average is not None) or (price is not None)
         if parseCost and (filled is not None) and costPriceExists:
@@ -2738,7 +2750,6 @@ class Exchange(object):
             # contract trading
             contractSize = self.safe_string(market, 'contractSize')
             if contractSize is not None:
-                inverse = self.safe_value(market, 'inverse', False)
                 if inverse:
                     multiplyPrice = Precise.string_div('1', multiplyPrice)
                 multiplyPrice = Precise.string_mul(multiplyPrice, contractSize)
