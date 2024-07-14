@@ -748,7 +748,7 @@ export default class binance extends binanceRest {
             const snapshot = await this.fetchRestOrderBookSafe (symbol, limit, params);
             if (!(symbol in this.orderbooks)) {
                 // if the orderbook is dropped before the snapshot is received
-                // (it could happen when e.g. user unsubscribed, rejected, exception thrown, etc..)
+                // it could happen when e.g. user unsubscribed, rejected, exception thrown, etc...
                 return;
             }
             const orderbook = this.orderbooks[symbol];
