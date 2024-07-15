@@ -2644,7 +2644,12 @@ export default class coindcx extends Exchange {
         const request: Dict = {};
         if (symbols !== undefined) {
             const marketIds = this.marketIds (symbols);
-            request['pairs'] = marketIds.join ();
+            let idsString = '';
+            for (let i = 0; i < marketIds.length; i++) {
+                const id = marketIds[i];
+                idsString = idsString + id + ',';
+            }
+            request['pairs'] = idsString;
         }
         const response = await this.privatePostExchangeV1DerivativesFuturesPositions (this.extend (request, params));
         //
