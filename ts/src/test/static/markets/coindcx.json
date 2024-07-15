@@ -237,7 +237,7 @@
             "status": "active"
         }
     },
-    "ETH/USDT:USDT" {
+    "ETH/USDT:USDT": {
         "id": "B-ETH_USDT",
         "symbol": "ETH/USDT:USDT",
         "base": "ETH",
