@@ -1,0 +1,356 @@
+{
+    "BTC/USDT": {
+        "id": "BTCUSDT",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "taker": 0,
+        "maker": 0,
+        "precision": {
+            "amount": 0.00001,
+            "price": 0.01
+        },
+        "limits": {
+                "leverage": {
+                    "min": null,
+                    "max": 6
+            },
+                "amount": {
+                    "min": 0.00001,
+                    "max": 9000
+            },
+                "price": {
+                    "min": 12485.056,
+                    "max": 312126.4
+            },
+                "cost": {
+                    "min": 5.5,
+                    "max": null
+            }
+        },
+        "created": null,
+        "info": {
+            "coindcx_name": "BTCUSDT",
+            "base_currency_short_name": "USDT",
+            "target_currency_short_name": "BTC",
+            "target_currency_name": "Bitcoin",
+            "base_currency_name": "Tether",
+            "min_quantity": "1.0e-05",
+            "max_quantity": "9000.0",
+            "max_quantity_market": "128.7436877",
+            "min_price": "12485.056",
+            "max_price": "312126.4",
+            "min_notional": "5.5",
+            "base_currency_precision": "2",
+            "target_currency_precision": "5",
+            "step": "1.0e-05",
+            "order_types": [
+                "take_profit_market",
+                "take_profit",
+                "stop_limit",
+                "market_order",
+                "limit_order"
+            ],
+            "symbol": "BTCUSDT",
+            "ecode": "B",
+            "bo_sl_safety_percent": null,
+            "max_leverage": "6.0",
+            "max_leverage_short": "0.0",
+            "pair": "B-BTC_USDT",
+            "status": "active"
+        }
+    },
+    "LTC/USDT": {
+        "id": "LTCUSDT",
+        "symbol": "LTC/USDT",
+        "base": "LTC",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "LTC",
+        "quoteId": "USDT",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "taker": 0,
+        "maker": 0,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": 10
+            },
+            "amount": {
+                "min": 0.001,
+                "max": 90000
+            },
+            "price": {
+                "min": 13.974,
+                "max": 349.35
+            },
+            "cost": {
+                "min": 5.5,
+                "max": null
+            }
+        },
+        "created": null,
+        "info": {
+            "coindcx_name": "LTCUSDT",
+            "base_currency_short_name": "USDT",
+            "target_currency_short_name": "LTC",
+            "target_currency_name": "Litecoin",
+            "base_currency_name": "Tether",
+            "min_quantity": "0.001",
+            "max_quantity": "90000.0",
+            "max_quantity_market": "9554.97242083",
+            "min_price": "13.974",
+            "max_price": "349.35",
+            "min_notional": "5.5",
+            "base_currency_precision": "2",
+            "target_currency_precision": "3",
+            "step": "0.001",
+            "order_types": [
+                "take_profit",
+                "stop_limit",
+                "market_order",
+                "limit_order"
+            ],
+            "symbol": "LTCUSDT",
+            "ecode": "B",
+            "bo_sl_safety_percent": null,
+            "max_leverage": "10.0",
+            "max_leverage_short": "0.0",
+            "pair": "B-LTC_USDT",
+            "status": "active"
+        }
+    },
+    "ETH/USDT": {
+        "id": "ETHUSDT",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": null,
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": true,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "taker": 0,
+        "maker": 0,
+        "precision": {
+            "amount": 0.0001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": 12
+            },
+            "amount": {
+                "min": 0.0001,
+                "max": 9000
+            },
+            "price": {
+                "min": 666.892,
+                "max": 16672.3
+            },
+            "cost": {
+                "min": 5.5,
+                "max": null
+            }
+        },
+        "created": null,
+        "info": {
+            "coindcx_name": "ETHUSDT",
+            "base_currency_short_name": "USDT",
+            "target_currency_short_name": "ETH",
+            "target_currency_name": "Ethereum",
+            "base_currency_name": "Tether",
+            "min_quantity": "0.0001",
+            "max_quantity": "9000.0",
+            "max_quantity_market": "2065.66148458",
+            "min_price": "666.892",
+            "max_price": "16672.3",
+            "min_notional": "5.5",
+            "base_currency_precision": "2",
+            "target_currency_precision": "4",
+            "step": "0.0001",
+            "order_types": [
+            "take_profit",
+            "stop_limit",
+            "market_order",
+            "limit_order"
+            ],
+            "symbol": "ETHUSDT",
+            "ecode": "B",
+            "bo_sl_safety_percent": null,
+            "max_leverage": "12.0",
+            "max_leverage_short": "0.0",
+            "pair": "B-ETH_USDT",
+            "status": "active"
+        }
+    },
+    "ETH/USDT:USDT" {
+        "id": "B-ETH_USDT",
+        "symbol": "ETH/USDT:USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": null,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "contractSize": 1,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "taker": 0.075,
+        "maker": 0.025,
+        "precision": {
+            "amount": 0.001,
+            "price": 0.01
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": 20
+            },
+            "amount": {
+                "min": 0.001,
+                "max": 9500
+            },
+            "price": {
+                "min": 41.853,
+                "max": 95600.4
+            },
+            "cost": {
+                "min": 24,
+                "max": null
+            }
+        },
+        "created": null,
+        "info": {
+            "settle_currency_short_name": "USDT",
+            "quote_currency_short_name": "USDT",
+            "position_currency_short_name": "ETH",
+            "underlying_currency_short_name": "ETH",
+            "status": "active",
+            "pair": "B-ETH_USDT",
+            "kind": "perpetual",
+            "settlement": "never",
+            "max_leverage_long": "20.0",
+            "max_leverage_short": "20.0",
+            "unit_contract_value": "1.0",
+            "price_increment": "0.01",
+            "quantity_increment": "0.001",
+            "min_trade_size": "0.001",
+            "min_price": "41.853",
+            "max_price": "95600.4",
+            "min_quantity": "0.001",
+            "max_quantity": "9500.0",
+            "min_notional": "24.0",
+            "maker_fee": "0.025",
+            "taker_fee": "0.075",
+            "safety_percentage": "1.5",
+            "quanto_to_settle_multiplier": "1.0",
+            "is_inverse": false,
+            "is_quanto": false,
+            "allow_post_only": false,
+            "allow_hidden": false,
+            "max_market_order_quantity": "2000.0",
+            "funding_frequency": "8",
+            "max_notional": "20000000.0",
+            "expiry_time": "2548162800000",
+            "exit_only": false,
+            "multiplier_up": "4.0",
+            "multiplier_down": "4.0",
+            "liquidation_fee": "1.0",
+            "time_in_force_options": [
+                "good_till_cancel",
+                "immediate_or_cancel",
+                "fill_or_kill"
+            ],
+            "order_types": [
+                "market_order",
+                "limit_order",
+                "stop_limit",
+                "take_profit_limit",
+                "stop_market",
+                "take_profit_market"
+            ],
+            "dynamic_position_leverage_details": {
+                "5": "15000000.0",
+                "8": "5000000.0",
+                "10": "1000000.0",
+                "15": "500000.0",
+                "20": "100000.0",
+                "25": "50000.0"
+            },
+            "dynamic_safety_margin_details": {
+                "50000": "1.5",
+                "100000": "2.0",
+                "500000": "3.0",
+                "1000000": "5.0",
+                "5000000": "6.0",
+                "15000000": "10.0"
+            }
+        }
+    }
+}
