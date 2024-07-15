@@ -2469,7 +2469,7 @@ class phemex extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->trigger] trigger $price for conditional orders
          * @param {array} [$params->takeProfit] *swap only* *$takeProfit object in $params* containing the $triggerPrice at which the attached take profit order will be triggered (perpetual swap markets only)
@@ -2764,7 +2764,7 @@ class phemex extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->posSide] either 'Merged' or 'Long' or 'Short'
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -2893,12 +2893,39 @@ class phemex extends Exchange {
         $response = null;
         if ($market['settle'] === 'USDT') {
             $response = $this->privateDeleteGOrdersAll ($this->extend($request, $params));
+            //
+            //    {
+            //        code => '0',
+            //        msg => '',
+            //        data => '1'
+            //    }
+            //
         } elseif ($market['swap']) {
             $response = $this->privateDeleteOrdersAll ($this->extend($request, $params));
+            //
+            //    {
+            //        code => '0',
+            //        msg => '',
+            //        data => '1'
+            //    }
+            //
         } else {
             $response = $this->privateDeleteSpotOrdersAll ($this->extend($request, $params));
+            //
+            //    {
+            //        code => '0',
+            //        msg => '',
+            //        data => {
+            //            total => '1'
+            //        }
+            //    }
+            //
         }
-        return $response;
+        return array(
+            $this->safe_order(array(
+                'info' => $response,
+            )),
+        );
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {

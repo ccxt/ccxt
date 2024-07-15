@@ -798,13 +798,19 @@ class cryptocom(Exchange, ImplicitAPI):
             'instrument_name': market['id'],
             'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        if since is not None:
-            request['start_ts'] = since
         if limit is not None:
             request['count'] = limit
-        until = self.safe_integer(params, 'until')
+        now = self.microseconds()
+        duration = self.parse_timeframe(timeframe)
+        until = self.safe_integer(params, 'until', now)
         params = self.omit(params, ['until'])
-        if until is not None:
+        if since is not None:
+            request['start_ts'] = since
+            if limit is not None:
+                request['end_ts'] = self.sum(since, duration * (limit + 1) * 1000) - 1
+            else:
+                request['end_ts'] = until
+        else:
             request['end_ts'] = until
         response = await self.v1PublicGetPublicGetCandlestick(self.extend(request, params))
         #
@@ -1084,7 +1090,7 @@ class cryptocom(Exchange, ImplicitAPI):
         :param str type: 'market', 'limit', 'stop_loss', 'stop_limit', 'take_profit', 'take_profit_limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: 'GTC', 'IOC', 'FOK' or 'PO'
         :param str [params.ref_price_type]: 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger price type to use, default is MARK_PRICE
@@ -1362,7 +1368,7 @@ class cryptocom(Exchange, ImplicitAPI):
         """
         cancel multiple orders for multiple symbols
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
-        :param CancellationRequest[] orders: each order should contain the parameters required by cancelOrder namely id and symbol
+        :param CancellationRequest[] orders: each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """

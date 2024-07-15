@@ -258,7 +258,7 @@ public partial class upbit
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -440,18 +440,11 @@ public partial class upbit
         var res = await this.fetchWithdrawal(id, code, parameters);
         return new Transaction(res);
     }
-    public async Task<List<Order>> FetchOrdersByState(object state, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
-    {
-        var since = since2 == 0 ? null : (object)since2;
-        var limit = limit2 == 0 ? null : (object)limit2;
-        var res = await this.fetchOrdersByState(state, symbol, since, limit, parameters);
-        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
-    }
     /// <summary>
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/open-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -462,13 +455,19 @@ public partial class upbit
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum number of  open orders structures to retrieve
+    /// int : the maximum number of open order structures to retrieve
     /// </description>
     /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.state</term>
+    /// <description>
+    /// string : default is 'wait', set to 'watch' for stop limit orders
     /// </description>
     /// </item>
     /// </list>
@@ -485,7 +484,7 @@ public partial class upbit
     /// fetches information on multiple closed orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/closed-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -505,6 +504,12 @@ public partial class upbit
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest order
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>Order[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -519,7 +524,7 @@ public partial class upbit
     /// fetches information on multiple canceled orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.upbit.com/reference/%EC%A3%BC%EB%AC%B8-%EB%A6%AC%EC%8A%A4%ED%8A%B8-%EC%A1%B0%ED%9A%8C"/>  <br/>
+    /// See <see href="https://global-docs.upbit.com/reference/closed-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -537,6 +542,12 @@ public partial class upbit
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest order
     /// </description>
     /// </item>
     /// </list>

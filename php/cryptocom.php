@@ -802,15 +802,21 @@ class cryptocom extends Exchange {
             'instrument_name' => $market['id'],
             'timeframe' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
-        if ($since !== null) {
-            $request['start_ts'] = $since;
-        }
         if ($limit !== null) {
             $request['count'] = $limit;
         }
-        $until = $this->safe_integer($params, 'until');
+        $now = $this->microseconds();
+        $duration = $this->parse_timeframe($timeframe);
+        $until = $this->safe_integer($params, 'until', $now);
         $params = $this->omit($params, array( 'until' ));
-        if ($until !== null) {
+        if ($since !== null) {
+            $request['start_ts'] = $since;
+            if ($limit !== null) {
+                $request['end_ts'] = $this->sum($since, $duration * ($limit + 1) * 1000) - 1;
+            } else {
+                $request['end_ts'] = $until;
+            }
+        } else {
             $request['end_ts'] = $until;
         }
         $response = $this->v1PublicGetPublicGetCandlestick ($this->extend($request, $params));
@@ -1115,7 +1121,7 @@ class cryptocom extends Exchange {
          * @param {string} $type 'market', 'limit', 'stop_loss', 'stop_limit', 'take_profit', 'take_profit_limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
          * @param {string} [$params->ref_price_type] 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger $price $type to use, default is MARK_PRICE
@@ -1422,7 +1428,7 @@ class cryptocom extends Exchange {
         /**
          * cancel multiple $orders for multiple symbols
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-$order-list-list
-         * @param {CancellationRequest[]} $orders each $order should contain the parameters required by cancelOrder namely $id and $symbol
+         * @param {CancellationRequest[]} $orders each $order should contain the parameters required by cancelOrder namely $id and $symbol, example [array("id" => "a", "symbol" => "BTC/USDT"), array("id" => "b", "symbol" => "ETH/USDT")]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structures~
          */

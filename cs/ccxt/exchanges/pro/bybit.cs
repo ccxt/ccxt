@@ -135,7 +135,7 @@ public partial class bybit : ccxt.bybit
         return requestId;
     }
 
-    public virtual object getUrlByMarketType(object symbol = null, object isPrivate = null, object method = null, object parameters = null)
+    public async virtual Task<object> getUrlByMarketType(object symbol = null, object isPrivate = null, object method = null, object parameters = null)
     {
         isPrivate ??= false;
         parameters ??= new Dictionary<string, object>();
@@ -162,7 +162,16 @@ public partial class bybit : ccxt.bybit
         isSpot = (isEqual(type, "spot"));
         if (isTrue(isPrivate))
         {
-            url = ((bool) isTrue((isUsdcSettled))) ? getValue(getValue(url, accessibility), "usdc") : getValue(getValue(url, accessibility), "contract");
+            object unified = await this.isUnifiedEnabled();
+            object isUnifiedMargin = this.safeBool(unified, 0, false);
+            object isUnifiedAccount = this.safeBool(unified, 1, false);
+            if (isTrue(isTrue(isTrue(isUsdcSettled) && !isTrue(isUnifiedMargin)) && !isTrue(isUnifiedAccount)))
+            {
+                url = getValue(getValue(url, accessibility), "usdc");
+            } else
+            {
+                url = getValue(getValue(url, accessibility), "contract");
+            }
         } else
         {
             if (isTrue(isSpot))
@@ -203,7 +212,7 @@ public partial class bybit : ccxt.bybit
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK"
         * @param {bool} [params.postOnly] true or false whether the order is post-only
@@ -255,7 +264,7 @@ public partial class bybit : ccxt.bybit
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] The price that a trigger order is triggered at
         * @param {float} [params.stopLossPrice] The price that a stop loss order is triggered at
@@ -341,7 +350,7 @@ public partial class bybit : ccxt.bybit
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object messageHash = add("ticker:", symbol);
-        object url = this.getUrlByMarketType(symbol, false, "watchTicker", parameters);
+        object url = await this.getUrlByMarketType(symbol, false, "watchTicker", parameters);
         parameters = this.cleanParams(parameters);
         object options = this.safeValue(this.options, "watchTicker", new Dictionary<string, object>() {});
         object topic = this.safeString(options, "name", "tickers");
@@ -370,7 +379,7 @@ public partial class bybit : ccxt.bybit
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, null, false);
         object messageHashes = new List<object>() {};
-        object url = this.getUrlByMarketType(getValue(symbols, 0), false, "watchTickers", parameters);
+        object url = await this.getUrlByMarketType(getValue(symbols, 0), false, "watchTickers", parameters);
         parameters = this.cleanParams(parameters);
         object options = this.safeValue(this.options, "watchTickers", new Dictionary<string, object>() {});
         object topic = this.safeString(options, "name", "tickers");
@@ -560,7 +569,7 @@ public partial class bybit : ccxt.bybit
         await this.loadMarkets();
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
-        object url = this.getUrlByMarketType(symbol, false, "watchOHLCV", parameters);
+        object url = await this.getUrlByMarketType(symbol, false, "watchOHLCV", parameters);
         parameters = this.cleanParams(parameters);
         object ohlcv = null;
         object timeframeId = this.safeString(this.timeframes, timeframe, timeframe);
@@ -686,7 +695,7 @@ public partial class bybit : ccxt.bybit
             throw new ArgumentsRequired ((string)add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
         }
         symbols = this.marketSymbols(symbols);
-        object url = this.getUrlByMarketType(getValue(symbols, 0), false, "watchOrderBook", parameters);
+        object url = await this.getUrlByMarketType(getValue(symbols, 0), false, "watchOrderBook", parameters);
         parameters = this.cleanParams(parameters);
         object market = this.market(getValue(symbols, 0));
         if (isTrue(isEqual(limit, null)))
@@ -810,7 +819,7 @@ public partial class bybit : ccxt.bybit
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trade structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
         return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
@@ -838,7 +847,7 @@ public partial class bybit : ccxt.bybit
             throw new ArgumentsRequired ((string)add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
         }
         parameters = this.cleanParams(parameters);
-        object url = this.getUrlByMarketType(getValue(symbols, 0), false, "watchTrades", parameters);
+        object url = await this.getUrlByMarketType(getValue(symbols, 0), false, "watchTrades", parameters);
         object topics = new List<object>() {};
         object messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
@@ -1007,7 +1016,7 @@ public partial class bybit : ccxt.bybit
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.unifiedMargin] use unified margin account
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         object method = "watchMyTrades";
@@ -1018,7 +1027,7 @@ public partial class bybit : ccxt.bybit
             symbol = this.symbol(symbol);
             messageHash = add(messageHash, add(":", symbol));
         }
-        object url = this.getUrlByMarketType(symbol, true, method, parameters);
+        object url = await this.getUrlByMarketType(symbol, true, method, parameters);
         await this.authenticate(url);
         object topicByMarket = new Dictionary<string, object>() {
             { "spot", "ticketInfo" },
@@ -1159,7 +1168,7 @@ public partial class bybit : ccxt.bybit
             messageHash = add("::", String.Join(",", ((IList<object>)symbols).ToArray()));
         }
         object firstSymbol = this.safeString(symbols, 0);
-        object url = this.getUrlByMarketType(firstSymbol, true, method, parameters);
+        object url = await this.getUrlByMarketType(firstSymbol, true, method, parameters);
         messageHash = add("positions", messageHash);
         var client = this.client(url);
         await this.authenticate(url);
@@ -1334,7 +1343,7 @@ public partial class bybit : ccxt.bybit
         await this.loadMarkets();
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
-        object url = this.getUrlByMarketType(symbol, false, "watchLiquidations", parameters);
+        object url = await this.getUrlByMarketType(symbol, false, "watchLiquidations", parameters);
         parameters = this.cleanParams(parameters);
         object messageHash = add("liquidations::", symbol);
         object topic = add("liquidation.", getValue(market, "id"));
@@ -1365,7 +1374,7 @@ public partial class bybit : ccxt.bybit
         object rawLiquidation = this.safeDict(message, "data", new Dictionary<string, object>() {});
         object marketId = this.safeString(rawLiquidation, "symbol");
         object market = this.safeMarket(marketId, null, "", "contract");
-        object symbol = this.safeSymbol(marketId);
+        object symbol = getValue(market, "symbol");
         object liquidation = this.parseWsLiquidation(rawLiquidation, market);
         object liquidations = this.safeValue(this.liquidations, symbol);
         if (isTrue(isEqual(liquidations, null)))
@@ -1395,7 +1404,7 @@ public partial class bybit : ccxt.bybit
         object timestamp = this.safeInteger(liquidation, "updatedTime");
         return this.safeLiquidation(new Dictionary<string, object>() {
             { "info", liquidation },
-            { "symbol", this.safeSymbol(marketId, market) },
+            { "symbol", getValue(market, "symbol") },
             { "contracts", this.safeNumber(liquidation, "size") },
             { "contractSize", this.safeNumber(market, "contractSize") },
             { "price", this.safeNumber(liquidation, "price") },
@@ -1417,7 +1426,7 @@ public partial class bybit : ccxt.bybit
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1428,7 +1437,7 @@ public partial class bybit : ccxt.bybit
             symbol = this.symbol(symbol);
             messageHash = add(messageHash, add(":", symbol));
         }
-        object url = this.getUrlByMarketType(symbol, true, method, parameters);
+        object url = await this.getUrlByMarketType(symbol, true, method, parameters);
         await this.authenticate(url);
         object topicsByMarket = new Dictionary<string, object>() {
             { "spot", new List<object>() {"order", "stopOrder"} },
@@ -1763,7 +1772,7 @@ public partial class bybit : ccxt.bybit
         object unified = await this.isUnifiedEnabled();
         object isUnifiedMargin = this.safeBool(unified, 0, false);
         object isUnifiedAccount = this.safeBool(unified, 1, false);
-        object url = this.getUrlByMarketType(null, true, method, parameters);
+        object url = await this.getUrlByMarketType(null, true, method, parameters);
         await this.authenticate(url);
         object topicByMarket = new Dictionary<string, object>() {
             { "spot", "outboundAccountInfo" },

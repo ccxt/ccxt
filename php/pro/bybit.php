@@ -143,39 +143,48 @@ class bybit extends \ccxt\async\bybit {
     }
 
     public function get_url_by_market_type(?string $symbol = null, $isPrivate = false, ?string $method = null, $params = array ()) {
-        $accessibility = $isPrivate ? 'private' : 'public';
-        $isUsdcSettled = null;
-        $isSpot = null;
-        $type = null;
-        $market = null;
-        $url = $this->urls['api']['ws'];
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $isUsdcSettled = $market['settle'] === 'USDC';
-            $type = $market['type'];
-        } else {
-            list($type, $params) = $this->handle_market_type_and_params($method, null, $params);
-            $defaultSettle = $this->safe_string($this->options, 'defaultSettle');
-            $defaultSettle = $this->safe_string_2($params, 'settle', 'defaultSettle', $defaultSettle);
-            $isUsdcSettled = ($defaultSettle === 'USDC');
-        }
-        $isSpot = ($type === 'spot');
-        if ($isPrivate) {
-            $url = ($isUsdcSettled) ? $url[$accessibility]['usdc'] : $url[$accessibility]['contract'];
-        } else {
-            if ($isSpot) {
-                $url = $url[$accessibility]['spot'];
-            } elseif ($type === 'swap') {
-                $subType = null;
-                list($subType, $params) = $this->handle_sub_type_and_params($method, $market, $params, 'linear');
-                $url = $url[$accessibility][$subType];
+        return Async\async(function () use ($symbol, $isPrivate, $method, $params) {
+            $accessibility = $isPrivate ? 'private' : 'public';
+            $isUsdcSettled = null;
+            $isSpot = null;
+            $type = null;
+            $market = null;
+            $url = $this->urls['api']['ws'];
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $isUsdcSettled = $market['settle'] === 'USDC';
+                $type = $market['type'];
             } else {
-                // option
-                $url = $url[$accessibility]['option'];
+                list($type, $params) = $this->handle_market_type_and_params($method, null, $params);
+                $defaultSettle = $this->safe_string($this->options, 'defaultSettle');
+                $defaultSettle = $this->safe_string_2($params, 'settle', 'defaultSettle', $defaultSettle);
+                $isUsdcSettled = ($defaultSettle === 'USDC');
             }
-        }
-        $url = $this->implode_hostname($url);
-        return $url;
+            $isSpot = ($type === 'spot');
+            if ($isPrivate) {
+                $unified = Async\await($this->isUnifiedEnabled ());
+                $isUnifiedMargin = $this->safe_bool($unified, 0, false);
+                $isUnifiedAccount = $this->safe_bool($unified, 1, false);
+                if ($isUsdcSettled && !$isUnifiedMargin && !$isUnifiedAccount) {
+                    $url = $url[$accessibility]['usdc'];
+                } else {
+                    $url = $url[$accessibility]['contract'];
+                }
+            } else {
+                if ($isSpot) {
+                    $url = $url[$accessibility]['spot'];
+                } elseif ($type === 'swap') {
+                    $subType = null;
+                    list($subType, $params) = $this->handle_sub_type_and_params($method, $market, $params, 'linear');
+                    $url = $url[$accessibility][$subType];
+                } else {
+                    // option
+                    $url = $url[$accessibility]['option'];
+                }
+            }
+            $url = $this->implode_hostname($url);
+            return $url;
+        }) ();
     }
 
     public function clean_params($params) {
@@ -193,7 +202,7 @@ class bybit extends \ccxt\async\bybit {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK"
              * @param {bool} [$params->postOnly] true or false whether the order is post-only
@@ -245,7 +254,7 @@ class bybit extends \ccxt\async\bybit {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} $price the $price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+             * @param {float} $price the $price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->triggerPrice] The $price that a trigger order is triggered at
              * @param {float} [$params->stopLossPrice] The $price that a stop loss order is triggered at
@@ -329,7 +338,7 @@ class bybit extends \ccxt\async\bybit {
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
             $messageHash = 'ticker:' . $symbol;
-            $url = $this->get_url_by_market_type($symbol, false, 'watchTicker', $params);
+            $url = Async\await($this->get_url_by_market_type($symbol, false, 'watchTicker', $params));
             $params = $this->clean_params($params);
             $options = $this->safe_value($this->options, 'watchTicker', array());
             $topic = $this->safe_string($options, 'name', 'tickers');
@@ -355,7 +364,7 @@ class bybit extends \ccxt\async\bybit {
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, false);
             $messageHashes = array();
-            $url = $this->get_url_by_market_type($symbols[0], false, 'watchTickers', $params);
+            $url = Async\await($this->get_url_by_market_type($symbols[0], false, 'watchTickers', $params));
             $params = $this->clean_params($params);
             $options = $this->safe_value($this->options, 'watchTickers', array());
             $topic = $this->safe_string($options, 'name', 'tickers');
@@ -537,7 +546,7 @@ class bybit extends \ccxt\async\bybit {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $url = $this->get_url_by_market_type($symbol, false, 'watchOHLCV', $params);
+            $url = Async\await($this->get_url_by_market_type($symbol, false, 'watchOHLCV', $params));
             $params = $this->clean_params($params);
             $ohlcv = null;
             $timeframeId = $this->safe_string($this->timeframes, $timeframe, $timeframe);
@@ -659,7 +668,7 @@ class bybit extends \ccxt\async\bybit {
                 throw new ArgumentsRequired($this->id . ' watchOrderBookForSymbols() requires a non-empty array of symbols');
             }
             $symbols = $this->market_symbols($symbols);
-            $url = $this->get_url_by_market_type($symbols[0], false, 'watchOrderBook', $params);
+            $url = Async\await($this->get_url_by_market_type($symbols[0], false, 'watchOrderBook', $params));
             $params = $this->clean_params($params);
             $market = $this->market($symbols[0]);
             if ($limit === null) {
@@ -770,7 +779,7 @@ class bybit extends \ccxt\async\bybit {
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
         }) ();
@@ -794,7 +803,7 @@ class bybit extends \ccxt\async\bybit {
                 throw new ArgumentsRequired($this->id . ' watchTradesForSymbols() requires a non-empty array of symbols');
             }
             $params = $this->clean_params($params);
-            $url = $this->get_url_by_market_type($symbols[0], false, 'watchTrades', $params);
+            $url = Async\await($this->get_url_by_market_type($symbols[0], false, 'watchTrades', $params));
             $topics = array();
             $messageHashes = array();
             for ($i = 0; $i < count($symbols); $i++) {
@@ -949,7 +958,7 @@ class bybit extends \ccxt\async\bybit {
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->unifiedMargin] use unified margin account
-             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $method = 'watchMyTrades';
             $messageHash = 'myTrades';
@@ -958,7 +967,7 @@ class bybit extends \ccxt\async\bybit {
                 $symbol = $this->symbol($symbol);
                 $messageHash .= ':' . $symbol;
             }
-            $url = $this->get_url_by_market_type($symbol, true, $method, $params);
+            $url = Async\await($this->get_url_by_market_type($symbol, true, $method, $params));
             Async\await($this->authenticate($url));
             $topicByMarket = array(
                 'spot' => 'ticketInfo',
@@ -1088,7 +1097,7 @@ class bybit extends \ccxt\async\bybit {
                 $messageHash = '::' . implode(',', $symbols);
             }
             $firstSymbol = $this->safe_string($symbols, 0);
-            $url = $this->get_url_by_market_type($firstSymbol, true, $method, $params);
+            $url = Async\await($this->get_url_by_market_type($firstSymbol, true, $method, $params));
             $messageHash = 'positions' . $messageHash;
             $client = $this->client($url);
             Async\await($this->authenticate($url));
@@ -1243,7 +1252,7 @@ class bybit extends \ccxt\async\bybit {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $url = $this->get_url_by_market_type($symbol, false, 'watchLiquidations', $params);
+            $url = Async\await($this->get_url_by_market_type($symbol, false, 'watchLiquidations', $params));
             $params = $this->clean_params($params);
             $messageHash = 'liquidations::' . $symbol;
             $topic = 'liquidation.' . $market['id'];
@@ -1273,7 +1282,7 @@ class bybit extends \ccxt\async\bybit {
         $rawLiquidation = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($rawLiquidation, 'symbol');
         $market = $this->safe_market($marketId, null, '', 'contract');
-        $symbol = $this->safe_symbol($marketId);
+        $symbol = $market['symbol'];
         $liquidation = $this->parse_ws_liquidation($rawLiquidation, $market);
         $liquidations = $this->safe_value($this->liquidations, $symbol);
         if ($liquidations === null) {
@@ -1301,7 +1310,7 @@ class bybit extends \ccxt\async\bybit {
         $timestamp = $this->safe_integer($liquidation, 'updatedTime');
         return $this->safe_liquidation(array(
             'info' => $liquidation,
-            'symbol' => $this->safe_symbol($marketId, $market),
+            'symbol' => $market['symbol'],
             'contracts' => $this->safe_number($liquidation, 'size'),
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'price' => $this->safe_number($liquidation, 'price'),
@@ -1321,7 +1330,7 @@ class bybit extends \ccxt\async\bybit {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $method = 'watchOrders';
@@ -1330,7 +1339,7 @@ class bybit extends \ccxt\async\bybit {
                 $symbol = $this->symbol($symbol);
                 $messageHash .= ':' . $symbol;
             }
-            $url = $this->get_url_by_market_type($symbol, true, $method, $params);
+            $url = Async\await($this->get_url_by_market_type($symbol, true, $method, $params));
             Async\await($this->authenticate($url));
             $topicsByMarket = array(
                 'spot' => array( 'order', 'stopOrder' ),
@@ -1644,7 +1653,7 @@ class bybit extends \ccxt\async\bybit {
             $unified = Async\await($this->isUnifiedEnabled ());
             $isUnifiedMargin = $this->safe_bool($unified, 0, false);
             $isUnifiedAccount = $this->safe_bool($unified, 1, false);
-            $url = $this->get_url_by_market_type(null, true, $method, $params);
+            $url = Async\await($this->get_url_by_market_type(null, true, $method, $params));
             Async\await($this->authenticate($url));
             $topicByMarket = array(
                 'spot' => 'outboundAccountInfo',

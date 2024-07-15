@@ -18,6 +18,7 @@ class idex extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v3',
             'pro' => true,
+            'dex' => true,
             'certified' => false,
             'requiresWeb3' => true,
             'has' => array(
@@ -1149,7 +1150,7 @@ class idex extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {bool} [$params->test] set to true to test an order, no order will be created but the $request will be validated
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~

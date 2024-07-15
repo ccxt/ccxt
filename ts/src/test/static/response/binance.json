@@ -154,7 +154,8 @@
                     "10000000",
                     "0.25"
                 ]
-            ]
+            ],
+            "BTC/USD:BTC": [["0","0.004"],["5","0.005"],["10","0.01"],["20","0.025"],["50","0.05"],["100","0.1"],["200","0.125"],["400","0.15"],["1000","0.25"],["1500","0.5"]]
         }
     },
     "methods": {
@@ -702,6 +703,96 @@
                         "hedged": false,
                         "percentage": -1.25
                     }
+                ]
+            },
+            {
+                "description": "inverse positions",
+                "method": "fetchPositions",
+                "input": [],
+                "httpResponse": [
+                  {
+                    "symbol": "BTCUSD_PERP",
+                    "positionAmt": "1",
+                    "entryPrice": "21170.99999979",
+                    "markPrice": "59874.30000000",
+                    "unRealizedProfit": "0.00305327",
+                    "liquidationPrice": "10.04614805",
+                    "leverage": "20",
+                    "maxQty": "50",
+                    "marginType": "cross",
+                    "isolatedMargin": "0.00000000",
+                    "isAutoAddMargin": "false",
+                    "positionSide": "BOTH",
+                    "notionalValue": "0.00167016",
+                    "isolatedWallet": "0",
+                    "updateTime": "1673947276562",
+                    "breakEvenPrice": "21170.99999979"
+                  },
+                  {
+                    "symbol": "UNIUSD_PERP",
+                    "positionAmt": "0",
+                    "entryPrice": "0.00000000",
+                    "markPrice": "0.00000000",
+                    "unRealizedProfit": "0.00000000",
+                    "liquidationPrice": "0",
+                    "leverage": "20",
+                    "maxQty": "10000",
+                    "marginType": "cross",
+                    "isolatedMargin": "0.00000000",
+                    "isAutoAddMargin": "false",
+                    "positionSide": "BOTH",
+                    "notionalValue": "0",
+                    "isolatedWallet": "0",
+                    "updateTime": "0",
+                    "breakEvenPrice": "0.00000000"
+                  }
+                ],
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "symbol": "BTCUSD_PERP",
+                      "positionAmt": "1",
+                      "entryPrice": "21170.99999979",
+                      "markPrice": "59874.30000000",
+                      "unRealizedProfit": "0.00305327",
+                      "liquidationPrice": "10.04614805",
+                      "leverage": "20",
+                      "maxQty": "50",
+                      "marginType": "cross",
+                      "isolatedMargin": "0.00000000",
+                      "isAutoAddMargin": "false",
+                      "positionSide": "BOTH",
+                      "notionalValue": "0.00167016",
+                      "isolatedWallet": "0",
+                      "updateTime": "1673947276562",
+                      "breakEvenPrice": "21170.99999979"
+                    },
+                    "id": null,
+                    "symbol": "BTC/USD:BTC",
+                    "contracts": 1,
+                    "contractSize": 100,
+                    "unrealizedPnl": 0.00305327,
+                    "leverage": 20,
+                    "liquidationPrice": 10.04614805,
+                    "collateral": 9.98915674,
+                    "notional": 0.00167016,
+                    "markPrice": 59874.3,
+                    "entryPrice": 21170.99999979,
+                    "timestamp": 1673947276562,
+                    "initialMargin": 0.0000835,
+                    "initialMarginPercentage": 0.05,
+                    "maintenanceMargin": 0.00000668064,
+                    "maintenanceMarginPercentage": 0.004,
+                    "marginRatio": 0,
+                    "datetime": "2023-01-17T09:21:16.562Z",
+                    "marginMode": "cross",
+                    "marginType": "cross",
+                    "side": "long",
+                    "hedged": false,
+                    "percentage": 3656.61,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null
+                  }
                 ]
             }
         ],
@@ -2509,6 +2600,84 @@
                     "fee": null
                   }
                 ]
+            }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw",
+                "method": "withdraw",
+                "input": [
+                  "USDT",
+                  10.34332,
+                  "TKRxCKea88ZvHeGsXEY33CqAQHPDqcAw4N",
+                  null,
+                  {
+                    "network": "TRC20"
+                  }
+                ],
+                "httpResponse": {
+                  "id": "0b894f44acb74b0687398205de0db2d0"
+                },
+                "parsedResponse": {
+                  "info": {
+                    "id": "0b894f44acb74b0687398205de0db2d0"
+                  },
+                  "id": "0b894f44acb74b0687398205de0db2d0",
+                  "txid": null,
+                  "timestamp": null,
+                  "datetime": null,
+                  "network": null,
+                  "address": null,
+                  "addressTo": null,
+                  "addressFrom": null,
+                  "tag": null,
+                  "tagTo": null,
+                  "tagFrom": null,
+                  "type": null,
+                  "amount": null,
+                  "currency": "USDT",
+                  "status": null,
+                  "updated": null,
+                  "internal": null,
+                  "comment": null,
+                  "fee": null
+                }
+            }
+        ],
+        "fetchConvertQuote": [
+            {
+                "description": "fetchConvertQuote",
+                "method": "fetchConvertQuote",
+                "input": [
+                  "USDC",
+                  "USDT",
+                  5
+                ],
+                "httpResponse": {
+                  "ratio": "0.999351",
+                  "inverseRatio": "1.00065",
+                  "validTimestamp": "1718724795211",
+                  "toAmount": "4.99675625",
+                  "fromAmount": "5"
+                },
+                "parsedResponse": {
+                  "info": {
+                    "ratio": "0.999351",
+                    "inverseRatio": "1.00065",
+                    "validTimestamp": "1718724795211",
+                    "toAmount": "4.99675625",
+                    "fromAmount": "5"
+                  },
+                  "timestamp": 1718724795211,
+                  "datetime": "2024-06-18T15:33:15.211Z",
+                  "id": null,
+                  "fromCurrency": "USDC",
+                  "fromAmount": 5,
+                  "toCurrency": "USDT",
+                  "toAmount": 4.99675625,
+                  "price": null,
+                  "fee": null
+                }
             }
         ]
     }

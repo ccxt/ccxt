@@ -76,6 +76,7 @@ interface Exchange {
     privateSpotPostWithdraw (params?: {}): Promise<implicitReturnType>;
     privateSpotPostBalanceTransfer (params?: {}): Promise<implicitReturnType>;
     privateSpotPostBalanceAccountTransfer (params?: {}): Promise<implicitReturnType>;
+    privateSpotPostWsToken (params?: {}): Promise<implicitReturnType>;
     privateSpotDeleteBatchOrder (params?: {}): Promise<implicitReturnType>;
     privateSpotDeleteOpenOrder (params?: {}): Promise<implicitReturnType>;
     privateSpotDeleteOrderOrderId (params?: {}): Promise<implicitReturnType>;

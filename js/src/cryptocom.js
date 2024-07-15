@@ -817,15 +817,23 @@ export default class cryptocom extends Exchange {
             'instrument_name': market['id'],
             'timeframe': this.safeString(this.timeframes, timeframe, timeframe),
         };
-        if (since !== undefined) {
-            request['start_ts'] = since;
-        }
         if (limit !== undefined) {
             request['count'] = limit;
         }
-        const until = this.safeInteger(params, 'until');
+        const now = this.microseconds();
+        const duration = this.parseTimeframe(timeframe);
+        const until = this.safeInteger(params, 'until', now);
         params = this.omit(params, ['until']);
-        if (until !== undefined) {
+        if (since !== undefined) {
+            request['start_ts'] = since;
+            if (limit !== undefined) {
+                request['end_ts'] = this.sum(since, duration * (limit + 1) * 1000) - 1;
+            }
+            else {
+                request['end_ts'] = until;
+            }
+        }
+        else {
             request['end_ts'] = until;
         }
         const response = await this.v1PublicGetPublicGetCandlestick(this.extend(request, params));
@@ -1148,7 +1156,7 @@ export default class cryptocom extends Exchange {
          * @param {string} type 'market', 'limit', 'stop_loss', 'stop_limit', 'take_profit', 'take_profit_limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
          * @param {string} [params.ref_price_type] 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger price type to use, default is MARK_PRICE
@@ -1478,7 +1486,7 @@ export default class cryptocom extends Exchange {
          * @name cryptocom#cancelOrdersForSymbols
          * @description cancel multiple orders for multiple symbols
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
-         * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol
+         * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */

@@ -102,10 +102,10 @@ class bingx extends \ccxt\async\bingx {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            list($marketType, $query) = $this->handle_market_type_and_params('watchTrades', $market, $params);
+            list($marketType, $query) = $this->handle_market_type_and_params('watchTicker', $market, $params);
             $url = $this->safe_value($this->urls['api']['ws'], $marketType);
             if ($url === null) {
-                throw new BadRequest($this->id . ' watchTrades is not supported for ' . $marketType . ' markets.');
+                throw new BadRequest($this->id . ' watchTicker is not supported for ' . $marketType . ' markets.');
             }
             $subscriptionHash = $market['id'] . '@ticker';
             $messageHash = $this->get_message_hash('ticker', $market['symbol']);
@@ -451,25 +451,27 @@ class bingx extends \ccxt\async\bingx {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            list($marketType, $query) = $this->handle_market_type_and_params('watchTrades', $market, $params);
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('watchTrades', $market, $params);
             $url = $this->safe_value($this->urls['api']['ws'], $marketType);
             if ($url === null) {
                 throw new BadRequest($this->id . ' watchTrades is not supported for ' . $marketType . ' markets.');
             }
-            $messageHash = $market['id'] . '@trade';
+            $rawHash = $market['id'] . '@trade';
+            $messageHash = 'trade::' . $symbol;
             $uuid = $this->uuid();
             $request = array(
                 'id' => $uuid,
-                'dataType' => $messageHash,
+                'dataType' => $rawHash,
             );
             if ($marketType === 'swap') {
                 $request['reqType'] = 'sub';
             }
-            $trades = Async\await($this->watch($url, $messageHash, $this->extend($request, $query), $messageHash));
+            $trades = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
@@ -538,12 +540,13 @@ class bingx extends \ccxt\async\bingx {
         //    }
         //
         $data = $this->safe_value($message, 'data', array());
-        $messageHash = $this->safe_string($message, 'dataType');
-        $marketId = explode('@', $messageHash)[0];
+        $rawHash = $this->safe_string($message, 'dataType');
+        $marketId = explode('@', $rawHash)[0];
         $isSwap = mb_strpos($client->url, 'swap') !== false;
         $marketType = $isSwap ? 'swap' : 'spot';
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
+        $messageHash = 'trade::' . $symbol;
         $trades = null;
         if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
             $trades = $this->parse_trades($data, $market);
@@ -755,15 +758,15 @@ class bingx extends \ccxt\async\bingx {
         //        )
         //    }
         //
-        $data = $this->safe_list($message, 'data', array());
+        $isSwap = mb_strpos($client->url, 'swap') !== false;
         $candles = null;
-        if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
-            $candles = $data;
+        if ($isSwap) {
+            $candles = $this->safe_list($message, 'data', array());
         } else {
-            $candles = array( $this->safe_list($data, 'K', array()) );
+            $data = $this->safe_dict($message, 'data', array());
+            $candles = array( $this->safe_dict($data, 'K', array()) );
         }
         $dataType = $this->safe_string($message, 'dataType');
-        $isSwap = mb_strpos($client->url, 'swap') !== false;
         $parts = explode('@', $dataType);
         $firstPart = $parts[0];
         $isAllEndpoint = ($firstPart === 'all');
@@ -902,7 +905,7 @@ class bingx extends \ccxt\async\bingx {
              * @param {int} [$since] the earliest time in ms to $trades orders for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());

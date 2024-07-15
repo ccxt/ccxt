@@ -14,8 +14,8 @@ sys.path.append(root)
 
 import asyncio
 from ccxt.base.errors import ArgumentsRequired  # noqa E402
-from ccxt.test.base import test_ticker  # noqa E402
-from ccxt.test.base import test_shared_methods  # noqa E402
+from ccxt.test.exchange.base import test_ticker  # noqa E402
+from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
 async def test_watch_tickers(exchange, skipped_properties, symbol):
     without_symbol = test_watch_tickers_helper(exchange, skipped_properties, None)

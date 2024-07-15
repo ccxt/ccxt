@@ -40,6 +40,7 @@ class bybit extends Exchange {
                 'option' => true,
                 'borrowCrossMargin' => true,
                 'cancelAllOrders' => true,
+                'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'cancelOrdersForSymbols' => true,
@@ -3060,15 +3061,18 @@ class bybit extends Exchange {
             list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
             $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
             $type = null;
-            list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+            list($type, $params) = $this->get_bybit_type('fetchBalance', null, $params);
             $isSpot = ($type === 'spot');
-            $isSwap = ($type === 'swap');
+            $isLinear = ($type === 'linear');
+            $isInverse = ($type === 'inverse');
             if ($isUnifiedAccount) {
-                if ($isSpot || $isSwap) {
+                if ($isInverse) {
+                    $type = 'contract';
+                } else {
                     $type = 'unified';
                 }
             } else {
-                if ($isSwap) {
+                if ($isLinear || $isInverse) {
                     $type = 'contract';
                 }
             }
@@ -3331,13 +3335,13 @@ class bybit extends Exchange {
         if ($code !== null) {
             if ($code !== '0') {
                 $category = $this->safe_string($order, 'category');
-                $inferedMarketType = ($category === 'spot') ? 'spot' : 'contract';
+                $inferredMarketType = ($category === 'spot') ? 'spot' : 'contract';
                 return $this->safe_order(array(
                     'info' => $order,
                     'status' => 'rejected',
                     'id' => $this->safe_string($order, 'orderId'),
                     'clientOrderId' => $this->safe_string($order, 'orderLinkId'),
-                    'symbol' => $this->safe_symbol($this->safe_string($order, 'symbol'), null, null, $inferedMarketType),
+                    'symbol' => $this->safe_symbol($this->safe_string($order, 'symbol'), null, null, $inferredMarketType),
                 ));
             }
         }
@@ -3385,7 +3389,7 @@ class bybit extends Exchange {
                 $feeCurrencyCode = $market['inverse'] ? $market['base'] : $market['settle'];
             }
             $fee = array(
-                'cost' => $feeCostString,
+                'cost' => $this->parse_number($feeCostString),
                 'currency' => $feeCurrencyCode,
             );
         }
@@ -3508,7 +3512,7 @@ class bybit extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK"
              * @param {bool} [$params->postOnly] true or false whether the $order is post-only
@@ -4142,7 +4146,7 @@ class bybit extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} $price the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+             * @param {float} $price the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->triggerPrice] The $price that a trigger order is triggered at
              * @param {float} [$params->stopLossPrice] The $price that a stop loss order is triggered at
@@ -4319,6 +4323,11 @@ class bybit extends Exchange {
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $types = Async\await($this->is_unified_enabled());
+            $enableUnifiedAccount = $types[1];
+            if (!$enableUnifiedAccount) {
+                throw new NotSupported($this->id . ' cancelOrders() supports UTA accounts only');
+            }
             $category = null;
             list($category, $params) = $this->get_bybit_type('cancelOrders', $market, $params);
             if ($category === 'inverse') {
@@ -4385,18 +4394,55 @@ class bybit extends Exchange {
         }) ();
     }
 
+    public function cancel_all_orders_after(?int $timeout, $params = array ()) {
+        return Async\async(function () use ($timeout, $params) {
+            /**
+             * dead man's switch, cancel all orders after the given $timeout
+             * @see https://bybit-exchange.github.io/docs/v5/order/dcp
+             * @param {number} $timeout time in milliseconds
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->product] OPTIONS, DERIVATIVES, SPOT, default is 'DERIVATIVES'
+             * @return {array} the api result
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'timeWindow' => $this->parse_to_int($timeout / 1000),
+            );
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('cancelAllOrdersAfter', null, $params, 'swap');
+            $productMap = array(
+                'spot' => 'SPOT',
+                'swap' => 'DERIVATIVES',
+                'option' => 'OPTIONS',
+            );
+            $product = $this->safe_string($productMap, $type, $type);
+            $request['product'] = $product;
+            $response = Async\await($this->privatePostV5OrderDisconnectedCancelAll ($this->extend($request, $params)));
+            //
+            // {
+            //     "retCode" => 0,
+            //     "retMsg" => "success"
+            // }
+            //
+            return $response;
+        }) ();
+    }
+
     public function cancel_orders_for_symbols(array $orders, $params = array ()) {
         return Async\async(function () use ($orders, $params) {
             /**
              * cancel multiple $orders for multiple symbols
              * @see https://bybit-exchange.github.io/docs/v5/order/batch-cancel
-             * @param {string[]} ids $order ids
-             * @param {string} $symbol unified $symbol of the $market the $order was made in
+             * @param {CancellationRequest[]} $orders list of $order ids with $symbol, example [array("id" => "a", "symbol" => "BTC/USDT"), array("id" => "b", "symbol" => "ETH/USDT")]
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string[]} [$params->clientOrderIds] client $order ids
              * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structures~
              */
             Async\await($this->load_markets());
+            $types = Async\await($this->is_unified_enabled());
+            $enableUnifiedAccount = $types[1];
+            if (!$enableUnifiedAccount) {
+                throw new NotSupported($this->id . ' cancelOrdersForSymbols() supports UTA accounts only');
+            }
             $ordersRequests = array();
             $category = null;
             for ($i = 0; $i < count($orders); $i++) {
@@ -5171,9 +5217,15 @@ class bybit extends Exchange {
              * @param {string} [$params->baseCoin] Base coin. Supports linear, inverse & option
              * @param {string} [$params->settleCoin] Settle coin. Supports linear, inverse & option
              * @param {string} [$params->orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
+             * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
              * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
+            $paginate = false;
+            list($paginate, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'paginate');
+            if ($paginate) {
+                return Async\await($this->fetch_paginated_call_cursor('fetchOpenOrders', $symbol, $since, $limit, $params, 'nextPageCursor', 'cursor', null, 50));
+            }
             list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
             $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
             $request = array();
@@ -6276,6 +6328,7 @@ class bybit extends Exchange {
              * @param {string} [$params->settleCoin] Settle coin. Supports linear, inverse & option
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
+            Async\await($this->load_markets());
             $symbol = null;
             if (($symbols !== null) && gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
                 $symbolsLength = count($symbols);
@@ -6289,7 +6342,6 @@ class bybit extends Exchange {
                 $symbol = $symbols;
                 $symbols = array( $this->symbol($symbol) );
             }
-            Async\await($this->load_markets());
             list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
             $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
             $request = array();

@@ -14,7 +14,7 @@ public partial class xt : Exchange
             { "rateLimit", 100 },
             { "version", "v4" },
             { "certified", false },
-            { "pro", false },
+            { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", false },
                 { "spot", true },
@@ -206,6 +206,7 @@ public partial class xt : Exchange
                             { "withdraw", 1 },
                             { "balance/transfer", 1 },
                             { "balance/account/transfer", 1 },
+                            { "ws-token", 1 },
                         } },
                         { "delete", new Dictionary<string, object>() {
                             { "batch-order", 1 },
@@ -775,7 +776,7 @@ public partial class xt : Exchange
                 { "name", this.safeString(entry, "fullName") },
                 { "active", active },
                 { "fee", this.parseNumber(minWithdrawFeeString) },
-                { "precision", null },
+                { "precision", minPrecision },
                 { "deposit", deposit },
                 { "withdraw", withdraw },
                 { "networks", networks },
@@ -1440,9 +1441,13 @@ public partial class xt : Exchange
         object timestamp = this.safeInteger2(orderBook, "timestamp", "t");
         if (isTrue(getValue(market, "spot")))
         {
-            return this.parseOrderBook(orderBook, symbol, timestamp);
+            object ob = this.parseOrderBook(orderBook, symbol, timestamp);
+            ((IDictionary<string,object>)ob)["nonce"] = this.safeInteger(orderBook, "lastUpdateId");
+            return ob;
         }
-        return this.parseOrderBook(orderBook, symbol, timestamp, "b", "a");
+        object swapOb = this.parseOrderBook(orderBook, symbol, timestamp, "b", "a");
+        ((IDictionary<string,object>)swapOb)["nonce"] = this.safeInteger2(orderBook, "u", "lastUpdateId");
+        return swapOb;
     }
 
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
@@ -1726,9 +1731,10 @@ public partial class xt : Exchange
         //
         object marketId = this.safeString(ticker, "s");
         object marketType = ((bool) isTrue((!isEqual(market, null)))) ? getValue(market, "type") : null;
+        object hasSpotKeys = isTrue((inOp(ticker, "cv"))) || isTrue((inOp(ticker, "aq")));
         if (isTrue(isEqual(marketType, null)))
         {
-            marketType = ((bool) isTrue(isTrue((inOp(ticker, "cv"))) || isTrue((inOp(ticker, "aq"))))) ? "spot" : "contract";
+            marketType = ((bool) isTrue(hasSpotKeys)) ? "spot" : "contract";
         }
         market = this.safeMarket(marketId, market, "_", marketType);
         object symbol = getValue(market, "symbol");
@@ -1979,6 +1985,29 @@ public partial class xt : Exchange
         //         "b": true
         //     }
         //
+        // spot: watchMyTrades
+        //
+        //    {
+        //        "s": "btc_usdt",                // symbol
+        //        "t": 1656043204763,             // time
+        //        "i": "6316559590087251233",     // tradeId
+        //        "oi": "6216559590087220004",    // orderId
+        //        "p": "30000",                   // trade price
+        //        "q": "3",                       // qty quantity
+        //        "v": "90000"                    // volume trade amount
+        //    }
+        //
+        // spot: watchTrades
+        //
+        //    {
+        //        s: 'btc_usdt',
+        //        i: '228825383103928709',
+        //        t: 1684258222702,
+        //        p: '27003.65',
+        //        q: '0.000796',
+        //        b: true
+        //    }
+        //
         // swap and future: fetchTrades
         //
         //     {
@@ -2023,11 +2052,40 @@ public partial class xt : Exchange
         //         "takerMaker": "TAKER"
         //     }
         //
+        // contract watchMyTrades
+        //
+        //    {
+        //        "symbol": 'btc_usdt',
+        //        "orderSide": 'SELL',
+        //        "positionSide": 'LONG',
+        //        "orderId": '231485367663419328',
+        //        "price": '27152.7',
+        //        "quantity": '33',
+        //        "marginUnfrozen": '2.85318000',
+        //        "timestamp": 1684892412565
+        //    }
+        //
+        // watchMyTrades (ws, swap)
+        //
+        //    {
+        //        'fee': '0.04080840',
+        //        'isMaker': False,
+        //        'marginUnfrozen': '0.75711984',
+        //        'orderId': '376172779053188416',
+        //        'orderSide': 'BUY',
+        //        'positionSide': 'LONG',
+        //        'price': '3400.70',
+        //        'quantity': '2',
+        //        'symbol': 'eth_usdt',
+        //        'timestamp': 1719388579622
+        //    }
+        //
         object marketId = this.safeString2(trade, "s", "symbol");
         object marketType = ((bool) isTrue((!isEqual(market, null)))) ? getValue(market, "type") : null;
+        object hasSpotKeys = isTrue(isTrue((inOp(trade, "b"))) || isTrue((inOp(trade, "bizType")))) || isTrue((inOp(trade, "oi")));
         if (isTrue(isEqual(marketType, null)))
         {
-            marketType = ((bool) isTrue(isTrue((inOp(trade, "b"))) || isTrue((inOp(trade, "bizType"))))) ? "spot" : "contract";
+            marketType = ((bool) isTrue(hasSpotKeys)) ? "spot" : "contract";
         }
         market = this.safeMarket(marketId, market, "_", marketType);
         object bidOrAsk = this.safeString(trade, "m");
@@ -2037,10 +2095,19 @@ public partial class xt : Exchange
             side = ((bool) isTrue((isEqual(bidOrAsk, "BID")))) ? "buy" : "sell";
         }
         object buyerMaker = this.safeValue(trade, "b");
+        if (isTrue(!isEqual(buyerMaker, null)))
+        {
+            side = "buy";
+        }
         object takerOrMaker = this.safeStringLower(trade, "takerMaker");
         if (isTrue(!isEqual(buyerMaker, null)))
         {
             takerOrMaker = ((bool) isTrue(buyerMaker)) ? "maker" : "taker";
+        }
+        object isMaker = this.safeBool(trade, "isMaker");
+        if (isTrue(!isEqual(isMaker, null)))
+        {
+            takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
         }
         object timestamp = this.safeIntegerN(trade, new List<object>() {"t", "time", "timestamp"});
         object quantity = this.safeString2(trade, "q", "quantity");
@@ -2064,7 +2131,7 @@ public partial class xt : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "symbol", getValue(market, "symbol") },
-            { "order", this.safeString(trade, "orderId") },
+            { "order", this.safeString2(trade, "orderId", "oi") },
             { "type", this.safeStringLower(trade, "orderType") },
             { "side", side },
             { "takerOrMaker", takerOrMaker },
@@ -5037,7 +5104,7 @@ public partial class xt : Exchange
                     ((IDictionary<string,object>)body)["media"] = id;
                 }
             }
-            object isUndefinedBody = (isTrue((isEqual(method, "GET"))) || isTrue((isEqual(path, "order/{orderId}"))));
+            object isUndefinedBody = (isTrue(isTrue((isEqual(method, "GET"))) || isTrue((isEqual(path, "order/{orderId}")))) || isTrue((isEqual(path, "ws-token"))));
             body = ((bool) isTrue(isUndefinedBody)) ? null : this.json(body);
             object payloadString = null;
             if (isTrue(isTrue((isEqual(endpoint, "spot"))) || isTrue((isEqual(endpoint, "user")))))
@@ -5048,7 +5115,7 @@ public partial class xt : Exchange
                     if (isTrue(urlencoded))
                     {
                         url = add(url, add("?", urlencoded));
-                        payloadString = add(payloadString, add(add(add(add(add("#", method), "#"), payload), "#"), urlencoded));
+                        payloadString = add(payloadString, add(add(add(add(add("#", method), "#"), payload), "#"), this.rawencode(this.keysort(query))));
                     } else
                     {
                         payloadString = add(payloadString, add(add(add("#", method), "#"), payload));

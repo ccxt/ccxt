@@ -97,13 +97,13 @@ public partial class bingx : ccxt.bingx
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        var marketTypequeryVariable = this.handleMarketTypeAndParams("watchTrades", market, parameters);
+        var marketTypequeryVariable = this.handleMarketTypeAndParams("watchTicker", market, parameters);
         var marketType = ((IList<object>) marketTypequeryVariable)[0];
         var query = ((IList<object>) marketTypequeryVariable)[1];
         object url = this.safeValue(getValue(getValue(this.urls, "api"), "ws"), marketType);
         if (isTrue(isEqual(url, null)))
         {
-            throw new BadRequest ((string)add(add(add(this.id, " watchTrades is not supported for "), marketType), " markets.")) ;
+            throw new BadRequest ((string)add(add(add(this.id, " watchTicker is not supported for "), marketType), " markets.")) ;
         }
         object subscriptionHash = add(getValue(market, "id"), "@ticker");
         object messageHash = this.getMessageHash("ticker", getValue(market, "symbol"));
@@ -501,30 +501,32 @@ public partial class bingx : ccxt.bingx
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = this.market(symbol);
-        var marketTypequeryVariable = this.handleMarketTypeAndParams("watchTrades", market, parameters);
-        var marketType = ((IList<object>) marketTypequeryVariable)[0];
-        var query = ((IList<object>) marketTypequeryVariable)[1];
+        object marketType = null;
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchTrades", market, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
         object url = this.safeValue(getValue(getValue(this.urls, "api"), "ws"), marketType);
         if (isTrue(isEqual(url, null)))
         {
             throw new BadRequest ((string)add(add(add(this.id, " watchTrades is not supported for "), marketType), " markets.")) ;
         }
-        object messageHash = add(getValue(market, "id"), "@trade");
+        object rawHash = add(getValue(market, "id"), "@trade");
+        object messageHash = add("trade::", symbol);
         object uuid = this.uuid();
         object request = new Dictionary<string, object>() {
             { "id", uuid },
-            { "dataType", messageHash },
+            { "dataType", rawHash },
         };
         if (isTrue(isEqual(marketType, "swap")))
         {
             ((IDictionary<string,object>)request)["reqType"] = "sub";
         }
-        object trades = await this.watch(url, messageHash, this.extend(request, query), messageHash);
+        object trades = await this.watch(url, messageHash, this.extend(request, parameters), messageHash);
         if (isTrue(this.newUpdates))
         {
             limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
@@ -594,12 +596,13 @@ public partial class bingx : ccxt.bingx
         //    }
         //
         object data = this.safeValue(message, "data", new List<object>() {});
-        object messageHash = this.safeString(message, "dataType");
-        object marketId = getValue(((string)messageHash).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>(), 0);
+        object rawHash = this.safeString(message, "dataType");
+        object marketId = getValue(((string)rawHash).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>(), 0);
         object isSwap = isGreaterThanOrEqual(getIndexOf(client.url, "swap"), 0);
         object marketType = ((bool) isTrue(isSwap)) ? "swap" : "spot";
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
+        object messageHash = add("trade::", symbol);
         object trades = null;
         if (isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
@@ -823,17 +826,17 @@ public partial class bingx : ccxt.bingx
         //        ]
         //    }
         //
-        object data = this.safeList(message, "data", new List<object>() {});
+        object isSwap = isGreaterThanOrEqual(getIndexOf(client.url, "swap"), 0);
         object candles = null;
-        if (isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        if (isTrue(isSwap))
         {
-            candles = data;
+            candles = this.safeList(message, "data", new List<object>() {});
         } else
         {
-            candles = new List<object> {this.safeList(data, "K", new List<object>() {})};
+            object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+            candles = new List<object> {this.safeDict(data, "K", new Dictionary<string, object>() {})};
         }
         object dataType = this.safeString(message, "dataType");
-        object isSwap = isGreaterThanOrEqual(getIndexOf(client.url, "swap"), 0);
         object parts = ((string)dataType).Split(new [] {((string)"@")}, StringSplitOptions.None).ToList<object>();
         object firstPart = getValue(parts, 0);
         object isAllEndpoint = (isEqual(firstPart, "all"));
@@ -993,7 +996,7 @@ public partial class bingx : ccxt.bingx
         * @param {int} [since] the earliest time in ms to trades orders for
         * @param {int} [limit] the maximum number of trades structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

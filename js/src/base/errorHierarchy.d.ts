@@ -17,9 +17,6 @@ declare const errorHierarchy: {
                 };
                 MarketClosed: {};
             };
-            BadResponse: {
-                NullResponse: {};
-            };
             InsufficientFunds: {};
             InvalidAddress: {
                 AddressPending: {};
@@ -27,14 +24,13 @@ declare const errorHierarchy: {
             InvalidOrder: {
                 OrderNotFound: {};
                 OrderNotCached: {};
-                CancelPending: {};
                 OrderImmediatelyFillable: {};
                 OrderNotFillable: {};
                 DuplicateOrderId: {};
                 ContractUnavailable: {};
             };
             NotSupported: {};
-            ProxyError: {};
+            InvalidProxySettings: {};
             ExchangeClosedByUser: {};
         };
         OperationFailed: {
@@ -47,6 +43,10 @@ declare const errorHierarchy: {
                 InvalidNonce: {};
                 RequestTimeout: {};
             };
+            BadResponse: {
+                NullResponse: {};
+            };
+            CancelPending: {};
         };
     };
 };

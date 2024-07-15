@@ -654,12 +654,13 @@ class coinex extends coinex$1 {
         //         "id": null
         //     }
         //
+        const isSwap = client.url.indexOf('perpetual') >= 0;
+        const marketType = isSwap ? 'swap' : 'spot';
         const params = this.safeValue(message, 'params', []);
         const fullOrderBook = this.safeValue(params, 0);
         let orderbook = this.safeValue(params, 1);
         const marketId = this.safeString(params, 2);
-        const defaultType = this.safeString(this.options, 'defaultType');
-        const market = this.safeMarket(marketId, undefined, undefined, defaultType);
+        const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         const name = 'orderbook';
         const messageHash = name + ':' + symbol;

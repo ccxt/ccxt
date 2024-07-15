@@ -98,10 +98,10 @@ export default class bingx extends bingxRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('watchTrades', market, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('watchTicker', market, params);
         const url = this.safeValue (this.urls['api']['ws'], marketType);
         if (url === undefined) {
-            throw new BadRequest (this.id + ' watchTrades is not supported for ' + marketType + ' markets.');
+            throw new BadRequest (this.id + ' watchTicker is not supported for ' + marketType + ' markets.');
         }
         const subscriptionHash = market['id'] + '@ticker';
         const messageHash = this.getMessageHash ('ticker', market['symbol']);
@@ -447,25 +447,27 @@ export default class bingx extends bingxRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('watchTrades', market, params);
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchTrades', market, params);
         const url = this.safeValue (this.urls['api']['ws'], marketType);
         if (url === undefined) {
             throw new BadRequest (this.id + ' watchTrades is not supported for ' + marketType + ' markets.');
         }
-        const messageHash = market['id'] + '@trade';
+        const rawHash = market['id'] + '@trade';
+        const messageHash = 'trade::' + symbol;
         const uuid = this.uuid ();
         const request: Dict = {
             'id': uuid,
-            'dataType': messageHash,
+            'dataType': rawHash,
         };
         if (marketType === 'swap') {
             request['reqType'] = 'sub';
         }
-        const trades = await this.watch (url, messageHash, this.extend (request, query), messageHash);
+        const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -533,12 +535,13 @@ export default class bingx extends bingxRest {
         //    }
         //
         const data = this.safeValue (message, 'data', []);
-        const messageHash = this.safeString (message, 'dataType');
-        const marketId = messageHash.split ('@')[0];
+        const rawHash = this.safeString (message, 'dataType');
+        const marketId = rawHash.split ('@')[0];
         const isSwap = client.url.indexOf ('swap') >= 0;
         const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
+        const messageHash = 'trade::' + symbol;
         let trades = undefined;
         if (Array.isArray (data)) {
             trades = this.parseTrades (data, market);
@@ -750,15 +753,15 @@ export default class bingx extends bingxRest {
         //        ]
         //    }
         //
-        const data = this.safeList (message, 'data', []);
+        const isSwap = client.url.indexOf ('swap') >= 0;
         let candles = undefined;
-        if (Array.isArray (data)) {
-            candles = data;
+        if (isSwap) {
+            candles = this.safeList (message, 'data', []);
         } else {
-            candles = [ this.safeList (data, 'K', []) ];
+            const data = this.safeDict (message, 'data', {});
+            candles = [ this.safeDict (data, 'K', {}) ];
         }
         const dataType = this.safeString (message, 'dataType');
-        const isSwap = client.url.indexOf ('swap') >= 0;
         const parts = dataType.split ('@');
         const firstPart = parts[0];
         const isAllEndpoint = (firstPart === 'all');
@@ -898,7 +901,7 @@ export default class bingx extends bingxRest {
          * @param {int} [since] the earliest time in ms to trades orders for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         await this.authenticate ();

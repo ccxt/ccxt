@@ -37,12 +37,6 @@ declare class MarginModeAlreadySet extends NoChange {
 declare class MarketClosed extends OperationRejected {
     constructor(message: string);
 }
-declare class BadResponse extends ExchangeError {
-    constructor(message: string);
-}
-declare class NullResponse extends BadResponse {
-    constructor(message: string);
-}
 declare class InsufficientFunds extends ExchangeError {
     constructor(message: string);
 }
@@ -61,9 +55,6 @@ declare class OrderNotFound extends InvalidOrder {
 declare class OrderNotCached extends InvalidOrder {
     constructor(message: string);
 }
-declare class CancelPending extends InvalidOrder {
-    constructor(message: string);
-}
 declare class OrderImmediatelyFillable extends InvalidOrder {
     constructor(message: string);
 }
@@ -79,7 +70,7 @@ declare class ContractUnavailable extends InvalidOrder {
 declare class NotSupported extends ExchangeError {
     constructor(message: string);
 }
-declare class ProxyError extends ExchangeError {
+declare class InvalidProxySettings extends ExchangeError {
     constructor(message: string);
 }
 declare class ExchangeClosedByUser extends ExchangeError {
@@ -109,7 +100,16 @@ declare class InvalidNonce extends NetworkError {
 declare class RequestTimeout extends NetworkError {
     constructor(message: string);
 }
-export { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, ProxyError, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout };
+declare class BadResponse extends OperationFailed {
+    constructor(message: string);
+}
+declare class NullResponse extends BadResponse {
+    constructor(message: string);
+}
+declare class CancelPending extends OperationFailed {
+    constructor(message: string);
+}
+export { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, BadResponse, NullResponse, CancelPending };
 declare const _default: {
     BaseError: typeof BaseError;
     ExchangeError: typeof ExchangeError;
@@ -124,21 +124,18 @@ declare const _default: {
     NoChange: typeof NoChange;
     MarginModeAlreadySet: typeof MarginModeAlreadySet;
     MarketClosed: typeof MarketClosed;
-    BadResponse: typeof BadResponse;
-    NullResponse: typeof NullResponse;
     InsufficientFunds: typeof InsufficientFunds;
     InvalidAddress: typeof InvalidAddress;
     AddressPending: typeof AddressPending;
     InvalidOrder: typeof InvalidOrder;
     OrderNotFound: typeof OrderNotFound;
     OrderNotCached: typeof OrderNotCached;
-    CancelPending: typeof CancelPending;
     OrderImmediatelyFillable: typeof OrderImmediatelyFillable;
     OrderNotFillable: typeof OrderNotFillable;
     DuplicateOrderId: typeof DuplicateOrderId;
     ContractUnavailable: typeof ContractUnavailable;
     NotSupported: typeof NotSupported;
-    ProxyError: typeof ProxyError;
+    InvalidProxySettings: typeof InvalidProxySettings;
     ExchangeClosedByUser: typeof ExchangeClosedByUser;
     OperationFailed: typeof OperationFailed;
     NetworkError: typeof NetworkError;
@@ -148,5 +145,8 @@ declare const _default: {
     OnMaintenance: typeof OnMaintenance;
     InvalidNonce: typeof InvalidNonce;
     RequestTimeout: typeof RequestTimeout;
+    BadResponse: typeof BadResponse;
+    NullResponse: typeof NullResponse;
+    CancelPending: typeof CancelPending;
 };
 export default _default;

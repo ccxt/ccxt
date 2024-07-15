@@ -30,7 +30,7 @@ class exmo(Exchange, ImplicitAPI):
             'id': 'exmo',
             'name': 'EXMO',
             'countries': ['LT'],  # Lithuania
-            'rateLimit': 350,  # once every 350 ms ≈ 180 requests per minute ≈ 3 requests per second
+            'rateLimit': 100,  # 10 requests per 1 second
             'version': 'v1.1',
             'has': {
                 'CORS': None,
@@ -1329,7 +1329,7 @@ class exmo(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.stopPrice]: the price at which a trigger order is triggered at
         :param str [params.timeInForce]: *spot only* 'fok', 'ioc' or 'post_only'
@@ -1912,7 +1912,7 @@ class exmo(Exchange, ImplicitAPI):
         :param str type: not used by exmo editOrder
         :param str side: not used by exmo editOrder
         :param float [amount]: how much of the currency you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: stop price for stop-market and stop-limit orders
         :param str params['marginMode']: must be set to isolated

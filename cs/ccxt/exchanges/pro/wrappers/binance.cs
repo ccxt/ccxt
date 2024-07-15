@@ -10,8 +10,8 @@ public partial class binance
     /// watch the public liquidations of a trading pair
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#liquidation-order-streams"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#liquidation-order-streams"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Liquidation-Order-Streams"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Liquidation-Order-Streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -45,8 +45,8 @@ public partial class binance
     /// watch the public liquidations of a trading pair
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#all-market-liquidation-order-streams"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#all-market-liquidation-order-streams"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Liquidation-Order-Streams"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Liquidation-Order-Streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -80,8 +80,8 @@ public partial class binance
     /// watch the private liquidations of a trading pair
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#event-order-update"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#event-order-update"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Order-Update"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -115,8 +115,8 @@ public partial class binance
     /// watch the private liquidations of a trading pair
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#event-order-update"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#event-order-update"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Order-Update"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -202,7 +202,8 @@ public partial class binance
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#order-book-2"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#order-book"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/websocket-api/Order-Book"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -328,7 +329,6 @@ public partial class binance
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -360,7 +360,7 @@ public partial class binance
     /// query historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/websocket_api/en/#klines"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#klines"/>  <br/>
     /// <list type="table">
     /// </list>
     /// </remarks>
@@ -420,9 +420,9 @@ public partial class binance
     /// watches best bid & ask for symbols
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-book-ticker-streams"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#all-book-tickers-stream"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#all-book-tickers-stream"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#symbol-order-book-ticker"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Book-Tickers-Stream"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Book-Tickers-Stream"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -447,9 +447,8 @@ public partial class binance
     /// fetch balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/websocket_api/en/#account-information-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#account-information-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#futures-account-balance-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/websocket-api/Futures-Account-Balance"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#account-information-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -469,7 +468,7 @@ public partial class binance
     /// fetch data on an open position
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#position-information-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Position-Information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -489,7 +488,7 @@ public partial class binance
     /// fetch all open positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#position-information-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Position-Information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -540,8 +539,8 @@ public partial class binance
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/websocket_api/en/#place-new-order-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#new-order-trade-2"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#place-new-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/New-Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -562,8 +561,8 @@ public partial class binance
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/websocket_api/en/#cancel-and-replace-order-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade-2"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-and-replace-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Modify-Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -585,8 +584,8 @@ public partial class binance
     /// cancel multiple orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/websocket_api/en/#cancel-order-trade"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#cancel-order-trade-2"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-order-trade"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Cancel-Order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -606,7 +605,7 @@ public partial class binance
     /// cancel all open orders in a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/websocket_api/en/#current-open-orders-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-open-orders-trade"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -626,8 +625,8 @@ public partial class binance
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/websocket_api/en/#query-order-user_data"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#query-order-user_data-2"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Query-Order"/>  <br/>
     /// <list type="table">
     /// </list>
     /// </remarks>
@@ -641,7 +640,7 @@ public partial class binance
     /// fetches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/websocket_api/en/#account-order-history-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-list-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -687,7 +686,7 @@ public partial class binance
     /// fetch closed orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/websocket_api/en/#account-order-history-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-list-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -721,7 +720,7 @@ public partial class binance
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/websocket_api/en/#current-open-orders-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#current-open-orders-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -743,9 +742,9 @@ public partial class binance
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#payload-order-update"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#event-futures-order-update"/>  <br/>
-    /// See <see href="https://binance-docs.github.io/apidocs/pm/en/#event-margin-order-update"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/user-data-stream#order-update"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/margin_trading/trade-data-stream/Event-Order-Update"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -806,7 +805,7 @@ public partial class binance
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/websocket_api/en/#account-trade-history-user_data"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#account-trade-history-user_data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -840,7 +839,7 @@ public partial class binance
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://binance-docs.github.io/apidocs/websocket_api/en/#recent-trades"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#recent-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -907,7 +906,7 @@ public partial class binance
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure.</returns>
+    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
     public async Task<List<Trade>> WatchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;

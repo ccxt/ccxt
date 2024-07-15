@@ -82,6 +82,10 @@ class Precise {
     neg() {
         return new Precise(-this.integer, this.decimals);
     }
+    or(other) {
+        const integerResult = this.integer | other.integer;
+        return new Precise(integerResult, this.decimals);
+    }
     min(other) {
         return this.lt(other) ? this : other;
     }
@@ -211,6 +215,12 @@ class Precise {
             return undefined;
         }
         return (new Precise(string1)).mod(new Precise(string2)).toString();
+    }
+    static stringOr(string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined;
+        }
+        return (new Precise(string1)).or(new Precise(string2)).toString();
     }
     static stringEquals(string1, string2) {
         if ((string1 === undefined) || (string2 === undefined)) {
