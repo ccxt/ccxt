@@ -12807,6 +12807,10 @@ public partial class binance : Exchange
         if (isTrue(getValue(market, "option")))
         {
             ((IDictionary<string,object>)request)["underlyingAsset"] = getValue(market, "baseId");
+            if (isTrue(isEqual(getValue(market, "expiry"), null)))
+            {
+                throw new NotSupported ((string)add(add(this.id, " fetchOpenInterest does not support "), symbol)) ;
+            }
             ((IDictionary<string,object>)request)["expiration"] = this.yymmdd(getValue(market, "expiry"));
         } else
         {
@@ -12855,6 +12859,7 @@ public partial class binance : Exchange
         //
         if (isTrue(getValue(market, "option")))
         {
+            symbol = getValue(market, "symbol");
             object result = this.parseOpenInterests(response, market);
             for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
             {

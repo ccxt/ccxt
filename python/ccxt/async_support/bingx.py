@@ -528,37 +528,40 @@ class bingx(Exchange, ImplicitAPI):
         response = await self.walletsV1PrivateGetCapitalConfigGetall(params)
         #
         #    {
-        #        "code": 0,
-        #        "timestamp": 1688045966616,
-        #        "data": [
+        #      "code": 0,
+        #      "timestamp": 1702623271477,
+        #      "data": [
+        #        {
+        #          "coin": "BTC",
+        #          "name": "BTC",
+        #          "networkList": [
         #            {
-        #              "coin": "BTC",
         #              "name": "BTC",
-        #              "networkList": [
-        #                {
-        #                  "name": "BTC",
-        #                  "network": "BTC",
-        #                  "isDefault": True,
-        #                  "minConfirm": "2",
-        #                  "withdrawEnable": True,
-        #                  "withdrawFee": "0.00035",
-        #                  "withdrawMax": "1.62842",
-        #                  "withdrawMin": "0.0005"
-        #                },
-        #                {
-        #                  "name": "BTC",
-        #                  "network": "BEP20",
-        #                  "isDefault": False,
-        #                  "minConfirm": "15",
-        #                  "withdrawEnable": True,
-        #                  "withdrawFee": "0.00001",
-        #                  "withdrawMax": "1.62734",
-        #                  "withdrawMin": "0.0001"
-        #                }
-        #              ]
-        #          },
-        #          ...
-        #        ],
+        #              "network": "BTC",
+        #              "isDefault": True,
+        #              "minConfirm": 2,
+        #              "withdrawEnable": True,
+        #              "depositEnable": True,
+        #              "withdrawFee": "0.0006",
+        #              "withdrawMax": "1.17522",
+        #              "withdrawMin": "0.0005",
+        #              "depositMin": "0.0002"
+        #            },
+        #            {
+        #              "name": "BTC",
+        #              "network": "BEP20",
+        #              "isDefault": False,
+        #              "minConfirm": 15,
+        #              "withdrawEnable": True,
+        #              "depositEnable": True,
+        #              "withdrawFee": "0.0000066",
+        #              "withdrawMax": "1.17522",
+        #              "withdrawMin": "0.0000066",
+        #              "depositMin": "0.0002"
+        #            }
+        #          ]
+        #        }
+        #      ]
         #    }
         #
         data = self.safe_list(response, 'data', [])
@@ -572,6 +575,7 @@ class bingx(Exchange, ImplicitAPI):
             networks: dict = {}
             fee = None
             active = None
+            depositEnabled = None
             withdrawEnabled = None
             defaultLimits: dict = {}
             for j in range(0, len(networkList)):
@@ -579,13 +583,17 @@ class bingx(Exchange, ImplicitAPI):
                 network = self.safe_string(rawNetwork, 'network')
                 networkCode = self.network_id_to_code(network)
                 isDefault = self.safe_bool(rawNetwork, 'isDefault')
+                depositEnabled = self.safe_bool(rawNetwork, 'depositEnable')
                 withdrawEnabled = self.safe_bool(rawNetwork, 'withdrawEnable')
                 limits: dict = {
-                    'amounts': {'min': self.safe_number(rawNetwork, 'withdrawMin'), 'max': self.safe_number(rawNetwork, 'withdrawMax')},
+                    'withdraw': {
+                        'min': self.safe_number(rawNetwork, 'withdrawMin'),
+                        'max': self.safe_number(rawNetwork, 'withdrawMax'),
+                    },
                 }
                 if isDefault:
                     fee = self.safe_number(rawNetwork, 'withdrawFee')
-                    active = withdrawEnabled
+                    active = depositEnabled or withdrawEnabled
                     defaultLimits = limits
                 networks[networkCode] = {
                     'info': rawNetwork,
@@ -593,7 +601,7 @@ class bingx(Exchange, ImplicitAPI):
                     'network': networkCode,
                     'fee': fee,
                     'active': active,
-                    'deposit': None,
+                    'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
                     'precision': None,
                     'limits': limits,
@@ -605,7 +613,7 @@ class bingx(Exchange, ImplicitAPI):
                 'precision': None,
                 'name': name,
                 'active': active,
-                'deposit': None,
+                'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'networks': networks,
                 'fee': fee,

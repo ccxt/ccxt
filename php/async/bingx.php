@@ -526,37 +526,40 @@ class bingx extends Exchange {
             $response = Async\await($this->walletsV1PrivateGetCapitalConfigGetall ($params));
             //
             //    {
-            //        "code" => 0,
-            //        "timestamp" => 1688045966616,
-            //        "data" => array(
-            //            {
-            //              "coin" => "BTC",
+            //      "code" => 0,
+            //      "timestamp" => 1702623271477,
+            //      "data" => array(
+            //        {
+            //          "coin" => "BTC",
+            //          "name" => "BTC",
+            //          "networkList" => array(
+            //            array(
             //              "name" => "BTC",
-            //              "networkList" => array(
-            //                array(
-            //                  "name" => "BTC",
-            //                  "network" => "BTC",
-            //                  "isDefault" => true,
-            //                  "minConfirm" => "2",
-            //                  "withdrawEnable" => true,
-            //                  "withdrawFee" => "0.00035",
-            //                  "withdrawMax" => "1.62842",
-            //                  "withdrawMin" => "0.0005"
-            //                ),
-            //                array(
-            //                  "name" => "BTC",
-            //                  "network" => "BEP20",
-            //                  "isDefault" => false,
-            //                  "minConfirm" => "15",
-            //                  "withdrawEnable" => true,
-            //                  "withdrawFee" => "0.00001",
-            //                  "withdrawMax" => "1.62734",
-            //                  "withdrawMin" => "0.0001"
-            //                }
-            //              )
-            //          ),
-            //          ...
-            //        ),
+            //              "network" => "BTC",
+            //              "isDefault" => true,
+            //              "minConfirm" => 2,
+            //              "withdrawEnable" => true,
+            //              "depositEnable" => true,
+            //              "withdrawFee" => "0.0006",
+            //              "withdrawMax" => "1.17522",
+            //              "withdrawMin" => "0.0005",
+            //              "depositMin" => "0.0002"
+            //            ),
+            //            {
+            //              "name" => "BTC",
+            //              "network" => "BEP20",
+            //              "isDefault" => false,
+            //              "minConfirm" => 15,
+            //              "withdrawEnable" => true,
+            //              "depositEnable" => true,
+            //              "withdrawFee" => "0.0000066",
+            //              "withdrawMax" => "1.17522",
+            //              "withdrawMin" => "0.0000066",
+            //              "depositMin" => "0.0002"
+            //            }
+            //          )
+            //        }
+            //      )
             //    }
             //
             $data = $this->safe_list($response, 'data', array());
@@ -570,6 +573,7 @@ class bingx extends Exchange {
                 $networks = array();
                 $fee = null;
                 $active = null;
+                $depositEnabled = null;
                 $withdrawEnabled = null;
                 $defaultLimits = array();
                 for ($j = 0; $j < count($networkList); $j++) {
@@ -577,13 +581,17 @@ class bingx extends Exchange {
                     $network = $this->safe_string($rawNetwork, 'network');
                     $networkCode = $this->network_id_to_code($network);
                     $isDefault = $this->safe_bool($rawNetwork, 'isDefault');
+                    $depositEnabled = $this->safe_bool($rawNetwork, 'depositEnable');
                     $withdrawEnabled = $this->safe_bool($rawNetwork, 'withdrawEnable');
                     $limits = array(
-                        'amounts' => array( 'min' => $this->safe_number($rawNetwork, 'withdrawMin'), 'max' => $this->safe_number($rawNetwork, 'withdrawMax') ),
+                        'withdraw' => array(
+                            'min' => $this->safe_number($rawNetwork, 'withdrawMin'),
+                            'max' => $this->safe_number($rawNetwork, 'withdrawMax'),
+                        ),
                     );
                     if ($isDefault) {
                         $fee = $this->safe_number($rawNetwork, 'withdrawFee');
-                        $active = $withdrawEnabled;
+                        $active = $depositEnabled || $withdrawEnabled;
                         $defaultLimits = $limits;
                     }
                     $networks[$networkCode] = array(
@@ -592,7 +600,7 @@ class bingx extends Exchange {
                         'network' => $networkCode,
                         'fee' => $fee,
                         'active' => $active,
-                        'deposit' => null,
+                        'deposit' => $depositEnabled,
                         'withdraw' => $withdrawEnabled,
                         'precision' => null,
                         'limits' => $limits,
@@ -605,7 +613,7 @@ class bingx extends Exchange {
                     'precision' => null,
                     'name' => $name,
                     'active' => $active,
-                    'deposit' => null,
+                    'deposit' => $depositEnabled,
                     'withdraw' => $withdrawEnabled,
                     'networks' => $networks,
                     'fee' => $fee,

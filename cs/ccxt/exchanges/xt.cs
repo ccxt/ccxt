@@ -5115,7 +5115,7 @@ public partial class xt : Exchange
                     if (isTrue(urlencoded))
                     {
                         url = add(url, add("?", urlencoded));
-                        payloadString = add(payloadString, add(add(add(add(add("#", method), "#"), payload), "#"), urlencoded));
+                        payloadString = add(payloadString, add(add(add(add(add("#", method), "#"), payload), "#"), this.rawencode(this.keysort(query))));
                     } else
                     {
                         payloadString = add(payloadString, add(add(add("#", method), "#"), payload));

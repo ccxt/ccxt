@@ -4783,7 +4783,7 @@ class xt extends Exchange {
                 if ($isUndefinedBody) {
                     if ($urlencoded) {
                         $url .= '?' . $urlencoded;
-                        $payloadString .= '#' . $method . '#' . $payload . '#' . $urlencoded;
+                        $payloadString .= '#' . $method . '#' . $payload . '#' . $this->rawencode($this->keysort($query));
                     } else {
                         $payloadString .= '#' . $method . '#' . $payload;
                     }

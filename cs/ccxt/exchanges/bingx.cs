@@ -520,37 +520,40 @@ public partial class bingx : Exchange
         object response = await this.walletsV1PrivateGetCapitalConfigGetall(parameters);
         //
         //    {
-        //        "code": 0,
-        //        "timestamp": 1688045966616,
-        //        "data": [
+        //      "code": 0,
+        //      "timestamp": 1702623271477,
+        //      "data": [
+        //        {
+        //          "coin": "BTC",
+        //          "name": "BTC",
+        //          "networkList": [
         //            {
-        //              "coin": "BTC",
         //              "name": "BTC",
-        //              "networkList": [
-        //                {
-        //                  "name": "BTC",
-        //                  "network": "BTC",
-        //                  "isDefault": true,
-        //                  "minConfirm": "2",
-        //                  "withdrawEnable": true,
-        //                  "withdrawFee": "0.00035",
-        //                  "withdrawMax": "1.62842",
-        //                  "withdrawMin": "0.0005"
-        //                },
-        //                {
-        //                  "name": "BTC",
-        //                  "network": "BEP20",
-        //                  "isDefault": false,
-        //                  "minConfirm": "15",
-        //                  "withdrawEnable": true,
-        //                  "withdrawFee": "0.00001",
-        //                  "withdrawMax": "1.62734",
-        //                  "withdrawMin": "0.0001"
-        //                }
-        //              ]
-        //          },
-        //          ...
-        //        ],
+        //              "network": "BTC",
+        //              "isDefault": true,
+        //              "minConfirm": 2,
+        //              "withdrawEnable": true,
+        //              "depositEnable": true,
+        //              "withdrawFee": "0.0006",
+        //              "withdrawMax": "1.17522",
+        //              "withdrawMin": "0.0005",
+        //              "depositMin": "0.0002"
+        //            },
+        //            {
+        //              "name": "BTC",
+        //              "network": "BEP20",
+        //              "isDefault": false,
+        //              "minConfirm": 15,
+        //              "withdrawEnable": true,
+        //              "depositEnable": true,
+        //              "withdrawFee": "0.0000066",
+        //              "withdrawMax": "1.17522",
+        //              "withdrawMin": "0.0000066",
+        //              "depositMin": "0.0002"
+        //            }
+        //          ]
+        //        }
+        //      ]
         //    }
         //
         object data = this.safeList(response, "data", new List<object>() {});
@@ -565,6 +568,7 @@ public partial class bingx : Exchange
             object networks = new Dictionary<string, object>() {};
             object fee = null;
             object active = null;
+            object depositEnabled = null;
             object withdrawEnabled = null;
             object defaultLimits = new Dictionary<string, object>() {};
             for (object j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
@@ -573,9 +577,10 @@ public partial class bingx : Exchange
                 object network = this.safeString(rawNetwork, "network");
                 object networkCode = this.networkIdToCode(network);
                 object isDefault = this.safeBool(rawNetwork, "isDefault");
+                depositEnabled = this.safeBool(rawNetwork, "depositEnable");
                 withdrawEnabled = this.safeBool(rawNetwork, "withdrawEnable");
                 object limits = new Dictionary<string, object>() {
-                    { "amounts", new Dictionary<string, object>() {
+                    { "withdraw", new Dictionary<string, object>() {
                         { "min", this.safeNumber(rawNetwork, "withdrawMin") },
                         { "max", this.safeNumber(rawNetwork, "withdrawMax") },
                     } },
@@ -583,7 +588,7 @@ public partial class bingx : Exchange
                 if (isTrue(isDefault))
                 {
                     fee = this.safeNumber(rawNetwork, "withdrawFee");
-                    active = withdrawEnabled;
+                    active = isTrue(depositEnabled) || isTrue(withdrawEnabled);
                     defaultLimits = limits;
                 }
                 ((IDictionary<string,object>)networks)[(string)networkCode] = new Dictionary<string, object>() {
@@ -592,7 +597,7 @@ public partial class bingx : Exchange
                     { "network", networkCode },
                     { "fee", fee },
                     { "active", active },
-                    { "deposit", null },
+                    { "deposit", depositEnabled },
                     { "withdraw", withdrawEnabled },
                     { "precision", null },
                     { "limits", limits },
@@ -605,7 +610,7 @@ public partial class bingx : Exchange
                 { "precision", null },
                 { "name", name },
                 { "active", active },
-                { "deposit", null },
+                { "deposit", depositEnabled },
                 { "withdraw", withdrawEnabled },
                 { "networks", networks },
                 { "fee", fee },

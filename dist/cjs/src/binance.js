@@ -12178,6 +12178,9 @@ class binance extends binance$1 {
         const request = {};
         if (market['option']) {
             request['underlyingAsset'] = market['baseId'];
+            if (market['expiry'] === undefined) {
+                throw new errors.NotSupported(this.id + ' fetchOpenInterest does not support ' + symbol);
+            }
             request['expiration'] = this.yymmdd(market['expiry']);
         }
         else {
@@ -12224,6 +12227,7 @@ class binance extends binance$1 {
         //     ]
         //
         if (market['option']) {
+            symbol = market['symbol'];
             const result = this.parseOpenInterests(response, market);
             for (let i = 0; i < result.length; i++) {
                 const item = result[i];

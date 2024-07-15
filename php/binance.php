@@ -11842,6 +11842,9 @@ class binance extends Exchange {
         $request = array();
         if ($market['option']) {
             $request['underlyingAsset'] = $market['baseId'];
+            if ($market['expiry'] === null) {
+                throw new NotSupported($this->id . ' fetchOpenInterest does not support ' . $symbol);
+            }
             $request['expiration'] = $this->yymmdd($market['expiry']);
         } else {
             $request['symbol'] = $market['id'];
@@ -11885,6 +11888,7 @@ class binance extends Exchange {
         //     )
         //
         if ($market['option']) {
+            $symbol = $market['symbol'];
             $result = $this->parse_open_interests($response, $market);
             for ($i = 0; $i < count($result); $i++) {
                 $item = $result[$i];

@@ -522,37 +522,40 @@ export default class bingx extends Exchange {
         const response = await this.walletsV1PrivateGetCapitalConfigGetall(params);
         //
         //    {
-        //        "code": 0,
-        //        "timestamp": 1688045966616,
-        //        "data": [
+        //      "code": 0,
+        //      "timestamp": 1702623271477,
+        //      "data": [
+        //        {
+        //          "coin": "BTC",
+        //          "name": "BTC",
+        //          "networkList": [
         //            {
-        //              "coin": "BTC",
         //              "name": "BTC",
-        //              "networkList": [
-        //                {
-        //                  "name": "BTC",
-        //                  "network": "BTC",
-        //                  "isDefault": true,
-        //                  "minConfirm": "2",
-        //                  "withdrawEnable": true,
-        //                  "withdrawFee": "0.00035",
-        //                  "withdrawMax": "1.62842",
-        //                  "withdrawMin": "0.0005"
-        //                },
-        //                {
-        //                  "name": "BTC",
-        //                  "network": "BEP20",
-        //                  "isDefault": false,
-        //                  "minConfirm": "15",
-        //                  "withdrawEnable": true,
-        //                  "withdrawFee": "0.00001",
-        //                  "withdrawMax": "1.62734",
-        //                  "withdrawMin": "0.0001"
-        //                }
-        //              ]
-        //          },
-        //          ...
-        //        ],
+        //              "network": "BTC",
+        //              "isDefault": true,
+        //              "minConfirm": 2,
+        //              "withdrawEnable": true,
+        //              "depositEnable": true,
+        //              "withdrawFee": "0.0006",
+        //              "withdrawMax": "1.17522",
+        //              "withdrawMin": "0.0005",
+        //              "depositMin": "0.0002"
+        //            },
+        //            {
+        //              "name": "BTC",
+        //              "network": "BEP20",
+        //              "isDefault": false,
+        //              "minConfirm": 15,
+        //              "withdrawEnable": true,
+        //              "depositEnable": true,
+        //              "withdrawFee": "0.0000066",
+        //              "withdrawMax": "1.17522",
+        //              "withdrawMin": "0.0000066",
+        //              "depositMin": "0.0002"
+        //            }
+        //          ]
+        //        }
+        //      ]
         //    }
         //
         const data = this.safeList(response, 'data', []);
@@ -566,6 +569,7 @@ export default class bingx extends Exchange {
             const networks = {};
             let fee = undefined;
             let active = undefined;
+            let depositEnabled = undefined;
             let withdrawEnabled = undefined;
             let defaultLimits = {};
             for (let j = 0; j < networkList.length; j++) {
@@ -573,13 +577,17 @@ export default class bingx extends Exchange {
                 const network = this.safeString(rawNetwork, 'network');
                 const networkCode = this.networkIdToCode(network);
                 const isDefault = this.safeBool(rawNetwork, 'isDefault');
+                depositEnabled = this.safeBool(rawNetwork, 'depositEnable');
                 withdrawEnabled = this.safeBool(rawNetwork, 'withdrawEnable');
                 const limits = {
-                    'amounts': { 'min': this.safeNumber(rawNetwork, 'withdrawMin'), 'max': this.safeNumber(rawNetwork, 'withdrawMax') },
+                    'withdraw': {
+                        'min': this.safeNumber(rawNetwork, 'withdrawMin'),
+                        'max': this.safeNumber(rawNetwork, 'withdrawMax'),
+                    },
                 };
                 if (isDefault) {
                     fee = this.safeNumber(rawNetwork, 'withdrawFee');
-                    active = withdrawEnabled;
+                    active = depositEnabled || withdrawEnabled;
                     defaultLimits = limits;
                 }
                 networks[networkCode] = {
@@ -588,7 +596,7 @@ export default class bingx extends Exchange {
                     'network': networkCode,
                     'fee': fee,
                     'active': active,
-                    'deposit': undefined,
+                    'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
                     'precision': undefined,
                     'limits': limits,
@@ -601,7 +609,7 @@ export default class bingx extends Exchange {
                 'precision': undefined,
                 'name': name,
                 'active': active,
-                'deposit': undefined,
+                'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'networks': networks,
                 'fee': fee,

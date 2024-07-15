@@ -11205,6 +11205,8 @@ class binance(Exchange, ImplicitAPI):
         request: dict = {}
         if market['option']:
             request['underlyingAsset'] = market['baseId']
+            if market['expiry'] is None:
+                raise NotSupported(self.id + ' fetchOpenInterest does not support ' + symbol)
             request['expiration'] = self.yymmdd(market['expiry'])
         else:
             request['symbol'] = market['id']
@@ -11246,6 +11248,7 @@ class binance(Exchange, ImplicitAPI):
         #     ]
         #
         if market['option']:
+            symbol = market['symbol']
             result = self.parse_open_interests(response, market)
             for i in range(0, len(result)):
                 item = result[i]

@@ -4781,7 +4781,7 @@ class xt extends xt$1 {
                 if (isUndefinedBody) {
                     if (urlencoded) {
                         url += '?' + urlencoded;
-                        payloadString += '#' + method + '#' + payload + '#' + urlencoded;
+                        payloadString += '#' + method + '#' + payload + '#' + this.rawencode(this.keysort(query));
                     }
                     else {
                         payloadString += '#' + method + '#' + payload;
