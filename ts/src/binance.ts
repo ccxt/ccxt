@@ -12009,6 +12009,9 @@ export default class binance extends Exchange {
         const request: Dict = {};
         if (market['option']) {
             request['underlyingAsset'] = market['baseId'];
+            if (market['expiry'] === undefined) {
+                throw new NotSupported (this.id + ' fetchOpenInterest does not support ' + symbol);
+            }
             request['expiration'] = this.yymmdd (market['expiry']);
         } else {
             request['symbol'] = market['id'];
@@ -12052,6 +12055,7 @@ export default class binance extends Exchange {
         //     ]
         //
         if (market['option']) {
+            symbol = market['symbol'];
             const result = this.parseOpenInterests (response, market);
             for (let i = 0; i < result.length; i++) {
                 const item = result[i];
