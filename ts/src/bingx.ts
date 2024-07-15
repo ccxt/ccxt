@@ -583,7 +583,7 @@ export default class bingx extends Exchange {
                 const limits: Dict = {
                     'withdraw': {
                         'min': this.safeNumber (rawNetwork, 'withdrawMin'),
-                        'max': this.safeNumber (rawNetwork, 'withdrawMax')
+                        'max': this.safeNumber (rawNetwork, 'withdrawMax'),
                     },
                 };
                 if (isDefault) {
