@@ -257,6 +257,9 @@ export default class coindcx extends Exchange {
                     // {"code":422,"message":"Price can't be empty for limit_order Order","status":"error"}
                     // {"code":422,"message":"Side Filter values are incorrect","status":"error"}
                     // {"code":422,"message":"Post only order not allowed for this instrument","status":"error"}
+                    // 429 Too Many Requests - You're making too many API calls
+                    // 500 Internal Server Error -- We had a problem with our server. Try again later.
+                    // 503 Service Unavailable -- We're temporarily offline for maintenance. Please try again later.
                 },
                 'broad': {
                     // todo: add more error codes
