@@ -94,6 +94,8 @@ type Exchange struct {
 	wsProxy  string
 
 	substituteCommonCurrencyCodes bool
+
+	twofa interface{}
 }
 
 var DECIMAL_PLACES int = 0
@@ -583,4 +585,44 @@ type exampleArrayCache struct {
 
 func (e *exampleArrayCache) ToArray() []interface{} {
 	return e.data
+}
+
+func (this *Exchange) parseTimeframe(timeframe interface{}) *int {
+	str, ok := timeframe.(string)
+	if !ok {
+		return nil
+	}
+
+	if len(str) < 2 {
+		return nil
+	}
+
+	amount, err := strconv.Atoi(str[:len(str)-1])
+	if err != nil {
+		return nil
+	}
+
+	unit := str[len(str)-1:]
+	scale := 0
+	switch unit {
+	case "y":
+		scale = 60 * 60 * 24 * 365
+	case "M":
+		scale = 60 * 60 * 24 * 30
+	case "w":
+		scale = 60 * 60 * 24 * 7
+	case "d":
+		scale = 60 * 60 * 24
+	case "h":
+		scale = 60 * 60
+	case "m":
+		scale = 60
+	case "s":
+		scale = 1
+	default:
+		return nil
+	}
+
+	result := amount * scale
+	return &result
 }

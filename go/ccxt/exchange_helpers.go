@@ -396,21 +396,24 @@ func PlusEqual(a, value interface{}) interface{} {
 	}
 }
 
-func AppendToArray(array interface{}, value interface{}) interface{} {
+func AppendToArray(array interface{}, value interface{}) {
 	// Use reflection to work with the array dynamically
 	arrVal := reflect.ValueOf(array)
 
-	// Check if the input is actually a slice
-	if arrVal.Kind() != reflect.Slice {
-		return nil
+	// Check if the input is actually a pointer to a slice
+	if arrVal.Kind() != reflect.Ptr || arrVal.Elem().Kind() != reflect.Slice {
+		return
 	}
+
+	// Get the actual slice
+	sliceVal := arrVal.Elem()
 
 	// Use reflection to append the value to the slice
 	valueVal := reflect.ValueOf(value)
-	resultVal := reflect.Append(arrVal, valueVal)
+	resultVal := reflect.Append(sliceVal, valueVal)
 
-	// Return the new slice as interface{}
-	return resultVal.Interface()
+	// Set the new slice back to the original array
+	arrVal.Elem().Set(resultVal)
 }
 
 func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value interface{}) {
@@ -989,82 +992,42 @@ func mathMax(a, b interface{}) interface{} {
 	}
 }
 
-func parseTimeframe(timeframe interface{}) *int {
-	str, ok := timeframe.(string)
-	if !ok {
-		return nil
-	}
-
-	if len(str) < 2 {
-		return nil
-	}
-
-	amount, err := strconv.Atoi(str[:len(str)-1])
-	if err != nil {
-		return nil
-	}
-
-	unit := str[len(str)-1:]
-	scale := 0
-	switch unit {
-	case "y":
-		scale = 60 * 60 * 24 * 365
-	case "M":
-		scale = 60 * 60 * 24 * 30
-	case "w":
-		scale = 60 * 60 * 24 * 7
-	case "d":
-		scale = 60 * 60 * 24
-	case "h":
-		scale = 60 * 60
-	case "m":
-		scale = 60
-	case "s":
-		scale = 1
-	default:
-		return nil
-	}
-
-	result := amount * scale
-	return &result
-}
-
 // parseInt tries to convert various types of input to an int
-func parseInt(input interface{}) interface{} {
-	switch v := input.(type) {
-	case int:
-		return v
-	case int8:
-		return int(v)
-	case int16:
-		return int(v)
-	case int32:
-		return int(v)
-	case int64:
-		return int(v)
-	case uint:
-		return int(v)
-	case uint8:
-		return int(v)
-	case uint16:
-		return int(v)
-	case uint32:
-		return int(v)
-	case uint64:
-		return int(v)
-	case float32:
-		return int(v)
-	case float64:
-		return int(v)
-	case string:
-		if result, err := strconv.Atoi(v); err == nil {
-			return result
-		}
-		return nil
-	default:
-		return nil
-	}
-}
+// func parseInt(input interface{}) interface{} {
+// 	switch v := input.(type) {
+// 	case int:
+// 		return v
+// 	case int8:
+// 		return int(v)
+// 	case int16:
+// 		return int(v)
+// 	case int32:
+// 		return int(v)
+// 	case int64:
+// 		return int(v)
+// 	case uint:
+// 		return int(v)
+// 	case uint8:
+// 		return int(v)
+// 	case uint16:
+// 		return int(v)
+// 	case uint32:
+// 		return int(v)
+// 	case uint64:
+// 		return int(v)
+// 	case float32:
+// 		return int(v)
+// 	case float64:
+// 		return int(v)
+// 	case string:
+// 		if result, err := strconv.Atoi(v); err == nil {
+// 			return result
+// 		}
+// 		return nil
+// 	default:
+// 		return nil
+// 	}
+// }
 
 // parseFloat tries to convert various types of input to a float64
 func parseFloat(input interface{}) interface{} {
@@ -1101,4 +1064,25 @@ func parseFloat(input interface{}) interface{} {
 	default:
 		return nil
 	}
+}
+
+func parseJSON(input interface{}) interface{} {
+	jsonString := fmt.Sprintf("%v", input)
+	// var result interface{}
+
+	if jsonString[0] == '[' {
+		var arrayResult []map[string]interface{}
+		err := json.Unmarshal([]byte(jsonString), &arrayResult)
+		if err != nil {
+			return nil
+		}
+		return arrayResult
+	}
+
+	var mapResult map[string]interface{}
+	err := json.Unmarshal([]byte(jsonString), &mapResult)
+	if err != nil {
+		return nil
+	}
+	return mapResult
 }
