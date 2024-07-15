@@ -679,10 +679,8 @@ class binance(ccxt.async_support.binance):
         client.resolve(orderbook, messageHash)
 
     async def fetch_order_book_snapshot(self, client, message, subscription):
-        name = self.safe_string(subscription, 'name')
         symbol = self.safe_string(subscription, 'symbol')
-        market = self.market(symbol)
-        messageHash = market['lowercaseId'] + '@' + name
+        messageHash = 'orderbook::' + symbol
         try:
             defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
             type = self.safe_value(subscription, 'type')
@@ -3260,7 +3258,7 @@ class binance(ccxt.async_support.binance):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.portfolioMargin]: set to True if you would like to watch trades in a portfolio margin account
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         type = None

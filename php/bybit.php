@@ -4262,6 +4262,11 @@ class bybit extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
+        $types = $this->is_unified_enabled();
+        $enableUnifiedAccount = $types[1];
+        if (!$enableUnifiedAccount) {
+            throw new NotSupported($this->id . ' cancelOrders() supports UTA accounts only');
+        }
         $category = null;
         list($category, $params) = $this->get_bybit_type('cancelOrders', $market, $params);
         if ($category === 'inverse') {
@@ -4363,13 +4368,16 @@ class bybit extends Exchange {
         /**
          * cancel multiple $orders for multiple symbols
          * @see https://bybit-exchange.github.io/docs/v5/order/batch-cancel
-         * @param {string[]} ids $order ids
-         * @param {string} $symbol unified $symbol of the $market the $order was made in
+         * @param {CancellationRequest[]} $orders list of $order ids with $symbol, example [array("id" => "a", "symbol" => "BTC/USDT"), array("id" => "b", "symbol" => "ETH/USDT")]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string[]} [$params->clientOrderIds] client $order ids
          * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structures~
          */
         $this->load_markets();
+        $types = $this->is_unified_enabled();
+        $enableUnifiedAccount = $types[1];
+        if (!$enableUnifiedAccount) {
+            throw new NotSupported($this->id . ' cancelOrdersForSymbols() supports UTA accounts only');
+        }
         $ordersRequests = array();
         $category = null;
         for ($i = 0; $i < count($orders); $i++) {

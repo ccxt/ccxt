@@ -4343,6 +4343,11 @@ class bybit extends bybit$1 {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
+        const types = await this.isUnifiedEnabled();
+        const enableUnifiedAccount = types[1];
+        if (!enableUnifiedAccount) {
+            throw new errors.NotSupported(this.id + ' cancelOrders() supports UTA accounts only');
+        }
         let category = undefined;
         [category, params] = this.getBybitType('cancelOrders', market, params);
         if (category === 'inverse') {
@@ -4446,13 +4451,16 @@ class bybit extends bybit$1 {
          * @name bybit#cancelOrdersForSymbols
          * @description cancel multiple orders for multiple symbols
          * @see https://bybit-exchange.github.io/docs/v5/order/batch-cancel
-         * @param {string[]} ids order ids
-         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {CancellationRequest[]} orders list of order ids with symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string[]} [params.clientOrderIds] client order ids
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
+        const types = await this.isUnifiedEnabled();
+        const enableUnifiedAccount = types[1];
+        if (!enableUnifiedAccount) {
+            throw new errors.NotSupported(this.id + ' cancelOrdersForSymbols() supports UTA accounts only');
+        }
         const ordersRequests = [];
         let category = undefined;
         for (let i = 0; i < orders.length; i++) {

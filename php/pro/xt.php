@@ -107,13 +107,13 @@ class xt extends \ccxt\async\xt {
         // return the first index of the $cache that can be applied to the $orderbook or -1 if not possible
         $nonce = $this->safe_integer($orderbook, 'nonce');
         $firstDelta = $this->safe_value($cache, 0);
-        $firstDeltaNonce = $this->safe_integer($firstDelta, 'i');
+        $firstDeltaNonce = $this->safe_integer_2($firstDelta, 'i', 'u');
         if ($nonce < $firstDeltaNonce - 1) {
             return -1;
         }
         for ($i = 0; $i < count($cache); $i++) {
             $delta = $cache[$i];
-            $deltaNonce = $this->safe_integer($delta, 'i');
+            $deltaNonce = $this->safe_integer_2($delta, 'i', 'u');
             if ($deltaNonce >= $nonce) {
                 return $i;
             }
@@ -122,7 +122,7 @@ class xt extends \ccxt\async\xt {
     }
 
     public function handle_delta($orderbook, $delta) {
-        $orderbook['nonce'] = $this->safe_integer($delta, 'i');
+        $orderbook['nonce'] = $this->safe_integer_2($delta, 'i', 'u');
         $obAsks = $this->safe_list($delta, 'a', array());
         $obBids = $this->safe_list($delta, 'b', array());
         $bids = $orderbook['bids'];
@@ -259,7 +259,11 @@ class xt extends \ccxt\async\xt {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $name = 'kline@' . $market['id'] . ',' . $timeframe;
-            return Async\await($this->subscribe($name, 'public', 'watchOHLCV', $market, null, $params));
+            $ohlcv = Async\await($this->subscribe($name, 'public', 'watchOHLCV', $market, null, $params));
+            if ($this->newUpdates) {
+                $limit = $ohlcv->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
         }) ();
     }
 
@@ -1077,7 +1081,7 @@ class xt extends \ccxt\async\xt {
         $client->resolve ($stored, 'trade::' . $tradeType);
     }
 
-    public function handle_message(Client $client, array $message) {
+    public function handle_message(Client $client, $message) {
         $event = $this->safe_string($message, 'event');
         if ($event === 'pong') {
             $client->onPong ();

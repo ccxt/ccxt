@@ -255,8 +255,16 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'withdraw': None,
                 'networks': None,
                 'fee': None,
-                # 'fees': fees,
-                'limits': None,
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
             }
         return result
 
@@ -1260,7 +1268,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         cancel multiple orders for multiple symbols
         :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
         :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
-        :param CancellationRequest[] orders: each order should contain the parameters required by cancelOrder namely id and symbol
+        :param CancellationRequest[] orders: each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.vaultAddress]: the vault address
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`

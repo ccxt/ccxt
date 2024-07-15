@@ -6978,25 +6978,67 @@ class binance extends Exchange {
             $response = null;
             if ($market['option']) {
                 $response = Async\await($this->eapiPrivateDeleteAllOpenOrders ($this->extend($request, $params)));
+                //
+                //    {
+                //        "code" => 0,
+                //        "msg" => "success"
+                //    }
+                //
             } elseif ($market['linear']) {
                 if ($isPortfolioMargin) {
                     if ($isConditional) {
                         $response = Async\await($this->papiDeleteUmConditionalAllOpenOrders ($this->extend($request, $params)));
+                        //
+                        //    {
+                        //        "code" => "200",
+                        //        "msg" => "The operation of cancel all conditional open order is done."
+                        //    }
+                        //
                     } else {
                         $response = Async\await($this->papiDeleteUmAllOpenOrders ($this->extend($request, $params)));
+                        //
+                        //    {
+                        //        "code" => 200,
+                        //        "msg" => "The operation of cancel all open order is done."
+                        //    }
+                        //
                     }
                 } else {
                     $response = Async\await($this->fapiPrivateDeleteAllOpenOrders ($this->extend($request, $params)));
+                    //
+                    //    {
+                    //        "code" => 200,
+                    //        "msg" => "The operation of cancel all open order is done."
+                    //    }
+                    //
                 }
             } elseif ($market['inverse']) {
                 if ($isPortfolioMargin) {
                     if ($isConditional) {
                         $response = Async\await($this->papiDeleteCmConditionalAllOpenOrders ($this->extend($request, $params)));
+                        //
+                        //    {
+                        //        "code" => "200",
+                        //        "msg" => "The operation of cancel all conditional open order is done."
+                        //    }
+                        //
                     } else {
                         $response = Async\await($this->papiDeleteCmAllOpenOrders ($this->extend($request, $params)));
+                        //
+                        //    {
+                        //        "code" => 200,
+                        //        "msg" => "The operation of cancel all open order is done."
+                        //    }
+                        //
                     }
                 } else {
                     $response = Async\await($this->dapiPrivateDeleteAllOpenOrders ($this->extend($request, $params)));
+                    //
+                    //    {
+                    //        "code" => 200,
+                    //        "msg" => "The operation of cancel all open order is done."
+                    //    }
+                    //
                 }
             } elseif (($type === 'margin') || ($marginMode !== null) || $isPortfolioMargin) {
                 if ($isPortfolioMargin) {
@@ -7006,14 +7048,61 @@ class binance extends Exchange {
                         $request['isIsolated'] = true;
                     }
                     $response = Async\await($this->sapiDeleteMarginOpenOrders ($this->extend($request, $params)));
+                    //
+                    //    array(
+                    //        array(
+                    //          "symbol" => "BTCUSDT",
+                    //          "isIsolated" => true,       // if isolated margin
+                    //          "origClientOrderId" => "E6APeyTJvkMvLMYMqu1KQ4",
+                    //          "orderId" => 11,
+                    //          "orderListId" => -1,
+                    //          "clientOrderId" => "pXLV6Hz6mprAcVYpVMTGgx",
+                    //          "price" => "0.089853",
+                    //          "origQty" => "0.178622",
+                    //          "executedQty" => "0.000000",
+                    //          "cummulativeQuoteQty" => "0.000000",
+                    //          "status" => "CANCELED",
+                    //          "timeInForce" => "GTC",
+                    //          "type" => "LIMIT",
+                    //          "side" => "BUY",
+                    //          "selfTradePreventionMode" => "NONE"
+                    //        ),
+                    //        ...
+                    //    )
+                    //
                 }
             } else {
                 $response = Async\await($this->privateDeleteOpenOrders ($this->extend($request, $params)));
+                //
+                //    array(
+                //        {
+                //            "symbol" => "ADAUSDT",
+                //            "origClientOrderId" => "x-R4BD3S82662cde7a90114475b86e21",
+                //            "orderId" => 3935107,
+                //            "orderListId" => -1,
+                //            "clientOrderId" => "bqM2w1oTlugfRAjnTIFBE8",
+                //            "transactTime" => 1720589016657,
+                //            "price" => "0.35000000",
+                //            "origQty" => "30.00000000",
+                //            "executedQty" => "0.00000000",
+                //            "cummulativeQuoteQty" => "0.00000000",
+                //            "status" => "CANCELED",
+                //            "timeInForce" => "GTC",
+                //            "type" => "LIMIT",
+                //            "side" => "BUY",
+                //            "selfTradePreventionMode" => "EXPIRE_MAKER"
+                //        }
+                //    )
+                //
             }
             if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
                 return $this->parse_orders($response, $market);
             } else {
-                return $response;
+                return array(
+                    $this->safe_order(array(
+                        'info' => $response,
+                    )),
+                );
             }
         }) ();
     }
@@ -9555,37 +9644,42 @@ class binance extends Exchange {
         if ($marginMode === 'cross') {
             // calculate $collateral
             $precision = $this->safe_dict($market, 'precision', array());
-            if ($linear) {
-                // walletBalance = ($liquidationPrice * (±1 . mmp) ± $entryPrice) * $contracts
-                $onePlusMaintenanceMarginPercentageString = null;
-                $entryPriceSignString = $entryPriceString;
-                if ($side === 'short') {
-                    $onePlusMaintenanceMarginPercentageString = Precise::string_add('1', $maintenanceMarginPercentageString);
-                    $entryPriceSignString = Precise::string_mul('-1', $entryPriceSignString);
+            $basePrecisionValue = $this->safe_string($precision, 'base');
+            $quotePrecisionValue = $this->safe_string_2($precision, 'quote', 'price');
+            $precisionIsUndefined = ($basePrecisionValue === null) && ($quotePrecisionValue === null);
+            if (!$precisionIsUndefined) {
+                if ($linear) {
+                    // walletBalance = ($liquidationPrice * (±1 . mmp) ± $entryPrice) * $contracts
+                    $onePlusMaintenanceMarginPercentageString = null;
+                    $entryPriceSignString = $entryPriceString;
+                    if ($side === 'short') {
+                        $onePlusMaintenanceMarginPercentageString = Precise::string_add('1', $maintenanceMarginPercentageString);
+                        $entryPriceSignString = Precise::string_mul('-1', $entryPriceSignString);
+                    } else {
+                        $onePlusMaintenanceMarginPercentageString = Precise::string_add('-1', $maintenanceMarginPercentageString);
+                    }
+                    $inner = Precise::string_mul($liquidationPriceString, $onePlusMaintenanceMarginPercentageString);
+                    $leftSide = Precise::string_add($inner, $entryPriceSignString);
+                    $quotePrecision = $this->precision_from_string($this->safe_string_2($precision, 'quote', 'price'));
+                    if ($quotePrecision !== null) {
+                        $collateralString = Precise::string_div(Precise::string_mul($leftSide, $contractsAbs), '1', $quotePrecision);
+                    }
                 } else {
-                    $onePlusMaintenanceMarginPercentageString = Precise::string_add('-1', $maintenanceMarginPercentageString);
-                }
-                $inner = Precise::string_mul($liquidationPriceString, $onePlusMaintenanceMarginPercentageString);
-                $leftSide = Precise::string_add($inner, $entryPriceSignString);
-                $quotePrecision = $this->precision_from_string($this->safe_string_2($precision, 'quote', 'price'));
-                if ($quotePrecision !== null) {
-                    $collateralString = Precise::string_div(Precise::string_mul($leftSide, $contractsAbs), '1', $quotePrecision);
-                }
-            } else {
-                // walletBalance = ($contracts * $contractSize) * (±1/entryPrice - (±1 - mmp) / $liquidationPrice)
-                $onePlusMaintenanceMarginPercentageString = null;
-                $entryPriceSignString = $entryPriceString;
-                if ($side === 'short') {
-                    $onePlusMaintenanceMarginPercentageString = Precise::string_sub('1', $maintenanceMarginPercentageString);
-                } else {
-                    $onePlusMaintenanceMarginPercentageString = Precise::string_sub('-1', $maintenanceMarginPercentageString);
-                    $entryPriceSignString = Precise::string_mul('-1', $entryPriceSignString);
-                }
-                $leftSide = Precise::string_mul($contractsAbs, $contractSizeString);
-                $rightSide = Precise::string_sub(Precise::string_div('1', $entryPriceSignString), Precise::string_div($onePlusMaintenanceMarginPercentageString, $liquidationPriceString));
-                $basePrecision = $this->precision_from_string($this->safe_string($precision, 'base'));
-                if ($basePrecision !== null) {
-                    $collateralString = Precise::string_div(Precise::string_mul($leftSide, $rightSide), '1', $basePrecision);
+                    // walletBalance = ($contracts * $contractSize) * (±1/entryPrice - (±1 - mmp) / $liquidationPrice)
+                    $onePlusMaintenanceMarginPercentageString = null;
+                    $entryPriceSignString = $entryPriceString;
+                    if ($side === 'short') {
+                        $onePlusMaintenanceMarginPercentageString = Precise::string_sub('1', $maintenanceMarginPercentageString);
+                    } else {
+                        $onePlusMaintenanceMarginPercentageString = Precise::string_sub('-1', $maintenanceMarginPercentageString);
+                        $entryPriceSignString = Precise::string_mul('-1', $entryPriceSignString);
+                    }
+                    $leftSide = Precise::string_mul($contractsAbs, $contractSizeString);
+                    $rightSide = Precise::string_sub(Precise::string_div('1', $entryPriceSignString), Precise::string_div($onePlusMaintenanceMarginPercentageString, $liquidationPriceString));
+                    $basePrecision = $this->precision_from_string($this->safe_string($precision, 'base'));
+                    if ($basePrecision !== null) {
+                        $collateralString = Precise::string_div(Precise::string_mul($leftSide, $rightSide), '1', $basePrecision);
+                    }
                 }
             }
         } else {
@@ -10205,9 +10299,10 @@ class binance extends Exchange {
             //
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
-                $parsed = $this->parse_position_risk($response[$i]);
-                $entryPrice = $this->safe_string($parsed, 'entryPrice');
+                $rawPosition = $response[$i];
+                $entryPrice = $this->safe_string($rawPosition, 'entryPrice');
                 if (($entryPrice !== '0') && ($entryPrice !== '0.0') && ($entryPrice !== '0.00000000')) {
+                    $parsed = $this->parse_position_risk($response[$i]);
                     $result[] = $parsed;
                 }
             }

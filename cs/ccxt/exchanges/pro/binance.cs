@@ -771,10 +771,8 @@ public partial class binance : ccxt.binance
 
     public async virtual Task fetchOrderBookSnapshot(WebSocketClient client, object message, object subscription)
     {
-        object name = this.safeString(subscription, "name");
         object symbol = this.safeString(subscription, "symbol");
-        object market = this.market(symbol);
-        object messageHash = add(add(getValue(market, "lowercaseId"), "@"), name);
+        object messageHash = add("orderbook::", symbol);
         try
         {
             object defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
@@ -3999,7 +3997,7 @@ public partial class binance : ccxt.binance
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.portfolioMargin] set to true if you would like to watch trades in a portfolio margin account
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

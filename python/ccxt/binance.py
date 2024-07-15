@@ -6647,22 +6647,64 @@ class binance(Exchange, ImplicitAPI):
         response = None
         if market['option']:
             response = self.eapiPrivateDeleteAllOpenOrders(self.extend(request, params))
+            #
+            #    {
+            #        "code": 0,
+            #        "msg": "success"
+            #    }
+            #
         elif market['linear']:
             if isPortfolioMargin:
                 if isConditional:
                     response = self.papiDeleteUmConditionalAllOpenOrders(self.extend(request, params))
+                    #
+                    #    {
+                    #        "code": "200",
+                    #        "msg": "The operation of cancel all conditional open order is done."
+                    #    }
+                    #
                 else:
                     response = self.papiDeleteUmAllOpenOrders(self.extend(request, params))
+                    #
+                    #    {
+                    #        "code": 200,
+                    #        "msg": "The operation of cancel all open order is done."
+                    #    }
+                    #
             else:
                 response = self.fapiPrivateDeleteAllOpenOrders(self.extend(request, params))
+                #
+                #    {
+                #        "code": 200,
+                #        "msg": "The operation of cancel all open order is done."
+                #    }
+                #
         elif market['inverse']:
             if isPortfolioMargin:
                 if isConditional:
                     response = self.papiDeleteCmConditionalAllOpenOrders(self.extend(request, params))
+                    #
+                    #    {
+                    #        "code": "200",
+                    #        "msg": "The operation of cancel all conditional open order is done."
+                    #    }
+                    #
                 else:
                     response = self.papiDeleteCmAllOpenOrders(self.extend(request, params))
+                    #
+                    #    {
+                    #        "code": 200,
+                    #        "msg": "The operation of cancel all open order is done."
+                    #    }
+                    #
             else:
                 response = self.dapiPrivateDeleteAllOpenOrders(self.extend(request, params))
+                #
+                #    {
+                #        "code": 200,
+                #        "msg": "The operation of cancel all open order is done."
+                #    }
+                #
         elif (type == 'margin') or (marginMode is not None) or isPortfolioMargin:
             if isPortfolioMargin:
                 response = self.papiDeleteMarginAllOpenOrders(self.extend(request, params))
@@ -6670,12 +6712,59 @@ class binance(Exchange, ImplicitAPI):
                 if marginMode == 'isolated':
                     request['isIsolated'] = True
                 response = self.sapiDeleteMarginOpenOrders(self.extend(request, params))
+                #
+                #    [
+                #        {
+                #          "symbol": "BTCUSDT",
+                #          "isIsolated": True,       # if isolated margin
+                #          "origClientOrderId": "E6APeyTJvkMvLMYMqu1KQ4",
+                #          "orderId": 11,
+                #          "orderListId": -1,
+                #          "clientOrderId": "pXLV6Hz6mprAcVYpVMTGgx",
+                #          "price": "0.089853",
+                #          "origQty": "0.178622",
+                #          "executedQty": "0.000000",
+                #          "cummulativeQuoteQty": "0.000000",
+                #          "status": "CANCELED",
+                #          "timeInForce": "GTC",
+                #          "type": "LIMIT",
+                #          "side": "BUY",
+                #          "selfTradePreventionMode": "NONE"
+                #        },
+                #        ...
+                #    ]
+                #
         else:
             response = self.privateDeleteOpenOrders(self.extend(request, params))
+            #
+            #    [
+            #        {
+            #            "symbol": "ADAUSDT",
+            #            "origClientOrderId": "x-R4BD3S82662cde7a90114475b86e21",
+            #            "orderId": 3935107,
+            #            "orderListId": -1,
+            #            "clientOrderId": "bqM2w1oTlugfRAjnTIFBE8",
+            #            "transactTime": 1720589016657,
+            #            "price": "0.35000000",
+            #            "origQty": "30.00000000",
+            #            "executedQty": "0.00000000",
+            #            "cummulativeQuoteQty": "0.00000000",
+            #            "status": "CANCELED",
+            #            "timeInForce": "GTC",
+            #            "type": "LIMIT",
+            #            "side": "BUY",
+            #            "selfTradePreventionMode": "EXPIRE_MAKER"
+            #        }
+            #    ]
+            #
         if isinstance(response, list):
             return self.parse_orders(response, market)
         else:
-            return response
+            return [
+                self.safe_order({
+                    'info': response,
+                }),
+            ]
 
     def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
@@ -9014,34 +9103,38 @@ class binance(Exchange, ImplicitAPI):
         if marginMode == 'cross':
             # calculate collateral
             precision = self.safe_dict(market, 'precision', {})
-            if linear:
-                # walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
-                onePlusMaintenanceMarginPercentageString = None
-                entryPriceSignString = entryPriceString
-                if side == 'short':
-                    onePlusMaintenanceMarginPercentageString = Precise.string_add('1', maintenanceMarginPercentageString)
-                    entryPriceSignString = Precise.string_mul('-1', entryPriceSignString)
+            basePrecisionValue = self.safe_string(precision, 'base')
+            quotePrecisionValue = self.safe_string_2(precision, 'quote', 'price')
+            precisionIsUndefined = (basePrecisionValue is None) and (quotePrecisionValue is None)
+            if not precisionIsUndefined:
+                if linear:
+                    # walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
+                    onePlusMaintenanceMarginPercentageString = None
+                    entryPriceSignString = entryPriceString
+                    if side == 'short':
+                        onePlusMaintenanceMarginPercentageString = Precise.string_add('1', maintenanceMarginPercentageString)
+                        entryPriceSignString = Precise.string_mul('-1', entryPriceSignString)
+                    else:
+                        onePlusMaintenanceMarginPercentageString = Precise.string_add('-1', maintenanceMarginPercentageString)
+                    inner = Precise.string_mul(liquidationPriceString, onePlusMaintenanceMarginPercentageString)
+                    leftSide = Precise.string_add(inner, entryPriceSignString)
+                    quotePrecision = self.precision_from_string(self.safe_string_2(precision, 'quote', 'price'))
+                    if quotePrecision is not None:
+                        collateralString = Precise.string_div(Precise.string_mul(leftSide, contractsAbs), '1', quotePrecision)
                 else:
-                    onePlusMaintenanceMarginPercentageString = Precise.string_add('-1', maintenanceMarginPercentageString)
-                inner = Precise.string_mul(liquidationPriceString, onePlusMaintenanceMarginPercentageString)
-                leftSide = Precise.string_add(inner, entryPriceSignString)
-                quotePrecision = self.precision_from_string(self.safe_string_2(precision, 'quote', 'price'))
-                if quotePrecision is not None:
-                    collateralString = Precise.string_div(Precise.string_mul(leftSide, contractsAbs), '1', quotePrecision)
-            else:
-                # walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
-                onePlusMaintenanceMarginPercentageString = None
-                entryPriceSignString = entryPriceString
-                if side == 'short':
-                    onePlusMaintenanceMarginPercentageString = Precise.string_sub('1', maintenanceMarginPercentageString)
-                else:
-                    onePlusMaintenanceMarginPercentageString = Precise.string_sub('-1', maintenanceMarginPercentageString)
-                    entryPriceSignString = Precise.string_mul('-1', entryPriceSignString)
-                leftSide = Precise.string_mul(contractsAbs, contractSizeString)
-                rightSide = Precise.string_sub(Precise.string_div('1', entryPriceSignString), Precise.string_div(onePlusMaintenanceMarginPercentageString, liquidationPriceString))
-                basePrecision = self.precision_from_string(self.safe_string(precision, 'base'))
-                if basePrecision is not None:
-                    collateralString = Precise.string_div(Precise.string_mul(leftSide, rightSide), '1', basePrecision)
+                    # walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
+                    onePlusMaintenanceMarginPercentageString = None
+                    entryPriceSignString = entryPriceString
+                    if side == 'short':
+                        onePlusMaintenanceMarginPercentageString = Precise.string_sub('1', maintenanceMarginPercentageString)
+                    else:
+                        onePlusMaintenanceMarginPercentageString = Precise.string_sub('-1', maintenanceMarginPercentageString)
+                        entryPriceSignString = Precise.string_mul('-1', entryPriceSignString)
+                    leftSide = Precise.string_mul(contractsAbs, contractSizeString)
+                    rightSide = Precise.string_sub(Precise.string_div('1', entryPriceSignString), Precise.string_div(onePlusMaintenanceMarginPercentageString, liquidationPriceString))
+                    basePrecision = self.precision_from_string(self.safe_string(precision, 'base'))
+                    if basePrecision is not None:
+                        collateralString = Precise.string_div(Precise.string_mul(leftSide, rightSide), '1', basePrecision)
         else:
             collateralString = self.safe_string(position, 'isolatedMargin')
         collateralString = '0' if (collateralString is None) else collateralString
@@ -9606,9 +9699,10 @@ class binance(Exchange, ImplicitAPI):
         #
         result = []
         for i in range(0, len(response)):
-            parsed = self.parse_position_risk(response[i])
-            entryPrice = self.safe_string(parsed, 'entryPrice')
+            rawPosition = response[i]
+            entryPrice = self.safe_string(rawPosition, 'entryPrice')
             if (entryPrice != '0') and (entryPrice != '0.0') and (entryPrice != '0.00000000'):
+                parsed = self.parse_position_risk(response[i])
                 result.append(parsed)
         symbols = self.market_symbols(symbols)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)

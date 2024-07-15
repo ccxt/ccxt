@@ -776,7 +776,7 @@ public partial class xt : Exchange
                 { "name", this.safeString(entry, "fullName") },
                 { "active", active },
                 { "fee", this.parseNumber(minWithdrawFeeString) },
-                { "precision", null },
+                { "precision", minPrecision },
                 { "deposit", deposit },
                 { "withdraw", withdraw },
                 { "networks", networks },

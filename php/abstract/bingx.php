@@ -271,11 +271,11 @@ abstract class bingx extends \ccxt\Exchange {
     public function cswap_v1_private_post_trade_leverage($params = array()) {
         return $this->request('trade/leverage', array('cswap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
-    public function cswap_v1_private_post_trade_allopenorders($params = array()) {
-        return $this->request('trade/allOpenOrders', array('cswap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
-    }
     public function cswap_v1_private_post_trade_closeallpositions($params = array()) {
         return $this->request('trade/closeAllPositions', array('cswap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function cswap_v1_private_delete_trade_allopenorders($params = array()) {
+        return $this->request('trade/allOpenOrders', array('cswap', 'v1', 'private'), 'DELETE', $params, null, null, array("cost" => 2));
     }
     public function contract_v1_private_get_allposition($params = array()) {
         return $this->request('allPosition', array('contract', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
@@ -646,11 +646,11 @@ abstract class bingx extends \ccxt\Exchange {
     public function cswapV1PrivatePostTradeLeverage($params = array()) {
         return $this->request('trade/leverage', array('cswap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
-    public function cswapV1PrivatePostTradeAllOpenOrders($params = array()) {
-        return $this->request('trade/allOpenOrders', array('cswap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
-    }
     public function cswapV1PrivatePostTradeCloseAllPositions($params = array()) {
         return $this->request('trade/closeAllPositions', array('cswap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function cswapV1PrivateDeleteTradeAllOpenOrders($params = array()) {
+        return $this->request('trade/allOpenOrders', array('cswap', 'v1', 'private'), 'DELETE', $params, null, null, array("cost" => 2));
     }
     public function contractV1PrivateGetAllPosition($params = array()) {
         return $this->request('allPosition', array('contract', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));

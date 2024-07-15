@@ -836,7 +836,7 @@ class xt(Exchange, ImplicitAPI):
                 'name': self.safe_string(entry, 'fullName'),
                 'active': active,
                 'fee': self.parse_number(minWithdrawFeeString),
-                'precision': None,
+                'precision': minPrecision,
                 'deposit': deposit,
                 'withdraw': withdraw,
                 'networks': networks,

@@ -969,7 +969,7 @@ class bitget extends bitget$1 {
          * @param {string} [params.marginMode] 'isolated' or 'cross' for watching spot margin orders]
          * @param {string} [params.type] 'spot', 'swap'
          * @param {string} [params.subType] 'linear', 'inverse'
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let market = undefined;

@@ -1147,7 +1147,7 @@ class okx(ccxt.async_support.okx):
         :param bool [params.stop]: True if fetching trigger or conditional trades
         :param str [params.type]: 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
         :param str [params.marginMode]: 'cross' or 'isolated', for automatically setting the type to spot margin
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         # By default, receive order updates from any instrument type
         type = None

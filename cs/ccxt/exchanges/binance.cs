@@ -7442,7 +7442,9 @@ public partial class binance : Exchange
             return this.parseOrders(response, market);
         } else
         {
-            return response;
+            return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
         }
     }
 
@@ -10049,45 +10051,51 @@ public partial class binance : Exchange
         {
             // calculate collateral
             object precision = this.safeDict(market, "precision", new Dictionary<string, object>() {});
-            if (isTrue(linear))
+            object basePrecisionValue = this.safeString(precision, "base");
+            object quotePrecisionValue = this.safeString2(precision, "quote", "price");
+            object precisionIsUndefined = isTrue((isEqual(basePrecisionValue, null))) && isTrue((isEqual(quotePrecisionValue, null)));
+            if (!isTrue(precisionIsUndefined))
             {
-                // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
-                object onePlusMaintenanceMarginPercentageString = null;
-                object entryPriceSignString = entryPriceString;
-                if (isTrue(isEqual(side, "short")))
+                if (isTrue(linear))
                 {
-                    onePlusMaintenanceMarginPercentageString = Precise.stringAdd("1", maintenanceMarginPercentageString);
-                    entryPriceSignString = Precise.stringMul("-1", entryPriceSignString);
+                    // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
+                    object onePlusMaintenanceMarginPercentageString = null;
+                    object entryPriceSignString = entryPriceString;
+                    if (isTrue(isEqual(side, "short")))
+                    {
+                        onePlusMaintenanceMarginPercentageString = Precise.stringAdd("1", maintenanceMarginPercentageString);
+                        entryPriceSignString = Precise.stringMul("-1", entryPriceSignString);
+                    } else
+                    {
+                        onePlusMaintenanceMarginPercentageString = Precise.stringAdd("-1", maintenanceMarginPercentageString);
+                    }
+                    object inner = Precise.stringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString);
+                    object leftSide = Precise.stringAdd(inner, entryPriceSignString);
+                    object quotePrecision = this.precisionFromString(this.safeString2(precision, "quote", "price"));
+                    if (isTrue(!isEqual(quotePrecision, null)))
+                    {
+                        collateralString = Precise.stringDiv(Precise.stringMul(leftSide, contractsAbs), "1", quotePrecision);
+                    }
                 } else
                 {
-                    onePlusMaintenanceMarginPercentageString = Precise.stringAdd("-1", maintenanceMarginPercentageString);
-                }
-                object inner = Precise.stringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString);
-                object leftSide = Precise.stringAdd(inner, entryPriceSignString);
-                object quotePrecision = this.precisionFromString(this.safeString2(precision, "quote", "price"));
-                if (isTrue(!isEqual(quotePrecision, null)))
-                {
-                    collateralString = Precise.stringDiv(Precise.stringMul(leftSide, contractsAbs), "1", quotePrecision);
-                }
-            } else
-            {
-                // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
-                object onePlusMaintenanceMarginPercentageString = null;
-                object entryPriceSignString = entryPriceString;
-                if (isTrue(isEqual(side, "short")))
-                {
-                    onePlusMaintenanceMarginPercentageString = Precise.stringSub("1", maintenanceMarginPercentageString);
-                } else
-                {
-                    onePlusMaintenanceMarginPercentageString = Precise.stringSub("-1", maintenanceMarginPercentageString);
-                    entryPriceSignString = Precise.stringMul("-1", entryPriceSignString);
-                }
-                object leftSide = Precise.stringMul(contractsAbs, contractSizeString);
-                object rightSide = Precise.stringSub(Precise.stringDiv("1", entryPriceSignString), Precise.stringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString));
-                object basePrecision = this.precisionFromString(this.safeString(precision, "base"));
-                if (isTrue(!isEqual(basePrecision, null)))
-                {
-                    collateralString = Precise.stringDiv(Precise.stringMul(leftSide, rightSide), "1", basePrecision);
+                    // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
+                    object onePlusMaintenanceMarginPercentageString = null;
+                    object entryPriceSignString = entryPriceString;
+                    if (isTrue(isEqual(side, "short")))
+                    {
+                        onePlusMaintenanceMarginPercentageString = Precise.stringSub("1", maintenanceMarginPercentageString);
+                    } else
+                    {
+                        onePlusMaintenanceMarginPercentageString = Precise.stringSub("-1", maintenanceMarginPercentageString);
+                        entryPriceSignString = Precise.stringMul("-1", entryPriceSignString);
+                    }
+                    object leftSide = Precise.stringMul(contractsAbs, contractSizeString);
+                    object rightSide = Precise.stringSub(Precise.stringDiv("1", entryPriceSignString), Precise.stringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString));
+                    object basePrecision = this.precisionFromString(this.safeString(precision, "base"));
+                    if (isTrue(!isEqual(basePrecision, null)))
+                    {
+                        collateralString = Precise.stringDiv(Precise.stringMul(leftSide, rightSide), "1", basePrecision);
+                    }
                 }
             }
         } else
@@ -10798,10 +10806,11 @@ public partial class binance : Exchange
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
-            object parsed = this.parsePositionRisk(getValue(response, i));
-            object entryPrice = this.safeString(parsed, "entryPrice");
+            object rawPosition = getValue(response, i);
+            object entryPrice = this.safeString(rawPosition, "entryPrice");
             if (isTrue(isTrue(isTrue((!isEqual(entryPrice, "0"))) && isTrue((!isEqual(entryPrice, "0.0")))) && isTrue((!isEqual(entryPrice, "0.00000000")))))
             {
+                object parsed = this.parsePositionRisk(getValue(response, i));
                 ((IList<object>)result).Add(parsed);
             }
         }

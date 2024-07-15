@@ -97,8 +97,8 @@ interface Exchange {
     cswapV1PrivateGetUserBalance (params?: {}): Promise<implicitReturnType>;
     cswapV1PrivatePostTradeOrder (params?: {}): Promise<implicitReturnType>;
     cswapV1PrivatePostTradeLeverage (params?: {}): Promise<implicitReturnType>;
-    cswapV1PrivatePostTradeAllOpenOrders (params?: {}): Promise<implicitReturnType>;
     cswapV1PrivatePostTradeCloseAllPositions (params?: {}): Promise<implicitReturnType>;
+    cswapV1PrivateDeleteTradeAllOpenOrders (params?: {}): Promise<implicitReturnType>;
     contractV1PrivateGetAllPosition (params?: {}): Promise<implicitReturnType>;
     contractV1PrivateGetAllOrders (params?: {}): Promise<implicitReturnType>;
     contractV1PrivateGetBalance (params?: {}): Promise<implicitReturnType>;

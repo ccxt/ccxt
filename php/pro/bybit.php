@@ -779,7 +779,7 @@ class bybit extends \ccxt\async\bybit {
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
         }) ();
@@ -958,7 +958,7 @@ class bybit extends \ccxt\async\bybit {
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->unifiedMargin] use unified margin account
-             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             $method = 'watchMyTrades';
             $messageHash = 'myTrades';
@@ -1282,7 +1282,7 @@ class bybit extends \ccxt\async\bybit {
         $rawLiquidation = $this->safe_dict($message, 'data', array());
         $marketId = $this->safe_string($rawLiquidation, 'symbol');
         $market = $this->safe_market($marketId, null, '', 'contract');
-        $symbol = $this->safe_symbol($marketId);
+        $symbol = $market['symbol'];
         $liquidation = $this->parse_ws_liquidation($rawLiquidation, $market);
         $liquidations = $this->safe_value($this->liquidations, $symbol);
         if ($liquidations === null) {
@@ -1310,7 +1310,7 @@ class bybit extends \ccxt\async\bybit {
         $timestamp = $this->safe_integer($liquidation, 'updatedTime');
         return $this->safe_liquidation(array(
             'info' => $liquidation,
-            'symbol' => $this->safe_symbol($marketId, $market),
+            'symbol' => $market['symbol'],
             'contracts' => $this->safe_number($liquidation, 'size'),
             'contractSize' => $this->safe_number($market, 'contractSize'),
             'price' => $this->safe_number($liquidation, 'price'),
@@ -1330,7 +1330,7 @@ class bybit extends \ccxt\async\bybit {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $method = 'watchOrders';

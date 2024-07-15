@@ -245,8 +245,16 @@ class hyperliquid extends Exchange {
                 'withdraw' => null,
                 'networks' => null,
                 'fee' => null,
-                // 'fees' => fees,
-                'limits' => null,
+                'limits' => array(
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
             );
         }
         return $result;
@@ -1310,7 +1318,7 @@ class hyperliquid extends Exchange {
          * cancel multiple $orders for multiple symbols
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-$order-s
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-$order-s-by-cloid
-         * @param {CancellationRequest[]} $orders each $order should contain the parameters required by cancelOrder namely $id and $symbol
+         * @param {CancellationRequest[]} $orders each $order should contain the parameters required by cancelOrder namely $id and $symbol, example [array("id" => "a", "symbol" => "BTC/USDT"), array("id" => "b", "symbol" => "ETH/USDT")]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->vaultAddress] the vault address
          * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structures~

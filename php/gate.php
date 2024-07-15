@@ -5037,8 +5037,7 @@ class gate extends Exchange {
         /**
          * cancel multiple $orders for multiple symbols
          * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-$orders-with-an-$id-list
-         * @param {string[]} ids $order ids
-         * @param {string} $symbol unified $symbol of the $market the $order was made in
+         * @param {CancellationRequest[]} $orders list of $order ids with $symbol, example [array("id" => "a", "symbol" => "BTC/USDT"), array("id" => "b", "symbol" => "ETH/USDT")]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string[]} [$params->clientOrderIds] client $order ids
          * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structures~

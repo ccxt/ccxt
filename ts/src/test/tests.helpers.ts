@@ -43,7 +43,8 @@ function selectArgv (argsArray, needle) {
     return foundArray.length ? foundArray[0] : undefined;
 }
 
-const argvExchange = filterArgvs (argv, '--', false)[0];
+const argvs_filtered = filterArgvs (argv, '--', false);
+const argvExchange = argvs_filtered[0];
 const argvSymbol   = selectArgv (argv, '/');
 const argvMethod   = selectArgv (argv, '()');
 // #################################################### //
