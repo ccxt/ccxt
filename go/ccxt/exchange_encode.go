@@ -135,7 +135,8 @@ func (e *Exchange) packb(data interface{}) interface{} {
 	return nil
 }
 
-func (e *Exchange) rawEncode(parameters map[string]interface{}) string {
+func (e *Exchange) rawencode(parameters2 interface{}) string {
+	parameters := parameters2.(map[string]interface{})
 	keys := make([]string, 0, len(parameters))
 	for k := range parameters {
 		keys = append(keys, k)
@@ -151,7 +152,8 @@ func (e *Exchange) rawEncode(parameters map[string]interface{}) string {
 	return strings.Join(outList, "&")
 }
 
-func (e *Exchange) urlEncodeWithArrayRepeat(parameters map[string]interface{}) string {
+func (e *Exchange) urlencodeWithArrayRepeat(parameters2 interface{}) string {
+	parameters := parameters2.(map[string]interface{})
 	var outList []string
 	for key, value := range parameters {
 		if values, ok := value.([]interface{}); ok {
@@ -165,7 +167,8 @@ func (e *Exchange) urlEncodeWithArrayRepeat(parameters map[string]interface{}) s
 	return strings.Join(outList, "&")
 }
 
-func (e *Exchange) urlEncodeNested(parameters map[string]interface{}) string {
+func (e *Exchange) urlEncodeNested(parameters2 interface{}) string {
+	parameters := parameters2.(map[string]interface{})
 	queryString := url.Values{}
 	for key, value := range parameters {
 		if subDict, ok := value.(map[string]interface{}); ok {
@@ -183,7 +186,8 @@ func (e *Exchange) urlEncodeNested(parameters map[string]interface{}) string {
 	return queryString.Encode()
 }
 
-func (e *Exchange) urlEncode(parameters map[string]interface{}) string {
+func (e *Exchange) urlencode(parameters2 interface{}) string {
+	parameters := parameters2.(map[string]interface{})
 	var queryString []string
 	for key, value := range parameters {
 		encodedKey := url.QueryEscape(key)
@@ -215,11 +219,11 @@ func (e *Exchange) encodeURIComponent(str interface{}) string {
 	return result.String()
 }
 
-func (e *Exchange) urlEncodeBase64(s interface{}) string {
-	return base64urlEncode(s)
+func (e *Exchange) urlencodebase64(s interface{}) string {
+	return base64urlencode(s)
 }
 
-func base64urlEncode(s interface{}) string {
+func base64urlencode(s interface{}) string {
 	var str string
 	if stringVal, ok := s.(string); ok {
 		str = stringToBase64(stringVal)

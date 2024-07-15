@@ -155,7 +155,7 @@ func (this *Exchange) deepExtend(objs ...interface{}) map[string]interface{} {
 				outObj = make(map[string]interface{})
 			}
 			dictX := x.(map[string]interface{})
-			for k, v := range dictX {
+			for k, _ := range dictX {
 				arg1 := outObj.(map[string]interface{})[k]
 				arg2 := dictX[k]
 				if reflect.TypeOf(arg1).Kind() == reflect.Map && reflect.TypeOf(arg2).Kind() == reflect.Map {

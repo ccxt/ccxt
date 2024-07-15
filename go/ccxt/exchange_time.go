@@ -82,7 +82,8 @@ func (this *Exchange) yyyymmdd(ts interface{}, infix interface{}) string {
 }
 
 // yymmdd converts a timestamp to a formatted date string "yy-MM-dd".
-func (this *Exchange) yymmdd(ts interface{}, infix interface{}) string {
+func (this *Exchange) yymmdd(ts interface{}, args ...interface{}) string {
+	infix := GetArg(args, 1, nil)
 	if infix == nil {
 		infix = "-"
 	}
@@ -95,7 +96,8 @@ func (this *Exchange) yymmdd(ts interface{}, infix interface{}) string {
 }
 
 // ymd converts a timestamp to a formatted date string "yyyy-MM-dd".
-func (this *Exchange) ymd(ts interface{}, infix interface{}) string {
+func (this *Exchange) ymd(ts interface{}, args ...interface{}) string {
+	infix := GetArg(args, 1, nil)
 	if infix == nil {
 		infix = "-"
 	}

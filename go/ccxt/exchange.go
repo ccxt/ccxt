@@ -42,8 +42,8 @@ type Exchange struct {
 	currencies_by_id    map[string]interface{}
 	reduceFees          bool
 
-	accountsById map[string]interface{}
-	accounts     map[string]interface{}
+	accountsById interface{}
+	accounts     interface{}
 
 	// timestamps
 	lastRestRequestTimestamp int64
@@ -633,22 +633,6 @@ func (this *Exchange) parseTimeframe(timeframe interface{}) *int {
 	return &result
 }
 
-func (this *Exchange) throwDynamicException(exceptionType interface{}, message interface{}) {
-	// to do implement
-	// // exceptionTypeStr, ok := exceptionType.(string)
-	// if !ok {
-	// 	panic("exceptionType must be a string representing the error type")
-
-	// // messageStr, ok := message.(string)
-	// // if !ok {
-	// // 	panic("message must be a string")
-	// // }
-
-	// // constructor, exists := customErrors[exceptionTypeStr]
-	// // if !exists {
-	// // 	panic(errors.New("unknown error type: " + exceptionTypeStr))
-	// // }
-
-	// // err := constructor(messageStr)
-	// // panic(err)
+func (this *Exchange) checkAddress(add interface{}) bool {
+	return true
 }

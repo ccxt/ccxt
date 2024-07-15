@@ -716,7 +716,8 @@ func ObjectValues(v interface{}) []interface{} {
 	return values
 }
 
-func JsonParse(jsonStr string) interface{} {
+func JsonParse(jsonStr2 interface{}) interface{} {
+	jsonStr := jsonStr2.(string)
 	var result interface{}
 	err := json.Unmarshal([]byte(jsonStr), &result)
 	if err != nil {
@@ -1085,4 +1086,24 @@ func parseJSON(input interface{}) interface{} {
 		return nil
 	}
 	return mapResult
+}
+
+func throwDynamicException(exceptionType interface{}, message interface{}) {
+	// to do implement
+	// // exceptionTypeStr, ok := exceptionType.(string)
+	// if !ok {
+	// 	panic("exceptionType must be a string representing the error type")
+
+	// // messageStr, ok := message.(string)
+	// // if !ok {
+	// // 	panic("message must be a string")
+	// // }
+
+	// // constructor, exists := customErrors[exceptionTypeStr]
+	// // if !exists {
+	// // 	panic(errors.New("unknown error type: " + exceptionTypeStr))
+	// // }
+
+	// // err := constructor(messageStr)
+	// // panic(err)
 }

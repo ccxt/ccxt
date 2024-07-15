@@ -1,28 +1,39 @@
 package ccxt
 
 import (
+	"crypto"
 	"crypto/hmac"
-	"crypto/md5"
-	"crypto/sha1"
-	"crypto/sha256"
-	"crypto/sha512"
+	md5Hash "crypto/md5"
+	"crypto/rand"
+	rsaHash "crypto/rsa"
+	sha1Hash "crypto/sha1"
+	sha256Hash "crypto/sha256"
+	sha512Hash "crypto/sha512"
+	"crypto/x509"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"encoding/pem"
 	"strings"
 
-	"github.com/ethereum/go-ethereum/crypto/sha3"
+	"golang.org/x/crypto/sha3"
+	// "golang.org/x/crypto/sha3"
+	// "github.com/ethereum/go-ethereum/crypto/sha3"
 )
 
-func sha1Hash() string      { return "sha1" }
-func sha256Hash() string    { return "sha256" }
-func sha384Hash() string    { return "sha384" }
-func sha512Hash() string    { return "sha512" }
-func md5Hash() string       { return "md5" }
-func ed25519Hash() string   { return "ed25519" }
-func keccakHash() string    { return "keccak" }
-func secp256k1Hash() string { return "secp256k1" }
-func p256Hash() string      { return "p256" }
+func sha1() string      { return "sha1" }
+func sha256() string    { return "sha256" }
+func sha384() string    { return "sha384" }
+func sha512() string    { return "sha512" }
+func md5() string       { return "md5" }
+func ed25519() string   { return "ed25519" }
+func keccak() string    { return "keccak" }
+func secp256k1() string { return "secp256k1" }
+func p256() string      { return "p256" }
+
+func (this *Exchange) hmac(request2 interface{}, secret2 interface{}, algorithm2 func() string, digest func() string) string {
+	return Hmac(request2, secret2, algorithm2, digest)
+}
 
 func Hmac(request2 interface{}, secret2 interface{}, algorithm2 func() string, digest string) string {
 	var request []byte
@@ -65,25 +76,25 @@ func Hmac(request2 interface{}, secret2 interface{}, algorithm2 func() string, d
 }
 
 func signHMACSHA256(data, secret []byte) []byte {
-	h := hmac.New(sha256.New, secret)
+	h := hmac.New(sha256Hash.New, secret)
 	h.Write(data)
 	return h.Sum(nil)
 }
 
 func signHMACSHA512(data, secret []byte) []byte {
-	h := hmac.New(sha512.New, secret)
+	h := hmac.New(sha512Hash.New, secret)
 	h.Write(data)
 	return h.Sum(nil)
 }
 
 func signHMACSHA384(data, secret []byte) []byte {
-	h := hmac.New(sha512.New, secret)
+	h := hmac.New(sha512Hash.New, secret)
 	h.Write(data)
 	return h.Sum(nil)
 }
 
 func signHMACMD5(data, secret []byte) []byte {
-	h := hmac.New(md5.New, secret)
+	h := hmac.New(md5Hash.New, secret)
 	h.Write(data)
 	return h.Sum(nil)
 }
@@ -133,31 +144,31 @@ func Hash(request2 interface{}, hash func() string, digest2 interface{}) interfa
 }
 
 func signSHA256(data string) []byte {
-	h := sha256.New()
+	h := sha256Hash.New()
 	h.Write([]byte(data))
 	return h.Sum(nil)
 }
 
 func signSHA512(data string) []byte {
-	h := sha512.New()
+	h := sha512Hash.New()
 	h.Write([]byte(data))
 	return h.Sum(nil)
 }
 
 func signSHA384(data string) []byte {
-	h := sha512.New384()
+	h := sha512Hash.New384()
 	h.Write([]byte(data))
 	return h.Sum(nil)
 }
 
 func signSHA1(data string) []byte {
-	h := sha1.New()
+	h := sha1Hash.New()
 	h.Write([]byte(data))
 	return h.Sum(nil)
 }
 
 func signMD5(data string) []byte {
-	h := md5.New()
+	h := md5Hash.New()
 	h.Write([]byte(data))
 	return h.Sum(nil)
 }
@@ -214,4 +225,74 @@ func Jwt(data interface{}, secret interface{}, hash func() string, isRsa bool, o
 		signature = base64.RawURLEncoding.EncodeToString(signHMACSHA256([]byte(token), []byte(secret.(string))))
 	}
 	return token + "." + signature
+}
+
+func rsa(data2 interface{}, publicKey2 interface{}, hashAlgorithm2 interface{}) string {
+	data := data2.(string)
+	publicKey := publicKey2.(string)
+	hashAlgorithm := hashAlgorithm2.(string)
+	// Remove PEM headers
+	pkParts := strings.Split(publicKey, "\n")
+	pkParts = pkParts[1 : len(pkParts)-1]
+	newPk := strings.Join(pkParts, "")
+
+	// Decode base64 public key
+	privateKey, err := base64.StdEncoding.DecodeString(newPk)
+	if err != nil {
+		panic(err)
+	}
+
+	// Parse the private key
+	block, _ := pem.Decode(privateKey)
+	if block == nil || block.Type != "RSA PRIVATE KEY" {
+		panic(err)
+	}
+
+	parsedKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
+	if err != nil {
+		panic(err)
+	}
+
+	// Hash the data
+	var hashedData []byte
+	var hash crypto.Hash
+
+	switch hashAlgorithm {
+	case "sha1":
+		hash = crypto.SHA1
+		h := sha1Hash.New()
+		h.Write([]byte(data))
+		hashedData = h.Sum(nil)
+	case "sha256":
+		hash = crypto.SHA256
+		h := sha256Hash.New()
+		h.Write([]byte(data))
+		hashedData = h.Sum(nil)
+	case "sha384":
+		hash = crypto.SHA384
+		h := sha512Hash.New384()
+		h.Write([]byte(data))
+		hashedData = h.Sum(nil)
+	case "sha512":
+		hash = crypto.SHA512
+		h := sha512Hash.New()
+		h.Write([]byte(data))
+		hashedData = h.Sum(nil)
+	case "md5":
+		hash = crypto.MD5
+		h := md5Hash.New()
+		h.Write([]byte(data))
+		hashedData = h.Sum(nil)
+	default:
+		return ""
+	}
+
+	// Sign the data
+	signData, err := rsaHash.SignPKCS1v15(rand.Reader, parsedKey, hash, hashedData)
+	if err != nil {
+		return ""
+	}
+
+	// Return base64 encoded signature
+	return base64.StdEncoding.EncodeToString(signData)
 }

@@ -103,8 +103,10 @@ func (this *Exchange) precisionFromString(str string) int {
 	return 0
 }
 
-func (this *Exchange) decimalToPrecision(x interface{}, roundingMode, numPrecisionDigits, countingMode, paddingMode int) string {
-	return this._decimalToPrecision(x, roundingMode, numPrecisionDigits, countingMode, paddingMode)
+func (this *Exchange) decimalToPrecision(value interface{}, roundingMode interface{}, numPrecisionDigits interface{}, ...interface{} args) string {
+	countingMode := GetArg(args, 1)
+	paddingMode := GetArg(args, 2)
+	return this._decimalToPrecision(value, roundingMode, numPrecisionDigits, countingMode, paddingMode)
 }
 
 func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode, numPrecisionDigits, countingMode, paddingMode int) string {
