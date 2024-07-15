@@ -21,7 +21,7 @@ export default class coindcx extends Exchange {
             'name': 'CoinDCX',
             'countries': [ 'IN' ], // India
             'version': 'v1',
-            'rateLimit': 30, // 2000 per minute
+            'rateLimit': 30, // 2000 per minute // todo ask about limits for contracts
             'certified': false,
             'pro': true,
             'has': {
@@ -192,11 +192,11 @@ export default class coindcx extends Exchange {
                         'exchange/v1/orders/create_multiple': 1, // done
                         'exchange/v1/orders/status': 1, // done
                         'exchange/v1/orders/status_multiple': 1, // done
-                        'exchange/v1/orders/active_orders': 1, // done
+                        'exchange/v1/orders/active_orders': 6.66, // done
                         'exchange/v1/orders/trade_history': 1, // done
                         'exchange/v1/orders/active_orders_count': 1, // not unified
-                        'exchange/v1/orders/cancel_all': 1, // done
-                        'exchange/v1/orders/cancel_by_ids': 1, // done
+                        'exchange/v1/orders/cancel_all': 66.66, // done
+                        'exchange/v1/orders/cancel_by_ids': 6.66, // done
                         'exchange/v1/orders/cancel': 1, // done
                         'exchange/v1/orders/edit': 1, // done
                         'exchange/v1/funding/fetch_orders': 1,
@@ -220,10 +220,10 @@ export default class coindcx extends Exchange {
                         'exchange/v1/derivatives/futures/positions/add_margin': 1, // done todo check
                         'exchange/v1/derivatives/futures/positions/remove_margin': 1, // done todo check
                         'exchange/v1/derivatives/futures/positions/cancel_all_open_orders': 1, // done
-                        'exchange/v1/derivatives/futures/positions/cancel_all_open_orders_for_position': 1,
-                        'exchange/v1/derivatives/futures/positions/exit': 1,
-                        'exchange/v1/derivatives/futures/positions/create_tpsl': 1,
-                        'exchange/v1/derivatives/futures/positions/transactions': 1,
+                        'exchange/v1/derivatives/futures/positions/cancel_all_open_orders_for_position': 1, // done
+                        'exchange/v1/derivatives/futures/positions/exit': 1, // done
+                        'exchange/v1/derivatives/futures/positions/create_tpsl': 1, // todo check
+                        'exchange/v1/derivatives/futures/positions/transactions': 1, // todo check
                         'exchange/v1/derivatives/futures/trades': 1, // done
                     },
                 },
@@ -2112,11 +2112,13 @@ export default class coindcx extends Exchange {
          * @description cancel all open orders
          * @see https://docs.coindcx.com/#cancel-all
          * @see https://docs.coindcx.com/#cancel-all-open-orders
+         * @see https://docs.coindcx.com/#cancel-all-open-orders-for-position
          * @param {string} symbol *for spot markets without margin only* unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] 'spot', 'margin', 'future' or 'swap'
          * @param {bool} [params.margin] *for spot markets only* true for fetching a margin orders
          * @param {int} [params.side] *for spot markets without margin only* toggle between 'buy' or 'sell'
+         * @param {string} [params.id] position id - for canceling open orders for specific position
          * @returns {object} response from exchange
          */
         const request: Dict = {};
@@ -2139,14 +2141,21 @@ export default class coindcx extends Exchange {
         } else if (marketType === 'margin') {
             throw new NotSupported (this.id + ' cancelAllOrders is not supported for spot margin markets');
         } else if ((marketType === 'future') || (marketType === 'swap')) {
-            return await this.privatePostExchangeV1DerivativesFuturesPositionsCancelAllOpenOrders (this.extend (request, params));
-            //
-            //     {
-            //         "message": "success",
-            //         "status": 200,
-            //         "code": 200
-            //     }
-            //
+            let positionId: Str = undefined;
+            [ positionId, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'id');
+            if (positionId !== undefined) {
+                request['id'] = positionId;
+                return await this.privatePostExchangeV1DerivativesFuturesPositionsCancelAllOpenOrdersForPosition (this.extend (request, params));
+            } else {
+                return await this.privatePostExchangeV1DerivativesFuturesPositionsCancelAllOpenOrders (this.extend (request, params));
+                //
+                //     {
+                //         "message": "success",
+                //         "status": 200,
+                //         "code": 200
+                //     }
+                //
+            }
         } else {
             throw new NotSupported (this.id + ' cancelAllOrders is not supported for ' + marketType + ' markets'); // todo implement this method for contract markets
         }
