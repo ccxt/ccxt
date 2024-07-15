@@ -780,6 +780,7 @@ export default class binance extends binanceRest {
                     }
                 }
             }
+            orderbook.cache = [];
             this.orderbooks[symbol] = orderbook;
             client.resolve (orderbook, messageHash);
         } catch (e) {
