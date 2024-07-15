@@ -24,7 +24,7 @@ export default class Client {
     rejections: Dictionary<any>
 
     // @ts-ignore: 2564
-    messageQueue: Dictionary<string, any>
+    messageQueue: Dictionary<any>
 
     useMessageQueue: boolean = true
 
