@@ -100,7 +100,8 @@ class testMainClass extends baseMainTestClass {
 
     checkIfSpecificTestIsChosen (methodArgv) {
         if (methodArgv !== undefined) {
-            const testFileNames = Object.keys (this.testFiles);
+            let testFileNames = Object.keys (this.testFiles);
+            testFileNames = testFileNames.concat (Object.keys (this.testFilesMisc));
             const possibleMethodNames = methodArgv.split (','); // i.e. `test.ts binance fetchBalance,fetchDeposits`
             if (possibleMethodNames.length >= 1) {
                 for (let i = 0; i < testFileNames.length; i++) {
