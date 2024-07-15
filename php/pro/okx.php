@@ -1262,7 +1262,7 @@ class okx extends \ccxt\async\okx {
              * @param {bool} [$params->stop] true if fetching trigger or conditional trades
              * @param {string} [$params->type] 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
              * @param {string} [$params->marginMode] 'cross' or 'isolated', for automatically setting the $type to spot margin
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             // By default, receive order updates from any instrument $type
             $type = null;

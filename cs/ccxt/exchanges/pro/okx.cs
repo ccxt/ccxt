@@ -1342,7 +1342,7 @@ public partial class okx : ccxt.okx
         * @param {bool} [params.stop] true if fetching trigger or conditional trades
         * @param {string} [params.type] 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
         * @param {string} [params.marginMode] 'cross' or 'isolated', for automatically setting the type to spot margin
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         // By default, receive order updates from any instrument type
         parameters ??= new Dictionary<string, object>();

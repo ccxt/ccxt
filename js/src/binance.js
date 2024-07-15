@@ -9787,40 +9787,45 @@ export default class binance extends Exchange {
         if (marginMode === 'cross') {
             // calculate collateral
             const precision = this.safeDict(market, 'precision', {});
-            if (linear) {
-                // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
-                let onePlusMaintenanceMarginPercentageString = undefined;
-                let entryPriceSignString = entryPriceString;
-                if (side === 'short') {
-                    onePlusMaintenanceMarginPercentageString = Precise.stringAdd('1', maintenanceMarginPercentageString);
-                    entryPriceSignString = Precise.stringMul('-1', entryPriceSignString);
+            const basePrecisionValue = this.safeString(precision, 'base');
+            const quotePrecisionValue = this.safeString2(precision, 'quote', 'price');
+            const precisionIsUndefined = (basePrecisionValue === undefined) && (quotePrecisionValue === undefined);
+            if (!precisionIsUndefined) {
+                if (linear) {
+                    // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
+                    let onePlusMaintenanceMarginPercentageString = undefined;
+                    let entryPriceSignString = entryPriceString;
+                    if (side === 'short') {
+                        onePlusMaintenanceMarginPercentageString = Precise.stringAdd('1', maintenanceMarginPercentageString);
+                        entryPriceSignString = Precise.stringMul('-1', entryPriceSignString);
+                    }
+                    else {
+                        onePlusMaintenanceMarginPercentageString = Precise.stringAdd('-1', maintenanceMarginPercentageString);
+                    }
+                    const inner = Precise.stringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString);
+                    const leftSide = Precise.stringAdd(inner, entryPriceSignString);
+                    const quotePrecision = this.precisionFromString(this.safeString2(precision, 'quote', 'price'));
+                    if (quotePrecision !== undefined) {
+                        collateralString = Precise.stringDiv(Precise.stringMul(leftSide, contractsAbs), '1', quotePrecision);
+                    }
                 }
                 else {
-                    onePlusMaintenanceMarginPercentageString = Precise.stringAdd('-1', maintenanceMarginPercentageString);
-                }
-                const inner = Precise.stringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString);
-                const leftSide = Precise.stringAdd(inner, entryPriceSignString);
-                const quotePrecision = this.precisionFromString(this.safeString2(precision, 'quote', 'price'));
-                if (quotePrecision !== undefined) {
-                    collateralString = Precise.stringDiv(Precise.stringMul(leftSide, contractsAbs), '1', quotePrecision);
-                }
-            }
-            else {
-                // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
-                let onePlusMaintenanceMarginPercentageString = undefined;
-                let entryPriceSignString = entryPriceString;
-                if (side === 'short') {
-                    onePlusMaintenanceMarginPercentageString = Precise.stringSub('1', maintenanceMarginPercentageString);
-                }
-                else {
-                    onePlusMaintenanceMarginPercentageString = Precise.stringSub('-1', maintenanceMarginPercentageString);
-                    entryPriceSignString = Precise.stringMul('-1', entryPriceSignString);
-                }
-                const leftSide = Precise.stringMul(contractsAbs, contractSizeString);
-                const rightSide = Precise.stringSub(Precise.stringDiv('1', entryPriceSignString), Precise.stringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString));
-                const basePrecision = this.precisionFromString(this.safeString(precision, 'base'));
-                if (basePrecision !== undefined) {
-                    collateralString = Precise.stringDiv(Precise.stringMul(leftSide, rightSide), '1', basePrecision);
+                    // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
+                    let onePlusMaintenanceMarginPercentageString = undefined;
+                    let entryPriceSignString = entryPriceString;
+                    if (side === 'short') {
+                        onePlusMaintenanceMarginPercentageString = Precise.stringSub('1', maintenanceMarginPercentageString);
+                    }
+                    else {
+                        onePlusMaintenanceMarginPercentageString = Precise.stringSub('-1', maintenanceMarginPercentageString);
+                        entryPriceSignString = Precise.stringMul('-1', entryPriceSignString);
+                    }
+                    const leftSide = Precise.stringMul(contractsAbs, contractSizeString);
+                    const rightSide = Precise.stringSub(Precise.stringDiv('1', entryPriceSignString), Precise.stringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString));
+                    const basePrecision = this.precisionFromString(this.safeString(precision, 'base'));
+                    if (basePrecision !== undefined) {
+                        collateralString = Precise.stringDiv(Precise.stringMul(leftSide, rightSide), '1', basePrecision);
+                    }
                 }
             }
         }
@@ -10452,9 +10457,10 @@ export default class binance extends Exchange {
         //
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const parsed = this.parsePositionRisk(response[i]);
-            const entryPrice = this.safeString(parsed, 'entryPrice');
+            const rawPosition = response[i];
+            const entryPrice = this.safeString(rawPosition, 'entryPrice');
             if ((entryPrice !== '0') && (entryPrice !== '0.0') && (entryPrice !== '0.00000000')) {
+                const parsed = this.parsePositionRisk(response[i]);
                 result.push(parsed);
             }
         }
