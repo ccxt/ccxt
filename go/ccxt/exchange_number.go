@@ -103,13 +103,13 @@ func (this *Exchange) precisionFromString(str string) int {
 	return 0
 }
 
-func (this *Exchange) decimalToPrecision(value interface{}, roundingMode interface{}, numPrecisionDigits interface{}, ...interface{} args) string {
-	countingMode := GetArg(args, 1)
-	paddingMode := GetArg(args, 2)
+func (this *Exchange) decimalToPrecision(value interface{}, roundingMode interface{}, numPrecisionDigits interface{}, args ...interface{}) string {
+	countingMode := GetArg(args, 1, nil)
+	paddingMode := GetArg(args, 2, nil)
 	return this._decimalToPrecision(value, roundingMode, numPrecisionDigits, countingMode, paddingMode)
 }
 
-func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode, numPrecisionDigits, countingMode, paddingMode int) string {
+func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode interface{}, numPrecisionDigits interface{}, countingMode interface{}, paddingMode interface{}) string {
 	if countingMode == TICK_SIZE {
 		if numPrecisionDigitsStr, ok := numPrecisionDigits.(string); ok {
 			numPrecisionDigits, _ = strconv.ParseFloat(numPrecisionDigitsStr, 64)

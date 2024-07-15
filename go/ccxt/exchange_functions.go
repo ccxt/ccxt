@@ -129,27 +129,22 @@ func (this *Exchange) aggregate(bidasks interface{}) []interface{} {
 	return outList
 }
 
-func (this *Exchange) extractParams(str interface{}) {
-	// Check if the input is a string
-	inputStr, ok := str.(string)
-	if !ok {
-		panic("input must be a string")
-	}
-
-	// Define the regular expression to match parameters enclosed in curly braces
+func (this *Exchange) extractParams(str string) []interface{} {
+	// Compile the regular expression
 	regex := regexp.MustCompile(`\{([^\}]+)\}`)
 
 	// Find all matches
-	matches := regex.FindAllStringSubmatch(inputStr, -1)
+	matches := regex.FindAllStringSubmatch(str, -1)
 
-	// Extract the parameters from the matches
+	// Create a list to store the extracted parameters
 	outList := make([]interface{}, 0, len(matches))
+
+	// Iterate over the matches and add the captured groups to the list
 	for _, match := range matches {
 		if len(match) > 1 {
 			outList = append(outList, match[1])
 		}
 	}
 
-	// Panic with the extracted parameters
-	panic(outList)
+	return outList
 }

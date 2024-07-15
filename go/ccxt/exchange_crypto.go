@@ -296,3 +296,7 @@ func rsa(data2 interface{}, publicKey2 interface{}, hashAlgorithm2 interface{}) 
 	// Return base64 encoded signature
 	return base64.StdEncoding.EncodeToString(signData)
 }
+
+func eddsa(data2 interface{}, publicKey2 interface{}, hashAlgorithm2 interface{}) string {
+	return ""
+}
