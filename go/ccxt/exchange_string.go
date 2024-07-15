@@ -3,40 +3,46 @@ package ccxt
 import (
 	"strings"
 	"unicode"
+
+	u "github.com/google/uuid"
 )
 
 // BaseUID generates a new UUID and returns it as a string without dashes.
-func BaseUID() string {
-	return strings.ReplaceAll(uuid.New().String(), "-", "")
+func (this *Exchange) BaseUID() string {
+	return strings.ReplaceAll(u.New().String(), "-", "")
 }
 
 // uuid2 generates a new UUID and returns it as a string.
-func uuid2() string {
-	return uuid.New().String()
+func (this *Exchange) uuid2() string {
+	return u.New().String()
 }
 
+// func (this *Exchange) uuid22() string {
+// 	return ""
+// }
+
 // uuid is a wrapper for uuid2.
-func uuid() string {
-	return uuid2()
+func (this *Exchange) uuid() string {
+	return this.uuid2()
 }
 
 // uuid16 returns the first 16 characters of a UUID without dashes.
-func uuid16() string {
-	return BaseUID()[:16]
+func (this *Exchange) uuid16() string {
+	return this.BaseUID()[:16]
 }
 
 // uuid22 returns the first 22 characters of a UUID without dashes.
-func uuid22() string {
-	return BaseUID()[:22]
+func (this *Exchange) uuid22() string {
+	return this.BaseUID()[:22]
 }
 
 // strip trims whitespace from both ends of a string.
-func strip(str interface{}) interface{} {
+func (this *Exchange) strip(str interface{}) interface{} {
 	return strings.TrimSpace(str.(string))
 }
 
 // capitalize capitalizes the first letter of a string.
-func capitalize(str2 interface{}) string {
+func (this *Exchange) capitalize(str2 interface{}) string {
 	str := str2.(string)
 	if len(str) == 0 {
 		return str

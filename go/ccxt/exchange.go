@@ -96,6 +96,8 @@ type Exchange struct {
 	substituteCommonCurrencyCodes bool
 
 	twofa interface{}
+
+	paddingMode int
 }
 
 var DECIMAL_PLACES int = 0
@@ -440,6 +442,10 @@ func (this *Exchange) describe() map[string]interface{} {
 	} // return
 }
 
+func (this *Exchange) throttle(cost interface{}) {
+	// to do
+}
+
 func (this *Exchange) log(args ...interface{}) {
 	// convert to str and print
 	fmt.Println(args)
@@ -625,4 +631,24 @@ func (this *Exchange) parseTimeframe(timeframe interface{}) *int {
 
 	result := amount * scale
 	return &result
+}
+
+func (this *Exchange) throwDynamicException(exceptionType interface{}, message interface{}) {
+	// to do implement
+	// // exceptionTypeStr, ok := exceptionType.(string)
+	// if !ok {
+	// 	panic("exceptionType must be a string representing the error type")
+
+	// // messageStr, ok := message.(string)
+	// // if !ok {
+	// // 	panic("message must be a string")
+	// // }
+
+	// // constructor, exists := customErrors[exceptionTypeStr]
+	// // if !exists {
+	// // 	panic(errors.New("unknown error type: " + exceptionTypeStr))
+	// // }
+
+	// // err := constructor(messageStr)
+	// // panic(err)
 }

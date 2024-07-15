@@ -13,6 +13,10 @@ func (this *Exchange) milliseconds() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
+func (this *Exchange) seconds() int64 {
+	return this.milliseconds() / 1000
+}
+
 // microseconds returns the current time in microseconds since the Unix epoch.
 func (this *Exchange) microseconds() int64 {
 	return time.Now().UnixNano() / int64(time.Microsecond)

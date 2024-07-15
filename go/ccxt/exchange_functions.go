@@ -2,6 +2,7 @@ package ccxt
 
 import (
 	"reflect"
+	"regexp"
 	"sort"
 )
 
@@ -126,4 +127,29 @@ func (this *Exchange) arrayConcat(aa, bb interface{}) interface{} {
 func (this *Exchange) aggregate(bidasks interface{}) []interface{} {
 	var outList []interface{}
 	return outList
+}
+
+func (this *Exchange) extractParams(str interface{}) {
+	// Check if the input is a string
+	inputStr, ok := str.(string)
+	if !ok {
+		panic("input must be a string")
+	}
+
+	// Define the regular expression to match parameters enclosed in curly braces
+	regex := regexp.MustCompile(`\{([^\}]+)\}`)
+
+	// Find all matches
+	matches := regex.FindAllStringSubmatch(inputStr, -1)
+
+	// Extract the parameters from the matches
+	outList := make([]interface{}, 0, len(matches))
+	for _, match := range matches {
+		if len(match) > 1 {
+			outList = append(outList, match[1])
+		}
+	}
+
+	// Panic with the extracted parameters
+	panic(outList)
 }

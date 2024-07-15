@@ -122,7 +122,7 @@ func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode, numPrecis
 			return this.decimalToPrecision(x.(float64)/toNearest*toNearest, roundingMode, 0, countingMode, paddingMode)
 		}
 		if roundingMode == TRUNCATE {
-			return fmt.Sprintf("%v", x.(float64)-math.Mod(x.(float64), toNearest)), nil
+			return fmt.Sprintf("%v", x.(float64)-math.Mod(x.(float64), toNearest))
 		}
 	}
 
@@ -245,9 +245,9 @@ func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode, numPrecis
 		out = append(out, '0')
 	}
 	if signNeeded {
-		return fmt.Sprintf("-%s", string(out)), nil
+		return fmt.Sprintf("-%s", string(out))
 	}
-	return string(out), nil
+	return string(out)
 }
 
 // func (this *Exchange) omitZero(stringNumber string) string {
