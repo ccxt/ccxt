@@ -6306,6 +6306,7 @@ export default class bybit extends Exchange {
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         let symbol = undefined;
+        await this.loadMarkets ();
         if ((symbols !== undefined) && Array.isArray (symbols)) {
             const symbolsLength = symbols.length;
             if (symbolsLength > 1) {
@@ -6318,7 +6319,6 @@ export default class bybit extends Exchange {
             symbol = symbols;
             symbols = [ this.symbol (symbol) ];
         }
-        await this.loadMarkets ();
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         const request: Dict = {};
