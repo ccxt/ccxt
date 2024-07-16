@@ -486,6 +486,9 @@ class Exchange(object):
         # convert all properties from underscore notation foo_bar to camelcase notation fooBar
         cls = type(self)
         for name in dir(self):
+            escapeSetting = ['http_proxy', 'http_proxy_callback', 'https_proxy', 'https_proxy_callback', 'proxy_url', 'proxy_url_callback', 'socks_proxy', 'socks_proxy_callback']
+            if name in escapeSetting:
+                continue
             if name[0] != '_' and name[-1] != '_' and '_' in name:
                 parts = name.split('_')
                 # fetch_ohlcv → fetchOHLCV (not fetchOhlcv!)
