@@ -2,11 +2,11 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/coindcx.js';
-import { ArgumentsRequired, NotSupported } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadSymbol, BadRequest, ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Bool, Dict, IndexType, Int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Bool, Dict, IndexType, Int, int, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -247,22 +247,17 @@ export default class coindcx extends Exchange {
             },
             'exceptions': {
                 'exact': {
-                    // {"code":400,"message":"Minimum order value should be 24.0 USDT","status":"error"}
-                    // {"code":400,"message":"Invalid Request.","status":"error"}
-                    // {"code":401,"message":"Invalid credentials","status":"error"}
-                    // {"status":"error","message":"not_found","code":404}
-                    // {"code":422,"message":"Invalid Request","status":"error"}
-                    // {"code":404,"message":"Order not found","status":"error"}
-                    // {"code":422,"message":"Cannot exit this order","status":"error"}
-                    // {"code":422,"message":"Price can't be empty for limit_order Order","status":"error"}
-                    // {"code":422,"message":"Side Filter values are incorrect","status":"error"}
-                    // {"code":422,"message":"Post only order not allowed for this instrument","status":"error"}
-                    // 429 Too Many Requests - You're making too many API calls
-                    // 500 Internal Server Error -- We had a problem with our server. Try again later.
-                    // 503 Service Unavailable -- We're temporarily offline for maintenance. Please try again later.
+                    '400': BadRequest, // {"code":400,"message":"Minimum order value should be 24.0 USDT","status":"error"}
+                    '401': AuthenticationError, // {"code":401,"message":"Invalid credentials","status":"error"}
+                    '404': ExchangeError, // {"status":"error","message":"not_found","code":404}
+                    '422': BadRequest, // {"code":422,"message":"Invalid Request","status":"error"}
+                    '429': RateLimitExceeded, // 429 Too Many Requests - You're making too many API calls
+                    '500': ExchangeNotAvailable, // 500 Internal Server Error -- We had a problem with our server. Try again later.
+                    '503': OnMaintenance, // 503 Service Unavailable -- We're temporarily offline for maintenance. Please try again later.
                 },
                 'broad': {
-                    // todo: add more error codes
+                    'Order not found': OrderNotFound, // {"code":404,"message":"Order not found","status":"error"}
+                    'Currency pair is not valid': BadSymbol, // {"code":422,"message":"Currency pair is not valid","status":"error"}
                 },
             },
         });
@@ -2983,5 +2978,24 @@ export default class coindcx extends Exchange {
             body = this.json (params);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return undefined;
+        }
+        const status = this.safeString (response, 'status');
+        if (status === 'error') {
+            const feedback = this.id + ' ' + body;
+            const message = this.safeString (response, 'message');
+            let messageCode = this.safeString (reason, 'code');
+            if (messageCode === undefined) {
+                messageCode = code.toString ();
+            }
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], messageCode, feedback);
+            throw new ExchangeError (feedback);
+        }
+        return undefined;
     }
 }
