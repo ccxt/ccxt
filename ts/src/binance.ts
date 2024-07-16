@@ -6480,10 +6480,7 @@ export default class binance extends Exchange {
             const marketType = ('type' in market) ? market['type'] : defaultType;
             type = this.safeString (params, 'type', marketType);
         } else if (this.options['warnOnFetchOpenOrdersWithoutSymbol']) {
-            const symbols = this.symbols;
-            const numSymbols = symbols.length;
-            const fetchOpenOrdersRateLimit = this.parseToInt (numSymbols / 2);
-            throw new ExchangeError (this.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.toString () + ' seconds. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
+            throw new ExchangeError (this.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge this warning, set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         } else {
             const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
             type = this.safeString (params, 'type', defaultType);
