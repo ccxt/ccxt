@@ -142,6 +142,7 @@ export default class hyperliquid extends hyperliquidRest {
             'method': 'subscribe',
             'subscription': {
                 'type': 'webData2', // allMids
+                'user': '0x0000000000000000000000000000000000000000',
             },
         };
         const tickers = await this.watch (url, messageHash, this.extend (request, params), messageHash);
@@ -244,14 +245,14 @@ export default class hyperliquid extends hyperliquidRest {
             parsedTickers.push (ticker);
         }
         // perpetuals
-        const meta = this.safeList (data, 'meta', []);
+        const meta = this.safeDict (data, 'meta', {});
         const universe = this.safeList (meta, 'universe', []);
         const assets = this.safeList (data, 'assetCtxs', []);
         for (let i = 0; i < assets.length; i++) {
             let assetObject = assets[i];
             const coinObject = universe[i];
-            const symbol = coinObject['name'] + ':USDC/USDC';
-            assetObject = this.extend (assetObject, { 'coin': symbol });
+            const id = coinObject['name'] + ':USDC/USDC';
+            assetObject = this.extend (assetObject, { 'coin': id });
             const ticker = this.parseWsTicker (assetObject, 'swap');
             parsedTickers.push (ticker);
         }
