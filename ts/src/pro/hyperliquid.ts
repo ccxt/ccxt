@@ -280,7 +280,7 @@ export default class hyperliquid extends hyperliquidRest {
         const bidAsk = this.safeList (message, 'impactPxs');
         return this.safeTicker ({
             'symbol': market['symbol'],
-            'open': this.safeNumber (message, 'prevDayPx'),
+            'previousClose': this.safeNumber (message, 'prevDayPx'),
             'close': this.safeNumber (message, 'midPx'),
             'bid': this.safeNumber (bidAsk, 0),
             'ask': this.safeNumber (bidAsk, 1),
