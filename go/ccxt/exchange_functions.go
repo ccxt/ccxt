@@ -37,10 +37,10 @@ func (this *Exchange) omitMap(aa interface{}, k interface{}) map[string]interfac
 		return aa.(map[string]interface{})
 	}
 
-	var keys []string
+	var keys []interface{}
 	switch k.(type) {
 	case string:
-		keys = []string{k.(string)}
+		// keys = []string{k.(string)}
 	case []interface{}:
 		for _, v := range k.([]interface{}) {
 			keys = append(keys, v.(string))
@@ -129,7 +129,8 @@ func (this *Exchange) aggregate(bidasks interface{}) []interface{} {
 	return outList
 }
 
-func (this *Exchange) extractParams(str string) []interface{} {
+func (this *Exchange) extractParams(str2 interface{}) []interface{} {
+	str := str2.(string)
 	// Compile the regular expression
 	regex := regexp.MustCompile(`\{([^\}]+)\}`)
 

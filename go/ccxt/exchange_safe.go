@@ -261,7 +261,8 @@ func (this *Exchange) safeString2(obj interface{}, key interface{}, key2 interfa
 	return SafeString2(obj, key, key2, defVal)
 }
 
-func (this *Exchange) safeStringN(obj interface{}, keys []interface{}, defaultValue ...interface{}) string {
+func (this *Exchange) safeStringN(obj interface{}, keys2 interface{}, defaultValue ...interface{}) string {
+	keys := keys2.([]interface{})
 	var defVal interface{} = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]

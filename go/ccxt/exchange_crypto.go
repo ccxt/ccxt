@@ -15,10 +15,7 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"strings"
-
-	"golang.org/x/crypto/sha3"
 	// "golang.org/x/crypto/sha3"
-	// "github.com/ethereum/go-ethereum/crypto/sha3"
 )
 
 func sha1() string      { return "sha1" }
@@ -31,7 +28,8 @@ func keccak() string    { return "keccak" }
 func secp256k1() string { return "secp256k1" }
 func p256() string      { return "p256" }
 
-func (this *Exchange) hmac(request2 interface{}, secret2 interface{}, algorithm2 func() string, digest func() string) string {
+func (this *Exchange) hmac(request2 interface{}, secret2 interface{}, algorithm2 func() string, args ...interface{}) string {
+	digest := GetArg(args, 0, "hex").(string)
 	return Hmac(request2, secret2, algorithm2, digest)
 }
 
@@ -175,15 +173,16 @@ func signMD5(data string) []byte {
 
 func signKeccak(data interface{}) []byte {
 	var msg []byte
-	switch v := data.(type) {
-	case string:
-		msg = []byte(v)
-	case []byte:
-		msg = v
-	}
-	h := sha3.NewLegacyKeccak256()
-	h.Write(msg)
-	return h.Sum(nil)
+	// switch v := data.(type) {
+	// case string:
+	// 	msg = []byte(v)
+	// case []byte:
+	// 	msg = v
+	// }
+	// h := sha3.New256()
+	// h.Write(msg)
+	// to do implement keccak
+	return msg
 }
 
 func Jwt(data interface{}, secret interface{}, hash func() string, isRsa bool, options map[string]interface{}) string {

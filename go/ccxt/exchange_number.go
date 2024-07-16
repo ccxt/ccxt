@@ -109,11 +109,14 @@ func (this *Exchange) decimalToPrecision(value interface{}, roundingMode interfa
 	return this._decimalToPrecision(value, roundingMode, numPrecisionDigits, countingMode, paddingMode)
 }
 
-func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode interface{}, numPrecisionDigits interface{}, countingMode interface{}, paddingMode interface{}) string {
+func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode interface{}, numPrecisionDigits2 interface{}, countingMode2 interface{}, paddingMode2 interface{}) string {
+	countingMode := countingMode2.(int)
+	paddingMode := paddingMode2.(int)
+	numPrecisionDigits := numPrecisionDigits2.(int)
 	if countingMode == TICK_SIZE {
-		if numPrecisionDigitsStr, ok := numPrecisionDigits.(string); ok {
-			numPrecisionDigits, _ = strconv.ParseFloat(numPrecisionDigitsStr, 64)
-		}
+		// if numPrecisionDigitsStr, ok := strconv.Itoa(numPrecisionDigits); ok {
+		// 	numPrecisionDigits, _ = strconv.ParseFloat(numPrecisionDigitsStr, 64)
+		// }
 		if numPrecisionDigits <= 0 {
 			return ""
 		}
@@ -136,10 +139,10 @@ func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode interface{
 	}
 	strEnd := len(str)
 	var strDot int
-	hasDot := false
+	// hasDot := false
 	for strDot = 0; strDot < strEnd; strDot++ {
 		if str[strDot] == '.' {
-			hasDot = true
+			// hasDot = true
 			break
 		}
 	}
@@ -234,8 +237,8 @@ func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode interface{
 		desiredLength = precisionEnd - readStart
 	}
 	pad := desiredLength - actualLength
-	padStart := nBeforeDot + 1 + nAfterDot
-	padEnd := padStart + pad
+	// padStart := nBeforeDot + 1 + nAfterDot
+	// padEnd := padStart + pad
 	isInteger := nAfterDot+pad == 0
 
 	out := make([]uint8, nBeforeDot)

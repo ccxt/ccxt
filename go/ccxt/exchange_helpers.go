@@ -1067,7 +1067,7 @@ func parseFloat(input interface{}) interface{} {
 	}
 }
 
-func parseJSON(input interface{}) interface{} {
+func ParseJSON(input interface{}) interface{} {
 	jsonString := fmt.Sprintf("%v", input)
 	// var result interface{}
 

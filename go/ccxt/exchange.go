@@ -22,7 +22,7 @@ type Exchange struct {
 	timeframes          map[string]interface{}
 	exceptions          map[string]interface{}
 	precision           map[string]interface{}
-	urls                map[string]interface{}
+	urls                interface{}
 	verbose             bool
 	userAgent           string
 	enableRateLimit     bool
@@ -47,9 +47,9 @@ type Exchange struct {
 
 	// timestamps
 	lastRestRequestTimestamp int64
-	last_request_headers     map[string]interface{}
-	last_request_body        string
-	last_request_url         string
+	last_request_headers     interface{}
+	last_request_body        interface{}
+	last_request_url         interface{}
 
 	// type check this
 	number interface{}
@@ -635,4 +635,12 @@ func (this *Exchange) parseTimeframe(timeframe interface{}) *int {
 
 func (this *Exchange) checkAddress(add interface{}) bool {
 	return true
+}
+
+func totp(secret interface{}) string {
+	return ""
+}
+
+func (this *Exchange) parseJson(input interface{}) interface{} {
+	return ParseJSON(input)
 }

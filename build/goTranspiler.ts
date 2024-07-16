@@ -282,7 +282,7 @@ class NewTranspiler {
         const values = [
             // "using ccxt;",
             namespace,
-            'import "helpers"'
+            // 'import "helpers"'
         ]
         // if (ws) {
         //     values.push("using System.Reflection;");
