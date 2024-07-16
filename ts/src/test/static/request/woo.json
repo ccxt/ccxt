@@ -117,6 +117,38 @@
                     }
                 ],
                 "output": "{\"activatedPrice\":\"50000\",\"algoType\":\"TRAILING_STOP\",\"callbackRate\":\"0.05\",\"quantity\":\"0.0001\",\"reduceOnly\":true,\"side\":\"SELL\",\"symbol\":\"PERP_BTC_USDT\",\"type\":\"MARKET\"}"
+            },
+            {
+                "description": "Swap margine mode isolated order",
+                "method": "createOrder",
+                "url": "https://api.staging.woo.org/v1/order",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.2,
+                    50,
+                    {
+                        "marginMode": "isolated"
+                    }
+                ],
+                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&margin_mode=ISOLATED&order_price=50&order_quantity=0.2&order_type=LIMIT&side=BUY&symbol=PERP_LTC_USDT"
+            },
+            {
+                "description": "Swap margine mode cross order",
+                "method": "createOrder",
+                "url": "https://api.staging.woo.org/v1/order",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.2,
+                    50,
+                    {
+                        "marginMode": "cross"
+                    }
+                ],
+                "output": "broker_id=bc830de7-50f3-460b-9ee0-f430f83f9dad&margin_mode=CROSS&order_price=50&order_quantity=0.2&order_type=LIMIT&side=BUY&symbol=PERP_LTC_USDT"
             }
         ],
         "createMarketBuyOrderWithCost": [
