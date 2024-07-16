@@ -954,6 +954,16 @@
                         "LTC/USDT:USDT"
                     ]
                 ]
+            },
+            {
+                "description": "Fetch inverse positions",
+                "method": "fetchPositions",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/user/positions?timestamp=1721107174594&signature=b2504a634ce468010d77aa40e8e863abe15a907c99705f59852ca1d12aac7910",
+                "input": [
+                  [
+                    "SOL/USD:SOL"
+                  ]
+                ]
             }
         ],
         "fetchDeposits": [
