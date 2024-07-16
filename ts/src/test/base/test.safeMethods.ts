@@ -33,15 +33,21 @@ function testSafeMethods () {
 
     const inputList = [ 'Hi', 2 ];
 
+    const compareDict = {
+        'a': 1,
+    };
+
+    const compareList = [ 1, 2, 3 ];
+
     const factor = 10;
 
     // safeValue
     assert (exchange.safeValue (inputDict, 'i') === 1);
     assert (exchange.safeValue (inputDict, 'f') === 0.123);
     assert (exchange.safeValue (inputDict, 'bool') === true);
-    assert (equals (exchange.safeValue (inputDict, 'list'), [ 1, 2, 3 ]));
+    assert (equals (exchange.safeValue (inputDict, 'list'), compareList));
     let dictObject = exchange.safeValue (inputDict, 'dict');
-    assert (equals (dictObject, { 'a': 1 }));
+    assert (equals (dictObject, compareDict));
     assert (exchange.safeValue (inputDict, 'str') === 'heLlo');
     assert (exchange.safeValue (inputDict, 'strNumber') === '3');
     assert (exchange.safeValue (inputList, 0) === 'Hi');
@@ -50,20 +56,20 @@ function testSafeMethods () {
     assert (exchange.safeValue2 (inputDict, 'a', 'i') === 1);
     assert (exchange.safeValue2 (inputDict, 'a', 'f') === 0.123);
     assert (exchange.safeValue2 (inputDict, 'a', 'bool') === true);
-    assert (equals (exchange.safeValue2 (inputDict, 'a', 'list'), [ 1, 2, 3 ]));
+    assert (equals (exchange.safeValue2 (inputDict, 'a', 'list'), compareList));
     dictObject = exchange.safeValue2 (inputDict, 'a', 'dict');
-    assert (equals (dictObject, { 'a': 1 }));
+    assert (equals (dictObject, compareDict));
     assert (exchange.safeValue2 (inputDict, 'a', 'str') === 'heLlo');
     assert (exchange.safeValue2 (inputDict, 'a', 'strNumber') === '3');
-    assert (exchange.safeValue2 (inputList, 3, 0) === 'Hi');
+    assert (exchange.safeValue2 (inputList, 2, 0) === 'Hi');
 
     // safeValueN
     assert (exchange.safeValueN (inputDict, [ 'a', 'b', 'i' ]) === 1);
     assert (exchange.safeValueN (inputDict, [ 'a', 'b', 'f' ]) === 0.123);
     assert (exchange.safeValueN (inputDict, [ 'a', 'b', 'bool' ]) === true);
-    assert (equals (exchange.safeValueN (inputDict, [ 'a', 'b', 'list' ]), [ 1, 2, 3 ]));
+    assert (equals (exchange.safeValueN (inputDict, [ 'a', 'b', 'list' ]), compareList));
     dictObject = exchange.safeValueN (inputDict, [ 'a', 'b', 'dict' ]);
-    assert (equals (dictObject, { 'a': 1 }));
+    assert (equals (dictObject, compareDict));
     assert (exchange.safeValueN (inputDict, [ 'a', 'b', 'str' ]) === 'heLlo');
     assert (exchange.safeValueN (inputDict, [ 'a', 'b', 'strNumber' ]) === '3');
     assert (exchange.safeValueN (inputList, [ 3, 2, 0 ]) === 'Hi');
@@ -81,7 +87,7 @@ function testSafeMethods () {
     assert (exchange.safeString2 (inputDict, 'a', 'f') === '0.123');
     assert (exchange.safeString2 (inputDict, 'a', 'str') === 'heLlo');
     assert (exchange.safeString2 (inputDict, 'a', 'strNumber') === '3');
-    assert (exchange.safeString2 (inputList, 3, 0) === 'Hi');
+    assert (exchange.safeString2 (inputList, 2, 0) === 'Hi');
 
     // safeStringN
     assert (exchange.safeStringN (inputDict, [ 'a', 'b', 'i' ]) === '1');
@@ -102,7 +108,7 @@ function testSafeMethods () {
     assert (exchange.safeStringLower2 (inputDict, 'a', 'f') === '0.123');
     assert (exchange.safeStringLower2 (inputDict, 'a', 'str') === 'hello');
     assert (exchange.safeStringLower2 (inputDict, 'a', 'strNumber') === '3');
-    assert (exchange.safeStringLower2 (inputList, 3, 0) === 'hi');
+    assert (exchange.safeStringLower2 (inputList, 2, 0) === 'hi');
 
     // safeStringLowerN
     assert (exchange.safeStringLowerN (inputDict, [ 'a', 'b', 'i' ]) === '1');
@@ -123,7 +129,7 @@ function testSafeMethods () {
     assert (exchange.safeStringUpper2 (inputDict, 'a', 'f') === '0.123');
     assert (exchange.safeStringUpper2 (inputDict, 'a', 'str') === 'HELLO');
     assert (exchange.safeStringUpper2 (inputDict, 'a', 'strNumber') === '3');
-    assert (exchange.safeStringUpper2 (inputList, 3, 0) === 'HI');
+    assert (exchange.safeStringUpper2 (inputList, 2, 0) === 'HI');
 
     // safeStringUpperN
     assert (exchange.safeStringUpperN (inputDict, [ 'a', 'b', 'i' ]) === '1');
@@ -142,13 +148,19 @@ function testSafeMethods () {
     assert (exchange.safeInteger2 (inputDict, 'a', 'i') === 1);
     assert (exchange.safeInteger2 (inputDict, 'a', 'f') === 0);
     assert (exchange.safeInteger2 (inputDict, 'a', 'strNumber') === 3);
-    assert (exchange.safeInteger2 (inputList, 3, 1) === 2);
+    assert (exchange.safeInteger2 (inputList, 2, 1) === 2);
 
     // safeIntegerN
     assert (exchange.safeIntegerN (inputDict, [ 'a', 'b', 'i' ]) === 1);
     assert (exchange.safeIntegerN (inputDict, [ 'a', 'b', 'f' ]) === 0);
     assert (exchange.safeIntegerN (inputDict, [ 'a', 'b', 'strNumber' ]) === 3);
     assert (exchange.safeIntegerN (inputList, [ 3, 2, 1 ]) === 2);
+
+    // safeIntegerOmitZero
+    assert (exchange.safeIntegerOmitZero (inputDict, 'i') === 1);
+    assert (exchange.safeIntegerOmitZero (inputDict, 'f') === undefined);
+    assert (exchange.safeIntegerOmitZero (inputDict, 'strNumber') === 3);
+    assert (exchange.safeIntegerOmitZero (inputList, 1) === 2);
 
     // safeIntegerProduct
     assert (exchange.safeIntegerProduct (inputDict, 'i', factor) === 10);
@@ -158,13 +170,13 @@ function testSafeMethods () {
 
     // safeIntegerProduct2
     assert (exchange.safeIntegerProduct2 (inputDict, 'a', 'i', factor) === 10);
-    assert (exchange.safeIntegerProduct2 (inputDict, 'a', 'f', factor) === 0); // safeIntegerProduct uses asFloat for the sought-for value, but safeIntegerProduct2 uses asInteger
+    assert (exchange.safeIntegerProduct2 (inputDict, 'a', 'f', factor) === 0); // NB safeIntegerProduct uses asFloat for the sought-for value, but safeIntegerProduct2 uses asInteger, also problem in py
     assert (exchange.safeIntegerProduct2 (inputDict, 'a', 'strNumber', factor) === 30);
-    assert (exchange.safeIntegerProduct2 (inputList, 3, 1, factor) === 20);
+    assert (exchange.safeIntegerProduct2 (inputList, 2, 1, factor) === 20);
 
     // safeIntegerProductN
     assert (exchange.safeIntegerProductN (inputDict, [ 'a', 'b', 'i' ], factor) === 10);
-    assert (exchange.safeIntegerProductN (inputDict, [ 'a', 'b', 'f' ], factor) === 0); // safeIntegerProduct uses asFloat for the sought-for value, but safeIntegerProductN uses asInteger
+    assert (exchange.safeIntegerProductN (inputDict, [ 'a', 'b', 'f' ], factor) === 0); // NB safeIntegerProduct uses asFloat for the sought-for value, but safeIntegerProductN uses asInteger, also problem in py
     assert (exchange.safeIntegerProductN (inputDict, [ 'a', 'b', 'strNumber' ], factor) === 30);
     assert (exchange.safeIntegerProductN (inputList, [ 3, 2, 1 ], factor) === 20);
 
@@ -196,13 +208,79 @@ function testSafeMethods () {
     assert (exchange.safeFloat2 (inputDict, 'a', 'i') === 1);
     assert (exchange.safeFloat2 (inputDict, 'a', 'f') === 0.123);
     assert (exchange.safeFloat2 (inputDict, 'a', 'strNumber') === 3);
-    assert (exchange.safeFloat2 (inputList, 3, 1) === 2);
+    assert (exchange.safeFloat2 (inputList, 2, 1) === 2);
 
     // safeFloatN
     assert (exchange.safeFloatN (inputDict, [ 'a', 'b', 'i' ]) === 1);
     assert (exchange.safeFloatN (inputDict, [ 'a', 'b', 'f' ]) === 0.123);
     assert (exchange.safeFloatN (inputDict, [ 'a', 'b', 'strNumber' ]) === 3);
     assert (exchange.safeFloatN (inputList, [ 3, 2, 1 ]) === 2);
+
+    // safeNumber
+    assert (exchange.safeNumber (inputDict, 'i') === 1);
+    assert (exchange.safeNumber (inputDict, 'f') === 0.123);
+    assert (exchange.safeNumber (inputDict, 'strNumber') === 3);
+    assert (exchange.safeNumber (inputList, 1) === 2);
+
+    // safeNumber2
+    assert (exchange.safeNumber2 (inputDict, 'a', 'i') === 1);
+    assert (exchange.safeNumber2 (inputDict, 'a', 'f') === 0.123);
+    assert (exchange.safeNumber2 (inputDict, 'a', 'strNumber') === 3);
+    assert (exchange.safeNumber2 (inputList, 2, 1) === 2);
+
+    // safeNumberN
+    assert (exchange.safeNumberN (inputDict, [ 'a', 'b', 'i' ]) === 1);
+    assert (exchange.safeNumberN (inputDict, [ 'a', 'b', 'f' ]) === 0.123);
+    assert (exchange.safeNumberN (inputDict, [ 'a', 'b', 'strNumber' ]) === 3);
+    assert (exchange.safeNumberN (inputList, [ 3, 2, 1 ]) === 2);
+
+    // safeBool
+    assert (exchange.safeBool (inputDict, 'bool') === true);
+    assert (exchange.safeBool (inputList, 1) === undefined);
+
+    // safeBool2
+    assert (exchange.safeBool2 (inputDict, 'a', 'bool') === true);
+    assert (exchange.safeBool2 (inputList, 2, 1) === undefined);
+
+    // safeBoolN
+    assert (exchange.safeBoolN (inputDict, [ 'a', 'b', 'bool' ]) === true);
+    assert (exchange.safeBoolN (inputList, [ 3, 2, 1 ]) === undefined);
+
+    // safeDict
+    dictObject = exchange.safeDict (inputDict, 'dict');
+    assert (equals (dictObject, compareDict));
+    assert (equals (exchange.safeDict (inputDict, 'list'), compareList)); // NB safeDict() returns List
+    assert (exchange.safeDict (inputList, 1) === undefined);
+
+    // safeDict2
+    dictObject = exchange.safeDict2 (inputDict, 'a', 'dict');
+    assert (equals (dictObject, compareDict));
+    assert (equals (exchange.safeDict2 (inputDict, 'a', 'list'), compareList)); // NB safeDict2() returns List
+    assert (exchange.safeDict2 (inputList, 2, 1) === undefined);
+
+    // safeDictN
+    dictObject = exchange.safeDictN (inputDict, [ 'a', 'b', 'dict' ]);
+    assert (equals (dictObject, compareDict));
+    assert (equals (exchange.safeDictN (inputDict, [ 'a', 'b', 'list' ]), compareList)); // NB safeDictN() returns List
+    assert (exchange.safeDictN (inputList, [ 3, 2, 1 ]) === undefined);
+
+    // safeList
+    let listObject = exchange.safeList (inputDict, 'list');
+    assert (equals (dictObject, compareDict));
+    assert (exchange.safeList (inputDict, 'dict') === undefined);
+    assert (exchange.safeList (inputList, 1) === undefined);
+
+    // safeList2
+    listObject = exchange.safeList2 (inputDict, 'a', 'list');
+    assert (equals (dictObject, compareDict));
+    assert (exchange.safeList2 (inputDict, 'a', 'dict') === undefined);
+    assert (exchange.safeList2 (inputList, 2, 1) === undefined);
+
+    // safeListN
+    listObject = exchange.safeListN (inputDict, [ 'a', 'b', 'list' ]);
+    assert (equals (dictObject, compareDict));
+    assert (exchange.safeListN (inputDict, [ 'a', 'b', 'dict' ]) === undefined);
+    assert (exchange.safeListN (inputList, [ 3, 2, 1 ]) === undefined);
 }
 
 
