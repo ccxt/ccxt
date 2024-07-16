@@ -591,7 +591,7 @@ export default class coindcx extends Exchange {
         //      "timestamp": 1717616755
         //  }
         //
-        const timestamp = this.safeInteger (ticker, 'timestamp');
+        const timestamp = this.safeTimestamp (ticker, 'timestamp');
         const marketId = this.safeString (ticker, 'market');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
