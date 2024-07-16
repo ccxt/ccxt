@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import htxRest from '../htx.js';
-import { ExchangeError, InvalidNonce, InvalidOrderbookChecksum, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError } from '../base/errors.js';
+import { ExchangeError, InvalidNonce, OrderBookChecksumError, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Dict } from '../base/types.js';
@@ -582,7 +582,7 @@ export default class htx extends htxRest {
         if ((prevSeqNum !== undefined) && prevSeqNum > orderbook['nonce']) {
             const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
             if (checksum) {
-                throw new InvalidOrderbookChecksum (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+                throw new OrderBookChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
             }
         }
         const spotConditon = market['spot'] && (prevSeqNum === orderbook['nonce']);

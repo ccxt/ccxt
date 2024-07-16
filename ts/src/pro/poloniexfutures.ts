@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import poloniexfuturesRest from '../poloniexfutures.js';
-import { AuthenticationError, BadRequest, InvalidOrderbookChecksum } from '../base/errors.js';
+import { AuthenticationError, BadRequest, OrderBookChecksumError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -886,7 +886,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         if (nonce !== lastSequence) {
             const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
             if (checksum) {
-                throw new InvalidOrderbookChecksum (this.id + ' ' + this.orderbookChecksumMessage (''));
+                throw new OrderBookChecksumError (this.id + ' ' + this.orderbookChecksumMessage (''));
             }
         }
         const changes = this.safeList (delta, 'changes');

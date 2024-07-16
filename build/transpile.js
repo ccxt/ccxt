@@ -1068,7 +1068,7 @@ class Transpiler {
         const errorImports = []
 
         for (let error in errors) {
-            const regex = new RegExp ("[^\\w\\'\"]" + error + "[^\\w\\'\"]")
+            const regex = new RegExp ("[^\\'\"]" + error + "[^\\'\"]")
             if (bodyAsString.match (regex)) {
                 errorImports.push ('from ccxt.base.errors import ' + error)
             }
