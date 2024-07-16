@@ -3,7 +3,7 @@
 import hyperliquidRest from '../hyperliquid.js';
 import { ExchangeError } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
-import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict } from '../base/types.js';
+import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Tickers } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
@@ -19,7 +19,7 @@ export default class hyperliquid extends hyperliquidRest {
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTicker': false,
-                'watchTickers': false,
+                'watchTickers': true,
                 'watchTrades': true,
                 'watchPosition': false,
             },
@@ -125,6 +125,32 @@ export default class hyperliquid extends hyperliquidRest {
         client.resolve (orderbook, messageHash);
     }
 
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name binance#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        const messageHash = 'tickers';
+        const url = this.urls['api']['ws']['public'];
+        const request: Dict = {
+            'method': 'subscribe',
+            'subscription': {
+                'type': 'allMids',
+            },
+        };
+        const tickers = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        if (this.newUpdates) {
+            return tickers;
+        }
+        return this.tickers;
+    }
+
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
@@ -159,6 +185,105 @@ export default class hyperliquid extends hyperliquidRest {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    handleWsTickers (client: Client, message) {
+        //
+        //     {
+        //         "channel": "webData2",
+        //         "data": {
+        //             "meta": {
+        //                 "universe": [
+        //                     {
+        //                         "szDecimals": 5,
+        //                         "name": "BTC",
+        //                         "maxLeverage": 50,
+        //                         "onlyIsolated": false
+        //                     },
+        //                     ...
+        //                 ],
+        //             },
+        //             "assetCtxs": [
+        //                 {
+        //                     "funding": "0.00003005",
+        //                     "openInterest": "2311.50778",
+        //                     "prevDayPx": "63475.0",
+        //                     "dayNtlVlm": "468043329.64289033",
+        //                     "premium": "0.00094264",
+        //                     "oraclePx": "64712.0",
+        //                     "markPx": "64774.0",
+        //                     "midPx": "64773.5",
+        //                     "impactPxs": [
+        //                         "64773.0",
+        //                         "64774.0"
+        //                     ]
+        //                 },
+        //                 ...
+        //             ],
+        //             "spotAssetCtxs": [
+        //                 {
+        //                     "prevDayPx": "0.20937",
+        //                     "dayNtlVlm": "11188888.61984999",
+        //                     "markPx": "0.19722",
+        //                     "midPx": "0.197145",
+        //                     "circulatingSupply": "598760557.12072003",
+        //                     "coin": "PURR/USDC"
+        //                 },
+        //                 ...
+        //             ],
+        //         }
+        //     }
+        //
+        // spot
+        const data = this.safeDict (message, 'data', {});
+        const spotAssets = this.safeList (data, 'spotAssetCtxs', []);
+        const parsedTickers = [];
+        for (let i = 0; i < spotAssets.length; i++) {
+            const assetObject = spotAssets[i];
+            const ticker = this.parseWsTicker (assetObject, 'spot');
+            parsedTickers.push (ticker);
+        }
+        // perpetuals
+        const meta = this.safeList (data, 'meta', []);
+        const universe = this.safeList (meta, 'universe', []);
+        const assets = this.safeList (data, 'assetCtxs', []);
+        for (let i = 0; i < assets.length; i++) {
+            let assetObject = assets[i];
+            const coinObject = universe[i];
+            const symbol = coinObject['name'] + ':USDC/USDC';
+            assetObject = this.extend (assetObject, { 'coin': symbol });
+            const ticker = this.parseWsTicker (assetObject, 'swap');
+            parsedTickers.push (ticker);
+        }
+        const tickers = this.indexBy (parsedTickers, 'symbol');
+        client.resolve (tickers, 'tickers');
+    }
+
+    parseWsTicker (message, marketType) {
+        //
+        //     {
+        //         "coin": "PURR"
+        //         "openInterest": "64638.1108",
+        //         "prevDayPx": "3400.5",
+        //         "dayNtlVlm": "511297257.47936022",
+        //         "oraclePx": "3460.1",
+        //         "markPx": "3464.7",
+        //         "midPx": "3465.05",
+        //         "premium": "0.00141614", // only in swap
+        //         "funding": "0.00008727", // only in swap
+        //         "impactPxs": [ "3465.0", "3465.1" ] // only in swap
+        //     },
+        //
+        const marketId = this.safeString (message, 'coin');
+        const market = this.safeMarket (marketId, undefined, undefined, marketType);
+        const bidAsk = this.safeList (message, 'impactPxs');
+        return this.safeTicker ({
+            'symbol': market['symbol'],
+            'open': this.safeNumber (message, 'prevDayPx'),
+            'close': this.safeNumber (message, 'midPx'),
+            'bid': this.safeNumber (bidAsk, 0),
+            'ask': this.safeNumber (bidAsk, 1),
+        });
     }
 
     handleMyTrades (client: Client, message) {
@@ -538,6 +663,7 @@ export default class hyperliquid extends hyperliquidRest {
             'candle': this.handleOHLCV,
             'orderUpdates': this.handleOrder,
             'userFills': this.handleMyTrades,
+            'webData2': this.handleWsTickers,
         };
         const exacMethod = this.safeValue (methods, topic);
         if (exacMethod !== undefined) {
