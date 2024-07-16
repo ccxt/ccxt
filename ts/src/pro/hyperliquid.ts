@@ -284,6 +284,8 @@ export default class hyperliquid extends hyperliquidRest {
             'close': this.safeNumber (message, 'midPx'),
             'bid': this.safeNumber (bidAsk, 0),
             'ask': this.safeNumber (bidAsk, 1),
+            'quoteVolume': this.safeNumber (message, 'dayNtlVlm'),
+            'info': message,
         });
     }
 
