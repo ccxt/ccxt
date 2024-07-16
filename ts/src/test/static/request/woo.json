@@ -635,6 +635,34 @@
                   "12"
                 ]
             }
+        ],
+        "addMargin": [
+            {
+                "description": "Add margin with position side long",
+                "method": "addMargin",
+                "url": "https://api.staging.woo.org/v1/client/isolated_margin",
+                "input": [
+                  "XRP/USDT:USDT",
+                  0.2,
+                  {
+                    "position_side": "LONG"
+                  }
+                ],
+                "output": "action=ADD&adjust_amount=0.2&adjust_token=USDT&position_side=LONG&symbol=PERP_XRP_USDT"
+            },
+            {
+                "description": "Add margin with position side short",
+                "method": "addMargin",
+                "url": "https://api.staging.woo.org/v1/client/isolated_margin",
+                "input": [
+                    "XRP/USDT:USDT",
+                    0.2,
+                    {
+                        "position_side": "SHORT"
+                    }
+                ],
+                "output": "action=ADD&adjust_amount=0.2&adjust_token=USDT&position_side=SHORT&symbol=PERP_XRP_USDT"
+            }
         ]
     }
 }
