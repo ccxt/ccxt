@@ -351,6 +351,146 @@
                         }
                     ]
                 }
+            },
+            {
+                "description": "Swap margin mode isolated order",
+                "method": "createOrder",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.2,
+                    50,
+                    {
+                        "marginMode": "isolated"
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": "1721141381.565",
+                    "order_id": "1646195877",
+                    "order_type": "LIMIT",
+                    "order_price": "50",
+                    "order_quantity": "0.2",
+                    "order_amount": null,
+                    "client_order_id": "0"
+                },
+                "parsedResponse": {
+                    "id": "1646195877",
+                    "clientOrderId": null,
+                    "timestamp": 1721141381565,
+                    "datetime": "2024-07-16T14:49:41.565Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": null,
+                    "symbol": "LTC/USDT:USDT",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": 50,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "average": null,
+                    "amount": 0.2,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "trades": [],
+                    "fee": {
+                        "cost": null,
+                        "currency": null
+                    },
+                    "info": {
+                        "success": true,
+                        "timestamp": "1721141381.565",
+                        "order_id": "1646195877",
+                        "order_type": "LIMIT",
+                        "order_price": "50",
+                        "order_quantity": "0.2",
+                        "order_amount": null,
+                        "client_order_id": "0"
+                    },
+                    "fees": [
+                        {
+                            "cost": null,
+                            "currency": null
+                        }
+                    ]
+                }
+            },
+            {
+                "description": "Swap margin mode isolated order",
+                "method": "createOrder",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    0.2,
+                    50,
+                    {
+                        "marginMode": "cross"
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": "1721141398.972",
+                    "order_id": "1646195948",
+                    "order_type": "LIMIT",
+                    "order_price": "50",
+                    "order_quantity": "0.2",
+                    "order_amount": null,
+                    "client_order_id": "0"
+                },
+                "parsedResponse": {
+                    "id": "1646195948",
+                    "clientOrderId": null,
+                    "timestamp": 1721141398972,
+                    "datetime": "2024-07-16T14:49:58.972Z",
+                    "lastTradeTimestamp": null,
+                    "lastUpdateTimestamp": null,
+                    "status": null,
+                    "symbol": "LTC/USDT:USDT",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "reduceOnly": null,
+                    "side": null,
+                    "price": 50,
+                    "stopPrice": null,
+                    "triggerPrice": null,
+                    "takeProfitPrice": null,
+                    "stopLossPrice": null,
+                    "average": null,
+                    "amount": 0.2,
+                    "filled": null,
+                    "remaining": null,
+                    "cost": null,
+                    "trades": [],
+                    "fee": {
+                        "cost": null,
+                        "currency": null
+                    },
+                    "info": {
+                        "success": true,
+                        "timestamp": "1721141398.972",
+                        "order_id": "1646195948",
+                        "order_type": "LIMIT",
+                        "order_price": "50",
+                        "order_quantity": "0.2",
+                        "order_amount": null,
+                        "client_order_id": "0"
+                    },
+                    "fees": [
+                        {
+                            "cost": null,
+                            "currency": null
+                        }
+                    ]
+                }
             }
         ],
         "fetchPositions": [
