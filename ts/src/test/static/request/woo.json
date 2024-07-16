@@ -260,12 +260,12 @@
         ],
         "fetchPositions": [
             {
-                "description": "Fetch linear position for spot margin market",
+                "description": "Fetch linear position",
                 "method": "fetchPositions",
                 "url": "https://api.woo.org/v3/positions",
                 "input": [
                     [
-                        "LTC/USDT"
+                        "LTC/USDT:USDT"
                     ]
                 ]
             }
