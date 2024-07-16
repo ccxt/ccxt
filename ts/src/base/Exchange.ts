@@ -6726,7 +6726,7 @@ export default class Exchange {
     }
 
     safeOpenInterest (interest, market: Market = undefined): OpenInterest {
-        let symbol = this.safeString(interest, 'symbol');
+        let symbol = this.safeString (interest, 'symbol');
         if (symbol === undefined) {
             symbol = this.safeString (market, 'symbol');
         }
