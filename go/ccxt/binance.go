@@ -5,7 +5,6 @@ package ccxt
 
 type binance struct {
     Exchange
-
 }
 func  (this *binance) describe() interface{}  {
     return this.deepExtend(this.Exchange.describe(), map[string]interface{} {
@@ -13118,4 +13117,12 @@ func  (this *binance) parseConversion(conversion interface{}, optionalArgs ...in
         "price": nil,
         "fee": nil,
     }
+}
+
+
+type Binance = binance
+
+func (this *binance) Init(userConfig map[string]interface{}) {
+	this.Exchange = Exchange{}
+	this.Exchange.Init(userConfig, this.describe().(map[string]interface{}))
 }

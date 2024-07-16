@@ -1204,7 +1204,7 @@ func  (this *Exchange) setMarkets(markets interface{}, optionalArgs ...interface
     this.codes = ObjectKeys(currenciesSortedByCode)
     return this.markets
 }
-func  (this *Exchange) getDescribeForExtendedWsExchange(currentRestInstance *Exchange, parentRestInstance *Exchange, wsBaseDescribe interface{}) interface{}  {
+func  (this *Exchange) getDescribeForExtendedWsExchange(currentRestInstance Exchange, parentRestInstance Exchange, wsBaseDescribe interface{}) interface{}  {
     var extendedRestDescribe interface{} = this.deepExtend(parentRestInstance.describe(), currentRestInstance.describe())
     var superWithRestDescribe interface{} = this.deepExtend(extendedRestDescribe, wsBaseDescribe)
     return superWithRestDescribe

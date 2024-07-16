@@ -89,7 +89,8 @@ func (this *Exchange) truncate(num interface{}, precision int) float64 {
 	return result
 }
 
-func (this *Exchange) precisionFromString(str string) int {
+func (this *Exchange) precisionFromString(str2 interface{}) int {
+	str := str2.(string)
 	if strings.ContainsAny(str, "eE") {
 		numStr := regexp.MustCompile(`\d\.?\d*[eE]`).ReplaceAllString(str, "")
 		precision, _ := strconv.Atoi(numStr)

@@ -5,16 +5,23 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"regexp"
 	"strconv"
+	"strings"
 )
 
 type Exchange struct {
 	version             string
+	Version             string
 	id                  string
+	Id                  string
+	name                string
 	options             map[string]interface{}
+	Options             map[string]interface{}
 	has                 map[string]interface{}
-	api                 map[string]interface{}
-	transformedApi      map[string]interface{}
+	Has                 map[string]interface{}
+	Api                 map[string]interface{}
+	TransformedApi      map[string]interface{}
 	markets             map[string]interface{}
 	currencies          map[string]interface{}
 	requiredCredentials map[string]interface{}
@@ -23,7 +30,13 @@ type Exchange struct {
 	exceptions          map[string]interface{}
 	precision           map[string]interface{}
 	urls                interface{}
+	userAgents          map[string]interface{}
+	timeout             int64
+	rateLimit           float64
+	newUpdates          bool
+	alias               bool
 	verbose             bool
+	Verbose             bool
 	userAgent           string
 	enableRateLimit     bool
 	url                 string
@@ -111,335 +124,21 @@ var PAD_WITH_ZERO int = 1
 
 var ROUND int = 0
 
+func (this *Exchange) Init(userConfig map[string]interface{}, exchangeConfig map[string]interface{}) {
+	// this = &Exchange{}
+	// var properties = this.describe()
+	var extendedProperties = this.deepExtend(exchangeConfig, userConfig)
+
+	// this.id = SafeString(extendedProperties, "id", "").(string)
+	// this.Id = this.id
+	this.initializeProperties(extendedProperties)
+
+	// transformApiNew(this.Api)
+}
+
 func (this *Exchange) loadMarkets(params ...interface{}) {
 	// to do
 	// this.safeBool()
-}
-
-func (this *Exchange) describe() map[string]interface{} {
-	return map[string]interface{}{
-		"id":              nil,
-		"name":            nil,
-		"countries":       nil,
-		"enableRateLimit": true,
-		"rateLimit":       2000,
-		"certified":       false,
-		"pro":             false,
-		"alias":           false,
-		"dex":             false,
-		"has": map[string]interface{}{
-			"publicAPI":                              true,
-			"privateAPI":                             true,
-			"CORS":                                   nil,
-			"sandbox":                                nil,
-			"spot":                                   nil,
-			"margin":                                 nil,
-			"swap":                                   nil,
-			"future":                                 nil,
-			"option":                                 nil,
-			"addMargin":                              nil,
-			"borrowCrossMargin":                      nil,
-			"borrowIsolatedMargin":                   nil,
-			"borrowMargin":                           nil,
-			"cancelAllOrders":                        nil,
-			"cancelAllOrdersWs":                      nil,
-			"cancelOrder":                            true,
-			"cancelOrderWs":                          nil,
-			"cancelOrders":                           nil,
-			"cancelOrdersWs":                         nil,
-			"closeAllPositions":                      nil,
-			"closePosition":                          nil,
-			"createDepositAddress":                   nil,
-			"createLimitBuyOrder":                    nil,
-			"createLimitBuyOrderWs":                  nil,
-			"createLimitOrder":                       true,
-			"createLimitOrderWs":                     nil,
-			"createLimitSellOrder":                   nil,
-			"createLimitSellOrderWs":                 nil,
-			"createMarketBuyOrder":                   nil,
-			"createMarketBuyOrderWs":                 nil,
-			"createMarketBuyOrderWithCost":           nil,
-			"createMarketBuyOrderWithCostWs":         nil,
-			"createMarketOrder":                      true,
-			"createMarketOrderWs":                    true,
-			"createMarketOrderWithCost":              nil,
-			"createMarketOrderWithCostWs":            nil,
-			"createMarketSellOrder":                  nil,
-			"createMarketSellOrderWs":                nil,
-			"createMarketSellOrderWithCost":          nil,
-			"createMarketSellOrderWithCostWs":        nil,
-			"createOrder":                            true,
-			"createOrderWs":                          nil,
-			"createOrders":                           nil,
-			"createOrderWithTakeProfitAndStopLoss":   nil,
-			"createOrderWithTakeProfitAndStopLossWs": nil,
-			"createPostOnlyOrder":                    nil,
-			"createPostOnlyOrderWs":                  nil,
-			"createReduceOnlyOrder":                  nil,
-			"createReduceOnlyOrderWs":                nil,
-			"createStopLimitOrder":                   nil,
-			"createStopLimitOrderWs":                 nil,
-			"createStopLossOrder":                    nil,
-			"createStopLossOrderWs":                  nil,
-			"createStopMarketOrder":                  nil,
-			"createStopMarketOrderWs":                nil,
-			"createStopOrder":                        nil,
-			"createStopOrderWs":                      nil,
-			"createTakeProfitOrder":                  nil,
-			"createTakeProfitOrderWs":                nil,
-			"createTrailingAmountOrder":              nil,
-			"createTrailingAmountOrderWs":            nil,
-			"createTrailingPercentOrder":             nil,
-			"createTrailingPercentOrderWs":           nil,
-			"createTriggerOrder":                     nil,
-			"createTriggerOrderWs":                   nil,
-			"deposit":                                nil,
-			"editOrder":                              "emulated",
-			"editOrderWs":                            nil,
-			"fetchAccounts":                          nil,
-			"fetchBalance":                           true,
-			"fetchBalanceWs":                         nil,
-			"fetchBidsAsks":                          nil,
-			"fetchBorrowInterest":                    nil,
-			"fetchBorrowRate":                        nil,
-			"fetchBorrowRateHistories":               nil,
-			"fetchBorrowRateHistory":                 nil,
-			"fetchBorrowRates":                       nil,
-			"fetchBorrowRatesPerSymbol":              nil,
-			"fetchCanceledAndClosedOrders":           nil,
-			"fetchCanceledOrders":                    nil,
-			"fetchClosedOrder":                       nil,
-			"fetchClosedOrders":                      nil,
-			"fetchClosedOrdersWs":                    nil,
-			"fetchConvertCurrencies":                 nil,
-			"fetchConvertQuote":                      nil,
-			"fetchConvertTrade":                      nil,
-			"fetchConvertTradeHistory":               nil,
-			"fetchCrossBorrowRate":                   nil,
-			"fetchCrossBorrowRates":                  nil,
-			"fetchCurrencies":                        "emulated",
-			"fetchCurrenciesWs":                      "emulated",
-			"fetchDeposit":                           nil,
-			"fetchDepositAddress":                    nil,
-			"fetchDepositAddresses":                  nil,
-			"fetchDepositAddressesByNetwork":         nil,
-			"fetchDeposits":                          nil,
-			"fetchDepositsWithdrawals":               nil,
-			"fetchDepositsWs":                        nil,
-			"fetchDepositWithdrawFee":                nil,
-			"fetchDepositWithdrawFees":               nil,
-			"fetchFundingHistory":                    nil,
-			"fetchFundingRate":                       nil,
-			"fetchFundingRateHistory":                nil,
-			"fetchFundingRates":                      nil,
-			"fetchGreeks":                            nil,
-			"fetchIndexOHLCV":                        nil,
-			"fetchIsolatedBorrowRate":                nil,
-			"fetchIsolatedBorrowRates":               nil,
-			"fetchMarginAdjustmentHistory":           nil,
-			"fetchIsolatedPositions":                 nil,
-			"fetchL2OrderBook":                       true,
-			"fetchL3OrderBook":                       nil,
-			"fetchLastPrices":                        nil,
-			"fetchLedger":                            nil,
-			"fetchLedgerEntry":                       nil,
-			"fetchLeverage":                          nil,
-			"fetchLeverages":                         nil,
-			"fetchLeverageTiers":                     nil,
-			"fetchLiquidations":                      nil,
-			"fetchMarginMode":                        nil,
-			"fetchMarginModes":                       nil,
-			"fetchMarketLeverageTiers":               nil,
-			"fetchMarkets":                           true,
-			"fetchMarketsWs":                         nil,
-			"fetchMarkOHLCV":                         nil,
-			"fetchMyLiquidations":                    nil,
-			"fetchMySettlementHistory":               nil,
-			"fetchMyTrades":                          nil,
-			"fetchMyTradesWs":                        nil,
-			"fetchOHLCV":                             nil,
-			"fetchOHLCVWs":                           nil,
-			"fetchOpenInterest":                      nil,
-			"fetchOpenInterestHistory":               nil,
-			"fetchOpenOrder":                         nil,
-			"fetchOpenOrders":                        nil,
-			"fetchOpenOrdersWs":                      nil,
-			"fetchOption":                            nil,
-			"fetchOptionChain":                       nil,
-			"fetchOrder":                             nil,
-			"fetchOrderBook":                         true,
-			"fetchOrderBooks":                        nil,
-			"fetchOrderBookWs":                       nil,
-			"fetchOrders":                            nil,
-			"fetchOrdersByStatus":                    nil,
-			"fetchOrdersWs":                          nil,
-			"fetchOrderTrades":                       nil,
-			"fetchOrderWs":                           nil,
-			"fetchPermissions":                       nil,
-			"fetchPosition":                          nil,
-			"fetchPositionHistory":                   nil,
-			"fetchPositionsHistory":                  nil,
-			"fetchPositionWs":                        nil,
-			"fetchPositionMode":                      nil,
-			"fetchPositions":                         nil,
-			"fetchPositionsWs":                       nil,
-			"fetchPositionsForSymbol":                nil,
-			"fetchPositionsForSymbolWs":              nil,
-			"fetchPositionsRisk":                     nil,
-			"fetchPremiumIndexOHLCV":                 nil,
-			"fetchSettlementHistory":                 nil,
-			"fetchStatus":                            nil,
-			"fetchTicker":                            true,
-			"fetchTickerWs":                          nil,
-			"fetchTickers":                           nil,
-			"fetchTickersWs":                         nil,
-			"fetchTime":                              nil,
-			"fetchTrades":                            true,
-			"fetchTradesWs":                          nil,
-			"fetchTradingFee":                        nil,
-			"fetchTradingFees":                       nil,
-			"fetchTradingFeesWs":                     nil,
-			"fetchTradingLimits":                     nil,
-			"fetchTransactionFee":                    nil,
-			"fetchTransactionFees":                   nil,
-			"fetchTransactions":                      nil,
-			"fetchTransfer":                          nil,
-			"fetchTransfers":                         nil,
-			"fetchUnderlyingAssets":                  nil,
-			"fetchVolatilityHistory":                 nil,
-			"fetchWithdrawAddresses":                 nil,
-			"fetchWithdrawal":                        nil,
-			"fetchWithdrawals":                       nil,
-			"fetchWithdrawalsWs":                     nil,
-			"fetchWithdrawalWhitelist":               nil,
-			"reduceMargin":                           nil,
-			"repayCrossMargin":                       nil,
-			"repayIsolatedMargin":                    nil,
-			"setLeverage":                            nil,
-			"setMargin":                              nil,
-			"setMarginMode":                          nil,
-			"setPositionMode":                        nil,
-			"signIn":                                 nil,
-			"transfer":                               nil,
-			"watchBalance":                           nil,
-			"watchMyTrades":                          nil,
-			"watchOHLCV":                             nil,
-			"watchOHLCVForSymbols":                   nil,
-			"watchOrderBook":                         nil,
-			"watchOrderBookForSymbols":               nil,
-			"watchOrders":                            nil,
-			"watchOrdersForSymbols":                  nil,
-			"watchPosition":                          nil,
-			"watchPositions":                         nil,
-			"watchStatus":                            nil,
-			"watchTicker":                            nil,
-			"watchTickers":                           nil,
-			"watchTrades":                            nil,
-			"watchTradesForSymbols":                  nil,
-			"watchLiquidations":                      nil,
-			"watchLiquidationsForSymbols":            nil,
-			"watchMyLiquidations":                    nil,
-			"watchMyLiquidationsForSymbols":          nil,
-			"withdraw":                               nil,
-			"ws":                                     nil,
-		},
-		"urls": map[string]interface{}{
-			"logo": nil,
-			"api":  nil,
-			"www":  nil,
-			"doc":  nil,
-			"fees": nil,
-		},
-		"api": nil,
-		"requiredCredentials": map[string]interface{}{
-			"apiKey":        true,
-			"secret":        true,
-			"uid":           false,
-			"accountId":     false,
-			"login":         false,
-			"password":      false,
-			"twofa":         false,
-			"privateKey":    false,
-			"walletAddress": false,
-			"token":         false,
-		},
-		"markets":    nil,
-		"currencies": map[string]interface{}{},
-		"timeframes": nil,
-		"fees": map[string]interface{}{
-			"trading": map[string]interface{}{
-				"tierBased":  nil,
-				"percentage": nil,
-				"taker":      nil,
-				"maker":      nil,
-			},
-			"funding": map[string]interface{}{
-				"tierBased":  nil,
-				"percentage": nil,
-				"withdraw":   map[string]interface{}{},
-				"deposit":    map[string]interface{}{},
-			},
-		},
-		"status": map[string]interface{}{
-			"status":  "ok",
-			"updated": nil,
-			"eta":     nil,
-			"url":     nil,
-		},
-		"exceptions": nil,
-		"httpExceptions": map[string]interface{}{
-			"422": ExchangeError,
-			"418": DDoSProtection,
-			"429": RateLimitExceeded,
-			"404": ExchangeNotAvailable,
-			"409": ExchangeNotAvailable,
-			"410": ExchangeNotAvailable,
-			"451": ExchangeNotAvailable,
-			"500": ExchangeNotAvailable,
-			"501": ExchangeNotAvailable,
-			"502": ExchangeNotAvailable,
-			"520": ExchangeNotAvailable,
-			"521": ExchangeNotAvailable,
-			"522": ExchangeNotAvailable,
-			"525": ExchangeNotAvailable,
-			"526": ExchangeNotAvailable,
-			"400": ExchangeNotAvailable,
-			"403": ExchangeNotAvailable,
-			"405": ExchangeNotAvailable,
-			"503": ExchangeNotAvailable,
-			"530": ExchangeNotAvailable,
-			"408": RequestTimeout,
-			"504": RequestTimeout,
-			"401": AuthenticationError,
-			"407": AuthenticationError,
-			"511": AuthenticationError,
-		},
-		"commonCurrencies": map[string]interface{}{
-			"XBT":   "BTC",
-			"BCC":   "BCH",
-			"BCHSV": "BSV",
-		},
-		"precisionMode": DECIMAL_PLACES,
-		"paddingMode":   NO_PADDING,
-		"limits": map[string]interface{}{
-			"leverage": map[string]interface{}{
-				"min": nil,
-				"max": nil,
-			},
-			"amount": map[string]interface{}{
-				"min": nil,
-				"max": nil,
-			},
-			"price": map[string]interface{}{
-				"min": nil,
-				"max": nil,
-			},
-			"cost": map[string]interface{}{
-				"min": nil,
-				"max": nil,
-			},
-		},
-	} // return
 }
 
 func (this *Exchange) throttle(cost interface{}) {
@@ -643,4 +342,107 @@ func totp(secret interface{}) string {
 
 func (this *Exchange) parseJson(input interface{}) interface{} {
 	return ParseJSON(input)
+}
+
+// type Dict map[string]interface{}
+
+func (this *Exchange) transformApiNew(api Dict, paths ...string) {
+	if api == nil {
+		return
+	}
+
+	if paths == nil {
+		paths = []string{}
+	}
+
+	for key, value := range api {
+		if isHttpMethod(key) {
+			var endpoints []string
+			if dictValue, ok := value.(Dict); ok {
+				for endpoint := range dictValue {
+					endpoints = append(endpoints, endpoint)
+				}
+			} else {
+				if listValue, ok := value.([]interface{}); ok {
+					for _, item := range listValue {
+						if s, ok := item.(string); ok {
+							endpoints = append(endpoints, s)
+						}
+					}
+				}
+			}
+
+			for _, endpoint := range endpoints {
+				cost := 1.0
+				if dictValue, ok := value.(Dict); ok {
+					if config, ok := dictValue[endpoint]; ok {
+						if dictConfig, ok := config.(Dict); ok {
+							if rl, success := dictConfig["cost"]; success {
+								if rlFloat, ok := rl.(float64); ok {
+									cost = rlFloat
+								} else if rlString, ok := rl.(string); ok {
+									cost = parseCost(rlString)
+								}
+							}
+						} else if config != nil {
+							cost = parseCost(fmt.Sprintf("%v", config))
+						}
+					}
+				}
+
+				pattern := `[^a-zA-Z0-9]`
+				rgx := regexp.MustCompile(pattern)
+				result := rgx.Split(endpoint, -1)
+
+				pathParts := append(paths, key)
+				for _, part := range result {
+					if len(part) > 0 {
+						pathParts = append(pathParts, part)
+					}
+				}
+
+				for i, part := range pathParts {
+					pathParts[i] = strings.Title(strings.ToLower(part))
+				}
+				path := strings.Join(pathParts, "")
+				if len(path) > 0 {
+					path = strings.ToLower(string(path[0])) + path[1:]
+				}
+
+				apiObj := interface{}(paths)
+				if len(paths) == 1 {
+					apiObj = paths[0]
+				}
+
+				this.TransformedApi[path] = Dict{
+					"method": strings.ToUpper(key),
+					"path":   endpoint,
+					"api":    apiObj,
+					"cost":   cost,
+				}
+			}
+		} else {
+			if nestedDict, ok := value.(Dict); ok {
+				this.transformApiNew(nestedDict, append(paths, key)...)
+			}
+		}
+	}
+}
+
+func isHttpMethod(key string) bool {
+	// Add your implementation of HTTP method check
+	httpMethods := []string{"GET", "POST", "PUT", "DELETE", "PATCH"}
+	for _, method := range httpMethods {
+		if strings.EqualFold(method, key) {
+			return true
+		}
+	}
+	return false
+}
+
+func parseCost(costStr string) float64 {
+	// Add your implementation for parsing cost
+	var cost float64
+	fmt.Sscanf(costStr, "%f", &cost)
+	return cost
 }

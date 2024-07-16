@@ -158,7 +158,7 @@ func (this *Exchange) deepExtend(objs ...interface{}) map[string]interface{} {
 			for k, _ := range dictX {
 				arg1 := outObj.(map[string]interface{})[k]
 				arg2 := dictX[k]
-				if reflect.TypeOf(arg1).Kind() == reflect.Map && reflect.TypeOf(arg2).Kind() == reflect.Map {
+				if arg1 != nil && arg2 != nil && reflect.TypeOf(arg1).Kind() == reflect.Map && reflect.TypeOf(arg2).Kind() == reflect.Map {
 					outObj.(map[string]interface{})[k] = this.deepExtend(arg1, arg2)
 				} else {
 					if arg2 != nil {

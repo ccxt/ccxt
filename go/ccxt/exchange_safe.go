@@ -41,7 +41,9 @@ func SafeValueN(obj interface{}, keys []interface{}, defaultValue interface{}) i
 				}
 				keyStr := fmt.Sprintf("%v", key)
 				if value, found := dict[keyStr]; found {
-					return value
+					if value != nil {
+						return value
+					}
 				}
 			}
 		}
@@ -61,10 +63,10 @@ func SafeValueN(obj interface{}, keys []interface{}, defaultValue interface{}) i
 }
 
 // SafeStringN retrieves a string value from a nested structure
-func SafeStringN(obj interface{}, keys []interface{}, defaultValue interface{}) string {
+func SafeStringN(obj interface{}, keys []interface{}, defaultValue interface{}) interface{} {
 	value := SafeValueN(obj, keys, defaultValue)
 	if value == nil {
-		return defaultValue.(string)
+		return defaultValue
 	}
 
 	switch v := value.(type) {
@@ -73,7 +75,7 @@ func SafeStringN(obj interface{}, keys []interface{}, defaultValue interface{}) 
 	case float32, float64, int, int32, int64:
 		return fmt.Sprintf("%v", v)
 	default:
-		return defaultValue.(string)
+		return defaultValue
 	}
 }
 
@@ -139,11 +141,11 @@ func SafeValue(obj interface{}, key interface{}, defaultValue interface{}) inter
 }
 
 // SafeString retrieves a string value from a nested structure
-func SafeString(obj interface{}, key interface{}, defaultValue interface{}) string {
+func SafeString(obj interface{}, key interface{}, defaultValue interface{}) interface{} {
 	return SafeStringN(obj, []interface{}{key}, defaultValue)
 }
 
-func SafeString2(obj interface{}, key interface{}, key2 interface{}, defaultValue interface{}) string {
+func SafeString2(obj interface{}, key interface{}, key2 interface{}, defaultValue interface{}) interface{} {
 	return SafeStringN(obj, []interface{}{key, key2}, defaultValue)
 }
 
@@ -227,7 +229,7 @@ func SafeBool(obj interface{}, key interface{}, defaultValue bool) bool {
 
 // private wrappers
 
-func (this *Exchange) safeString(obj interface{}, key interface{}, defaultValue ...interface{}) string {
+func (this *Exchange) safeString(obj interface{}, key interface{}, defaultValue ...interface{}) interface{} {
 	var defVal interface{} = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
@@ -235,25 +237,25 @@ func (this *Exchange) safeString(obj interface{}, key interface{}, defaultValue 
 	return SafeString(obj, key, defVal)
 }
 
-func (this *Exchange) safeStringUpper(obj interface{}, key interface{}, defaultValue ...interface{}) string {
+func (this *Exchange) safeStringUpper(obj interface{}, key interface{}, defaultValue ...interface{}) interface{} {
 	// return strings.ToUpper(this.safeString(obj, key, defaultValue...))
 	res := this.safeString(obj, key, defaultValue...)
-	if res != "" {
-		return strings.ToUpper(res)
+	if res != nil {
+		return strings.ToUpper(res.(string))
 	}
 	return "" // check this return type
 }
 
-func (this *Exchange) safeStringLower(obj interface{}, key interface{}, defaultValue ...interface{}) string {
+func (this *Exchange) safeStringLower(obj interface{}, key interface{}, defaultValue ...interface{}) interface{} {
 	// return strings.ToUpper(this.safeString(obj, key, defaultValue...))
 	res := this.safeString(obj, key, defaultValue...)
 	if res != "" {
-		return strings.ToLower(res)
+		return strings.ToLower(res.(string))
 	}
 	return "" // check this return type
 }
 
-func (this *Exchange) safeString2(obj interface{}, key interface{}, key2 interface{}, defaultValue ...interface{}) string {
+func (this *Exchange) safeString2(obj interface{}, key interface{}, key2 interface{}, defaultValue ...interface{}) interface{} {
 	var defVal interface{} = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
@@ -261,7 +263,7 @@ func (this *Exchange) safeString2(obj interface{}, key interface{}, key2 interfa
 	return SafeString2(obj, key, key2, defVal)
 }
 
-func (this *Exchange) safeStringN(obj interface{}, keys2 interface{}, defaultValue ...interface{}) string {
+func (this *Exchange) safeStringN(obj interface{}, keys2 interface{}, defaultValue ...interface{}) interface{} {
 	keys := keys2.([]interface{})
 	var defVal interface{} = nil
 	if len(defaultValue) > 0 {
