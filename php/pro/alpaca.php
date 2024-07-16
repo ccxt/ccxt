@@ -240,16 +240,16 @@ class alpaca extends \ccxt\async\alpaca {
         $datetime = $this->safe_string($message, 't');
         $timestamp = $this->parse8601($datetime);
         $isSnapshot = $this->safe_bool($message, 'r', false);
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
-            $orderbook = $this->order_book();
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book();
         }
+        $orderbook = $this->orderbooks[$symbol];
         if ($isSnapshot) {
             $snapshot = $this->parse_order_book($message, $symbol, $timestamp, 'b', 'a', 'p', 's');
             $orderbook->reset ($snapshot);
         } else {
-            $asks = $this->safe_value($message, 'a', array());
-            $bids = $this->safe_value($message, 'b', array());
+            $asks = $this->safe_list($message, 'a', array());
+            $bids = $this->safe_list($message, 'b', array());
             $this->handle_deltas($orderbook['asks'], $asks);
             $this->handle_deltas($orderbook['bids'], $bids);
             $orderbook['timestamp'] = $timestamp;

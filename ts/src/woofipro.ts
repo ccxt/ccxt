@@ -9,7 +9,7 @@ import { ecdsa, eddsa } from './base/functions/crypto.js';
 import { ed25519 } from './static_dependencies/noble-curves/ed25519.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
-import type { Balances, Currency, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict } from './base/types.js';
+import type { Balances, Currency, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, Transaction, Leverage, Currencies, TradingFees, OrderRequest, Dict, int } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -27,6 +27,7 @@ export default class woofipro extends Exchange {
             'version': 'v1',
             'certified': true,
             'pro': true,
+            'dex': true,
             'hostname': 'dex.woo.org',
             'has': {
                 'CORS': undefined,
@@ -401,7 +402,7 @@ export default class woofipro extends Exchange {
         return this.safeInteger (response, 'timestamp');
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         //
         //   {
         //     "symbol": "PERP_BTC_USDC",
@@ -651,7 +652,7 @@ export default class woofipro extends Exchange {
         return fee;
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // public/market_trades
         //
@@ -1091,7 +1092,7 @@ export default class woofipro extends Exchange {
         return this.parseOHLCVs (rows, market, timeframe, since, limit);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // Possible input functions:
         // * createOrder
@@ -1208,7 +1209,7 @@ export default class woofipro extends Exchange {
         }, market);
     }
 
-    parseTimeInForce (timeInForce) {
+    parseTimeInForce (timeInForce: Str) {
         const timeInForces: Dict = {
             'ioc': 'IOC',
             'fok': 'FOK',
@@ -1661,7 +1662,9 @@ export default class woofipro extends Exchange {
         //     }
         // }
         //
-        return response;
+        return [ this.safeOrder ({
+            'info': response,
+        }) ];
     }
 
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
@@ -1705,7 +1708,11 @@ export default class woofipro extends Exchange {
         //     }
         // }
         //
-        return response;
+        return [
+            {
+                'info': response,
+            },
+        ];
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -2124,7 +2131,7 @@ export default class woofipro extends Exchange {
         return [ currency, this.safeList (data, 'rows', []) ];
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         const code = this.safeString (item, 'token');
         const amount = this.safeNumber (item, 'amount');
         const side = this.safeString (item, 'token_side');
@@ -2174,7 +2181,7 @@ export default class woofipro extends Exchange {
         return this.parseLedger (rows, currency, since, limit, params);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         // example in fetchLedger
         const code = this.safeString (transaction, 'token');
         let movementDirection = this.safeStringLower (transaction, 'token_side');
@@ -2209,7 +2216,7 @@ export default class woofipro extends Exchange {
         };
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             'NEW': 'pending',
             'CONFIRMING': 'pending',
@@ -2305,8 +2312,10 @@ export default class woofipro extends Exchange {
 
     signHash (hash, privateKey) {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
+        const r = signature['r'];
+        const s = signature['s'];
         const v = this.intToBase16 (this.sum (27, signature['v']));
-        return '0x' + signature['r'].padStart (64, '0') + signature['s'].padStart (64, '0') + v;
+        return '0x' + r.padStart (64, '0') + s.padStart (64, '0') + v;
     }
 
     signMessage (message, privateKey) {
@@ -2469,7 +2478,7 @@ export default class woofipro extends Exchange {
         return await this.v1PrivatePostClientLeverage (this.extend (request, params));
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         // {
         //     "IMR_withdraw_orders": 0.1,
@@ -2710,7 +2719,7 @@ export default class woofipro extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (!response) {
             return undefined; // fallback to default error handler
         }

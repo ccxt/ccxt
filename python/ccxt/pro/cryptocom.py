@@ -504,7 +504,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         await self.authenticate()
         url = self.urls['api']['ws']['private']
         id = self.nonce()
-        request = {
+        request: dict = {
             'method': 'subscribe',
             'params': {
                 'channels': ['user.position_balance'],
@@ -688,7 +688,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         """
         await self.load_markets()
         params = self.create_order_request(symbol, type, side, amount, price, params)
-        request = {
+        request: dict = {
             'method': 'private/create-order',
             'params': params,
         }
@@ -725,7 +725,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         params = self.extend({
             'order_id': id,
         }, params)
-        request = {
+        request: dict = {
             'method': 'private/cancel-order',
             'params': params,
         }
@@ -742,7 +742,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         """
         await self.load_markets()
         market = None
-        request = {
+        request: dict = {
             'method': 'private/cancel-all-orders',
             'params': self.extend({}, params),
         }
@@ -766,7 +766,7 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def watch_public(self, messageHash, params={}):
         url = self.urls['api']['ws']['public']
         id = self.nonce()
-        request = {
+        request: dict = {
             'method': 'subscribe',
             'params': {
                 'channels': [messageHash],
@@ -779,7 +779,7 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def watch_public_multiple(self, messageHashes, topics, params={}):
         url = self.urls['api']['ws']['public']
         id = self.nonce()
-        request = {
+        request: dict = {
             'method': 'subscribe',
             'params': {
                 'channels': topics,
@@ -792,7 +792,7 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def watch_private_request(self, nonce, params={}):
         await self.authenticate()
         url = self.urls['api']['ws']['private']
-        request = {
+        request: dict = {
             'id': nonce,
             'nonce': nonce,
         }
@@ -803,7 +803,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         await self.authenticate()
         url = self.urls['api']['ws']['private']
         id = self.nonce()
-        request = {
+        request: dict = {
             'method': 'subscribe',
             'params': {
                 'channels': [messageHash],
@@ -842,7 +842,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             return True
 
     def handle_subscribe(self, client: Client, message):
-        methods = {
+        methods: dict = {
             'candlestick': self.handle_ohlcv,
             'ticker': self.handle_ticker,
             'trade': self.handle_trades,
@@ -899,7 +899,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         if self.handle_error_message(client, message):
             return
         method = self.safe_string(message, 'method')
-        methods = {
+        methods: dict = {
             '': self.handle_ping,
             'public/heartbeat': self.handle_ping,
             'public/auth': self.handle_authenticate,
@@ -925,7 +925,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             nonce = str(self.nonce())
             auth = method + nonce + self.apiKey + nonce
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-            request = {
+            request: dict = {
                 'id': nonce,
                 'nonce': nonce,
                 'method': method,

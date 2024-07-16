@@ -740,7 +740,7 @@ public partial class btcalpha : Exchange
         object filled = this.safeString(order, "amount_filled");
         object amount = this.safeString(order, "amount_original");
         object status = this.parseOrderStatus(this.safeString(order, "status"));
-        object id = this.safeString2(order, "oid", "id");
+        object id = this.safeStringN(order, new List<object>() {"oid", "id", "order"});
         object trades = this.safeValue(order, "trades");
         object side = this.safeString2(order, "my_side", "type");
         return this.safeOrder(new Dictionary<string, object>() {
@@ -826,7 +826,12 @@ public partial class btcalpha : Exchange
             { "order", id },
         };
         object response = await this.privatePostOrderCancel(this.extend(request, parameters));
-        return response;
+        //
+        //    {
+        //        "order": 63568
+        //    }
+        //
+        return this.parseOrder(response);
     }
 
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)

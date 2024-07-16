@@ -3,9 +3,9 @@
 
 import Exchange from './abstract/coinmetro.js';
 import { ArgumentsRequired, BadRequest, BadSymbol, InsufficientFunds, InvalidOrder, ExchangeError, OrderNotFound, PermissionDenied, RateLimitExceeded } from './base/errors.js';
-import { DECIMAL_PLACES } from './base/functions/number.js';
+import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import { Balances, Currencies, Currency, Dict, IndexType, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import { Balances, Currencies, Currency, Dict, IndexType, int, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -207,7 +207,7 @@ export default class coinmetro extends Exchange {
                     'maker': this.parseNumber ('0'),
                 },
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             // exchange-specific options
             'options': {
                 'currenciesByIdForParseMarket': undefined,
@@ -312,7 +312,6 @@ export default class coinmetro extends Exchange {
             const deposit = this.safeValue (currency, 'canDeposit');
             const canTrade = this.safeValue (currency, 'canTrade');
             const active = canTrade ? withdraw : true;
-            const precision = this.safeInteger (currency, 'digits');
             const minAmount = this.safeNumber (currency, 'minQty');
             result[code] = this.safeCurrencyStructure ({
                 'id': id,
@@ -323,7 +322,7 @@ export default class coinmetro extends Exchange {
                 'deposit': deposit,
                 'withdraw': withdraw,
                 'fee': undefined,
-                'precision': precision,
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'digits'))),
                 'limits': {
                     'amount': { 'min': minAmount, 'max': undefined },
                     'withdraw': { 'min': undefined, 'max': undefined },
@@ -355,19 +354,14 @@ export default class coinmetro extends Exchange {
         //
         //     [
         //         {
-        //             "pair": "PERPEUR",
-        //             "precision": 5,
-        //             "margin": false
-        //         },
-        //         {
-        //             "pair": "PERPUSD",
-        //             "precision": 5,
-        //             "margin": false
-        //         },
-        //         {
         //             "pair": "YFIEUR",
         //             "precision": 5,
         //             "margin": false
+        //         },
+        //         {
+        //             "pair": "BTCEUR",
+        //             "precision": 2,
+        //             "margin": true
         //         },
         //         ...
         //     ]
@@ -375,7 +369,7 @@ export default class coinmetro extends Exchange {
         return this.parseMarkets (response);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'pair');
         const parsedMarketId = this.parseMarketId (id);
         const baseId = this.safeString (parsedMarketId, 'baseId');
@@ -414,9 +408,7 @@ export default class coinmetro extends Exchange {
             'optionType': undefined,
             'precision': {
                 'amount': basePrecisionAndLimits['precision'],
-                'price': quotePrecisionAndLimits['precision'],
-                'base': basePrecisionAndLimits['precision'],
-                'quote': quotePrecisionAndLimits['precision'],
+                'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'precision'))),
             },
             'limits': {
                 'leverage': {
@@ -472,12 +464,11 @@ export default class coinmetro extends Exchange {
     parseMarketPrecisionAndLimits (currencyId) {
         const currencies = this.safeValue (this.options, 'currenciesByIdForParseMarket', {});
         const currency = this.safeValue (currencies, currencyId, {});
-        const precision = this.safeInteger (currency, 'precision');
         const limits = this.safeValue (currency, 'limits', {});
         const amountLimits = this.safeValue (limits, 'amount', {});
         const minLimit = this.safeNumber (amountLimits, 'min');
         const result: Dict = {
-            'precision': precision,
+            'precision': this.safeNumber (currency, 'precision'),
             'minLimit': minLimit,
         };
         return result;
@@ -661,7 +652,7 @@ export default class coinmetro extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades
         //     {
@@ -1133,7 +1124,7 @@ export default class coinmetro extends Exchange {
         return this.parseLedger (ledger, currency, since, limit);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         const datetime = this.safeString (item, 'timestamp');
         const currencyId = this.safeString (item, 'currencyId');
         item = this.omit (item, 'currencyId');
@@ -1545,7 +1536,7 @@ export default class coinmetro extends Exchange {
         return this.parseOrder (response);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder market
         //     {
@@ -1920,7 +1911,7 @@ export default class coinmetro extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }

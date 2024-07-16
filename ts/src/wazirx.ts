@@ -3,7 +3,7 @@ import { ExchangeError, BadRequest, RateLimitExceeded, BadSymbol, PermissionDeni
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int } from './base/types.js';
 
 /**
  * @class wazirx
@@ -228,7 +228,7 @@ export default class wazirx extends Exchange {
         return this.parseMarkets (markets);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         const id = this.safeString (market, 'symbol');
         const baseId = this.safeString (market, 'baseAsset');
         const quoteId = this.safeString (market, 'quoteAsset');
@@ -508,7 +508,7 @@ export default class wazirx extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //     {
         //         "id":322307791,
@@ -807,7 +807,26 @@ export default class wazirx extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        return await this.privateDeleteOpenOrders (this.extend (request, params));
+        const response = await this.privateDeleteOpenOrders (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            id: "4565421197",
+        //            symbol: "adausdt",
+        //            type: "limit",
+        //            side: "buy",
+        //            status: "wait",
+        //            price: "0.41",
+        //            origQty: "11.00",
+        //            executedQty: "0.00",
+        //            avgPrice: "0.00",
+        //            createdTime: "1718089507000",
+        //            updatedTime: "1718089507000",
+        //            clientOrderId: "93d2a838-e272-405d-91e7-3a7bc6d3a003"
+        //        }
+        //    ]
+        //
+        return this.parseOrders (response);
     }
 
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -885,19 +904,23 @@ export default class wazirx extends Exchange {
         return this.parseOrder (response, market);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
-        // {
-        //     "id":1949417813,
-        //     "symbol":"ltcusdt",
-        //     "type":"limit",
-        //     "side":"sell",
-        //     "status":"done",
-        //     "price":"146.2",
-        //     "origQty":"0.05",
-        //     "executedQty":"0.05",
-        //     "createdTime":1641252564000,
-        //     "updatedTime":1641252564000
-        // },
+    parseOrder (order: Dict, market: Market = undefined): Order {
+        //
+        //    {
+        //        "id": 1949417813,
+        //        "symbol": "ltcusdt",
+        //        "type": "limit",
+        //        "side": "sell",
+        //        "status": "done",
+        //        "price": "146.2",
+        //        "origQty": "0.05",
+        //        "executedQty": "0.05",
+        //        "avgPrice":  "0.00",
+        //        "createdTime": 1641252564000,
+        //        "updatedTime": 1641252564000
+        //        "clientOrderId": "93d2a838-e272-405d-91e7-3a7bc6d3a003"
+        //    }
+        //
         const created = this.safeInteger (order, 'createdTime');
         const updated = this.safeInteger (order, 'updatedTime');
         const marketId = this.safeString (order, 'symbol');
@@ -912,7 +935,7 @@ export default class wazirx extends Exchange {
         return this.safeOrder ({
             'info': order,
             'id': id,
-            'clientOrderId': undefined,
+            'clientOrderId': this.safeString (order, 'clientOrderId'),
             'timestamp': created,
             'datetime': this.iso8601 (created),
             'lastTradeTimestamp': updated,
@@ -928,7 +951,7 @@ export default class wazirx extends Exchange {
             'remaining': undefined,
             'cost': undefined,
             'fee': undefined,
-            'average': undefined,
+            'average': this.safeString (order, 'avgPrice'),
             'trades': [],
         }, market);
     }
@@ -1185,7 +1208,7 @@ export default class wazirx extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
-    parseTransactionStatus (status) {
+    parseTransactionStatus (status: Str) {
         const statuses: Dict = {
             '0': 'ok',
             '1': 'fail',
@@ -1195,7 +1218,7 @@ export default class wazirx extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         //     {
         //         "address": "0x94df8b352de7f46f64b01d3666bf6e936e44ce60",
@@ -1272,7 +1295,7 @@ export default class wazirx extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         //
         // {"code":2098,"message":"Request out of receiving window."}
         //

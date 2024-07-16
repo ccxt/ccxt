@@ -266,7 +266,7 @@ class ImplicitAPI:
     private_mix_post_v2_mix_account_set_margin = privateMixPostV2MixAccountSetMargin = Entry('v2/mix/account/set-margin', ['private', 'mix'], 'POST', {'cost': 4})
     private_mix_post_v2_mix_account_set_margin_mode = privateMixPostV2MixAccountSetMarginMode = Entry('v2/mix/account/set-margin-mode', ['private', 'mix'], 'POST', {'cost': 4})
     private_mix_post_v2_mix_account_set_position_mode = privateMixPostV2MixAccountSetPositionMode = Entry('v2/mix/account/set-position-mode', ['private', 'mix'], 'POST', {'cost': 4})
-    private_mix_post_v2_mix_order_place_order = privateMixPostV2MixOrderPlaceOrder = Entry('v2/mix/order/place-order', ['private', 'mix'], 'POST', {'cost': 20})
+    private_mix_post_v2_mix_order_place_order = privateMixPostV2MixOrderPlaceOrder = Entry('v2/mix/order/place-order', ['private', 'mix'], 'POST', {'cost': 2})
     private_mix_post_v2_mix_order_click_backhand = privateMixPostV2MixOrderClickBackhand = Entry('v2/mix/order/click-backhand', ['private', 'mix'], 'POST', {'cost': 20})
     private_mix_post_v2_mix_order_batch_place_order = privateMixPostV2MixOrderBatchPlaceOrder = Entry('v2/mix/order/batch-place-order', ['private', 'mix'], 'POST', {'cost': 20})
     private_mix_post_v2_mix_order_modify_order = privateMixPostV2MixOrderModifyOrder = Entry('v2/mix/order/modify-order', ['private', 'mix'], 'POST', {'cost': 2})

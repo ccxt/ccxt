@@ -121,7 +121,7 @@ class coinbase(ccxt.async_support.coinbase):
         return await self.watch_multiple(url, messageHashes, subscribe, messageHashes)
 
     def create_ws_auth(self, name: str, productIds: List[str]):
-        subscribe = {}
+        subscribe: dict = {}
         timestamp = self.number_to_string(self.seconds())
         self.check_required_credentials()
         isCloudAPiKey = (self.apiKey.find('organizations/') >= 0) or (self.secret.startswith('-----BEGIN'))
@@ -233,6 +233,34 @@ class coinbase(ccxt.async_support.coinbase):
         #        ]
         #    }
         #
+        # note! seems coinbase might also send empty data like:
+        #
+        #    {
+        #        "channel": "ticker_batch",
+        #        "client_id": "",
+        #        "timestamp": "2024-05-24T18:22:24.546809523Z",
+        #        "sequence_num": 1,
+        #        "events": [
+        #            {
+        #                "type": "snapshot",
+        #                "tickers": [
+        #                    {
+        #                        "type": "ticker",
+        #                        "product_id": "",
+        #                        "price": "",
+        #                        "volume_24_h": "",
+        #                        "low_24_h": "",
+        #                        "high_24_h": "",
+        #                        "low_52_w": "",
+        #                        "high_52_w": "",
+        #                        "price_percent_chg_24_h": ""
+        #                    }
+        #                ]
+        #            }
+        #        ]
+        #    }
+        #
+        #
         channel = self.safe_string(message, 'channel')
         events = self.safe_value(message, 'events', [])
         datetime = self.safe_string(message, 'timestamp')
@@ -249,6 +277,8 @@ class coinbase(ccxt.async_support.coinbase):
                 symbol = result['symbol']
                 self.tickers[symbol] = result
                 wsMarketId = self.safe_string(ticker, 'product_id')
+                if wsMarketId is None:
+                    continue
                 messageHash = channel + '::' + wsMarketId
                 newTickers.append(result)
                 client.resolve(result, messageHash)
@@ -632,7 +662,7 @@ class coinbase(ccxt.async_support.coinbase):
 
     def handle_message(self, client, message):
         channel = self.safe_string(message, 'channel')
-        methods = {
+        methods: dict = {
             'subscriptions': self.handle_subscription_status,
             'ticker': self.handle_tickers,
             'ticker_batch': self.handle_tickers,

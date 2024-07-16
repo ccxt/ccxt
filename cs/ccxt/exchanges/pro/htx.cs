@@ -682,21 +682,20 @@ public partial class htx : ccxt.htx
         //     }
         //
         object messageHash = this.safeString(message, "ch");
-        object tick = this.safeValue(message, "tick");
+        object tick = this.safeDict(message, "tick");
         object eventVar = this.safeString(tick, "event");
-        object ch = this.safeValue(message, "ch");
+        object ch = this.safeString(message, "ch");
         object parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 1);
         object symbol = this.safeSymbol(marketId);
-        object orderbook = this.safeValue(this.orderbooks, symbol);
-        if (isTrue(isEqual(orderbook, null)))
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
             object size = this.safeString(parts, 3);
             object sizeParts = ((string)size).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             object limit = this.safeInteger(sizeParts, 1);
-            orderbook = this.orderBook(new Dictionary<string, object>() {}, limit);
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         }
+        object orderbook = getValue(this.orderbooks, symbol);
         if (isTrue(isTrue((isEqual(eventVar, null))) && isTrue((isEqual(getValue(orderbook, "nonce"), null)))))
         {
             ((IList<object>)(orderbook as ccxt.pro.OrderBook).cache).Add(message);

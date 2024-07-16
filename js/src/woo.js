@@ -1300,7 +1300,9 @@ export default class woo extends Exchange {
         //         "status":"CANCEL_ALL_SENT"
         //     }
         //
-        return response;
+        return [
+            this.safeOrder(response),
+        ];
     }
     async cancelAllOrdersAfter(timeout, params = {}) {
         /**
@@ -1327,7 +1329,9 @@ export default class woo extends Exchange {
         //         "timestamp": 1711534302943
         //     }
         //
-        return response;
+        return [
+            this.safeOrder(response),
+        ];
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**
@@ -2529,6 +2533,12 @@ export default class woo extends Exchange {
         params = this.keysort(params);
         if (access === 'public') {
             url += access + '/' + pathWithParams;
+            if (Object.keys(params).length) {
+                url += '?' + this.urlencode(params);
+            }
+        }
+        else if (access === 'pub') {
+            url += pathWithParams;
             if (Object.keys(params).length) {
                 url += '?' + this.urlencode(params);
             }

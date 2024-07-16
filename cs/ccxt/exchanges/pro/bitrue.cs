@@ -374,14 +374,13 @@ public partial class bitrue : ccxt.bitrue
         object symbol = getValue(market, "symbol");
         object timestamp = this.safeInteger(message, "ts");
         object tick = this.safeValue(message, "tick", new Dictionary<string, object>() {});
-        object orderbook = this.safeValue(this.orderbooks, symbol);
-        if (isTrue(isEqual(orderbook, null)))
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
-            orderbook = this.orderBook();
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
+        object orderbook = getValue(this.orderbooks, symbol);
         object snapshot = this.parseOrderBook(tick, symbol, timestamp, "buys", "asks");
         (orderbook as IOrderBook).reset(snapshot);
-        ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         object messageHash = add("orderbook:", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
     }

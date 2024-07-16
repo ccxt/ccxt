@@ -1375,7 +1375,7 @@ public partial class woo : Exchange
         //         "status":"CANCEL_ALL_SENT"
         //     }
         //
-        return response;
+        return new List<object> {this.safeOrder(response)};
     }
 
     public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
@@ -1405,7 +1405,7 @@ public partial class woo : Exchange
         //         "timestamp": 1711534302943
         //     }
         //
-        return response;
+        return new List<object> {this.safeOrder(response)};
     }
 
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
@@ -2705,6 +2705,13 @@ public partial class woo : Exchange
         if (isTrue(isEqual(access, "public")))
         {
             url = add(url, add(add(access, "/"), pathWithParams));
+            if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
+            {
+                url = add(url, add("?", this.urlencode(parameters)));
+            }
+        } else if (isTrue(isEqual(access, "pub")))
+        {
+            url = add(url, pathWithParams);
             if (isTrue(getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys))))
             {
                 url = add(url, add("?", this.urlencode(parameters)));

@@ -612,10 +612,10 @@ public partial class blockchaincom : Exchange
             { "orderId", id },
         };
         object response = await this.privateDeleteOrdersOrderId(this.extend(request, parameters));
-        return new Dictionary<string, object>() {
+        return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
             { "info", response },
-        };
+        });
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -624,7 +624,7 @@ public partial class blockchaincom : Exchange
         * @method
         * @name blockchaincom#cancelAllOrders
         * @description cancel all open orders
-        * @see https://api.blockchain.com/v3/#/trading/deleteAllOrders
+        * @see https://api.blockchain.com/v3/#deleteallorders
         * @param {string} symbol unified market symbol of the market to cancel orders in, all markets are used if undefined, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -640,10 +640,12 @@ public partial class blockchaincom : Exchange
             ((IDictionary<string,object>)request)["symbol"] = marketId;
         }
         object response = await this.privateDeleteOrders(this.extend(request, parameters));
-        return new Dictionary<string, object>() {
-            { "symbol", symbol },
-            { "info", response },
-        };
+        //
+        // {}
+        //
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     public async override Task<object> fetchTradingFees(object parameters = null)

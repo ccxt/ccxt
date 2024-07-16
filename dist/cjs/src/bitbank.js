@@ -685,8 +685,31 @@ class bitbank extends bitbank$1 {
             'pair': market['id'],
         };
         const response = await this.privatePostUserSpotCancelOrder(this.extend(request, params));
+        //
+        //    {
+        //        "success": 1,
+        //        "data": {
+        //            "order_id": 0,
+        //            "pair": "string",
+        //            "side": "string",
+        //            "type": "string",
+        //            "start_amount": "string",
+        //            "remaining_amount": "string",
+        //            "executed_amount": "string",
+        //            "price": "string",
+        //            "post_only": false,
+        //            "average_price": "string",
+        //            "ordered_at": 0,
+        //            "expire_at": 0,
+        //            "canceled_at": 0,
+        //            "triggered_at": 0,
+        //            "trigger_price": "string",
+        //            "status": "string"
+        //        }
+        //    }
+        //
         const data = this.safeValue(response, 'data');
-        return data;
+        return this.parseOrder(data);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**
@@ -705,6 +728,28 @@ class bitbank extends bitbank$1 {
             'pair': market['id'],
         };
         const response = await this.privateGetUserSpotOrder(this.extend(request, params));
+        //
+        //    {
+        //        "success": 1,
+        //        "data": {
+        //          "order_id": 0,
+        //          "pair": "string",
+        //          "side": "string",
+        //          "type": "string",
+        //          "start_amount": "string",
+        //          "remaining_amount": "string",
+        //          "executed_amount": "string",
+        //          "price": "string",
+        //          "post_only": false,
+        //          "average_price": "string",
+        //          "ordered_at": 0,
+        //          "expire_at": 0,
+        //          "triggered_at": 0,
+        //          "triger_price": "string",
+        //          "status": "string"
+        //        }
+        //    }
+        //
         const data = this.safeDict(response, 'data');
         return this.parseOrder(data, market);
     }

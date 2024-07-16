@@ -794,7 +794,7 @@ export default class alpaca extends Exchange {
         //       "message": "order is not found."
         //   }
         //
-        return this.safeValue(response, 'message', {});
+        return this.parseOrder(response);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**

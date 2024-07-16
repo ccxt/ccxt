@@ -62,14 +62,14 @@ class huobijp(ccxt.async_support.huobijp):
         # only supports a limit of 150 at self time
         messageHash = 'market.' + market['id'] + '.detail'
         api = self.safe_string(self.options, 'api', 'api')
-        hostname = {'hostname': self.hostname}
+        hostname: dict = {'hostname': self.hostname}
         url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
         requestId = self.request_id()
-        request = {
+        request: dict = {
             'sub': messageHash,
             'id': requestId,
         }
-        subscription = {
+        subscription: dict = {
             'id': requestId,
             'messageHash': messageHash,
             'symbol': symbol,
@@ -124,14 +124,14 @@ class huobijp(ccxt.async_support.huobijp):
         # only supports a limit of 150 at self time
         messageHash = 'market.' + market['id'] + '.trade.detail'
         api = self.safe_string(self.options, 'api', 'api')
-        hostname = {'hostname': self.hostname}
+        hostname: dict = {'hostname': self.hostname}
         url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
         requestId = self.request_id()
-        request = {
+        request: dict = {
             'sub': messageHash,
             'id': requestId,
         }
-        subscription = {
+        subscription: dict = {
             'id': requestId,
             'messageHash': messageHash,
             'symbol': symbol,
@@ -197,14 +197,14 @@ class huobijp(ccxt.async_support.huobijp):
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         messageHash = 'market.' + market['id'] + '.kline.' + interval
         api = self.safe_string(self.options, 'api', 'api')
-        hostname = {'hostname': self.hostname}
+        hostname: dict = {'hostname': self.hostname}
         url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
         requestId = self.request_id()
-        request = {
+        request: dict = {
             'sub': messageHash,
             'id': requestId,
         }
-        subscription = {
+        subscription: dict = {
             'id': requestId,
             'messageHash': messageHash,
             'symbol': symbol,
@@ -268,14 +268,14 @@ class huobijp(ccxt.async_support.huobijp):
         limit = 150 if (limit is None) else limit
         messageHash = 'market.' + market['id'] + '.mbp.' + str(limit)
         api = self.safe_string(self.options, 'api', 'api')
-        hostname = {'hostname': self.hostname}
+        hostname: dict = {'hostname': self.hostname}
         url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
         requestId = self.request_id()
-        request = {
+        request: dict = {
             'sub': messageHash,
             'id': requestId,
         }
-        subscription = {
+        subscription: dict = {
             'id': requestId,
             'messageHash': messageHash,
             'symbol': symbol,
@@ -328,16 +328,16 @@ class huobijp(ccxt.async_support.huobijp):
             limit = self.safe_integer(subscription, 'limit')
             params = self.safe_value(subscription, 'params')
             api = self.safe_string(self.options, 'api', 'api')
-            hostname = {'hostname': self.hostname}
+            hostname: dict = {'hostname': self.hostname}
             url = self.implode_params(self.urls['api']['ws'][api]['public'], hostname)
             requestId = self.request_id()
-            request = {
+            request: dict = {
                 'req': messageHash,
                 'id': requestId,
             }
             # self is a temporary subscription by a specific requestId
             # it has a very short lifetime until the snapshot is received over ws
-            snapshotSubscription = {
+            snapshotSubscription: dict = {
                 'id': requestId,
                 'messageHash': messageHash,
                 'symbol': symbol,
@@ -500,7 +500,7 @@ class huobijp(ccxt.async_support.huobijp):
         type = self.safe_string(parts, 0)
         if type == 'market':
             methodName = self.safe_string(parts, 2)
-            methods = {
+            methods: dict = {
                 'mbp': self.handle_order_book,
                 'detail': self.handle_ticker,
                 'trade': self.handle_trades,
