@@ -64,6 +64,7 @@ public partial class bingx : Exchange
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
+                { "fetchPosition", true },
                 { "fetchPositionHistory", false },
                 { "fetchPositionMode", true },
                 { "fetchPositions", true },
@@ -2006,12 +2007,13 @@ public partial class bingx : Exchange
         * @method
         * @name bingx#fetchPositions
         * @description fetch all open positions
-        * @see https://bingx-api.github.io/docs/#/swapV2/account-api.html#Perpetual%20Swap%20Positions
-        * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
+        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
+        * @see https://bingx-api.github.io/docs/#/en-us/standard/contract-interface.html#position
+        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.standard] whether to fetch standard contract positions
-        * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+        * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2026,57 +2028,115 @@ public partial class bingx : Exchange
             response = await this.contractV1PrivateGetAllPosition(parameters);
         } else
         {
-            response = await this.swapV2PrivateGetUserPositions(parameters);
+            object market = null;
+            if (isTrue(!isEqual(symbols, null)))
+            {
+                symbols = this.marketSymbols(symbols);
+                object firstSymbol = this.safeString(symbols, 0);
+                if (isTrue(!isEqual(firstSymbol, null)))
+                {
+                    market = this.market(firstSymbol);
+                }
+            }
+            object subType = null;
+            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositions", market, parameters);
+            subType = ((IList<object>)subTypeparametersVariable)[0];
+            parameters = ((IList<object>)subTypeparametersVariable)[1];
+            if (isTrue(isEqual(subType, "inverse")))
+            {
+                response = await this.cswapV1PrivateGetUserPositions(parameters);
+            } else
+            {
+                response = await this.swapV2PrivateGetUserPositions(parameters);
+            }
         }
-        //
-        //    {
-        //        "code": 0,
-        //            "msg": "",
-        //            "data": [
-        //            {
-        //                "symbol": "BTC-USDT",
-        //                "positionId": "12345678",
-        //                "positionSide": "LONG",
-        //                "isolated": true,
-        //                "positionAmt": "123.33",
-        //                "availableAmt": "128.99",
-        //                "unrealizedProfit": "1.22",
-        //                "realisedProfit": "8.1",
-        //                "initialMargin": "123.33",
-        //                "avgPrice": "2.2",
-        //                "leverage": 10,
-        //            }
-        //        ]
-        //    }
-        //
         object positions = this.safeList(response, "data", new List<object>() {});
         return this.parsePositions(positions, symbols);
+    }
+
+    public async override Task<object> fetchPosition(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bingx#fetchPosition
+        * @description fetch data on a single open contract trade position
+        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
+        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
+        * @param {string} symbol unified market symbol of the market the position is held in
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        if (!isTrue(getValue(market, "swap")))
+        {
+            throw new BadRequest ((string)add(this.id, " fetchPosition() supports swap markets only")) ;
+        }
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = null;
+        if (isTrue(getValue(market, "inverse")))
+        {
+            response = await this.cswapV1PrivateGetUserPositions(this.extend(request, parameters));
+        } else
+        {
+            response = await this.swapV2PrivateGetUserPositions(this.extend(request, parameters));
+        }
+        object data = this.safeList(response, "data", new List<object>() {});
+        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        return this.parsePosition(first, market);
     }
 
     public override object parsePosition(object position, object market = null)
     {
         //
-        //    {
-        //        "positionId":"1773122376147623936",
-        //        "symbol":"XRP-USDT",
-        //        "currency":"USDT",
-        //        "positionAmt":"3",
-        //        "availableAmt":"3",
-        //        "positionSide":"LONG",
-        //        "isolated":false,
-        //        "avgPrice":"0.6139",
-        //        "initialMargin":"0.0897",
-        //        "leverage":20,
-        //        "unrealizedProfit":"-0.0023",
-        //        "realisedProfit":"-0.0009",
-        //        "liquidationPrice":0,
-        //        "pnlRatio":"-0.0260",
-        //        "maxMarginReduction":"",
-        //        "riskRate":"",
-        //        "markPrice":"",
-        //        "positionValue":"",
-        //        "onlyOnePosition":false
-        //    }
+        // inverse swap
+        //
+        //     {
+        //         "symbol": "SOL-USD",
+        //         "positionId": "1813080351385337856",
+        //         "positionSide": "LONG",
+        //         "isolated": false,
+        //         "positionAmt": "1",
+        //         "availableAmt": "1",
+        //         "unrealizedProfit": "-0.00009074",
+        //         "initialMargin": "0.00630398",
+        //         "liquidationPrice": 23.968303426677032,
+        //         "avgPrice": "158.63",
+        //         "leverage": 10,
+        //         "markPrice": "158.402",
+        //         "riskRate": "0.00123783",
+        //         "maxMarginReduction": "0",
+        //         "updateTime": 1721107015848
+        //     }
+        //
+        // linear swap
+        //
+        //     {
+        //         "positionId": "1792480725958881280",
+        //         "symbol": "LTC-USDT",
+        //         "currency": "USDT",
+        //         "positionAmt": "0.1",
+        //         "availableAmt": "0.1",
+        //         "positionSide": "LONG",
+        //         "isolated": false,
+        //         "avgPrice": "83.53",
+        //         "initialMargin": "1.3922",
+        //         "margin": "0.3528",
+        //         "leverage": 6,
+        //         "unrealizedProfit": "-1.0393",
+        //         "realisedProfit": "-0.2119",
+        //         "liquidationPrice": 0,
+        //         "pnlRatio": "-0.7465",
+        //         "maxMarginReduction": "0.0000",
+        //         "riskRate": "0.0008",
+        //         "markPrice": "73.14",
+        //         "positionValue": "7.3136",
+        //         "onlyOnePosition": true,
+        //         "updateTime": 1721088016688
+        //     }
         //
         // standard position
         //
@@ -2113,13 +2173,13 @@ public partial class bingx : Exchange
             { "percentage", null },
             { "contracts", this.safeNumber(position, "positionAmt") },
             { "contractSize", null },
-            { "markPrice", null },
+            { "markPrice", this.safeNumber(position, "markPrice") },
             { "lastPrice", null },
             { "side", this.safeStringLower(position, "positionSide") },
             { "hedged", null },
             { "timestamp", null },
             { "datetime", null },
-            { "lastUpdateTimestamp", null },
+            { "lastUpdateTimestamp", this.safeInteger(position, "updateTime") },
             { "maintenanceMargin", null },
             { "maintenanceMarginPercentage", null },
             { "collateral", null },

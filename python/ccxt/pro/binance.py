@@ -30,7 +30,7 @@ class binance(ccxt.async_support.binance):
                 'watchBidsAsks': True,
                 'watchMyTrades': True,
                 'watchOHLCV': True,
-                'watchOHLCVForSymbols': False,
+                'watchOHLCVForSymbols': True,
                 'watchOrderBook': True,
                 'watchOrderBookForSymbols': True,
                 'watchOrders': True,
@@ -1104,37 +1104,57 @@ class binance(ccxt.async_support.binance):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
+        params['callerMethodName'] = 'watchOHLCV'
+        result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, params)
+        return result[symbol][timeframe]
+
+    async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Int = None, limit: Int = None, params={}):
+        """
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        """
         await self.load_markets()
-        market = self.market(symbol)
-        marketId = market['lowercaseId']
-        interval = self.safe_string(self.timeframes, timeframe, timeframe)
-        options = self.safe_value(self.options, 'watchOHLCV', {})
-        nameOption = self.safe_string(options, 'name', 'kline')
-        name = self.safe_string(params, 'name', nameOption)
-        if name == 'indexPriceKline':
-            marketId = marketId.replace('_perp', '')
-            # weird behavior for index price kline we can't use the perp suffix
-        params = self.omit(params, 'name')
-        messageHash = marketId + '@' + name + '_' + interval
-        type = market['type']
-        if market['contract']:
-            type = 'future' if market['linear'] else 'delivery'
-        url = self.urls['api']['ws'][type] + '/' + self.stream(type, messageHash)
+        klineType = None
+        klineType, params = self.handle_param_string_2(params, 'channel', 'name', 'kline')
+        symbols = self.get_list_from_object_values(symbolsAndTimeframes, 0)
+        marketSymbols = self.market_symbols(symbols, None, False, False, True)
+        firstMarket = self.market(marketSymbols[0])
+        type = firstMarket['type']
+        if firstMarket['contract']:
+            type = 'future' if firstMarket['linear'] else 'delivery'
+        rawHashes = []
+        messageHashes = []
+        for i in range(0, len(symbolsAndTimeframes)):
+            symAndTf = symbolsAndTimeframes[i]
+            symbolString = symAndTf[0]
+            timeframeString = symAndTf[1]
+            interval = self.safe_string(self.timeframes, timeframeString, timeframeString)
+            market = self.market(symbolString)
+            marketId = market['lowercaseId']
+            if klineType == 'indexPriceKline':
+                # weird behavior for index price kline we can't use the perp suffix
+                marketId = marketId.replace('_perp', '')
+            rawHashes.append(marketId + '@' + klineType + '_' + interval)
+            messageHashes.append('ohlcv::' + symbolString + '::' + timeframeString)
+        url = self.urls['api']['ws'][type] + '/' + self.stream(type, 'multipleOHLCV')
         requestId = self.request_id(url)
-        request: dict = {
+        request = {
             'method': 'SUBSCRIBE',
-            'params': [
-                messageHash,
-            ],
+            'params': rawHashes,
             'id': requestId,
         }
-        subscribe: dict = {
+        subscribe = {
             'id': requestId,
         }
-        ohlcv = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscribe)
+        symbol, timeframe, candles = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes, subscribe)
         if self.newUpdates:
-            limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+            limit = candles.getLimit(symbol, limit)
+        filtered = self.filter_by_since_limit(candles, since, limit, 0, True)
+        return self.create_ohlcv_object(symbol, timeframe, filtered)
 
     def handle_ohlcv(self, client: Client, message):
         #
@@ -1174,11 +1194,9 @@ class binance(ccxt.async_support.binance):
         if event == 'indexPriceKline':
             # indexPriceKline doesn't have the _PERP suffix
             marketId = self.safe_string(message, 'ps')
-        lowercaseMarketId = marketId.lower()
         interval = self.safe_string(kline, 'i')
         # use a reverse lookup in a static map instead
-        timeframe = self.find_timeframe(interval)
-        messageHash = lowercaseMarketId + '@' + event + '_' + interval
+        unifiedTimeframe = self.find_timeframe(interval)
         parsed = [
             self.safe_integer(kline, 't'),
             self.safe_float(kline, 'o'),
@@ -1190,14 +1208,16 @@ class binance(ccxt.async_support.binance):
         isSpot = ((client.url.find('/stream') > -1) or (client.url.find('/testnet.binance') > -1))
         marketType = 'spot' if (isSpot) else 'contract'
         symbol = self.safe_symbol(marketId, None, None, marketType)
+        messageHash = 'ohlcv::' + symbol + '::' + unifiedTimeframe
         self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
-        stored = self.safe_value(self.ohlcvs[symbol], timeframe)
+        stored = self.safe_value(self.ohlcvs[symbol], unifiedTimeframe)
         if stored is None:
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)
-            self.ohlcvs[symbol][timeframe] = stored
+            self.ohlcvs[symbol][unifiedTimeframe] = stored
         stored.append(parsed)
-        client.resolve(stored, messageHash)
+        resolveData = [symbol, unifiedTimeframe, stored]
+        client.resolve(resolveData, messageHash)
 
     async def fetch_ticker_ws(self, symbol: str, params={}) -> Ticker:
         """

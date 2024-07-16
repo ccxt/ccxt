@@ -86,6 +86,7 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': True,
                 'fetchPositionHistory': False,
                 'fetchPositionMode': True,
                 'fetchPositions': True,
@@ -1806,12 +1807,13 @@ class bingx(Exchange, ImplicitAPI):
     async def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
-        :see: https://bingx-api.github.io/docs/#/swapV2/account-api.html#Perpetual%20Swap%20Positions
-        :see: https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
+        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
+        :see: https://bingx-api.github.io/docs/#/en-us/standard/contract-interface.html#position
+        :see: https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.standard]: whether to fetch standard contract positions
-        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1821,54 +1823,207 @@ class bingx(Exchange, ImplicitAPI):
         if standard:
             response = await self.contractV1PrivateGetAllPosition(params)
         else:
-            response = await self.swapV2PrivateGetUserPositions(params)
-        #
-        #    {
-        #        "code": 0,
-        #            "msg": "",
-        #            "data": [
-        #            {
-        #                "symbol": "BTC-USDT",
-        #                "positionId": "12345678",
-        #                "positionSide": "LONG",
-        #                "isolated": True,
-        #                "positionAmt": "123.33",
-        #                "availableAmt": "128.99",
-        #                "unrealizedProfit": "1.22",
-        #                "realisedProfit": "8.1",
-        #                "initialMargin": "123.33",
-        #                "avgPrice": "2.2",
-        #                "leverage": 10,
-        #            }
-        #        ]
-        #    }
-        #
+            market = None
+            if symbols is not None:
+                symbols = self.market_symbols(symbols)
+                firstSymbol = self.safe_string(symbols, 0)
+                if firstSymbol is not None:
+                    market = self.market(firstSymbol)
+            subType = None
+            subType, params = self.handle_sub_type_and_params('fetchPositions', market, params)
+            if subType == 'inverse':
+                response = await self.cswapV1PrivateGetUserPositions(params)
+                #
+                #     {
+                #         "code": 0,
+                #         "msg": "",
+                #         "timestamp": 0,
+                #         "data": [
+                #             {
+                #                 "symbol": "SOL-USD",
+                #                 "positionId": "1813080351385337856",
+                #                 "positionSide": "LONG",
+                #                 "isolated": False,
+                #                 "positionAmt": "1",
+                #                 "availableAmt": "1",
+                #                 "unrealizedProfit": "-0.00009074",
+                #                 "initialMargin": "0.00630398",
+                #                 "liquidationPrice": 23.968303426677032,
+                #                 "avgPrice": "158.63",
+                #                 "leverage": 10,
+                #                 "markPrice": "158.402",
+                #                 "riskRate": "0.00123783",
+                #                 "maxMarginReduction": "0",
+                #                 "updateTime": 1721107015848
+                #             }
+                #         ]
+                #     }
+                #
+            else:
+                response = await self.swapV2PrivateGetUserPositions(params)
+                #
+                #     {
+                #         "code": 0,
+                #         "msg": "",
+                #         "data": [
+                #             {
+                #                 "positionId": "1792480725958881280",
+                #                 "symbol": "LTC-USDT",
+                #                 "currency": "USDT",
+                #                 "positionAmt": "0.1",
+                #                 "availableAmt": "0.1",
+                #                 "positionSide": "LONG",
+                #                 "isolated": False,
+                #                 "avgPrice": "83.53",
+                #                 "initialMargin": "1.3922",
+                #                 "margin": "0.3528",
+                #                 "leverage": 6,
+                #                 "unrealizedProfit": "-1.0393",
+                #                 "realisedProfit": "-0.2119",
+                #                 "liquidationPrice": 0,
+                #                 "pnlRatio": "-0.7465",
+                #                 "maxMarginReduction": "0.0000",
+                #                 "riskRate": "0.0008",
+                #                 "markPrice": "73.14",
+                #                 "positionValue": "7.3136",
+                #                 "onlyOnePosition": True,
+                #                 "updateTime": 1721088016688
+                #             }
+                #         ]
+                #     }
+                #
         positions = self.safe_list(response, 'data', [])
         return self.parse_positions(positions, symbols)
 
+    async def fetch_position(self, symbol: str, params={}):
+        """
+        fetch data on a single open contract trade position
+        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
+        :see: https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
+        :param str symbol: unified market symbol of the market the position is held in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadRequest(self.id + ' fetchPosition() supports swap markets only')
+        request: dict = {
+            'symbol': market['id'],
+        }
+        response = None
+        if market['inverse']:
+            response = await self.cswapV1PrivateGetUserPositions(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "timestamp": 0,
+            #         "data": [
+            #             {
+            #                 "symbol": "SOL-USD",
+            #                 "positionId": "1813080351385337856",
+            #                 "positionSide": "LONG",
+            #                 "isolated": False,
+            #                 "positionAmt": "1",
+            #                 "availableAmt": "1",
+            #                 "unrealizedProfit": "-0.00009074",
+            #                 "initialMargin": "0.00630398",
+            #                 "liquidationPrice": 23.968303426677032,
+            #                 "avgPrice": "158.63",
+            #                 "leverage": 10,
+            #                 "markPrice": "158.402",
+            #                 "riskRate": "0.00123783",
+            #                 "maxMarginReduction": "0",
+            #                 "updateTime": 1721107015848
+            #             }
+            #         ]
+            #     }
+            #
+        else:
+            response = await self.swapV2PrivateGetUserPositions(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "data": [
+            #             {
+            #                 "positionId": "1792480725958881280",
+            #                 "symbol": "LTC-USDT",
+            #                 "currency": "USDT",
+            #                 "positionAmt": "0.1",
+            #                 "availableAmt": "0.1",
+            #                 "positionSide": "LONG",
+            #                 "isolated": False,
+            #                 "avgPrice": "83.53",
+            #                 "initialMargin": "1.3922",
+            #                 "margin": "0.3528",
+            #                 "leverage": 6,
+            #                 "unrealizedProfit": "-1.0393",
+            #                 "realisedProfit": "-0.2119",
+            #                 "liquidationPrice": 0,
+            #                 "pnlRatio": "-0.7465",
+            #                 "maxMarginReduction": "0.0000",
+            #                 "riskRate": "0.0008",
+            #                 "markPrice": "73.14",
+            #                 "positionValue": "7.3136",
+            #                 "onlyOnePosition": True,
+            #                 "updateTime": 1721088016688
+            #             }
+            #         ]
+            #     }
+            #
+        data = self.safe_list(response, 'data', [])
+        first = self.safe_dict(data, 0, {})
+        return self.parse_position(first, market)
+
     def parse_position(self, position: dict, market: Market = None):
         #
-        #    {
-        #        "positionId":"1773122376147623936",
-        #        "symbol":"XRP-USDT",
-        #        "currency":"USDT",
-        #        "positionAmt":"3",
-        #        "availableAmt":"3",
-        #        "positionSide":"LONG",
-        #        "isolated":false,
-        #        "avgPrice":"0.6139",
-        #        "initialMargin":"0.0897",
-        #        "leverage":20,
-        #        "unrealizedProfit":"-0.0023",
-        #        "realisedProfit":"-0.0009",
-        #        "liquidationPrice":0,
-        #        "pnlRatio":"-0.0260",
-        #        "maxMarginReduction":"",
-        #        "riskRate":"",
-        #        "markPrice":"",
-        #        "positionValue":"",
-        #        "onlyOnePosition":false
-        #    }
+        # inverse swap
+        #
+        #     {
+        #         "symbol": "SOL-USD",
+        #         "positionId": "1813080351385337856",
+        #         "positionSide": "LONG",
+        #         "isolated": False,
+        #         "positionAmt": "1",
+        #         "availableAmt": "1",
+        #         "unrealizedProfit": "-0.00009074",
+        #         "initialMargin": "0.00630398",
+        #         "liquidationPrice": 23.968303426677032,
+        #         "avgPrice": "158.63",
+        #         "leverage": 10,
+        #         "markPrice": "158.402",
+        #         "riskRate": "0.00123783",
+        #         "maxMarginReduction": "0",
+        #         "updateTime": 1721107015848
+        #     }
+        #
+        # linear swap
+        #
+        #     {
+        #         "positionId": "1792480725958881280",
+        #         "symbol": "LTC-USDT",
+        #         "currency": "USDT",
+        #         "positionAmt": "0.1",
+        #         "availableAmt": "0.1",
+        #         "positionSide": "LONG",
+        #         "isolated": False,
+        #         "avgPrice": "83.53",
+        #         "initialMargin": "1.3922",
+        #         "margin": "0.3528",
+        #         "leverage": 6,
+        #         "unrealizedProfit": "-1.0393",
+        #         "realisedProfit": "-0.2119",
+        #         "liquidationPrice": 0,
+        #         "pnlRatio": "-0.7465",
+        #         "maxMarginReduction": "0.0000",
+        #         "riskRate": "0.0008",
+        #         "markPrice": "73.14",
+        #         "positionValue": "7.3136",
+        #         "onlyOnePosition": True,
+        #         "updateTime": 1721088016688
+        #     }
         #
         # standard position
         #
@@ -1903,13 +2058,13 @@ class bingx(Exchange, ImplicitAPI):
             'percentage': None,
             'contracts': self.safe_number(position, 'positionAmt'),
             'contractSize': None,
-            'markPrice': None,
+            'markPrice': self.safe_number(position, 'markPrice'),
             'lastPrice': None,
             'side': self.safe_string_lower(position, 'positionSide'),
             'hedged': None,
             'timestamp': None,
             'datetime': None,
-            'lastUpdateTimestamp': None,
+            'lastUpdateTimestamp': self.safe_integer(position, 'updateTime'),
             'maintenanceMargin': None,
             'maintenanceMarginPercentage': None,
             'collateral': None,

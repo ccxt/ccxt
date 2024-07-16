@@ -345,8 +345,9 @@ public partial class bingx
     /// fetch all open positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/swapV2/account-api.html#Perpetual%20Swap%20Positions"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/standard/contract-interface.html#position"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -362,11 +363,32 @@ public partial class bingx
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    /// <returns> <term>object[]</term> a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
     public async Task<List<Position>> FetchPositions(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchPositions(symbols, parameters);
         return ((IList<object>)res).Select(item => new Position(item)).ToList<Position>();
+    }
+    /// <summary>
+    /// fetch data on a single open contract trade position
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
+    public async Task<Position> FetchPosition(string symbol, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchPosition(symbol, parameters);
+        return new Position(res);
     }
     /// <summary>
     /// create a market order by providing the symbol, side and cost

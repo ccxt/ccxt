@@ -68,6 +68,7 @@ class bingx extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPosition' => true,
                 'fetchPositionHistory' => false,
                 'fetchPositionMode' => true,
                 'fetchPositions' => true,
@@ -1868,12 +1869,13 @@ class bingx extends Exchange {
     public function fetch_positions(?array $symbols = null, $params = array ()) {
         /**
          * fetch all open $positions
-         * @see https://bingx-api.github.io/docs/#/swapV2/account-api.html#Perpetual%20Swap%20Positions
-         * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
-         * @param {string[]|null} $symbols list of unified market $symbols
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
+         * @see https://bingx-api.github.io/docs/#/en-us/standard/contract-interface.html#position
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
+         * @param {string[]|null} $symbols list of unified $market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->standard] whether to fetch $standard contract $positions
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
@@ -1883,56 +1885,215 @@ class bingx extends Exchange {
         if ($standard) {
             $response = $this->contractV1PrivateGetAllPosition ($params);
         } else {
-            $response = $this->swapV2PrivateGetUserPositions ($params);
+            $market = null;
+            if ($symbols !== null) {
+                $symbols = $this->market_symbols($symbols);
+                $firstSymbol = $this->safe_string($symbols, 0);
+                if ($firstSymbol !== null) {
+                    $market = $this->market($firstSymbol);
+                }
+            }
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', $market, $params);
+            if ($subType === 'inverse') {
+                $response = $this->cswapV1PrivateGetUserPositions ($params);
+                //
+                //     {
+                //         "code" => 0,
+                //         "msg" => "",
+                //         "timestamp" => 0,
+                //         "data" => array(
+                //             {
+                //                 "symbol" => "SOL-USD",
+                //                 "positionId" => "1813080351385337856",
+                //                 "positionSide" => "LONG",
+                //                 "isolated" => false,
+                //                 "positionAmt" => "1",
+                //                 "availableAmt" => "1",
+                //                 "unrealizedProfit" => "-0.00009074",
+                //                 "initialMargin" => "0.00630398",
+                //                 "liquidationPrice" => 23.968303426677032,
+                //                 "avgPrice" => "158.63",
+                //                 "leverage" => 10,
+                //                 "markPrice" => "158.402",
+                //                 "riskRate" => "0.00123783",
+                //                 "maxMarginReduction" => "0",
+                //                 "updateTime" => 1721107015848
+                //             }
+                //         )
+                //     }
+                //
+            } else {
+                $response = $this->swapV2PrivateGetUserPositions ($params);
+                //
+                //     {
+                //         "code" => 0,
+                //         "msg" => "",
+                //         "data" => array(
+                //             {
+                //                 "positionId" => "1792480725958881280",
+                //                 "symbol" => "LTC-USDT",
+                //                 "currency" => "USDT",
+                //                 "positionAmt" => "0.1",
+                //                 "availableAmt" => "0.1",
+                //                 "positionSide" => "LONG",
+                //                 "isolated" => false,
+                //                 "avgPrice" => "83.53",
+                //                 "initialMargin" => "1.3922",
+                //                 "margin" => "0.3528",
+                //                 "leverage" => 6,
+                //                 "unrealizedProfit" => "-1.0393",
+                //                 "realisedProfit" => "-0.2119",
+                //                 "liquidationPrice" => 0,
+                //                 "pnlRatio" => "-0.7465",
+                //                 "maxMarginReduction" => "0.0000",
+                //                 "riskRate" => "0.0008",
+                //                 "markPrice" => "73.14",
+                //                 "positionValue" => "7.3136",
+                //                 "onlyOnePosition" => true,
+                //                 "updateTime" => 1721088016688
+                //             }
+                //         )
+                //     }
+                //
+            }
         }
-        //
-        //    {
-        //        "code" => 0,
-        //            "msg" => "",
-        //            "data" => array(
-        //            {
-        //                "symbol" => "BTC-USDT",
-        //                "positionId" => "12345678",
-        //                "positionSide" => "LONG",
-        //                "isolated" => true,
-        //                "positionAmt" => "123.33",
-        //                "availableAmt" => "128.99",
-        //                "unrealizedProfit" => "1.22",
-        //                "realisedProfit" => "8.1",
-        //                "initialMargin" => "123.33",
-        //                "avgPrice" => "2.2",
-        //                "leverage" => 10,
-        //            }
-        //        )
-        //    }
-        //
         $positions = $this->safe_list($response, 'data', array());
         return $this->parse_positions($positions, $symbols);
     }
 
+    public function fetch_position(string $symbol, $params = array ()) {
+        /**
+         * fetch $data on a single open contract trade position
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
+         * @param {string} $symbol unified $market $symbol of the $market the position is held in
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new BadRequest($this->id . ' fetchPosition() supports swap markets only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = null;
+        if ($market['inverse']) {
+            $response = $this->cswapV1PrivateGetUserPositions ($this->extend($request, $params));
+            //
+            //     {
+            //         "code" => 0,
+            //         "msg" => "",
+            //         "timestamp" => 0,
+            //         "data" => array(
+            //             {
+            //                 "symbol" => "SOL-USD",
+            //                 "positionId" => "1813080351385337856",
+            //                 "positionSide" => "LONG",
+            //                 "isolated" => false,
+            //                 "positionAmt" => "1",
+            //                 "availableAmt" => "1",
+            //                 "unrealizedProfit" => "-0.00009074",
+            //                 "initialMargin" => "0.00630398",
+            //                 "liquidationPrice" => 23.968303426677032,
+            //                 "avgPrice" => "158.63",
+            //                 "leverage" => 10,
+            //                 "markPrice" => "158.402",
+            //                 "riskRate" => "0.00123783",
+            //                 "maxMarginReduction" => "0",
+            //                 "updateTime" => 1721107015848
+            //             }
+            //         )
+            //     }
+            //
+        } else {
+            $response = $this->swapV2PrivateGetUserPositions ($this->extend($request, $params));
+            //
+            //     {
+            //         "code" => 0,
+            //         "msg" => "",
+            //         "data" => array(
+            //             {
+            //                 "positionId" => "1792480725958881280",
+            //                 "symbol" => "LTC-USDT",
+            //                 "currency" => "USDT",
+            //                 "positionAmt" => "0.1",
+            //                 "availableAmt" => "0.1",
+            //                 "positionSide" => "LONG",
+            //                 "isolated" => false,
+            //                 "avgPrice" => "83.53",
+            //                 "initialMargin" => "1.3922",
+            //                 "margin" => "0.3528",
+            //                 "leverage" => 6,
+            //                 "unrealizedProfit" => "-1.0393",
+            //                 "realisedProfit" => "-0.2119",
+            //                 "liquidationPrice" => 0,
+            //                 "pnlRatio" => "-0.7465",
+            //                 "maxMarginReduction" => "0.0000",
+            //                 "riskRate" => "0.0008",
+            //                 "markPrice" => "73.14",
+            //                 "positionValue" => "7.3136",
+            //                 "onlyOnePosition" => true,
+            //                 "updateTime" => 1721088016688
+            //             }
+            //         )
+            //     }
+            //
+        }
+        $data = $this->safe_list($response, 'data', array());
+        $first = $this->safe_dict($data, 0, array());
+        return $this->parse_position($first, $market);
+    }
+
     public function parse_position(array $position, ?array $market = null) {
         //
-        //    {
-        //        "positionId":"1773122376147623936",
-        //        "symbol":"XRP-USDT",
-        //        "currency":"USDT",
-        //        "positionAmt":"3",
-        //        "availableAmt":"3",
-        //        "positionSide":"LONG",
-        //        "isolated":false,
-        //        "avgPrice":"0.6139",
-        //        "initialMargin":"0.0897",
-        //        "leverage":20,
-        //        "unrealizedProfit":"-0.0023",
-        //        "realisedProfit":"-0.0009",
-        //        "liquidationPrice":0,
-        //        "pnlRatio":"-0.0260",
-        //        "maxMarginReduction":"",
-        //        "riskRate":"",
-        //        "markPrice":"",
-        //        "positionValue":"",
-        //        "onlyOnePosition":false
-        //    }
+        // inverse swap
+        //
+        //     {
+        //         "symbol" => "SOL-USD",
+        //         "positionId" => "1813080351385337856",
+        //         "positionSide" => "LONG",
+        //         "isolated" => false,
+        //         "positionAmt" => "1",
+        //         "availableAmt" => "1",
+        //         "unrealizedProfit" => "-0.00009074",
+        //         "initialMargin" => "0.00630398",
+        //         "liquidationPrice" => 23.968303426677032,
+        //         "avgPrice" => "158.63",
+        //         "leverage" => 10,
+        //         "markPrice" => "158.402",
+        //         "riskRate" => "0.00123783",
+        //         "maxMarginReduction" => "0",
+        //         "updateTime" => 1721107015848
+        //     }
+        //
+        // linear swap
+        //
+        //     {
+        //         "positionId" => "1792480725958881280",
+        //         "symbol" => "LTC-USDT",
+        //         "currency" => "USDT",
+        //         "positionAmt" => "0.1",
+        //         "availableAmt" => "0.1",
+        //         "positionSide" => "LONG",
+        //         "isolated" => false,
+        //         "avgPrice" => "83.53",
+        //         "initialMargin" => "1.3922",
+        //         "margin" => "0.3528",
+        //         "leverage" => 6,
+        //         "unrealizedProfit" => "-1.0393",
+        //         "realisedProfit" => "-0.2119",
+        //         "liquidationPrice" => 0,
+        //         "pnlRatio" => "-0.7465",
+        //         "maxMarginReduction" => "0.0000",
+        //         "riskRate" => "0.0008",
+        //         "markPrice" => "73.14",
+        //         "positionValue" => "7.3136",
+        //         "onlyOnePosition" => true,
+        //         "updateTime" => 1721088016688
+        //     }
         //
         // standard $position
         //
@@ -1968,13 +2129,13 @@ class bingx extends Exchange {
             'percentage' => null,
             'contracts' => $this->safe_number($position, 'positionAmt'),
             'contractSize' => null,
-            'markPrice' => null,
+            'markPrice' => $this->safe_number($position, 'markPrice'),
             'lastPrice' => null,
             'side' => $this->safe_string_lower($position, 'positionSide'),
             'hedged' => null,
             'timestamp' => null,
             'datetime' => null,
-            'lastUpdateTimestamp' => null,
+            'lastUpdateTimestamp' => $this->safe_integer($position, 'updateTime'),
             'maintenanceMargin' => null,
             'maintenanceMarginPercentage' => null,
             'collateral' => null,

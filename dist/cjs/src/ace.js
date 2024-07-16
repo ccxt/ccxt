@@ -1021,7 +1021,13 @@ class ace extends ace$1 {
             }, params);
             const sortedData = this.keysort(data);
             const values = Object.values(sortedData);
-            auth += values.join('');
+            const stringifiedValues = [];
+            for (let i = 0; i < values.length; i++) {
+                const value = values[i];
+                const strValue = value.toString();
+                stringifiedValues.push(strValue);
+            }
+            auth += stringifiedValues.join('');
             const signature = this.hash(this.encode(auth), sha256.sha256, 'hex');
             data['signKey'] = signature;
             headers = {
