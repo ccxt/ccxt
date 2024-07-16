@@ -141,7 +141,7 @@ export default class hyperliquid extends hyperliquidRest {
         const request: Dict = {
             'method': 'subscribe',
             'subscription': {
-                'type': 'allMids',
+                'type': 'webData2', // allMids
             },
         };
         const tickers = await this.watch (url, messageHash, this.extend (request, params), messageHash);
