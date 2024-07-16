@@ -1103,6 +1103,46 @@
                   ]
                 }
             }
+        ],
+        "addMargin": [
+            {
+                "description": "Add margin with position side long",
+                "method": "addMargin",
+                "input": [
+                    "XRP/USDT:USDT",
+                    0.2,
+                    {
+                      "position_side": "LONG"
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": "1721138361297"
+                },
+                "parsedResponse": {
+                    "success": true,
+                    "timestamp": "1721138361297"
+                }
+            },
+            {
+                "description": "Add margin with position side short",
+                "method": "addMargin",
+                "input": [
+                    "XRP/USDT:USDT",
+                    0.2,
+                    {
+                      "position_side": "SHORT"
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": "1721138455234"
+                },
+                "parsedResponse": {
+                    "success": true,
+                    "timestamp": "1721138455234"
+                }
+            }
         ]
     }
 }
