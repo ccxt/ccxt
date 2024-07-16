@@ -75,6 +75,7 @@ export default class bingx extends Exchange {
                 'fetchOrders': true,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': true,
+                'fetchPosition': true,
                 'fetchPositions': true,
                 'fetchPositionsHistory': false,
                 'fetchTicker': true,
@@ -1984,6 +1985,93 @@ export default class bingx extends Exchange {
         }
         const positions = this.safeList (response, 'data', []);
         return this.parsePositions (positions, symbols);
+    }
+
+    async fetchPosition (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name bingx#fetchPosition
+         * @description fetch data on a single open contract trade position
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
+         * @param {string} symbol unified market symbol of the market the position is held in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadRequest (this.id + ' fetchPosition() supports swap markets only');
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        let response = undefined;
+        if (market['inverse']) {
+            response = await this.cswapV1PrivateGetUserPositions (this.extend (request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "",
+            //         "timestamp": 0,
+            //         "data": [
+            //             {
+            //                 "symbol": "SOL-USD",
+            //                 "positionId": "1813080351385337856",
+            //                 "positionSide": "LONG",
+            //                 "isolated": false,
+            //                 "positionAmt": "1",
+            //                 "availableAmt": "1",
+            //                 "unrealizedProfit": "-0.00009074",
+            //                 "initialMargin": "0.00630398",
+            //                 "liquidationPrice": 23.968303426677032,
+            //                 "avgPrice": "158.63",
+            //                 "leverage": 10,
+            //                 "markPrice": "158.402",
+            //                 "riskRate": "0.00123783",
+            //                 "maxMarginReduction": "0",
+            //                 "updateTime": 1721107015848
+            //             }
+            //         ]
+            //     }
+            //
+        } else {
+            response = await this.swapV2PrivateGetUserPositions (this.extend (request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "",
+            //         "data": [
+            //             {
+            //                 "positionId": "1792480725958881280",
+            //                 "symbol": "LTC-USDT",
+            //                 "currency": "USDT",
+            //                 "positionAmt": "0.1",
+            //                 "availableAmt": "0.1",
+            //                 "positionSide": "LONG",
+            //                 "isolated": false,
+            //                 "avgPrice": "83.53",
+            //                 "initialMargin": "1.3922",
+            //                 "margin": "0.3528",
+            //                 "leverage": 6,
+            //                 "unrealizedProfit": "-1.0393",
+            //                 "realisedProfit": "-0.2119",
+            //                 "liquidationPrice": 0,
+            //                 "pnlRatio": "-0.7465",
+            //                 "maxMarginReduction": "0.0000",
+            //                 "riskRate": "0.0008",
+            //                 "markPrice": "73.14",
+            //                 "positionValue": "7.3136",
+            //                 "onlyOnePosition": true,
+            //                 "updateTime": 1721088016688
+            //             }
+            //         ]
+            //     }
+            //
+        }
+        const data = this.safeList (response, 'data', []);
+        const first = this.safeDict (data, 0, {});
+        return this.parsePosition (first, market);
     }
 
     parsePosition (position: Dict, market: Market = undefined) {
