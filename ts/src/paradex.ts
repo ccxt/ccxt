@@ -939,6 +939,7 @@ export default class paradex extends Exchange {
     }
 
     async retrieveAccount () {
+        this.checkRequiredCredentials ();
         const cachedAccount: Dict = this.safeDict (this.options, 'paradexAccount');
         if (cachedAccount !== undefined) {
             return cachedAccount;

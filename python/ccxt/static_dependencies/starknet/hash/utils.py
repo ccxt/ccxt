@@ -1,7 +1,7 @@
 import functools
 from typing import List, Optional, Sequence
 
-from Crypto.Hash import keccak
+from ... import keccak
 
 from ..common import int_from_bytes
 from ..constants import EC_ORDER
@@ -23,15 +23,7 @@ def _starknet_keccak(data: bytes) -> int:
     """
     A variant of eth-keccak that computes a value that fits in a Starknet field element.
     """
-    k = keccak.new(digest_bits=256)
-    k.update(data)
-    return int_from_bytes(k.digest()) & MASK_250
-
-
-def keccak256(data: bytes) -> int:
-    k = keccak.new(digest_bits=256)
-    k.update(data)
-    return int_from_bytes(k.digest())
+    return int_from_bytes(keccak.SHA3(data)) & MASK_250
 
 
 # def pedersen_hash(left: int, right: int) -> int:
