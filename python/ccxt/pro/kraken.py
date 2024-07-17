@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Balances, Int, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -30,7 +30,7 @@ class kraken(ccxt.async_support.kraken):
         return self.deep_extend(super(kraken, self).describe(), {
             'has': {
                 'ws': True,
-                'watchBalance': False,  # no such type of subscription 2021-01-05
+                'watchBalance': True,
                 'watchMyTrades': True,
                 'watchOHLCV': True,
                 'watchOrderBook': True,
@@ -53,6 +53,7 @@ class kraken(ccxt.async_support.kraken):
                     'ws': {
                         'public': 'wss://ws.kraken.com',
                         'private': 'wss://ws-auth.kraken.com',
+                        'privateV2': 'wss://ws-auth.kraken.com/v2',
                         'beta': 'wss://beta-ws.kraken.com',
                         'beta-private': 'wss://beta-ws-auth.kraken.com',
                     },
@@ -835,7 +836,7 @@ class kraken(ccxt.async_support.kraken):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         return await self.watch_private('ownTrades', symbol, since, limit, params)
 
@@ -1247,6 +1248,68 @@ class kraken(ccxt.async_support.kraken):
         url = self.urls['api']['ws']['public']
         return await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), messageHashes, subscriptionArgs)
 
+    async def watch_balance(self, params={}) -> Balances:
+        """
+        watch balance and get the amount of funds available for trading or funds locked in orders
+        :see: https://docs.kraken.com/api/docs/websocket-v2/balances
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
+        """
+        await self.load_markets()
+        token = await self.authenticate()
+        messageHash = 'balances'
+        url = self.urls['api']['ws']['privateV2']
+        requestId = self.request_id()
+        subscribe: dict = {
+            'method': 'subscribe',
+            'req_id': requestId,
+            'params': {
+                'channel': 'balances',
+                'token': token,
+            },
+        }
+        request = self.deep_extend(subscribe, params)
+        return await self.watch(url, messageHash, request, messageHash)
+
+    def handle_balance(self, client: Client, message):
+        #
+        #     {
+        #         "channel": "balances",
+        #         "data": [
+        #             {
+        #                 "asset": "BTC",
+        #                 "asset_class": "currency",
+        #                 "balance": 1.2,
+        #                 "wallets": [
+        #                     {
+        #                         "type": "spot",
+        #                         "id": "main",
+        #                         "balance": 1.2
+        #                     }
+        #                 ]
+        #             }
+        #         ],
+        #         "type": "snapshot",
+        #         "sequence": 1
+        #     }
+        #
+        data = self.safe_list(message, 'data', [])
+        result: dict = {'info': message}
+        for i in range(0, len(data)):
+            currencyId = self.safe_string(data[i], 'asset')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            eq = self.safe_string(data[i], 'balance')
+            account['total'] = eq
+            result[code] = account
+        type = 'spot'
+        balance = self.safe_balance(result)
+        oldBalance = self.safe_value(self.balance, type, {})
+        newBalance = self.deep_extend(oldBalance, balance)
+        self.balance[type] = self.safe_balance(newBalance)
+        channel = self.safe_string(message, 'channel')
+        client.resolve(self.balance[type], channel)
+
     def get_message_hash(self, unifiedElementName: str, subChannelName: Str = None, symbol: Str = None):
         # unifiedElementName can be : orderbook, trade, ticker, bidask ...
         # subChannelName only applies to channel that needs specific variation(i.e. depth_50, depth_100..) to be selected
@@ -1340,6 +1403,14 @@ class kraken(ccxt.async_support.kraken):
             if method is not None:
                 method(client, message, subscription)
         else:
+            channel = self.safe_string(message, 'channel')
+            if channel is not None:
+                methods: dict = {
+                    'balances': self.handle_balance,
+                }
+                method = self.safe_value(methods, channel)
+                if method is not None:
+                    method(client, message)
             if self.handle_error_message(client, message):
                 event = self.safe_string(message, 'event')
                 methods: dict = {

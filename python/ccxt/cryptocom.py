@@ -176,6 +176,9 @@ class cryptocom(Exchange, ImplicitAPI):
                             'public/get-expired-settlement-price': 10 / 3,
                             'public/get-insurance': 1,
                         },
+                        'post': {
+                            'public/staking/get-conversion-rate': 2,
+                        },
                     },
                     'private': {
                         'post': {
@@ -205,6 +208,16 @@ class cryptocom(Exchange, ImplicitAPI):
                             'private/get-accounts': 10 / 3,
                             'private/get-withdrawal-history': 10 / 3,
                             'private/get-deposit-history': 10 / 3,
+                            'private/staking/stake': 2,
+                            'private/staking/unstake': 2,
+                            'private/staking/get-staking-position': 2,
+                            'private/staking/get-staking-instruments': 2,
+                            'private/staking/get-open-stake': 2,
+                            'private/staking/get-stake-history': 2,
+                            'private/staking/get-reward-history': 2,
+                            'private/staking/convert': 2,
+                            'private/staking/get-open-convert': 2,
+                            'private/staking/get-convert-history': 2,
                         },
                     },
                 },
@@ -798,13 +811,19 @@ class cryptocom(Exchange, ImplicitAPI):
             'instrument_name': market['id'],
             'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        if since is not None:
-            request['start_ts'] = since
         if limit is not None:
             request['count'] = limit
-        until = self.safe_integer(params, 'until')
+        now = self.microseconds()
+        duration = self.parse_timeframe(timeframe)
+        until = self.safe_integer(params, 'until', now)
         params = self.omit(params, ['until'])
-        if until is not None:
+        if since is not None:
+            request['start_ts'] = since
+            if limit is not None:
+                request['end_ts'] = self.sum(since, duration * (limit + 1) * 1000) - 1
+            else:
+                request['end_ts'] = until
+        else:
             request['end_ts'] = until
         response = self.v1PublicGetPublicGetCandlestick(self.extend(request, params))
         #

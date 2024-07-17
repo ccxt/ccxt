@@ -836,7 +836,7 @@ class xt(Exchange, ImplicitAPI):
                 'name': self.safe_string(entry, 'fullName'),
                 'active': active,
                 'fee': self.parse_number(minWithdrawFeeString),
-                'precision': None,
+                'precision': minPrecision,
                 'deposit': deposit,
                 'withdraw': withdraw,
                 'networks': networks,
@@ -4490,7 +4490,7 @@ class xt(Exchange, ImplicitAPI):
                 if isUndefinedBody:
                     if urlencoded:
                         url += '?' + urlencoded
-                        payloadString += '#' + method + '#' + payload + '#' + urlencoded
+                        payloadString += '#' + method + '#' + payload + '#' + self.rawencode(self.keysort(query))
                     else:
                         payloadString += '#' + method + '#' + payload
                 else:

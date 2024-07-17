@@ -43,11 +43,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.3.59';
+$version = '4.3.62';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.3.59';
+    const VERSION = '4.3.62';
 
     public $browser;
     public $marketsLoading = null;
@@ -5316,8 +5316,12 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function safe_open_interest($interest, ?array $market = null) {
+        $symbol = $this->safe_string($interest, 'symbol');
+        if ($symbol === null) {
+            $symbol = $this->safe_string($market, 'symbol');
+        }
         return $this->extend($interest, array(
-            'symbol' => $this->safe_string($market, 'symbol'),
+            'symbol' => $symbol,
             'baseVolume' => $this->safe_number($interest, 'baseVolume'), // deprecated
             'quoteVolume' => $this->safe_number($interest, 'quoteVolume'), // deprecated
             'openInterestAmount' => $this->safe_number($interest, 'openInterestAmount'),

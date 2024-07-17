@@ -400,7 +400,16 @@ class vertex(Exchange, ImplicitAPI):
                 'withdraw': self.safe_bool(data, 'can_withdraw'),
                 'networks': None,
                 'fee': None,
-                'limits': None,
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
             }
         return result
 

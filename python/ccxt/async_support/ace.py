@@ -981,7 +981,12 @@ class ace(Exchange, ImplicitAPI):
             }, params)
             sortedData = self.keysort(data)
             values = list(sortedData.values())
-            auth += ''.join(values)
+            stringifiedValues = []
+            for i in range(0, len(values)):
+                value = values[i]
+                strValue = str(value)
+                stringifiedValues.append(strValue)
+            auth += ''.join(stringifiedValues)
             signature = self.hash(self.encode(auth), 'sha256', 'hex')
             data['signKey'] = signature
             headers = {

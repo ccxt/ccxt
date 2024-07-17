@@ -252,7 +252,11 @@ export default class xt extends xtRest {
         await this.loadMarkets();
         const market = this.market(symbol);
         const name = 'kline@' + market['id'] + ',' + timeframe;
-        return await this.subscribe(name, 'public', 'watchOHLCV', market, undefined, params);
+        const ohlcv = await this.subscribe(name, 'public', 'watchOHLCV', market, undefined, params);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit(symbol, limit);
+        }
+        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**

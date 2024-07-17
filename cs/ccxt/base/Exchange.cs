@@ -3,6 +3,8 @@ using System.Text.RegularExpressions;
 using System.Globalization;
 using System.Net;
 using StarkSharp.StarkCurve.Signature;
+using System.IO.Compression;
+
 namespace ccxt;
 
 using dict = Dictionary<string, object>;
@@ -275,7 +277,19 @@ public partial class Exchange
                     // response = await httpClient.SendAsync(patchRequest);
                     response = await httpClient.SendAsync(request);
                 }
-                result = await response.Content.ReadAsStringAsync();
+
+                var responseEncoding = response.Content.Headers.ContentEncoding;
+                if (responseEncoding.Contains("gzip"))
+                {
+                    using var stream = await response.Content.ReadAsStreamAsync();
+                    using var decompressedStream = new GZipStream(stream, CompressionMode.Decompress);
+                    using var streamReader = new StreamReader(decompressedStream);
+                    result = await streamReader.ReadToEndAsync();
+                }
+                else
+                {
+                    result = await response.Content.ReadAsStringAsync();
+                }
             }
 
         }

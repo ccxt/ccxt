@@ -151,6 +151,9 @@ public partial class cryptocom : Exchange
                             { "public/get-expired-settlement-price", divide(10, 3) },
                             { "public/get-insurance", 1 },
                         } },
+                        { "post", new Dictionary<string, object>() {
+                            { "public/staking/get-conversion-rate", 2 },
+                        } },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "post", new Dictionary<string, object>() {
@@ -180,6 +183,16 @@ public partial class cryptocom : Exchange
                             { "private/get-accounts", divide(10, 3) },
                             { "private/get-withdrawal-history", divide(10, 3) },
                             { "private/get-deposit-history", divide(10, 3) },
+                            { "private/staking/stake", 2 },
+                            { "private/staking/unstake", 2 },
+                            { "private/staking/get-staking-position", 2 },
+                            { "private/staking/get-staking-instruments", 2 },
+                            { "private/staking/get-open-stake", 2 },
+                            { "private/staking/get-stake-history", 2 },
+                            { "private/staking/get-reward-history", 2 },
+                            { "private/staking/convert", 2 },
+                            { "private/staking/get-open-convert", 2 },
+                            { "private/staking/get-convert-history", 2 },
                         } },
                     } },
                 } },
@@ -823,17 +836,25 @@ public partial class cryptocom : Exchange
             { "instrument_name", getValue(market, "id") },
             { "timeframe", this.safeString(this.timeframes, timeframe, timeframe) },
         };
-        if (isTrue(!isEqual(since, null)))
-        {
-            ((IDictionary<string,object>)request)["start_ts"] = since;
-        }
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        object until = this.safeInteger(parameters, "until");
+        object now = this.microseconds();
+        object duration = this.parseTimeframe(timeframe);
+        object until = this.safeInteger(parameters, "until", now);
         parameters = this.omit(parameters, new List<object>() {"until"});
-        if (isTrue(!isEqual(until, null)))
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["start_ts"] = since;
+            if (isTrue(!isEqual(limit, null)))
+            {
+                ((IDictionary<string,object>)request)["end_ts"] = subtract(this.sum(since, multiply(multiply(duration, (add(limit, 1))), 1000)), 1);
+            } else
+            {
+                ((IDictionary<string,object>)request)["end_ts"] = until;
+            }
+        } else
         {
             ((IDictionary<string,object>)request)["end_ts"] = until;
         }

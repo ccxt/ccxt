@@ -86,6 +86,7 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': True,
                 'fetchPositionHistory': False,
                 'fetchPositionMode': True,
                 'fetchPositions': True,
@@ -528,37 +529,40 @@ class bingx(Exchange, ImplicitAPI):
         response = await self.walletsV1PrivateGetCapitalConfigGetall(params)
         #
         #    {
-        #        "code": 0,
-        #        "timestamp": 1688045966616,
-        #        "data": [
+        #      "code": 0,
+        #      "timestamp": 1702623271477,
+        #      "data": [
+        #        {
+        #          "coin": "BTC",
+        #          "name": "BTC",
+        #          "networkList": [
         #            {
-        #              "coin": "BTC",
         #              "name": "BTC",
-        #              "networkList": [
-        #                {
-        #                  "name": "BTC",
-        #                  "network": "BTC",
-        #                  "isDefault": True,
-        #                  "minConfirm": "2",
-        #                  "withdrawEnable": True,
-        #                  "withdrawFee": "0.00035",
-        #                  "withdrawMax": "1.62842",
-        #                  "withdrawMin": "0.0005"
-        #                },
-        #                {
-        #                  "name": "BTC",
-        #                  "network": "BEP20",
-        #                  "isDefault": False,
-        #                  "minConfirm": "15",
-        #                  "withdrawEnable": True,
-        #                  "withdrawFee": "0.00001",
-        #                  "withdrawMax": "1.62734",
-        #                  "withdrawMin": "0.0001"
-        #                }
-        #              ]
-        #          },
-        #          ...
-        #        ],
+        #              "network": "BTC",
+        #              "isDefault": True,
+        #              "minConfirm": 2,
+        #              "withdrawEnable": True,
+        #              "depositEnable": True,
+        #              "withdrawFee": "0.0006",
+        #              "withdrawMax": "1.17522",
+        #              "withdrawMin": "0.0005",
+        #              "depositMin": "0.0002"
+        #            },
+        #            {
+        #              "name": "BTC",
+        #              "network": "BEP20",
+        #              "isDefault": False,
+        #              "minConfirm": 15,
+        #              "withdrawEnable": True,
+        #              "depositEnable": True,
+        #              "withdrawFee": "0.0000066",
+        #              "withdrawMax": "1.17522",
+        #              "withdrawMin": "0.0000066",
+        #              "depositMin": "0.0002"
+        #            }
+        #          ]
+        #        }
+        #      ]
         #    }
         #
         data = self.safe_list(response, 'data', [])
@@ -572,6 +576,7 @@ class bingx(Exchange, ImplicitAPI):
             networks: dict = {}
             fee = None
             active = None
+            depositEnabled = None
             withdrawEnabled = None
             defaultLimits: dict = {}
             for j in range(0, len(networkList)):
@@ -579,13 +584,17 @@ class bingx(Exchange, ImplicitAPI):
                 network = self.safe_string(rawNetwork, 'network')
                 networkCode = self.network_id_to_code(network)
                 isDefault = self.safe_bool(rawNetwork, 'isDefault')
+                depositEnabled = self.safe_bool(rawNetwork, 'depositEnable')
                 withdrawEnabled = self.safe_bool(rawNetwork, 'withdrawEnable')
                 limits: dict = {
-                    'amounts': {'min': self.safe_number(rawNetwork, 'withdrawMin'), 'max': self.safe_number(rawNetwork, 'withdrawMax')},
+                    'withdraw': {
+                        'min': self.safe_number(rawNetwork, 'withdrawMin'),
+                        'max': self.safe_number(rawNetwork, 'withdrawMax'),
+                    },
                 }
                 if isDefault:
                     fee = self.safe_number(rawNetwork, 'withdrawFee')
-                    active = withdrawEnabled
+                    active = depositEnabled or withdrawEnabled
                     defaultLimits = limits
                 networks[networkCode] = {
                     'info': rawNetwork,
@@ -593,7 +602,7 @@ class bingx(Exchange, ImplicitAPI):
                     'network': networkCode,
                     'fee': fee,
                     'active': active,
-                    'deposit': None,
+                    'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
                     'precision': None,
                     'limits': limits,
@@ -605,7 +614,7 @@ class bingx(Exchange, ImplicitAPI):
                 'precision': None,
                 'name': name,
                 'active': active,
-                'deposit': None,
+                'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'networks': networks,
                 'fee': fee,
@@ -1691,6 +1700,7 @@ class bingx(Exchange, ImplicitAPI):
         :see: https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Assets
         :see: https://bingx-api.github.io/docs/#/swapV2/account-api.html#Get%20Perpetual%20Swap%20Account%20Asset%20Information
         :see: https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
+        :see: https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Account%20Assets
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.standard]: whether to fetch standard contract balances
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
@@ -1699,111 +1709,220 @@ class bingx(Exchange, ImplicitAPI):
         response = None
         standard = None
         standard, params = self.handle_option_and_params(params, 'fetchBalance', 'standard', False)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchBalance', None, params)
         marketType, marketTypeQuery = self.handle_market_type_and_params('fetchBalance', None, params)
         if standard:
             response = await self.contractV1PrivateGetBalance(marketTypeQuery)
+            #
+            #     {
+            #         "code": 0,
+            #         "timestamp": 1721192833454,
+            #         "data": [
+            #             {
+            #                 "asset": "USDT",
+            #                 "balance": "4.72644300000000000000",
+            #                 "crossWalletBalance": "4.72644300000000000000",
+            #                 "crossUnPnl": "0",
+            #                 "availableBalance": "4.72644300000000000000",
+            #                 "maxWithdrawAmount": "4.72644300000000000000",
+            #                 "marginAvailable": False,
+            #                 "updateTime": 1721192833443
+            #             },
+            #         ]
+            #     }
+            #
         elif marketType == 'spot':
             response = await self.spotV1PrivateGetAccountBalance(marketTypeQuery)
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "debugMsg": "",
+            #         "data": {
+            #             "balances": [
+            #                 {
+            #                     "asset": "USDT",
+            #                     "free": "45.733046995800514",
+            #                     "locked": "0"
+            #                 },
+            #             ]
+            #         }
+            #     }
+            #
         else:
-            response = await self.swapV2PrivateGetUserBalance(marketTypeQuery)
-        #
-        # spot
-        #
-        #    {
-        #        "code": 0,
-        #        "msg": "",
-        #        "ttl": 1,
-        #        "data": {
-        #            "balances": [
-        #                {
-        #                    "asset": "USDT",
-        #                    "free": "16.73971130673954",
-        #                    "locked": "0"
-        #                }
-        #            ]
-        #        }
-        #    }
-        #
-        # swap
-        #
-        #    {
-        #        "code": 0,
-        #        "msg": "",
-        #        "data": {
-        #          "balance": {
-        #            "asset": "USDT",
-        #            "balance": "15.6128",
-        #            "equity": "15.6128",
-        #            "unrealizedProfit": "0.0000",
-        #            "realisedProfit": "0.0000",
-        #            "availableMargin": "15.6128",
-        #            "usedMargin": "0.0000",
-        #            "freezedMargin": "0.0000"
-        #          }
-        #        }
-        #    }
-        # standard futures
-        #    {
-        #        "code":"0",
-        #        "timestamp":"1691148990942",
-        #        "data":[
-        #           {
-        #              "asset":"VST",
-        #              "balance":"100000.00000000000000000000",
-        #              "crossWalletBalance":"100000.00000000000000000000",
-        #              "crossUnPnl":"0",
-        #              "availableBalance":"100000.00000000000000000000",
-        #              "maxWithdrawAmount":"100000.00000000000000000000",
-        #              "marginAvailable":false,
-        #              "updateTime":"1691148990902"
-        #           },
-        #           {
-        #              "asset":"USDT",
-        #              "balance":"0",
-        #              "crossWalletBalance":"0",
-        #              "crossUnPnl":"0",
-        #              "availableBalance":"0",
-        #              "maxWithdrawAmount":"0",
-        #              "marginAvailable":false,
-        #              "updateTime":"1691148990902"
-        #           },
-        #        ]
-        #     }
-        #
+            if subType == 'inverse':
+                response = await self.cswapV1PrivateGetUserBalance(marketTypeQuery)
+                #
+                #     {
+                #         "code": 0,
+                #         "msg": "",
+                #         "timestamp": 1721191833813,
+                #         "data": [
+                #             {
+                #                 "asset": "SOL",
+                #                 "balance": "0.35707951",
+                #                 "equity": "0.35791051",
+                #                 "unrealizedProfit": "0.00083099",
+                #                 "availableMargin": "0.35160653",
+                #                 "usedMargin": "0.00630397",
+                #                 "freezedMargin": "0",
+                #                 "shortUid": "12851936"
+                #             }
+                #         ]
+                #     }
+                #
+            else:
+                response = await self.swapV2PrivateGetUserBalance(marketTypeQuery)
+                #
+                #     {
+                #         "code": 0,
+                #         "msg": "",
+                #         "data": {
+                #             "balance": {
+                #                 "userId": "1177064765068660742",
+                #                 "asset": "USDT",
+                #                 "balance": "51.5198",
+                #                 "equity": "50.5349",
+                #                 "unrealizedProfit": "-0.9849",
+                #                 "realisedProfit": "-0.2134",
+                #                 "availableMargin": "49.1428",
+                #                 "usedMargin": "1.3922",
+                #                 "freezedMargin": "0.0000",
+                #                 "shortUid": "12851936"
+                #             }
+                #         }
+                #     }
+                #
         return self.parse_balance(response)
 
     def parse_balance(self, response) -> Balances:
-        data = self.safe_value(response, 'data')
-        balances = self.safe_value_2(data, 'balance', 'balances', data)
+        #
+        # standard
+        #
+        #     {
+        #         "code": 0,
+        #         "timestamp": 1721192833454,
+        #         "data": [
+        #             {
+        #                 "asset": "USDT",
+        #                 "balance": "4.72644300000000000000",
+        #                 "crossWalletBalance": "4.72644300000000000000",
+        #                 "crossUnPnl": "0",
+        #                 "availableBalance": "4.72644300000000000000",
+        #                 "maxWithdrawAmount": "4.72644300000000000000",
+        #                 "marginAvailable": False,
+        #                 "updateTime": 1721192833443
+        #             },
+        #         ]
+        #     }
+        #
+        # spot
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "debugMsg": "",
+        #         "data": {
+        #             "balances": [
+        #                 {
+        #                     "asset": "USDT",
+        #                     "free": "45.733046995800514",
+        #                     "locked": "0"
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
+        # inverse swap
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "timestamp": 1721191833813,
+        #         "data": [
+        #             {
+        #                 "asset": "SOL",
+        #                 "balance": "0.35707951",
+        #                 "equity": "0.35791051",
+        #                 "unrealizedProfit": "0.00083099",
+        #                 "availableMargin": "0.35160653",
+        #                 "usedMargin": "0.00630397",
+        #                 "freezedMargin": "0",
+        #                 "shortUid": "12851936"
+        #             }
+        #         ]
+        #     }
+        #
+        # linear swap
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "data": {
+        #             "balance": {
+        #                 "userId": "1177064765068660742",
+        #                 "asset": "USDT",
+        #                 "balance": "51.5198",
+        #                 "equity": "50.5349",
+        #                 "unrealizedProfit": "-0.9849",
+        #                 "realisedProfit": "-0.2134",
+        #                 "availableMargin": "49.1428",
+        #                 "usedMargin": "1.3922",
+        #                 "freezedMargin": "0.0000",
+        #                 "shortUid": "12851936"
+        #             }
+        #         }
+        #     }
+        #
         result: dict = {'info': response}
-        if isinstance(balances, list):
-            for i in range(0, len(balances)):
-                balance = balances[i]
+        standardAndInverseBalances = self.safe_list(response, 'data')
+        firstStandardOrInverse = self.safe_dict(standardAndInverseBalances, 0)
+        isStandardOrInverse = firstStandardOrInverse is not None
+        spotData = self.safe_dict(response, 'data', {})
+        spotBalances = self.safe_list(spotData, 'balances')
+        firstSpot = self.safe_dict(spotBalances, 0)
+        isSpot = firstSpot is not None
+        if isStandardOrInverse:
+            for i in range(0, len(standardAndInverseBalances)):
+                balance = standardAndInverseBalances[i]
                 currencyId = self.safe_string(balance, 'asset')
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
-                account['free'] = self.safe_string_2(balance, 'free', 'availableBalance')
+                account['free'] = self.safe_string_2(balance, 'availableMargin', 'availableBalance')
+                account['used'] = self.safe_string(balance, 'usedMargin')
+                account['total'] = self.safe_string(balance, 'maxWithdrawAmount')
+                result[code] = account
+        elif isSpot:
+            for i in range(0, len(spotBalances)):
+                balance = spotBalances[i]
+                currencyId = self.safe_string(balance, 'asset')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['free'] = self.safe_string(balance, 'free')
                 account['used'] = self.safe_string(balance, 'locked')
-                account['total'] = self.safe_string(balance, 'balance')
                 result[code] = account
         else:
-            currencyId = self.safe_string(balances, 'asset')
+            linearSwapData = self.safe_dict(response, 'data', {})
+            linearSwapBalance = self.safe_dict(linearSwapData, 'balance')
+            currencyId = self.safe_string(linearSwapBalance, 'asset')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_string(balances, 'availableMargin')
-            account['used'] = self.safe_string(balances, 'usedMargin')
+            account['free'] = self.safe_string(linearSwapBalance, 'availableMargin')
+            account['used'] = self.safe_string(linearSwapBalance, 'usedMargin')
             result[code] = account
         return self.safe_balance(result)
 
     async def fetch_positions(self, symbols: Strings = None, params={}):
         """
         fetch all open positions
-        :see: https://bingx-api.github.io/docs/#/swapV2/account-api.html#Perpetual%20Swap%20Positions
-        :see: https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
+        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
+        :see: https://bingx-api.github.io/docs/#/en-us/standard/contract-interface.html#position
+        :see: https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.standard]: whether to fetch standard contract positions
-        :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: a list of `position structures <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
@@ -1813,54 +1932,207 @@ class bingx(Exchange, ImplicitAPI):
         if standard:
             response = await self.contractV1PrivateGetAllPosition(params)
         else:
-            response = await self.swapV2PrivateGetUserPositions(params)
-        #
-        #    {
-        #        "code": 0,
-        #            "msg": "",
-        #            "data": [
-        #            {
-        #                "symbol": "BTC-USDT",
-        #                "positionId": "12345678",
-        #                "positionSide": "LONG",
-        #                "isolated": True,
-        #                "positionAmt": "123.33",
-        #                "availableAmt": "128.99",
-        #                "unrealizedProfit": "1.22",
-        #                "realisedProfit": "8.1",
-        #                "initialMargin": "123.33",
-        #                "avgPrice": "2.2",
-        #                "leverage": 10,
-        #            }
-        #        ]
-        #    }
-        #
+            market = None
+            if symbols is not None:
+                symbols = self.market_symbols(symbols)
+                firstSymbol = self.safe_string(symbols, 0)
+                if firstSymbol is not None:
+                    market = self.market(firstSymbol)
+            subType = None
+            subType, params = self.handle_sub_type_and_params('fetchPositions', market, params)
+            if subType == 'inverse':
+                response = await self.cswapV1PrivateGetUserPositions(params)
+                #
+                #     {
+                #         "code": 0,
+                #         "msg": "",
+                #         "timestamp": 0,
+                #         "data": [
+                #             {
+                #                 "symbol": "SOL-USD",
+                #                 "positionId": "1813080351385337856",
+                #                 "positionSide": "LONG",
+                #                 "isolated": False,
+                #                 "positionAmt": "1",
+                #                 "availableAmt": "1",
+                #                 "unrealizedProfit": "-0.00009074",
+                #                 "initialMargin": "0.00630398",
+                #                 "liquidationPrice": 23.968303426677032,
+                #                 "avgPrice": "158.63",
+                #                 "leverage": 10,
+                #                 "markPrice": "158.402",
+                #                 "riskRate": "0.00123783",
+                #                 "maxMarginReduction": "0",
+                #                 "updateTime": 1721107015848
+                #             }
+                #         ]
+                #     }
+                #
+            else:
+                response = await self.swapV2PrivateGetUserPositions(params)
+                #
+                #     {
+                #         "code": 0,
+                #         "msg": "",
+                #         "data": [
+                #             {
+                #                 "positionId": "1792480725958881280",
+                #                 "symbol": "LTC-USDT",
+                #                 "currency": "USDT",
+                #                 "positionAmt": "0.1",
+                #                 "availableAmt": "0.1",
+                #                 "positionSide": "LONG",
+                #                 "isolated": False,
+                #                 "avgPrice": "83.53",
+                #                 "initialMargin": "1.3922",
+                #                 "margin": "0.3528",
+                #                 "leverage": 6,
+                #                 "unrealizedProfit": "-1.0393",
+                #                 "realisedProfit": "-0.2119",
+                #                 "liquidationPrice": 0,
+                #                 "pnlRatio": "-0.7465",
+                #                 "maxMarginReduction": "0.0000",
+                #                 "riskRate": "0.0008",
+                #                 "markPrice": "73.14",
+                #                 "positionValue": "7.3136",
+                #                 "onlyOnePosition": True,
+                #                 "updateTime": 1721088016688
+                #             }
+                #         ]
+                #     }
+                #
         positions = self.safe_list(response, 'data', [])
         return self.parse_positions(positions, symbols)
 
+    async def fetch_position(self, symbol: str, params={}):
+        """
+        fetch data on a single open contract trade position
+        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
+        :see: https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
+        :param str symbol: unified market symbol of the market the position is held in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `position structure <https://docs.ccxt.com/#/?id=position-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadRequest(self.id + ' fetchPosition() supports swap markets only')
+        request: dict = {
+            'symbol': market['id'],
+        }
+        response = None
+        if market['inverse']:
+            response = await self.cswapV1PrivateGetUserPositions(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "timestamp": 0,
+            #         "data": [
+            #             {
+            #                 "symbol": "SOL-USD",
+            #                 "positionId": "1813080351385337856",
+            #                 "positionSide": "LONG",
+            #                 "isolated": False,
+            #                 "positionAmt": "1",
+            #                 "availableAmt": "1",
+            #                 "unrealizedProfit": "-0.00009074",
+            #                 "initialMargin": "0.00630398",
+            #                 "liquidationPrice": 23.968303426677032,
+            #                 "avgPrice": "158.63",
+            #                 "leverage": 10,
+            #                 "markPrice": "158.402",
+            #                 "riskRate": "0.00123783",
+            #                 "maxMarginReduction": "0",
+            #                 "updateTime": 1721107015848
+            #             }
+            #         ]
+            #     }
+            #
+        else:
+            response = await self.swapV2PrivateGetUserPositions(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "data": [
+            #             {
+            #                 "positionId": "1792480725958881280",
+            #                 "symbol": "LTC-USDT",
+            #                 "currency": "USDT",
+            #                 "positionAmt": "0.1",
+            #                 "availableAmt": "0.1",
+            #                 "positionSide": "LONG",
+            #                 "isolated": False,
+            #                 "avgPrice": "83.53",
+            #                 "initialMargin": "1.3922",
+            #                 "margin": "0.3528",
+            #                 "leverage": 6,
+            #                 "unrealizedProfit": "-1.0393",
+            #                 "realisedProfit": "-0.2119",
+            #                 "liquidationPrice": 0,
+            #                 "pnlRatio": "-0.7465",
+            #                 "maxMarginReduction": "0.0000",
+            #                 "riskRate": "0.0008",
+            #                 "markPrice": "73.14",
+            #                 "positionValue": "7.3136",
+            #                 "onlyOnePosition": True,
+            #                 "updateTime": 1721088016688
+            #             }
+            #         ]
+            #     }
+            #
+        data = self.safe_list(response, 'data', [])
+        first = self.safe_dict(data, 0, {})
+        return self.parse_position(first, market)
+
     def parse_position(self, position: dict, market: Market = None):
         #
-        #    {
-        #        "positionId":"1773122376147623936",
-        #        "symbol":"XRP-USDT",
-        #        "currency":"USDT",
-        #        "positionAmt":"3",
-        #        "availableAmt":"3",
-        #        "positionSide":"LONG",
-        #        "isolated":false,
-        #        "avgPrice":"0.6139",
-        #        "initialMargin":"0.0897",
-        #        "leverage":20,
-        #        "unrealizedProfit":"-0.0023",
-        #        "realisedProfit":"-0.0009",
-        #        "liquidationPrice":0,
-        #        "pnlRatio":"-0.0260",
-        #        "maxMarginReduction":"",
-        #        "riskRate":"",
-        #        "markPrice":"",
-        #        "positionValue":"",
-        #        "onlyOnePosition":false
-        #    }
+        # inverse swap
+        #
+        #     {
+        #         "symbol": "SOL-USD",
+        #         "positionId": "1813080351385337856",
+        #         "positionSide": "LONG",
+        #         "isolated": False,
+        #         "positionAmt": "1",
+        #         "availableAmt": "1",
+        #         "unrealizedProfit": "-0.00009074",
+        #         "initialMargin": "0.00630398",
+        #         "liquidationPrice": 23.968303426677032,
+        #         "avgPrice": "158.63",
+        #         "leverage": 10,
+        #         "markPrice": "158.402",
+        #         "riskRate": "0.00123783",
+        #         "maxMarginReduction": "0",
+        #         "updateTime": 1721107015848
+        #     }
+        #
+        # linear swap
+        #
+        #     {
+        #         "positionId": "1792480725958881280",
+        #         "symbol": "LTC-USDT",
+        #         "currency": "USDT",
+        #         "positionAmt": "0.1",
+        #         "availableAmt": "0.1",
+        #         "positionSide": "LONG",
+        #         "isolated": False,
+        #         "avgPrice": "83.53",
+        #         "initialMargin": "1.3922",
+        #         "margin": "0.3528",
+        #         "leverage": 6,
+        #         "unrealizedProfit": "-1.0393",
+        #         "realisedProfit": "-0.2119",
+        #         "liquidationPrice": 0,
+        #         "pnlRatio": "-0.7465",
+        #         "maxMarginReduction": "0.0000",
+        #         "riskRate": "0.0008",
+        #         "markPrice": "73.14",
+        #         "positionValue": "7.3136",
+        #         "onlyOnePosition": True,
+        #         "updateTime": 1721088016688
+        #     }
         #
         # standard position
         #
@@ -1895,13 +2167,13 @@ class bingx(Exchange, ImplicitAPI):
             'percentage': None,
             'contracts': self.safe_number(position, 'positionAmt'),
             'contractSize': None,
-            'markPrice': None,
+            'markPrice': self.safe_number(position, 'markPrice'),
             'lastPrice': None,
             'side': self.safe_string_lower(position, 'positionSide'),
             'hedged': None,
             'timestamp': None,
             'datetime': None,
-            'lastUpdateTimestamp': None,
+            'lastUpdateTimestamp': self.safe_integer(position, 'updateTime'),
             'maintenanceMargin': None,
             'maintenanceMarginPercentage': None,
             'collateral': None,
@@ -3982,6 +4254,7 @@ class bingx(Exchange, ImplicitAPI):
         """
         set the level of leverage for a market
         :see: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Switch%20Leverage
+        :see: https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Modify%20Leverage
         :param float leverage: the rate of leverage
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -3999,17 +4272,42 @@ class bingx(Exchange, ImplicitAPI):
             'side': side,
             'leverage': leverage,
         }
-        #
-        #    {
-        #        "code": 0,
-        #        "msg": "",
-        #        "data": {
-        #            "leverage": 6,
-        #            "symbol": "BTC-USDT"
-        #        }
-        #    }
-        #
-        return await self.swapV2PrivatePostTradeLeverage(self.extend(request, params))
+        if market['inverse']:
+            return await self.cswapV1PrivatePostTradeLeverage(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "timestamp": 1720725058059,
+            #         "data": {
+            #             "symbol": "SOL-USD",
+            #             "longLeverage": 10,
+            #             "shortLeverage": 5,
+            #             "maxLongLeverage": 50,
+            #             "maxShortLeverage": 50,
+            #             "availableLongVol": "4000000",
+            #             "availableShortVol": "4000000"
+            #         }
+            #     }
+            #
+        else:
+            return await self.swapV2PrivatePostTradeLeverage(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "data": {
+            #             "leverage": 10,
+            #             "symbol": "BTC-USDT",
+            #             "availableLongVol": "0.0000",
+            #             "availableShortVol": "0.0000",
+            #             "availableLongVal": "0.0",
+            #             "availableShortVal": "0.0",
+            #             "maxPositionLongVal": "0.0",
+            #             "maxPositionShortVal": "0.0"
+            #         }
+            #     }
+            #
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
@@ -4335,93 +4633,118 @@ class bingx(Exchange, ImplicitAPI):
         """
         closes open positions for a market
         :see: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
+        :see: https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Close%20all%20positions%20in%20bulk
         :param str symbol: Unified CCXT market symbol
         :param str [side]: not used by bingx
         :param dict [params]: extra parameters specific to the bingx api endpoint
-        :param str|None [params.positionId]: it is recommended to hasattr(self, fill) parameter when closing a position
+        :param str|None [params.positionId]: the id of the position you would like to close
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
+        market = self.market(symbol)
         positionId = self.safe_string(params, 'positionId')
-        params = self.omit(params, 'positionId')
+        request: dict = {}
         response = None
         if positionId is not None:
-            request: dict = {
-                'positionId': positionId,
-            }
             response = await self.swapV1PrivatePostTradeClosePosition(self.extend(request, params))
+            #
+            #    {
+            #        "code": 0,
+            #        "msg": "",
+            #        "timestamp": 1710992264190,
+            #        "data": {
+            #            "orderId": 1770656007907930112,
+            #            "positionId": "1751667128353910784",
+            #            "symbol": "LTC-USDT",
+            #            "side": "Ask",
+            #            "type": "MARKET",
+            #            "positionSide": "Long",
+            #            "origQty": "0.2"
+            #        }
+            #    }
+            #
         else:
-            market = self.market(symbol)
-            request: dict = {
-                'symbol': market['id'],
-            }
-            response = await self.swapV2PrivatePostTradeCloseAllPositions(self.extend(request, params))
-        #
-        # swapV1PrivatePostTradeClosePosition
-        #
-        #    {
-        #        "code": 0,
-        #        "msg": "",
-        #        "timestamp": 1710992264190,
-        #        "data": {
-        #            "orderId": 1770656007907930112,
-        #            "positionId": "1751667128353910784",
-        #            "symbol": "LTC-USDT",
-        #            "side": "Ask",
-        #            "type": "MARKET",
-        #            "positionSide": "Long",
-        #            "origQty": "0.2"
-        #        }
-        #    }
-        #
-        # swapV2PrivatePostTradeCloseAllPositions
-        #
-        #    {
-        #        "code": 0,
-        #        "msg": "",
-        #        "data": {
-        #            "success": [
-        #                1727686766700486656,
-        #            ],
-        #            "failed": null
-        #        }
-        #    }
-        #
+            request['symbol'] = market['id']
+            if market['inverse']:
+                response = await self.cswapV1PrivatePostTradeCloseAllPositions(self.extend(request, params))
+                #
+                #     {
+                #         "code": 0,
+                #         "msg": "",
+                #         "timestamp": 1720771601428,
+                #         "data": {
+                #             "success": ["1811673520637231104"],
+                #             "failed": null
+                #         }
+                #     }
+                #
+            else:
+                response = await self.swapV2PrivatePostTradeCloseAllPositions(self.extend(request, params))
+                #
+                #    {
+                #        "code": 0,
+                #        "msg": "",
+                #        "data": {
+                #            "success": [
+                #                1727686766700486656,
+                #            ],
+                #            "failed": null
+                #        }
+                #    }
+                #
         data = self.safe_dict(response, 'data')
-        return self.parse_order(data)
+        return self.parse_order(data, market)
 
     async def close_all_positions(self, params={}) -> List[Position]:
         """
         closes open positions for a market
         :see: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#One-Click%20Close%20All%20Positions
-        :param dict [params]: extra parameters specific to the okx api endpoint
+        :see: https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Close%20all%20positions%20in%20bulk
+        :param dict [params]: extra parameters specific to the bingx api endpoint
         :param str [params.recvWindow]: request valid time window value
-        :returns dict[]: `A list of position structures <https://docs.ccxt.com/#/?id=position-structure>`
+        :returns dict[]: `a list of position structures <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
         defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
         recvWindow = self.safe_integer(self.parse_params, 'recvWindow', defaultRecvWindow)
         marketType = None
         marketType, params = self.handle_market_type_and_params('closeAllPositions', None, params)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('closeAllPositions', None, params)
         if marketType == 'margin':
             raise BadRequest(self.id + ' closePositions() cannot be used for ' + marketType + ' markets')
         request: dict = {
             'recvWindow': recvWindow,
         }
-        response = await self.swapV2PrivatePostTradeCloseAllPositions(self.extend(request, params))
-        #
-        #    {
-        #        "code": 0,
-        #        "msg": "",
-        #        "data": {
-        #            "success": [
-        #                1727686766700486656,
-        #                1727686767048613888
-        #            ],
-        #            "failed": null
-        #        }
-        #    }
-        #
+        response = None
+        if subType == 'inverse':
+            response = await self.cswapV1PrivatePostTradeCloseAllPositions(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "timestamp": 1720771601428,
+            #         "data": {
+            #             "success": ["1811673520637231104"],
+            #             "failed": null
+            #         }
+            #     }
+            #
+        else:
+            response = await self.swapV2PrivatePostTradeCloseAllPositions(self.extend(request, params))
+            #
+            #    {
+            #        "code": 0,
+            #        "msg": "",
+            #        "data": {
+            #            "success": [
+            #                1727686766700486656,
+            #                1727686767048613888
+            #            ],
+            #            "failed": null
+            #        }
+            #    }
+            #
         data = self.safe_dict(response, 'data', {})
         success = self.safe_list(data, 'success', [])
         positions = []
