@@ -34,6 +34,7 @@ export default class foxbit extends Exchange {
                             'rest/v3/markets',
                             'rest/v3/markets/{market}/orderbook',
                             'rest/v3/markets/{market}/ticker/24hr',
+                            'rest/v3/markets/{market}/orderbook?depth={depth}',
                         ],
                     },
                 },
@@ -44,6 +45,8 @@ export default class foxbit extends Exchange {
                 'fetchOrderBook': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
+                'fetchTicker': true,
+                'fecthOrderBook': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -620,6 +623,16 @@ export default class foxbit extends Exchange {
     }
 
     async fetchOrderBook (symbol: string, params: {}, limit: Int = 20): Promise<OrderBook> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (limit === undefined) {
+            limit = 20;
+        }
+        const request: Dict = {
+            'market': market['baseId'] + market['quoteId'],
+            'depth': limit,
+        };
+        const response = await this.v3PublicGetRestV3MarketsMarketOrderbookDepthDepth (this.extend (request, params));
         //  {
         //    "sequence_id": 1234567890,
         //    "timestamp": 1713187921336,
@@ -644,7 +657,8 @@ export default class foxbit extends Exchange {
         //      ]
         //    ]
         //  }
-        return undefined;
+        const timestamp = this.safeInteger (response, 'timestamp');
+        return this.parseOrderBook (response, symbol, timestamp);
     }
 
     async fetchOrderBooks (symbols: string[], limit?: number, params?: {}): Promise<Dictionary<OrderBook>> {

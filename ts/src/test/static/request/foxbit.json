@@ -24,6 +24,16 @@
       "input": [
         "MANA/BRL"
       ]
+    },
+    "fetchOrderBook": {
+      "description": "Fill this with a description of the method call",
+      "method": "fetchOrderBook",
+      "url": "https://api.foxbit.com.br/rest/v3/markets/manabrl/orderbook?depth=10",
+      "input": [
+        "MANA/BRL",
+        {},
+        10
+      ]
     }
   }
 }
