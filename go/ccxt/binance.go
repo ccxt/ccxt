@@ -5,6 +5,7 @@ package ccxt
 
 type binance struct {
     Exchange
+
 }
 func  (this *binance) describe() interface{}  {
     return this.deepExtend(this.Exchange.describe(), map[string]interface{} {
@@ -2732,18 +2733,18 @@ func  (this *binance) fetchMarkets(optionalArgs ...interface{}) interface{}  {
         if IsTrue(IsTrue(IsEqual(typeVar, "option")) && IsTrue(sandboxMode)) {
             continue
         }
-        AppendToArray(fetchMarkets,typeVar)
+        AppendToArray(&fetchMarkets,typeVar)
     }
     for i := 0; IsLessThan(i, GetArrayLength(fetchMarkets)); i++ {
         var marketType interface{} = GetValue(fetchMarkets, i)
         if IsTrue(IsEqual(marketType, "spot")) {
-            AppendToArray(promisesRaw,this.publicGetExchangeInfo(params))
+            AppendToArray(&promisesRaw,this.publicGetExchangeInfo(params))
         } else if IsTrue(IsEqual(marketType, "linear")) {
-            AppendToArray(promisesRaw,this.fapiPublicGetExchangeInfo(params))
+            AppendToArray(&promisesRaw,this.fapiPublicGetExchangeInfo(params))
         } else if IsTrue(IsEqual(marketType, "inverse")) {
-            AppendToArray(promisesRaw,this.dapiPublicGetExchangeInfo(params))
+            AppendToArray(&promisesRaw,this.dapiPublicGetExchangeInfo(params))
         } else if IsTrue(IsEqual(marketType, "option")) {
-            AppendToArray(promisesRaw,this.eapiPublicGetExchangeInfo(params))
+            AppendToArray(&promisesRaw,this.eapiPublicGetExchangeInfo(params))
         } else {
             panic(ExchangeError(Add(Add(Add(this.id, " fetchMarkets() this.options fetchMarkets \""), marketType), "\" is not a supported market type")))
         }
@@ -2962,7 +2963,7 @@ func  (this *binance) fetchMarkets(optionalArgs ...interface{}) interface{}  {
     }
     var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
-        AppendToArray(result,this.parseMarket(GetValue(markets, i)))
+        AppendToArray(&result,this.parseMarket(GetValue(markets, i)))
     }
     return result
 }
@@ -5525,14 +5526,14 @@ func  (this *binance) createOrders(orders interface{}, optionalArgs ...interface
     for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
         var rawOrder interface{} = GetValue(orders, i)
         var marketId interface{} = this.safeString(rawOrder, "symbol")
-        AppendToArray(orderSymbols,marketId)
+        AppendToArray(&orderSymbols,marketId)
         var typeVar interface{} = this.safeString(rawOrder, "type")
         var side interface{} = this.safeString(rawOrder, "side")
         var amount interface{} = this.safeValue(rawOrder, "amount")
         var price interface{} = this.safeValue(rawOrder, "price")
         var orderParams interface{} = this.safeDict(rawOrder, "params", map[string]interface{} {})
         var orderRequest interface{} = this.createOrderRequest(marketId, typeVar, side, amount, price, orderParams)
-        AppendToArray(ordersRequests,orderRequest)
+        AppendToArray(&ordersRequests,orderRequest)
     }
     orderSymbols = this.marketSymbols(orderSymbols, nil, false, true, true)
     var market interface{} = this.market(GetValue(orderSymbols, 0))
@@ -7476,7 +7477,7 @@ func  (this *binance) fetchMyDustTrades(optionalArgs ...interface{}) interface{}
         var logs interface{} = this.safeList(GetValue(results, i), "userAssetDribbletDetails", []interface{}{})
         for j := 0; IsLessThan(j, GetArrayLength(logs)); j++ {
             AddElementToObject(GetValue(logs, j), "isDustTrade", true)
-            AppendToArray(data,GetValue(logs, j))
+            AppendToArray(&data,GetValue(logs, j))
         }
     }
     var trades interface{} = this.parseTrades(data, nil, since, limit)
@@ -9012,7 +9013,7 @@ func  (this *binance) fetchFundingRateHistory(optionalArgs ...interface{}) inter
     for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
         var entry interface{} = GetValue(response, i)
         var timestamp interface{} = this.safeInteger(entry, "fundingTime")
-        AppendToArray(rates,map[string]interface{} {
+        AppendToArray(&rates,map[string]interface{} {
             "info": entry,
             "symbol": this.safeSymbol(this.safeString(entry, "symbol"), nil, nil, "swap"),
             "fundingRate": this.safeNumber(entry, "fundingRate"),
@@ -9060,7 +9061,7 @@ func  (this *binance) fetchFundingRates(optionalArgs ...interface{}) interface{}
     for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
         var entry interface{} = GetValue(response, i)
         var parsed interface{} = this.parseFundingRate(entry)
-        AppendToArray(result,parsed)
+        AppendToArray(&result,parsed)
     }
     return this.filterByArray(result, "symbol", symbols)
 }
@@ -9142,7 +9143,7 @@ func  (this *binance) parseAccountPositions(account interface{}, optionalArgs ..
                     "crossMargin": GetValue(GetValue(balances, code), "crossMargin"),
                     "crossWalletBalance": GetValue(GetValue(balances, code), "crossWalletBalance"),
                 }), market)
-                AppendToArray(result,parsed)
+                AppendToArray(&result,parsed)
             }
         }
     }
@@ -9643,7 +9644,7 @@ func  (this *binance) loadLeverageBrackets(optionalArgs ...interface{}) interfac
                 var bracket interface{} = GetValue(brackets, j)
                 var floorValue interface{} = this.safeString2(bracket, "notionalFloor", "qtyFloor")
                 var maintenanceMarginPercentage interface{} = this.safeString(bracket, "maintMarginRatio")
-                AppendToArray(result,[]interface{}{floorValue, maintenanceMarginPercentage})
+                AppendToArray(&result,[]interface{}{floorValue, maintenanceMarginPercentage})
             }
             AddElementToObject(GetValue(this.options, "leverageBrackets"), symbol, result)
         }
@@ -9769,7 +9770,7 @@ func  (this *binance) parseMarketLeverageTiers(info interface{}, optionalArgs ..
     var tiers interface{} = []interface{}{}
     for j := 0; IsLessThan(j, GetArrayLength(brackets)); j++ {
         var bracket interface{} = GetValue(brackets, j)
-        AppendToArray(tiers,map[string]interface{} {
+        AppendToArray(&tiers,map[string]interface{} {
             "tier": this.safeNumber(bracket, "bracket"),
             "currency": GetValue(market, "quote"),
             "minNotional": this.safeNumber2(bracket, "notionalFloor", "qtyFloor"),
@@ -9885,7 +9886,7 @@ func  (this *binance) fetchOptionPositions(optionalArgs ...interface{}) interfac
     //
     var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
-        AppendToArray(result,this.parsePosition(GetValue(response, i), market))
+        AppendToArray(&result,this.parsePosition(GetValue(response, i), market))
     }
     return this.filterByArrayPositions(result, "symbol", symbols, false)
 }
@@ -10201,7 +10202,7 @@ func  (this *binance) fetchPositionsRisk(optionalArgs ...interface{}) interface{
         var parsed interface{} = this.parsePositionRisk(GetValue(response, i))
         var entryPrice interface{} = this.safeString(parsed, "entryPrice")
         if IsTrue(IsTrue(IsTrue((!IsEqual(entryPrice, "0"))) && IsTrue((!IsEqual(entryPrice, "0.0")))) && IsTrue((!IsEqual(entryPrice, "0.00000000")))) {
-            AppendToArray(result,parsed)
+            AppendToArray(&result,parsed)
         }
     }
     symbols = this.marketSymbols(symbols)
@@ -10767,7 +10768,7 @@ func  (this *binance) parseSettlements(settlements interface{}, market interface
     //
     var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(settlements)); i++ {
-        AppendToArray(result,this.parseSettlement(GetValue(settlements, i), market))
+        AppendToArray(&result,this.parseSettlement(GetValue(settlements, i), market))
     }
     return result
 }
@@ -11543,7 +11544,7 @@ func  (this *binance) parseBorrowRateHistory(response interface{}, code interfac
     for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
         var item interface{} = GetValue(response, i)
         var borrowRate interface{} = this.parseBorrowRate(item)
-        AppendToArray(result,borrowRate)
+        AppendToArray(&result,borrowRate)
     }
     var sorted interface{} = this.sortBy(result, "timestamp")
     return this.filterByCurrencySinceLimit(sorted, code, since, limit)

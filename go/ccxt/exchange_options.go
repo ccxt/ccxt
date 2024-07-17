@@ -330,6 +330,7 @@ func (this *Exchange) describe() map[string]interface{} {
 
 func (this *Exchange) initializeProperties(extendedProperties Dict) {
 
+	this.TransformedApi = map[string]interface{}{}
 	this.version = SafeString(extendedProperties, "version", "").(string)
 	this.Version = this.version
 
@@ -357,10 +358,11 @@ func (this *Exchange) initializeProperties(extendedProperties Dict) {
 	this.hostname = SafeString(extendedProperties, "hostname", "").(string)
 	this.urls = SafeValue(extendedProperties, "urls", map[string]interface{}{}).(map[string]interface{})
 
-	// extendedOptions := SafeValue(extendedProperties, "options",map[string]interface{}{}).(map[string]interface{})
-	// for k, v := range extendedOptions {
-	// 	this.options.Store(k, v)
-	// }
+	this.options = map[string]interface{}{}
+	extendedOptions := SafeValue(extendedProperties, "options", map[string]interface{}{}).(map[string]interface{})
+	for k, v := range extendedOptions {
+		this.options[k] = v
+	}
 
 	this.verbose = SafeValue(extendedProperties, "verbose", false).(bool)
 	this.timeframes = SafeValue(extendedProperties, "timeframes", map[string]interface{}{}).(map[string]interface{})

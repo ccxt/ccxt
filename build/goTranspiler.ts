@@ -725,7 +725,12 @@ class NewTranspiler {
         // this.createCSharpWrappers('Exchange', GLOBAL_WRAPPER_FILE, baseFile.methodsTypes)
 
 
-        // custom transformations needed for c#
+        // custom transformations needed for go
+        baseClass = baseClass.replaceAll (/currentRestInstance interface\{\},/g, "currentRestInstance Exchange,");
+        baseClass = baseClass.replaceAll (/parentRestInstance interface\{\},/g, "parentRestInstance Exchange,");
+        baseClass = baseClass.replaceAll (/client interface\{\},/g, "client Client,");
+        baseClass = baseClass.replaceAll (/this.number = String/g, 'this.number = "string"');
+
         // baseClass = baseClass.replaceAll("client.futures", "getValue(client, \"futures\")"); // tmp fix for c# not needed after ws-merge
         // baseClass = baseClass.replace("((object)this).number = String;", "this.number = typeof(String);"); // tmp fix for c#
         // baseClass = baseClass.replaceAll("client.resolve", "// client.resolve"); // tmp fix for c#
@@ -947,9 +952,9 @@ class NewTranspiler {
         return classes
     }
 
-    createGoExchange(csharpVersion, ws = false) {
-        const goImports = this.getGoImports(csharpVersion, ws).join("\n") + "\n\n";
-        let content = csharpVersion.content;
+    createGoExchange(className, goVersion, ws = false) {
+        const goImports = this.getGoImports(goVersion, ws).join("\n") + "\n\n";
+        let content = goVersion.content;
 
         // const baseWsClassRegex = /class\s(\w+)\s+:\s(\w+)/;
         // const baseWsClassExec = baseWsClassRegex.exec(content);
@@ -973,7 +978,14 @@ class NewTranspiler {
             // const constructorLine = `\npublic partial class ${className} { public ${className}(object args = null) : base(args) { } }\n`
             // content = constructorLine  + content;
         }
-        content = this.createGeneratedHeader().join('\n') + '\n' + content;
+        const capitalizedClassName = className.charAt(0).toUpperCase() + className.slice(1);
+        const initMethod = `
+type ${capitalizedClassName} = ${className}\n
+func (this *${className}) Init(userConfig map[string]interface{}) {
+	this.Exchange = Exchange{}
+	this.Exchange.Init(userConfig, this.describe().(map[string]interface{}))
+}\n`
+        content = this.createGeneratedHeader().join('\n') + '\n' + content + '\n' +  initMethod;
         return goImports + content;
     }
 
@@ -995,14 +1007,15 @@ class NewTranspiler {
 
         const { csharpFolder } = options
 
-        const csharpFilename = filename.replace ('.ts', '.go')
+        const extensionlessName = filename.replace ('.ts', '')
+        const goFilename = filename.replace ('.ts', '.go')
 
         const tsMtime = fs.statSync (tsPath).mtime.getTime ()
 
-        const csharp  = this.createGoExchange (csharpResult, ws)
+        const csharp  = this.createGoExchange (extensionlessName, csharpResult, ws)
 
         if (csharpFolder) {
-            overwriteFileAndFolder (csharpFolder + csharpFilename, csharp)
+            overwriteFileAndFolder (csharpFolder + goFilename, csharp)
             // fs.utimesSync (csharpFolder + csharpFilename, new Date (), new Date (tsMtime))
         }
     }

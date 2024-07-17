@@ -133,7 +133,9 @@ func (this *Exchange) Init(userConfig map[string]interface{}, exchangeConfig map
 	// this.Id = this.id
 	this.initializeProperties(extendedProperties)
 
-	// transformApiNew(this.Api)
+	this.transformApiNew(this.Api)
+
+	fmt.Println(this.TransformedApi)
 }
 
 func (this *Exchange) loadMarkets(params ...interface{}) {
@@ -150,8 +152,22 @@ func (this *Exchange) log(args ...interface{}) {
 	fmt.Println(args)
 }
 
-func (this *Exchange) call(method interface{}, parameters interface{}) interface{} {
-	return nil // tbd
+func (this *Exchange) callEndpoint(endpoint2 interface{}, parameters interface{}) interface{} {
+	endpoint := endpoint2.(string)
+	if val, ok := this.TransformedApi[endpoint]; ok {
+		endPointData := val.(map[string]interface{})
+		// endPointData := this.TransformedApi[endpoint].(map[string]interface{})
+		method := endPointData["method"].(string)
+		path := endPointData["path"].(string)
+		api := endPointData["api"]
+		var cost float64 = 1
+		if valCost, ok := endPointData["cost"]; ok {
+			cost = valCost.(float64)
+		}
+		res := this.fetch2(path, api, method, parameters, map[string]interface{}{}, nil, map[string]interface{}{"cost": cost})
+		return res
+	}
+	return nil
 }
 
 func NewError(err interface{}, v ...interface{}) string {
@@ -358,7 +374,7 @@ func (this *Exchange) transformApiNew(api Dict, paths ...string) {
 	for key, value := range api {
 		if isHttpMethod(key) {
 			var endpoints []string
-			if dictValue, ok := value.(Dict); ok {
+			if dictValue, ok := value.(map[string]interface{}); ok {
 				for endpoint := range dictValue {
 					endpoints = append(endpoints, endpoint)
 				}
@@ -374,9 +390,9 @@ func (this *Exchange) transformApiNew(api Dict, paths ...string) {
 
 			for _, endpoint := range endpoints {
 				cost := 1.0
-				if dictValue, ok := value.(Dict); ok {
+				if dictValue, ok := value.(map[string]interface{}); ok {
 					if config, ok := dictValue[endpoint]; ok {
-						if dictConfig, ok := config.(Dict); ok {
+						if dictConfig, ok := config.(map[string]interface{}); ok {
 							if rl, success := dictConfig["cost"]; success {
 								if rlFloat, ok := rl.(float64); ok {
 									cost = rlFloat
@@ -422,7 +438,7 @@ func (this *Exchange) transformApiNew(api Dict, paths ...string) {
 				}
 			}
 		} else {
-			if nestedDict, ok := value.(Dict); ok {
+			if nestedDict, ok := value.(map[string]interface{}); ok {
 				this.transformApiNew(nestedDict, append(paths, key)...)
 			}
 		}

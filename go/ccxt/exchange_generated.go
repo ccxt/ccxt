@@ -158,24 +158,24 @@ func  (this *Exchange) checkProxyUrlSettings(optionalArgs ...interface{}) interf
     var usedProxies interface{} = []interface{}{}
     var proxyUrl interface{} = nil
     if IsTrue(!IsEqual(this.proxyUrl, nil)) {
-        AppendToArray(usedProxies,"proxyUrl")
+        AppendToArray(&usedProxies,"proxyUrl")
         proxyUrl = this.proxyUrl
     }
     if IsTrue(!IsEqual(this.proxy_url, nil)) {
-        AppendToArray(usedProxies,"proxy_url")
+        AppendToArray(&usedProxies,"proxy_url")
         proxyUrl = this.proxy_url
     }
     if IsTrue(!IsEqual(this.proxyUrlCallback, nil)) {
-        AppendToArray(usedProxies,"proxyUrlCallback")
+        AppendToArray(&usedProxies,"proxyUrlCallback")
         proxyUrl = callDynamically("proxyUrlCallback", url, method, headers, body)
     }
     if IsTrue(!IsEqual(this.proxy_url_callback, nil)) {
-        AppendToArray(usedProxies,"proxy_url_callback")
+        AppendToArray(&usedProxies,"proxy_url_callback")
         proxyUrl = callDynamically("proxy_url_callback", url, method, headers, body)
     }
     // backwards-compatibility
     if IsTrue(!IsEqual(this.proxy, nil)) {
-        AppendToArray(usedProxies,"proxy")
+        AppendToArray(&usedProxies,"proxy")
         if IsTrue(IsFunction(this.proxy)) {
             proxyUrl = callDynamically("proxy", url, method, headers, body)
         } else {
@@ -204,53 +204,53 @@ func  (this *Exchange) checkProxySettings(optionalArgs ...interface{}) interface
     var socksProxy interface{} = nil
     // httpProxy
     if IsTrue(this.valueIsDefined(this.httpProxy)) {
-        AppendToArray(usedProxies,"httpProxy")
+        AppendToArray(&usedProxies,"httpProxy")
         httpProxy = this.httpProxy
     }
     if IsTrue(this.valueIsDefined(this.http_proxy)) {
-        AppendToArray(usedProxies,"http_proxy")
+        AppendToArray(&usedProxies,"http_proxy")
         httpProxy = this.http_proxy
     }
     if IsTrue(!IsEqual(this.httpProxyCallback, nil)) {
-        AppendToArray(usedProxies,"httpProxyCallback")
+        AppendToArray(&usedProxies,"httpProxyCallback")
         httpProxy = callDynamically("httpProxyCallback", url, method, headers, body)
     }
     if IsTrue(!IsEqual(this.http_proxy_callback, nil)) {
-        AppendToArray(usedProxies,"http_proxy_callback")
+        AppendToArray(&usedProxies,"http_proxy_callback")
         httpProxy = callDynamically("http_proxy_callback", url, method, headers, body)
     }
     // httpsProxy
     if IsTrue(this.valueIsDefined(this.httpsProxy)) {
-        AppendToArray(usedProxies,"httpsProxy")
+        AppendToArray(&usedProxies,"httpsProxy")
         httpsProxy = this.httpsProxy
     }
     if IsTrue(this.valueIsDefined(this.https_proxy)) {
-        AppendToArray(usedProxies,"https_proxy")
+        AppendToArray(&usedProxies,"https_proxy")
         httpsProxy = this.https_proxy
     }
     if IsTrue(!IsEqual(this.httpsProxyCallback, nil)) {
-        AppendToArray(usedProxies,"httpsProxyCallback")
+        AppendToArray(&usedProxies,"httpsProxyCallback")
         httpsProxy = callDynamically("httpsProxyCallback", url, method, headers, body)
     }
     if IsTrue(!IsEqual(this.https_proxy_callback, nil)) {
-        AppendToArray(usedProxies,"https_proxy_callback")
+        AppendToArray(&usedProxies,"https_proxy_callback")
         httpsProxy = callDynamically("https_proxy_callback", url, method, headers, body)
     }
     // socksProxy
     if IsTrue(this.valueIsDefined(this.socksProxy)) {
-        AppendToArray(usedProxies,"socksProxy")
+        AppendToArray(&usedProxies,"socksProxy")
         socksProxy = this.socksProxy
     }
     if IsTrue(this.valueIsDefined(this.socks_proxy)) {
-        AppendToArray(usedProxies,"socks_proxy")
+        AppendToArray(&usedProxies,"socks_proxy")
         socksProxy = this.socks_proxy
     }
     if IsTrue(!IsEqual(this.socksProxyCallback, nil)) {
-        AppendToArray(usedProxies,"socksProxyCallback")
+        AppendToArray(&usedProxies,"socksProxyCallback")
         socksProxy = callDynamically("socksProxyCallback", url, method, headers, body)
     }
     if IsTrue(!IsEqual(this.socks_proxy_callback, nil)) {
-        AppendToArray(usedProxies,"socks_proxy_callback")
+        AppendToArray(&usedProxies,"socks_proxy_callback")
         socksProxy = callDynamically("socks_proxy_callback", url, method, headers, body)
     }
     // check
@@ -268,29 +268,29 @@ func  (this *Exchange) checkWsProxySettings() interface{}  {
     var wsSocksProxy interface{} = nil
     // ws proxy
     if IsTrue(this.valueIsDefined(this.wsProxy)) {
-        AppendToArray(usedProxies,"wsProxy")
+        AppendToArray(&usedProxies,"wsProxy")
         wsProxy = this.wsProxy
     }
     if IsTrue(this.valueIsDefined(this.ws_proxy)) {
-        AppendToArray(usedProxies,"ws_proxy")
+        AppendToArray(&usedProxies,"ws_proxy")
         wsProxy = this.ws_proxy
     }
     // wss proxy
     if IsTrue(this.valueIsDefined(this.wssProxy)) {
-        AppendToArray(usedProxies,"wssProxy")
+        AppendToArray(&usedProxies,"wssProxy")
         wssProxy = this.wssProxy
     }
     if IsTrue(this.valueIsDefined(this.wss_proxy)) {
-        AppendToArray(usedProxies,"wss_proxy")
+        AppendToArray(&usedProxies,"wss_proxy")
         wssProxy = this.wss_proxy
     }
     // ws socks proxy
     if IsTrue(this.valueIsDefined(this.wsSocksProxy)) {
-        AppendToArray(usedProxies,"wsSocksProxy")
+        AppendToArray(&usedProxies,"wsSocksProxy")
         wsSocksProxy = this.wsSocksProxy
     }
     if IsTrue(this.valueIsDefined(this.ws_socks_proxy)) {
-        AppendToArray(usedProxies,"ws_socks_proxy")
+        AppendToArray(&usedProxies,"ws_socks_proxy")
         wsSocksProxy = this.ws_socks_proxy
     }
     // check
@@ -306,15 +306,15 @@ func  (this *Exchange) checkConflictingProxies(proxyAgentSet interface{}, proxyU
         panic(ProxyError(Add(this.id, " you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy")))
     }
 }
-func  (this *Exchange) findMessageHashes(client interface{}, element interface{}) interface{}  {
+func  (this *Exchange) findMessageHashes(client Client, element interface{}) interface{}  {
     var result interface{} = []interface{}{}
-    // var messageHashes interface{} = ObjectKeys(client.futures)
-    // for i := 0; IsLessThan(i, GetArrayLength(messageHashes)); i++ {
-    //     var messageHash interface{} = GetValue(messageHashes, i)
-    //     if IsTrue(IsGreaterThanOrEqual(GetIndexOf(messageHash, element), 0)) {
-    //         AppendToArray(result,messageHash)
-    //     }
-    // }
+    var messageHashes interface{} = ObjectKeys(client.futures)
+    for i := 0; IsLessThan(i, GetArrayLength(messageHashes)); i++ {
+        var messageHash interface{} = GetValue(messageHashes, i)
+        if IsTrue(IsGreaterThanOrEqual(GetIndexOf(messageHash, element), 0)) {
+            AppendToArray(&result,messageHash)
+        }
+    }
     return result
 }
 func  (this *Exchange) filterByLimit(array interface{}, optionalArgs ...interface{}) interface{}  {
@@ -365,7 +365,7 @@ func  (this *Exchange) filterBySinceLimit(array interface{}, optionalArgs ...int
             var entry interface{} = GetValue(parsedArray, i)
             var value interface{} = this.safeValue(entry, key)
             if IsTrue(IsTrue(value) && IsTrue((IsGreaterThanOrEqual(value, since)))) {
-                AppendToArray(result,entry)
+                AppendToArray(&result,entry)
             }
         }
     }
@@ -403,7 +403,7 @@ func  (this *Exchange) filterByValueSinceLimit(array interface{}, field interfac
             var entryKeyGESince interface{} = IsTrue(IsTrue((entryKeyValue)) && IsTrue(since)) && IsTrue((IsGreaterThanOrEqual(entryKeyValue, since)))
             var secondCondition interface{} = Ternary(IsTrue(sinceIsDefined), entryKeyGESince, true)
             if IsTrue(IsTrue(firstCondition) && IsTrue(secondCondition)) {
-                AppendToArray(result,entry)
+                AppendToArray(&result,entry)
             }
         }
     }
@@ -656,7 +656,7 @@ func  (this *Exchange) parseMarket(market interface{}) interface{}  {
 func  (this *Exchange) parseMarkets(markets interface{}) interface{}  {
     var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
-        AppendToArray(result,this.parseMarket(GetValue(markets, i)))
+        AppendToArray(&result,this.parseMarket(GetValue(markets, i)))
     }
     return result
 }
@@ -1123,7 +1123,8 @@ func  (this *Exchange) setMarkets(markets interface{}, optionalArgs ...interface
     for i := 0; IsLessThan(i, GetArrayLength(marketValues)); i++ {
         var value interface{} = GetValue(marketValues, i)
         if IsTrue(InOp(this.markets_by_id, GetValue(value, "id"))) {
-            AppendToArray(GetValue(this.markets_by_id, GetValue(value, "id")),value)
+            var marketsByIdArray interface{} =             GetValue(this.markets_by_id, GetValue(value, "id"))
+            AppendToArray(&marketsByIdArray,value)
         } else {
             AddElementToObject(this.markets_by_id, GetValue(value, "id"), []interface{}{value})
         }
@@ -1138,7 +1139,7 @@ func  (this *Exchange) setMarkets(markets interface{}, optionalArgs ...interface
         } else {
             AddElementToObject(market, "subType", nil)
         }
-        AppendToArray(values,market)
+        AppendToArray(&values,market)
     }
     this.markets = this.indexBy(values, "symbol")
     var marketsSortedBySymbol interface{} = this.keysort(this.markets)
@@ -1162,7 +1163,7 @@ func  (this *Exchange) setMarkets(markets interface{}, optionalArgs ...interface
                     "code": this.safeString(market, "base"),
                     "precision": this.safeValue2(marketPrecision, "base", "amount", defaultCurrencyPrecision),
                 })
-                AppendToArray(baseCurrencies,currency)
+                AppendToArray(&baseCurrencies,currency)
             }
             if IsTrue(InOp(market, "quote")) {
                 var currency interface{} = this.safeCurrencyStructure(map[string]interface{} {
@@ -1171,7 +1172,7 @@ func  (this *Exchange) setMarkets(markets interface{}, optionalArgs ...interface
                     "code": this.safeString(market, "quote"),
                     "precision": this.safeValue2(marketPrecision, "quote", "price", defaultCurrencyPrecision),
                 })
-                AppendToArray(quoteCurrencies,currency)
+                AppendToArray(&quoteCurrencies,currency)
             }
         }
         baseCurrencies = this.sortBy(baseCurrencies, "code", false, "")
@@ -1194,7 +1195,7 @@ func  (this *Exchange) setMarkets(markets interface{}, optionalArgs ...interface
                     highestPrecisionCurrency = Ternary(IsTrue((IsGreaterThan(GetValue(currentCurrency, "precision"), GetValue(highestPrecisionCurrency, "precision")))), currentCurrency, highestPrecisionCurrency)
                 }
             }
-            AppendToArray(resultingCurrencies,highestPrecisionCurrency)
+            AppendToArray(&resultingCurrencies,highestPrecisionCurrency)
         }
         var sortedCurrencies interface{} = this.sortBy(resultingCurrencies, "code")
         this.currencies = this.deepExtend(this.currencies, this.indexBy(sortedCurrencies, "code"))
@@ -1280,7 +1281,7 @@ func  (this *Exchange) safeOrder(order interface{}, optionalArgs ...interface{})
         var rawTrades interface{} = this.safeValue(order, "trades", trades)
         var oldNumber interface{} = this.number
         // we parse trades as strings here!
-        // this.number = String
+        this.number = "string"
         var firstTrade interface{} = this.safeValue(rawTrades, 0)
         // parse trades if they haven't already been parsed
         var tradesAreParsed interface{} =         (IsTrue(IsTrue((!IsEqual(firstTrade, nil))) && IsTrue((InOp(firstTrade, "info")))) && IsTrue((InOp(firstTrade, "id"))))
@@ -1344,12 +1345,12 @@ func  (this *Exchange) safeOrder(order interface{}, optionalArgs ...interface{})
                     if IsTrue(!IsEqual(tradeFees, nil)) {
                         for j := 0; IsLessThan(j, GetArrayLength(tradeFees)); j++ {
                             var tradeFee interface{} = GetValue(tradeFees, j)
-                            AppendToArray(fees,this.extend(map[string]interface{} {}, tradeFee))
+                            AppendToArray(&fees,this.extend(map[string]interface{} {}, tradeFee))
                         }
                     } else {
                         var tradeFee interface{} = this.safeValue(trade, "fee")
                         if IsTrue(!IsEqual(tradeFee, nil)) {
-                            AppendToArray(fees,this.extend(map[string]interface{} {}, tradeFee))
+                            AppendToArray(&fees,this.extend(map[string]interface{} {}, tradeFee))
                         }
                     }
                 }
@@ -1372,7 +1373,7 @@ func  (this *Exchange) safeOrder(order interface{}, optionalArgs ...interface{})
             if IsTrue(InOp(feeCopy, "rate")) {
                 AddElementToObject(feeCopy, "rate", this.safeNumber(feeCopy, "rate"))
             }
-            AppendToArray(reducedFees,feeCopy)
+            AppendToArray(&reducedFees,feeCopy)
         }
         AddElementToObject(order, "fees", reducedFees)
         if IsTrue(IsTrue(parseFee) && IsTrue((IsEqual(reducedLength, 1)))) {
@@ -1551,7 +1552,7 @@ func  (this *Exchange) parseOrders(orders interface{}, optionalArgs ...interface
     if IsTrue(IsArray(orders)) {
         for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
             var order interface{} = this.extend(this.parseOrder(GetValue(orders, i), market), params)
-            AppendToArray(results,order)
+            AppendToArray(&results,order)
         }
     } else {
         var ids interface{} = ObjectKeys(orders)
@@ -1560,7 +1561,7 @@ func  (this *Exchange) parseOrders(orders interface{}, optionalArgs ...interface
             var order interface{} = this.extend(this.parseOrder(this.extend(map[string]interface{} {
                 "id": id,
             }, GetValue(orders, id)), market), params)
-            AppendToArray(results,order)
+            AppendToArray(&results,order)
         }
     }
     results = this.sortBy(results, "timestamp")
@@ -1687,7 +1688,7 @@ func  (this *Exchange) safeTrade(trade interface{}, optionalArgs ...interface{})
             if IsTrue(InOp(feeCopy, "rate")) {
                 AddElementToObject(feeCopy, "rate", this.safeNumber(feeCopy, "rate"))
             }
-            AppendToArray(reducedFees,feeCopy)
+            AppendToArray(&reducedFees,feeCopy)
         }
         if IsTrue(parseFees) {
             AddElementToObject(trade, "fees", reducedFees)
@@ -1974,7 +1975,7 @@ func  (this *Exchange) convertTradingViewToOHLCV(ohlcvs interface{}, optionalArg
     var closes interface{} = this.safeList(ohlcvs, close, []interface{}{})
     var volumes interface{} = this.safeList(ohlcvs, volume, []interface{}{})
     for i := 0; IsLessThan(i, GetArrayLength(timestamps)); i++ {
-        AppendToArray(result,[]interface{}{Ternary(IsTrue(ms), this.safeInteger(timestamps, i), this.safeTimestamp(timestamps, i)), this.safeValue(opens, i), this.safeValue(highs, i), this.safeValue(lows, i), this.safeValue(closes, i), this.safeValue(volumes, i)})
+        AppendToArray(&result,[]interface{}{Ternary(IsTrue(ms), this.safeInteger(timestamps, i), this.safeTimestamp(timestamps, i)), this.safeValue(opens, i), this.safeValue(highs, i), this.safeValue(lows, i), this.safeValue(closes, i), this.safeValue(volumes, i)})
     }
     return result
 }
@@ -2002,12 +2003,18 @@ func  (this *Exchange) convertOHLCVToTradingView(ohlcvs interface{}, optionalArg
     AddElementToObject(result, volume, []interface{}{})
     for i := 0; IsLessThan(i, GetArrayLength(ohlcvs)); i++ {
         var ts interface{} = Ternary(IsTrue(ms), GetValue(GetValue(ohlcvs, i), 0), this.parseToInt(Divide(GetValue(GetValue(ohlcvs, i), 0), 1000)))
-        AppendToArray(GetValue(result, timestamp),ts)
-        AppendToArray(GetValue(result, open),GetValue(GetValue(ohlcvs, i), 1))
-        AppendToArray(GetValue(result, high),GetValue(GetValue(ohlcvs, i), 2))
-        AppendToArray(GetValue(result, low),GetValue(GetValue(ohlcvs, i), 3))
-        AppendToArray(GetValue(result, close),GetValue(GetValue(ohlcvs, i), 4))
-        AppendToArray(GetValue(result, volume),GetValue(GetValue(ohlcvs, i), 5))
+        var resultTimestamp interface{} = GetValue(result, timestamp)
+        AppendToArray(&resultTimestamp,ts)
+        var resultOpen interface{} = GetValue(result, open)
+        AppendToArray(&resultOpen,GetValue(GetValue(ohlcvs, i), 1))
+        var resultHigh interface{} = GetValue(result, high)
+        AppendToArray(&resultHigh,GetValue(GetValue(ohlcvs, i), 2))
+        var resultLow interface{} = GetValue(result, low)
+        AppendToArray(&resultLow,GetValue(GetValue(ohlcvs, i), 3))
+        var resultClose interface{} = GetValue(result, close)
+        AppendToArray(&resultClose,GetValue(GetValue(ohlcvs, i), 4))
+        var resultVolume interface{} = GetValue(result, volume)
+        AppendToArray(&resultVolume,GetValue(GetValue(ohlcvs, i), 5))
     }
     return result
 }
@@ -2108,7 +2115,7 @@ func  (this *Exchange) marketIds(optionalArgs ...interface{}) interface{}  {
     }
     var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
-        AppendToArray(result,this.marketId(GetValue(symbols, i)))
+        AppendToArray(&result,this.marketId(GetValue(symbols, i)))
     }
     return result
 }
@@ -2120,7 +2127,7 @@ func  (this *Exchange) marketsForSymbols(optionalArgs ...interface{}) interface{
     }
     var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(symbols)); i++ {
-        AppendToArray(result,this.market(GetValue(symbols, i)))
+        AppendToArray(&result,this.market(GetValue(symbols, i)))
     }
     return result
 }
@@ -2171,7 +2178,7 @@ func  (this *Exchange) marketSymbols(optionalArgs ...interface{}) interface{}  {
             isLinearSubType = GetValue(market, "linear")
         }
         var symbol interface{} = this.safeString(market, "symbol", GetValue(symbols, i))
-        AppendToArray(result,symbol)
+        AppendToArray(&result,symbol)
     }
     return result
 }
@@ -2183,7 +2190,7 @@ func  (this *Exchange) marketCodes(optionalArgs ...interface{}) interface{}  {
     }
     var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(codes)); i++ {
-        AppendToArray(result,this.commonCurrencyCode(GetValue(codes, i)))
+        AppendToArray(&result,this.commonCurrencyCode(GetValue(codes, i)))
     }
     return result
 }
@@ -2197,7 +2204,7 @@ func  (this *Exchange) parseBidsAsks(bidasks interface{}, optionalArgs ...interf
     bidasks = this.toArray(bidasks)
     var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(bidasks)); i++ {
-        AppendToArray(result,this.parseBidAsk(GetValue(bidasks, i), priceKey, amountKey, countOrIdKey))
+        AppendToArray(&result,this.parseBidAsk(GetValue(bidasks, i), priceKey, amountKey, countOrIdKey))
     }
     return result
 }
@@ -2222,7 +2229,7 @@ func  (this *Exchange) filterBySymbol(objects interface{}, optionalArgs ...inter
     for i := 0; IsLessThan(i, GetArrayLength(objects)); i++ {
         var objectSymbol interface{} = this.safeString(GetValue(objects, i), "symbol")
         if IsTrue(IsEqual(objectSymbol, symbol)) {
-            AppendToArray(result,GetValue(objects, i))
+            AppendToArray(&result,GetValue(objects, i))
         }
     }
     return result
@@ -2426,7 +2433,7 @@ func  (this *Exchange) parseOHLCVs(ohlcvs interface{}, optionalArgs ...interface
     _ = limit
     var results interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(ohlcvs)); i++ {
-        AppendToArray(results,this.parseOHLCV(GetValue(ohlcvs, i), market))
+        AppendToArray(&results,this.parseOHLCV(GetValue(ohlcvs, i), market))
     }
     var sorted interface{} = this.sortBy(results, 0)
     return this.filterBySinceLimit(sorted, since, limit, 0)
@@ -2525,7 +2532,7 @@ func  (this *Exchange) parsePositions(positions interface{}, optionalArgs ...int
     var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(positions)); i++ {
         var position interface{} = this.extend(this.parsePosition(GetValue(positions, i), nil), params)
-        AppendToArray(result,position)
+        AppendToArray(&result,position)
     }
     return this.filterByArrayPositions(result, "symbol", symbols, false)
 }
@@ -2536,7 +2543,7 @@ func  (this *Exchange) parseAccounts(accounts interface{}, optionalArgs ...inter
     var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(accounts)); i++ {
         var account interface{} = this.extend(this.parseAccount(GetValue(accounts, i)), params)
-        AppendToArray(result,account)
+        AppendToArray(&result,account)
     }
     return result
 }
@@ -2553,7 +2560,7 @@ func  (this *Exchange) parseTrades(trades interface{}, optionalArgs ...interface
     var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(trades)); i++ {
         var trade interface{} = this.extend(this.parseTrade(GetValue(trades, i), market), params)
-        AppendToArray(result,trade)
+        AppendToArray(&result,trade)
     }
     result = this.sortBy2(result, "timestamp", "id")
     var symbol interface{} = Ternary(IsTrue((!IsEqual(market, nil))), GetValue(market, "symbol"), nil)
@@ -2572,7 +2579,7 @@ func  (this *Exchange) parseTransactions(transactions interface{}, optionalArgs 
     var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(transactions)); i++ {
         var transaction interface{} = this.extend(this.parseTransaction(GetValue(transactions, i), currency), params)
-        AppendToArray(result,transaction)
+        AppendToArray(&result,transaction)
     }
     result = this.sortBy(result, "timestamp")
     var code interface{} = Ternary(IsTrue((!IsEqual(currency, nil))), GetValue(currency, "code"), nil)
@@ -2591,7 +2598,7 @@ func  (this *Exchange) parseTransfers(transfers interface{}, optionalArgs ...int
     var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(transfers)); i++ {
         var transfer interface{} = this.extend(this.parseTransfer(GetValue(transfers, i), currency), params)
-        AppendToArray(result,transfer)
+        AppendToArray(&result,transfer)
     }
     result = this.sortBy(result, "timestamp")
     var code interface{} = Ternary(IsTrue((!IsEqual(currency, nil))), GetValue(currency, "code"), nil)
@@ -2612,10 +2619,10 @@ func  (this *Exchange) parseLedger(data interface{}, optionalArgs ...interface{}
         var itemOrItems interface{} = this.parseLedgerEntry(GetValue(arrayData, i), currency)
         if IsTrue(IsArray(itemOrItems)) {
             for j := 0; IsLessThan(j, GetArrayLength(itemOrItems)); j++ {
-                AppendToArray(result,this.extend(GetValue(itemOrItems, j), params))
+                AppendToArray(&result,this.extend(GetValue(itemOrItems, j), params))
             }
         } else {
-            AppendToArray(result,this.extend(itemOrItems, params))
+            AppendToArray(&result,this.extend(itemOrItems, params))
         }
     }
     result = this.sortBy(result, "timestamp")
@@ -2700,7 +2707,7 @@ func  (this *Exchange) getListFromObjectValues(objects interface{}, key interfac
     var newArray interface{} = this.toArray(objects)
     var results interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(newArray)); i++ {
-        AppendToArray(results,GetValue(GetValue(newArray, i), key))
+        AppendToArray(&results,GetValue(GetValue(newArray, i), key))
     }
     return results
 }
@@ -2723,10 +2730,10 @@ func  (this *Exchange) getSymbolsForMarketType(optionalArgs ...interface{}) inte
     }
     var activeStatuses interface{} = []interface{}{}
     if IsTrue(symbolWithActiveStatus) {
-        AppendToArray(activeStatuses,true)
+        AppendToArray(&activeStatuses,true)
     }
     if IsTrue(symbolWithUnknownStatus) {
-        AppendToArray(activeStatuses,nil)
+        AppendToArray(&activeStatuses,nil)
     }
     filteredMarkets = this.filterByArray(filteredMarkets, "active", activeStatuses, false)
     return this.getListFromObjectValues(filteredMarkets, "symbol")
@@ -2744,7 +2751,7 @@ func  (this *Exchange) filterByArray(objects interface{}, key interface{}, optio
     var results interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(objects)); i++ {
         if IsTrue(this.inArray(GetValue(GetValue(objects, i), key), values)) {
-            AppendToArray(results,GetValue(objects, i))
+            AppendToArray(&results,GetValue(objects, i))
         }
     }
     return Ternary(IsTrue(indexed), this.indexBy(results, key), results)
@@ -2839,7 +2846,7 @@ func  (this *Exchange) buildOHLCVC(trades interface{}, optionalArgs ...interface
         var candle interface{} = Subtract(ohlcv_length, 1)
         if IsTrue(IsTrue((IsEqual(candle, OpNeg(IsTrue(1))))) || IsTrue((IsGreaterThanOrEqual(openingTime, this.sum(GetValue(GetValue(ohlcvs, candle), i_timestamp), ms))))) {
             // moved to a new timeframe -> create a new candle from opening trade
-            AppendToArray(ohlcvs,[]interface{}{openingTime, GetValue(trade, "price"), GetValue(trade, "price"), GetValue(trade, "price"), GetValue(trade, "price"), GetValue(trade, "amount"), 1})
+            AppendToArray(&ohlcvs,[]interface{}{openingTime, GetValue(trade, "price"), GetValue(trade, "price"), GetValue(trade, "price"), GetValue(trade, "price"), GetValue(trade, "amount"), 1})
         } else {
             // still processing the same timeframe -> update opening trade
             AddElementToObject(GetValue(ohlcvs, candle), i_high, mathMax(GetValue(GetValue(ohlcvs, candle), i_high), GetValue(trade, "price")))
@@ -3029,7 +3036,7 @@ func  (this *Exchange) parseBidAsk(bidask interface{}, optionalArgs ...interface
     var countOrId interface{} = this.safeInteger(bidask, countOrIdKey)
     var bidAsk interface{} = []interface{}{price, amount}
     if IsTrue(!IsEqual(countOrId, nil)) {
-        AppendToArray(bidAsk,countOrId)
+        AppendToArray(&bidAsk,countOrId)
     }
     return bidAsk
 }
@@ -3289,13 +3296,10 @@ func  (this *Exchange) handleOptionAndParams2(params interface{}, methodName1 in
     return []interface{}{value2, params}
 }
 func  (this *Exchange) handleOption(methodName interface{}, optionName interface{}, optionalArgs ...interface{}) interface{}  {
-    // eslint-disable-next-line no-unused-vars
     defaultValue := GetArg(optionalArgs, 2, nil)
     _ = defaultValue
-    resultemptyVariable := this.handleOptionAndParams(map[string]interface{} {}, methodName, optionName, defaultValue);
-    result := GetValue(resultemptyVariable,0);
-    // empty := GetValue(resultemptyVariable,1)
-    return result
+    var res interface{} = this.handleOptionAndParams(map[string]interface{} {}, methodName, optionName, defaultValue)
+    return this.safeValue(res, 0)
 }
 func  (this *Exchange) handleMarketTypeAndParams(methodName interface{}, optionalArgs ...interface{}) interface{}  {
     /**
@@ -4890,7 +4894,7 @@ func  (this *Exchange) parseLastPrices(pricesData interface{}, optionalArgs ...i
     if IsTrue(IsArray(pricesData)) {
         for i := 0; IsLessThan(i, GetArrayLength(pricesData)); i++ {
             var priceData interface{} = this.extend(this.parseLastPrice(GetValue(pricesData, i)), params)
-            AppendToArray(results,priceData)
+            AppendToArray(&results,priceData)
         }
     } else {
         var marketIds interface{} = ObjectKeys(pricesData)
@@ -4898,7 +4902,7 @@ func  (this *Exchange) parseLastPrices(pricesData interface{}, optionalArgs ...i
             var marketId interface{} = GetValue(marketIds, i)
             var market interface{} = this.safeMarket(marketId)
             var priceData interface{} = this.extend(this.parseLastPrice(GetValue(pricesData, marketId), market), params)
-            AppendToArray(results,priceData)
+            AppendToArray(&results,priceData)
         }
     }
     symbols = this.marketSymbols(symbols)
@@ -4935,7 +4939,7 @@ func  (this *Exchange) parseTickers(tickers interface{}, optionalArgs ...interfa
     if IsTrue(IsArray(tickers)) {
         for i := 0; IsLessThan(i, GetArrayLength(tickers)); i++ {
             var ticker interface{} = this.extend(this.parseTicker(GetValue(tickers, i)), params)
-            AppendToArray(results,ticker)
+            AppendToArray(&results,ticker)
         }
     } else {
         var marketIds interface{} = ObjectKeys(tickers)
@@ -4943,7 +4947,7 @@ func  (this *Exchange) parseTickers(tickers interface{}, optionalArgs ...interfa
             var marketId interface{} = GetValue(marketIds, i)
             var market interface{} = this.safeMarket(marketId)
             var ticker interface{} = this.extend(this.parseTicker(GetValue(tickers, marketId), market), params)
-            AppendToArray(results,ticker)
+            AppendToArray(&results,ticker)
         }
     }
     symbols = this.marketSymbols(symbols)
@@ -4959,7 +4963,7 @@ func  (this *Exchange) parseDepositAddresses(addresses interface{}, optionalArgs
     var result interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(addresses)); i++ {
         var address interface{} = this.extend(this.parseDepositAddress(GetValue(addresses, i)), params)
-        AppendToArray(result,address)
+        AppendToArray(&result,address)
     }
     if IsTrue(!IsEqual(codes, nil)) {
         result = this.filterByArray(result, "currency", codes, false)
@@ -4975,7 +4979,7 @@ func  (this *Exchange) parseBorrowInterests(response interface{}, optionalArgs .
     var interests interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
         var row interface{} = GetValue(response, i)
-        AppendToArray(interests,this.parseBorrowInterest(row, market))
+        AppendToArray(&interests,this.parseBorrowInterest(row, market))
     }
     return interests
 }
@@ -4999,7 +5003,7 @@ func  (this *Exchange) parseFundingRateHistories(response interface{}, optionalA
     var rates interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
         var entry interface{} = GetValue(response, i)
-        AppendToArray(rates,this.parseFundingRateHistory(entry, market))
+        AppendToArray(&rates,this.parseFundingRateHistory(entry, market))
     }
     var sorted interface{} = this.sortBy(rates, "timestamp")
     var symbol interface{} = Ternary(IsTrue((IsEqual(market, nil))), nil, GetValue(market, "symbol"))
@@ -5150,7 +5154,7 @@ func  (this *Exchange) parseOpenInterests(response interface{}, optionalArgs ...
     for i := 0; IsLessThan(i, GetArrayLength(response)); i++ {
         var entry interface{} = GetValue(response, i)
         var interest interface{} = this.parseOpenInterest(entry, market)
-        AppendToArray(interests,interest)
+        AppendToArray(&interests,interest)
     }
     var sorted interface{} = this.sortBy(interests, "timestamp")
     var symbol interface{} = this.safeString(market, "symbol")
@@ -5442,7 +5446,7 @@ func  (this *Exchange) parseIncomes(incomes interface{}, optionalArgs ...interfa
     for i := 0; IsLessThan(i, GetArrayLength(incomes)); i++ {
         var entry interface{} = GetValue(incomes, i)
         var parsed interface{} = this.parseIncome(entry, market)
-        AppendToArray(result,parsed)
+        AppendToArray(&result,parsed)
     }
     var sorted interface{} = this.sortBy(result, "timestamp")
     return this.filterBySinceLimit(sorted, since, limit)
@@ -5468,7 +5472,7 @@ func  (this *Exchange) parseWsOHLCVs(ohlcvs interface{}, optionalArgs ...interfa
     _ = limit
     var results interface{} = []interface{}{}
     for i := 0; IsLessThan(i, GetArrayLength(ohlcvs)); i++ {
-        AppendToArray(results,this.parseWsOHLCV(GetValue(ohlcvs, i), market))
+        AppendToArray(&results,this.parseWsOHLCV(GetValue(ohlcvs, i), market))
     }
     return results
 }
@@ -5756,7 +5760,7 @@ func  (this *Exchange) fetchPaginatedCallDeterministic(method interface{}, optio
         if IsTrue(IsGreaterThanOrEqual(currentSince, current)) {
             break
         }
-        AppendToArray(tasks,this.safeDeterministicCall(method, symbol, currentSince, maxEntriesPerRequest, timeframe, params))
+        AppendToArray(&tasks,this.safeDeterministicCall(method, symbol, currentSince, maxEntriesPerRequest, timeframe, params))
         currentSince = Subtract(this.sum(currentSince, step), 1)
     }
     var results interface{} = promiseAll(tasks)
@@ -6024,7 +6028,7 @@ func  (this *Exchange) parseLiquidations(liquidations interface{}, optionalArgs 
     for i := 0; IsLessThan(i, GetArrayLength(liquidations)); i++ {
         var entry interface{} = GetValue(liquidations, i)
         var parsed interface{} = this.parseLiquidation(entry, market)
-        AppendToArray(result,parsed)
+        AppendToArray(&result,parsed)
     }
     var sorted interface{} = this.sortBy(result, "timestamp")
     var symbol interface{} = this.safeString(market, "symbol")
@@ -6138,7 +6142,7 @@ func  (this *Exchange) parseConversions(conversions interface{}, optionalArgs ..
             toCurrency = this.safeCurrency(toId)
         }
         var conversion interface{} = this.extend(this.parseConversion(entry, fromCurrency, toCurrency), params)
-        AppendToArray(result,conversion)
+        AppendToArray(&result,conversion)
     }
     var sorted interface{} = this.sortBy(result, "timestamp")
     var currency interface{} = nil
@@ -6283,7 +6287,7 @@ func  (this *Exchange) parseMarginModifications(response interface{}, optionalAr
         var marketId interface{} = this.safeString(info, symbolKey)
         var market interface{} = this.safeMarket(marketId, nil, nil, marketType)
         if IsTrue(IsTrue((IsEqual(symbols, nil))) || IsTrue(this.inArray(GetValue(market, "symbol"), symbols))) {
-            AppendToArray(marginModifications,this.parseMarginModification(info, market))
+            AppendToArray(&marginModifications,this.parseMarginModification(info, market))
         }
     }
     return marginModifications

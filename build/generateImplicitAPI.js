@@ -166,8 +166,9 @@ function createImplicitMethodsGo(){
 
         const methods = methodNames.map(method=> {
             return [
-                `${IDEN}func (this *${exchange}) ${method} (parameters interface{}) interface{} {`,
-                `${IDEN}${IDEN}return this.call ("${method}", parameters);`,
+                `${IDEN}func (this *${exchange}) ${method} (args ...interface{}) interface{} {`,
+                `${IDEN}${IDEN}parameters := GetArg(args, 0, nil)`,
+                `${IDEN}${IDEN}return this.callEndpoint ("${method}", parameters);`,
                 `${IDEN}}`,
                 ``,
             ].join('\n')

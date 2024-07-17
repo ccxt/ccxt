@@ -396,24 +396,9 @@ func PlusEqual(a, value interface{}) interface{} {
 	}
 }
 
-func AppendToArray(array interface{}, value interface{}) {
-	// Use reflection to work with the array dynamically
-	arrVal := reflect.ValueOf(array)
-
-	// Check if the input is actually a pointer to a slice
-	if arrVal.Kind() != reflect.Ptr || arrVal.Elem().Kind() != reflect.Slice {
-		return
-	}
-
-	// Get the actual slice
-	sliceVal := arrVal.Elem()
-
-	// Use reflection to append the value to the slice
-	valueVal := reflect.ValueOf(value)
-	resultVal := reflect.Append(sliceVal, valueVal)
-
-	// Set the new slice back to the original array
-	arrVal.Elem().Set(resultVal)
+func AppendToArray(slicePtr *interface{}, element interface{}) {
+	array := (*slicePtr).([]interface{})
+	*slicePtr = append(array, element)
 }
 
 func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value interface{}) {
