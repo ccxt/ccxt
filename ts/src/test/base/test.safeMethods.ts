@@ -255,22 +255,22 @@ function testSafeMethods () {
     assert (exchange.safeFloatN (inputList, [ 3, 2, 1 ]) === parseFloat (2));
 
     // safeNumber
-    assert (exchange.safeNumber (inputDict, 'i') === 1);
-    assert (exchange.safeNumber (inputDict, 'f') === 0.123);
-    assert (exchange.safeNumber (inputDict, 'strNumber') === 3);
-    assert (exchange.safeNumber (inputList, 1) === 2);
+    assert (exchange.safeNumber (inputDict, 'i') === exchange.parseNumber (1));
+    assert (exchange.safeNumber (inputDict, 'f') === exchange.parseNumber (0.123));
+    assert (exchange.safeNumber (inputDict, 'strNumber') === exchange.parseNumber (3));
+    assert (exchange.safeNumber (inputList, 1) === exchange.parseNumber (2));
 
     // safeNumber2
-    assert (exchange.safeNumber2 (inputDict, 'a', 'i') === 1);
-    assert (exchange.safeNumber2 (inputDict, 'a', 'f') === 0.123);
-    assert (exchange.safeNumber2 (inputDict, 'a', 'strNumber') === 3);
-    assert (exchange.safeNumber2 (inputList, 2, 1) === 2);
+    assert (exchange.safeNumber2 (inputDict, 'a', 'i') === exchange.parseNumber (1));
+    assert (exchange.safeNumber2 (inputDict, 'a', 'f') === exchange.parseNumber (0.123));
+    assert (exchange.safeNumber2 (inputDict, 'a', 'strNumber') === exchange.parseNumber (3));
+    assert (exchange.safeNumber2 (inputList, 2, 1) === exchange.parseNumber (2));
 
     // safeNumberN
-    assert (exchange.safeNumberN (inputDict, [ 'a', 'b', 'i' ]) === 1);
-    assert (exchange.safeNumberN (inputDict, [ 'a', 'b', 'f' ]) === 0.123);
-    assert (exchange.safeNumberN (inputDict, [ 'a', 'b', 'strNumber' ]) === 3);
-    assert (exchange.safeNumberN (inputList, [ 3, 2, 1 ]) === 2);
+    assert (exchange.safeNumberN (inputDict, [ 'a', 'b', 'i' ]) === exchange.parseNumber (1));
+    assert (exchange.safeNumberN (inputDict, [ 'a', 'b', 'f' ]) === exchange.parseNumber (0.123));
+    assert (exchange.safeNumberN (inputDict, [ 'a', 'b', 'strNumber' ]) === exchange.parseNumber (3));
+    assert (exchange.safeNumberN (inputList, [ 3, 2, 1 ]) === exchange.parseNumber (2));
 
     // safeBool
     assert (exchange.safeBool (inputDict, 'bool') === true);
