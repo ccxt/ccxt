@@ -618,12 +618,11 @@ export default class bybit extends bybitRest {
         if (ohlcvsByTimeframe === undefined) {
             this.ohlcvs[symbol] = {};
         }
-        let stored = this.safeValue (ohlcvsByTimeframe, timeframe);
-        if (stored === undefined) {
+        if (this.safeValue (ohlcvsByTimeframe, timeframe) === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
         }
+        const stored = this.ohlcvs[symbol][timeframe];
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseWsOHLCV (data[i]);
             stored.append (parsed);
