@@ -3574,12 +3574,18 @@ export default class Exchange {
         result[volume] = [];
         for (let i = 0; i < ohlcvs.length; i++) {
             const ts = ms ? ohlcvs[i][0] : this.parseToInt (ohlcvs[i][0] / 1000);
-            result[timestamp].push (ts);
-            result[open].push (ohlcvs[i][1]);
-            result[high].push (ohlcvs[i][2]);
-            result[low].push (ohlcvs[i][3]);
-            result[close].push (ohlcvs[i][4]);
-            result[volume].push (ohlcvs[i][5]);
+            const resultTimestamp = result[timestamp];
+            resultTimestamp.push (ts);
+            const resultOpen = result[open];
+            resultOpen.push (ohlcvs[i][1]);
+            const resultHigh = result[high];
+            resultHigh.push (ohlcvs[i][2]);
+            const resultLow = result[low];
+            resultLow.push (ohlcvs[i][3]);
+            const resultClose = result[close];
+            resultClose.push (ohlcvs[i][4]);
+            const resultVolume = result[volume];
+            resultVolume.push (ohlcvs[i][5]);
         }
         return result;
     }
