@@ -139,7 +139,9 @@
                 "description": "fetchTickers",
                 "method": "fetchTickers",
                 "input": [
-                    "BTC/USDT"
+                    [
+                        "BTC/USDT"
+                    ]
                 ],
                 "httpResponse": {
                     "BTC/USDT": {

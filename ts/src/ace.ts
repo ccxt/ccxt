@@ -321,7 +321,7 @@ export default class ace extends Exchange {
         const market = this.market (symbol);
         const response = await this.publicGetOapiV2ListTradePrice (params);
         const marketId = market['id'];
-        const ticker = this.safeValue (response, marketId, {});
+        const ticker = this.safeDict (response, marketId, {});
         //
         //     {
         //         "BTC/USDT":{
@@ -360,7 +360,7 @@ export default class ace extends Exchange {
         for (let i = 0; i < pairs.length; i++) {
             const marketId = pairs[i];
             const market = this.safeMarket (marketId);
-            const rawTicker = this.safeValue (response, marketId);
+            const rawTicker = this.safeDict (response, marketId);
             const ticker = this.parseTicker (rawTicker, market);
             tickers.push (ticker);
         }
@@ -486,7 +486,7 @@ export default class ace extends Exchange {
             request['startTime'] = since;
         }
         const response = await this.privatePostV2KlineGetKline (this.extend (request, params));
-        const data = this.safeValue (response, 'attachment', []);
+        const data = this.safeList (response, 'attachment', []);
         //
         //     {
         //         "attachment":[
@@ -749,7 +749,7 @@ export default class ace extends Exchange {
             request['size'] = limit;
         }
         const response = await this.privatePostV2OrderGetOrderList (this.extend (request, params));
-        const orders = this.safeValue (response, 'attachment');
+        const orders = this.safeList (response, 'attachment');
         //
         //     {
         //         "attachment": [
@@ -914,7 +914,7 @@ export default class ace extends Exchange {
         //         "status": 200
         //     }
         //
-        const data = this.safeValue (response, 'attachment');
+        const data = this.safeDict (response, 'attachment');
         const trades = this.safeList (data, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
@@ -1020,7 +1020,7 @@ export default class ace extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privatePostV2CoinCustomerAccount (params);
-        const balances = this.safeValue (response, 'attachment', []);
+        const balances = this.safeList (response, 'attachment', []);
         //
         //     {
         //         "attachment":[
