@@ -9660,6 +9660,94 @@
           }
         ]
       }
+    ],
+    "fetchTicker": [
+      {
+        "description": "Fill this with a description of the method call",
+        "method": "fetchTicker",
+        "input": [
+          "MANA/BRL"
+        ],
+        "httpResponse": {
+          "data": [
+            {
+              "market_symbol": "manabrl",
+              "last_trade": {
+                "price": "2.00700000",
+                "volume": "6.73575129",
+                "date": "2024-07-17T15:46:03.000Z"
+              },
+              "rolling_24h": {
+                "price_change": "0.03570000",
+                "price_change_percent": "1.81098767",
+                "volume": "63385.50759705",
+                "trades_count": "675",
+                "open": "1.97130000",
+                "high": "2.03720000",
+                "low": "1.94570000"
+              },
+              "best": {
+                "ask": {
+                  "price": "2.01580000",
+                  "volume": "5280.77222602"
+                },
+                "bid": {
+                  "price": "2.00550000",
+                  "volume": "6736.60980938"
+                }
+              }
+            }
+          ]
+        },
+        "parsedResponse": {
+          "symbol": "MANA/BRL",
+          "timestamp": null,
+          "datetime": null,
+          "high": null,
+          "low": null,
+          "bid": null,
+          "bidVolume": null,
+          "ask": null,
+          "askVolume": null,
+          "vwap": null,
+          "open": null,
+          "close": null,
+          "last": null,
+          "previousClose": null,
+          "change": null,
+          "percentage": null,
+          "average": null,
+          "baseVolume": null,
+          "quoteVolume": null,
+          "info": {
+            "market_symbol": "manabrl",
+            "last_trade": {
+              "price": "2.00700000",
+              "volume": "6.73575129",
+              "date": "2024-07-17T15:46:03.000Z"
+            },
+            "rolling_24h": {
+              "price_change": "0.03570000",
+              "price_change_percent": "1.81098767",
+              "volume": "63385.50759705",
+              "trades_count": "675",
+              "open": "1.97130000",
+              "high": "2.03720000",
+              "low": "1.94570000"
+            },
+            "best": {
+              "ask": {
+                "price": "2.01580000",
+                "volume": "5280.77222602"
+              },
+              "bid": {
+                "price": "2.00550000",
+                "volume": "6736.60980938"
+              }
+            }
+          }
+        }
+      }
     ]
   }
 }

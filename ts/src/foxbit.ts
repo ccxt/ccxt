@@ -33,6 +33,7 @@ export default class foxbit extends Exchange {
                             'rest/v3/currencies',
                             'rest/v3/markets',
                             'rest/v3/markets/{market}/orderbook',
+                            'rest/v3/markets/{market}/ticker/24hr',
                         ],
                     },
                 },
@@ -568,7 +569,46 @@ export default class foxbit extends Exchange {
     }
 
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
-        return undefined;
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'market': market['baseId'] + market['quoteId'],
+        };
+        const response = await this.v3PublicGetRestV3MarketsMarketTicker24hr (this.extend (request, params));
+        //  {
+        //    "data": [
+        //      {
+        //        "market_symbol": "btcbrl",
+        //        "last_trade": {
+        //          "price": "358504.69340000",
+        //          "volume": "0.00027893",
+        //          "date": "2024-01-01T00:00:00.000Z"
+        //        },
+        //        "rolling_24h": {
+        //          "price_change": "3211.87290000",
+        //          "price_change_percent": "0.90400726",
+        //          "volume": "20.03206866",
+        //          "trades_count": "4376",
+        //          "open": "355292.82050000",
+        //          "high": "362999.99990000",
+        //          "low": "355002.88880000"
+        //        },
+        //        "best": {
+        //          "ask": {
+        //            "price": "358504.69340000",
+        //            "volume": "0.00027893"
+        //          },
+        //          "bid": {
+        //            "price": "358504.69340000",
+        //            "volume": "0.00027893"
+        //          }
+        //        }
+        //      }
+        //    ]
+        //  }
+        const data = this.safeList (response, 'data', []);
+        const result = this.safeDict (data, 0, {});
+        return this.parseTicker (result, market);
     }
 
     async fetchTradingLimits (symbols: string[], params: {}): Promise<{}> {
@@ -653,8 +693,40 @@ export default class foxbit extends Exchange {
     }
 
     sign (path, api = [], method = 'GET', params = {}, headers = undefined, body = undefined) {
+        path = this.implodeParams (path, params);
         const url = this.urls['api'] + '/' + path;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        const marketId = this.safeString (ticker, 'market');
+        const symbol = this.safeSymbol (marketId, market, undefined, 'spot');
+        const rolling_24h = ticker['rolling_24h'];
+        const bestAsk = ticker['best']['ask'];
+        const bestBid = ticker['best']['bid'];
+        const lastTrade = ticker['last_trade'];
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': this.safeInteger (ticker, 'timestamp'),
+            'datetime': this.iso8601 (this.safeInteger (lastTrade, 'date')),
+            'high': this.safeNumber (rolling_24h, 'high'),
+            'low': this.safeNumber (rolling_24h, 'low'),
+            'bid': this.safeNumber (bestBid, 'price'),
+            'bidVolume': this.safeNumber (bestBid, 'volume'),
+            'ask': this.safeNumber (bestAsk, 'price'),
+            'askVolume': this.safeNumber (bestAsk, 'volume'),
+            'vwap': undefined,
+            'open': this.safeNumber (rolling_24h, 'open'),
+            'close': undefined,
+            'last': undefined,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeString (rolling_24h, 'volume'),
+            'quoteVolume': undefined,
+            'info': ticker,
+        }, market);
     }
 }
 
