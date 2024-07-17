@@ -2968,7 +2968,7 @@ export default class woo extends Exchange {
                 'symbol': market['id'],
             };
             let marginMode: Str = undefined;
-            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLeverage', params);
+            [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLeverage', params, 'cross');
             request['margin_mode'] = this.encodeMarginMode (marginMode);
             response = await this.v1PrivateGetClientFuturesLeverage (this.extend (request, params));
             //
