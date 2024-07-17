@@ -74,6 +74,44 @@ function testSafeMethods () {
     assert (exchange.safeValueN (inputDict, [ 'a', 'b', 'strNumber' ]) === '3');
     assert (exchange.safeValueN (inputList, [ 3, 2, 0 ]) === 'Hi');
 
+    // safeDict
+    dictObject = exchange.safeDict (inputDict, 'dict');
+    assert (equals (dictObject, compareDict));
+    let listObject = exchange.safeDict (inputDict, 'list');
+    assert (equals (listObject, compareList)); // NB safeDict returns List
+    assert (exchange.safeDict (inputList, 1) === undefined);
+
+    // safeDict2
+    dictObject = exchange.safeDict2 (inputDict, 'a', 'dict');
+    assert (equals (dictObject, compareDict));
+    listObject = exchange.safeDict2 (inputDict, 'a', 'list');
+    assert (equals (listObject, compareList)); // NB safeDict2 returns List
+    assert (exchange.safeDict2 (inputList, 2, 1) === undefined);
+
+    // safeDictN
+    dictObject = exchange.safeDictN (inputDict, [ 'a', 'b', 'dict' ]);
+    assert (equals (dictObject, compareDict));
+    listObject = exchange.safeDictN (inputDict, [ 'a', 'b', 'list' ]);
+    assert (equals (listObject, compareList)); // NB safeDictN returns List
+    assert (exchange.safeDictN (inputList, [ 3, 2, 1 ]) === undefined);
+
+    // safeList
+    listObject = exchange.safeList (inputDict, 'list');
+    assert (equals (dictObject, compareDict));
+    assert (exchange.safeList (inputDict, 'dict') === undefined);
+    assert (exchange.safeList (inputList, 1) === undefined);
+
+    // safeList2
+    listObject = exchange.safeList2 (inputDict, 'a', 'list');
+    assert (equals (dictObject, compareDict));
+    assert (exchange.safeList2 (inputDict, 'a', 'dict') === undefined);
+    assert (exchange.safeList2 (inputList, 2, 1) === undefined);
+
+    // safeListN
+    listObject = exchange.safeListN (inputDict, [ 'a', 'b', 'list' ]);
+    assert (equals (dictObject, compareDict));
+    assert (exchange.safeListN (inputDict, [ 'a', 'b', 'dict' ]) === undefined);
+    assert (exchange.safeListN (inputList, [ 3, 2, 1 ]) === undefined);
     // safeString
     assert (exchange.safeString (inputDict, 'i') === '1');
     assert (exchange.safeString (inputDict, 'f') === '0.123');
@@ -245,42 +283,6 @@ function testSafeMethods () {
     // safeBoolN
     assert (exchange.safeBoolN (inputDict, [ 'a', 'b', 'bool' ]) === true);
     assert (exchange.safeBoolN (inputList, [ 3, 2, 1 ]) === undefined);
-
-    // safeDict
-    dictObject = exchange.safeDict (inputDict, 'dict');
-    assert (equals (dictObject, compareDict));
-    assert (equals (exchange.safeDict (inputDict, 'list'), compareList)); // NB safeDict() returns List
-    assert (exchange.safeDict (inputList, 1) === undefined);
-
-    // safeDict2
-    dictObject = exchange.safeDict2 (inputDict, 'a', 'dict');
-    assert (equals (dictObject, compareDict));
-    assert (equals (exchange.safeDict2 (inputDict, 'a', 'list'), compareList)); // NB safeDict2() returns List
-    assert (exchange.safeDict2 (inputList, 2, 1) === undefined);
-
-    // safeDictN
-    dictObject = exchange.safeDictN (inputDict, [ 'a', 'b', 'dict' ]);
-    assert (equals (dictObject, compareDict));
-    assert (equals (exchange.safeDictN (inputDict, [ 'a', 'b', 'list' ]), compareList)); // NB safeDictN() returns List
-    assert (exchange.safeDictN (inputList, [ 3, 2, 1 ]) === undefined);
-
-    // safeList
-    let listObject = exchange.safeList (inputDict, 'list');
-    assert (equals (dictObject, compareDict));
-    assert (exchange.safeList (inputDict, 'dict') === undefined);
-    assert (exchange.safeList (inputList, 1) === undefined);
-
-    // safeList2
-    listObject = exchange.safeList2 (inputDict, 'a', 'list');
-    assert (equals (dictObject, compareDict));
-    assert (exchange.safeList2 (inputDict, 'a', 'dict') === undefined);
-    assert (exchange.safeList2 (inputList, 2, 1) === undefined);
-
-    // safeListN
-    listObject = exchange.safeListN (inputDict, [ 'a', 'b', 'list' ]);
-    assert (equals (dictObject, compareDict));
-    assert (exchange.safeListN (inputDict, [ 'a', 'b', 'dict' ]) === undefined);
-    assert (exchange.safeListN (inputList, [ 3, 2, 1 ]) === undefined);
 }
 
 
