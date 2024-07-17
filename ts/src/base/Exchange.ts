@@ -4629,9 +4629,8 @@ export default class Exchange {
     }
 
     handleOption (methodName: string, optionName: string, defaultValue = undefined) {
-        // eslint-disable-next-line no-unused-vars
-        const [ result, empty ] = this.handleOptionAndParams ({}, methodName, optionName, defaultValue);
-        return result;
+        const res = this.handleOptionAndParams ({}, methodName, optionName, defaultValue);
+        return this.safeValue (res, 0);
     }
 
     handleMarketTypeAndParams (methodName: string, market: Market = undefined, params = {}, defaultValue = undefined): any {
