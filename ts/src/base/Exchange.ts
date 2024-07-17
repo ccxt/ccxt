@@ -2573,7 +2573,7 @@ export default class Exchange {
     }
 
     orderbookChecksumMessage (symbol:Str) {
-        return symbol + ' : ' + 'incoming orderbook data checksum/nonce validation failed. You can make your own reconnection logic or temporarily you can mute the error by setting exhcange.options["watchOrderBook"]["checksum"] = false';
+        return symbol + ' : ' + 'orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options["watchOrderBook"]["checksum"] = false';
     }
 
     createNetworksByIdObject () {
