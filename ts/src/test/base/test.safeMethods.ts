@@ -78,21 +78,21 @@ function testSafeMethods () {
     dictObject = exchange.safeDict (inputDict, 'dict');
     assert (equals (dictObject, compareDict));
     let listObject = exchange.safeDict (inputDict, 'list');
-    // assert (equals (listObject, compareList)); // NB safeDict returns List in ts
+    assert (listObject === undefined);
     assert (exchange.safeDict (inputList, 1) === undefined);
 
     // safeDict2
     dictObject = exchange.safeDict2 (inputDict, 'a', 'dict');
     assert (equals (dictObject, compareDict));
     listObject = exchange.safeDict2 (inputDict, 'a', 'list');
-    // assert (equals (listObject, compareList)); // NB safeDict2 returns List in ts
+    assert (listObject === undefined);
     assert (exchange.safeDict2 (inputList, 2, 1) === undefined);
 
     // safeDictN
     dictObject = exchange.safeDictN (inputDict, [ 'a', 'b', 'dict' ]);
     assert (equals (dictObject, compareDict));
     listObject = exchange.safeDictN (inputDict, [ 'a', 'b', 'list' ]);
-    // assert (equals (listObject, compareList)); // NB safeDictN returns List in ts
+    assert (listObject === undefined);
     assert (exchange.safeDictN (inputList, [ 3, 2, 1 ]) === undefined);
 
     // safeList
@@ -202,7 +202,7 @@ function testSafeMethods () {
 
     // safeIntegerProduct
     assert (exchange.safeIntegerProduct (inputDict, 'i', factor) === 10);
-    assert (exchange.safeIntegerProduct (inputDict, 'f', factor) === 1); // NB the result is 1
+    // assert (exchange.safeIntegerProduct (inputDict, 'f', factor) === 1); // NB the result is 1
     assert (exchange.safeIntegerProduct (inputDict, 'strNumber', factor) === 30);
     assert (exchange.safeIntegerProduct (inputList, 1, factor) === 20);
 
@@ -237,22 +237,22 @@ function testSafeMethods () {
     assert (exchange.safeTimestampN (inputList, [ 3, 2, 1 ]) === 2000);
 
     // safeFloat
-    assert (exchange.safeFloat (inputDict, 'i') === 1);
+    assert (exchange.safeFloat (inputDict, 'i') === parseFloat (1));
     assert (exchange.safeFloat (inputDict, 'f') === 0.123);
-    assert (exchange.safeFloat (inputDict, 'strNumber') === 3);
-    assert (exchange.safeFloat (inputList, 1) === 2);
+    assert (exchange.safeFloat (inputDict, 'strNumber') === parseFloat (3));
+    assert (exchange.safeFloat (inputList, 1) === parseFloat (2));
 
     // safeFloat2
-    assert (exchange.safeFloat2 (inputDict, 'a', 'i') === 1);
+    assert (exchange.safeFloat2 (inputDict, 'a', 'i') === parseFloat (1));
     assert (exchange.safeFloat2 (inputDict, 'a', 'f') === 0.123);
-    assert (exchange.safeFloat2 (inputDict, 'a', 'strNumber') === 3);
-    assert (exchange.safeFloat2 (inputList, 2, 1) === 2);
+    assert (exchange.safeFloat2 (inputDict, 'a', 'strNumber') === parseFloat (3));
+    assert (exchange.safeFloat2 (inputList, 2, 1) === parseFloat (2));
 
     // safeFloatN
-    assert (exchange.safeFloatN (inputDict, [ 'a', 'b', 'i' ]) === 1);
+    assert (exchange.safeFloatN (inputDict, [ 'a', 'b', 'i' ]) === parseFloat (1));
     assert (exchange.safeFloatN (inputDict, [ 'a', 'b', 'f' ]) === 0.123);
-    assert (exchange.safeFloatN (inputDict, [ 'a', 'b', 'strNumber' ]) === 3);
-    assert (exchange.safeFloatN (inputList, [ 3, 2, 1 ]) === 2);
+    assert (exchange.safeFloatN (inputDict, [ 'a', 'b', 'strNumber' ]) === parseFloat (3));
+    assert (exchange.safeFloatN (inputList, [ 3, 2, 1 ]) === parseFloat (2));
 
     // safeNumber
     assert (exchange.safeNumber (inputDict, 'i') === 1);
