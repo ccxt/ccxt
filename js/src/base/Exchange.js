@@ -6134,8 +6134,12 @@ export default class Exchange {
         return [request, params];
     }
     safeOpenInterest(interest, market = undefined) {
+        let symbol = this.safeString(interest, 'symbol');
+        if (symbol === undefined) {
+            symbol = this.safeString(market, 'symbol');
+        }
         return this.extend(interest, {
-            'symbol': this.safeString(market, 'symbol'),
+            'symbol': symbol,
             'baseVolume': this.safeNumber(interest, 'baseVolume'),
             'quoteVolume': this.safeNumber(interest, 'quoteVolume'),
             'openInterestAmount': this.safeNumber(interest, 'openInterestAmount'),

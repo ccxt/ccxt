@@ -1757,6 +1757,7 @@ class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Assets
          * @see https://bingx-api.github.io/docs/#/swapV2/account-api.html#Get%20Perpetual%20Swap%20Account%20Asset%20Information
          * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Account%20Assets
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->standard] whether to fetch $standard contract balances
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
@@ -1765,102 +1766,212 @@ class bingx extends Exchange {
         $response = null;
         $standard = null;
         list($standard, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'standard', false);
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchBalance', null, $params);
         list($marketType, $marketTypeQuery) = $this->handle_market_type_and_params('fetchBalance', null, $params);
         if ($standard) {
             $response = $this->contractV1PrivateGetBalance ($marketTypeQuery);
+            //
+            //     {
+            //         "code" => 0,
+            //         "timestamp" => 1721192833454,
+            //         "data" => array(
+            //             array(
+            //                 "asset" => "USDT",
+            //                 "balance" => "4.72644300000000000000",
+            //                 "crossWalletBalance" => "4.72644300000000000000",
+            //                 "crossUnPnl" => "0",
+            //                 "availableBalance" => "4.72644300000000000000",
+            //                 "maxWithdrawAmount" => "4.72644300000000000000",
+            //                 "marginAvailable" => false,
+            //                 "updateTime" => 1721192833443
+            //             ),
+            //         )
+            //     }
+            //
         } elseif ($marketType === 'spot') {
             $response = $this->spotV1PrivateGetAccountBalance ($marketTypeQuery);
+            //
+            //     {
+            //         "code" => 0,
+            //         "msg" => "",
+            //         "debugMsg" => "",
+            //         "data" => {
+            //             "balances" => array(
+            //                 array(
+            //                     "asset" => "USDT",
+            //                     "free" => "45.733046995800514",
+            //                     "locked" => "0"
+            //                 ),
+            //             )
+            //         }
+            //     }
+            //
         } else {
-            $response = $this->swapV2PrivateGetUserBalance ($marketTypeQuery);
+            if ($subType === 'inverse') {
+                $response = $this->cswapV1PrivateGetUserBalance ($marketTypeQuery);
+                //
+                //     {
+                //         "code" => 0,
+                //         "msg" => "",
+                //         "timestamp" => 1721191833813,
+                //         "data" => array(
+                //             {
+                //                 "asset" => "SOL",
+                //                 "balance" => "0.35707951",
+                //                 "equity" => "0.35791051",
+                //                 "unrealizedProfit" => "0.00083099",
+                //                 "availableMargin" => "0.35160653",
+                //                 "usedMargin" => "0.00630397",
+                //                 "freezedMargin" => "0",
+                //                 "shortUid" => "12851936"
+                //             }
+                //         )
+                //     }
+                //
+            } else {
+                $response = $this->swapV2PrivateGetUserBalance ($marketTypeQuery);
+                //
+                //     {
+                //         "code" => 0,
+                //         "msg" => "",
+                //         "data" => {
+                //             "balance" => {
+                //                 "userId" => "1177064765068660742",
+                //                 "asset" => "USDT",
+                //                 "balance" => "51.5198",
+                //                 "equity" => "50.5349",
+                //                 "unrealizedProfit" => "-0.9849",
+                //                 "realisedProfit" => "-0.2134",
+                //                 "availableMargin" => "49.1428",
+                //                 "usedMargin" => "1.3922",
+                //                 "freezedMargin" => "0.0000",
+                //                 "shortUid" => "12851936"
+                //             }
+                //         }
+                //     }
+                //
+            }
         }
-        //
-        // spot
-        //
-        //    {
-        //        "code" => 0,
-        //        "msg" => "",
-        //        "ttl" => 1,
-        //        "data" => {
-        //            "balances" => array(
-        //                {
-        //                    "asset" => "USDT",
-        //                    "free" => "16.73971130673954",
-        //                    "locked" => "0"
-        //                }
-        //            )
-        //        }
-        //    }
-        //
-        // swap
-        //
-        //    {
-        //        "code" => 0,
-        //        "msg" => "",
-        //        "data" => {
-        //          "balance" => {
-        //            "asset" => "USDT",
-        //            "balance" => "15.6128",
-        //            "equity" => "15.6128",
-        //            "unrealizedProfit" => "0.0000",
-        //            "realisedProfit" => "0.0000",
-        //            "availableMargin" => "15.6128",
-        //            "usedMargin" => "0.0000",
-        //            "freezedMargin" => "0.0000"
-        //          }
-        //        }
-        //    }
-        // $standard futures
-        //    {
-        //        "code":"0",
-        //        "timestamp":"1691148990942",
-        //        "data":array(
-        //           array(
-        //              "asset":"VST",
-        //              "balance":"100000.00000000000000000000",
-        //              "crossWalletBalance":"100000.00000000000000000000",
-        //              "crossUnPnl":"0",
-        //              "availableBalance":"100000.00000000000000000000",
-        //              "maxWithdrawAmount":"100000.00000000000000000000",
-        //              "marginAvailable":false,
-        //              "updateTime":"1691148990902"
-        //           ),
-        //           array(
-        //              "asset":"USDT",
-        //              "balance":"0",
-        //              "crossWalletBalance":"0",
-        //              "crossUnPnl":"0",
-        //              "availableBalance":"0",
-        //              "maxWithdrawAmount":"0",
-        //              "marginAvailable":false,
-        //              "updateTime":"1691148990902"
-        //           ),
-        //        )
-        //     }
-        //
         return $this->parse_balance($response);
     }
 
     public function parse_balance($response): array {
-        $data = $this->safe_value($response, 'data');
-        $balances = $this->safe_value_2($data, 'balance', 'balances', $data);
+        //
+        // standard
+        //
+        //     {
+        //         "code" => 0,
+        //         "timestamp" => 1721192833454,
+        //         "data" => array(
+        //             array(
+        //                 "asset" => "USDT",
+        //                 "balance" => "4.72644300000000000000",
+        //                 "crossWalletBalance" => "4.72644300000000000000",
+        //                 "crossUnPnl" => "0",
+        //                 "availableBalance" => "4.72644300000000000000",
+        //                 "maxWithdrawAmount" => "4.72644300000000000000",
+        //                 "marginAvailable" => false,
+        //                 "updateTime" => 1721192833443
+        //             ),
+        //         )
+        //     }
+        //
+        // spot
+        //
+        //     {
+        //         "code" => 0,
+        //         "msg" => "",
+        //         "debugMsg" => "",
+        //         "data" => {
+        //             "balances" => array(
+        //                 array(
+        //                     "asset" => "USDT",
+        //                     "free" => "45.733046995800514",
+        //                     "locked" => "0"
+        //                 ),
+        //             )
+        //         }
+        //     }
+        //
+        // inverse swap
+        //
+        //     {
+        //         "code" => 0,
+        //         "msg" => "",
+        //         "timestamp" => 1721191833813,
+        //         "data" => array(
+        //             {
+        //                 "asset" => "SOL",
+        //                 "balance" => "0.35707951",
+        //                 "equity" => "0.35791051",
+        //                 "unrealizedProfit" => "0.00083099",
+        //                 "availableMargin" => "0.35160653",
+        //                 "usedMargin" => "0.00630397",
+        //                 "freezedMargin" => "0",
+        //                 "shortUid" => "12851936"
+        //             }
+        //         )
+        //     }
+        //
+        // linear swap
+        //
+        //     {
+        //         "code" => 0,
+        //         "msg" => "",
+        //         "data" => {
+        //             "balance" => {
+        //                 "userId" => "1177064765068660742",
+        //                 "asset" => "USDT",
+        //                 "balance" => "51.5198",
+        //                 "equity" => "50.5349",
+        //                 "unrealizedProfit" => "-0.9849",
+        //                 "realisedProfit" => "-0.2134",
+        //                 "availableMargin" => "49.1428",
+        //                 "usedMargin" => "1.3922",
+        //                 "freezedMargin" => "0.0000",
+        //                 "shortUid" => "12851936"
+        //             }
+        //         }
+        //     }
+        //
         $result = array( 'info' => $response );
-        if (gettype($balances) === 'array' && array_keys($balances) === array_keys(array_keys($balances))) {
-            for ($i = 0; $i < count($balances); $i++) {
-                $balance = $balances[$i];
+        $standardAndInverseBalances = $this->safe_list($response, 'data');
+        $firstStandardOrInverse = $this->safe_dict($standardAndInverseBalances, 0);
+        $isStandardOrInverse = $firstStandardOrInverse !== null;
+        $spotData = $this->safe_dict($response, 'data', array());
+        $spotBalances = $this->safe_list($spotData, 'balances');
+        $firstSpot = $this->safe_dict($spotBalances, 0);
+        $isSpot = $firstSpot !== null;
+        if ($isStandardOrInverse) {
+            for ($i = 0; $i < count($standardAndInverseBalances); $i++) {
+                $balance = $standardAndInverseBalances[$i];
                 $currencyId = $this->safe_string($balance, 'asset');
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
-                $account['free'] = $this->safe_string_2($balance, 'free', 'availableBalance');
+                $account['free'] = $this->safe_string_2($balance, 'availableMargin', 'availableBalance');
+                $account['used'] = $this->safe_string($balance, 'usedMargin');
+                $account['total'] = $this->safe_string($balance, 'maxWithdrawAmount');
+                $result[$code] = $account;
+            }
+        } elseif ($isSpot) {
+            for ($i = 0; $i < count($spotBalances); $i++) {
+                $balance = $spotBalances[$i];
+                $currencyId = $this->safe_string($balance, 'asset');
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $account['free'] = $this->safe_string($balance, 'free');
                 $account['used'] = $this->safe_string($balance, 'locked');
-                $account['total'] = $this->safe_string($balance, 'balance');
                 $result[$code] = $account;
             }
         } else {
-            $currencyId = $this->safe_string($balances, 'asset');
+            $linearSwapData = $this->safe_dict($response, 'data', array());
+            $linearSwapBalance = $this->safe_dict($linearSwapData, 'balance');
+            $currencyId = $this->safe_string($linearSwapBalance, 'asset');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_string($balances, 'availableMargin');
-            $account['used'] = $this->safe_string($balances, 'usedMargin');
+            $account['free'] = $this->safe_string($linearSwapBalance, 'availableMargin');
+            $account['used'] = $this->safe_string($linearSwapBalance, 'usedMargin');
             $result[$code] = $account;
         }
         return $this->safe_balance($result);

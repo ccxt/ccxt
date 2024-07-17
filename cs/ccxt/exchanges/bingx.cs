@@ -1878,6 +1878,7 @@ public partial class bingx : Exchange
         * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Assets
         * @see https://bingx-api.github.io/docs/#/swapV2/account-api.html#Get%20Perpetual%20Swap%20Account%20Asset%20Information
         * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
+        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Account%20Assets
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.standard] whether to fetch standard contract balances
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
@@ -1889,6 +1890,10 @@ public partial class bingx : Exchange
         var standardparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "standard", false);
         standard = ((IList<object>)standardparametersVariable)[0];
         parameters = ((IList<object>)standardparametersVariable)[1];
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchBalance", null, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
         var marketTypemarketTypeQueryVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         var marketType = ((IList<object>) marketTypemarketTypeQueryVariable)[0];
         var marketTypeQuery = ((IList<object>) marketTypemarketTypeQueryVariable)[1];
@@ -1900,102 +1905,141 @@ public partial class bingx : Exchange
             response = await this.spotV1PrivateGetAccountBalance(marketTypeQuery);
         } else
         {
-            response = await this.swapV2PrivateGetUserBalance(marketTypeQuery);
+            if (isTrue(isEqual(subType, "inverse")))
+            {
+                response = await this.cswapV1PrivateGetUserBalance(marketTypeQuery);
+            } else
+            {
+                response = await this.swapV2PrivateGetUserBalance(marketTypeQuery);
+            }
         }
-        //
-        // spot
-        //
-        //    {
-        //        "code": 0,
-        //        "msg": "",
-        //        "ttl": 1,
-        //        "data": {
-        //            "balances": [
-        //                {
-        //                    "asset": "USDT",
-        //                    "free": "16.73971130673954",
-        //                    "locked": "0"
-        //                }
-        //            ]
-        //        }
-        //    }
-        //
-        // swap
-        //
-        //    {
-        //        "code": 0,
-        //        "msg": "",
-        //        "data": {
-        //          "balance": {
-        //            "asset": "USDT",
-        //            "balance": "15.6128",
-        //            "equity": "15.6128",
-        //            "unrealizedProfit": "0.0000",
-        //            "realisedProfit": "0.0000",
-        //            "availableMargin": "15.6128",
-        //            "usedMargin": "0.0000",
-        //            "freezedMargin": "0.0000"
-        //          }
-        //        }
-        //    }
-        // standard futures
-        //    {
-        //        "code":"0",
-        //        "timestamp":"1691148990942",
-        //        "data":[
-        //           {
-        //              "asset":"VST",
-        //              "balance":"100000.00000000000000000000",
-        //              "crossWalletBalance":"100000.00000000000000000000",
-        //              "crossUnPnl":"0",
-        //              "availableBalance":"100000.00000000000000000000",
-        //              "maxWithdrawAmount":"100000.00000000000000000000",
-        //              "marginAvailable":false,
-        //              "updateTime":"1691148990902"
-        //           },
-        //           {
-        //              "asset":"USDT",
-        //              "balance":"0",
-        //              "crossWalletBalance":"0",
-        //              "crossUnPnl":"0",
-        //              "availableBalance":"0",
-        //              "maxWithdrawAmount":"0",
-        //              "marginAvailable":false,
-        //              "updateTime":"1691148990902"
-        //           },
-        //        ]
-        //     }
-        //
         return this.parseBalance(response);
     }
 
     public override object parseBalance(object response)
     {
-        object data = this.safeValue(response, "data");
-        object balances = this.safeValue2(data, "balance", "balances", data);
+        //
+        // standard
+        //
+        //     {
+        //         "code": 0,
+        //         "timestamp": 1721192833454,
+        //         "data": [
+        //             {
+        //                 "asset": "USDT",
+        //                 "balance": "4.72644300000000000000",
+        //                 "crossWalletBalance": "4.72644300000000000000",
+        //                 "crossUnPnl": "0",
+        //                 "availableBalance": "4.72644300000000000000",
+        //                 "maxWithdrawAmount": "4.72644300000000000000",
+        //                 "marginAvailable": false,
+        //                 "updateTime": 1721192833443
+        //             },
+        //         ]
+        //     }
+        //
+        // spot
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "debugMsg": "",
+        //         "data": {
+        //             "balances": [
+        //                 {
+        //                     "asset": "USDT",
+        //                     "free": "45.733046995800514",
+        //                     "locked": "0"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        // inverse swap
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "timestamp": 1721191833813,
+        //         "data": [
+        //             {
+        //                 "asset": "SOL",
+        //                 "balance": "0.35707951",
+        //                 "equity": "0.35791051",
+        //                 "unrealizedProfit": "0.00083099",
+        //                 "availableMargin": "0.35160653",
+        //                 "usedMargin": "0.00630397",
+        //                 "freezedMargin": "0",
+        //                 "shortUid": "12851936"
+        //             }
+        //         ]
+        //     }
+        //
+        // linear swap
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "data": {
+        //             "balance": {
+        //                 "userId": "1177064765068660742",
+        //                 "asset": "USDT",
+        //                 "balance": "51.5198",
+        //                 "equity": "50.5349",
+        //                 "unrealizedProfit": "-0.9849",
+        //                 "realisedProfit": "-0.2134",
+        //                 "availableMargin": "49.1428",
+        //                 "usedMargin": "1.3922",
+        //                 "freezedMargin": "0.0000",
+        //                 "shortUid": "12851936"
+        //             }
+        //         }
+        //     }
+        //
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        if (isTrue(((balances is IList<object>) || (balances.GetType().IsGenericType && balances.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        object standardAndInverseBalances = this.safeList(response, "data");
+        object firstStandardOrInverse = this.safeDict(standardAndInverseBalances, 0);
+        object isStandardOrInverse = !isEqual(firstStandardOrInverse, null);
+        object spotData = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object spotBalances = this.safeList(spotData, "balances");
+        object firstSpot = this.safeDict(spotBalances, 0);
+        object isSpot = !isEqual(firstSpot, null);
+        if (isTrue(isStandardOrInverse))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+            for (object i = 0; isLessThan(i, getArrayLength(standardAndInverseBalances)); postFixIncrement(ref i))
             {
-                object balance = getValue(balances, i);
+                object balance = getValue(standardAndInverseBalances, i);
                 object currencyId = this.safeString(balance, "asset");
                 object code = this.safeCurrencyCode(currencyId);
                 object account = this.account();
-                ((IDictionary<string,object>)account)["free"] = this.safeString2(balance, "free", "availableBalance");
+                ((IDictionary<string,object>)account)["free"] = this.safeString2(balance, "availableMargin", "availableBalance");
+                ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "usedMargin");
+                ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "maxWithdrawAmount");
+                ((IDictionary<string,object>)result)[(string)code] = account;
+            }
+        } else if (isTrue(isSpot))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(spotBalances)); postFixIncrement(ref i))
+            {
+                object balance = getValue(spotBalances, i);
+                object currencyId = this.safeString(balance, "asset");
+                object code = this.safeCurrencyCode(currencyId);
+                object account = this.account();
+                ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "free");
                 ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "locked");
-                ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
                 ((IDictionary<string,object>)result)[(string)code] = account;
             }
         } else
         {
-            object currencyId = this.safeString(balances, "asset");
+            object linearSwapData = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            object linearSwapBalance = this.safeDict(linearSwapData, "balance");
+            object currencyId = this.safeString(linearSwapBalance, "asset");
             object code = this.safeCurrencyCode(currencyId);
             object account = this.account();
-            ((IDictionary<string,object>)account)["free"] = this.safeString(balances, "availableMargin");
-            ((IDictionary<string,object>)account)["used"] = this.safeString(balances, "usedMargin");
+            ((IDictionary<string,object>)account)["free"] = this.safeString(linearSwapBalance, "availableMargin");
+            ((IDictionary<string,object>)account)["used"] = this.safeString(linearSwapBalance, "usedMargin");
             ((IDictionary<string,object>)result)[(string)code] = account;
         }
         return this.safeBalance(result);
