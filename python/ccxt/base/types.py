@@ -492,6 +492,17 @@ class LeverageTier:
     info: Dict[str, Any]
 
 
+class OpenInterest:
+    symbol: Str
+    openInterestAmount: Num
+    openInterestValue: Num
+    baseVolume: Num
+    quoteVolume: Num
+    timestamp: Int
+    datetime: Str
+    info: Dict[str, Any]
+
+
 FundingRates = Dict[Str, FundingRate]
 LastPrices = Dict[Str, LastPrice]
 Currencies = Dict[Str, CurrencyInterface]
