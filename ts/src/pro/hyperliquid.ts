@@ -3,7 +3,7 @@
 import hyperliquidRest from '../hyperliquid.js';
 import { ExchangeError } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
-import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Tickers } from '../base/types.js';
+import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
@@ -241,7 +241,9 @@ export default class hyperliquid extends hyperliquidRest {
         const parsedTickers = [];
         for (let i = 0; i < spotAssets.length; i++) {
             const assetObject = spotAssets[i];
-            const ticker = this.parseWsTicker (assetObject, 'spot');
+            const marketId = this.safeString (assetObject, 'coin');
+            const market = this.safeMarket (marketId, undefined, undefined, 'spot');
+            const ticker = this.parseWsTicker (assetObject, market);
             parsedTickers.push (ticker);
         }
         // perpetuals
@@ -249,43 +251,42 @@ export default class hyperliquid extends hyperliquidRest {
         const universe = this.safeList (meta, 'universe', []);
         const assets = this.safeList (data, 'assetCtxs', []);
         for (let i = 0; i < assets.length; i++) {
-            let assetObject = assets[i];
+            const assetObject = assets[i];
             const coinObject = universe[i];
             const id = coinObject['name'] + ':USDC/USDC';
-            assetObject = this.extend (assetObject, { 'coin': id });
-            const ticker = this.parseWsTicker (assetObject, 'swap');
+            const market = this.safeMarket (id, undefined, undefined, 'spot');
+            const ticker = this.parseWsTicker (assetObject, market);
             parsedTickers.push (ticker);
         }
         const tickers = this.indexBy (parsedTickers, 'symbol');
         client.resolve (tickers, 'tickers');
     }
 
-    parseWsTicker (message, marketType) {
+    parseWsTicker (rawTicker, market: Market = undefined): Ticker {
         //
         //     {
-        //         "coin": "PURR"
-        //         "openInterest": "64638.1108",
         //         "prevDayPx": "3400.5",
         //         "dayNtlVlm": "511297257.47936022",
-        //         "oraclePx": "3460.1",
         //         "markPx": "3464.7",
         //         "midPx": "3465.05",
+        //         "oraclePx": "3460.1", // only in swap
+        //         "openInterest": "64638.1108", // only in swap
         //         "premium": "0.00141614", // only in swap
         //         "funding": "0.00008727", // only in swap
-        //         "impactPxs": [ "3465.0", "3465.1" ] // only in swap
+        //         "impactPxs": [ "3465.0", "3465.1" ], // only in swap
+        //         "coin": "PURR", // only in spot
+        //         "circulatingSupply": "998949190.03400207", // only in spot
         //     },
         //
-        const marketId = this.safeString (message, 'coin');
-        const market = this.safeMarket (marketId, undefined, undefined, marketType);
-        const bidAsk = this.safeList (message, 'impactPxs');
+        const bidAsk = this.safeList (rawTicker, 'impactPxs');
         return this.safeTicker ({
             'symbol': market['symbol'],
-            'previousClose': this.safeNumber (message, 'prevDayPx'),
-            'close': this.safeNumber (message, 'midPx'),
+            'previousClose': this.safeNumber (rawTicker, 'prevDayPx'),
+            'close': this.safeNumber (rawTicker, 'midPx'),
             'bid': this.safeNumber (bidAsk, 0),
             'ask': this.safeNumber (bidAsk, 1),
-            'quoteVolume': this.safeNumber (message, 'dayNtlVlm'),
-            'info': message,
+            'quoteVolume': this.safeNumber (rawTicker, 'dayNtlVlm'),
+            'info': rawTicker,
         });
     }
 
