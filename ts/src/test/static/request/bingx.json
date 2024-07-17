@@ -934,13 +934,24 @@
                 ]
             },
             {
-                "description": "Fetch swap Balance",
+                "description": "Linear swap fetch balance",
                 "method": "fetchBalance",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/user/balance?timestamp=1699458295585&signature=9ac6bdbb0f9dda6650951407abbf317de3c8c9eab00418dbdd285be82531dc9c",
                 "input": [
                     {
                         "type": "swap"
                     }
+                ]
+            },
+            {
+                "description": "Inverse swap fetch balance",
+                "method": "fetchBalance",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/user/balance?timestamp=1721191833333&signature=d3850755c7051578a7adaa294676fd1b4a63de55a3a9dd42c7dcdbabae901e20",
+                "input": [
+                  {
+                    "type": "swap",
+                    "subType": "inverse"
+                  }
                 ]
             }
         ],
