@@ -203,10 +203,23 @@ export default class ace extends Exchange {
     }
 
     parseMarket (market: Dict): Market {
-        const baseId = this.safeString (market, 'base');
-        const base = this.safeCurrencyCode (baseId);
-        const quoteId = this.safeString (market, 'quote');
-        const quote = this.safeCurrencyCode (quoteId);
+        //
+        //     {
+        //         "symbol": "ADA/TWD",
+        //         "base": "ADA",
+        //         "baseCurrencyId": "122",
+        //         "quote": "TWD",
+        //         "quoteCurrencyId": "1",
+        //         "basePrecision": "2",
+        //         "quotePrecision": "3",
+        //         "minLimitBaseAmount": "1.0",
+        //         "maxLimitBaseAmount": "150000.0"
+        //     }
+        //
+        const baseId = this.safeString (market, 'baseCurrencyId');
+        const base = this.safeCurrencyCode (this.safeString (market, 'base'));
+        const quoteId = this.safeString (market, 'quoteCurrencyId');
+        const quote = this.safeCurrencyCode (this.safeString (market, 'quote'));
         const symbol = base + '/' + quote;
         return {
             'id': this.safeString (market, 'symbol'),
