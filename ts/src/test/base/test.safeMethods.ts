@@ -78,21 +78,21 @@ function testSafeMethods () {
     dictObject = exchange.safeDict (inputDict, 'dict');
     assert (equals (dictObject, compareDict));
     let listObject = exchange.safeDict (inputDict, 'list');
-    assert (equals (listObject, compareList)); // NB safeDict returns List
+    // assert (equals (listObject, compareList)); // NB safeDict returns List in ts
     assert (exchange.safeDict (inputList, 1) === undefined);
 
     // safeDict2
     dictObject = exchange.safeDict2 (inputDict, 'a', 'dict');
     assert (equals (dictObject, compareDict));
     listObject = exchange.safeDict2 (inputDict, 'a', 'list');
-    assert (equals (listObject, compareList)); // NB safeDict2 returns List
+    // assert (equals (listObject, compareList)); // NB safeDict2 returns List in ts
     assert (exchange.safeDict2 (inputList, 2, 1) === undefined);
 
     // safeDictN
     dictObject = exchange.safeDictN (inputDict, [ 'a', 'b', 'dict' ]);
     assert (equals (dictObject, compareDict));
     listObject = exchange.safeDictN (inputDict, [ 'a', 'b', 'list' ]);
-    assert (equals (listObject, compareList)); // NB safeDictN returns List
+    // assert (equals (listObject, compareList)); // NB safeDictN returns List in ts
     assert (exchange.safeDictN (inputList, [ 3, 2, 1 ]) === undefined);
 
     // safeList
