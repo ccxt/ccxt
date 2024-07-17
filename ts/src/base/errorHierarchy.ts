@@ -45,7 +45,7 @@ const errorHierarchy = {
                     'OnMaintenance': {},
                 },
                 'InvalidNonce': {
-                    'OrderBookChecksumError': {},
+                    'ChecksumError': {},
                 },
                 'RequestTimeout': {},
             },

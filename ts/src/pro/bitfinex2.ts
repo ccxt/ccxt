@@ -3,7 +3,7 @@
 
 import bitfinex2Rest from '../bitfinex2.js';
 import { Precise } from '../base/Precise.js';
-import { ExchangeError, AuthenticationError, OrderBookChecksumError } from '../base/errors.js';
+import { ExchangeError, AuthenticationError, ChecksumError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict } from '../base/types.js';
@@ -696,7 +696,7 @@ export default class bitfinex2 extends bitfinex2Rest {
             delete this.orderbooks[symbol];
             const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
             if (checksum) {
-                const error = new OrderBookChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+                const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
                 client.reject (error, messageHash);
             }
         }

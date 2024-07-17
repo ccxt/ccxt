@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import independentreserveRest from '../independentreserve.js';
-import { NotSupported, OrderBookChecksumError } from '../base/errors.js';
+import { NotSupported, ChecksumError } from '../base/errors.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import type { Int, OrderBook, Trade, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -226,7 +226,7 @@ export default class independentreserve extends independentreserveRest {
             const calculatedChecksum = this.crc32 (payload, true);
             const responseChecksum = this.safeInteger (orderBook, 'Crc32');
             if (calculatedChecksum !== responseChecksum) {
-                const error = new OrderBookChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+                const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
                 delete client.subscriptions[messageHash];
                 delete this.orderbooks[symbol];
                 client.reject (error, messageHash);

@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import bitgetRest from '../bitget.js';
-import { AuthenticationError, BadRequest, ArgumentsRequired, OrderBookChecksumError, ExchangeError, RateLimitExceeded } from '../base/errors.js';
+import { AuthenticationError, BadRequest, ArgumentsRequired, ChecksumError, ExchangeError, RateLimitExceeded } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -575,7 +575,7 @@ export default class bitget extends bitgetRest {
                 if (calculatedChecksum !== responseChecksum) {
                     delete client.subscriptions[messageHash];
                     delete this.orderbooks[symbol];
-                    const error = new OrderBookChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+                    const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
                     client.reject (error, messageHash);
                     return;
                 }
