@@ -1883,7 +1883,10 @@ export default class Exchange {
         if (value === undefined) {
             return defaultValue;
         }
-        if ((typeof value === 'object') && !Array.isArray (value)) {
+        if ((typeof value === 'object')) {
+            if (Array.isArray (value)) {
+                return defaultValue;
+            }
             return value;
         }
         return defaultValue;
