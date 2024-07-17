@@ -77,6 +77,7 @@ class bingx extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPosition' => true,
                 'fetchPositionHistory' => false,
                 'fetchPositionMode' => true,
                 'fetchPositions' => true,
@@ -526,37 +527,40 @@ class bingx extends Exchange {
             $response = Async\await($this->walletsV1PrivateGetCapitalConfigGetall ($params));
             //
             //    {
-            //        "code" => 0,
-            //        "timestamp" => 1688045966616,
-            //        "data" => array(
-            //            {
-            //              "coin" => "BTC",
+            //      "code" => 0,
+            //      "timestamp" => 1702623271477,
+            //      "data" => array(
+            //        {
+            //          "coin" => "BTC",
+            //          "name" => "BTC",
+            //          "networkList" => array(
+            //            array(
             //              "name" => "BTC",
-            //              "networkList" => array(
-            //                array(
-            //                  "name" => "BTC",
-            //                  "network" => "BTC",
-            //                  "isDefault" => true,
-            //                  "minConfirm" => "2",
-            //                  "withdrawEnable" => true,
-            //                  "withdrawFee" => "0.00035",
-            //                  "withdrawMax" => "1.62842",
-            //                  "withdrawMin" => "0.0005"
-            //                ),
-            //                array(
-            //                  "name" => "BTC",
-            //                  "network" => "BEP20",
-            //                  "isDefault" => false,
-            //                  "minConfirm" => "15",
-            //                  "withdrawEnable" => true,
-            //                  "withdrawFee" => "0.00001",
-            //                  "withdrawMax" => "1.62734",
-            //                  "withdrawMin" => "0.0001"
-            //                }
-            //              )
-            //          ),
-            //          ...
-            //        ),
+            //              "network" => "BTC",
+            //              "isDefault" => true,
+            //              "minConfirm" => 2,
+            //              "withdrawEnable" => true,
+            //              "depositEnable" => true,
+            //              "withdrawFee" => "0.0006",
+            //              "withdrawMax" => "1.17522",
+            //              "withdrawMin" => "0.0005",
+            //              "depositMin" => "0.0002"
+            //            ),
+            //            {
+            //              "name" => "BTC",
+            //              "network" => "BEP20",
+            //              "isDefault" => false,
+            //              "minConfirm" => 15,
+            //              "withdrawEnable" => true,
+            //              "depositEnable" => true,
+            //              "withdrawFee" => "0.0000066",
+            //              "withdrawMax" => "1.17522",
+            //              "withdrawMin" => "0.0000066",
+            //              "depositMin" => "0.0002"
+            //            }
+            //          )
+            //        }
+            //      )
             //    }
             //
             $data = $this->safe_list($response, 'data', array());
@@ -570,6 +574,7 @@ class bingx extends Exchange {
                 $networks = array();
                 $fee = null;
                 $active = null;
+                $depositEnabled = null;
                 $withdrawEnabled = null;
                 $defaultLimits = array();
                 for ($j = 0; $j < count($networkList); $j++) {
@@ -577,13 +582,17 @@ class bingx extends Exchange {
                     $network = $this->safe_string($rawNetwork, 'network');
                     $networkCode = $this->network_id_to_code($network);
                     $isDefault = $this->safe_bool($rawNetwork, 'isDefault');
+                    $depositEnabled = $this->safe_bool($rawNetwork, 'depositEnable');
                     $withdrawEnabled = $this->safe_bool($rawNetwork, 'withdrawEnable');
                     $limits = array(
-                        'amounts' => array( 'min' => $this->safe_number($rawNetwork, 'withdrawMin'), 'max' => $this->safe_number($rawNetwork, 'withdrawMax') ),
+                        'withdraw' => array(
+                            'min' => $this->safe_number($rawNetwork, 'withdrawMin'),
+                            'max' => $this->safe_number($rawNetwork, 'withdrawMax'),
+                        ),
                     );
                     if ($isDefault) {
                         $fee = $this->safe_number($rawNetwork, 'withdrawFee');
-                        $active = $withdrawEnabled;
+                        $active = $depositEnabled || $withdrawEnabled;
                         $defaultLimits = $limits;
                     }
                     $networks[$networkCode] = array(
@@ -592,7 +601,7 @@ class bingx extends Exchange {
                         'network' => $networkCode,
                         'fee' => $fee,
                         'active' => $active,
-                        'deposit' => null,
+                        'deposit' => $depositEnabled,
                         'withdraw' => $withdrawEnabled,
                         'precision' => null,
                         'limits' => $limits,
@@ -605,7 +614,7 @@ class bingx extends Exchange {
                     'precision' => null,
                     'name' => $name,
                     'active' => $active,
-                    'deposit' => null,
+                    'deposit' => $depositEnabled,
                     'withdraw' => $withdrawEnabled,
                     'networks' => $networks,
                     'fee' => $fee,
@@ -1788,6 +1797,7 @@ class bingx extends Exchange {
              * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Assets
              * @see https://bingx-api.github.io/docs/#/swapV2/account-api.html#Get%20Perpetual%20Swap%20Account%20Asset%20Information
              * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
+             * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Account%20Assets
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->standard] whether to fetch $standard contract balances
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
@@ -1796,103 +1806,213 @@ class bingx extends Exchange {
             $response = null;
             $standard = null;
             list($standard, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'standard', false);
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchBalance', null, $params);
             list($marketType, $marketTypeQuery) = $this->handle_market_type_and_params('fetchBalance', null, $params);
             if ($standard) {
                 $response = Async\await($this->contractV1PrivateGetBalance ($marketTypeQuery));
+                //
+                //     {
+                //         "code" => 0,
+                //         "timestamp" => 1721192833454,
+                //         "data" => array(
+                //             array(
+                //                 "asset" => "USDT",
+                //                 "balance" => "4.72644300000000000000",
+                //                 "crossWalletBalance" => "4.72644300000000000000",
+                //                 "crossUnPnl" => "0",
+                //                 "availableBalance" => "4.72644300000000000000",
+                //                 "maxWithdrawAmount" => "4.72644300000000000000",
+                //                 "marginAvailable" => false,
+                //                 "updateTime" => 1721192833443
+                //             ),
+                //         )
+                //     }
+                //
             } elseif ($marketType === 'spot') {
                 $response = Async\await($this->spotV1PrivateGetAccountBalance ($marketTypeQuery));
+                //
+                //     {
+                //         "code" => 0,
+                //         "msg" => "",
+                //         "debugMsg" => "",
+                //         "data" => {
+                //             "balances" => array(
+                //                 array(
+                //                     "asset" => "USDT",
+                //                     "free" => "45.733046995800514",
+                //                     "locked" => "0"
+                //                 ),
+                //             )
+                //         }
+                //     }
+                //
             } else {
-                $response = Async\await($this->swapV2PrivateGetUserBalance ($marketTypeQuery));
+                if ($subType === 'inverse') {
+                    $response = Async\await($this->cswapV1PrivateGetUserBalance ($marketTypeQuery));
+                    //
+                    //     {
+                    //         "code" => 0,
+                    //         "msg" => "",
+                    //         "timestamp" => 1721191833813,
+                    //         "data" => array(
+                    //             {
+                    //                 "asset" => "SOL",
+                    //                 "balance" => "0.35707951",
+                    //                 "equity" => "0.35791051",
+                    //                 "unrealizedProfit" => "0.00083099",
+                    //                 "availableMargin" => "0.35160653",
+                    //                 "usedMargin" => "0.00630397",
+                    //                 "freezedMargin" => "0",
+                    //                 "shortUid" => "12851936"
+                    //             }
+                    //         )
+                    //     }
+                    //
+                } else {
+                    $response = Async\await($this->swapV2PrivateGetUserBalance ($marketTypeQuery));
+                    //
+                    //     {
+                    //         "code" => 0,
+                    //         "msg" => "",
+                    //         "data" => {
+                    //             "balance" => {
+                    //                 "userId" => "1177064765068660742",
+                    //                 "asset" => "USDT",
+                    //                 "balance" => "51.5198",
+                    //                 "equity" => "50.5349",
+                    //                 "unrealizedProfit" => "-0.9849",
+                    //                 "realisedProfit" => "-0.2134",
+                    //                 "availableMargin" => "49.1428",
+                    //                 "usedMargin" => "1.3922",
+                    //                 "freezedMargin" => "0.0000",
+                    //                 "shortUid" => "12851936"
+                    //             }
+                    //         }
+                    //     }
+                    //
+                }
             }
-            //
-            // spot
-            //
-            //    {
-            //        "code" => 0,
-            //        "msg" => "",
-            //        "ttl" => 1,
-            //        "data" => {
-            //            "balances" => array(
-            //                {
-            //                    "asset" => "USDT",
-            //                    "free" => "16.73971130673954",
-            //                    "locked" => "0"
-            //                }
-            //            )
-            //        }
-            //    }
-            //
-            // swap
-            //
-            //    {
-            //        "code" => 0,
-            //        "msg" => "",
-            //        "data" => {
-            //          "balance" => {
-            //            "asset" => "USDT",
-            //            "balance" => "15.6128",
-            //            "equity" => "15.6128",
-            //            "unrealizedProfit" => "0.0000",
-            //            "realisedProfit" => "0.0000",
-            //            "availableMargin" => "15.6128",
-            //            "usedMargin" => "0.0000",
-            //            "freezedMargin" => "0.0000"
-            //          }
-            //        }
-            //    }
-            // $standard futures
-            //    {
-            //        "code":"0",
-            //        "timestamp":"1691148990942",
-            //        "data":array(
-            //           array(
-            //              "asset":"VST",
-            //              "balance":"100000.00000000000000000000",
-            //              "crossWalletBalance":"100000.00000000000000000000",
-            //              "crossUnPnl":"0",
-            //              "availableBalance":"100000.00000000000000000000",
-            //              "maxWithdrawAmount":"100000.00000000000000000000",
-            //              "marginAvailable":false,
-            //              "updateTime":"1691148990902"
-            //           ),
-            //           array(
-            //              "asset":"USDT",
-            //              "balance":"0",
-            //              "crossWalletBalance":"0",
-            //              "crossUnPnl":"0",
-            //              "availableBalance":"0",
-            //              "maxWithdrawAmount":"0",
-            //              "marginAvailable":false,
-            //              "updateTime":"1691148990902"
-            //           ),
-            //        )
-            //     }
-            //
             return $this->parse_balance($response);
         }) ();
     }
 
     public function parse_balance($response): array {
-        $data = $this->safe_value($response, 'data');
-        $balances = $this->safe_value_2($data, 'balance', 'balances', $data);
+        //
+        // standard
+        //
+        //     {
+        //         "code" => 0,
+        //         "timestamp" => 1721192833454,
+        //         "data" => array(
+        //             array(
+        //                 "asset" => "USDT",
+        //                 "balance" => "4.72644300000000000000",
+        //                 "crossWalletBalance" => "4.72644300000000000000",
+        //                 "crossUnPnl" => "0",
+        //                 "availableBalance" => "4.72644300000000000000",
+        //                 "maxWithdrawAmount" => "4.72644300000000000000",
+        //                 "marginAvailable" => false,
+        //                 "updateTime" => 1721192833443
+        //             ),
+        //         )
+        //     }
+        //
+        // spot
+        //
+        //     {
+        //         "code" => 0,
+        //         "msg" => "",
+        //         "debugMsg" => "",
+        //         "data" => {
+        //             "balances" => array(
+        //                 array(
+        //                     "asset" => "USDT",
+        //                     "free" => "45.733046995800514",
+        //                     "locked" => "0"
+        //                 ),
+        //             )
+        //         }
+        //     }
+        //
+        // inverse swap
+        //
+        //     {
+        //         "code" => 0,
+        //         "msg" => "",
+        //         "timestamp" => 1721191833813,
+        //         "data" => array(
+        //             {
+        //                 "asset" => "SOL",
+        //                 "balance" => "0.35707951",
+        //                 "equity" => "0.35791051",
+        //                 "unrealizedProfit" => "0.00083099",
+        //                 "availableMargin" => "0.35160653",
+        //                 "usedMargin" => "0.00630397",
+        //                 "freezedMargin" => "0",
+        //                 "shortUid" => "12851936"
+        //             }
+        //         )
+        //     }
+        //
+        // linear swap
+        //
+        //     {
+        //         "code" => 0,
+        //         "msg" => "",
+        //         "data" => {
+        //             "balance" => {
+        //                 "userId" => "1177064765068660742",
+        //                 "asset" => "USDT",
+        //                 "balance" => "51.5198",
+        //                 "equity" => "50.5349",
+        //                 "unrealizedProfit" => "-0.9849",
+        //                 "realisedProfit" => "-0.2134",
+        //                 "availableMargin" => "49.1428",
+        //                 "usedMargin" => "1.3922",
+        //                 "freezedMargin" => "0.0000",
+        //                 "shortUid" => "12851936"
+        //             }
+        //         }
+        //     }
+        //
         $result = array( 'info' => $response );
-        if (gettype($balances) === 'array' && array_keys($balances) === array_keys(array_keys($balances))) {
-            for ($i = 0; $i < count($balances); $i++) {
-                $balance = $balances[$i];
+        $standardAndInverseBalances = $this->safe_list($response, 'data');
+        $firstStandardOrInverse = $this->safe_dict($standardAndInverseBalances, 0);
+        $isStandardOrInverse = $firstStandardOrInverse !== null;
+        $spotData = $this->safe_dict($response, 'data', array());
+        $spotBalances = $this->safe_list($spotData, 'balances');
+        $firstSpot = $this->safe_dict($spotBalances, 0);
+        $isSpot = $firstSpot !== null;
+        if ($isStandardOrInverse) {
+            for ($i = 0; $i < count($standardAndInverseBalances); $i++) {
+                $balance = $standardAndInverseBalances[$i];
                 $currencyId = $this->safe_string($balance, 'asset');
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
-                $account['free'] = $this->safe_string_2($balance, 'free', 'availableBalance');
+                $account['free'] = $this->safe_string_2($balance, 'availableMargin', 'availableBalance');
+                $account['used'] = $this->safe_string($balance, 'usedMargin');
+                $account['total'] = $this->safe_string($balance, 'maxWithdrawAmount');
+                $result[$code] = $account;
+            }
+        } elseif ($isSpot) {
+            for ($i = 0; $i < count($spotBalances); $i++) {
+                $balance = $spotBalances[$i];
+                $currencyId = $this->safe_string($balance, 'asset');
+                $code = $this->safe_currency_code($currencyId);
+                $account = $this->account();
+                $account['free'] = $this->safe_string($balance, 'free');
                 $account['used'] = $this->safe_string($balance, 'locked');
-                $account['total'] = $this->safe_string($balance, 'balance');
                 $result[$code] = $account;
             }
         } else {
-            $currencyId = $this->safe_string($balances, 'asset');
+            $linearSwapData = $this->safe_dict($response, 'data', array());
+            $linearSwapBalance = $this->safe_dict($linearSwapData, 'balance');
+            $currencyId = $this->safe_string($linearSwapBalance, 'asset');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_string($balances, 'availableMargin');
-            $account['used'] = $this->safe_string($balances, 'usedMargin');
+            $account['free'] = $this->safe_string($linearSwapBalance, 'availableMargin');
+            $account['used'] = $this->safe_string($linearSwapBalance, 'usedMargin');
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
@@ -1902,12 +2022,13 @@ class bingx extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetch all open $positions
-             * @see https://bingx-api.github.io/docs/#/swapV2/account-api.html#Perpetual%20Swap%20Positions
-             * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
-             * @param {string[]|null} $symbols list of unified market $symbols
+             * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
+             * @see https://bingx-api.github.io/docs/#/en-us/standard/contract-interface.html#position
+             * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
+             * @param {string[]|null} $symbols list of unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->standard] whether to fetch $standard contract $positions
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -1917,57 +2038,218 @@ class bingx extends Exchange {
             if ($standard) {
                 $response = Async\await($this->contractV1PrivateGetAllPosition ($params));
             } else {
-                $response = Async\await($this->swapV2PrivateGetUserPositions ($params));
+                $market = null;
+                if ($symbols !== null) {
+                    $symbols = $this->market_symbols($symbols);
+                    $firstSymbol = $this->safe_string($symbols, 0);
+                    if ($firstSymbol !== null) {
+                        $market = $this->market($firstSymbol);
+                    }
+                }
+                $subType = null;
+                list($subType, $params) = $this->handle_sub_type_and_params('fetchPositions', $market, $params);
+                if ($subType === 'inverse') {
+                    $response = Async\await($this->cswapV1PrivateGetUserPositions ($params));
+                    //
+                    //     {
+                    //         "code" => 0,
+                    //         "msg" => "",
+                    //         "timestamp" => 0,
+                    //         "data" => array(
+                    //             {
+                    //                 "symbol" => "SOL-USD",
+                    //                 "positionId" => "1813080351385337856",
+                    //                 "positionSide" => "LONG",
+                    //                 "isolated" => false,
+                    //                 "positionAmt" => "1",
+                    //                 "availableAmt" => "1",
+                    //                 "unrealizedProfit" => "-0.00009074",
+                    //                 "initialMargin" => "0.00630398",
+                    //                 "liquidationPrice" => 23.968303426677032,
+                    //                 "avgPrice" => "158.63",
+                    //                 "leverage" => 10,
+                    //                 "markPrice" => "158.402",
+                    //                 "riskRate" => "0.00123783",
+                    //                 "maxMarginReduction" => "0",
+                    //                 "updateTime" => 1721107015848
+                    //             }
+                    //         )
+                    //     }
+                    //
+                } else {
+                    $response = Async\await($this->swapV2PrivateGetUserPositions ($params));
+                    //
+                    //     {
+                    //         "code" => 0,
+                    //         "msg" => "",
+                    //         "data" => array(
+                    //             {
+                    //                 "positionId" => "1792480725958881280",
+                    //                 "symbol" => "LTC-USDT",
+                    //                 "currency" => "USDT",
+                    //                 "positionAmt" => "0.1",
+                    //                 "availableAmt" => "0.1",
+                    //                 "positionSide" => "LONG",
+                    //                 "isolated" => false,
+                    //                 "avgPrice" => "83.53",
+                    //                 "initialMargin" => "1.3922",
+                    //                 "margin" => "0.3528",
+                    //                 "leverage" => 6,
+                    //                 "unrealizedProfit" => "-1.0393",
+                    //                 "realisedProfit" => "-0.2119",
+                    //                 "liquidationPrice" => 0,
+                    //                 "pnlRatio" => "-0.7465",
+                    //                 "maxMarginReduction" => "0.0000",
+                    //                 "riskRate" => "0.0008",
+                    //                 "markPrice" => "73.14",
+                    //                 "positionValue" => "7.3136",
+                    //                 "onlyOnePosition" => true,
+                    //                 "updateTime" => 1721088016688
+                    //             }
+                    //         )
+                    //     }
+                    //
+                }
             }
-            //
-            //    {
-            //        "code" => 0,
-            //            "msg" => "",
-            //            "data" => array(
-            //            {
-            //                "symbol" => "BTC-USDT",
-            //                "positionId" => "12345678",
-            //                "positionSide" => "LONG",
-            //                "isolated" => true,
-            //                "positionAmt" => "123.33",
-            //                "availableAmt" => "128.99",
-            //                "unrealizedProfit" => "1.22",
-            //                "realisedProfit" => "8.1",
-            //                "initialMargin" => "123.33",
-            //                "avgPrice" => "2.2",
-            //                "leverage" => 10,
-            //            }
-            //        )
-            //    }
-            //
             $positions = $this->safe_list($response, 'data', array());
             return $this->parse_positions($positions, $symbols);
         }) ();
     }
 
+    public function fetch_position(string $symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch $data on a single open contract trade position
+             * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
+             * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
+             * @param {string} $symbol unified $market $symbol of the $market the position is held in
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['swap']) {
+                throw new BadRequest($this->id . ' fetchPosition() supports swap markets only');
+            }
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = null;
+            if ($market['inverse']) {
+                $response = Async\await($this->cswapV1PrivateGetUserPositions ($this->extend($request, $params)));
+                //
+                //     {
+                //         "code" => 0,
+                //         "msg" => "",
+                //         "timestamp" => 0,
+                //         "data" => array(
+                //             {
+                //                 "symbol" => "SOL-USD",
+                //                 "positionId" => "1813080351385337856",
+                //                 "positionSide" => "LONG",
+                //                 "isolated" => false,
+                //                 "positionAmt" => "1",
+                //                 "availableAmt" => "1",
+                //                 "unrealizedProfit" => "-0.00009074",
+                //                 "initialMargin" => "0.00630398",
+                //                 "liquidationPrice" => 23.968303426677032,
+                //                 "avgPrice" => "158.63",
+                //                 "leverage" => 10,
+                //                 "markPrice" => "158.402",
+                //                 "riskRate" => "0.00123783",
+                //                 "maxMarginReduction" => "0",
+                //                 "updateTime" => 1721107015848
+                //             }
+                //         )
+                //     }
+                //
+            } else {
+                $response = Async\await($this->swapV2PrivateGetUserPositions ($this->extend($request, $params)));
+                //
+                //     {
+                //         "code" => 0,
+                //         "msg" => "",
+                //         "data" => array(
+                //             {
+                //                 "positionId" => "1792480725958881280",
+                //                 "symbol" => "LTC-USDT",
+                //                 "currency" => "USDT",
+                //                 "positionAmt" => "0.1",
+                //                 "availableAmt" => "0.1",
+                //                 "positionSide" => "LONG",
+                //                 "isolated" => false,
+                //                 "avgPrice" => "83.53",
+                //                 "initialMargin" => "1.3922",
+                //                 "margin" => "0.3528",
+                //                 "leverage" => 6,
+                //                 "unrealizedProfit" => "-1.0393",
+                //                 "realisedProfit" => "-0.2119",
+                //                 "liquidationPrice" => 0,
+                //                 "pnlRatio" => "-0.7465",
+                //                 "maxMarginReduction" => "0.0000",
+                //                 "riskRate" => "0.0008",
+                //                 "markPrice" => "73.14",
+                //                 "positionValue" => "7.3136",
+                //                 "onlyOnePosition" => true,
+                //                 "updateTime" => 1721088016688
+                //             }
+                //         )
+                //     }
+                //
+            }
+            $data = $this->safe_list($response, 'data', array());
+            $first = $this->safe_dict($data, 0, array());
+            return $this->parse_position($first, $market);
+        }) ();
+    }
+
     public function parse_position(array $position, ?array $market = null) {
         //
-        //    {
-        //        "positionId":"1773122376147623936",
-        //        "symbol":"XRP-USDT",
-        //        "currency":"USDT",
-        //        "positionAmt":"3",
-        //        "availableAmt":"3",
-        //        "positionSide":"LONG",
-        //        "isolated":false,
-        //        "avgPrice":"0.6139",
-        //        "initialMargin":"0.0897",
-        //        "leverage":20,
-        //        "unrealizedProfit":"-0.0023",
-        //        "realisedProfit":"-0.0009",
-        //        "liquidationPrice":0,
-        //        "pnlRatio":"-0.0260",
-        //        "maxMarginReduction":"",
-        //        "riskRate":"",
-        //        "markPrice":"",
-        //        "positionValue":"",
-        //        "onlyOnePosition":false
-        //    }
+        // inverse swap
+        //
+        //     {
+        //         "symbol" => "SOL-USD",
+        //         "positionId" => "1813080351385337856",
+        //         "positionSide" => "LONG",
+        //         "isolated" => false,
+        //         "positionAmt" => "1",
+        //         "availableAmt" => "1",
+        //         "unrealizedProfit" => "-0.00009074",
+        //         "initialMargin" => "0.00630398",
+        //         "liquidationPrice" => 23.968303426677032,
+        //         "avgPrice" => "158.63",
+        //         "leverage" => 10,
+        //         "markPrice" => "158.402",
+        //         "riskRate" => "0.00123783",
+        //         "maxMarginReduction" => "0",
+        //         "updateTime" => 1721107015848
+        //     }
+        //
+        // linear swap
+        //
+        //     {
+        //         "positionId" => "1792480725958881280",
+        //         "symbol" => "LTC-USDT",
+        //         "currency" => "USDT",
+        //         "positionAmt" => "0.1",
+        //         "availableAmt" => "0.1",
+        //         "positionSide" => "LONG",
+        //         "isolated" => false,
+        //         "avgPrice" => "83.53",
+        //         "initialMargin" => "1.3922",
+        //         "margin" => "0.3528",
+        //         "leverage" => 6,
+        //         "unrealizedProfit" => "-1.0393",
+        //         "realisedProfit" => "-0.2119",
+        //         "liquidationPrice" => 0,
+        //         "pnlRatio" => "-0.7465",
+        //         "maxMarginReduction" => "0.0000",
+        //         "riskRate" => "0.0008",
+        //         "markPrice" => "73.14",
+        //         "positionValue" => "7.3136",
+        //         "onlyOnePosition" => true,
+        //         "updateTime" => 1721088016688
+        //     }
         //
         // standard $position
         //
@@ -2003,13 +2285,13 @@ class bingx extends Exchange {
             'percentage' => null,
             'contracts' => $this->safe_number($position, 'positionAmt'),
             'contractSize' => null,
-            'markPrice' => null,
+            'markPrice' => $this->safe_number($position, 'markPrice'),
             'lastPrice' => null,
             'side' => $this->safe_string_lower($position, 'positionSide'),
             'hedged' => null,
             'timestamp' => null,
             'datetime' => null,
-            'lastUpdateTimestamp' => null,
+            'lastUpdateTimestamp' => $this->safe_integer($position, 'updateTime'),
             'maintenanceMargin' => null,
             'maintenanceMarginPercentage' => null,
             'collateral' => null,

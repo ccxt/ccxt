@@ -1014,7 +1014,13 @@ class ace extends Exchange {
             ), $params);
             $sortedData = $this->keysort($data);
             $values = is_array($sortedData) ? array_values($sortedData) : array();
-            $auth .= implode('', $values);
+            $stringifiedValues = array();
+            for ($i = 0; $i < count($values); $i++) {
+                $value = $values[$i];
+                $strValue = (string) $value;
+                $stringifiedValues[] = $strValue;
+            }
+            $auth .= implode('', $stringifiedValues);
             $signature = $this->hash($this->encode($auth), 'sha256', 'hex');
             $data['signKey'] = $signature;
             $headers = array(

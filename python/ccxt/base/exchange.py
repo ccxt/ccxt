@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.61'
+__version__ = '4.3.62'
 
 # -----------------------------------------------------------------------------
 
@@ -5719,8 +5719,11 @@ class Exchange(object):
         return [request, params]
 
     def safe_open_interest(self, interest, market: Market = None):
+        symbol = self.safe_string(interest, 'symbol')
+        if symbol is None:
+            symbol = self.safe_string(market, 'symbol')
         return self.extend(interest, {
-            'symbol': self.safe_string(market, 'symbol'),
+            'symbol': symbol,
             'baseVolume': self.safe_number(interest, 'baseVolume'),  # deprecated
             'quoteVolume': self.safe_number(interest, 'quoteVolume'),  # deprecated
             'openInterestAmount': self.safe_number(interest, 'openInterestAmount'),

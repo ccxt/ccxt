@@ -1067,7 +1067,14 @@ public partial class ace : Exchange
             }, parameters);
             object sortedData = this.keysort(data);
             object values = new List<object>(((IDictionary<string,object>)sortedData).Values);
-            auth = add(auth, String.Join("", ((IList<object>)values).ToArray()));
+            object stringifiedValues = new List<object>() {};
+            for (object i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
+            {
+                object value = getValue(values, i);
+                object strValue = ((object)value).ToString();
+                ((IList<object>)stringifiedValues).Add(strValue);
+            }
+            auth = add(auth, String.Join("", ((IList<object>)stringifiedValues).ToArray()));
             object signature = this.hash(this.encode(auth), sha256, "hex");
             ((IDictionary<string,object>)data)["signKey"] = signature;
             headers = new Dictionary<string, object>() {

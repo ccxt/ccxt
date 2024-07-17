@@ -4489,7 +4489,7 @@ class xt(Exchange, ImplicitAPI):
                 if isUndefinedBody:
                     if urlencoded:
                         url += '?' + urlencoded
-                        payloadString += '#' + method + '#' + payload + '#' + urlencoded
+                        payloadString += '#' + method + '#' + payload + '#' + self.rawencode(self.keysort(query))
                     else:
                         payloadString += '#' + method + '#' + payload
                 else:

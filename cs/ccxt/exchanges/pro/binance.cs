@@ -20,7 +20,7 @@ public partial class binance : ccxt.binance
                 { "watchBidsAsks", true },
                 { "watchMyTrades", true },
                 { "watchOHLCV", true },
-                { "watchOHLCVForSymbols", false },
+                { "watchOHLCVForSymbols", true },
                 { "watchOrderBook", true },
                 { "watchOrderBookForSymbols", true },
                 { "watchOrders", true },
@@ -1312,40 +1312,75 @@ public partial class binance : ccxt.binance
         */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
+        ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOHLCV";
+        object result = await this.watchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframe}}, since, limit, parameters);
+        return getValue(getValue(result, symbol), timeframe);
+    }
+
+    public async override Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#watchOHLCVForSymbols
+        * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+        * @param {int} [since] timestamp in ms of the earliest candle to fetch
+        * @param {int} [limit] the maximum amount of candles to fetch
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+        */
+        parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
-        object marketId = getValue(market, "lowercaseId");
-        object interval = this.safeString(this.timeframes, timeframe, timeframe);
-        object options = this.safeValue(this.options, "watchOHLCV", new Dictionary<string, object>() {});
-        object nameOption = this.safeString(options, "name", "kline");
-        object name = this.safeString(parameters, "name", nameOption);
-        if (isTrue(isEqual(name, "indexPriceKline")))
+        object klineType = null;
+        var klineTypeparametersVariable = this.handleParamString2(parameters, "channel", "name", "kline");
+        klineType = ((IList<object>)klineTypeparametersVariable)[0];
+        parameters = ((IList<object>)klineTypeparametersVariable)[1];
+        object symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
+        object marketSymbols = this.marketSymbols(symbols, null, false, false, true);
+        object firstMarket = this.market(getValue(marketSymbols, 0));
+        object type = getValue(firstMarket, "type");
+        if (isTrue(getValue(firstMarket, "contract")))
         {
-            marketId = ((string)marketId).Replace((string)"_perp", (string)"");
+            type = ((bool) isTrue(getValue(firstMarket, "linear"))) ? "future" : "delivery";
         }
-        parameters = this.omit(parameters, "name");
-        object messageHash = add(add(add(add(marketId, "@"), name), "_"), interval);
-        object type = getValue(market, "type");
-        if (isTrue(getValue(market, "contract")))
+        object rawHashes = new List<object>() {};
+        object messageHashes = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
         {
-            type = ((bool) isTrue(getValue(market, "linear"))) ? "future" : "delivery";
+            object symAndTf = getValue(symbolsAndTimeframes, i);
+            object symbolString = getValue(symAndTf, 0);
+            object timeframeString = getValue(symAndTf, 1);
+            object interval = this.safeString(this.timeframes, timeframeString, timeframeString);
+            object market = this.market(symbolString);
+            object marketId = getValue(market, "lowercaseId");
+            if (isTrue(isEqual(klineType, "indexPriceKline")))
+            {
+                // weird behavior for index price kline we can't use the perp suffix
+                marketId = ((string)marketId).Replace((string)"_perp", (string)"");
+            }
+            ((IList<object>)rawHashes).Add(add(add(add(add(marketId, "@"), klineType), "_"), interval));
+            ((IList<object>)messageHashes).Add(add(add(add("ohlcv::", symbolString), "::"), timeframeString));
         }
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/"), this.stream(type, messageHash));
+        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/"), this.stream(type, "multipleOHLCV"));
         object requestId = this.requestId(url);
         object request = new Dictionary<string, object>() {
             { "method", "SUBSCRIBE" },
-            { "params", new List<object>() {messageHash} },
+            { "params", rawHashes },
             { "id", requestId },
         };
         object subscribe = new Dictionary<string, object>() {
             { "id", requestId },
         };
-        object ohlcv = await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscribe);
+        var symboltimeframecandlesVariable = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscribe);
+        var symbol = ((IList<object>) symboltimeframecandlesVariable)[0];
+        var timeframe = ((IList<object>) symboltimeframecandlesVariable)[1];
+        var candles = ((IList<object>) symboltimeframecandlesVariable)[2];
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(ohlcv, "getLimit", new object[] {symbol, limit});
+            limit = callDynamically(candles, "getLimit", new object[] {symbol, limit});
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        object filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
+        return this.createOHLCVObject(symbol, timeframe, filtered);
     }
 
     public virtual void handleOHLCV(WebSocketClient client, object message)
@@ -1389,25 +1424,25 @@ public partial class binance : ccxt.binance
             // indexPriceKline doesn't have the _PERP suffix
             marketId = this.safeString(message, "ps");
         }
-        object lowercaseMarketId = ((string)marketId).ToLower();
         object interval = this.safeString(kline, "i");
         // use a reverse lookup in a static map instead
-        object timeframe = this.findTimeframe(interval);
-        object messageHash = add(add(add(add(lowercaseMarketId, "@"), eventVar), "_"), interval);
+        object unifiedTimeframe = this.findTimeframe(interval);
         object parsed = new List<object> {this.safeInteger(kline, "t"), this.safeFloat(kline, "o"), this.safeFloat(kline, "h"), this.safeFloat(kline, "l"), this.safeFloat(kline, "c"), this.safeFloat(kline, "v")};
         object isSpot = (isTrue((isGreaterThan(getIndexOf(client.url, "/stream"), -1))) || isTrue((isGreaterThan(getIndexOf(client.url, "/testnet.binance"), -1))));
         object marketType = ((bool) isTrue((isSpot))) ? "spot" : "contract";
         object symbol = this.safeSymbol(marketId, null, null, marketType);
+        object messageHash = add(add(add("ohlcv::", symbol), "::"), unifiedTimeframe);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
+        object stored = this.safeValue(getValue(this.ohlcvs, symbol), unifiedTimeframe);
         if (isTrue(isEqual(stored, null)))
         {
             object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
+            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)unifiedTimeframe] = stored;
         }
         callDynamically(stored, "append", new object[] {parsed});
-        callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
+        object resolveData = new List<object>() {symbol, unifiedTimeframe, stored};
+        callDynamically(client as WebSocketClient, "resolve", new object[] {resolveData, messageHash});
     }
 
     public async override Task<object> fetchTickerWs(object symbol, object parameters = null)

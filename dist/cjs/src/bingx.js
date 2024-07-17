@@ -71,6 +71,7 @@ class bingx extends bingx$1 {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': true,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': true,
                 'fetchPositions': true,
@@ -519,37 +520,40 @@ class bingx extends bingx$1 {
         const response = await this.walletsV1PrivateGetCapitalConfigGetall(params);
         //
         //    {
-        //        "code": 0,
-        //        "timestamp": 1688045966616,
-        //        "data": [
+        //      "code": 0,
+        //      "timestamp": 1702623271477,
+        //      "data": [
+        //        {
+        //          "coin": "BTC",
+        //          "name": "BTC",
+        //          "networkList": [
         //            {
-        //              "coin": "BTC",
         //              "name": "BTC",
-        //              "networkList": [
-        //                {
-        //                  "name": "BTC",
-        //                  "network": "BTC",
-        //                  "isDefault": true,
-        //                  "minConfirm": "2",
-        //                  "withdrawEnable": true,
-        //                  "withdrawFee": "0.00035",
-        //                  "withdrawMax": "1.62842",
-        //                  "withdrawMin": "0.0005"
-        //                },
-        //                {
-        //                  "name": "BTC",
-        //                  "network": "BEP20",
-        //                  "isDefault": false,
-        //                  "minConfirm": "15",
-        //                  "withdrawEnable": true,
-        //                  "withdrawFee": "0.00001",
-        //                  "withdrawMax": "1.62734",
-        //                  "withdrawMin": "0.0001"
-        //                }
-        //              ]
-        //          },
-        //          ...
-        //        ],
+        //              "network": "BTC",
+        //              "isDefault": true,
+        //              "minConfirm": 2,
+        //              "withdrawEnable": true,
+        //              "depositEnable": true,
+        //              "withdrawFee": "0.0006",
+        //              "withdrawMax": "1.17522",
+        //              "withdrawMin": "0.0005",
+        //              "depositMin": "0.0002"
+        //            },
+        //            {
+        //              "name": "BTC",
+        //              "network": "BEP20",
+        //              "isDefault": false,
+        //              "minConfirm": 15,
+        //              "withdrawEnable": true,
+        //              "depositEnable": true,
+        //              "withdrawFee": "0.0000066",
+        //              "withdrawMax": "1.17522",
+        //              "withdrawMin": "0.0000066",
+        //              "depositMin": "0.0002"
+        //            }
+        //          ]
+        //        }
+        //      ]
         //    }
         //
         const data = this.safeList(response, 'data', []);
@@ -563,6 +567,7 @@ class bingx extends bingx$1 {
             const networks = {};
             let fee = undefined;
             let active = undefined;
+            let depositEnabled = undefined;
             let withdrawEnabled = undefined;
             let defaultLimits = {};
             for (let j = 0; j < networkList.length; j++) {
@@ -570,13 +575,17 @@ class bingx extends bingx$1 {
                 const network = this.safeString(rawNetwork, 'network');
                 const networkCode = this.networkIdToCode(network);
                 const isDefault = this.safeBool(rawNetwork, 'isDefault');
+                depositEnabled = this.safeBool(rawNetwork, 'depositEnable');
                 withdrawEnabled = this.safeBool(rawNetwork, 'withdrawEnable');
                 const limits = {
-                    'amounts': { 'min': this.safeNumber(rawNetwork, 'withdrawMin'), 'max': this.safeNumber(rawNetwork, 'withdrawMax') },
+                    'withdraw': {
+                        'min': this.safeNumber(rawNetwork, 'withdrawMin'),
+                        'max': this.safeNumber(rawNetwork, 'withdrawMax'),
+                    },
                 };
                 if (isDefault) {
                     fee = this.safeNumber(rawNetwork, 'withdrawFee');
-                    active = withdrawEnabled;
+                    active = depositEnabled || withdrawEnabled;
                     defaultLimits = limits;
                 }
                 networks[networkCode] = {
@@ -585,7 +594,7 @@ class bingx extends bingx$1 {
                     'network': networkCode,
                     'fee': fee,
                     'active': active,
-                    'deposit': undefined,
+                    'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
                     'precision': undefined,
                     'limits': limits,
@@ -598,7 +607,7 @@ class bingx extends bingx$1 {
                 'precision': undefined,
                 'name': name,
                 'active': active,
-                'deposit': undefined,
+                'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'networks': networks,
                 'fee': fee,
@@ -1768,6 +1777,7 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Assets
          * @see https://bingx-api.github.io/docs/#/swapV2/account-api.html#Get%20Perpetual%20Swap%20Account%20Asset%20Information
          * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Account%20Assets
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.standard] whether to fetch standard contract balances
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
@@ -1776,104 +1786,216 @@ class bingx extends bingx$1 {
         let response = undefined;
         let standard = undefined;
         [standard, params] = this.handleOptionAndParams(params, 'fetchBalance', 'standard', false);
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchBalance', undefined, params);
         const [marketType, marketTypeQuery] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         if (standard) {
             response = await this.contractV1PrivateGetBalance(marketTypeQuery);
+            //
+            //     {
+            //         "code": 0,
+            //         "timestamp": 1721192833454,
+            //         "data": [
+            //             {
+            //                 "asset": "USDT",
+            //                 "balance": "4.72644300000000000000",
+            //                 "crossWalletBalance": "4.72644300000000000000",
+            //                 "crossUnPnl": "0",
+            //                 "availableBalance": "4.72644300000000000000",
+            //                 "maxWithdrawAmount": "4.72644300000000000000",
+            //                 "marginAvailable": false,
+            //                 "updateTime": 1721192833443
+            //             },
+            //         ]
+            //     }
+            //
         }
         else if (marketType === 'spot') {
             response = await this.spotV1PrivateGetAccountBalance(marketTypeQuery);
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "",
+            //         "debugMsg": "",
+            //         "data": {
+            //             "balances": [
+            //                 {
+            //                     "asset": "USDT",
+            //                     "free": "45.733046995800514",
+            //                     "locked": "0"
+            //                 },
+            //             ]
+            //         }
+            //     }
+            //
         }
         else {
-            response = await this.swapV2PrivateGetUserBalance(marketTypeQuery);
+            if (subType === 'inverse') {
+                response = await this.cswapV1PrivateGetUserBalance(marketTypeQuery);
+                //
+                //     {
+                //         "code": 0,
+                //         "msg": "",
+                //         "timestamp": 1721191833813,
+                //         "data": [
+                //             {
+                //                 "asset": "SOL",
+                //                 "balance": "0.35707951",
+                //                 "equity": "0.35791051",
+                //                 "unrealizedProfit": "0.00083099",
+                //                 "availableMargin": "0.35160653",
+                //                 "usedMargin": "0.00630397",
+                //                 "freezedMargin": "0",
+                //                 "shortUid": "12851936"
+                //             }
+                //         ]
+                //     }
+                //
+            }
+            else {
+                response = await this.swapV2PrivateGetUserBalance(marketTypeQuery);
+                //
+                //     {
+                //         "code": 0,
+                //         "msg": "",
+                //         "data": {
+                //             "balance": {
+                //                 "userId": "1177064765068660742",
+                //                 "asset": "USDT",
+                //                 "balance": "51.5198",
+                //                 "equity": "50.5349",
+                //                 "unrealizedProfit": "-0.9849",
+                //                 "realisedProfit": "-0.2134",
+                //                 "availableMargin": "49.1428",
+                //                 "usedMargin": "1.3922",
+                //                 "freezedMargin": "0.0000",
+                //                 "shortUid": "12851936"
+                //             }
+                //         }
+                //     }
+                //
+            }
         }
-        //
-        // spot
-        //
-        //    {
-        //        "code": 0,
-        //        "msg": "",
-        //        "ttl": 1,
-        //        "data": {
-        //            "balances": [
-        //                {
-        //                    "asset": "USDT",
-        //                    "free": "16.73971130673954",
-        //                    "locked": "0"
-        //                }
-        //            ]
-        //        }
-        //    }
-        //
-        // swap
-        //
-        //    {
-        //        "code": 0,
-        //        "msg": "",
-        //        "data": {
-        //          "balance": {
-        //            "asset": "USDT",
-        //            "balance": "15.6128",
-        //            "equity": "15.6128",
-        //            "unrealizedProfit": "0.0000",
-        //            "realisedProfit": "0.0000",
-        //            "availableMargin": "15.6128",
-        //            "usedMargin": "0.0000",
-        //            "freezedMargin": "0.0000"
-        //          }
-        //        }
-        //    }
-        // standard futures
-        //    {
-        //        "code":"0",
-        //        "timestamp":"1691148990942",
-        //        "data":[
-        //           {
-        //              "asset":"VST",
-        //              "balance":"100000.00000000000000000000",
-        //              "crossWalletBalance":"100000.00000000000000000000",
-        //              "crossUnPnl":"0",
-        //              "availableBalance":"100000.00000000000000000000",
-        //              "maxWithdrawAmount":"100000.00000000000000000000",
-        //              "marginAvailable":false,
-        //              "updateTime":"1691148990902"
-        //           },
-        //           {
-        //              "asset":"USDT",
-        //              "balance":"0",
-        //              "crossWalletBalance":"0",
-        //              "crossUnPnl":"0",
-        //              "availableBalance":"0",
-        //              "maxWithdrawAmount":"0",
-        //              "marginAvailable":false,
-        //              "updateTime":"1691148990902"
-        //           },
-        //        ]
-        //     }
-        //
         return this.parseBalance(response);
     }
     parseBalance(response) {
-        const data = this.safeValue(response, 'data');
-        const balances = this.safeValue2(data, 'balance', 'balances', data);
+        //
+        // standard
+        //
+        //     {
+        //         "code": 0,
+        //         "timestamp": 1721192833454,
+        //         "data": [
+        //             {
+        //                 "asset": "USDT",
+        //                 "balance": "4.72644300000000000000",
+        //                 "crossWalletBalance": "4.72644300000000000000",
+        //                 "crossUnPnl": "0",
+        //                 "availableBalance": "4.72644300000000000000",
+        //                 "maxWithdrawAmount": "4.72644300000000000000",
+        //                 "marginAvailable": false,
+        //                 "updateTime": 1721192833443
+        //             },
+        //         ]
+        //     }
+        //
+        // spot
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "debugMsg": "",
+        //         "data": {
+        //             "balances": [
+        //                 {
+        //                     "asset": "USDT",
+        //                     "free": "45.733046995800514",
+        //                     "locked": "0"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        // inverse swap
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "timestamp": 1721191833813,
+        //         "data": [
+        //             {
+        //                 "asset": "SOL",
+        //                 "balance": "0.35707951",
+        //                 "equity": "0.35791051",
+        //                 "unrealizedProfit": "0.00083099",
+        //                 "availableMargin": "0.35160653",
+        //                 "usedMargin": "0.00630397",
+        //                 "freezedMargin": "0",
+        //                 "shortUid": "12851936"
+        //             }
+        //         ]
+        //     }
+        //
+        // linear swap
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "data": {
+        //             "balance": {
+        //                 "userId": "1177064765068660742",
+        //                 "asset": "USDT",
+        //                 "balance": "51.5198",
+        //                 "equity": "50.5349",
+        //                 "unrealizedProfit": "-0.9849",
+        //                 "realisedProfit": "-0.2134",
+        //                 "availableMargin": "49.1428",
+        //                 "usedMargin": "1.3922",
+        //                 "freezedMargin": "0.0000",
+        //                 "shortUid": "12851936"
+        //             }
+        //         }
+        //     }
+        //
         const result = { 'info': response };
-        if (Array.isArray(balances)) {
-            for (let i = 0; i < balances.length; i++) {
-                const balance = balances[i];
+        const standardAndInverseBalances = this.safeList(response, 'data');
+        const firstStandardOrInverse = this.safeDict(standardAndInverseBalances, 0);
+        const isStandardOrInverse = firstStandardOrInverse !== undefined;
+        const spotData = this.safeDict(response, 'data', {});
+        const spotBalances = this.safeList(spotData, 'balances');
+        const firstSpot = this.safeDict(spotBalances, 0);
+        const isSpot = firstSpot !== undefined;
+        if (isStandardOrInverse) {
+            for (let i = 0; i < standardAndInverseBalances.length; i++) {
+                const balance = standardAndInverseBalances[i];
                 const currencyId = this.safeString(balance, 'asset');
                 const code = this.safeCurrencyCode(currencyId);
                 const account = this.account();
-                account['free'] = this.safeString2(balance, 'free', 'availableBalance');
+                account['free'] = this.safeString2(balance, 'availableMargin', 'availableBalance');
+                account['used'] = this.safeString(balance, 'usedMargin');
+                account['total'] = this.safeString(balance, 'maxWithdrawAmount');
+                result[code] = account;
+            }
+        }
+        else if (isSpot) {
+            for (let i = 0; i < spotBalances.length; i++) {
+                const balance = spotBalances[i];
+                const currencyId = this.safeString(balance, 'asset');
+                const code = this.safeCurrencyCode(currencyId);
+                const account = this.account();
+                account['free'] = this.safeString(balance, 'free');
                 account['used'] = this.safeString(balance, 'locked');
-                account['total'] = this.safeString(balance, 'balance');
                 result[code] = account;
             }
         }
         else {
-            const currencyId = this.safeString(balances, 'asset');
+            const linearSwapData = this.safeDict(response, 'data', {});
+            const linearSwapBalance = this.safeDict(linearSwapData, 'balance');
+            const currencyId = this.safeString(linearSwapBalance, 'asset');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
-            account['free'] = this.safeString(balances, 'availableMargin');
-            account['used'] = this.safeString(balances, 'usedMargin');
+            account['free'] = this.safeString(linearSwapBalance, 'availableMargin');
+            account['used'] = this.safeString(linearSwapBalance, 'usedMargin');
             result[code] = account;
         }
         return this.safeBalance(result);
@@ -1883,12 +2005,13 @@ class bingx extends bingx$1 {
          * @method
          * @name bingx#fetchPositions
          * @description fetch all open positions
-         * @see https://bingx-api.github.io/docs/#/swapV2/account-api.html#Perpetual%20Swap%20Positions
-         * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
+         * @see https://bingx-api.github.io/docs/#/en-us/standard/contract-interface.html#position
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.standard] whether to fetch standard contract positions
-         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
@@ -1899,55 +2022,217 @@ class bingx extends bingx$1 {
             response = await this.contractV1PrivateGetAllPosition(params);
         }
         else {
-            response = await this.swapV2PrivateGetUserPositions(params);
+            let market = undefined;
+            if (symbols !== undefined) {
+                symbols = this.marketSymbols(symbols);
+                const firstSymbol = this.safeString(symbols, 0);
+                if (firstSymbol !== undefined) {
+                    market = this.market(firstSymbol);
+                }
+            }
+            let subType = undefined;
+            [subType, params] = this.handleSubTypeAndParams('fetchPositions', market, params);
+            if (subType === 'inverse') {
+                response = await this.cswapV1PrivateGetUserPositions(params);
+                //
+                //     {
+                //         "code": 0,
+                //         "msg": "",
+                //         "timestamp": 0,
+                //         "data": [
+                //             {
+                //                 "symbol": "SOL-USD",
+                //                 "positionId": "1813080351385337856",
+                //                 "positionSide": "LONG",
+                //                 "isolated": false,
+                //                 "positionAmt": "1",
+                //                 "availableAmt": "1",
+                //                 "unrealizedProfit": "-0.00009074",
+                //                 "initialMargin": "0.00630398",
+                //                 "liquidationPrice": 23.968303426677032,
+                //                 "avgPrice": "158.63",
+                //                 "leverage": 10,
+                //                 "markPrice": "158.402",
+                //                 "riskRate": "0.00123783",
+                //                 "maxMarginReduction": "0",
+                //                 "updateTime": 1721107015848
+                //             }
+                //         ]
+                //     }
+                //
+            }
+            else {
+                response = await this.swapV2PrivateGetUserPositions(params);
+                //
+                //     {
+                //         "code": 0,
+                //         "msg": "",
+                //         "data": [
+                //             {
+                //                 "positionId": "1792480725958881280",
+                //                 "symbol": "LTC-USDT",
+                //                 "currency": "USDT",
+                //                 "positionAmt": "0.1",
+                //                 "availableAmt": "0.1",
+                //                 "positionSide": "LONG",
+                //                 "isolated": false,
+                //                 "avgPrice": "83.53",
+                //                 "initialMargin": "1.3922",
+                //                 "margin": "0.3528",
+                //                 "leverage": 6,
+                //                 "unrealizedProfit": "-1.0393",
+                //                 "realisedProfit": "-0.2119",
+                //                 "liquidationPrice": 0,
+                //                 "pnlRatio": "-0.7465",
+                //                 "maxMarginReduction": "0.0000",
+                //                 "riskRate": "0.0008",
+                //                 "markPrice": "73.14",
+                //                 "positionValue": "7.3136",
+                //                 "onlyOnePosition": true,
+                //                 "updateTime": 1721088016688
+                //             }
+                //         ]
+                //     }
+                //
+            }
         }
-        //
-        //    {
-        //        "code": 0,
-        //            "msg": "",
-        //            "data": [
-        //            {
-        //                "symbol": "BTC-USDT",
-        //                "positionId": "12345678",
-        //                "positionSide": "LONG",
-        //                "isolated": true,
-        //                "positionAmt": "123.33",
-        //                "availableAmt": "128.99",
-        //                "unrealizedProfit": "1.22",
-        //                "realisedProfit": "8.1",
-        //                "initialMargin": "123.33",
-        //                "avgPrice": "2.2",
-        //                "leverage": 10,
-        //            }
-        //        ]
-        //    }
-        //
         const positions = this.safeList(response, 'data', []);
         return this.parsePositions(positions, symbols);
     }
+    async fetchPosition(symbol, params = {}) {
+        /**
+         * @method
+         * @name bingx#fetchPosition
+         * @description fetch data on a single open contract trade position
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20position%20data
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20warehouse
+         * @param {string} symbol unified market symbol of the market the position is held in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        if (!market['swap']) {
+            throw new errors.BadRequest(this.id + ' fetchPosition() supports swap markets only');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        let response = undefined;
+        if (market['inverse']) {
+            response = await this.cswapV1PrivateGetUserPositions(this.extend(request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "",
+            //         "timestamp": 0,
+            //         "data": [
+            //             {
+            //                 "symbol": "SOL-USD",
+            //                 "positionId": "1813080351385337856",
+            //                 "positionSide": "LONG",
+            //                 "isolated": false,
+            //                 "positionAmt": "1",
+            //                 "availableAmt": "1",
+            //                 "unrealizedProfit": "-0.00009074",
+            //                 "initialMargin": "0.00630398",
+            //                 "liquidationPrice": 23.968303426677032,
+            //                 "avgPrice": "158.63",
+            //                 "leverage": 10,
+            //                 "markPrice": "158.402",
+            //                 "riskRate": "0.00123783",
+            //                 "maxMarginReduction": "0",
+            //                 "updateTime": 1721107015848
+            //             }
+            //         ]
+            //     }
+            //
+        }
+        else {
+            response = await this.swapV2PrivateGetUserPositions(this.extend(request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "",
+            //         "data": [
+            //             {
+            //                 "positionId": "1792480725958881280",
+            //                 "symbol": "LTC-USDT",
+            //                 "currency": "USDT",
+            //                 "positionAmt": "0.1",
+            //                 "availableAmt": "0.1",
+            //                 "positionSide": "LONG",
+            //                 "isolated": false,
+            //                 "avgPrice": "83.53",
+            //                 "initialMargin": "1.3922",
+            //                 "margin": "0.3528",
+            //                 "leverage": 6,
+            //                 "unrealizedProfit": "-1.0393",
+            //                 "realisedProfit": "-0.2119",
+            //                 "liquidationPrice": 0,
+            //                 "pnlRatio": "-0.7465",
+            //                 "maxMarginReduction": "0.0000",
+            //                 "riskRate": "0.0008",
+            //                 "markPrice": "73.14",
+            //                 "positionValue": "7.3136",
+            //                 "onlyOnePosition": true,
+            //                 "updateTime": 1721088016688
+            //             }
+            //         ]
+            //     }
+            //
+        }
+        const data = this.safeList(response, 'data', []);
+        const first = this.safeDict(data, 0, {});
+        return this.parsePosition(first, market);
+    }
     parsePosition(position, market = undefined) {
         //
-        //    {
-        //        "positionId":"1773122376147623936",
-        //        "symbol":"XRP-USDT",
-        //        "currency":"USDT",
-        //        "positionAmt":"3",
-        //        "availableAmt":"3",
-        //        "positionSide":"LONG",
-        //        "isolated":false,
-        //        "avgPrice":"0.6139",
-        //        "initialMargin":"0.0897",
-        //        "leverage":20,
-        //        "unrealizedProfit":"-0.0023",
-        //        "realisedProfit":"-0.0009",
-        //        "liquidationPrice":0,
-        //        "pnlRatio":"-0.0260",
-        //        "maxMarginReduction":"",
-        //        "riskRate":"",
-        //        "markPrice":"",
-        //        "positionValue":"",
-        //        "onlyOnePosition":false
-        //    }
+        // inverse swap
+        //
+        //     {
+        //         "symbol": "SOL-USD",
+        //         "positionId": "1813080351385337856",
+        //         "positionSide": "LONG",
+        //         "isolated": false,
+        //         "positionAmt": "1",
+        //         "availableAmt": "1",
+        //         "unrealizedProfit": "-0.00009074",
+        //         "initialMargin": "0.00630398",
+        //         "liquidationPrice": 23.968303426677032,
+        //         "avgPrice": "158.63",
+        //         "leverage": 10,
+        //         "markPrice": "158.402",
+        //         "riskRate": "0.00123783",
+        //         "maxMarginReduction": "0",
+        //         "updateTime": 1721107015848
+        //     }
+        //
+        // linear swap
+        //
+        //     {
+        //         "positionId": "1792480725958881280",
+        //         "symbol": "LTC-USDT",
+        //         "currency": "USDT",
+        //         "positionAmt": "0.1",
+        //         "availableAmt": "0.1",
+        //         "positionSide": "LONG",
+        //         "isolated": false,
+        //         "avgPrice": "83.53",
+        //         "initialMargin": "1.3922",
+        //         "margin": "0.3528",
+        //         "leverage": 6,
+        //         "unrealizedProfit": "-1.0393",
+        //         "realisedProfit": "-0.2119",
+        //         "liquidationPrice": 0,
+        //         "pnlRatio": "-0.7465",
+        //         "maxMarginReduction": "0.0000",
+        //         "riskRate": "0.0008",
+        //         "markPrice": "73.14",
+        //         "positionValue": "7.3136",
+        //         "onlyOnePosition": true,
+        //         "updateTime": 1721088016688
+        //     }
         //
         // standard position
         //
@@ -1983,13 +2268,13 @@ class bingx extends bingx$1 {
             'percentage': undefined,
             'contracts': this.safeNumber(position, 'positionAmt'),
             'contractSize': undefined,
-            'markPrice': undefined,
+            'markPrice': this.safeNumber(position, 'markPrice'),
             'lastPrice': undefined,
             'side': this.safeStringLower(position, 'positionSide'),
             'hedged': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'lastUpdateTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeInteger(position, 'updateTime'),
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
             'collateral': undefined,

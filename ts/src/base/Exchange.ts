@@ -6825,6 +6825,10 @@ export default class Exchange {
     }
 
     safeOpenInterest (interest, market: Market = undefined): OpenInterest {
+        let symbol = this.safeString (interest, 'symbol');
+        if (symbol === undefined) {
+            symbol = this.safeString (market, 'symbol');
+        }
         return this.extend (interest, {
             'baseVolume': this.safeNumber (interest, 'baseVolume'), // deprecated
             'datetime': this.safeString (interest, 'datetime'),
@@ -6832,7 +6836,7 @@ export default class Exchange {
             'openInterestAmount': this.safeNumber (interest, 'openInterestAmount'),
             'openInterestValue': this.safeNumber (interest, 'openInterestValue'),
             'quoteVolume': this.safeNumber (interest, 'quoteVolume'), // deprecated
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': symbol,
             'timestamp': this.safeInteger (interest, 'timestamp'),
         });
     }

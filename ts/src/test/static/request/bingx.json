@@ -934,13 +934,24 @@
                 ]
             },
             {
-                "description": "Fetch swap Balance",
+                "description": "Linear swap fetch balance",
                 "method": "fetchBalance",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/user/balance?timestamp=1699458295585&signature=9ac6bdbb0f9dda6650951407abbf317de3c8c9eab00418dbdd285be82531dc9c",
                 "input": [
                     {
                         "type": "swap"
                     }
+                ]
+            },
+            {
+                "description": "Inverse swap fetch balance",
+                "method": "fetchBalance",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/user/balance?timestamp=1721191833333&signature=d3850755c7051578a7adaa294676fd1b4a63de55a3a9dd42c7dcdbabae901e20",
+                "input": [
+                  {
+                    "type": "swap",
+                    "subType": "inverse"
+                  }
                 ]
             }
         ],
@@ -953,6 +964,34 @@
                     [
                         "LTC/USDT:USDT"
                     ]
+                ]
+            },
+            {
+                "description": "Fetch inverse positions",
+                "method": "fetchPositions",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/user/positions?timestamp=1721107174594&signature=b2504a634ce468010d77aa40e8e863abe15a907c99705f59852ca1d12aac7910",
+                "input": [
+                  [
+                    "SOL/USD:SOL"
+                  ]
+                ]
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "Linear swap fetch position",
+                "method": "fetchPosition",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/user/positions?symbol=LTC-USDT&timestamp=1721117826435&signature=fb2ec2c92b0b1a9461a6920afbb88126c2c60b0fa06cfd42117bf0585f3b5a03",
+                "input": [
+                  "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Inverse swap fetch position",
+                "method": "fetchPosition",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/user/positions?symbol=SOL-USD&timestamp=1721117705958&signature=e4abe8036bd04de44f2b76c6099dd0c164482c74db42345c1ffad54297b75878",
+                "input": [
+                  "SOL/USD:SOL"
                 ]
             }
         ],
