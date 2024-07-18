@@ -96,7 +96,7 @@ export default class hyperliquid extends Exchange {
                 'fetchPositions': true,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
-                'fetchTicker': true,
+                'fetchTicker': 'emulated',
                 'fetchTickers': true,
                 'fetchTime': false,
                 'fetchTrades': true,

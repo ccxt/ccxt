@@ -18,7 +18,7 @@ export default class hyperliquid extends hyperliquidRest {
                 'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
-                'watchTicker': false,
+                'watchTicker': 'emulated',
                 'watchTickers': true,
                 'watchTrades': true,
                 'watchPosition': false,
@@ -236,8 +236,8 @@ export default class hyperliquid extends hyperliquidRest {
         //     }
         //
         // spot
-        const data = this.safeDict (message, 'data', {});
-        const spotAssets = this.safeList (data, 'spotAssetCtxs', []);
+        const rawData = this.safeDict (message, 'data', {});
+        const spotAssets = this.safeList (rawData, 'spotAssetCtxs', []);
         const parsedTickers = [];
         for (let i = 0; i < spotAssets.length; i++) {
             const assetObject = spotAssets[i];
@@ -247,15 +247,17 @@ export default class hyperliquid extends hyperliquidRest {
             parsedTickers.push (ticker);
         }
         // perpetuals
-        const meta = this.safeDict (data, 'meta', {});
+        const meta = this.safeDict (rawData, 'meta', {});
         const universe = this.safeList (meta, 'universe', []);
-        const assets = this.safeList (data, 'assetCtxs', []);
-        for (let i = 0; i < assets.length; i++) {
-            const assetObject = assets[i];
-            const coinObject = universe[i];
-            const id = coinObject['name'] + ':USDC/USDC';
-            const market = this.safeMarket (id, undefined, undefined, 'spot');
-            const ticker = this.parseWsTicker (assetObject, market);
+        const assetCtxs = this.safeList (rawData, 'assetCtxs', []);
+        for (let i = 0; i < universe.length; i++) {
+            const data = this.extend (
+                this.safeDict (universe, i, {}),
+                this.safeDict (assetCtxs, i, {})
+            );
+            const id = data['name'] + ':USDC/USDC';
+            const market = this.safeMarket (id, undefined, undefined, 'swap');
+            const ticker = this.parseWsTicker (data, market);
             parsedTickers.push (ticker);
         }
         const tickers = this.indexBy (parsedTickers, 'symbol');
@@ -263,31 +265,7 @@ export default class hyperliquid extends hyperliquidRest {
     }
 
     parseWsTicker (rawTicker, market: Market = undefined): Ticker {
-        //
-        //     {
-        //         "prevDayPx": "3400.5",
-        //         "dayNtlVlm": "511297257.47936022",
-        //         "markPx": "3464.7",
-        //         "midPx": "3465.05",
-        //         "oraclePx": "3460.1", // only in swap
-        //         "openInterest": "64638.1108", // only in swap
-        //         "premium": "0.00141614", // only in swap
-        //         "funding": "0.00008727", // only in swap
-        //         "impactPxs": [ "3465.0", "3465.1" ], // only in swap
-        //         "coin": "PURR", // only in spot
-        //         "circulatingSupply": "998949190.03400207", // only in spot
-        //     },
-        //
-        const bidAsk = this.safeList (rawTicker, 'impactPxs');
-        return this.safeTicker ({
-            'symbol': market['symbol'],
-            'previousClose': this.safeNumber (rawTicker, 'prevDayPx'),
-            'close': this.safeNumber (rawTicker, 'midPx'),
-            'bid': this.safeNumber (bidAsk, 0),
-            'ask': this.safeNumber (bidAsk, 1),
-            'quoteVolume': this.safeNumber (rawTicker, 'dayNtlVlm'),
-            'info': rawTicker,
-        });
+        return this.parseTicker (rawTicker, market);
     }
 
     handleMyTrades (client: Client, message) {
