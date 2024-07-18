@@ -770,7 +770,7 @@ export default class bitmart extends bitmartRest {
         const symbol = market['symbol'];
         const openTimestamp = this.safeInteger (position, 'create_time');
         const timestamp = this.safeInteger (position, 'update_time');
-        const side = this.safeNumber (position, 'position_type');
+        const side = this.safeInteger (position, 'position_type');
         const marginModeId = this.safeNumber (position, 'open_type');
         return this.safePosition ({
             'info': position,
