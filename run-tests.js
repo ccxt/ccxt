@@ -240,10 +240,9 @@ const testExchange = async (exchange) => {
             (skipSettings[exchange].skipWs && wsFlag)
         ) 
     ) {
-        const untilExists = 'until' in skipSettings[exchange];
-        if (!untilExists || new Date(skipSettings[exchange].until) > new Date()) {
+        if (!('until' in skipSettings[exchange]) || new Date(skipSettings[exchange].until) > new Date()) {
             numExchangesTested++;
-            const reason = (untilExists ? ' till ' + skipSettings[exchange].until : '');
+            const reason = ('until' in skipSettings[exchange]) ? ' till ' + skipSettings[exchange].until : '';
             log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, ('[Skipped]' + reason).yellow)
             return [];
         }
