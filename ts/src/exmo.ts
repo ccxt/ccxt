@@ -2634,7 +2634,7 @@ export default class exmo extends Exchange {
         return this.milliseconds ();
     }
 
-    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: Dict, requestHeaders: Dict, requestBody: Dict) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
