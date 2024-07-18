@@ -4785,20 +4785,33 @@ export default class Exchange {
             await this.loadMarkets ();
             const market = this.market (symbol);
             symbol = market['symbol'];
-            const tickers = await this.fetchTickerWs (symbol, params);
+            const tickers = await this.fetchTickersWs ([ symbol ], params);
             const ticker = this.safeDict (tickers, symbol);
             if (ticker === undefined) {
-                throw new NullResponse (this.id + ' fetchTickers() could not find a ticker for ' + symbol);
+                throw new NullResponse (this.id + ' fetchTickerWs() could not find a ticker for ' + symbol);
             } else {
                 return ticker as Ticker;
             }
         } else {
-            throw new NotSupported (this.id + ' fetchTicker() is not supported yet');
+            throw new NotSupported (this.id + ' fetchTickerWs() is not supported yet');
         }
     }
 
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
-        throw new NotSupported (this.id + ' watchTicker() is not supported yet');
+        if (this.has['watchTickers']) {
+            await this.loadMarkets ();
+            const market = this.market (symbol);
+            symbol = market['symbol'];
+            const tickers = await this.watchTickers ([ symbol ], params);
+            const ticker = this.safeDict (tickers, symbol);
+            if (ticker === undefined) {
+                throw new NullResponse (this.id + ' watchTickers() could not find a ticker for ' + symbol);
+            } else {
+                return ticker as Ticker;
+            }
+        } else {
+            throw new NotSupported (this.id + ' watchTicker() is not supported yet');
+        }
     }
 
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
