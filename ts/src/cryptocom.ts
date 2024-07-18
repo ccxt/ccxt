@@ -831,6 +831,9 @@ export default class cryptocom extends Exchange {
             'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
+            if (limit > 300) {
+                limit = 300;
+            }
             request['count'] = limit;
         }
         const now = this.microseconds ();
