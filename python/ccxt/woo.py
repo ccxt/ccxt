@@ -2481,6 +2481,15 @@ class woo(Exchange, ImplicitAPI):
         }
 
     def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetch the history of funding payments paid and received on self account
+        :see: https://docs.woo.org/#get-funding-fee-history
+        :param str [symbol]: unified market symbol
+        :param int [since]: the earliest time in ms to fetch funding history for
+        :param int [limit]: the maximum number of funding history structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding history structure <https://docs.ccxt.com/#/?id=funding-history-structure>`
+        """
         self.load_markets()
         request: dict = {}
         market: Market = None
@@ -2489,6 +2498,10 @@ class woo(Exchange, ImplicitAPI):
             request['symbol'] = market['id']
         if since is not None:
             request['start_t'] = since
+        if limit is not None:
+            request['size'] = limit
+        else:
+            request['size'] = 5000
         response = self.v1PrivateGetFundingFeeHistory(self.extend(request, params))
         #
         #     {

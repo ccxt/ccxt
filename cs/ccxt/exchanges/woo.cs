@@ -2875,6 +2875,17 @@ public partial class woo : Exchange
 
     public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
+        /**
+        * @method
+        * @name woo#fetchFundingHistory
+        * @description fetch the history of funding payments paid and received on this account
+        * @see https://docs.woo.org/#get-funding-fee-history
+        * @param {string} [symbol] unified market symbol
+        * @param {int} [since] the earliest time in ms to fetch funding history for
+        * @param {int} [limit] the maximum number of funding history structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+        */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object request = new Dictionary<string, object>() {};
@@ -2887,6 +2898,13 @@ public partial class woo : Exchange
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["start_t"] = since;
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["size"] = limit;
+        } else
+        {
+            ((IDictionary<string,object>)request)["size"] = 5000;
         }
         object response = await this.v1PrivateGetFundingFeeHistory(this.extend(request, parameters));
         //

@@ -2671,6 +2671,17 @@ class woo extends woo$1 {
         };
     }
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#fetchFundingHistory
+         * @description fetch the history of funding payments paid and received on this account
+         * @see https://docs.woo.org/#get-funding-fee-history
+         * @param {string} [symbol] unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch funding history for
+         * @param {int} [limit] the maximum number of funding history structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+         */
         await this.loadMarkets();
         const request = {};
         let market = undefined;
@@ -2680,6 +2691,12 @@ class woo extends woo$1 {
         }
         if (since !== undefined) {
             request['start_t'] = since;
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        else {
+            request['size'] = 5000;
         }
         const response = await this.v1PrivateGetFundingFeeHistory(this.extend(request, params));
         //

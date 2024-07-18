@@ -2622,6 +2622,15 @@ class woo extends Exchange {
     }
 
     public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch the history of funding payments paid and received on this account
+         * @see https://docs.woo.org/#get-funding-fee-history
+         * @param {string} [$symbol] unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch funding history for
+         * @param {int} [$limit] the maximum number of funding history structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structure~
+         */
         $this->load_markets();
         $request = array();
         $market = null;
@@ -2631,6 +2640,11 @@ class woo extends Exchange {
         }
         if ($since !== null) {
             $request['start_t'] = $since;
+        }
+        if ($limit !== null) {
+            $request['size'] = $limit;
+        } else {
+            $request['size'] = 5000;
         }
         $response = $this->v1PrivateGetFundingFeeHistory ($this->extend($request, $params));
         //
