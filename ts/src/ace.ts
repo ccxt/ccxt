@@ -569,9 +569,9 @@ export default class ace extends Exchange {
                     timestamp = timestamp - 28800000; // 8 hours
                 }
             }
-            const orderSide = this.safeNumber (order, 'buyOrSell');
+            const orderSide = this.safeString (order, 'buyOrSell');
             if (orderSide !== undefined) {
-                side = (orderSide === 1) ? 'buy' : 'sell';
+                side = (orderSide === '1') ? 'buy' : 'sell';
             }
             amount = this.safeString (order, 'num');
             price = this.safeString (order, 'price');
@@ -580,9 +580,9 @@ export default class ace extends Exchange {
             if (quoteId !== undefined && baseId !== undefined) {
                 symbol = baseId + '/' + quoteId;
             }
-            const orderType = this.safeNumber (order, 'type');
+            const orderType = this.safeString (order, 'type');
             if (orderType !== undefined) {
-                type = (orderType === 1) ? 'limit' : 'market';
+                type = (orderType === '1') ? 'limit' : 'market';
             }
             filled = this.safeString (order, 'tradeNum');
             remaining = this.safeString (order, 'remainNum');
