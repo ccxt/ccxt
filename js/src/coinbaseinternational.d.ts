@@ -67,7 +67,7 @@ export default class coinbaseinternational extends Exchange {
         };
     };
     setMargin(symbol: string, amount: number, params?: {}): Promise<any>;
-    fetchDepositsWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchPosition(symbol: string, params?: {}): Promise<Position>;
     parsePosition(position: Dict, market?: Market): Position;
     fetchPositions(symbols?: Strings, params?: {}): Promise<Position[]>;

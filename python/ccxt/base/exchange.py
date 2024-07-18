@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.62'
+__version__ = '4.3.63'
 
 # -----------------------------------------------------------------------------
 
@@ -2377,6 +2377,9 @@ class Exchange(object):
 
     def after_construct(self):
         self.create_networks_by_id_object()
+
+    def orderbook_checksum_message(self, symbol: Str):
+        return symbol + '  = False'
 
     def create_networks_by_id_object(self):
         # automatically generate network-id-to-code mappings

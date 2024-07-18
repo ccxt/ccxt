@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import gateRest from '../gate.js';
-import { AuthenticationError, BadRequest, ArgumentsRequired, InvalidNonce, ExchangeError, NotSupported } from '../base/errors.js';
+import { AuthenticationError, BadRequest, ArgumentsRequired, ChecksumError, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import Precise from '../base/Precise.js';
@@ -97,6 +97,7 @@ export default class gate extends gateRest {
                     'interval': '100ms',
                     'snapshotDelay': 10,
                     'snapshotMaxRetries': 3,
+                    'checksum': true,
                 },
                 'watchBalance': {
                     'settle': 'usdt',
@@ -482,10 +483,13 @@ export default class gate extends gateRest {
             this.handleDelta(storedOrderBook, delta);
         }
         else {
-            const error = new InvalidNonce(this.id + ' orderbook update has a nonce bigger than u');
             delete client.subscriptions[messageHash];
             delete this.orderbooks[symbol];
-            client.reject(error, messageHash);
+            const checksum = this.handleOption('watchOrderBook', 'checksum', true);
+            if (checksum) {
+                const error = new ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
+                client.reject(error, messageHash);
+            }
         }
         client.resolve(storedOrderBook, messageHash);
     }

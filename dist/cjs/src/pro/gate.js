@@ -94,6 +94,7 @@ class gate extends gate$1 {
                     'interval': '100ms',
                     'snapshotDelay': 10,
                     'snapshotMaxRetries': 3,
+                    'checksum': true,
                 },
                 'watchBalance': {
                     'settle': 'usdt',
@@ -479,10 +480,13 @@ class gate extends gate$1 {
             this.handleDelta(storedOrderBook, delta);
         }
         else {
-            const error = new errors.InvalidNonce(this.id + ' orderbook update has a nonce bigger than u');
             delete client.subscriptions[messageHash];
             delete this.orderbooks[symbol];
-            client.reject(error, messageHash);
+            const checksum = this.handleOption('watchOrderBook', 'checksum', true);
+            if (checksum) {
+                const error = new errors.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
+                client.reject(error, messageHash);
+            }
         }
         client.resolve(storedOrderBook, messageHash);
     }

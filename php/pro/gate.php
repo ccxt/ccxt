@@ -10,7 +10,7 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
-use ccxt\InvalidNonce;
+use ccxt\ChecksumError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -102,6 +102,7 @@ class gate extends \ccxt\async\gate {
                     'interval' => '100ms',
                     'snapshotDelay' => 10, // how many deltas to cache before fetching a snapshot
                     'snapshotMaxRetries' => 3,
+                    'checksum' => true,
                 ),
                 'watchBalance' => array(
                     'settle' => 'usdt', // or btc
@@ -496,10 +497,13 @@ class gate extends \ccxt\async\gate {
         } elseif ($nonce >= $deltaStart - 1) {
             $this->handle_delta($storedOrderBook, $delta);
         } else {
-            $error = new InvalidNonce ($this->id . ' orderbook update has a $nonce bigger than u');
             unset($client->subscriptions[$messageHash]);
             unset($this->orderbooks[$symbol]);
-            $client->reject ($error, $messageHash);
+            $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
+            if ($checksum) {
+                $error = new ChecksumError ($this->id . ' ' . $this->orderbook_checksum_message($symbol));
+                $client->reject ($error, $messageHash);
+            }
         }
         $client->resolve ($storedOrderBook, $messageHash);
     }

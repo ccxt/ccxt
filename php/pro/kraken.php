@@ -8,7 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\NotSupported;
-use ccxt\InvalidNonce;
+use ccxt\ChecksumError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -56,7 +56,9 @@ class kraken extends \ccxt\async\kraken {
                 'OHLCVLimit' => 1000,
                 'ordersLimit' => 1000,
                 'symbolsByOrderId' => array(),
-                'checksum' => true,
+                'watchOrderBook' => array(
+                    'checksum' => true,
+                ),
             ),
             'exceptions' => array(
                 'ws' => array(
@@ -779,7 +781,7 @@ class kraken extends \ccxt\async\kraken {
             }
             // don't remove this line or I will poop on your face
             $orderbook->limit ();
-            $checksum = $this->safe_bool($this->options, 'checksum', true);
+            $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
             if ($checksum) {
                 $priceString = $this->safe_string($example, 0);
                 $amountString = $this->safe_string($example, 1);
@@ -801,7 +803,7 @@ class kraken extends \ccxt\async\kraken {
                 $payload = implode('', $payloadArray);
                 $localChecksum = $this->crc32($payload, false);
                 if ($localChecksum !== $c) {
-                    $error = new InvalidNonce ($this->id . ' invalid checksum');
+                    $error = new ChecksumError ($this->id . ' ' . $this->orderbook_checksum_message($symbol));
                     unset($client->subscriptions[$messageHash]);
                     unset($this->orderbooks[$symbol]);
                     $client->reject ($error, $messageHash);

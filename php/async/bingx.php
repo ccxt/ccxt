@@ -4859,6 +4859,7 @@ class bingx extends Exchange {
             /**
              * retrieves the users liquidated positions
              * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#User's%20Force%20Orders
+             * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20force%20orders
              * @param {string} [$symbol] unified CCXT $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch $liquidations for
              * @param {int} [$limit] the maximum number of liquidation structures to retrieve
@@ -4882,38 +4883,74 @@ class bingx extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->swapV2PrivateGetTradeForceOrders ($this->extend($request, $params)));
-            //
-            //     {
-            //         "code" => 0,
-            //         "msg" => "",
-            //         "data" => {
-            //             "orders" => array(
-            //                 array(
-            //                     "time" => "int64",
-            //                     "symbol" => "string",
-            //                     "side" => "string",
-            //                      "type" => "string",
-            //                     "positionSide" => "string",
-            //                     "cumQuote" => "string",
-            //                     "status" => "string",
-            //                     "stopPrice" => "string",
-            //                     "price" => "string",
-            //                     "origQty" => "string",
-            //                     "avgPrice" => "string",
-            //                     "executedQty" => "string",
-            //                     "orderId" => "int64",
-            //                     "profit" => "string",
-            //                     "commission" => "string",
-            //                     "workingType" => "string",
-            //                     "updateTime" => "int64"
-            //                 ),
-            //             )
-            //         }
-            //     }
-            //
-            $data = $this->safe_dict($response, 'data', array());
-            $liquidations = $this->safe_list($data, 'orders', array());
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchMyLiquidations', $market, $params);
+            $response = null;
+            $liquidations = null;
+            if ($subType === 'inverse') {
+                $response = Async\await($this->cswapV1PrivateGetTradeForceOrders ($this->extend($request, $params)));
+                //
+                //     {
+                //         "code" => 0,
+                //         "msg" => "",
+                //         "timestamp" => 1721280071678,
+                //         "data" => array(
+                //             {
+                //                 "orderId" => "string",
+                //                 "symbol" => "string",
+                //                 "type" => "string",
+                //                 "side" => "string",
+                //                 "positionSide" => "string",
+                //                 "price" => "string",
+                //                 "quantity" => "float64",
+                //                 "stopPrice" => "string",
+                //                 "workingType" => "string",
+                //                 "status" => "string",
+                //                 "time" => "int64",
+                //                 "avgPrice" => "string",
+                //                 "executedQty" => "string",
+                //                 "profit" => "string",
+                //                 "commission" => "string",
+                //                 "updateTime" => "string"
+                //             }
+                //         )
+                //     }
+                //
+                $liquidations = $this->safe_list($response, 'data', array());
+            } else {
+                $response = Async\await($this->swapV2PrivateGetTradeForceOrders ($this->extend($request, $params)));
+                //
+                //     {
+                //         "code" => 0,
+                //         "msg" => "",
+                //         "data" => {
+                //             "orders" => array(
+                //                 array(
+                //                     "time" => "int64",
+                //                     "symbol" => "string",
+                //                     "side" => "string",
+                //                     "type" => "string",
+                //                     "positionSide" => "string",
+                //                     "cumQuote" => "string",
+                //                     "status" => "string",
+                //                     "stopPrice" => "string",
+                //                     "price" => "string",
+                //                     "origQty" => "string",
+                //                     "avgPrice" => "string",
+                //                     "executedQty" => "string",
+                //                     "orderId" => "int64",
+                //                     "profit" => "string",
+                //                     "commission" => "string",
+                //                     "workingType" => "string",
+                //                     "updateTime" => "int64"
+                //                 ),
+                //             )
+                //         }
+                //     }
+                //
+                $data = $this->safe_dict($response, 'data', array());
+                $liquidations = $this->safe_list($data, 'orders', array());
+            }
             return $this->parse_liquidations($liquidations, $market, $since, $limit);
         }) ();
     }

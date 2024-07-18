@@ -46,6 +46,7 @@ public partial class okx : ccxt.okx
             } },
             { "options", new Dictionary<string, object>() {
                 { "watchOrderBook", new Dictionary<string, object>() {
+                    { "checksum", true },
                     { "depth", "books" },
                 } },
                 { "watchBalance", "spot" },
@@ -68,7 +69,6 @@ public partial class okx : ccxt.okx
                     { "op", "amend-order" },
                 } },
                 { "ws", new Dictionary<string, object>() {} },
-                { "checksum", true },
             } },
             { "streaming", new Dictionary<string, object>() {
                 { "ping", this.ping },
@@ -1012,7 +1012,7 @@ public partial class okx : ccxt.okx
         this.handleDeltas(storedBids, bids);
         object marketId = this.safeString(message, "instId");
         object symbol = this.safeSymbol(marketId);
-        object checksum = this.safeBool(this.options, "checksum", true);
+        object checksum = this.handleOption("watchOrderBook", "checksum", true);
         if (isTrue(checksum))
         {
             object asksLength = getArrayLength(storedAsks);
@@ -1036,7 +1036,7 @@ public partial class okx : ccxt.okx
             object localChecksum = this.crc32(payload, true);
             if (isTrue(!isEqual(responseChecksum, localChecksum)))
             {
-                var error = new InvalidNonce(add(this.id, " invalid checksum"));
+                var error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));
 
 
                 ((WebSocketClient)client).reject(error, messageHash);

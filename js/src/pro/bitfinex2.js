@@ -7,7 +7,7 @@
 //  ---------------------------------------------------------------------------
 import bitfinex2Rest from '../bitfinex2.js';
 import { Precise } from '../base/Precise.js';
-import { ExchangeError, AuthenticationError, InvalidNonce } from '../base/errors.js';
+import { ExchangeError, AuthenticationError, ChecksumError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
 //  ---------------------------------------------------------------------------
@@ -37,9 +37,9 @@ export default class bitfinex2 extends bitfinex2Rest {
                 'watchOrderBook': {
                     'prec': 'P0',
                     'freq': 'F0',
+                    'checksum': true,
                 },
                 'ordersLimit': 1000,
-                'checksum': true,
             },
         });
     }
@@ -684,10 +684,13 @@ export default class bitfinex2 extends bitfinex2Rest {
         const localChecksum = this.crc32(payload, true);
         const responseChecksum = this.safeInteger(message, 2);
         if (responseChecksum !== localChecksum) {
-            const error = new InvalidNonce(this.id + ' invalid checksum');
             delete client.subscriptions[messageHash];
             delete this.orderbooks[symbol];
-            client.reject(error, messageHash);
+            const checksum = this.handleOption('watchOrderBook', 'checksum', true);
+            if (checksum) {
+                const error = new ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
+                client.reject(error, messageHash);
+            }
         }
     }
     async watchBalance(params = {}) {

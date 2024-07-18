@@ -9,6 +9,7 @@ import Exchange from './abstract/mercado.js';
 import { ExchangeError, ArgumentsRequired, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
+import { Precise } from './base/Precise.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class mercado
@@ -463,7 +464,10 @@ export default class mercado extends Exchange {
                 if (price === undefined) {
                     throw new InvalidOrder(this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount');
                 }
-                request['cost'] = this.priceToPrecision(market['symbol'], amount * price);
+                const amountString = this.numberToString(amount);
+                const priceString = this.numberToString(price);
+                const cost = this.parseToNumeric(Precise.stringMul(amountString, priceString));
+                request['cost'] = this.priceToPrecision(market['symbol'], cost);
             }
             else {
                 request['quantity'] = this.amountToPrecision(market['symbol'], amount);
