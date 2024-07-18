@@ -6,6 +6,22 @@
     ],
     "outputType": "json",
     "methods": {
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "url": "https://api.testnet.paradex.trade/v1/system/time",
+                "input": []
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "fetchStatus",
+                "method": "fetchStatus",
+                "url": "https://api.testnet.paradex.trade/v1/system/state",
+                "input": []
+            }
+        ],
         "fetchMarkets": [
             {
                 "description": "fetchMarkets",
@@ -213,7 +229,9 @@
                 "description": "fetchLiquidations",
                 "method": "fetchLiquidations",
                 "url": "https://api.testnet.paradex.trade/v1/system/config",
-                "input": []
+                "input": [
+                    "BTC/USD:USDC"
+                ]
             }
         ],
         "fetchDeposits": [

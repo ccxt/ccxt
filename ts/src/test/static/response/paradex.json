@@ -2,6 +2,24 @@
     "exchange": "paradex",
     "options": {},
     "methods": {
+        "fetchTime": [
+            {
+                "description": "fetchTime",
+                "method": "fetchTime",
+                "input": [],
+                "httpResponse": {"server_time":"1721281853309"},
+                "parsedResponse": 1721281853309
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "fetchStatus",
+                "method": "fetchStatus",
+                "input": [],
+                "httpResponse": {"status":"ok"},
+                "parsedResponse": {"status":"ok","updated":null,"eta":null,"url":null,"info":{"status":"ok"}}
+            }
+        ],
         "fetchMarkets": [
             {
                 "description": "fetchMarkets",
@@ -121,8 +139,8 @@
         ],
         "fetchOHLCV": [
             {
-                "description": "fetchMarkets",
-                "method": "fetchMarkets",
+                "description": "fetchOHLCV",
+                "method": "fetchOHLCV",
                 "input": [
                     "BTC/USD:USDC",
                     "1m",
