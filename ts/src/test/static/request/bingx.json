@@ -1427,11 +1427,20 @@
         "fetchMyLiquidations": [
             {
                 "disabled": true,
-                "description": "fetch my liquidations",
+                "description": "Linear swap fetch my liquidations",
                 "method": "fetchMyLiquidations",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/forceOrders?autoCloseType=LIQUIDATION&symbol=BTC-USDT&timestamp=1713364573101&signature=f8eb5457ce479316113f59ab7c9be200d7bd2b39e394a480143b0f2ec59a1d91",
                 "input": [
                   "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "disabled": true,
+                "description": "Inverse swap fetch my liquidations",
+                "method": "fetchMyLiquidations",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/forceOrders?autoCloseType=LIQUIDATION&symbol=SOL-USD&timestamp=1721280070629&signature=32b7e26877af1f0ed4f3936811cb38f68bc27eac5e44b63022de5a92123f6b7f",
+                "input": [
+                  "SOL/USD:SOL"
                 ]
             }
         ],
