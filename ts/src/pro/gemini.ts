@@ -484,7 +484,8 @@ export default class gemini extends geminiRest {
             const rawSide = this.safeString (entry, 'side');
             const price = this.safeNumber (entry, 'price');
             const size = this.safeNumber (entry, 'remaining');
-            if (size === 0) {
+            if (!(size > 0)) {
+                // avoid comparison to 0 because of type
                 continue;
             }
             if (rawSide === 'bid') {

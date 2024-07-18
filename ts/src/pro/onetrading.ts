@@ -982,7 +982,7 @@ export default class onetrading extends onetradingRest {
             symbol = previousOrder['symbol'];
             const filled = this.safeNumber (update, 'filled_amount');
             let status = this.parseWsOrderStatus (updateType);
-            if (updateType === 'ORDER_CLOSED' && filled === 0) {
+            if (updateType === 'ORDER_CLOSED' && !(filled > 0)) {
                 status = 'canceled';
             }
             const orderObject: Dict = {

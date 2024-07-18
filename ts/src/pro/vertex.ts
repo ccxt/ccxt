@@ -870,7 +870,7 @@ export default class vertex extends vertexRest {
         const timestamp = this.parseToInt (Precise.stringDiv (this.safeString (order, 'timestamp'), '1000000'));
         const remaining = this.parseToNumeric (this.convertFromX18 (this.safeString (order, 'amount')));
         let status = this.parseWsOrderStatus (this.safeString (order, 'reason'));
-        if (remaining === 0 && status === 'open') {
+        if (!(remaining > 0) && status === 'open') {
             status = 'closed';
         }
         market = this.safeMarket (marketId, market);
