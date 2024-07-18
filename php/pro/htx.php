@@ -12,6 +12,7 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\NetworkError;
 use ccxt\InvalidNonce;
+use ccxt\ChecksumError;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -106,6 +107,7 @@ class htx extends \ccxt\async\htx {
                 'api' => 'api', // or api-aws for clients hosted on AWS
                 'watchOrderBook' => array(
                     'maxRetries' => 3,
+                    'checksum' => true,
                 ),
                 'ws' => array(
                     'gunzip' => true,
@@ -587,7 +589,10 @@ class htx extends \ccxt\async\htx {
             $orderbook['nonce'] = $version;
         }
         if (($prevSeqNum !== null) && $prevSeqNum > $orderbook['nonce']) {
-            throw new InvalidNonce($this->id . ' watchOrderBook() received a mesage out of order');
+            $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
+            if ($checksum) {
+                throw new ChecksumError($this->id . ' ' . $this->orderbook_checksum_message($symbol));
+            }
         }
         $spotConditon = $market['spot'] && ($prevSeqNum === $orderbook['nonce']);
         $nonSpotCondition = $market['contract'] && ($version - 1 === $orderbook['nonce']);

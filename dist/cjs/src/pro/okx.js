@@ -46,6 +46,7 @@ class okx extends okx$1 {
             },
             'options': {
                 'watchOrderBook': {
+                    'checksum': true,
                     //
                     // bbo-tbt
                     // 1. Newly added channel that sends tick-by-tick Level 1 data
@@ -93,7 +94,6 @@ class okx extends okx$1 {
                 'ws': {
                 // 'inflate': true,
                 },
-                'checksum': true,
             },
             'streaming': {
                 // okex does not support built-in ws protocol-level ping-pong
@@ -919,7 +919,7 @@ class okx extends okx$1 {
         this.handleDeltas(storedBids, bids);
         const marketId = this.safeString(message, 'instId');
         const symbol = this.safeSymbol(marketId);
-        const checksum = this.safeBool(this.options, 'checksum', true);
+        const checksum = this.handleOption('watchOrderBook', 'checksum', true);
         if (checksum) {
             const asksLength = storedAsks.length;
             const bidsLength = storedBids.length;
@@ -938,7 +938,7 @@ class okx extends okx$1 {
             const responseChecksum = this.safeInteger(message, 'checksum');
             const localChecksum = this.crc32(payload, true);
             if (responseChecksum !== localChecksum) {
-                const error = new errors.InvalidNonce(this.id + ' invalid checksum');
+                const error = new errors.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
                 delete client.subscriptions[messageHash];
                 delete this.orderbooks[symbol];
                 client.reject(error, messageHash);

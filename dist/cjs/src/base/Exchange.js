@@ -2199,6 +2199,9 @@ class Exchange {
     afterConstruct() {
         this.createNetworksByIdObject();
     }
+    orderbookChecksumMessage(symbol) {
+        return symbol + ' : ' + 'orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options["watchOrderBook"]["checksum"] = false';
+    }
     createNetworksByIdObject() {
         // automatically generate network-id-to-code mappings
         const networkIdsToCodesGenerated = this.invertFlatStringDictionary(this.safeValue(this.options, 'networks', {})); // invert defined networks dictionary

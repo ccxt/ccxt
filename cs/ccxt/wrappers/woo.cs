@@ -234,6 +234,12 @@ public partial class woo
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : *for swap markets only* 'cross' or 'isolated', default 'cross'
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.triggerPrice</term>
     /// <description>
     /// float : The price a trigger order is triggered at
@@ -254,7 +260,7 @@ public partial class woo
     /// <item>
     /// <term>params.algoType</term>
     /// <description>
-    /// float : 'STOP'or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
+    /// float : 'STOP' or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
     /// </description>
     /// </item>
     /// <item>
@@ -279,6 +285,12 @@ public partial class woo
     /// <term>params.trailingTriggerPrice</term>
     /// <description>
     /// string : the price to trigger a trailing order, default uses the price argument
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.position_side</term>
+    /// <description>
+    /// string : 'SHORT' or 'LONG' - if position mode is HEDGE_MODE and the trading involves futures, then is required, otherwise this parameter is not required
     /// </description>
     /// </item>
     /// </list>
@@ -1168,6 +1180,18 @@ public partial class woo
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : *for swap markets only* 'cross' or 'isolated'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.position_mode</term>
+    /// <description>
+    /// string : *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
@@ -1176,6 +1200,40 @@ public partial class woo
         var res = await this.fetchLeverage(symbol, parameters);
         return new Leverage(res);
     }
+    /// <summary>
+    /// set the level of leverage for a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.woo.org/#update-leverage-setting"/>  <br/>
+    /// See <see href="https://docs.woo.org/#update-futures-leverage-setting"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbo</term>
+    /// <description>
+    /// string : unified market symbol (is mandatory for swap markets)
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : *for swap markets only* 'cross' or 'isolated'
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.position_side</term>
+    /// <description>
+    /// string : *for swap markets only* 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode.
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> response from the exchange.</returns>
     public async Task<Dictionary<string, object>> SetLeverage(Int64 leverage, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.setLeverage(leverage, symbol, parameters);

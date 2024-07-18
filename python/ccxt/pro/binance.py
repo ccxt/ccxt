@@ -12,7 +12,7 @@ from typing import List
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import ChecksumError
 from ccxt.base.precise import Precise
 
 
@@ -133,6 +133,7 @@ class binance(ccxt.async_support.binance):
                 },
                 'watchOrderBook': {
                     'maxRetries': 3,
+                    'checksum': True,
                 },
                 'watchBalance': {
                     'fetchBalanceSnapshot': False,  # or True
@@ -805,10 +806,10 @@ class binance(ccxt.async_support.binance):
                             if nonce < orderbook['nonce']:
                                 client.resolve(orderbook, messageHash)
                         else:
-                            checksum = self.safe_bool(self.options, 'checksum', True)
+                            checksum = self.handle_option('watchOrderBook', 'checksum', True)
                             if checksum:
                                 # todo: client.reject from handleOrderBookMessage properly
-                                raise InvalidNonce(self.id + ' handleOrderBook received an out-of-order nonce')
+                                raise ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
                 else:
                     # future
                     # 4. Drop any event where u is < lastUpdateId in the snapshot
@@ -820,10 +821,10 @@ class binance(ccxt.async_support.binance):
                             if nonce <= orderbook['nonce']:
                                 client.resolve(orderbook, messageHash)
                         else:
-                            checksum = self.safe_bool(self.options, 'checksum', True)
+                            checksum = self.handle_option('watchOrderBook', 'checksum', True)
                             if checksum:
                                 # todo: client.reject from handleOrderBookMessage properly
-                                raise InvalidNonce(self.id + ' handleOrderBook received an out-of-order nonce')
+                                raise ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
             except Exception as e:
                 del self.orderbooks[symbol]
                 del client.subscriptions[messageHash]

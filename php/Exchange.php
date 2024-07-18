@@ -3002,6 +3002,10 @@ class Exchange {
         $this->create_networks_by_id_object();
     }
 
+    public function orderbook_checksum_message(?string $symbol) {
+        return $symbol . '  = false';
+    }
+
     public function create_networks_by_id_object() {
         // automatically generate network-id-to-code mappings
         $networkIdsToCodesGenerated = $this->invert_flat_string_dictionary($this->safe_value($this->options, 'networks', array())); // invert defined networks dictionary

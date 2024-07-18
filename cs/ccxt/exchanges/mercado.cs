@@ -461,7 +461,10 @@ public partial class mercado : Exchange
                 {
                     throw new InvalidOrder ((string)add(this.id, " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount")) ;
                 }
-                ((IDictionary<string,object>)request)["cost"] = this.priceToPrecision(getValue(market, "symbol"), multiply(amount, price));
+                object amountString = this.numberToString(amount);
+                object priceString = this.numberToString(price);
+                object cost = this.parseToNumeric(Precise.stringMul(amountString, priceString));
+                ((IDictionary<string,object>)request)["cost"] = this.priceToPrecision(getValue(market, "symbol"), cost);
             } else
             {
                 ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(getValue(market, "symbol"), amount);

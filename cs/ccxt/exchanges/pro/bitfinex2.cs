@@ -33,9 +33,9 @@ public partial class bitfinex2 : ccxt.bitfinex2
                 { "watchOrderBook", new Dictionary<string, object>() {
                     { "prec", "P0" },
                     { "freq", "F0" },
+                    { "checksum", true },
                 } },
                 { "ordersLimit", 1000 },
-                { "checksum", true },
             } },
         });
     }
@@ -752,10 +752,14 @@ public partial class bitfinex2 : ccxt.bitfinex2
         object responseChecksum = this.safeInteger(message, 2);
         if (isTrue(!isEqual(responseChecksum, localChecksum)))
         {
-            var error = new InvalidNonce(add(this.id, " invalid checksum"));
 
 
-            ((WebSocketClient)client).reject(error, messageHash);
+            object checksum = this.handleOption("watchOrderBook", "checksum", true);
+            if (isTrue(checksum))
+            {
+                var error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));
+                ((WebSocketClient)client).reject(error, messageHash);
+            }
         }
     }
 

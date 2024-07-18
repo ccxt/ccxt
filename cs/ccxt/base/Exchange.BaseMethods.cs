@@ -954,6 +954,11 @@ public partial class Exchange
         this.createNetworksByIdObject();
     }
 
+    public virtual object orderbookChecksumMessage(object symbol)
+    {
+        return add(add(symbol, " : "), "orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\"watchOrderBook\"][\"checksum\"] = false");
+    }
+
     public virtual void createNetworksByIdObject()
     {
         // automatically generate network-id-to-code mappings

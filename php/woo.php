@@ -27,7 +27,7 @@ class woo extends Exchange {
                 'swap' => true,
                 'future' => false,
                 'option' => false,
-                'addMargin' => false,
+                'addMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
@@ -197,6 +197,7 @@ class woo extends Exchange {
                             'positions' => 3.33, // 30 requests per 10 seconds
                             'position/{symbol}' => 3.33,
                             'client/transaction_history' => 60,
+                            'client/futures_leverage' => 60,
                         ),
                         'post' => array(
                             'order' => 5, // 2 requests per 1 second per symbol
@@ -209,6 +210,8 @@ class woo extends Exchange {
                             'client/account_mode' => 120,
                             'client/position_mode' => 5,
                             'client/leverage' => 120,
+                            'client/futures_leverage' => 30,
+                            'client/isolated_margin' => 30,
                         ),
                         'delete' => array(
                             'order' => 1,
@@ -920,16 +923,18 @@ class woo extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->marginMode] *for swap markets only* 'cross' or 'isolated', default 'cross'
          * @param {float} [$params->triggerPrice] The $price a trigger $order is triggered at
          * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the triggerPrice at which the attached take profit $order will be triggered (perpetual swap markets only)
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
          * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the triggerPrice at which the attached stop loss $order will be triggered (perpetual swap markets only)
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
-         * @param {float} [$params->algoType] 'STOP'or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
+         * @param {float} [$params->algoType] 'STOP' or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
          * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
          * @param {string} [$params->trailingAmount] the quote $amount to trail away from the current $market $price
          * @param {string} [$params->trailingPercent] the percent to trail away from the current $market $price
          * @param {string} [$params->trailingTriggerPrice] the $price to trigger a trailing $order, default uses the $price argument
+         * @param {string} [$params->position_side] 'SHORT' or 'LONG' - if position mode is HEDGE_MODE and the trading involves futures, then is required, otherwise this parameter is not required
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
         $reduceOnly = $this->safe_bool_2($params, 'reduceOnly', 'reduce_only');
@@ -942,6 +947,11 @@ class woo extends Exchange {
             'symbol' => $market['id'],
             'side' => $orderSide,
         );
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+        if ($marginMode !== null) {
+            $request['margin_mode'] = $this->encode_margin_mode($marginMode);
+        }
         $stopPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
         $stopLoss = $this->safe_value($params, 'stopLoss');
         $takeProfit = $this->safe_value($params, 'takeProfit');
@@ -1093,6 +1103,14 @@ class woo extends Exchange {
         $order = $this->parse_order($response, $market);
         $order['type'] = $type;
         return $order;
+    }
+
+    public function encode_margin_mode($mode) {
+        $modes = array(
+            'cross' => 'CROSS',
+            'isolated' => 'ISOLATED',
+        );
+        return $this->safe_string($modes, $mode, $mode);
     }
 
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
@@ -2828,63 +2846,197 @@ class woo extends Exchange {
          * @see https://docs.woo.org/#get-account-information-new
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->marginMode] *for swap markets only* 'cross' or 'isolated'
+         * @param {string} [$params->position_mode] *for swap markets only* 'ONE_WAY' or 'HEDGE_MODE'
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=leverage-structure leverage structure~
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $response = $this->v3PrivateGetAccountinfo ($params);
-        //
-        //     {
-        //         "success" => true,
-        //         "data" => array(
-        //             "applicationId" => "dsa",
-        //             "account" => "dsa",
-        //             "alias" => "haha",
-        //             "accountMode" => "MARGIN",
-        //             "leverage" => 1,
-        //             "takerFeeRate" => 1,
-        //             "makerFeeRate" => 1,
-        //             "interestRate" => 1,
-        //             "futuresTakerFeeRate" => 1,
-        //             "futuresMakerFeeRate" => 1,
-        //             "otpauth" => true,
-        //             "marginRatio" => 1,
-        //             "openMarginRatio" => 1,
-        //             "initialMarginRatio" => 1,
-        //             "maintenanceMarginRatio" => 1,
-        //             "totalCollateral" => 1,
-        //             "freeCollateral" => 1,
-        //             "totalAccountValue" => 1,
-        //             "totalVaultValue" => 1,
-        //             "totalStakingValue" => 1
-        //         ),
-        //         "timestamp" => 1673323685109
-        //     }
-        //
+        $response = null;
+        if ($market['spot']) {
+            $response = $this->v3PrivateGetAccountinfo ($params);
+            //
+            //     {
+            //         "success" => true,
+            //         "data" => array(
+            //             "applicationId" => "dsa",
+            //             "account" => "dsa",
+            //             "alias" => "haha",
+            //             "accountMode" => "MARGIN",
+            //             "leverage" => 1,
+            //             "takerFeeRate" => 1,
+            //             "makerFeeRate" => 1,
+            //             "interestRate" => 1,
+            //             "futuresTakerFeeRate" => 1,
+            //             "futuresMakerFeeRate" => 1,
+            //             "otpauth" => true,
+            //             "marginRatio" => 1,
+            //             "openMarginRatio" => 1,
+            //             "initialMarginRatio" => 1,
+            //             "maintenanceMarginRatio" => 1,
+            //             "totalCollateral" => 1,
+            //             "freeCollateral" => 1,
+            //             "totalAccountValue" => 1,
+            //             "totalVaultValue" => 1,
+            //             "totalStakingValue" => 1
+            //         ),
+            //         "timestamp" => 1673323685109
+            //     }
+            //
+        } elseif ($market['swap']) {
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLeverage', $params, 'cross');
+            $request['margin_mode'] = $this->encode_margin_mode($marginMode);
+            $response = $this->v1PrivateGetClientFuturesLeverage ($this->extend($request, $params));
+            //
+            // HEDGE_MODE
+            //     {
+            //         "success" => true,
+            //         "data":
+            //             {
+            //                 "symbol" => "PERP_ETH_USDT",
+            //                 "default_margin_mode" => "CROSS",
+            //                 "position_mode" => "HEDGE_MODE",
+            //                 "details" =>  array(
+            //                     array(
+            //                         "position_side" => "LONG",
+            //                         "leverage" => 10
+            //                     ),
+            //                     array(
+            //                         "position_side" => "SHORT",
+            //                         "leverage" => 10
+            //                     }
+            //                 )
+            //             ),
+            //         "timestamp" => 1720886470482
+            //     }
+            //
+            // ONE_WAY
+            //     {
+            //         "success" => true,
+            //         "data" => {
+            //             "symbol" => "PERP_ETH_USDT",
+            //             "default_margin_mode" => "ISOLATED",
+            //             "position_mode" => "ONE_WAY",
+            //             "details" => array(
+            //                 array(
+            //                     "position_side" => "BOTH",
+            //                     "leverage" => 10
+            //                 }
+            //             )
+            //         ),
+            //         "timestamp" => 1720886810317
+            //     }
+            //
+        } else {
+            throw new NotSupported($this->id . ' fetchLeverage() is not supported for ' . $market['type'] . ' markets');
+        }
         $data = $this->safe_dict($response, 'data', array());
         return $this->parse_leverage($data, $market);
     }
 
     public function parse_leverage(array $leverage, ?array $market = null): array {
-        $leverageValue = $this->safe_integer($leverage, 'leverage');
+        $marketId = $this->safe_string($leverage, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $marginMode = $this->safe_string_lower($leverage, 'default_margin_mode');
+        $spotLeverage = $this->safe_integer($leverage, 'leverage');
+        $longLeverage = $spotLeverage;
+        $shortLeverage = $spotLeverage;
+        $details = $this->safe_list($leverage, 'details', array());
+        for ($i = 0; $i < count($details); $i++) {
+            $position = $this->safe_dict($details, $i, array());
+            $positionLeverage = $this->safe_integer($position, 'leverage');
+            $side = $this->safe_string($position, 'position_side');
+            if ($side === 'BOTH') {
+                $longLeverage = $positionLeverage;
+                $shortLeverage = $positionLeverage;
+            } elseif ($side === 'LONG') {
+                $longLeverage = $positionLeverage;
+            } elseif ($side === 'SHORT') {
+                $shortLeverage = $positionLeverage;
+            }
+        }
         return array(
             'info' => $leverage,
             'symbol' => $market['symbol'],
-            'marginMode' => null,
-            'longLeverage' => $leverageValue,
-            'shortLeverage' => $leverageValue,
+            'marginMode' => $marginMode,
+            'longLeverage' => $longLeverage,
+            'shortLeverage' => $shortLeverage,
         );
     }
 
     public function set_leverage(?int $leverage, ?string $symbol = null, $params = array ()) {
+        /**
+         * set the level of $leverage for a $market
+         * @see https://docs.woo.org/#update-$leverage-setting
+         * @see https://docs.woo.org/#update-futures-$leverage-setting
+         * @param {float} $leverage the rate of $leverage (1, 2, 3, 4 or 5 for spot markets, 1, 2, 3, 4, 5, 10, 15, 20 for swap markets)
+         * @param {string} [symbo] unified $market $symbol (is mandatory for swap markets)
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->marginMode] *for swap markets only* 'cross' or 'isolated'
+         * @param {string} [$params->position_side] *for swap markets only* 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode.
+         * @return {array} response from the exchange
+         */
         $this->load_markets();
-        if (($leverage < 1) || ($leverage > 20)) {
-            throw new BadRequest($this->id . ' $leverage should be between 1 and 20');
-        }
         $request = array(
             'leverage' => $leverage,
         );
-        return $this->v1PrivatePostClientLeverage ($this->extend($request, $params));
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        if (($symbol === null) || $market['spot']) {
+            return $this->v1PrivatePostClientLeverage ($this->extend($request, $params));
+        } elseif ($market['swap']) {
+            $request['symbol'] = $market['id'];
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLeverage', $params, 'cross');
+            $request['margin_mode'] = $this->encode_margin_mode($marginMode);
+            return $this->v1PrivatePostClientFuturesLeverage ($this->extend($request, $params));
+        } else {
+            throw new NotSupported($this->id . ' fetchLeverage() is not supported for ' . $market['type'] . ' markets');
+        }
+    }
+
+    public function add_margin(string $symbol, float $amount, $params = array ()): array {
+        /**
+         * add margin
+         * @see https://docs.woo.org/#update-isolated-margin-setting
+         * @param {string} $symbol unified market $symbol
+         * @param {float} $amount amount of margin to add
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->position_side] 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=add-margin-structure margin structure~
+         */
+        return $this->modify_margin_helper($symbol, $amount, 'ADD', $params);
+    }
+
+    public function reduce_margin(string $symbol, float $amount, $params = array ()): array {
+        /**
+         * remove margin from a position
+         * @see https://docs.woo.org/#update-isolated-margin-setting
+         * @param {string} $symbol unified market $symbol
+         * @param {float} $amount amount of margin to remove
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->position_side] 'LONG' or 'SHORT' in hedge mode, 'BOTH' in one way mode
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=reduce-margin-structure margin structure~
+         */
+        return $this->modify_margin_helper($symbol, $amount, 'REDUCE', $params);
+    }
+
+    public function modify_margin_helper(string $symbol, $amount, $type, $params = array ()): array {
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+            'adjust_token' => 'USDT', // todo check
+            'adjust_amount' => $amount,
+            'action' => $type,
+        );
+        return $this->v1PrivatePostClientIsolatedMargin ($this->extend($request, $params));
     }
 
     public function fetch_position(?string $symbol = null, $params = array ()) {
@@ -2896,17 +3048,26 @@ class woo extends Exchange {
         $response = $this->v1PrivateGetPositionSymbol ($this->extend($request, $params));
         //
         //     {
-        //         "symbol":"PERP_ETC_USDT",
-        //         "holding":0.0,
-        //         "pnl_24_h":0,
-        //         "settle_price":0.0,
-        //         "average_open_price":0,
-        //         "success":true,
-        //         "mark_price":22.6955,
-        //         "pending_short_qty":0.0,
-        //         "pending_long_qty":0.0,
-        //         "fee_24_h":0,
-        //         "timestamp":"1652231044.920"
+        //         "symbol" => "PERP_ETH_USDT",
+        //         "position_side" => "BOTH",
+        //         "leverage" => 10,
+        //         "margin_mode" => "CROSS",
+        //         "average_open_price" => 3139.9,
+        //         "isolated_margin_amount" => 0.0,
+        //         "isolated_margin_token" => "",
+        //         "opening_time" => "1720627963.094",
+        //         "mark_price" => 3155.19169891,
+        //         "pending_short_qty" => 0.0,
+        //         "pending_long_qty" => 0.0,
+        //         "holding" => -0.7,
+        //         "pnl_24_h" => 0.0,
+        //         "est_liq_price" => 9107.40055552,
+        //         "settle_price" => 3151.0319904,
+        //         "success" => true,
+        //         "fee_24_h" => 0.0,
+        //         "isolated_frozen_long" => 0.0,
+        //         "isolated_frozen_short" => 0.0,
+        //         "timestamp" => "1720867502.544"
         //     }
         //
         return $this->parse_position($response, $market);
@@ -2918,24 +3079,54 @@ class woo extends Exchange {
         //
         //     {
         //         "success" => true,
-        //         "data" => {
+        //         "data":
+        //         {
         //             "positions" => array(
         //                 array(
-        //                     "symbol" => "0_symbol",
-        //                     "holding" => 1,
-        //                     "pendingLongQty" => 0,
-        //                     "pendingShortQty" => 1,
-        //                     "settlePrice" => 1,
-        //                     "averageOpenPrice" => 1,
-        //                     "pnl24H" => 1,
-        //                     "fee24H" => 1,
-        //                     "markPrice" => 1,
-        //                     "estLiqPrice" => 1,
-        //                     "timestamp" => 12321321
+        //                     "symbol" => "PERP_ETH_USDT",
+        //                     "holding" => -1.0,
+        //                     "pendingLongQty" => 0.0,
+        //                     "pendingShortQty" => 0.0,
+        //                     "settlePrice" => 3143.2,
+        //                     "averageOpenPrice" => 3143.2,
+        //                     "pnl24H" => 0.0,
+        //                     "fee24H" => 1.5716,
+        //                     "markPrice" => 3134.97984158,
+        //                     "estLiqPrice" => 3436.176349,
+        //                     "timestamp" => 1720628031.463,
+        //                     "adlQuantile" => 5,
+        //                     "positionSide" => "BOTH",
+        //                     "marginMode" => "ISOLATED",
+        //                     "isolatedMarginToken" => "USDT",
+        //                     "isolatedMarginAmount" => 314.62426,
+        //                     "isolatedFrozenLong" => 0.0,
+        //                     "isolatedFrozenShort" => 0.0,
+        //                     "leverage" => 10
+        //                 ),
+        //                 array(
+        //                     "symbol" => "PERP_SOL_USDT",
+        //                     "holding" => -1.0,
+        //                     "pendingLongQty" => 0.0,
+        //                     "pendingShortQty" => 0.0,
+        //                     "settlePrice" => 141.89933923,
+        //                     "averageOpenPrice" => 171.38,
+        //                     "pnl24H" => 0.0,
+        //                     "fee24H" => 0.0,
+        //                     "markPrice" => 141.65155427,
+        //                     "estLiqPrice" => 4242.73548551,
+        //                     "timestamp" => 1720616702.68,
+        //                     "adlQuantile" => 5,
+        //                     "positionSide" => "BOTH",
+        //                     "marginMode" => "CROSS",
+        //                     "isolatedMarginToken" => "",
+        //                     "isolatedMarginAmount" => 0.0,
+        //                     "isolatedFrozenLong" => 0.0,
+        //                     "isolatedFrozenShort" => 0.0,
+        //                     "leverage" => 10
         //                 }
         //             )
         //         ),
-        //         "timestamp" => 1673323880342
+        //         "timestamp" => 1720628675078
         //     }
         //
         $result = $this->safe_dict($response, 'data', array());
@@ -2945,18 +3136,51 @@ class woo extends Exchange {
 
     public function parse_position(array $position, ?array $market = null) {
         //
+        // v1PrivateGetPositionSymbol
         //     {
-        //         "symbol" => "0_symbol",
-        //         "holding" => 1,
-        //         "pendingLongQty" => 0,
-        //         "pendingShortQty" => 1,
-        //         "settlePrice" => 1,
-        //         "averageOpenPrice" => 1,
-        //         "pnl24H" => 1,
-        //         "fee24H" => 1,
-        //         "markPrice" => 1,
-        //         "estLiqPrice" => 1,
-        //         "timestamp" => 12321321
+        //         "symbol" => "PERP_ETH_USDT",
+        //         "position_side" => "BOTH",
+        //         "leverage" => 10,
+        //         "margin_mode" => "CROSS",
+        //         "average_open_price" => 3139.9,
+        //         "isolated_margin_amount" => 0.0,
+        //         "isolated_margin_token" => "",
+        //         "opening_time" => "1720627963.094",
+        //         "mark_price" => 3155.19169891,
+        //         "pending_short_qty" => 0.0,
+        //         "pending_long_qty" => 0.0,
+        //         "holding" => -0.7,
+        //         "pnl_24_h" => 0.0,
+        //         "est_liq_price" => 9107.40055552,
+        //         "settle_price" => 3151.0319904,
+        //         "success" => true,
+        //         "fee_24_h" => 0.0,
+        //         "isolated_frozen_long" => 0.0,
+        //         "isolated_frozen_short" => 0.0,
+        //         "timestamp" => "1720867502.544"
+        //     }
+        //
+        // v3PrivateGetPositions
+        //     {
+        //         "symbol" => "PERP_ETH_USDT",
+        //         "holding" => -1.0,
+        //         "pendingLongQty" => 0.0, // todo => check
+        //         "pendingShortQty" => 0.0, // todo => check
+        //         "settlePrice" => 3143.2,
+        //         "averageOpenPrice" => 3143.2,
+        //         "pnl24H" => 0.0, // todo => check
+        //         "fee24H" => 1.5716, // todo => check
+        //         "markPrice" => 3134.97984158,
+        //         "estLiqPrice" => 3436.176349,
+        //         "timestamp" => 1720628031.463,
+        //         "adlQuantile" => 5,
+        //         "positionSide" => "BOTH",
+        //         "marginMode" => "ISOLATED",
+        //         "isolatedMarginToken" => "USDT", // todo => check
+        //         "isolatedMarginAmount" => 314.62426, // todo => check
+        //         "isolatedFrozenLong" => 0.0, // todo => check
+        //         "isolatedFrozenShort" => 0.0, // todo => check
+        //         "leverage" => 10
         //     }
         //
         $contract = $this->safe_string($position, 'symbol');
@@ -2969,13 +3193,14 @@ class woo extends Exchange {
             $side = 'short';
         }
         $contractSize = $this->safe_string($market, 'contractSize');
-        $markPrice = $this->safe_string($position, 'markPrice');
+        $markPrice = $this->safe_string_2($position, 'markPrice', 'mark_price');
         $timestamp = $this->safe_timestamp($position, 'timestamp');
-        $entryPrice = $this->safe_string($position, 'averageOpenPrice');
+        $entryPrice = $this->safe_string_2($position, 'averageOpenPrice', 'average_open_price');
         $priceDifference = Precise::string_sub($markPrice, $entryPrice);
         $unrealisedPnl = Precise::string_mul($priceDifference, $size);
         $size = Precise::string_abs($size);
         $notional = Precise::string_mul($size, $markPrice);
+        $positionSide = $this->safe_string($position, 'positionSide'); // 'SHORT' or 'LONG' for hedged, 'BOTH' for non-hedged
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -2989,20 +3214,19 @@ class woo extends Exchange {
             'maintenanceMarginPercentage' => null,
             'entryPrice' => $this->parse_number($entryPrice),
             'notional' => $this->parse_number($notional),
-            'leverage' => null,
+            'leverage' => $this->safe_number($position, 'leverage'),
             'unrealizedPnl' => $this->parse_number($unrealisedPnl),
             'contracts' => $this->parse_number($size),
             'contractSize' => $this->parse_number($contractSize),
             'marginRatio' => null,
-            'liquidationPrice' => $this->safe_number($position, 'estLiqPrice'),
+            'liquidationPrice' => $this->safe_number_2($position, 'estLiqPrice', 'est_liq_price'),
             'markPrice' => $this->parse_number($markPrice),
             'lastPrice' => null,
             'collateral' => null,
-            'marginMode' => 'cross',
-            'marginType' => null,
+            'marginMode' => $this->safe_string_lower_2($position, 'marginMode', 'margin_mode'),
             'side' => $side,
             'percentage' => null,
-            'hedged' => null,
+            'hedged' => $positionSide !== 'BOTH',
             'stopLossPrice' => null,
             'takeProfitPrice' => null,
         ));

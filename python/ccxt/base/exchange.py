@@ -2378,6 +2378,9 @@ class Exchange(object):
     def after_construct(self):
         self.create_networks_by_id_object()
 
+    def orderbook_checksum_message(self, symbol: Str):
+        return symbol + '  = False'
+
     def create_networks_by_id_object(self):
         # automatically generate network-id-to-code mappings
         networkIdsToCodesGenerated = self.invert_flat_string_dictionary(self.safe_value(self.options, 'networks', {}))  # invert defined networks dictionary

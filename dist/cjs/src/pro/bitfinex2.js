@@ -34,9 +34,9 @@ class bitfinex2 extends bitfinex2$1 {
                 'watchOrderBook': {
                     'prec': 'P0',
                     'freq': 'F0',
+                    'checksum': true,
                 },
                 'ordersLimit': 1000,
-                'checksum': true,
             },
         });
     }
@@ -681,10 +681,13 @@ class bitfinex2 extends bitfinex2$1 {
         const localChecksum = this.crc32(payload, true);
         const responseChecksum = this.safeInteger(message, 2);
         if (responseChecksum !== localChecksum) {
-            const error = new errors.InvalidNonce(this.id + ' invalid checksum');
             delete client.subscriptions[messageHash];
             delete this.orderbooks[symbol];
-            client.reject(error, messageHash);
+            const checksum = this.handleOption('watchOrderBook', 'checksum', true);
+            if (checksum) {
+                const error = new errors.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
+                client.reject(error, messageHash);
+            }
         }
     }
     async watchBalance(params = {}) {

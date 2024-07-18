@@ -49,6 +49,7 @@ class poloniexfutures extends poloniexfutures$1 {
                     'method': '/contractMarket/level2',
                     'snapshotDelay': 5,
                     'snapshotMaxRetries': 3,
+                    'checksum': true,
                 },
                 'streamLimit': 5,
                 'streamBySubscriptionsHash': {},
@@ -857,7 +858,10 @@ class poloniexfutures extends poloniexfutures$1 {
             return;
         }
         if (nonce !== lastSequence) {
-            throw new errors.InvalidNonce(this.id + ' watchOrderBook received an out-of-order nonce');
+            const checksum = this.handleOption('watchOrderBook', 'checksum', true);
+            if (checksum) {
+                throw new errors.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(''));
+            }
         }
         const changes = this.safeList(delta, 'changes');
         for (let i = 0; i < changes.length; i++) {

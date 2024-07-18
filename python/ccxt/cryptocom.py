@@ -812,15 +812,17 @@ class cryptocom(Exchange, ImplicitAPI):
             'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
         }
         if limit is not None:
+            if limit > 300:
+                limit = 300
             request['count'] = limit
         now = self.microseconds()
         duration = self.parse_timeframe(timeframe)
         until = self.safe_integer(params, 'until', now)
         params = self.omit(params, ['until'])
         if since is not None:
-            request['start_ts'] = since
+            request['start_ts'] = since - duration * 1000
             if limit is not None:
-                request['end_ts'] = self.sum(since, duration * (limit + 1) * 1000) - 1
+                request['end_ts'] = self.sum(since, duration * limit * 1000)
             else:
                 request['end_ts'] = until
         else:

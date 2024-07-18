@@ -3308,7 +3308,7 @@ class xt(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_ledger(self, code: str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
         :see: https://doc.xt.com/#futures_usergetBalanceBill
@@ -3467,7 +3467,7 @@ class xt(Exchange, ImplicitAPI):
             'info': depositAddress,
         }
 
-    async def fetch_deposits(self, code: str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all deposits made to an account
         :see: https://doc.xt.com/#deposit_withdrawalhistoryDepositGet
@@ -3518,7 +3518,7 @@ class xt(Exchange, ImplicitAPI):
         deposits = self.safe_value(data, 'items', [])
         return self.parse_transactions(deposits, currency, since, limit, params)
 
-    async def fetch_withdrawals(self, code: str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all withdrawals made from an account
         :see: https://doc.xt.com/#deposit_withdrawalwithdrawHistory

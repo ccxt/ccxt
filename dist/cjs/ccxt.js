@@ -392,6 +392,7 @@ exports.BadResponse = errors.BadResponse;
 exports.BadSymbol = errors.BadSymbol;
 exports.BaseError = errors.BaseError;
 exports.CancelPending = errors.CancelPending;
+exports.ChecksumError = errors.ChecksumError;
 exports.ContractUnavailable = errors.ContractUnavailable;
 exports.DDoSProtection = errors.DDoSProtection;
 exports.DuplicateOrderId = errors.DuplicateOrderId;

@@ -828,6 +828,9 @@ class cryptocom extends cryptocom$1 {
             'timeframe': this.safeString(this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
+            if (limit > 300) {
+                limit = 300;
+            }
             request['count'] = limit;
         }
         const now = this.microseconds();
@@ -835,9 +838,9 @@ class cryptocom extends cryptocom$1 {
         const until = this.safeInteger(params, 'until', now);
         params = this.omit(params, ['until']);
         if (since !== undefined) {
-            request['start_ts'] = since;
+            request['start_ts'] = since - duration * 1000;
             if (limit !== undefined) {
-                request['end_ts'] = this.sum(since, duration * (limit + 1) * 1000) - 1;
+                request['end_ts'] = this.sum(since, duration * limit * 1000);
             }
             else {
                 request['end_ts'] = until;
