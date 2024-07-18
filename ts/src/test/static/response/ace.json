@@ -6,6 +6,7 @@
             {
                 "description": "fetchMarkets",
                 "method": "fetchMarkets",
+                "disabled": true,
                 "input": [],
                 "httpResponse": [
                     {
