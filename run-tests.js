@@ -220,9 +220,9 @@ const sequentialMap = async (input, fn) => {
 
 //  ------------------------------------------------------------------------ //
 
-const testExchange = async (exchange) => {
+const percentsDone = () => ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%';
 
-    const percentsDone = () => ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%';
+const testExchange = async (exchange) => {
 
     // no need to test alias classes
     if (exchange.alias) {
