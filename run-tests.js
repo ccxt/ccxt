@@ -239,16 +239,11 @@ const testExchange = async (exchange) => {
             (skipSettings[exchange].skipWs && wsFlag)
         ) 
     ) {
-        if (!('until' in skipSettings[exchange])) {
-            // if until not specified, skip forever
+        const untilExists = 'until' in skipSettings[exchange];
+        if (!untilExists || new Date(skipSettings[exchange].until) > new Date()) {
             numExchangesTested++;
-            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, '[Skipped]'.yellow)
-            return [];
-        }
-        if (new Date(skipSettings[exchange].until) > new Date()) {
-            numExchangesTested++;
-            // if untilDate has not been yet reached, skip test for exchange
-            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, '[Skipped till ' + skipSettings[exchange].until + ']'.yellow)
+            const reason = (untilExists ? ' till ' + skipSettings[exchange].until : '');
+            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, ('[Skipped]' + reason).yellow)
             return [];
         }
     }
