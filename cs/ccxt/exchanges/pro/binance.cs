@@ -121,6 +121,7 @@ public partial class binance : ccxt.binance
                 } },
                 { "watchOrderBook", new Dictionary<string, object>() {
                     { "maxRetries", 3 },
+                    { "checksum", true },
                 } },
                 { "watchBalance", new Dictionary<string, object>() {
                     { "fetchBalanceSnapshot", false },
@@ -939,10 +940,10 @@ public partial class binance : ccxt.binance
                             }
                         } else
                         {
-                            object checksum = this.safeBool(this.options, "checksum", true);
+                            object checksum = this.handleOption("watchOrderBook", "checksum", true);
                             if (isTrue(checksum))
                             {
-                                throw new InvalidNonce ((string)add(this.id, " handleOrderBook received an out-of-order nonce")) ;
+                                throw new ChecksumError ((string)add(add(this.id, " "), this.orderbookChecksumMessage(symbol))) ;
                             }
                         }
                     }
@@ -963,10 +964,10 @@ public partial class binance : ccxt.binance
                             }
                         } else
                         {
-                            object checksum = this.safeBool(this.options, "checksum", true);
+                            object checksum = this.handleOption("watchOrderBook", "checksum", true);
                             if (isTrue(checksum))
                             {
-                                throw new InvalidNonce ((string)add(this.id, " handleOrderBook received an out-of-order nonce")) ;
+                                throw new ChecksumError ((string)add(add(this.id, " "), this.orderbookChecksumMessage(symbol))) ;
                             }
                         }
                     }
