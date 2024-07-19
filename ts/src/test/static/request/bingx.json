@@ -1505,6 +1505,32 @@
                   }
                 ]
             }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "Spot fetch trading fee",
+                "method": "fetchTradingFee",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/user/commissionRate?symbol=BTC-USDT&timestamp=1721369051762&signature=9fc2fc12f8f0139fb5b47fa5dfd7b7be239da2b6c55e99a84e67c19df1022c87",
+                "input": [
+                  "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Linear swap fetch trading fee",
+                "method": "fetchTradingFee",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/user/commissionRate?symbol=BTC-USDT&timestamp=1721369587795&signature=f845d211b0ab0191585e6dececf2d8de3556407e4698235d0ee2afc9f67e6d73",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Inverse swap fetch trading fee",
+                "method": "fetchTradingFee",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/user/commissionRate?timestamp=1721370753542&signature=82ecf511c5fdb7655ef37166633af2dbacc75b0c9a3e6f6994cddd77db45096f",
+                "input": [
+                  "BTC/USD:BTC"
+                ]
+            }
         ]
     }
 }
