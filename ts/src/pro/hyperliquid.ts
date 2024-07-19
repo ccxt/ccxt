@@ -147,7 +147,7 @@ export default class hyperliquid extends hyperliquidRest {
         };
         const tickers = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         if (this.newUpdates) {
-            return tickers;
+            return this.filterByArrayTickers (tickers, 'symbol', symbols);
         }
         return this.tickers;
     }
