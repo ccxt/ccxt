@@ -1516,9 +1516,9 @@
                 ]
             },
             {
-                "description": "Linear swap fetch trading fee",
+                "description": "linear swap trading trading fee",
                 "method": "fetchTradingFee",
-                "url": "https://open-api.bingx.com/openApi/swap/v2/user/commissionRate?symbol=BTC-USDT&timestamp=1721369587795&signature=f845d211b0ab0191585e6dececf2d8de3556407e4698235d0ee2afc9f67e6d73",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/user/commissionRate?timestamp=1721381183575&signature=4265388b5907de2e012b4567fb6bf146a4d44951f92fb8e8003a3c31cf204259",
                 "input": [
                   "BTC/USDT:USDT"
                 ]
