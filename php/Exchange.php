@@ -5200,15 +5200,15 @@ class Exchange {
             $this->load_markets();
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $tickers = $this->fetch_ticker_ws($symbol, $params);
+            $tickers = $this->fetch_tickers_ws(array( $symbol ), $params);
             $ticker = $this->safe_dict($tickers, $symbol);
             if ($ticker === null) {
-                throw new NullResponse($this->id . ' fetchTickers() could not find a $ticker for ' . $symbol);
+                throw new NullResponse($this->id . ' fetchTickerWs() could not find a $ticker for ' . $symbol);
             } else {
                 return $ticker;
             }
         } else {
-            throw new NotSupported($this->id . ' fetchTicker() is not supported yet');
+            throw new NotSupported($this->id . ' fetchTickerWs() is not supported yet');
         }
     }
 
