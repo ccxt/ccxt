@@ -240,7 +240,7 @@ def init_exchange(exchangeId, args, is_ws=False):
     return getattr(ccxt, exchangeId)(args)
 
 
-def get_test_files(properties, ws=False):
+async def get_test_files(properties, ws=False):
     tests = {}
     finalPropList = properties + [proxyTestFileName]
     for i in range(0, len(finalPropList)):
