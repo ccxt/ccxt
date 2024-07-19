@@ -2680,9 +2680,15 @@ class woo extends woo$1 {
          * @param {int} [since] the earliest time in ms to fetch funding history for
          * @param {int} [limit] the maximum number of funding history structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
         await this.loadMarkets();
+        let paginate = false;
+        [paginate, params] = this.handleOptionAndParams(params, 'fetchFundingHistory', 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallCursor('fetchFundingHistory', symbol, since, limit, params, 'page', 'page', 1, 500);
+        }
         const request = {};
         let market = undefined;
         if (symbol !== undefined) {
@@ -2722,7 +2728,15 @@ class woo extends woo$1 {
         //         "success":true
         //     }
         //
+        const meta = this.safeDict(response, 'meta', {});
+        const cursor = this.safeInteger(meta, 'current_page');
         const result = this.safeList(response, 'rows', []);
+        const resultLength = result.length;
+        if (resultLength > 0) {
+            const lastItem = result[resultLength - 1];
+            lastItem['page'] = cursor;
+            result[resultLength - 1] = lastItem;
+        }
         return this.parseIncomes(result, market, since, limit);
     }
     parseFundingRate(fundingRate, market = undefined) {
