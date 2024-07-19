@@ -3278,7 +3278,7 @@ export default class bitfinex2 extends Exchange {
         };
     }
 
-    async fetchOpenInterest (symbol: string, params = {}) {
+    async fetchOpenInterest (symbol: string, params = {}): Promise<OpenInterest> {
         /**
          * @method
          * @name bitfinex2#fetchOpenInterest
@@ -3324,11 +3324,12 @@ export default class bitfinex2 extends Exchange {
         //         ]
         //     ]
         //
-        const oi = this.safeList (response, 0);
-        return this.parseOpenInterest (oi, market);
+        const oi = this.safeList (response, 0, []);
+        const result = { 'result': oi };
+        return this.parseOpenInterest (result, market);
     }
 
-    async fetchOpenInterestHistory (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenInterestHistory (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OpenInterest[]> {
         /**
          * @method
          * @name bitfinex2#fetchOpenInterestHistory
@@ -3393,76 +3394,93 @@ export default class bitfinex2 extends Exchange {
         return this.parseOpenInterests (response, market, since, limit);
     }
 
-    parseOpenInterest (interest, market: Market = undefined) {
+    parseOpenInterests (response: any, market = undefined, since: Int = undefined, limit: Int = undefined): OpenInterest[] {
+        const interests = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = { 'result': response[i] };
+            const interest = this.parseOpenInterest (entry, market);
+            interests.push (interest);
+        }
+        const sorted = this.sortBy (interests, 'timestamp');
+        const symbol = this.safeString (market, 'symbol');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    parseOpenInterest (interest: Dict, market: Market = undefined): OpenInterest {
         //
         // fetchOpenInterest:
         //
-        //     [
-        //         "tXRPF0:USTF0",  // market id
-        //         1706256986000,   // millisecond timestamp
-        //         null,
-        //         0.512705,        // derivative mid price
-        //         0.512395,        // underlying spot mid price
-        //         null,
-        //         37671483.04,     // insurance fund balance
-        //         null,
-        //         1706284800000,   // timestamp of next funding
-        //         0.00002353,      // accrued funding for next period
-        //         317,             // next funding step
-        //         null,
-        //         0,               // current funding
-        //         null,
-        //         null,
-        //         0.5123016,       // mark price
-        //         null,
-        //         null,
-        //         2233562.03115,   // open interest in contracts
-        //         null,
-        //         null,
-        //         null,
-        //         0.0005,          // average spread without funding payment
-        //         0.0025           // funding payment cap
-        //     ]
+        //    {
+        //        'result': [
+        //            "tXRPF0:USTF0",  // market id
+        //            1706256986000,   // millisecond timestamp
+        //            null,
+        //            0.512705,        // derivative mid price
+        //            0.512395,        // underlying spot mid price
+        //            null,
+        //            37671483.04,     // insurance fund balance
+        //            null,
+        //            1706284800000,   // timestamp of next funding
+        //            0.00002353,      // accrued funding for next period
+        //            317,             // next funding step
+        //            null,
+        //            0,               // current funding
+        //            null,
+        //            null,
+        //            0.5123016,       // mark price
+        //            null,
+        //            null,
+        //            2233562.03115,   // open interest in contracts
+        //            null,
+        //            null,
+        //            null,
+        //            0.0005,          // average spread without funding payment
+        //            0.0025           // funding payment cap
+        //        ]
+        //    }
         //
         // fetchOpenInterestHistory:
         //
-        //     [
-        //         1706295191000,       // timestamp
-        //         null,
-        //         42152.425382,        // derivative mid price
-        //         42133,               // spot mid price
-        //         null,
-        //         37671589.7853521,    // insurance fund balance
-        //         null,
-        //         1706313600000,       // timestamp of next funding
-        //         0.00018734,          // accrued funding for next period
-        //         3343,                // next funding step
-        //         null,
-        //         0.00007587,          // current funding
-        //         null,
-        //         null,
-        //         42134.1,             // mark price
-        //         null,
-        //         null,
-        //         5775.20348804,       // open interest number of contracts
-        //         null,
-        //         null,
-        //         null,
-        //         0.0005,              // average spread without funding payment
-        //         0.0025               // funding payment cap
-        //     ]
+        //    {
+        //        'result': [
+        //            1706295191000,       // timestamp
+        //            null,
+        //            42152.425382,        // derivative mid price
+        //            42133,               // spot mid price
+        //            null,
+        //            37671589.7853521,    // insurance fund balance
+        //            null,
+        //            1706313600000,       // timestamp of next funding
+        //            0.00018734,          // accrued funding for next period
+        //            3343,                // next funding step
+        //            null,
+        //            0.00007587,          // current funding
+        //            null,
+        //            null,
+        //            42134.1,             // mark price
+        //            null,
+        //            null,
+        //            5775.20348804,       // open interest number of contracts
+        //            null,
+        //            null,
+        //            null,
+        //            0.0005,              // average spread without funding payment
+        //            0.0025               // funding payment cap
+        //        ]
+        //    }
         //
-        const interestLength = interest.length;
+        const result = this.safeList (interest, 'result');
+        const interestLength = result.length;
         const openInterestIndex = (interestLength === 23) ? 17 : 18;
-        const timestamp = this.safeInteger (interest, 1);
-        const marketId = this.safeString (interest, 0);
+        const timestamp = this.safeInteger (result, 1);
+        const marketId = this.safeString (result, 0);
         return this.safeOpenInterest ({
             'symbol': this.safeSymbol (marketId, market, undefined, 'swap'),
-            'openInterestAmount': this.safeNumber (interest, openInterestIndex),
+            'openInterestAmount': this.safeNumber (result, openInterestIndex),
             'openInterestValue': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'info': interest,
+            'info': result,
         }, market);
     }
 
@@ -3519,7 +3537,29 @@ export default class bitfinex2 extends Exchange {
         return this.parseLiquidations (response, market, since, limit);
     }
 
-    parseLiquidation (liquidation, market: Market = undefined) {
+    parseLiquidations (liquidations: any, market: Market = undefined, since: Int = undefined, limit: Int = undefined): Liquidation[] {
+        /**
+         * @ignore
+         * @method
+         * @description parses liquidation info from the exchange response
+         * @param {object[]} liquidations each item describes an instance of a liquidation event
+         * @param {object} market ccxt market
+         * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
+         * @param {int} [limit] limits the number of items in the response
+         * @returns {object[]} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+         */
+        const result = [];
+        for (let i = 0; i < liquidations.length; i++) {
+            const entry = { 'result': liquidations[i] };
+            const parsed = this.parseLiquidation (entry, market);
+            result.push (parsed);
+        }
+        const sorted = this.sortBy (result, 'timestamp');
+        const symbol = this.safeString (market, 'symbol');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    parseLiquidation (liquidation: Dict, market: Market = undefined): Liquidation {
         //
         //     [
         //         [
@@ -3538,7 +3578,8 @@ export default class bitfinex2 extends Exchange {
         //         ]
         //     ]
         //
-        const entry = liquidation[0];
+        const result = this.safeList (liquidation, 'result');
+        const entry = result[0];
         const timestamp = this.safeInteger (entry, 2);
         const marketId = this.safeString (entry, 4);
         const contracts = Precise.stringAbs (this.safeString (entry, 5));
