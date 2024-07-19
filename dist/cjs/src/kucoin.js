@@ -159,6 +159,7 @@ class kucoin extends kucoin$1 {
                         'status': 4.5,
                         // margin trading
                         'mark-price/{symbol}/current': 3,
+                        'mark-price/all-symbols': 3,
                         'margin/config': 25, // 25SW
                     },
                     'post': {
@@ -644,6 +645,7 @@ class kucoin extends kucoin$1 {
                             'currencies': 'v3',
                             'currencies/{currency}': 'v3',
                             'symbols': 'v2',
+                            'mark-price/all-symbols': 'v3',
                         },
                     },
                     'private': {
