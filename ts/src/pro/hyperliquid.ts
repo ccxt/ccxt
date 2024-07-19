@@ -18,7 +18,7 @@ export default class hyperliquid extends hyperliquidRest {
                 'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
-                'watchTicker': 'emulated',
+                'watchTicker': false,
                 'watchTickers': true,
                 'watchTrades': true,
                 'watchPosition': false,

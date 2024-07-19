@@ -816,6 +816,8 @@ export default class hyperliquid extends Exchange {
         const bidAsk = this.safeList (ticker, 'impactPxs');
         return this.safeTicker ({
             'symbol': market['symbol'],
+            'timestamp': undefined,
+            'datetime': undefined,
             'previousClose': this.safeNumber (ticker, 'prevDayPx'),
             'close': this.safeNumber (ticker, 'midPx'),
             'bid': this.safeNumber (bidAsk, 0),
