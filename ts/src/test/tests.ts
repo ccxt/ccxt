@@ -5,7 +5,6 @@ import { Exchange } from '../../ccxt.js';
 import { Str } from '../base/types.js';
 
 import {
-    DIR_NAME,
     // errors
     AuthenticationError,
     NotSupported,
@@ -29,7 +28,6 @@ import {
     callMethodSync,
     callExchangeMethodDynamically,
     callExchangeMethodDynamicallySync,
-    callOverridenMethod,
     exceptionMessage,
     exitScript,
     getExchangeProp,

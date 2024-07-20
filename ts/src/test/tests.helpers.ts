@@ -227,7 +227,6 @@ async function close (exchange: Exchange) {
 
 
 export {
-    DIR_NAME,
     // errors
     AuthenticationError,
     NotSupported,
