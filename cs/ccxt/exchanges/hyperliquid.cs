@@ -245,7 +245,16 @@ public partial class hyperliquid : Exchange
                 { "withdraw", null },
                 { "networks", null },
                 { "fee", null },
-                { "limits", null },
+                { "limits", new Dictionary<string, object>() {
+                    { "amount", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                } },
             };
         }
         return result;
@@ -1419,7 +1428,7 @@ public partial class hyperliquid : Exchange
         * @description cancel multiple orders for multiple symbols
         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
-        * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol
+        * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.vaultAddress] the vault address
         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}

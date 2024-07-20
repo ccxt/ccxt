@@ -82,7 +82,7 @@ export default class oxfun extends oxfunRest {
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int|string} [params.tag] If given it will be echoed in the reply and the max size of tag is 32
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
@@ -941,7 +941,7 @@ export default class oxfun extends oxfunRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const idsLength = ids.length;
+        const idsLength: number = ids.length;
         if (idsLength > 20) {
             throw new BadRequest (this.id + ' cancelOrdersWs() accepts up to 20 ids at a time');
         }

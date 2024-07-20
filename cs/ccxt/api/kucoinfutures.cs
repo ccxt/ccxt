@@ -91,6 +91,11 @@ public partial class kucoinfutures : kucoin
         return await this.callAsync ("publicGetMarkPriceSymbolCurrent",parameters);
     }
 
+    public async Task<object> publicGetMarkPriceAllSymbols (object parameters = null)
+    {
+        return await this.callAsync ("publicGetMarkPriceAllSymbols",parameters);
+    }
+
     public async Task<object> publicGetMarginConfig (object parameters = null)
     {
         return await this.callAsync ("publicGetMarginConfig",parameters);

@@ -4564,6 +4564,12 @@ public partial class bybit : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
+        object types = await this.isUnifiedEnabled();
+        object enableUnifiedAccount = getValue(types, 1);
+        if (!isTrue(enableUnifiedAccount))
+        {
+            throw new NotSupported ((string)add(this.id, " cancelOrders() supports UTA accounts only")) ;
+        }
         object category = null;
         var categoryparametersVariable = this.getBybitType("cancelOrders", market, parameters);
         category = ((IList<object>)categoryparametersVariable)[0];
@@ -4679,14 +4685,18 @@ public partial class bybit : Exchange
         * @name bybit#cancelOrdersForSymbols
         * @description cancel multiple orders for multiple symbols
         * @see https://bybit-exchange.github.io/docs/v5/order/batch-cancel
-        * @param {string[]} ids order ids
-        * @param {string} symbol unified symbol of the market the order was made in
+        * @param {CancellationRequest[]} orders list of order ids with symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string[]} [params.clientOrderIds] client order ids
         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object types = await this.isUnifiedEnabled();
+        object enableUnifiedAccount = getValue(types, 1);
+        if (!isTrue(enableUnifiedAccount))
+        {
+            throw new NotSupported ((string)add(this.id, " cancelOrdersForSymbols() supports UTA accounts only")) ;
+        }
         object ordersRequests = new List<object>() {};
         object category = null;
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
@@ -6729,6 +6739,7 @@ public partial class bybit : Exchange
         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
         */
         parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
         object symbol = null;
         if (isTrue(isTrue((!isEqual(symbols, null))) && isTrue(((symbols is IList<object>) || (symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
         {
@@ -6746,7 +6757,6 @@ public partial class bybit : Exchange
             symbol = symbols;
             symbols = new List<object> {this.symbol(symbol)};
         }
-        await this.loadMarkets();
         var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
         var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
         var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];

@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import gateRest from '../gate.js';
-import { AuthenticationError, BadRequest, ArgumentsRequired, InvalidNonce, ExchangeError, NotSupported } from '../base/errors.js';
+import { AuthenticationError, BadRequest, ArgumentsRequired, ChecksumError, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation, OrderType, OrderSide, Num, Market, MarketType, OrderRequest } from '../base/types.js';
@@ -97,6 +97,7 @@ export default class gate extends gateRest {
                     'interval': '100ms',
                     'snapshotDelay': 10, // how many deltas to cache before fetching a snapshot
                     'snapshotMaxRetries': 3,
+                    'checksum': true,
                 },
                 'watchBalance': {
                     'settle': 'usdt', // or btc
@@ -491,10 +492,13 @@ export default class gate extends gateRest {
         } else if (nonce >= deltaStart - 1) {
             this.handleDelta (storedOrderBook, delta);
         } else {
-            const error = new InvalidNonce (this.id + ' orderbook update has a nonce bigger than u');
             delete client.subscriptions[messageHash];
             delete this.orderbooks[symbol];
-            client.reject (error, messageHash);
+            const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
+            if (checksum) {
+                const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+                client.reject (error, messageHash);
+            }
         }
         client.resolve (storedOrderBook, messageHash);
     }
@@ -867,7 +871,7 @@ export default class gate extends gateRest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         let subType = undefined;
@@ -1222,7 +1226,7 @@ export default class gate extends gateRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] spot, margin, swap, future, or option. Required if listening to all symbols.
          * @param {boolean} [params.isInverse] if future, listen to inverse or linear contracts
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -1314,7 +1318,7 @@ export default class gate extends gateRest {
             } else if (event === 'finish') {
                 const status = this.safeString (parsed, 'status');
                 if (status === undefined) {
-                    const left = this.safeNumber (info, 'left');
+                    const left = this.safeInteger (info, 'left');
                     parsed['status'] = (left === 0) ? 'closed' : 'canceled';
                 }
             }

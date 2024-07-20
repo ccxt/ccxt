@@ -10,7 +10,7 @@ use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
-use ccxt\InvalidNonce;
+use ccxt\ChecksumError;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -54,6 +54,7 @@ class okx extends \ccxt\async\okx {
             ),
             'options' => array(
                 'watchOrderBook' => array(
+                    'checksum' => true,
                     //
                     // bbo-tbt
                     // 1. Newly added channel that sends tick-by-tick Level 1 data
@@ -101,7 +102,6 @@ class okx extends \ccxt\async\okx {
                 'ws' => array(
                     // 'inflate' => true,
                 ),
-                'checksum' => true,
             ),
             'streaming' => array(
                 // okex does not support built-in ws protocol-level ping-pong
@@ -952,7 +952,7 @@ class okx extends \ccxt\async\okx {
         $this->handle_deltas($storedBids, $bids);
         $marketId = $this->safe_string($message, 'instId');
         $symbol = $this->safe_symbol($marketId);
-        $checksum = $this->safe_bool($this->options, 'checksum', true);
+        $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
         if ($checksum) {
             $asksLength = count($storedAsks);
             $bidsLength = count($storedBids);
@@ -971,7 +971,7 @@ class okx extends \ccxt\async\okx {
             $responseChecksum = $this->safe_integer($message, 'checksum');
             $localChecksum = $this->crc32($payload, true);
             if ($responseChecksum !== $localChecksum) {
-                $error = new InvalidNonce ($this->id . ' invalid checksum');
+                $error = new ChecksumError ($this->id . ' ' . $this->orderbook_checksum_message($symbol));
                 unset($client->subscriptions[$messageHash]);
                 unset($this->orderbooks[$symbol]);
                 $client->reject ($error, $messageHash);
@@ -1262,7 +1262,7 @@ class okx extends \ccxt\async\okx {
              * @param {bool} [$params->stop] true if fetching trigger or conditional trades
              * @param {string} [$params->type] 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
              * @param {string} [$params->marginMode] 'cross' or 'isolated', for automatically setting the $type to spot margin
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             // By default, receive order updates from any instrument $type
             $type = null;

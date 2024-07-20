@@ -2586,6 +2586,10 @@ export default class Exchange {
         this.createNetworksByIdObject ();
     }
 
+    orderbookChecksumMessage (symbol:Str) {
+        return symbol + ' : ' + 'orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options["watchOrderBook"]["checksum"] = false';
+    }
+
     createNetworksByIdObject () {
         // automatically generate network-id-to-code mappings
         const networkIdsToCodesGenerated = this.invertFlatStringDictionary (this.safeValue (this.options, 'networks', {})); // invert defined networks dictionary
@@ -4793,15 +4797,15 @@ export default class Exchange {
             await this.loadMarkets ();
             const market = this.market (symbol);
             symbol = market['symbol'];
-            const tickers = await this.fetchTickerWs (symbol, params);
+            const tickers = await this.fetchTickersWs ([ symbol ], params);
             const ticker = this.safeDict (tickers, symbol);
             if (ticker === undefined) {
-                throw new NullResponse (this.id + ' fetchTickers() could not find a ticker for ' + symbol);
+                throw new NullResponse (this.id + ' fetchTickerWs() could not find a ticker for ' + symbol);
             } else {
                 return ticker as Ticker;
             }
         } else {
-            throw new NotSupported (this.id + ' fetchTicker() is not supported yet');
+            throw new NotSupported (this.id + ' fetchTickerWs() is not supported yet');
         }
     }
 
@@ -6738,8 +6742,12 @@ export default class Exchange {
     }
 
     safeOpenInterest (interest, market: Market = undefined): OpenInterest {
+        let symbol = this.safeString (interest, 'symbol');
+        if (symbol === undefined) {
+            symbol = this.safeString (market, 'symbol');
+        }
         return this.extend (interest, {
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': symbol,
             'baseVolume': this.safeNumber (interest, 'baseVolume'), // deprecated
             'quoteVolume': this.safeNumber (interest, 'quoteVolume'), // deprecated
             'openInterestAmount': this.safeNumber (interest, 'openInterestAmount'),

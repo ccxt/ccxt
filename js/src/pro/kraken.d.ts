@@ -1,5 +1,5 @@
 import krakenRest from '../kraken.js';
-import type { Int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num } from '../base/types.js';
+import type { Int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class kraken extends krakenRest {
     describe(): any;
@@ -53,6 +53,8 @@ export default class kraken extends krakenRest {
     handleOrders(client: Client, message: any, subscription?: any): void;
     parseWsOrder(order: any, market?: any): Order;
     watchMultiHelper(unifiedName: string, channelName: string, symbols?: Strings, subscriptionArgs?: any, params?: {}): Promise<any>;
+    watchBalance(params?: {}): Promise<Balances>;
+    handleBalance(client: Client, message: any): void;
     getMessageHash(unifiedElementName: string, subChannelName?: Str, symbol?: Str): string;
     handleSubscriptionStatus(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): boolean;

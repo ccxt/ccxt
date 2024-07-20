@@ -214,7 +214,7 @@ public partial class tradeogre : Exchange
                 { "inverse", null },
                 { "contractSize", null },
                 { "taker", getValue(getValue(this.fees, "trading"), "taker") },
-                { "maker", getValue(getValue(this.fees, "trading"), "taker") },
+                { "maker", getValue(getValue(this.fees, "trading"), "maker") },
                 { "expiry", null },
                 { "expiryDatetime", null },
                 { "strike", null },

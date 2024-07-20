@@ -4323,6 +4323,11 @@ class bybit extends Exchange {
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $types = Async\await($this->is_unified_enabled());
+            $enableUnifiedAccount = $types[1];
+            if (!$enableUnifiedAccount) {
+                throw new NotSupported($this->id . ' cancelOrders() supports UTA accounts only');
+            }
             $category = null;
             list($category, $params) = $this->get_bybit_type('cancelOrders', $market, $params);
             if ($category === 'inverse') {
@@ -4428,13 +4433,16 @@ class bybit extends Exchange {
             /**
              * cancel multiple $orders for multiple symbols
              * @see https://bybit-exchange.github.io/docs/v5/order/batch-cancel
-             * @param {string[]} ids $order ids
-             * @param {string} $symbol unified $symbol of the $market the $order was made in
+             * @param {CancellationRequest[]} $orders list of $order ids with $symbol, example [array("id" => "a", "symbol" => "BTC/USDT"), array("id" => "b", "symbol" => "ETH/USDT")]
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string[]} [$params->clientOrderIds] client $order ids
              * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structures~
              */
             Async\await($this->load_markets());
+            $types = Async\await($this->is_unified_enabled());
+            $enableUnifiedAccount = $types[1];
+            if (!$enableUnifiedAccount) {
+                throw new NotSupported($this->id . ' cancelOrdersForSymbols() supports UTA accounts only');
+            }
             $ordersRequests = array();
             $category = null;
             for ($i = 0; $i < count($orders); $i++) {
@@ -6320,6 +6328,7 @@ class bybit extends Exchange {
              * @param {string} [$params->settleCoin] Settle coin. Supports linear, inverse & option
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
+            Async\await($this->load_markets());
             $symbol = null;
             if (($symbols !== null) && gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
                 $symbolsLength = count($symbols);
@@ -6333,7 +6342,6 @@ class bybit extends Exchange {
                 $symbol = $symbols;
                 $symbols = array( $this->symbol($symbol) );
             }
-            Async\await($this->load_markets());
             list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
             $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
             $request = array();

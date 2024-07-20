@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import cryptocomRest from '../cryptocom.js';
-import { AuthenticationError, InvalidNonce, NetworkError } from '../base/errors.js';
+import { AuthenticationError, ChecksumError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
@@ -46,6 +46,9 @@ export default class cryptocom extends cryptocomRest {
                 'watchPositions': {
                     'fetchPositionsSnapshot': true,
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
+                },
+                'watchOrderBook': {
+                    'checksum': true,
                 },
             },
             'streaming': {},
@@ -220,7 +223,10 @@ export default class cryptocom extends cryptocomRest {
             const previousNonce = this.safeInteger(data, 'pu');
             const currentNonce = orderbook['nonce'];
             if (currentNonce !== previousNonce) {
-                throw new InvalidNonce(this.id + ' watchOrderBook() ' + symbol + ' ' + previousNonce + ' != ' + nonce);
+                const checksum = this.handleOption('watchOrderBook', 'checksum', true);
+                if (checksum) {
+                    throw new ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
+                }
             }
         }
         this.handleDeltas(orderbook['asks'], this.safeValue(books, 'asks', []));
@@ -330,7 +336,7 @@ export default class cryptocom extends cryptocomRest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         let market = undefined;

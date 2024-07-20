@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import okxRest from '../okx.js';
-import { ArgumentsRequired, BadRequest, ExchangeError, InvalidNonce, AuthenticationError } from '../base/errors.js';
+import { ArgumentsRequired, BadRequest, ExchangeError, ChecksumError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, Liquidation } from '../base/types.js';
@@ -49,6 +49,7 @@ export default class okx extends okxRest {
             },
             'options': {
                 'watchOrderBook': {
+                    'checksum': true,
                     //
                     // bbo-tbt
                     // 1. Newly added channel that sends tick-by-tick Level 1 data
@@ -96,7 +97,6 @@ export default class okx extends okxRest {
                 'ws': {
                     // 'inflate': true,
                 },
-                'checksum': true,
             },
             'streaming': {
                 // okex does not support built-in ws protocol-level ping-pong
@@ -943,7 +943,7 @@ export default class okx extends okxRest {
         this.handleDeltas (storedBids, bids);
         const marketId = this.safeString (message, 'instId');
         const symbol = this.safeSymbol (marketId);
-        const checksum = this.safeBool (this.options, 'checksum', true);
+        const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
         if (checksum) {
             const asksLength = storedAsks.length;
             const bidsLength = storedBids.length;
@@ -962,7 +962,7 @@ export default class okx extends okxRest {
             const responseChecksum = this.safeInteger (message, 'checksum');
             const localChecksum = this.crc32 (payload, true);
             if (responseChecksum !== localChecksum) {
-                const error = new InvalidNonce (this.id + ' invalid checksum');
+                const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
                 delete client.subscriptions[messageHash];
                 delete this.orderbooks[symbol];
                 client.reject (error, messageHash);
@@ -1252,7 +1252,7 @@ export default class okx extends okxRest {
          * @param {bool} [params.stop] true if fetching trigger or conditional trades
          * @param {string} [params.type] 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
          * @param {string} [params.marginMode] 'cross' or 'isolated', for automatically setting the type to spot margin
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         // By default, receive order updates from any instrument type
         let type = undefined;
@@ -1803,7 +1803,7 @@ export default class okx extends okxRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const idsLength = ids.length;
+        const idsLength: number = ids.length;
         if (idsLength > 20) {
             throw new BadRequest (this.id + ' cancelOrdersWs() accepts up to 20 ids at a time');
         }
