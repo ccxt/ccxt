@@ -7,14 +7,22 @@ class Future(asyncio.Future):
 
     def resolve(self, result=None):
         if not self.done():
-            self.set_result(result)
+            try:
+                self.set_result(result)
+            except BaseException as e:
+                print ("Error in Future.resolve")
+                raise e
 
     def reject(self, error=None):
         if not self.done():
             if not isinstance(error, BaseException):
             # If not, wrap it in a generic Exception
                 error = Exception(error)
-            self.set_exception(error)
+            try:
+                self.set_exception(error)
+            except BaseException as e:
+                print ("Error in Future.reject")
+                raise e
 
     @classmethod
     def race(cls, futures):
