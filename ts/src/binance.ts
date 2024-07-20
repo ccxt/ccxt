@@ -2863,7 +2863,7 @@ export default class binance extends Exchange {
             const marketType = fetchMarkets[i];
             if (marketType === 'spot') {
                 promisesRaw.push (this.publicGetExchangeInfo (params));
-                if (this.checkRequiredCredentials (false)) {
+                if (this.checkRequiredCredentials (false) && !sandboxMode) {
                     fetchMargins = true;
                     promisesRaw.push (this.sapiGetMarginAllPairs (params));
                     promisesRaw.push (this.sapiGetMarginIsolatedAllPairs (params));
@@ -2885,13 +2885,13 @@ export default class binance extends Exchange {
         for (let i = 0; i < results.length; i++) {
             const res = this.safeValue (results, i);
             if (fetchMargins && Array.isArray (res)) {
-                const keys = Object.keys (this.indexBy (res, 'symbol'));
-                const idsList = this.invertFlatStringDictionary (keys);
+                const keysList = Object.keys (this.indexBy (res, 'symbol'));
+                const length = (Object.keys (this.options['crossMarginPairsData'])).length;
                 // first one is the cross-margin promise
-                if (!(Object.keys (this.options['crossMarginPairsData'])).length) {
-                    this.options['crossMarginPairsData'] = idsList;
+                if (length === 0) {
+                    this.options['crossMarginPairsData'] = keysList;
                 } else {
-                    this.options['isolatedMarginPairsData'] = idsList;
+                    this.options['isolatedMarginPairsData'] = keysList;
                 }
             } else {
                 const resultMarkets = this.safeList2 (res, 'symbols', 'optionSymbols', []);
@@ -3189,8 +3189,8 @@ export default class binance extends Exchange {
         const isMarginTradingAllowed = this.safeBool (market, 'isMarginTradingAllowed', false);
         let marginMode = undefined;
         if (spot) {
-            const hasCrossMargin = (id in this.options['crossMarginPairsData']);
-            const hasIsolatedMargin = (id in this.options['isolatedMarginPairsData']);
+            const hasCrossMargin = this.inArray (id, this.options['crossMarginPairsData']);
+            const hasIsolatedMargin = this.inArray (id, this.options['isolatedMarginPairsData']);
             marginMode = {
                 'cross': hasCrossMargin,
                 'isolated': hasIsolatedMargin,
