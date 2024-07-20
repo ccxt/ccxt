@@ -32,6 +32,7 @@ def tcp_kill():
 
 
 async def test_abnormal_close():
+    print ('test_abnormal_close')
     just_reconnected = False
     ex = ccxt.binance()
     last_kill = None
