@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, ExchangeNotAvailable, InvalidNonce, I
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Transaction, Balances, Dict, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Num, TradingFees, Dictionary, int } from './base/types.js';
+import type { Transaction, Balances, Dict, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Num, TradingFees, Dictionary, int, DepositAddress, Currency } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1169,11 +1169,11 @@ export default class yobit extends Exchange {
         };
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name yobit#fetchDepositAddress
-         * @see https://yobit.net/en/api
+         * @see https://yobit.net/en/api#n29
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1196,32 +1196,41 @@ export default class yobit extends Exchange {
             'need_new': 0,
         };
         const response = await this.privatePostGetDepositAddress (this.extend (request, params));
-        const address = this.safeString (response['return'], 'address');
+        //
+        // for XRP
+        //    {
+        //        success: '1',
+        //        return: {
+        //          status: 'maintenance',
+        //          blocks: '88991770',
+        //          address: '349718793',
+        //          processed_amount: '0.00000000',
+        //          server_time: '1721434422'
+        //        }
+        //    }
+        //
+        return this.parseDepositAddress (response, currency);
+    }
+
+    parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
+        //
+        //    {
+        //        status: 'maintenance',
+        //        blocks: '88991770',
+        //        address: '349718793',
+        //        processed_amount: '0.00000000',
+        //        server_time: '1721434422'
+        //    }
+        //
+        const responseReturn = this.safeDict (depositAddress, 'return');
+        const address = this.safeString (responseReturn, 'address');
         this.checkAddress (address);
         return {
-            'id': undefined,
-            'currency': code,
+            'info': depositAddress,
+            'currency': this.safeString (currency, 'code'),
             'address': address,
             'tag': undefined,
             'network': undefined,
-            'info': response,
-            'txid': undefined,
-            'type': undefined,
-            'amount': undefined,
-            'status': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'addressFrom': undefined,
-            'addressTo': undefined,
-            'tagFrom': undefined,
-            'tagTo': undefined,
-            'updated': undefined,
-            'comment': undefined,
-            'fee': {
-                'currency': undefined,
-                'cost': undefined,
-                'rate': undefined,
-            },
         };
     }
 
