@@ -883,9 +883,10 @@ class vertex extends \ccxt\async\vertex {
         //
         $marketId = $this->safe_string($order, 'product_id');
         $timestamp = $this->parse_to_int(Precise::string_div($this->safe_string($order, 'timestamp'), '1000000'));
-        $remaining = $this->parse_to_numeric($this->convertFromX18 ($this->safe_string($order, 'amount')));
+        $remainingString = $this->convertFromX18 ($this->safe_string($order, 'amount'));
+        $remaining = $this->parse_to_numeric($remainingString);
         $status = $this->parse_ws_order_status($this->safe_string($order, 'reason'));
-        if ($remaining === 0 && $status === 'open') {
+        if (Precise::string_eq($remainingString, '0') && $status === 'open') {
             $status = 'closed';
         }
         $market = $this->safe_market($marketId, $market);
