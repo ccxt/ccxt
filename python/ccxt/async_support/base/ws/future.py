@@ -11,6 +11,9 @@ class Future(asyncio.Future):
 
     def reject(self, error=None):
         if not self.done():
+            if not isinstance(error, BaseException):
+            # If not, wrap it in a generic Exception
+                error = Exception(error)
             self.set_exception(error)
 
     @classmethod
