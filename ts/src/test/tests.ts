@@ -8,7 +8,6 @@ import {
     // errors
     AuthenticationError,
     NotSupported,
-    ExchangeError,
     InvalidProxySettings,
     ExchangeNotAvailable,
     OperationFailed,
@@ -831,7 +830,7 @@ class testMainClass extends baseMainTestClass {
         if (exception !== undefined) {
             const errorMessage = '[TEST_FAILURE] Failed ' + proxyTestName + ' : ' + exceptionMessage (exception);
             // temporary comment the below, because c# transpilation failure
-            // throw new ExchangeError (errorMessage.toString ());
+            // throw new Exchange Error (errorMessage.toString ());
             dump ('[TEST_WARNING]' + errorMessage.toString ());
         }
     }
