@@ -2880,8 +2880,8 @@ export default class binance extends Exchange {
         }
         const results = await Promise.all (promisesRaw);
         let markets = [];
-        this.options['crossMarginPairsData'] = {};
-        this.options['isolatedMarginPairsData'] = {};
+        this.options['crossMarginPairsData'] = [];
+        this.options['isolatedMarginPairsData'] = [];
         for (let i = 0; i < results.length; i++) {
             const res = this.safeValue (results, i);
             if (fetchMargins && Array.isArray (res)) {
