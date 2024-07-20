@@ -2416,7 +2416,7 @@ export default class ascendex extends Exchange {
         return this.safeString (networksById, networkId, networkId);
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name ascendex#fetchDepositAddress

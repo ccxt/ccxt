@@ -2721,7 +2721,7 @@ export default class kraken extends Exchange {
         return this.safeValue (response, 'result');
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name kraken#fetchDepositAddress

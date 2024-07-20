@@ -834,7 +834,7 @@ export default class bit2c extends Exchange {
         return code === 'NIS';
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name bit2c#fetchDepositAddress

@@ -2241,7 +2241,7 @@ export default class okcoin extends Exchange {
         };
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name okx#fetchDepositAddress

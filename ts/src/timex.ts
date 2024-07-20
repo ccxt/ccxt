@@ -1601,7 +1601,7 @@ export default class timex extends Exchange {
         }, market);
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name timex#fetchDepositAddress

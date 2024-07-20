@@ -1867,7 +1867,7 @@ export default class upbit extends Exchange {
         };
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name upbit#fetchDepositAddress
