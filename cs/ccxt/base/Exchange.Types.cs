@@ -1829,14 +1829,14 @@ public struct OptionChain
 
     public OptionChain(object optionchains2)
     {
-        var marginModes = (Dictionary<string, object>)optionchains2;
+        var optionChains = (Dictionary<string, object>)optionchains2;
 
-        info = Helper.GetInfo(marginModes);
+        info = Helper.GetInfo(optionChains);
         this.chains = new Dictionary<string, Option>();
-        foreach (var marginMode in marginModes)
+        foreach (var optionChain in optionChains)
         {
-            if (marginMode.Key != "info")
-                this.chains.Add(marginMode.Key, new Option(marginMode.Value));
+            if (optionChain.Key != "info")
+                this.chains.Add(optionChain.Key, new Option(optionChain.Value));
         }
     }
 
