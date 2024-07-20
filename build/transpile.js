@@ -2072,7 +2072,7 @@ class Transpiler {
             replace(/\.api_key/g, '.apiKey');
         
         let pythonImports = transpilerResult[2].imports.filter(x=>x.path.includes('./tests.helpers.js'));
-        pythonImports = pythonImports.map (x=> (x.name in errors) ? x.name : unCamelCase(x.name));
+        pythonImports = pythonImports.map (x=> (x.name in errors || x.name === 'baseMainTestClass') ? x.name : unCamelCase(x.name));
         const impHelper = `# -*- coding: utf-8 -*-\n\nimport asyncio\n\n\n` + 'from tests_helpers import ' + pythonImports.join (', ') + '  # noqa: F401' + '\n\n';
         let newPython = impHelper + python3;
         newPython = snakeCaseFunctions (newPython);
