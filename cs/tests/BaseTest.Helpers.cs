@@ -77,7 +77,7 @@ public partial class testMainClass : BaseTest
 
     }
 
-    Task<dict> getTestFilesSync(object properties, bool ws = false)
+    dict getTestFilesSync(object properties, bool ws = false)
     {
         return null; // empty in c#
     }
@@ -185,7 +185,7 @@ public partial class testMainClass : BaseTest
         return fileNameOnly;
     }
 
-    public Task<object> callMethodSync(object testFiles2, object methodName, object exchange, params object[] args) {
+    public object callMethodSync(object testFiles2, object methodName, object exchange, params object[] args) {
         return null; // empty in c#
     }
 
