@@ -120,6 +120,7 @@ public partial class testMainClass : BaseTest
         // }
         return JsonHelper.Deserialize((string)a);
     }
+    public static object json(object obj) => jsonStringify;
 
     void initEnv()
     {
