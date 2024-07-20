@@ -278,7 +278,7 @@ public partial class Exchange
 
     public ccxt.pro.IOrderBook orderbookToDict(object obj)
     {
-        return obj;
+        return (ccxt.pro.IOrderBook)obj;
     }
 
     public object ordered(object ob)
