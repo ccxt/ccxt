@@ -724,31 +724,22 @@ export default class binance extends binanceRest {
         client.resolve (orderbook, messageHash);
     }
 
-    tryInitializeOrderBook (symbol: string, subscription: any = undefined) {
-        if (!(symbol in this.orderbooks)) {
-            const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
-            const defaultLimit2 = this.handleOption ('watchOrderBook', 'limit', defaultLimit);
-            const limit = this.safeInteger (subscription, 'limit', defaultLimit2);
-            this.orderbooks[symbol] = this.orderBook ({}, limit);
-        }
-    }
-
     async fetchOrderBookSnapshot (client, message, subscription) {
+        const name = this.safeString (subscription, 'name');
         const symbol = this.safeString (subscription, 'symbol');
         const market = this.market (symbol);
-        const messageHash = 'orderbook::' + market['symbol'];
+        const messageHash = market['lowercaseId'] + '@' + name;
         try {
             const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
             const type = this.safeValue (subscription, 'type');
             const limit = this.safeInteger (subscription, 'limit', defaultLimit);
             const params = this.safeValue (subscription, 'params');
-            // Get a depth snapshot from fetchOrderBook
+            // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
             // todo: this is a synch blocking call - make it async
             // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
             const snapshot = await this.fetchRestOrderBookSafe (symbol, limit, params);
-            if (!(symbol in this.orderbooks)) {
+            if (this.safeValue (this.orderbooks, symbol) === undefined) {
                 // if the orderbook is dropped before the snapshot is received
-                // it could happen when e.g. user unsubscribed, rejected, exception thrown, etc...
                 return;
             }
             const orderbook = this.orderbooks[symbol];
@@ -780,7 +771,6 @@ export default class binance extends binanceRest {
                     }
                 }
             }
-            orderbook.cache = [];
             this.orderbooks[symbol] = orderbook;
             client.resolve (orderbook, messageHash);
         } catch (e) {
@@ -840,10 +830,15 @@ export default class binance extends binanceRest {
         const symbol = market['symbol'];
         const messageHash = 'orderbook::' + symbol;
         if (!(symbol in this.orderbooks)) {
-            // Sometimes Binance sends the first delta before the subscription confirmation arrives
+            //
             // https://github.com/ccxt/ccxt/issues/6672
-            const subscription = this.safeValue (client.subscriptions, messageHash, {});
-            this.tryInitializeOrderBook (symbol, subscription);
+            //
+            // Sometimes Binance sends the first delta before the subscription
+            // confirmation arrives. At that point the orderbook is not
+            // initialized yet and the snapshot has not been requested yet
+            // therefore it is safe to drop these premature messages.
+            //
+            return;
         }
         const orderbook = this.orderbooks[symbol];
         const nonce = this.safeInteger (orderbook, 'nonce');
@@ -910,12 +905,18 @@ export default class binance extends binanceRest {
     }
 
     handleOrderBookSubscription (client: Client, message, subscription) {
+        const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
+        // const messageHash = this.safeString (subscription, 'messageHash');
         const symbolOfSubscription = this.safeString (subscription, 'symbol'); // watchOrderBook
         const symbols = this.safeValue (subscription, 'symbols', [ symbolOfSubscription ]); // watchOrderBookForSymbols
+        const limit = this.safeInteger (subscription, 'limit', defaultLimit);
         // handle list of symbols
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            this.tryInitializeOrderBook (symbol, subscription);
+            if (symbol in this.orderbooks) {
+                delete this.orderbooks[symbol];
+            }
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
             subscription = this.extend (subscription, { 'symbol': symbol });
             // fetch the snapshot in a separate async call
             this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
