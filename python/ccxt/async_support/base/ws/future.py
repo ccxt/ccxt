@@ -10,18 +10,18 @@ class Future(asyncio.Future):
             try:
                 self.set_result(result)
             except BaseException as e:
-                print ("Error in Future.resolve")
+                print("Error in Future.resolve")
                 raise e
 
     def reject(self, error=None):
         if not self.done():
+            # If not an exception, wrap it in a generic Exception
             if not isinstance(error, BaseException):
-            # If not, wrap it in a generic Exception
                 error = Exception(error)
             try:
                 self.set_exception(error)
             except BaseException as e:
-                print ("Error in Future.reject")
+                print("Error in Future.reject")
                 raise e
 
     @classmethod

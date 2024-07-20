@@ -36,7 +36,8 @@ async def test_abnormal_close():
     ex = ccxt.binance()
     last_kill = None
     while True:
-        if not last_kill: last_kill = ex.seconds()
+        if not last_kill:
+            last_kill = ex.seconds()
         if ex.seconds() - last_kill > KILL_EVERY:
             tcp_kill()
             last_kill = None
