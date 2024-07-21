@@ -2186,48 +2186,51 @@ class kucoinfutures(kucoin, ImplicitAPI):
             })
         return tiers
 
-    async def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
+    async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
         """
+        :see: https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-public-funding-history#request-url
         fetches historical funding rate prices
-        :param str|None symbol: unified symbol of the market to fetch the funding rate history for
-        :param int|None since: not used by kucuoinfutures
-        :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
-        :param dict params: extra parameters specific to the okx api endpoint
-        :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
+        :param str symbol: unified symbol of the market to fetch the funding rate history for
+        :param int [since]: not used by kucuoinfutures
+        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>` to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: end time in ms
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
+            'from': 0,
+            'to': self.milliseconds(),
         }
-        if limit is not None:
-            request['maxCount'] = limit
-        response = await self.webFrontGetContractSymbolFundingRates(self.extend(request, params))
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['until'])
+        if since is not None:
+            request['from'] = since
+            if until is None:
+                request['to'] = since + 1000 * 8 * 60 * 60 * 100
+        if until is not None:
+            request['to'] = until
+            if since is None:
+                request['to'] = until - 1000 * 8 * 60 * 60 * 100
+        response = await self.futuresPublicGetContractFundingRates(self.extend(request, params))
         #
-        #    {
-        #        success: True,
-        #        code: '200',
-        #        msg: 'success',
-        #        retry: False,
-        #        data: {
-        #            dataList: [
-        #                {
-        #                    symbol: 'XBTUSDTM',
-        #                    granularity: 28800000,
-        #                    timePoint: 1675108800000,
-        #                    value: 0.0001
-        #                },
-        #                ...
-        #            ],
-        #            hasMore: True
-        #        }
-        #    }
+        #     {
+        #         "code": "200000",
+        #         "data": [
+        #             {
+        #                 "symbol": "IDUSDTM",
+        #                 "fundingRate": 2.26E-4,
+        #                 "timepoint": 1702296000000
+        #             }
+        #         ]
+        #     }
         #
         data = self.safe_value(response, 'data')
-        dataList = self.safe_value(data, 'dataList')
-        return self.parse_funding_rate_histories(dataList, market, since, limit)
+        return self.parse_funding_rate_histories(data, market, since, limit)
 
     def parse_funding_rate_history(self, info, market=None):
         timestamp = self.safe_number(info, 'timePoint')
