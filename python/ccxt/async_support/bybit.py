@@ -2921,10 +2921,14 @@ class bybit(Exchange, ImplicitAPI):
         request: dict = {}
         enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
-        rawType = self.safe_string(params, 'type')
         type = None
-        type, params = self.get_bybit_type('fetchBalance', None, params)
-        lowercaseRawType = rawType.lower() if (rawType is not None) else None
+        # don't use getBybitType here
+        type, params = self.handle_market_type_and_params('fetchBalance', None, params)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchBalance', None, params)
+        if (type == 'swap') or (type == 'future'):
+            type = subType
+        lowercaseRawType = type.lower() if (type is not None) else None
         isSpot = (type == 'spot')
         isLinear = (type == 'linear')
         isInverse = (type == 'inverse')

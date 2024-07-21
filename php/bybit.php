@@ -3019,10 +3019,15 @@ class bybit extends Exchange {
         $request = array();
         list($enableUnifiedMargin, $enableUnifiedAccount) = $this->is_unified_enabled();
         $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
-        $rawType = $this->safe_string($params, 'type');
         $type = null;
-        list($type, $params) = $this->get_bybit_type('fetchBalance', null, $params);
-        $lowercaseRawType = ($rawType !== null) ? strtolower($rawType) : null;
+        // don't use getBybitType here
+        list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchBalance', null, $params);
+        if (($type === 'swap') || ($type === 'future')) {
+            $type = $subType;
+        }
+        $lowercaseRawType = ($type !== null) ? strtolower($type) : null;
         $isSpot = ($type === 'spot');
         $isLinear = ($type === 'linear');
         $isInverse = ($type === 'inverse');

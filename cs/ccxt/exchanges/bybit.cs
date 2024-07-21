@@ -3171,12 +3171,20 @@ public partial class bybit : Exchange
         var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
         var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];
         object isUnifiedAccount = (isTrue(enableUnifiedMargin) || isTrue(enableUnifiedAccount));
-        object rawType = this.safeString(parameters, "type");
         object type = null;
-        var typeparametersVariable = this.getBybitType("fetchBalance", null, parameters);
+        // don't use getBybitType here
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        object lowercaseRawType = ((bool) isTrue((!isEqual(rawType, null)))) ? ((string)rawType).ToLower() : null;
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchBalance", null, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        if (isTrue(isTrue((isEqual(type, "swap"))) || isTrue((isEqual(type, "future")))))
+        {
+            type = subType;
+        }
+        object lowercaseRawType = ((bool) isTrue((!isEqual(type, null)))) ? ((string)type).ToLower() : null;
         object isSpot = (isEqual(type, "spot"));
         object isLinear = (isEqual(type, "linear"));
         object isInverse = (isEqual(type, "inverse"));

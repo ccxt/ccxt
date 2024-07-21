@@ -3057,10 +3057,15 @@ class bybit extends bybit$1 {
         const request = {};
         const [enableUnifiedMargin, enableUnifiedAccount] = await this.isUnifiedEnabled();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
-        const rawType = this.safeString(params, 'type');
         let type = undefined;
-        [type, params] = this.getBybitType('fetchBalance', undefined, params);
-        const lowercaseRawType = (rawType !== undefined) ? rawType.toLowerCase() : undefined;
+        // don't use getBybitType here
+        [type, params] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchBalance', undefined, params);
+        if ((type === 'swap') || (type === 'future')) {
+            type = subType;
+        }
+        const lowercaseRawType = (type !== undefined) ? type.toLowerCase() : undefined;
         const isSpot = (type === 'spot');
         const isLinear = (type === 'linear');
         const isInverse = (type === 'inverse');
