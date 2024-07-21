@@ -644,6 +644,16 @@
                 "method": "fetchBalance",
                 "url": "https://api-testnet.bybit.com/v5/account/wallet-balance?accountType=UNIFIED",
                 "input": []
+            },
+            {
+                "description": "fetch funding balance",
+                "method": "fetchBalance",
+                "url": "https://api.bybit.com/v5/asset/transfer/query-account-coins-balance?accountType=FUND",
+                "input": [
+                  {
+                    "type": "funding"
+                  }
+                ]
             }
         ],
         "setLeverage": [
