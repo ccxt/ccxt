@@ -193,7 +193,7 @@ export default class Client {
         // console.dir (args, { depth: null })
     }
 
-    connect (backoffDelay = 0) {
+    connect () {
         throw new NotSupported ('connect() not implemented yet');
     }
 

@@ -225,21 +225,10 @@ class Client {
         })();
     }
 
-    public function connect($backoff_delay = 0) {
+    public function connect() {
         if (!$this->connection) {
             $this->connection = true;
-            if ($backoff_delay) {
-                if ($this->verbose) {
-                    echo date('c'), ' backoff delay ', $backoff_delay, " seconds\n";
-                }
-                $callback = array($this, 'create_connection');
-                Loop::addTimer(((float)$backoff_delay) / 1000, $callback);
-            } else {
-                if ($this->verbose) {
-                    echo date('c'), ' no backoff delay', "\n";
-                }
-                $this->create_connection();
-            }
+            $this->create_connection();
         }
         return $this->connected;
     }

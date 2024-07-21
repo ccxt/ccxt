@@ -1491,9 +1491,7 @@ export default class Exchange {
         // Without comments the code of this method is short and easy:
         //
         //     const client = this.client (url)
-        //     const backoffDelay = 0
         //     const future = client.future (messageHash)
-        //     const connected = client.connect (backoffDelay)
         //     connected.then (() => {
         //         if (message && !client.subscriptions[subscribeHash]) {
         //             client.subscriptions[subscribeHash] = true
@@ -1505,8 +1503,6 @@ export default class Exchange {
         // The following is a longer version of this method with comments
         //
         const client = this.client (url) as WsClient;
-        // todo: calculate the backoff using the clients cache
-        const backoffDelay = 0;
         //
         //  watchOrderBook ---- future ----+---------------+----→ user
         //                                 |               |
@@ -1538,9 +1534,9 @@ export default class Exchange {
         let connected = undefined;
         if (this.enableRateLimit && !client.startedConnecting) {
             // const connectionCost = this.safeValue (this.options, 'ws', {}).connectionCost;
-            connected = client.connectionsThrottler.throttle ().then (() => client.connect (backoffDelay));
+            connected = client.connectionsThrottler.throttle ().then (() => client.connect ());
         } else {
-            connected = client.connect (backoffDelay);
+            connected = client.connect ();
         }
         // the following is executed only if the catch-clause does not
         // catch any connection-level exceptions from the client
@@ -1587,9 +1583,7 @@ export default class Exchange {
         // Without comments the code of this method is short and easy:
         //
         //     const client = this.client (url)
-        //     const backoffDelay = 0
         //     const future = client.future (messageHash)
-        //     const connected = client.connect (backoffDelay)
         //     connected.then (() => {
         //         if (message && !client.subscriptions[subscribeHash]) {
         //             client.subscriptions[subscribeHash] = true
@@ -1601,8 +1595,6 @@ export default class Exchange {
         // The following is a longer version of this method with comments
         //
         const client = this.client (url) as WsClient;
-        // todo: calculate the backoff using the clients cache
-        const backoffDelay = 0;
         //
         //  watchOrderBook ---- future ----+---------------+----→ user
         //                                 |               |
@@ -1632,9 +1624,9 @@ export default class Exchange {
         const options = this.safeValue (this.options, 'ws');
         if (this.enableRateLimit && !client.startedConnecting) {
             const cost = this.getWsRateLimitCost (url, 'connections');
-            connected = client.connectionsThrottler.throttle (cost).then (() => client.connect (backoffDelay));
+            connected = client.connectionsThrottler.throttle (cost).then (() => client.connect ());
         } else {
-            connected = client.connect (backoffDelay);
+            connected = client.connect ();
         }
         // the following is executed only if the catch-clause does not
         // catch any connection-level exceptions from the client

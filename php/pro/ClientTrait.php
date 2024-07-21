@@ -99,9 +99,6 @@ trait ClientTrait {
     public function watch_multiple($url, $message_hashes, $message = null, $subscribe_hashes = null, $subscription = null, $message_cost = 1) {
         $client = $this->client($url);
 
-        // todo: calculate the backoff delay in php
-        $backoff_delay = 0; // milliseconds
-
         $future = Future::race(array_map(array($client, 'future'), $message_hashes));
 
         $missing_subscriptions = array();
@@ -167,7 +164,7 @@ trait ClientTrait {
         if ($this->enableRateLimit) {
             $cost = $this->get_ws_rate_limit_cost($url, 'connections');
             $throttler = $client->connections_throttler;
-            // Async\await($throttler($cost));
+            Async\await($throttler($cost));
         }
         $connected = $client->connect();
         if (!$subscribed) {
@@ -180,7 +177,7 @@ trait ClientTrait {
                                 $message_cost = $this->get_ws_rate_limit_cost($url, 'messages');
                             }
                             $throttler = $client->messages_throttler;
-                            // Async\await($throttler($message_cost));
+                            Async\await($throttler($message_cost));
                         }
                         try {
                             Async\await($client->send($message));

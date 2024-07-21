@@ -48,15 +48,10 @@ export default class WsClient extends Client {
         // this.connection.close () // debugging
     }
 
-    connect (backoffDelay = 0) {
+    connect () {
         if (!this.startedConnecting) {
             this.startedConnecting = true
-            // exponential backoff for consequent ws connections if necessary
-            if (backoffDelay) {
-                sleep (backoffDelay).then (this.createConnection.bind (this))
-            } else {
-                this.createConnection ()
-            }
+            this.createConnection ()
         }
         return this.connected
     }
