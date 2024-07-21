@@ -107,7 +107,6 @@ const {
     , NO_PADDING
     , TICK_SIZE
     , SIGNIFICANT_DIGITS
-    , sleep
 } = functions
 
 import {
@@ -422,7 +421,6 @@ export default class Exchange {
     safeStringLower = safeStringLower
     parse8601 = parse8601
     yyyymmdd = yyyymmdd
-    sleep = sleep
     safeStringUpper = safeStringUpper
     safeTimestamp = safeTimestamp
     binaryConcatArray = binaryConcatArray
