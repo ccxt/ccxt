@@ -229,6 +229,8 @@ class Client {
 
     public function close() {
         $this->connection->close();
+        $this->connections_throttler->clear();
+        $this->messages_throttler->clear();
     }
 
     public function on_pong($message) {

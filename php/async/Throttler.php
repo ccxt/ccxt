@@ -25,6 +25,14 @@ class Throttler {
         $this->running = false;
     }
 
+    public function clear() {
+        while (!$this->queue->isEmpty()) {
+            list($future, $cost) = $this->queue->dequeue(); // Remove the item from the queue
+            $future-> reject('clearing throttle queue messages');
+        }
+        $this->running = false; // Stop the throttler loop
+    }
+
     public function loop() {
         return Async\async(function () {
             $last_timestamp = microtime(true) * 1000.0;

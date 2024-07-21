@@ -419,6 +419,8 @@ public partial class Exchange
 
                 }
             }
+            this.connectionsThrottler.clear();
+            this.messagesThrottler.clear();
         }
     }
 

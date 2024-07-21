@@ -70,6 +70,8 @@ export default class WsClient extends Client {
             if (this.disconnected === undefined) {
                 this.disconnected = Future ();
             }
+            this.messagesThrottler.clear ();
+            this.connectionsThrottler.clear ();
             this.connection.close ();
         }
         return this.disconnected;

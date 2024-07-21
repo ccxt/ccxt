@@ -1550,9 +1550,6 @@ export default class Exchange {
                 const cost = this.safeValue (options, 'cost', 1);
                 if (message) {
                     if (this.enableRateLimit) {
-                        // add cost here |
-                        //               |
-                        //               V
                         client.messagesThrottler.throttle (cost).then (() => {
                             client.send (message);
                         }).catch ((e) => {
