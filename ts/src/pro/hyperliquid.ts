@@ -555,7 +555,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
     }
 
-    ping (client) {
+    ping (client: Client) {
         return {
             'method': 'ping',
         };
