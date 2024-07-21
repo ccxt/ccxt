@@ -11,9 +11,9 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
-use ccxt\BadResponse;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
+use ccxt\BadResponse;
 use ccxt\Precise;
 use React\Async;
 use React\Promise;
@@ -90,6 +90,8 @@ class gate extends Exchange {
                 'borrowIsolatedMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
+                'cancelOrders' => true,
+                'cancelOrdersForSymbols' => true,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketOrder' => true,
                 'createMarketOrderWithCost' => false,
@@ -601,21 +603,21 @@ class gate extends Exchange {
             // copied from gatev2
             'commonCurrencies' => array(
                 '88MPH' => 'MPH',
-                'AXIS' => 'Axis DeFi',
-                'BIFI' => 'Bitcoin File',
-                'BOX' => 'DefiBox',
-                'BYN' => 'BeyondFi',
-                'EGG' => 'Goose Finance',
-                'GTC' => 'Game.com', // conflict with Gitcoin and Gastrocoin
-                'GTC_HT' => 'Game.com HT',
-                'GTC_BSC' => 'Game.com BSC',
-                'HIT' => 'HitChain',
-                'MM' => 'Million', // conflict with MilliMeter
-                'MPH' => 'Morpher', // conflict with 88MPH
-                'POINT' => 'GatePoint',
-                'RAI' => 'Rai Reflex Index', // conflict with RAI Finance
-                'SBTC' => 'Super Bitcoin',
-                'TNC' => 'Trinity Network Credit',
+                'AXIS' => 'AXISDEFI',
+                'BIFI' => 'BITCOINFILE',
+                'BOX' => 'DEFIBOX',
+                'BYN' => 'BEYONDFI',
+                'EGG' => 'GOOSEFINANCE',
+                'GTC' => 'GAMECOM', // conflict with Gitcoin and Gastrocoin
+                'GTC_HT' => 'GAMECOM_HT',
+                'GTC_BSC' => 'GAMECOM_BSC',
+                'HIT' => 'HITCHAIN',
+                'MM' => 'MILLION', // conflict with MilliMeter
+                'MPH' => 'MORPHER', // conflict with 88MPH
+                'POINT' => 'GATEPOINT',
+                'RAI' => 'RAIREFLEXINDEX', // conflict with RAI Finance
+                'SBTC' => 'SUPERBITCOIN',
+                'TNC' => 'TRINITYNETWORKCREDIT',
                 'VAI' => 'VAIOT',
                 'TRAC' => 'TRACO', // conflict with OriginTrail (TRAC)
             ),
@@ -631,6 +633,7 @@ class gate extends Exchange {
                 'createOrder' => array(
                     'expiration' => 86400, // for conditional orders
                 ),
+                'createMarketBuyOrderRequiresPrice' => true,
                 'networks' => array(
                     'AVAXC' => 'AVAX_C',
                     'BEP20' => 'BSC',
@@ -788,6 +791,7 @@ class gate extends Exchange {
                     'NOT_ACCEPTABLE' => '\\ccxt\\BadRequest',
                     'METHOD_NOT_ALLOWED' => '\\ccxt\\BadRequest',
                     'NOT_FOUND' => '\\ccxt\\ExchangeError',
+                    'AUTHENTICATION_FAILED' => '\\ccxt\\AuthenticationError',
                     'INVALID_CREDENTIALS' => '\\ccxt\\AuthenticationError',
                     'INVALID_KEY' => '\\ccxt\\AuthenticationError',
                     'IP_FORBIDDEN' => '\\ccxt\\AuthenticationError',
@@ -3770,7 +3774,7 @@ class gate extends Exchange {
              * @param {string} $type 'limit' or 'market' *"market" is contract only*
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount the $amount of currency to trade
-             * @param {float} [$price] *ignored in "market" orders* the $price at which the order is to be fullfilled at in units of the quote currency
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params]  extra parameters specific to the exchange API endpoint
              * @param {float} [$params->stopPrice] The $price at which a $trigger order is triggered at
              * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO"
@@ -3890,41 +3894,56 @@ class gate extends Exchange {
         }) ();
     }
 
+    public function create_orders_request(array $orders, $params = array ()) {
+        $ordersRequests = array();
+        $orderSymbols = array();
+        $ordersLength = count($orders);
+        if ($ordersLength === 0) {
+            throw new BadRequest($this->id . ' createOrders() requires at least one order');
+        }
+        if ($ordersLength > 10) {
+            throw new BadRequest($this->id . ' createOrders() accepts a maximum of 10 $orders at a time');
+        }
+        for ($i = 0; $i < count($orders); $i++) {
+            $rawOrder = $orders[$i];
+            $marketId = $this->safe_string($rawOrder, 'symbol');
+            $orderSymbols[] = $marketId;
+            $type = $this->safe_string($rawOrder, 'type');
+            $side = $this->safe_string($rawOrder, 'side');
+            $amount = $this->safe_value($rawOrder, 'amount');
+            $price = $this->safe_value($rawOrder, 'price');
+            $orderParams = $this->safe_value($rawOrder, 'params', array());
+            $extendedParams = $this->extend($orderParams, $params); // the request does not accept extra $params since it's a list, so we're extending each order with the common $params
+            $triggerValue = $this->safe_value_n($orderParams, array( 'triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice' ));
+            if ($triggerValue !== null) {
+                throw new NotSupported($this->id . ' createOrders() does not support advanced order properties (stopPrice, takeProfitPrice, stopLossPrice)');
+            }
+            $extendedParams['textIsRequired'] = true; // Gate.io requires a text parameter for each order here
+            $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $extendedParams);
+            $ordersRequests[] = $orderRequest;
+        }
+        $symbols = $this->market_symbols($orderSymbols, null, false, true, true);
+        $market = $this->market($symbols[0]);
+        if ($market['future'] || $market['option']) {
+            throw new NotSupported($this->id . ' createOrders() does not support futures or options markets');
+        }
+        return $ordersRequests;
+    }
+
     public function create_orders(array $orders, $params = array ()) {
         return Async\async(function () use ($orders, $params) {
             /**
              * create a list of trade $orders
              * @see https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-2
              * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-$orders
-             * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, $type, $side, $amount, $price and $params
+             * @see https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-futures-$orders
+             * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and $params
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
             Async\await($this->load_markets());
-            $ordersRequests = array();
-            $orderSymbols = array();
-            for ($i = 0; $i < count($orders); $i++) {
-                $rawOrder = $orders[$i];
-                $marketId = $this->safe_string($rawOrder, 'symbol');
-                $orderSymbols[] = $marketId;
-                $type = $this->safe_string($rawOrder, 'type');
-                $side = $this->safe_string($rawOrder, 'side');
-                $amount = $this->safe_value($rawOrder, 'amount');
-                $price = $this->safe_value($rawOrder, 'price');
-                $orderParams = $this->safe_value($rawOrder, 'params', array());
-                $extendedParams = $this->extend($orderParams, $params); // the request does not accept extra $params since it's a list, so we're extending each order with the common $params
-                $triggerValue = $this->safe_value_n($orderParams, array( 'triggerPrice', 'stopPrice', 'takeProfitPrice', 'stopLossPrice' ));
-                if ($triggerValue !== null) {
-                    throw new NotSupported($this->id . ' createOrders() does not support advanced order properties (stopPrice, takeProfitPrice, stopLossPrice)');
-                }
-                $extendedParams['textIsRequired'] = true; // Gate.io requires a text parameter for each order here
-                $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $extendedParams);
-                $ordersRequests[] = $orderRequest;
-            }
-            $symbols = $this->market_symbols($orderSymbols, null, false, true, true);
-            $market = $this->market($symbols[0]);
-            if ($market['future'] || $market['option']) {
-                throw new NotSupported($this->id . ' createOrders() does not support futures or options markets');
-            }
+            $ordersRequests = $this->create_orders_request($orders, $params);
+            $firstOrder = $orders[0];
+            $market = $this->market($firstOrder['symbol']);
             $response = null;
             if ($market['spot']) {
                 $response = Async\await($this->privateSpotPostBatchOrders ($ordersRequests));
@@ -4009,7 +4028,7 @@ class gate extends Exchange {
                 if ($isMarketOrder) {
                     $request['price'] = $price; // set to 0 for $market orders
                 } else {
-                    $request['price'] = $this->price_to_precision($symbol, $price);
+                    $request['price'] = ($price === 0) ? '0' : $this->price_to_precision($symbol, $price);
                 }
                 if ($reduceOnly !== null) {
                     $request['reduce_only'] = $reduceOnly;
@@ -4094,7 +4113,7 @@ class gate extends Exchange {
                     'initial' => array(
                         'contract' => $market['id'],
                         'size' => $amount, // positive = buy, negative = sell, set to 0 to close the position
-                        'price' => $this->price_to_precision($symbol, $price), // set to 0 to use $market $price
+                        // 'price' => ($price === 0) ? '0' : $this->price_to_precision($symbol, $price), // set to 0 to use $market $price
                         // 'close' => false, // set to true if trying to close the position
                         // 'tif' => 'gtc', // gtc, ioc, if using $market $price, only ioc is supported
                         // 'text' => $clientOrderId, // web, api, app
@@ -4102,6 +4121,11 @@ class gate extends Exchange {
                     ),
                     'settle' => $market['settleId'],
                 );
+                if ($type === 'market') {
+                    $request['initial']['price'] = '0';
+                } else {
+                    $request['initial']['price'] = ($price === 0) ? '0' : $this->price_to_precision($symbol, $price);
+                }
                 if ($trigger === null) {
                     $rule = null;
                     $triggerOrderPrice = null;
@@ -4197,6 +4221,42 @@ class gate extends Exchange {
         }) ();
     }
 
+    public function edit_order_request(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+        $market = $this->market($symbol);
+        list($marketType, $query) = $this->handle_market_type_and_params('editOrder', $market, $params);
+        $account = $this->convert_type_to_account($marketType);
+        $isLimitOrder = ($type === 'limit');
+        if ($account === 'spot') {
+            if (!$isLimitOrder) {
+                // exchange doesn't have $market orders for spot
+                throw new InvalidOrder($this->id . ' editOrder() does not support ' . $type . ' orders for ' . $marketType . ' markets');
+            }
+        }
+        $request = array(
+            'order_id' => (string) $id,
+            'currency_pair' => $market['id'],
+            'account' => $account,
+        );
+        if ($amount !== null) {
+            if ($market['spot']) {
+                $request['amount'] = $this->amount_to_precision($symbol, $amount);
+            } else {
+                if ($side === 'sell') {
+                    $request['size'] = Precise::string_neg($this->amount_to_precision($symbol, $amount));
+                } else {
+                    $request['size'] = $this->amount_to_precision($symbol, $amount);
+                }
+            }
+        }
+        if ($price !== null) {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        if (!$market['spot']) {
+            $request['settle'] = $market['settleId'];
+        }
+        return $this->extend($request, $query);
+    }
+
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
             /**
@@ -4208,46 +4268,18 @@ class gate extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of the currency you want to trade in units of the base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            list($marketType, $query) = $this->handle_market_type_and_params('editOrder', $market, $params);
-            $account = $this->convert_type_to_account($marketType);
-            $isLimitOrder = ($type === 'limit');
-            if ($account === 'spot') {
-                if (!$isLimitOrder) {
-                    // exchange doesn't have $market orders for spot
-                    throw new InvalidOrder($this->id . ' editOrder() does not support ' . $type . ' orders for ' . $marketType . ' markets');
-                }
-            }
-            $request = array(
-                'order_id' => $id,
-                'currency_pair' => $market['id'],
-                'account' => $account,
-            );
-            if ($amount !== null) {
-                if ($market['spot']) {
-                    $request['amount'] = $this->amount_to_precision($symbol, $amount);
-                } else {
-                    if ($side === 'sell') {
-                        $request['size'] = Precise::string_neg($this->amount_to_precision($symbol, $amount));
-                    } else {
-                        $request['size'] = $this->amount_to_precision($symbol, $amount);
-                    }
-                }
-            }
-            if ($price !== null) {
-                $request['price'] = $this->price_to_precision($symbol, $price);
-            }
+            $extendedRequest = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
             $response = null;
             if ($market['spot']) {
-                $response = Async\await($this->privateSpotPatchOrdersOrderId ($this->extend($request, $query)));
+                $response = Async\await($this->privateSpotPatchOrdersOrderId ($extendedRequest));
             } else {
-                $request['settle'] = $market['settleId'];
-                $response = Async\await($this->privateFuturesPutSettleOrdersOrderId ($this->extend($request, $query)));
+                $response = Async\await($this->privateFuturesPutSettleOrdersOrderId ($extendedRequest));
             }
             //
             //     {
@@ -4443,6 +4475,8 @@ class gate extends Exchange {
         //        "message" => "Not enough balance"
         //    }
         //
+        //  array("user_id":10406147,"id":"id","succeeded":false,"message":"INVALID_PROTOCOL","label":"INVALID_PROTOCOL")
+        //
         $succeeded = $this->safe_bool($order, 'succeeded', true);
         if (!$succeeded) {
             // cancelOrders response
@@ -4450,6 +4484,7 @@ class gate extends Exchange {
                 'clientOrderId' => $this->safe_string($order, 'text'),
                 'info' => $order,
                 'status' => 'rejected',
+                'id' => $this->safe_string($order, 'id'),
             ));
         }
         $put = $this->safe_value_2($order, 'put', 'initial', array());
@@ -4565,6 +4600,26 @@ class gate extends Exchange {
         ), $market);
     }
 
+    public function fetch_order_request(string $id, ?string $symbol = null, $params = array ()) {
+        $market = ($symbol === null) ? null : $this->market($symbol);
+        $stop = $this->safe_bool_n($params, array( 'trigger', 'is_stop_order', 'stop' ), false);
+        $params = $this->omit($params, array( 'is_stop_order', 'stop', 'trigger' ));
+        $clientOrderId = $this->safe_string_2($params, 'text', 'clientOrderId');
+        $orderId = $id;
+        if ($clientOrderId !== null) {
+            $params = $this->omit($params, array( 'text', 'clientOrderId' ));
+            if ($clientOrderId[0] !== 't') {
+                $clientOrderId = 't-' . $clientOrderId;
+            }
+            $orderId = $clientOrderId;
+        }
+        list($type, $query) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
+        $contract = ($type === 'swap') || ($type === 'future') || ($type === 'option');
+        list($request, $requestParams) = $contract ? $this->prepare_request($market, $type, $query) : $this->spot_order_prepare_request($market, $stop, $query);
+        $request['order_id'] = (string) $orderId;
+        return array( $request, $requestParams );
+    }
+
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
@@ -4576,29 +4631,18 @@ class gate extends Exchange {
              * @param {string} $id Order $id
              * @param {string} $symbol Unified $market $symbol, *required for spot and margin*
              * @param {array} [$params] Parameters specified by the exchange api
-             * @param {bool} [$params->stop] True if the order being fetched is a trigger order
+             * @param {bool} [$params->trigger] True if the order being fetched is a trigger order
              * @param {string} [$params->marginMode] 'cross' or 'isolated' - marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
              * @param {string} [$params->type] 'spot', 'swap', or 'future', if not provided $this->options['defaultMarginMode'] is used
              * @param {string} [$params->settle] 'btc' or 'usdt' - settle currency for perpetual swap and future - $market settle currency is used if $symbol !== null, default="usdt" for swap and "btc" for future
              * @return An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
             Async\await($this->load_markets());
-            $stop = $this->safe_value_2($params, 'is_stop_order', 'stop', false);
-            $params = $this->omit($params, array( 'is_stop_order', 'stop' ));
-            $clientOrderId = $this->safe_string_2($params, 'text', 'clientOrderId');
-            $orderId = $id;
-            if ($clientOrderId !== null) {
-                $params = $this->omit($params, array( 'text', 'clientOrderId' ));
-                if ($clientOrderId[0] !== 't') {
-                    $clientOrderId = 't-' . $clientOrderId;
-                }
-                $orderId = $clientOrderId;
-            }
             $market = ($symbol === null) ? null : $this->market($symbol);
-            list($type, $query) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
-            $contract = ($type === 'swap') || ($type === 'future') || ($type === 'option');
-            list($request, $requestParams) = $contract ? $this->prepare_request($market, $type, $query) : $this->spot_order_prepare_request($market, $stop, $query);
-            $request['order_id'] = $orderId;
+            $result = $this->handle_market_type_and_params('fetchOrder', $market, $params);
+            $type = $this->safe_string($result, 0);
+            $stop = $this->safe_bool_n($params, array( 'trigger', 'is_stop_order', 'stop' ), false);
+            list($request, $requestParams) = $this->fetch_order_request($id, $symbol, $params);
             $response = null;
             if ($type === 'spot' || $type === 'margin') {
                 if ($stop) {
@@ -4669,6 +4713,34 @@ class gate extends Exchange {
         }) ();
     }
 
+    public function fetch_orders_by_status_request($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+        }
+        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+        $params = $this->omit($params, array( 'stop', 'trigger' ));
+        list($type, $query) = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params);
+        $spot = ($type === 'spot') || ($type === 'margin');
+        list($request, $requestParams) = $spot ? $this->multi_order_spot_prepare_request($market, $stop, $query) : $this->prepare_request($market, $type, $query);
+        if ($status === 'closed') {
+            $status = 'finished';
+        }
+        $request['status'] = $status;
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        if ($since !== null && $spot) {
+            $request['from'] = $this->parse_to_int($since / 1000);
+        }
+        list($lastId, $finalParams) = $this->handle_param_string_2($requestParams, 'lastId', 'last_id');
+        if ($lastId !== null) {
+            $request['last_id'] = $lastId;
+        }
+        return array( $request, $finalParams );
+    }
+
     public function fetch_orders_by_status($status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($status, $symbol, $since, $limit, $params) {
             Async\await($this->load_markets());
@@ -4677,21 +4749,13 @@ class gate extends Exchange {
                 $market = $this->market($symbol);
                 $symbol = $market['symbol'];
             }
-            $stop = $this->safe_value($params, 'stop');
-            $params = $this->omit($params, 'stop');
-            list($type, $query) = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params);
+            $stop = $this->safe_bool_2($params, 'stop', 'trigger');
+            $params = $this->omit($params, array( 'trigger', 'stop' ));
+            $res = $this->handle_market_type_and_params('fetchOrdersByStatus', $market, $params);
+            $type = $this->safe_string($res, 0);
+            $params['type'] = $type;
+            list($request, $requestParams) = $this->fetch_orders_by_status_request($status, $symbol, $since, $limit, $params);
             $spot = ($type === 'spot') || ($type === 'margin');
-            list($request, $requestParams) = $spot ? $this->multi_order_spot_prepare_request($market, $stop, $query) : $this->prepare_request($market, $type, $query);
-            if ($status === 'closed') {
-                $status = 'finished';
-            }
-            $request['status'] = $status;
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            if ($since !== null && $spot) {
-                $request['from'] = $this->parse_to_int($since / 1000);
-            }
             $openSpotOrders = $spot && ($status === 'open') && !$stop;
             $response = null;
             if ($type === 'spot' || $type === 'margin') {
@@ -4894,8 +4958,8 @@ class gate extends Exchange {
              */
             Async\await($this->load_markets());
             $market = ($symbol === null) ? null : $this->market($symbol);
-            $stop = $this->safe_value_2($params, 'is_stop_order', 'stop', false);
-            $params = $this->omit($params, array( 'is_stop_order', 'stop' ));
+            $stop = $this->safe_bool_n($params, array( 'is_stop_order', 'stop', 'trigger' ), false);
+            $params = $this->omit($params, array( 'is_stop_order', 'stop', 'trigger' ));
             list($type, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
             list($request, $requestParams) = ($type === 'spot' || $type === 'margin') ? $this->spot_order_prepare_request($market, $stop, $query) : $this->prepare_request($market, $type, $query);
             $request['order_id'] = $id;
@@ -5005,6 +5069,93 @@ class gate extends Exchange {
             //     }
             //
             return $this->parse_order($response, $market);
+        }) ();
+    }
+
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($ids, $symbol, $params) {
+            /**
+             * cancel multiple orders
+             * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-$id-list
+             * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-$id-list-2
+             * @param {string[]} $ids order $ids
+             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=order-structure order structures~
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            $type = null;
+            $defaultSettle = ($market === null) ? 'usdt' : $market['settle'];
+            $settle = $this->safe_string_lower($params, 'settle', $defaultSettle);
+            list($type, $params) = $this->handle_market_type_and_params('cancelOrders', $market, $params);
+            $isSpot = ($type === 'spot');
+            if ($isSpot && ($symbol === null)) {
+                throw new ArgumentsRequired($this->id . ' cancelOrders requires a $symbol argument for spot markets');
+            }
+            if ($isSpot) {
+                $ordersRequests = array();
+                for ($i = 0; $i < count($ids); $i++) {
+                    $id = $ids[$i];
+                    $orderItem = array(
+                        'id' => $id,
+                        'symbol' => $symbol,
+                    );
+                    $ordersRequests[] = $orderItem;
+                }
+                return Async\await($this->cancel_orders_for_symbols($ordersRequests, $params));
+            }
+            $request = array(
+                'settle' => $settle,
+            );
+            $finalList = array( $request ); // hacky but needs to be done here
+            for ($i = 0; $i < count($ids); $i++) {
+                $finalList[] = $ids[$i];
+            }
+            $response = Async\await($this->privateFuturesPostSettleBatchCancelOrders ($finalList));
+            return $this->parse_orders($response);
+        }) ();
+    }
+
+    public function cancel_orders_for_symbols(array $orders, $params = array ()) {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * cancel multiple $orders for multiple symbols
+             * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-$orders-with-an-$id-list
+             * @param {CancellationRequest[]} $orders list of $order ids with $symbol, example [array("id" => "a", "symbol" => "BTC/USDT"), array("id" => "b", "symbol" => "ETH/USDT")]
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string[]} [$params->clientOrderIds] client $order ids
+             * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structures~
+             */
+            Async\await($this->load_markets());
+            $ordersRequests = array();
+            for ($i = 0; $i < count($orders); $i++) {
+                $order = $orders[$i];
+                $symbol = $this->safe_string($order, 'symbol');
+                $market = $this->market($symbol);
+                if (!$market['spot']) {
+                    throw new NotSupported($this->id . ' cancelOrdersForSymbols() supports only spot markets');
+                }
+                $id = $this->safe_string($order, 'id');
+                $orderItem = array(
+                    'id' => $id,
+                    'currency_pair' => $market['id'],
+                );
+                $ordersRequests[] = $orderItem;
+            }
+            $response = Async\await($this->privateSpotPostCancelBatchOrders ($ordersRequests));
+            //
+            // array(
+            //     {
+            //       "currency_pair" => "BTC_USDT",
+            //       "id" => "123456"
+            //     }
+            // )
+            //
+            return $this->parse_orders($response);
         }) ();
     }
 
@@ -6007,9 +6158,23 @@ class gate extends Exchange {
         $authentication = $api[0]; // public, private
         $type = $api[1]; // spot, margin, future, delivery
         $query = $this->omit($params, $this->extract_params($path));
-        if (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params))) {
+        $containsSettle = mb_strpos($path, 'settle') > -1;
+        if ($containsSettle && str_ends_with($path, 'batch_cancel_orders')) { // weird check to prevent $settle in php and converting {$settle} to array($settle)
+            // special case where we need to extract the $settle from the $path
+            // but the $body is an array of strings
+            $settle = $this->safe_dict($params, 0);
+            $path = $this->implode_params($path, $settle);
+            // remove the $first element from $params
+            $newParams = array();
+            $anyParams = $params;
+            for ($i = 1; $i < count($anyParams); $i++) {
+                $newParams[] = $params[$i];
+            }
+            $params = $newParams;
+            $query = $newParams;
+        } elseif (gettype($params) === 'array' && array_keys($params) === array_keys(array_keys($params))) {
             // endpoints like createOrders use an array instead of an object
-            // so we infer the settle from one of the elements
+            // so we infer the $settle from one of the elements
             // they have to be all the same so relying on the $first one is fine
             $first = $this->safe_value($params, 0, array());
             $path = $this->implode_params($path, $first);
@@ -7490,6 +7655,7 @@ class gate extends Exchange {
         //    array("label" => "INVALID_PARAM_VALUE", "message" => "invalid argument => Trigger.rule")
         //    array("label" => "INVALID_PARAM_VALUE", "message" => "invalid argument => trigger.expiration invalid range")
         //    array("label" => "INVALID_ARGUMENT", "detail" => "invalid size")
+        //    array("user_id":10406147,"id":"id","succeeded":false,"message":"INVALID_PROTOCOL","label":"INVALID_PROTOCOL")
         //
         $label = $this->safe_string($response, 'label');
         if ($label !== null) {

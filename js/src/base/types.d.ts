@@ -74,6 +74,10 @@ export interface MarketInterface {
         price: Num;
         cost?: Num;
     };
+    marginMode?: {
+        isolated: boolean;
+        cross: boolean;
+    };
     limits: {
         amount?: MinMax;
         cost?: MinMax;

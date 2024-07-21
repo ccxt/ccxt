@@ -18,8 +18,8 @@
         "taker": 0.001,
         "maker": 0.001,
         "precision": {
-            "amount": 5,
-            "price": 2
+            "amount": 0.00001,
+            "price": 0.01
         },
         "limits": {
             "leverage": {},
@@ -67,8 +67,8 @@
         "taker": 0.001,
         "maker": 0.001,
         "precision": {
-            "amount": 4,
-            "price": 2
+            "amount": 0.0001,
+            "price": 0.01
         },
         "limits": {
             "leverage": {},
@@ -116,8 +116,8 @@
         "taker": 0.001,
         "maker": 0.001,
         "precision": {
-            "amount": 2,
-            "price": 4
+            "amount": 0.01,
+            "price": 0.0001
         },
         "limits": {
             "leverage": {},
@@ -165,8 +165,8 @@
         "taker": 0.001,
         "maker": 0.001,
         "precision": {
-            "amount": 2,
-            "price": 4
+            "amount": 0.01,
+            "price": 0.0001
         },
         "limits": {
             "leverage": {},
@@ -214,8 +214,8 @@
         "taker": 0.001,
         "maker": 0.001,
         "precision": {
-            "amount": 4,
-            "price": 2
+            "amount": 0.0001,
+            "price": 0.01
         },
         "limits": {
             "leverage": {},
@@ -263,8 +263,8 @@
         "taker": 0.001,
         "maker": 0.001,
         "precision": {
-            "amount": 1,
-            "price": 5
+            "amount": 0.1,
+            "price": 0.00001
         },
         "limits": {
             "leverage": {},
@@ -317,8 +317,8 @@
         "maker": 0.0002,
         "contractSize": 1,
         "precision": {
-            "amount": 1,
-            "price": 2
+            "amount": 0.1,
+            "price": 0.01
         },
         "limits": {
             "leverage": {
@@ -380,8 +380,8 @@
         "maker": 0.0002,
         "contractSize": 1,
         "precision": {
-            "amount": 4,
-            "price": 1
+            "amount": 0.0001,
+            "price": 0.1
         },
         "limits": {
             "leverage": {
@@ -443,8 +443,8 @@
         "maker": 0.0002,
         "contractSize": 1,
         "precision": {
-            "amount": 0,
-            "price": 5
+            "amount": 1,
+            "price": 0.00001
         },
         "limits": {
             "leverage": {
@@ -506,8 +506,8 @@
         "maker": 0.0002,
         "contractSize": 1,
         "precision": {
-            "amount": 2,
-            "price": 2
+            "amount": 0.01,
+            "price": 0.01
         },
         "limits": {
             "leverage": {
@@ -564,8 +564,8 @@
         "taker": 0.001,
         "maker": 0.001,
         "precision": {
-            "amount": 6,
-            "price": 2
+            "amount": 0.000001,
+            "price": 0.01
         },
         "limits": {
             "leverage": {},
@@ -618,8 +618,8 @@
         "maker": 0.0002,
         "contractSize": 1,
         "precision": {
-            "amount": 0,
-            "price": 3
+            "amount": 1,
+            "price": 0.001
         },
         "limits": {
             "leverage": {
@@ -681,8 +681,8 @@
         "maker": 0.0002,
         "contractSize": 1,
         "precision": {
-            "amount": 0,
-            "price": 5
+            "amount": 1,
+            "price": 0.00001
         },
         "limits": {
             "leverage": {
@@ -717,6 +717,104 @@
             "apiStateClose": "true",
             "ensureTrigger": true,
             "triggerFeeRate": "0.00030000"
+        },
+        "feeSide": "quote"
+    },
+    "BTC/USD:BTC": {
+        "id": "BTC-USD",
+        "symbol": "BTC/USD:BTC",
+        "base": "BTC",
+        "quote": "USD",
+        "settle": "BTC",
+        "baseId": "BTC",
+        "quoteId": "USD",
+        "settleId": "BTC",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": false,
+        "inverse": true,
+        "subType": "inverse",
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "contractSize": 1,
+        "precision": {
+            "price": 0.1
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 1
+            },
+            "price": {
+                "min": 100
+            },
+            "cost": {
+                "min": 100
+            }
+        },
+        "info": {
+            "symbol": "BTC-USD",
+            "pricePrecision": 1,
+            "minTickSize": "100",
+            "minTradeValue": "100",
+            "minQty": "1.00000000",
+            "status": 1,
+            "timeOnline": 1710738000000
+        },
+        "feeSide": "quote"
+    },
+    "SOL/USD:SOL": {
+        "id": "SOL-USD",
+        "symbol": "SOL/USD:SOL",
+        "base": "SOL",
+        "quote": "USD",
+        "settle": "SOL",
+        "baseId": "SOL",
+        "quoteId": "USD",
+        "settleId": "SOL",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": false,
+        "inverse": true,
+        "subType": "inverse",
+        "taker": 0.0005,
+        "maker": 0.0002,
+        "contractSize": 1,
+        "precision": {
+            "price": 0.001
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {
+                "min": 1
+            },
+            "price": {
+                "min": 10
+            },
+            "cost": {
+                "min": 10
+            }
+        },
+        "info": {
+            "symbol": "SOL-USD",
+            "pricePrecision": 3,
+            "minTickSize": "10",
+            "minTradeValue": "10",
+            "minQty": "1.00000000",
+            "status": 1,
+            "timeOnline": 1713250800000
         },
         "feeSide": "quote"
     }

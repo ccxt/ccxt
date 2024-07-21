@@ -1049,7 +1049,7 @@ class kraken extends kraken$1 {
         else {
             direction = 'in';
         }
-        const timestamp = this.safeTimestamp(item, 'time');
+        const timestamp = this.safeIntegerProduct(item, 'time', 1000);
         return {
             'info': item,
             'id': id,
@@ -1391,7 +1391,7 @@ class kraken extends kraken$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
          * @param {bool} [params.reduceOnly] *margin only* indicates if this order is to reduce the size of a position
@@ -1713,6 +1713,7 @@ class kraken extends kraken$1 {
             'filled': filled,
             'average': average,
             'remaining': undefined,
+            'reduceOnly': this.safeBool2(order, 'reduceOnly', 'reduce_only'),
             'fee': fee,
             'trades': trades,
         }, market);
@@ -1836,7 +1837,7 @@ class kraken extends kraken$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of the currency you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.stopLossPrice] *margin only* the price that a stop loss order is triggered at
          * @param {float} [params.takeProfitPrice] *margin only* the price that a take profit order is triggered at
@@ -2122,7 +2123,7 @@ class kraken extends kraken$1 {
          * @method
          * @name kraken#cancelOrder
          * @description cancels an open order
-         * @see https://docs.kraken.com/rest/#tag/Trading/operation/cancelOrder
+         * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrder
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2137,6 +2138,14 @@ class kraken extends kraken$1 {
         params = this.omit(params, ['userref', 'clientOrderId']);
         try {
             response = await this.privatePostCancelOrder(this.extend(request, params));
+            //
+            //    {
+            //        error: [],
+            //        result: {
+            //            count: '1'
+            //        }
+            //    }
+            //
         }
         catch (e) {
             if (this.last_http_response) {
@@ -2146,14 +2155,16 @@ class kraken extends kraken$1 {
             }
             throw e;
         }
-        return response;
+        return this.safeOrder({
+            'info': response,
+        });
     }
     async cancelOrders(ids, symbol = undefined, params = {}) {
         /**
          * @method
          * @name kraken#cancelOrders
          * @description cancel multiple orders
-         * @see https://docs.kraken.com/rest/#tag/Trading/operation/cancelOrderBatch
+         * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrderBatch
          * @param {string[]} ids open orders transaction ID (txid) or user reference (userref)
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2171,20 +2182,37 @@ class kraken extends kraken$1 {
         //         }
         //     }
         //
-        return response;
+        return [
+            this.safeOrder({
+                'info': response,
+            }),
+        ];
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**
          * @method
          * @name kraken#cancelAllOrders
          * @description cancel all open orders
-         * @see https://docs.kraken.com/rest/#tag/Trading/operation/cancelAllOrders
+         * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
-        return await this.privatePostCancelAll(params);
+        const response = await this.privatePostCancelAll(params);
+        //
+        //    {
+        //        error: [],
+        //        result: {
+        //            count: '1'
+        //        }
+        //    }
+        //
+        return [
+            this.safeOrder({
+                'info': response,
+            }),
+        ];
     }
     async cancelAllOrdersAfter(timeout, params = {}) {
         /**

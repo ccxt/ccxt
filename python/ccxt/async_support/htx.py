@@ -1237,17 +1237,17 @@ class htx(Exchange, ImplicitAPI):
                 # https://github.com/ccxt/ccxt/issues/6081
                 # https://github.com/ccxt/ccxt/issues/3365
                 # https://github.com/ccxt/ccxt/issues/2873
-                'GET': 'Themis',  # conflict with GET(Guaranteed Entrance Token, GET Protocol)
-                'GTC': 'Game.com',  # conflict with Gitcoin and Gastrocoin
-                'HIT': 'HitChain',
+                'GET': 'THEMIS',  # conflict with GET(Guaranteed Entrance Token, GET Protocol)
+                'GTC': 'GAMECOM',  # conflict with Gitcoin and Gastrocoin
+                'HIT': 'HITCHAIN',
                 # https://github.com/ccxt/ccxt/issues/7399
                 # https://coinmarketcap.com/currencies/pnetwork/
                 # https://coinmarketcap.com/currencies/penta/markets/
                 # https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
-                'PNT': 'Penta',
-                'SBTC': 'Super Bitcoin',
-                'SOUL': 'Soulsaver',
-                'BIFI': 'Bitcoin File',  # conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
+                'PNT': 'PENTA',
+                'SBTC': 'SUPERBITCOIN',
+                'SOUL': 'SOULSAVER',
+                'BIFI': 'BITCOINFILE',  # conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
             },
         })
 
@@ -3054,6 +3054,7 @@ class htx(Exchange, ImplicitAPI):
             instStatus = self.safe_string(entry, 'instStatus')
             currencyActive = instStatus == 'normal'
             minPrecision = None
+            minDeposit = None
             minWithdraw = None
             maxWithdraw = None
             deposit = False
@@ -3065,6 +3066,7 @@ class htx(Exchange, ImplicitAPI):
                 self.options['networkChainIdsByNames'][code][title] = uniqueChainId
                 self.options['networkNamesByChainIds'][uniqueChainId] = title
                 networkCode = self.network_id_to_code(uniqueChainId)
+                minDeposit = self.safe_number(chainEntry, 'minDepositAmt')
                 minWithdraw = self.safe_number(chainEntry, 'minWithdrawAmt')
                 maxWithdraw = self.safe_number(chainEntry, 'maxWithdrawAmt')
                 withdrawStatus = self.safe_string(chainEntry, 'withdrawStatus')
@@ -3084,7 +3086,7 @@ class htx(Exchange, ImplicitAPI):
                     'network': networkCode,
                     'limits': {
                         'deposit': {
-                            'min': None,
+                            'min': minDeposit,
                             'max': None,
                         },
                         'withdraw': {
@@ -3747,10 +3749,10 @@ class htx(Exchange, ImplicitAPI):
             'status': '0',  # support multiple query seperated by ',',such as '3,4,5', 0: all. 3. Have sumbmitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled
         }
         response = None
-        stop = self.safe_value(params, 'stop')
+        stop = self.safe_bool_2(params, 'stop', 'trigger')
         stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
         trailing = self.safe_bool(params, 'trailing', False)
-        params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing'])
+        params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger'])
         if stop or stopLossTakeProfit or trailing:
             if limit is not None:
                 request['page_size'] = limit
@@ -4071,10 +4073,10 @@ class htx(Exchange, ImplicitAPI):
             if limit is not None:
                 request['page_size'] = limit
             request['contract_code'] = market['id']
-            stop = self.safe_value(params, 'stop')
+            stop = self.safe_bool_2(params, 'stop', 'trigger')
             stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
             trailing = self.safe_bool(params, 'trailing', False)
-            params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing'])
+            params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger'])
             if market['linear']:
                 marginMode = None
                 marginMode, params = self.handle_margin_mode_and_params('fetchOpenOrders', params)
@@ -4806,7 +4808,7 @@ class htx(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: supports 'IOC' and 'FOK'
         :param float [params.cost]: the quote quantity that can be used alternative for the amount for market buy orders
@@ -4910,7 +4912,7 @@ class htx(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: supports 'IOC' and 'FOK'
         :param float [params.trailingPercent]: *contract only* the percent to trail away from the current market price
@@ -4999,7 +5001,7 @@ class htx(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.stopPrice]: the price a trigger order is triggered at
         :param str [params.triggerType]: *contract trigger orders only* ge: greater than or equal to, le: less than or equal to
@@ -5306,10 +5308,10 @@ class htx(Exchange, ImplicitAPI):
                 request['symbol'] = market['settleId']
             else:
                 request['contract_code'] = market['id']
-            stop = self.safe_value(params, 'stop')
+            stop = self.safe_bool_2(params, 'stop', 'trigger')
             stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
             trailing = self.safe_bool(params, 'trailing', False)
-            params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing'])
+            params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger'])
             if market['linear']:
                 marginMode = None
                 marginMode, params = self.handle_margin_mode_and_params('cancelOrder', params)
@@ -5433,9 +5435,9 @@ class htx(Exchange, ImplicitAPI):
                 request['symbol'] = market['settleId']
             else:
                 request['contract_code'] = market['id']
-            stop = self.safe_value(params, 'stop')
+            stop = self.safe_bool_2(params, 'stop', 'trigger')
             stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
-            params = self.omit(params, ['stop', 'stopLossTakeProfit'])
+            params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trigger'])
             if market['linear']:
                 marginMode = None
                 marginMode, params = self.handle_margin_mode_and_params('cancelOrders', params)
@@ -5522,7 +5524,62 @@ class htx(Exchange, ImplicitAPI):
         #         "ts": 1604367997451
         #     }
         #
-        return response
+        data = self.safe_dict(response, 'data')
+        return self.parse_cancel_orders(data)
+
+    def parse_cancel_orders(self, orders):
+        #
+        #    {
+        #        "success": [
+        #            "5983466"
+        #        ],
+        #        "failed": [
+        #            {
+        #                "err-msg": "Incorrect order state",
+        #                "order-state": 7,
+        #                "order-id": "",
+        #                "err-code": "order-orderstate-error",
+        #                "client-order-id": "first"
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
+        #    {
+        #        "errors": [
+        #            {
+        #                "order_id": "769206471845261312",
+        #                "err_code": 1061,
+        #                "err_msg": "This order doesnt exist."
+        #            }
+        #        ],
+        #        "successes": "1258075374411399168,1258075393254871040"
+        #    }
+        #
+        successes = self.safe_string(orders, 'successes')
+        success = None
+        if successes is not None:
+            success = successes.split(',')
+        else:
+            success = self.safe_list(orders, 'success', [])
+        failed = self.safe_list_2(orders, 'errors', 'failed', [])
+        result = []
+        for i in range(0, len(success)):
+            order = success[i]
+            result.append(self.safe_order({
+                'info': order,
+                'id': order,
+                'status': 'canceled',
+            }))
+        for i in range(0, len(failed)):
+            order = failed[i]
+            result.append(self.safe_order({
+                'info': order,
+                'id': self.safe_string_2(order, 'order-id', 'order_id'),
+                'status': 'failed',
+                'clientOrderId': self.safe_string(order, 'client-order-id'),
+            }))
+        return result
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
@@ -5559,16 +5616,32 @@ class htx(Exchange, ImplicitAPI):
             if symbol is not None:
                 request['symbol'] = market['id']
             response = await self.spotPrivatePostV1OrderOrdersBatchCancelOpenOrders(self.extend(request, params))
+            #
+            #     {
+            #         "code": 200,
+            #         "data": {
+            #             "success-count": 2,
+            #             "failed-count": 0,
+            #             "next-id": 5454600
+            #         }
+            #     }
+            #
+            data = self.safe_dict(response, 'data')
+            return [
+                self.safe_order({
+                    'info': data,
+                }),
+            ]
         else:
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
             if market['future']:
                 request['symbol'] = market['settleId']
             request['contract_code'] = market['id']
-            stop = self.safe_value(params, 'stop')
+            stop = self.safe_bool_2(params, 'stop', 'trigger')
             stopLossTakeProfit = self.safe_value(params, 'stopLossTakeProfit')
             trailing = self.safe_bool(params, 'trailing', False)
-            params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing'])
+            params = self.omit(params, ['stop', 'stopLossTakeProfit', 'trailing', 'trigger'])
             if market['linear']:
                 marginMode = None
                 marginMode, params = self.handle_margin_mode_and_params('cancelAllOrders', params)
@@ -5612,30 +5685,18 @@ class htx(Exchange, ImplicitAPI):
                         response = await self.contractPrivatePostApiV1ContractCancelall(self.extend(request, params))
             else:
                 raise NotSupported(self.id + ' cancelAllOrders() does not support ' + marketType + ' markets')
-        #
-        # spot
-        #
-        #     {
-        #         "code": 200,
-        #         "data": {
-        #             "success-count": 2,
-        #             "failed-count": 0,
-        #             "next-id": 5454600
-        #         }
-        #     }
-        #
-        # future and swap
-        #
-        #     {
-        #         "status": "ok",
-        #         "data": {
-        #             "errors": [],
-        #             "successes": "1104754904426696704"
-        #         },
-        #         "ts": "1683435723755"
-        #     }
-        #
-        return response
+            #
+            #     {
+            #         "status": "ok",
+            #         "data": {
+            #             "errors": [],
+            #             "successes": "1104754904426696704"
+            #         },
+            #         "ts": "1683435723755"
+            #     }
+            #
+            data = self.safe_dict(response, 'data')
+            return self.parse_cancel_orders(data)
 
     async def cancel_all_orders_after(self, timeout: Int, params={}):
         """
@@ -6181,7 +6242,7 @@ class htx(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', [])
         return self.parse_isolated_borrow_rates(data)
 
-    def parse_isolated_borrow_rate(self, info, market: Market = None) -> IsolatedBorrowRate:
+    def parse_isolated_borrow_rate(self, info: dict, market: Market = None) -> IsolatedBorrowRate:
         #
         #     {
         #         "symbol": "1inchusdt",

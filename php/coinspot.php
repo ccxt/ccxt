@@ -490,7 +490,7 @@ class coinspot extends Exchange {
          * @param {string} $type must be 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
@@ -523,11 +523,21 @@ class coinspot extends Exchange {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $side parameter, "buy" or "sell"');
         }
         $params = $this->omit($params, 'side');
-        $method = 'privatePostMy' . $this->capitalize($side) . 'Cancel';
         $request = array(
             'id' => $id,
         );
-        return $this->$method ($this->extend($request, $params));
+        $response = null;
+        if ($side === 'buy') {
+            $response = $this->privatePostMyBuyCancel ($this->extend($request, $params));
+        } else {
+            $response = $this->privatePostMySellCancel ($this->extend($request, $params));
+        }
+        //
+        // status - ok, error
+        //
+        return $this->safe_order(array(
+            'info' => $response,
+        ));
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

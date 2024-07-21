@@ -58,7 +58,7 @@ class woo extends \ccxt\async\woo {
             ),
             'streaming' => array(
                 'ping' => array($this, 'ping'),
-                'keepAlive' => 10000,
+                'keepAlive' => 9000,
             ),
             'exceptions' => array(
                 'ws' => array(
@@ -394,7 +394,7 @@ class woo extends \ccxt\async\woo {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -635,7 +635,7 @@ class woo extends \ccxt\async\woo {
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->trigger] true if $trigger order
-             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $trigger = $this->safe_bool_2($params, 'stop', 'trigger', false);
@@ -695,9 +695,10 @@ class woo extends \ccxt\async\woo {
             'cost' => $this->safe_string($order, 'totalFee'),
             'currency' => $this->safe_string($order, 'feeAsset'),
         );
+        $priceString = $this->safe_string($order, 'price');
         $price = $this->safe_number($order, 'price');
         $avgPrice = $this->safe_number($order, 'avgPrice');
-        if (($price === 0) && ($avgPrice !== null)) {
+        if (Precise::string_eq($priceString, '0') && ($avgPrice !== null)) {
             $price = $avgPrice;
         }
         $amount = $this->safe_float($order, 'quantity');

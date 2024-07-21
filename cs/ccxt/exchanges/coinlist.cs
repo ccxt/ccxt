@@ -1528,7 +1528,27 @@ public partial class coinlist : Exchange
         await this.loadMarkets();
         parameters = ids;
         object response = await this.privateDeleteV1OrdersBulk(parameters);
-        return response;
+        //
+        //    {
+        //        "message": "Cancel order requests received.",
+        //        "order_ids": [
+        //            "ff132955-43bc-4fe5-9d9c-5ba226cc89a0"
+        //        ],
+        //        "timestamp": "2024-06-01T02:32:30.305Z"
+        //    }
+        //
+        object orderIds = this.safeList(response, "order_ids", new List<object>() {});
+        object orders = new List<object>() {};
+        object datetime = this.safeString(response, "timestamp");
+        for (object i = 0; isLessThan(i, getArrayLength(orderIds)); postFixIncrement(ref i))
+        {
+            ((IList<object>)orders).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "info", getValue(orderIds, i) },
+                { "id", getValue(orderIds, i) },
+                { "lastUpdateTimestamp", this.parse8601(datetime) },
+            }));
+        }
+        return orders;
     }
 
     public async override Task<object> createOrder(object symbol, object type, object side, object amount, object price = null, object parameters = null)
@@ -1542,7 +1562,7 @@ public partial class coinlist : Exchange
         * @param {string} type 'market' or 'limit' or 'stop_market' or 'stop_limit' or 'take_market' or 'take_limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately (default false)
         * @param {float} [params.triggerPrice] only for the 'stop_market', 'stop_limit', 'take_market' or 'take_limit' orders (the price at which an order is triggered)
@@ -1630,7 +1650,7 @@ public partial class coinlist : Exchange
         * @param {string} type 'market' or 'limit' or 'stop_market' or 'stop_limit' or 'take_market' or 'take_limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */

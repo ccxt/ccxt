@@ -296,10 +296,10 @@ export default class ascendex extends ascendexRest {
         const marketId = this.safeString(message, 'symbol');
         const symbol = this.safeSymbol(marketId);
         const messageHash = channel + ':' + marketId;
-        let orderbook = this.safeValue(this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook({});
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook({});
         }
+        const orderbook = this.orderbooks[symbol];
         if (orderbook['nonce'] === undefined) {
             orderbook.cache.push(message);
         }

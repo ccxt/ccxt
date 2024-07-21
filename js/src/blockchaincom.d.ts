@@ -16,14 +16,8 @@ export default class blockchaincom extends Exchange {
     parseOrderState(state: any): string;
     parseOrder(order: Dict, market?: Market): Order;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
-    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<{
-        id: string;
-        info: any;
-    }>;
-    cancelAllOrders(symbol?: Str, params?: {}): Promise<{
-        symbol: string;
-        info: any;
-    }>;
+    cancelOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelAllOrders(symbol?: Str, params?: {}): Promise<Order[]>;
     fetchTradingFees(params?: {}): Promise<TradingFees>;
     fetchCanceledOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     fetchClosedOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;

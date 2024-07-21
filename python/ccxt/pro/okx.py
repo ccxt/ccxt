@@ -13,7 +13,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
-from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import ChecksumError
 
 
 class okx(ccxt.async_support.okx):
@@ -56,6 +56,7 @@ class okx(ccxt.async_support.okx):
             },
             'options': {
                 'watchOrderBook': {
+                    'checksum': True,
                     #
                     # bbo-tbt
                     # 1. Newly added channel that sends tick-by-tick Level 1 data
@@ -103,13 +104,12 @@ class okx(ccxt.async_support.okx):
                 'ws': {
                     # 'inflate': True,
                 },
-                'checksum': True,
             },
             'streaming': {
                 # okex does not support built-in ws protocol-level ping-pong
                 # instead it requires a custom text-based ping-pong
                 'ping': self.ping,
-                'keepAlive': 20000,
+                'keepAlive': 18000,
             },
         })
 
@@ -861,7 +861,7 @@ class okx(ccxt.async_support.okx):
         self.handle_deltas(storedBids, bids)
         marketId = self.safe_string(message, 'instId')
         symbol = self.safe_symbol(marketId)
-        checksum = self.safe_bool(self.options, 'checksum', True)
+        checksum = self.handle_option('watchOrderBook', 'checksum', True)
         if checksum:
             asksLength = len(storedAsks)
             bidsLength = len(storedBids)
@@ -877,7 +877,7 @@ class okx(ccxt.async_support.okx):
             responseChecksum = self.safe_integer(message, 'checksum')
             localChecksum = self.crc32(payload, True)
             if responseChecksum != localChecksum:
-                error = InvalidNonce(self.id + ' invalid checksum')
+                error = ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
                 del client.subscriptions[messageHash]
                 del self.orderbooks[symbol]
                 client.reject(error, messageHash)
@@ -1147,7 +1147,7 @@ class okx(ccxt.async_support.okx):
         :param bool [params.stop]: True if fetching trigger or conditional trades
         :param str [params.type]: 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
         :param str [params.marginMode]: 'cross' or 'isolated', for automatically setting the type to spot margin
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         # By default, receive order updates from any instrument type
         type = None
@@ -1520,7 +1520,7 @@ class okx(ccxt.async_support.okx):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float|None [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean params['test']: test order, default False
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -1571,7 +1571,7 @@ class okx(ccxt.async_support.okx):
         if self.is_empty(args):
             method = self.safe_string(message, 'op')
             stringMsg = self.json(message)
-            self.handle_errors(None, None, client.url, method, None, stringMsg, stringMsg, None, None)
+            self.handle_errors(None, None, client.url, method, None, stringMsg, message, None, None)
         orders = self.parse_orders(args, None, None, None)
         first = self.safe_dict(orders, 0, {})
         client.resolve(first, messageHash)
@@ -1586,7 +1586,7 @@ class okx(ccxt.async_support.okx):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of the currency you want to trade in units of the base currency
-        :param float|None [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1645,7 +1645,7 @@ class okx(ccxt.async_support.okx):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        idsLength = len(ids)
+        idsLength: number = len(ids)
         if idsLength > 20:
             raise BadRequest(self.id + ' cancelOrdersWs() accepts up to 20 ids at a time')
         if symbol is None:
@@ -1729,8 +1729,8 @@ class okx(ccxt.async_support.okx):
         future.resolve(True)
 
     def ping(self, client):
-        # okex does not support built-in ws protocol-level ping-pong
-        # instead it requires custom text-based ping-pong
+        # OKX does not support the built-in WebSocket protocol-level ping-pong.
+        # Instead, it requires a custom text-based ping-pong mechanism.
         return 'ping'
 
     def handle_pong(self, client: Client, message):

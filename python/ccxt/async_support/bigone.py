@@ -30,7 +30,7 @@ class bigone(Exchange, ImplicitAPI):
             'name': 'BigONE',
             'countries': ['CN'],
             'version': 'v3',
-            'rateLimit': 1200,  # 500 request per 10 minutes
+            'rateLimit': 20,  # 500 requests per 10 seconds
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -1398,7 +1398,7 @@ class bigone(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: the price at which a trigger order is triggered at
         :param bool [params.postOnly]: if True, the order will only be posted to the order book and not executed immediately
@@ -1540,7 +1540,25 @@ class bigone(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        return response
+        data = self.safe_dict(response, 'data', {})
+        cancelled = self.safe_list(data, 'cancelled', [])
+        failed = self.safe_list(data, 'failed', [])
+        result = []
+        for i in range(0, len(cancelled)):
+            orderId = cancelled[i]
+            result.append(self.safe_order({
+                'info': orderId,
+                'id': orderId,
+                'status': 'canceled',
+            }))
+        for i in range(0, len(failed)):
+            orderId = failed[i]
+            result.append(self.safe_order({
+                'info': orderId,
+                'id': orderId,
+                'status': 'failed',
+            }))
+        return result
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """

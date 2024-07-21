@@ -445,6 +445,15 @@ abstract class okx extends \ccxt\Exchange {
     public function private_get_account_mmp_config($params = array()) {
         return $this->request('account/mmp-config', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
+    public function private_get_account_fixed_loan_borrowing_limit($params = array()) {
+        return $this->request('account/fixed-loan/borrowing-limit', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function private_get_account_fixed_loan_borrowing_quote($params = array()) {
+        return $this->request('account/fixed-loan/borrowing-quote', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_account_fixed_loan_borrowing_orders_list($params = array()) {
+        return $this->request('account/fixed-loan/borrowing-orders-list', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function private_get_users_subaccount_list($params = array()) {
         return $this->request('users/subaccount/list', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -661,6 +670,9 @@ abstract class okx extends \ccxt\Exchange {
     public function private_post_sprd_amend_order($params = array()) {
         return $this->request('sprd/amend-order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function private_post_sprd_cancel_all_after($params = array()) {
+        return $this->request('sprd/cancel-all-after', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
     public function private_post_trade_order($params = array()) {
         return $this->request('trade/order', 'private', 'POST', $params, null, null, array("cost" => 0.3333333333333333));
     }
@@ -777,6 +789,18 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function private_post_account_mmp_config($params = array()) {
         return $this->request('account/mmp-config', 'private', 'POST', $params, null, null, array("cost" => 100));
+    }
+    public function private_post_account_fixed_loan_borrowing_order($params = array()) {
+        return $this->request('account/fixed-loan/borrowing-order', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function private_post_account_fixed_loan_amend_borrowing_order($params = array()) {
+        return $this->request('account/fixed-loan/amend-borrowing-order', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function private_post_account_fixed_loan_manual_reborrow($params = array()) {
+        return $this->request('account/fixed-loan/manual-reborrow', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function private_post_account_fixed_loan_repay_borrowing_order($params = array()) {
+        return $this->request('account/fixed-loan/repay-borrowing-order', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function private_post_users_subaccount_modify_apikey($params = array()) {
         return $this->request('users/subaccount/modify-apikey', 'private', 'POST', $params, null, null, array("cost" => 10));
@@ -1384,6 +1408,15 @@ abstract class okx extends \ccxt\Exchange {
     public function privateGetAccountMmpConfig($params = array()) {
         return $this->request('account/mmp-config', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
+    public function privateGetAccountFixedLoanBorrowingLimit($params = array()) {
+        return $this->request('account/fixed-loan/borrowing-limit', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    public function privateGetAccountFixedLoanBorrowingQuote($params = array()) {
+        return $this->request('account/fixed-loan/borrowing-quote', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetAccountFixedLoanBorrowingOrdersList($params = array()) {
+        return $this->request('account/fixed-loan/borrowing-orders-list', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function privateGetUsersSubaccountList($params = array()) {
         return $this->request('users/subaccount/list', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -1600,6 +1633,9 @@ abstract class okx extends \ccxt\Exchange {
     public function privatePostSprdAmendOrder($params = array()) {
         return $this->request('sprd/amend-order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
+    public function privatePostSprdCancelAllAfter($params = array()) {
+        return $this->request('sprd/cancel-all-after', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
     public function privatePostTradeOrder($params = array()) {
         return $this->request('trade/order', 'private', 'POST', $params, null, null, array("cost" => 0.3333333333333333));
     }
@@ -1716,6 +1752,18 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function privatePostAccountMmpConfig($params = array()) {
         return $this->request('account/mmp-config', 'private', 'POST', $params, null, null, array("cost" => 100));
+    }
+    public function privatePostAccountFixedLoanBorrowingOrder($params = array()) {
+        return $this->request('account/fixed-loan/borrowing-order', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostAccountFixedLoanAmendBorrowingOrder($params = array()) {
+        return $this->request('account/fixed-loan/amend-borrowing-order', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostAccountFixedLoanManualReborrow($params = array()) {
+        return $this->request('account/fixed-loan/manual-reborrow', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostAccountFixedLoanRepayBorrowingOrder($params = array()) {
+        return $this->request('account/fixed-loan/repay-borrowing-order', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function privatePostUsersSubaccountModifyApikey($params = array()) {
         return $this->request('users/subaccount/modify-apikey', 'private', 'POST', $params, null, null, array("cost" => 10));

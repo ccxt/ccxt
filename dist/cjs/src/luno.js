@@ -914,7 +914,7 @@ class luno extends luno$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -961,7 +961,15 @@ class luno extends luno$1 {
         const request = {
             'order_id': id,
         };
-        return await this.privatePostStoporder(this.extend(request, params));
+        const response = await this.privatePostStoporder(this.extend(request, params));
+        //
+        //    {
+        //        "success": true
+        //    }
+        //
+        return this.safeOrder({
+            'info': response,
+        });
     }
     async fetchLedgerByEntries(code = undefined, entry = undefined, limit = undefined, params = {}) {
         // by default without entry number or limit number, return most recent entry

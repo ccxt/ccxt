@@ -139,7 +139,8 @@ public partial class Exchange
             var wsConnectionsTokenConfig = this.getWsRateLimitConfig(url, "connections");
             var wsMessagesTokenConfig = this.getWsRateLimitConfig(url, "messages");
             var keepAlive = ((Int64)this.safeInteger(wsOptions, "keepAlive", 30000));
-            var client = new WebSocketClient(url, proxy, handleMessage, ping, onClose, onError, this.verbose, keepAlive);
+            var useMessageQueue = ((bool)this.safeBool(wsOptions, "useMessageQueue", true));
+            var client = new WebSocketClient(url, proxy, handleMessage, ping, onClose, onError, this.verbose, keepAlive, useMessageQueue);
             client.connectionsThrottler = new Throttler(wsConnectionsTokenConfig as dict);
             client.messagesThrottler = new Throttler(wsMessagesTokenConfig as dict);
 

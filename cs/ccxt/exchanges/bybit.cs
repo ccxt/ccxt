@@ -26,6 +26,7 @@ public partial class bybit : Exchange
                 { "option", true },
                 { "borrowCrossMargin", true },
                 { "cancelAllOrders", true },
+                { "cancelAllOrdersAfter", true },
                 { "cancelOrder", true },
                 { "cancelOrders", true },
                 { "cancelOrdersForSymbols", true },
@@ -3160,7 +3161,7 @@ public partial class bybit : Exchange
         * @see https://bybit-exchange.github.io/docs/v5/asset/all-balance
         * @see https://bybit-exchange.github.io/docs/v5/account/wallet-balance
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.type] wallet type, ['spot', 'swap', 'fund']
+        * @param {string} [params.type] wallet type, ['spot', 'swap', 'funding']
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -3171,20 +3172,35 @@ public partial class bybit : Exchange
         var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];
         object isUnifiedAccount = (isTrue(enableUnifiedMargin) || isTrue(enableUnifiedAccount));
         object type = null;
+        // don't use getBybitType here
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchBalance", null, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        if (isTrue(isTrue((isEqual(type, "swap"))) || isTrue((isEqual(type, "future")))))
+        {
+            type = subType;
+        }
+        object lowercaseRawType = ((bool) isTrue((!isEqual(type, null)))) ? ((string)type).ToLower() : null;
         object isSpot = (isEqual(type, "spot"));
-        object isSwap = (isEqual(type, "swap"));
+        object isLinear = (isEqual(type, "linear"));
+        object isInverse = (isEqual(type, "inverse"));
+        object isFunding = isTrue((isEqual(lowercaseRawType, "fund"))) || isTrue((isEqual(lowercaseRawType, "funding")));
         if (isTrue(isUnifiedAccount))
         {
-            if (isTrue(isTrue(isSpot) || isTrue(isSwap)))
+            if (isTrue(isInverse))
+            {
+                type = "contract";
+            } else
             {
                 type = "unified";
             }
         } else
         {
-            if (isTrue(isSwap))
+            if (isTrue(isTrue(isLinear) || isTrue(isInverse)))
             {
                 type = "contract";
             }
@@ -3199,11 +3215,11 @@ public partial class bybit : Exchange
         if (isTrue(isTrue(isSpot) && isTrue((!isEqual(marginMode, null)))))
         {
             response = await this.privateGetV5SpotCrossMarginTradeAccount(this.extend(request, parameters));
-        } else if (isTrue(isEqual(unifiedType, "FUND")))
+        } else if (isTrue(isFunding))
         {
             // use this endpoint only we have no other choice
             // because it requires transfer permission
-            ((IDictionary<string,object>)request)["accountType"] = unifiedType;
+            ((IDictionary<string,object>)request)["accountType"] = "FUND";
             response = await this.privateGetV5AssetTransferQueryAccountCoinsBalance(this.extend(request, parameters));
         } else
         {
@@ -3454,13 +3470,13 @@ public partial class bybit : Exchange
             if (isTrue(!isEqual(code, "0")))
             {
                 object category = this.safeString(order, "category");
-                object inferedMarketType = ((bool) isTrue((isEqual(category, "spot")))) ? "spot" : "contract";
+                object inferredMarketType = ((bool) isTrue((isEqual(category, "spot")))) ? "spot" : "contract";
                 return this.safeOrder(new Dictionary<string, object>() {
                     { "info", order },
                     { "status", "rejected" },
                     { "id", this.safeString(order, "orderId") },
                     { "clientOrderId", this.safeString(order, "orderLinkId") },
-                    { "symbol", this.safeSymbol(this.safeString(order, "symbol"), null, null, inferedMarketType) },
+                    { "symbol", this.safeSymbol(this.safeString(order, "symbol"), null, null, inferredMarketType) },
                 });
             }
         }
@@ -3519,7 +3535,7 @@ public partial class bybit : Exchange
                 feeCurrencyCode = ((bool) isTrue(getValue(market, "inverse"))) ? getValue(market, "base") : getValue(market, "settle");
             }
             fee = new Dictionary<string, object>() {
-                { "cost", feeCostString },
+                { "cost", this.parseNumber(feeCostString) },
                 { "currency", feeCurrencyCode },
             };
         }
@@ -3658,7 +3674,7 @@ public partial class bybit : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK"
         * @param {bool} [params.postOnly] true or false whether the order is post-only
@@ -4362,7 +4378,7 @@ public partial class bybit : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] The price that a trigger order is triggered at
         * @param {float} [params.stopLossPrice] The price that a stop loss order is triggered at
@@ -4559,6 +4575,12 @@ public partial class bybit : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
+        object types = await this.isUnifiedEnabled();
+        object enableUnifiedAccount = getValue(types, 1);
+        if (!isTrue(enableUnifiedAccount))
+        {
+            throw new NotSupported ((string)add(this.id, " cancelOrders() supports UTA accounts only")) ;
+        }
         object category = null;
         var categoryparametersVariable = this.getBybitType("cancelOrders", market, parameters);
         category = ((IList<object>)categoryparametersVariable)[0];
@@ -4629,6 +4651,44 @@ public partial class bybit : Exchange
         return this.parseOrders(row, market);
     }
 
+    public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#cancelAllOrdersAfter
+        * @description dead man's switch, cancel all orders after the given timeout
+        * @see https://bybit-exchange.github.io/docs/v5/order/dcp
+        * @param {number} timeout time in milliseconds
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.product] OPTIONS, DERIVATIVES, SPOT, default is 'DERIVATIVES'
+        * @returns {object} the api result
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "timeWindow", this.parseToInt(divide(timeout, 1000)) },
+        };
+        object type = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrdersAfter", null, parameters, "swap");
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        object productMap = new Dictionary<string, object>() {
+            { "spot", "SPOT" },
+            { "swap", "DERIVATIVES" },
+            { "option", "OPTIONS" },
+        };
+        object product = this.safeString(productMap, type, type);
+        ((IDictionary<string,object>)request)["product"] = product;
+        object response = await this.privatePostV5OrderDisconnectedCancelAll(this.extend(request, parameters));
+        //
+        // {
+        //     "retCode": 0,
+        //     "retMsg": "success"
+        // }
+        //
+        return response;
+    }
+
     public async override Task<object> cancelOrdersForSymbols(object orders, object parameters = null)
     {
         /**
@@ -4636,14 +4696,18 @@ public partial class bybit : Exchange
         * @name bybit#cancelOrdersForSymbols
         * @description cancel multiple orders for multiple symbols
         * @see https://bybit-exchange.github.io/docs/v5/order/batch-cancel
-        * @param {string[]} ids order ids
-        * @param {string} symbol unified symbol of the market the order was made in
+        * @param {CancellationRequest[]} orders list of order ids with symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string[]} [params.clientOrderIds] client order ids
         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object types = await this.isUnifiedEnabled();
+        object enableUnifiedAccount = getValue(types, 1);
+        if (!isTrue(enableUnifiedAccount))
+        {
+            throw new NotSupported ((string)add(this.id, " cancelOrdersForSymbols() supports UTA accounts only")) ;
+        }
         object ordersRequests = new List<object>() {};
         object category = null;
         for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
@@ -5498,10 +5562,19 @@ public partial class bybit : Exchange
         * @param {string} [params.baseCoin] Base coin. Supports linear, inverse & option
         * @param {string} [params.settleCoin] Settle coin. Supports linear, inverse & option
         * @param {string} [params.orderFilter] 'Order' or 'StopOrder' or 'tpslOrder'
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, parameters, "nextPageCursor", "cursor", null, 50);
+        }
         var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
         var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
         var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];
@@ -6677,6 +6750,7 @@ public partial class bybit : Exchange
         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
         */
         parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
         object symbol = null;
         if (isTrue(isTrue((!isEqual(symbols, null))) && isTrue(((symbols is IList<object>) || (symbols.GetType().IsGenericType && symbols.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
         {
@@ -6694,7 +6768,6 @@ public partial class bybit : Exchange
             symbol = symbols;
             symbols = new List<object> {this.symbol(symbol)};
         }
-        await this.loadMarkets();
         var enableUnifiedMarginenableUnifiedAccountVariable = await this.isUnifiedEnabled();
         var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
         var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];

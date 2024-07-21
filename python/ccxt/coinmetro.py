@@ -16,7 +16,7 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -215,7 +215,7 @@ class coinmetro(Exchange, ImplicitAPI):
                     'maker': self.parse_number('0'),
                 },
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             # exchange-specific options
             'options': {
                 'currenciesByIdForParseMarket': None,
@@ -317,7 +317,6 @@ class coinmetro(Exchange, ImplicitAPI):
             deposit = self.safe_value(currency, 'canDeposit')
             canTrade = self.safe_value(currency, 'canTrade')
             active = withdraw if canTrade else True
-            precision = self.safe_integer(currency, 'digits')
             minAmount = self.safe_number(currency, 'minQty')
             result[code] = self.safe_currency_structure({
                 'id': id,
@@ -328,7 +327,7 @@ class coinmetro(Exchange, ImplicitAPI):
                 'deposit': deposit,
                 'withdraw': withdraw,
                 'fee': None,
-                'precision': precision,
+                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'digits'))),
                 'limits': {
                     'amount': {'min': minAmount, 'max': None},
                     'withdraw': {'min': None, 'max': None},
@@ -354,19 +353,14 @@ class coinmetro(Exchange, ImplicitAPI):
         #
         #     [
         #         {
-        #             "pair": "PERPEUR",
-        #             "precision": 5,
-        #             "margin": False
-        #         },
-        #         {
-        #             "pair": "PERPUSD",
-        #             "precision": 5,
-        #             "margin": False
-        #         },
-        #         {
         #             "pair": "YFIEUR",
         #             "precision": 5,
         #             "margin": False
+        #         },
+        #         {
+        #             "pair": "BTCEUR",
+        #             "precision": 2,
+        #             "margin": True
         #         },
         #         ...
         #     ]
@@ -412,9 +406,7 @@ class coinmetro(Exchange, ImplicitAPI):
             'optionType': None,
             'precision': {
                 'amount': basePrecisionAndLimits['precision'],
-                'price': quotePrecisionAndLimits['precision'],
-                'base': basePrecisionAndLimits['precision'],
-                'quote': quotePrecisionAndLimits['precision'],
+                'price': self.parse_number(self.parse_precision(self.safe_string(market, 'precision'))),
             },
             'limits': {
                 'leverage': {
@@ -464,12 +456,11 @@ class coinmetro(Exchange, ImplicitAPI):
     def parse_market_precision_and_limits(self, currencyId):
         currencies = self.safe_value(self.options, 'currenciesByIdForParseMarket', {})
         currency = self.safe_value(currencies, currencyId, {})
-        precision = self.safe_integer(currency, 'precision')
         limits = self.safe_value(currency, 'limits', {})
         amountLimits = self.safe_value(limits, 'amount', {})
         minLimit = self.safe_number(amountLimits, 'min')
         result: dict = {
-            'precision': precision,
+            'precision': self.safe_number(currency, 'precision'),
             'minLimit': minLimit,
         }
         return result
@@ -1149,7 +1140,7 @@ class coinmetro(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.cost]: the quote quantity that can be used alternative for the amount in market orders
         :param str [params.timeInForce]: "GTC", "IOC", "FOK", "GTD"

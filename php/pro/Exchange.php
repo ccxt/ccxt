@@ -74,15 +74,18 @@ Exchange::$exchanges = array(
     'okcoin',
     'okx',
     'onetrading',
+    'oxfun',
     'p2b',
     'phemex',
     'poloniex',
     'poloniexfutures',
     'probit',
     'upbit',
+    'vertex',
     'wazirx',
     'whitebit',
     'woo',
     'woofipro',
+    'xt',
 );
 

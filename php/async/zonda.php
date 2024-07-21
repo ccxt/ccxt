@@ -446,6 +446,13 @@ class zonda extends Exchange {
         //         "secondBalanceId" => "ab43023b-4079-414c-b340-056e3430a3af"
         //     }
         //
+        // cancelOrder
+        //
+        //    {
+        //        status => "Ok",
+        //        errors => array()
+        //    }
+        //
         $marketId = $this->safe_string($order, 'market');
         $symbol = $this->safe_symbol($marketId, $market, '-');
         $timestamp = $this->safe_integer($order, 'time');
@@ -1362,7 +1369,7 @@ class zonda extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
@@ -1509,13 +1516,14 @@ class zonda extends Exchange {
                 'side' => $side,
                 'price' => $price,
             );
+            $response = Async\await($this->v1_01PrivateDeleteTradingOfferSymbolIdSidePrice ($this->extend($request, $params)));
             // array( status => "Fail", errors => array( "NOT_RECOGNIZED_OFFER_TYPE" ) )  -- if required $params are missing
             // array( status => "Ok", errors => array() )
-            return Async\await($this->v1_01PrivateDeleteTradingOfferSymbolIdSidePrice ($this->extend($request, $params)));
+            return $this->parse_order($response);
         }) ();
     }
 
-    public function is_fiat($currency) {
+    public function is_fiat(string $currency) {
         $fiatCurrencies = array(
             'USD' => true,
             'EUR' => true,

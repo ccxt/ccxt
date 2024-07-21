@@ -349,13 +349,12 @@ export default class bitrue extends bitrueRest {
         const symbol = market['symbol'];
         const timestamp = this.safeInteger(message, 'ts');
         const tick = this.safeValue(message, 'tick', {});
-        let orderbook = this.safeValue(this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook();
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook();
         }
+        const orderbook = this.orderbooks[symbol];
         const snapshot = this.parseOrderBook(tick, symbol, timestamp, 'buys', 'asks');
         orderbook.reset(snapshot);
-        this.orderbooks[symbol] = orderbook;
         const messageHash = 'orderbook:' + symbol;
         client.resolve(orderbook, messageHash);
     }

@@ -16,7 +16,6 @@ from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
-from ccxt.base.errors import BadResponse
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
@@ -26,6 +25,7 @@ from ccxt.base.errors import NetworkError
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import BadResponse
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -1510,7 +1510,7 @@ class digifinex(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency, spot market orders use the quote currency, swap requires the number of contracts
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: "GTC", "IOC", "FOK", or "PO"
         :param bool [params.postOnly]: True or False
@@ -1646,7 +1646,7 @@ class digifinex(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency, spot market orders use the quote currency, swap requires the number of contracts
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: request to be sent to the exchange
         """
@@ -1808,7 +1808,34 @@ class digifinex(Exchange, ImplicitAPI):
             numCanceledOrders = len(canceledOrders)
             if numCanceledOrders != 1:
                 raise OrderNotFound(self.id + ' cancelOrder() ' + id + ' not found')
-        return response
+            orders = self.parse_cancel_orders(response)
+            return self.safe_dict(orders, 0)
+        else:
+            return self.safe_order({
+                'info': response,
+                'orderId': self.safe_string(response, 'data'),
+            })
+
+    def parse_cancel_orders(self, response):
+        success = self.safe_list(response, 'success')
+        error = self.safe_list(response, 'error')
+        result = []
+        for i in range(0, len(success)):
+            order = success[i]
+            result.append(self.safe_order({
+                'info': order,
+                'id': order,
+                'status': 'canceled',
+            }))
+        for i in range(0, len(error)):
+            order = error[i]
+            result.append(self.safe_order({
+                'info': order,
+                'id': self.safe_string_2(order, 'order-id', 'order_id'),
+                'status': 'failed',
+                'clientOrderId': self.safe_string(order, 'client-order-id'),
+            }))
+        return result
 
     def cancel_orders(self, ids, symbol: Str = None, params={}):
         """
@@ -1839,11 +1866,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        canceledOrders = self.safe_value(response, 'success', [])
-        numCanceledOrders = len(canceledOrders)
-        if numCanceledOrders < 1:
-            raise OrderNotFound(self.id + ' cancelOrders() error')
-        return response
+        return self.parse_cancel_orders(response)
 
     def parse_order_status(self, status: Str):
         statuses: dict = {

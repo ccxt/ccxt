@@ -32,6 +32,7 @@ class woofipro(Exchange, ImplicitAPI):
             'version': 'v1',
             'certified': True,
             'pro': True,
+            'dex': True,
             'hostname': 'dex.woo.org',
             'has': {
                 'CORS': None,
@@ -1195,7 +1196,7 @@ class woofipro(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
-        :param float [price]: the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: request to be sent to the exchange
         """
@@ -1282,7 +1283,7 @@ class woofipro(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: The price a trigger order is triggered at
         :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered(perpetual swap markets only)
@@ -1399,7 +1400,7 @@ class woofipro(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: The price a trigger order is triggered at
         :param float [params.stopLossPrice]: price to trigger stop-loss orders
@@ -1561,7 +1562,9 @@ class woofipro(Exchange, ImplicitAPI):
         #     }
         # }
         #
-        return response
+        return [self.safe_order({
+            'info': response,
+        })]
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
@@ -1600,7 +1603,11 @@ class woofipro(Exchange, ImplicitAPI):
         #     }
         # }
         #
-        return response
+        return [
+            {
+                'info': response,
+            },
+        ]
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """

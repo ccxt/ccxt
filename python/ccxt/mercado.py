@@ -12,6 +12,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class mercado(Exchange, ImplicitAPI):
@@ -425,7 +426,7 @@ class mercado(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -444,7 +445,10 @@ class mercado(Exchange, ImplicitAPI):
             if side == 'buy':
                 if price is None:
                     raise InvalidOrder(self.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount')
-                request['cost'] = self.price_to_precision(market['symbol'], amount * price)
+                amountString = self.number_to_string(amount)
+                priceString = self.number_to_string(price)
+                cost = self.parse_to_numeric(Precise.string_mul(amountString, priceString))
+                request['cost'] = self.price_to_precision(market['symbol'], cost)
             else:
                 request['quantity'] = self.amount_to_precision(market['symbol'], amount)
         response = getattr(self, method)(self.extend(request, params))

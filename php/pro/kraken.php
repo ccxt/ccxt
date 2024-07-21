@@ -8,7 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\NotSupported;
-use ccxt\InvalidNonce;
+use ccxt\ChecksumError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -19,7 +19,7 @@ class kraken extends \ccxt\async\kraken {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
-                'watchBalance' => false, // no such type of subscription 2021-01-05
+                'watchBalance' => true,
                 'watchMyTrades' => true,
                 'watchOHLCV' => true,
                 'watchOrderBook' => true,
@@ -42,6 +42,7 @@ class kraken extends \ccxt\async\kraken {
                     'ws' => array(
                         'public' => 'wss://ws.kraken.com',
                         'private' => 'wss://ws-auth.kraken.com',
+                        'privateV2' => 'wss://ws-auth.kraken.com/v2',
                         'beta' => 'wss://beta-ws.kraken.com',
                         'beta-private' => 'wss://beta-ws-auth.kraken.com',
                     ),
@@ -55,7 +56,9 @@ class kraken extends \ccxt\async\kraken {
                 'OHLCVLimit' => 1000,
                 'ordersLimit' => 1000,
                 'symbolsByOrderId' => array(),
-                'checksum' => true,
+                'watchOrderBook' => array(
+                    'checksum' => true,
+                ),
             ),
             'exceptions' => array(
                 'ws' => array(
@@ -122,7 +125,7 @@ class kraken extends \ccxt\async\kraken {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
@@ -181,7 +184,7 @@ class kraken extends \ccxt\async\kraken {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of the currency you want to trade in units of the base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
@@ -778,7 +781,7 @@ class kraken extends \ccxt\async\kraken {
             }
             // don't remove this line or I will poop on your face
             $orderbook->limit ();
-            $checksum = $this->safe_bool($this->options, 'checksum', true);
+            $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
             if ($checksum) {
                 $priceString = $this->safe_string($example, 0);
                 $amountString = $this->safe_string($example, 1);
@@ -800,7 +803,7 @@ class kraken extends \ccxt\async\kraken {
                 $payload = implode('', $payloadArray);
                 $localChecksum = $this->crc32($payload, false);
                 if ($localChecksum !== $c) {
-                    $error = new InvalidNonce ($this->id . ' invalid checksum');
+                    $error = new ChecksumError ($this->id . ' ' . $this->orderbook_checksum_message($symbol));
                     unset($client->subscriptions[$messageHash]);
                     unset($this->orderbooks[$symbol]);
                     $client->reject ($error, $messageHash);
@@ -921,7 +924,7 @@ class kraken extends \ccxt\async\kraken {
              * @param {int} [$since] the earliest time in ms to fetch trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             return Async\await($this->watch_private('ownTrades', $symbol, $since, $limit, $params));
         }) ();
@@ -1374,6 +1377,73 @@ class kraken extends \ccxt\async\kraken {
         }) ();
     }
 
+    public function watch_balance($params = array ()): PromiseInterface {
+        return Async\async(function () use ($params) {
+            /**
+             * watch balance and get the amount of funds available for trading or funds locked in orders
+             * @see https://docs.kraken.com/api/docs/websocket-v2/balances
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
+             */
+            Async\await($this->load_markets());
+            $token = Async\await($this->authenticate());
+            $messageHash = 'balances';
+            $url = $this->urls['api']['ws']['privateV2'];
+            $requestId = $this->request_id();
+            $subscribe = array(
+                'method' => 'subscribe',
+                'req_id' => $requestId,
+                'params' => array(
+                    'channel' => 'balances',
+                    'token' => $token,
+                ),
+            );
+            $request = $this->deep_extend($subscribe, $params);
+            return Async\await($this->watch($url, $messageHash, $request, $messageHash));
+        }) ();
+    }
+
+    public function handle_balance(Client $client, $message) {
+        //
+        //     {
+        //         "channel" => "balances",
+        //         "data" => array(
+        //             {
+        //                 "asset" => "BTC",
+        //                 "asset_class" => "currency",
+        //                 "balance" => 1.2,
+        //                 "wallets" => array(
+        //                     {
+        //                         "type" => "spot",
+        //                         "id" => "main",
+        //                         "balance" => 1.2
+        //                     }
+        //                 )
+        //             }
+        //         ),
+        //         "type" => "snapshot",
+        //         "sequence" => 1
+        //     }
+        //
+        $data = $this->safe_list($message, 'data', array());
+        $result = array( 'info' => $message );
+        for ($i = 0; $i < count($data); $i++) {
+            $currencyId = $this->safe_string($data[$i], 'asset');
+            $code = $this->safe_currency_code($currencyId);
+            $account = $this->account();
+            $eq = $this->safe_string($data[$i], 'balance');
+            $account['total'] = $eq;
+            $result[$code] = $account;
+        }
+        $type = 'spot';
+        $balance = $this->safe_balance($result);
+        $oldBalance = $this->safe_value($this->balance, $type, array());
+        $newBalance = $this->deep_extend($oldBalance, $balance);
+        $this->balance[$type] = $this->safe_balance($newBalance);
+        $channel = $this->safe_string($message, 'channel');
+        $client->resolve ($this->balance[$type], $channel);
+    }
+
     public function get_message_hash(string $unifiedElementName, ?string $subChannelName = null, ?string $symbol = null) {
         // $unifiedElementName can be : orderbook, trade, ticker, bidask ...
         // $subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
@@ -1477,6 +1547,16 @@ class kraken extends \ccxt\async\kraken {
                 $method($client, $message, $subscription);
             }
         } else {
+            $channel = $this->safe_string($message, 'channel');
+            if ($channel !== null) {
+                $methods = array(
+                    'balances' => array($this, 'handle_balance'),
+                );
+                $method = $this->safe_value($methods, $channel);
+                if ($method !== null) {
+                    $method($client, $message);
+                }
+            }
             if ($this->handle_error_message($client, $message)) {
                 $event = $this->safe_string($message, 'event');
                 $methods = array(

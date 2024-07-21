@@ -12,7 +12,7 @@ public partial class kraken : ccxt.kraken
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
                 { "ws", true },
-                { "watchBalance", false },
+                { "watchBalance", true },
                 { "watchMyTrades", true },
                 { "watchOHLCV", true },
                 { "watchOrderBook", true },
@@ -33,6 +33,7 @@ public partial class kraken : ccxt.kraken
                     { "ws", new Dictionary<string, object>() {
                         { "public", "wss://ws.kraken.com" },
                         { "private", "wss://ws-auth.kraken.com" },
+                        { "privateV2", "wss://ws-auth.kraken.com/v2" },
                         { "beta", "wss://beta-ws.kraken.com" },
                         { "beta-private", "wss://beta-ws-auth.kraken.com" },
                     } },
@@ -43,7 +44,9 @@ public partial class kraken : ccxt.kraken
                 { "OHLCVLimit", 1000 },
                 { "ordersLimit", 1000 },
                 { "symbolsByOrderId", new Dictionary<string, object>() {} },
-                { "checksum", true },
+                { "watchOrderBook", new Dictionary<string, object>() {
+                    { "checksum", true },
+                } },
             } },
             { "exceptions", new Dictionary<string, object>() {
                 { "ws", new Dictionary<string, object>() {
@@ -112,7 +115,7 @@ public partial class kraken : ccxt.kraken
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -176,7 +179,7 @@ public partial class kraken : ccxt.kraken
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of the currency you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -822,7 +825,7 @@ public partial class kraken : ccxt.kraken
             }
             // don't remove this line or I will poop on your face
             (orderbook as IOrderBook).limit();
-            object checksum = this.safeBool(this.options, "checksum", true);
+            object checksum = this.handleOption("watchOrderBook", "checksum", true);
             if (isTrue(checksum))
             {
                 object priceString = this.safeString(example, 0);
@@ -849,7 +852,7 @@ public partial class kraken : ccxt.kraken
                 object localChecksum = this.crc32(payload, false);
                 if (isTrue(!isEqual(localChecksum, c)))
                 {
-                    var error = new InvalidNonce(add(this.id, " invalid checksum"));
+                    var error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));
 
 
                     ((WebSocketClient)client).reject(error, messageHash);
@@ -982,7 +985,7 @@ public partial class kraken : ccxt.kraken
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trade structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
         return await this.watchPrivate("ownTrades", symbol, since, limit, parameters);
@@ -1476,6 +1479,79 @@ public partial class kraken : ccxt.kraken
         return await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, subscriptionArgs);
     }
 
+    public async override Task<object> watchBalance(object parameters = null)
+    {
+        /**
+        * @method
+        * @name kraken#watchBalance
+        * @description watch balance and get the amount of funds available for trading or funds locked in orders
+        * @see https://docs.kraken.com/api/docs/websocket-v2/balances
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object token = await this.authenticate();
+        object messageHash = "balances";
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateV2");
+        object requestId = this.requestId();
+        object subscribe = new Dictionary<string, object>() {
+            { "method", "subscribe" },
+            { "req_id", requestId },
+            { "params", new Dictionary<string, object>() {
+                { "channel", "balances" },
+                { "token", token },
+            } },
+        };
+        object request = this.deepExtend(subscribe, parameters);
+        return await this.watch(url, messageHash, request, messageHash);
+    }
+
+    public virtual void handleBalance(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "channel": "balances",
+        //         "data": [
+        //             {
+        //                 "asset": "BTC",
+        //                 "asset_class": "currency",
+        //                 "balance": 1.2,
+        //                 "wallets": [
+        //                     {
+        //                         "type": "spot",
+        //                         "id": "main",
+        //                         "balance": 1.2
+        //                     }
+        //                 ]
+        //             }
+        //         ],
+        //         "type": "snapshot",
+        //         "sequence": 1
+        //     }
+        //
+        object data = this.safeList(message, "data", new List<object>() {});
+        object result = new Dictionary<string, object>() {
+            { "info", message },
+        };
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        {
+            object currencyId = this.safeString(getValue(data, i), "asset");
+            object code = this.safeCurrencyCode(currencyId);
+            object account = this.account();
+            object eq = this.safeString(getValue(data, i), "balance");
+            ((IDictionary<string,object>)account)["total"] = eq;
+            ((IDictionary<string,object>)result)[(string)code] = account;
+        }
+        object type = "spot";
+        object balance = this.safeBalance(result);
+        object oldBalance = this.safeValue(this.balance, type, new Dictionary<string, object>() {});
+        object newBalance = this.deepExtend(oldBalance, balance);
+        ((IDictionary<string,object>)this.balance)[(string)type] = this.safeBalance(newBalance);
+        object channel = this.safeString(message, "channel");
+        callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, type), channel});
+    }
+
     public virtual object getMessageHash(object unifiedElementName, object subChannelName = null, object symbol = null)
     {
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...
@@ -1588,6 +1664,18 @@ public partial class kraken : ccxt.kraken
             }
         } else
         {
+            object channel = this.safeString(message, "channel");
+            if (isTrue(!isEqual(channel, null)))
+            {
+                object methods = new Dictionary<string, object>() {
+                    { "balances", this.handleBalance },
+                };
+                object method = this.safeValue(methods, channel);
+                if (isTrue(!isEqual(method, null)))
+                {
+                    DynamicInvoker.InvokeMethod(method, new object[] { client, message});
+                }
+            }
             if (isTrue(this.handleErrorMessage(client as WebSocketClient, message)))
             {
                 object eventVar = this.safeString(message, "event");

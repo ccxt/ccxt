@@ -203,7 +203,7 @@ class coinmetro extends Exchange {
                     'maker' => $this->parse_number('0'),
                 ),
             ),
-            'precisionMode' => DECIMAL_PLACES,
+            'precisionMode' => TICK_SIZE,
             // exchange-specific options
             'options' => array(
                 'currenciesByIdForParseMarket' => null,
@@ -306,7 +306,6 @@ class coinmetro extends Exchange {
             $deposit = $this->safe_value($currency, 'canDeposit');
             $canTrade = $this->safe_value($currency, 'canTrade');
             $active = $canTrade ? $withdraw : true;
-            $precision = $this->safe_integer($currency, 'digits');
             $minAmount = $this->safe_number($currency, 'minQty');
             $result[$code] = $this->safe_currency_structure(array(
                 'id' => $id,
@@ -317,7 +316,7 @@ class coinmetro extends Exchange {
                 'deposit' => $deposit,
                 'withdraw' => $withdraw,
                 'fee' => null,
-                'precision' => $precision,
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'digits'))),
                 'limits' => array(
                     'amount' => array( 'min' => $minAmount, 'max' => null ),
                     'withdraw' => array( 'min' => null, 'max' => null ),
@@ -347,19 +346,14 @@ class coinmetro extends Exchange {
         //
         //     array(
         //         array(
-        //             "pair" => "PERPEUR",
-        //             "precision" => 5,
-        //             "margin" => false
-        //         ),
-        //         array(
-        //             "pair" => "PERPUSD",
-        //             "precision" => 5,
-        //             "margin" => false
-        //         ),
-        //         array(
         //             "pair" => "YFIEUR",
         //             "precision" => 5,
         //             "margin" => false
+        //         ),
+        //         array(
+        //             "pair" => "BTCEUR",
+        //             "precision" => 2,
+        //             "margin" => true
         //         ),
         //         ...
         //     )
@@ -406,9 +400,7 @@ class coinmetro extends Exchange {
             'optionType' => null,
             'precision' => array(
                 'amount' => $basePrecisionAndLimits['precision'],
-                'price' => $quotePrecisionAndLimits['precision'],
-                'base' => $basePrecisionAndLimits['precision'],
-                'quote' => $quotePrecisionAndLimits['precision'],
+                'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'precision'))),
             ),
             'limits' => array(
                 'leverage' => array(
@@ -464,12 +456,11 @@ class coinmetro extends Exchange {
     public function parse_market_precision_and_limits($currencyId) {
         $currencies = $this->safe_value($this->options, 'currenciesByIdForParseMarket', array());
         $currency = $this->safe_value($currencies, $currencyId, array());
-        $precision = $this->safe_integer($currency, 'precision');
         $limits = $this->safe_value($currency, 'limits', array());
         $amountLimits = $this->safe_value($limits, 'amount', array());
         $minLimit = $this->safe_number($amountLimits, 'min');
         $result = array(
-            'precision' => $precision,
+            'precision' => $this->safe_number($currency, 'precision'),
             'minLimit' => $minLimit,
         );
         return $result;
@@ -1187,7 +1178,7 @@ class coinmetro extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount in $market orders
          * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", "GTD"

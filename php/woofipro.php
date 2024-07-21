@@ -19,6 +19,7 @@ class woofipro extends Exchange {
             'version' => 'v1',
             'certified' => true,
             'pro' => true,
+            'dex' => true,
             'hostname' => 'dex.woo.org',
             'has' => array(
                 'CORS' => null,
@@ -1222,7 +1223,7 @@ class woofipro extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much you want to trade in units of the base currency
-         * @param {float} [$price] the $price that the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price that the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} $request to be sent to the exchange
          */
@@ -1319,7 +1320,7 @@ class woofipro extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] The $price a trigger $order is triggered at
          * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the triggerPrice at which the attached take profit $order will be triggered (perpetual swap markets only)
@@ -1441,7 +1442,7 @@ class woofipro extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] The $price a trigger order is triggered at
          * @param {float} [$params->stopLossPrice] $price to trigger stop-loss orders
@@ -1619,7 +1620,9 @@ class woofipro extends Exchange {
         //     }
         // }
         //
-        return $response;
+        return array( $this->safe_order(array(
+            'info' => $response,
+        )) );
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
@@ -1661,7 +1664,11 @@ class woofipro extends Exchange {
         //     }
         // }
         //
-        return $response;
+        return array(
+            array(
+                'info' => $response,
+            ),
+        );
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {

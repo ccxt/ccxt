@@ -11,6 +11,7 @@ from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
+from ccxt.base.precise import Precise
 
 
 class gemini(ccxt.async_support.gemini):
@@ -366,9 +367,10 @@ class gemini(ccxt.async_support.gemini):
         market = self.safe_market(marketId)
         symbol = market['symbol']
         messageHash = 'orderbook:' + symbol
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
-            orderbook = self.order_book()
+        # orderbook = self.safe_value(self.orderbooks, symbol)
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book()
+        orderbook = self.orderbooks[symbol]
         for i in range(0, len(changes)):
             delta = changes[i]
             price = self.safe_number(delta, 1)
@@ -444,9 +446,10 @@ class gemini(ccxt.async_support.gemini):
             entry = rawBidAskChanges[i]
             rawSide = self.safe_string(entry, 'side')
             price = self.safe_number(entry, 'price')
-            size = self.safe_number(entry, 'remaining')
-            if size == 0:
+            sizeString = self.safe_string(entry, 'remaining')
+            if Precise.string_eq(sizeString, '0'):
                 continue
+            size = self.parse_number(sizeString)
             if rawSide == 'bid':
                 currentBidAsk['bid'] = price
                 currentBidAsk['bidVolume'] = size

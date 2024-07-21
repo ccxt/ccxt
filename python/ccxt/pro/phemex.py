@@ -45,7 +45,7 @@ class phemex(ccxt.async_support.phemex):
                 'OHLCVLimit': 1000,
             },
             'streaming': {
-                'keepAlive': 10000,
+                'keepAlive': 9000,
             },
         })
 
@@ -677,11 +677,11 @@ class phemex(ccxt.async_support.phemex):
             self.orderbooks[symbol] = orderbook
             client.resolve(orderbook, messageHash)
         else:
-            orderbook = self.safe_value(self.orderbooks, symbol)
-            if orderbook is not None:
-                changes = self.safe_value_2(message, 'book', 'orderbook_p', {})
-                asks = self.safe_value(changes, 'asks', [])
-                bids = self.safe_value(changes, 'bids', [])
+            if symbol in self.orderbooks:
+                orderbook = self.orderbooks[symbol]
+                changes = self.safe_dict_2(message, 'book', 'orderbook_p', {})
+                asks = self.safe_list(changes, 'asks', [])
+                bids = self.safe_list(changes, 'bids', [])
                 self.custom_handle_deltas(orderbook['asks'], asks, market)
                 self.custom_handle_deltas(orderbook['bids'], bids, market)
                 orderbook['nonce'] = nonce
@@ -697,7 +697,7 @@ class phemex(ccxt.async_support.phemex):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         market = None

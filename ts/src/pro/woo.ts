@@ -55,7 +55,7 @@ export default class woo extends wooRest {
             },
             'streaming': {
                 'ping': this.ping,
-                'keepAlive': 10000,
+                'keepAlive': 9000,
             },
             'exceptions': {
                 'ws': {
@@ -390,7 +390,7 @@ export default class woo extends wooRest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -616,7 +616,7 @@ export default class woo extends wooRest {
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
-         * @name woo#watchOrders
+         * @name woo#watchMyTrades
          * @see https://docs.woo.org/#executionreport
          * @see https://docs.woo.org/#algoexecutionreportv2
          * @description watches information on multiple trades made by the user
@@ -625,7 +625,7 @@ export default class woo extends wooRest {
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.trigger] true if trigger order
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
@@ -684,9 +684,10 @@ export default class woo extends wooRest {
             'cost': this.safeString (order, 'totalFee'),
             'currency': this.safeString (order, 'feeAsset'),
         };
+        const priceString = this.safeString (order, 'price');
         let price = this.safeNumber (order, 'price');
         const avgPrice = this.safeNumber (order, 'avgPrice');
-        if ((price === 0) && (avgPrice !== undefined)) {
+        if (Precise.stringEq (priceString, '0') && (avgPrice !== undefined)) {
             price = avgPrice;
         }
         const amount = this.safeFloat (order, 'quantity');

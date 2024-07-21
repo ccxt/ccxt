@@ -440,6 +440,13 @@ class zonda extends zonda$1 {
         //         "secondBalanceId": "ab43023b-4079-414c-b340-056e3430a3af"
         //     }
         //
+        // cancelOrder
+        //
+        //    {
+        //        status: "Ok",
+        //        errors: []
+        //    }
+        //
         const marketId = this.safeString(order, 'market');
         const symbol = this.safeSymbol(marketId, market, '-');
         const timestamp = this.safeInteger(order, 'time');
@@ -1348,7 +1355,7 @@ class zonda extends zonda$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1497,9 +1504,10 @@ class zonda extends zonda$1 {
             'side': side,
             'price': price,
         };
+        const response = await this.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice(this.extend(request, params));
         // { status: "Fail", errors: [ "NOT_RECOGNIZED_OFFER_TYPE" ] }  -- if required params are missing
         // { status: "Ok", errors: [] }
-        return await this.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice(this.extend(request, params));
+        return this.parseOrder(response);
     }
     isFiat(currency) {
         const fiatCurrencies = {

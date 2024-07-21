@@ -26,7 +26,7 @@ class coinmate(Exchange, ImplicitAPI):
             'id': 'coinmate',
             'name': 'CoinMate',
             'countries': ['GB', 'CZ', 'EU'],  # UK, Czech Republic
-            'rateLimit': 1000,
+            'rateLimit': 600,
             'has': {
                 'CORS': True,
                 'spot': True,
@@ -175,28 +175,28 @@ class coinmate(Exchange, ImplicitAPI):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'maker': self.parse_number('0.0012'),
-                    'taker': self.parse_number('0.0025'),
+                    'taker': self.parse_number('0.006'),
+                    'maker': self.parse_number('0.004'),
                     'tiers': {
                         'taker': [
-                            [self.parse_number('0'), self.parse_number('0.0035')],
-                            [self.parse_number('10000'), self.parse_number('0.0023')],
-                            [self.parse_number('100000'), self.parse_number('0.0021')],
-                            [self.parse_number('250000'), self.parse_number('0.0020')],
-                            [self.parse_number('500000'), self.parse_number('0.0015')],
-                            [self.parse_number('1000000'), self.parse_number('0.0013')],
-                            [self.parse_number('3000000'), self.parse_number('0.0010')],
-                            [self.parse_number('15000000'), self.parse_number('0.0005')],
+                            [self.parse_number('0'), self.parse_number('0.006')],
+                            [self.parse_number('10000'), self.parse_number('0.003')],
+                            [self.parse_number('100000'), self.parse_number('0.0023')],
+                            [self.parse_number('250000'), self.parse_number('0.0021')],
+                            [self.parse_number('500000'), self.parse_number('0.0018')],
+                            [self.parse_number('1000000'), self.parse_number('0.0015')],
+                            [self.parse_number('3000000'), self.parse_number('0.0012')],
+                            [self.parse_number('15000000'), self.parse_number('0.001')],
                         ],
                         'maker': [
-                            [self.parse_number('0'), self.parse_number('0.003')],
-                            [self.parse_number('10000'), self.parse_number('0.0011')],
-                            [self.parse_number('100000'), self.parse_number('0.0010')],
-                            [self.parse_number('250000'), self.parse_number('0.0008')],
+                            [self.parse_number('0'), self.parse_number('0.004')],
+                            [self.parse_number('10000'), self.parse_number('0.002')],
+                            [self.parse_number('100000'), self.parse_number('0.0012')],
+                            [self.parse_number('250000'), self.parse_number('0.0009')],
                             [self.parse_number('500000'), self.parse_number('0.0005')],
                             [self.parse_number('1000000'), self.parse_number('0.0003')],
                             [self.parse_number('3000000'), self.parse_number('0.0002')],
-                            [self.parse_number('15000000'), self.parse_number('0')],
+                            [self.parse_number('15000000'), self.parse_number('-0.0004')],
                         ],
                     },
                 },
@@ -895,6 +895,13 @@ class coinmate(Exchange, ImplicitAPI):
         #         "trailing": False,
         #     }
         #
+        # cancelOrder
+        #
+        #    {
+        #        "success": True,
+        #        "remainingAmount": 0.1
+        #    }
+        #
         id = self.safe_string(order, 'id')
         timestamp = self.safe_integer(order, 'timestamp')
         side = self.safe_string_lower(order, 'type')
@@ -944,7 +951,7 @@ class coinmate(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -1003,9 +1010,18 @@ class coinmate(Exchange, ImplicitAPI):
         #   {"error":false,"errorMessage":null,"data":{"success":true,"remainingAmount":0.01}}
         request: dict = {'orderId': id}
         response = await self.privatePostCancelOrderWithInfo(self.extend(request, params))
-        return {
-            'info': response,
-        }
+        #
+        #    {
+        #        "error": False,
+        #        "errorMessage": null,
+        #        "data": {
+        #          "success": True,
+        #          "remainingAmount": 0.1
+        #        }
+        #    }
+        #
+        data = self.safe_dict(response, 'data')
+        return self.parse_order(data)
 
     def nonce(self):
         return self.milliseconds()
@@ -1032,20 +1048,16 @@ class coinmate(Exchange, ImplicitAPI):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
-        if response is not None:
-            if 'error' in response:
-                # {"error":true,"errorMessage":"Minimum Order Size 0.01 ETH","data":null}
-                if response['error']:
-                    message = self.safe_string(response, 'errorMessage')
-                    feedback = self.id + ' ' + message
-                    self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
-                    self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
-                    raise ExchangeError(self.id + ' ' + self.json(response))
-        if code > 400:
-            if body:
-                feedback = self.id + ' ' + body
-                self.throw_exactly_matched_exception(self.exceptions['exact'], body, feedback)
-                self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
-                raise ExchangeError(feedback)  # unknown message
-            raise ExchangeError(self.id + ' ' + body)
+        if response is None:
+            return None  # fallback to default error handler
+        #
+        #     {"error":true,"errorMessage":"Api internal error","data":null}
+        #     {"error":true,"errorMessage":"Access denied.","data":null}
+        #
+        errorMessage = self.safe_string(response, 'errorMessage')
+        if errorMessage is not None:
+            feedback = self.id + ' ' + body
+            self.throw_exactly_matched_exception(self.exceptions['exact'], errorMessage, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
+            raise ExchangeError(feedback)  # unknown message
         return None
