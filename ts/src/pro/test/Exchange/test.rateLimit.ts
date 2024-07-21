@@ -33,7 +33,6 @@ async function testRateLimit (exchange: Exchange, skippedProperties) {
     exchange.enableRateLimit = true;
     promises = [];
     try {
-        exchange.verbose = true;
         for (let i = 0; i < symbols.length; i++) {
             promises.push (exchange.watchOHLCV (symbols[i], '1m'));
         }
