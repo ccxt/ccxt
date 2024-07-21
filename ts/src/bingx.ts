@@ -6,7 +6,7 @@ import { AuthenticationError, PermissionDenied, AccountSuspended, ExchangeError,
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num, MarginModification, Currencies, TransferEntries, int, TradingFeeInterface } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num, MarginModification, Currencies, TransferEntries, int, TradingFeeInterface, FundingRate } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1358,7 +1358,7 @@ export default class bingx extends Exchange {
         return filteredResponse;
     }
 
-    parseFundingRate (contract, market: Market = undefined) {
+    parseFundingRate (contract: Dict, market: Market = undefined): FundingRate {
         //
         //     {
         //         "symbol": "BTC-USDT",

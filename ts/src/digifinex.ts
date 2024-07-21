@@ -6,7 +6,7 @@ import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry, Num, MarginModification, TradingFeeInterface, Currencies, CrossBorrowRate, CrossBorrowRates, Dict, TransferEntries, LeverageTier, LeverageTiers, int } from './base/types.js';
+import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry, Num, MarginModification, TradingFeeInterface, Currencies, CrossBorrowRate, CrossBorrowRates, Dict, TransferEntries, LeverageTier, LeverageTiers, int, FundingRate } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -3226,7 +3226,7 @@ export default class digifinex extends Exchange {
         return this.parseFundingRate (data, market) as any;
     }
 
-    parseFundingRate (contract, market: Market = undefined) {
+    parseFundingRate (contract: Dict, market: Market = undefined): FundingRate {
         //
         //     {
         //         "instrument_id": "BTCUSDTPERP",
@@ -3251,7 +3251,7 @@ export default class digifinex extends Exchange {
             'fundingRate': this.safeNumber (contract, 'funding_rate'),
             'fundingTimestamp': timestamp,
             'fundingDatetime': this.iso8601 (timestamp),
-            'nextFundingRate': this.safeString (contract, 'next_funding_rate'),
+            'nextFundingRate': this.safeNumber (contract, 'next_funding_rate'),
             'nextFundingTimestamp': nextTimestamp,
             'nextFundingDatetime': this.iso8601 (nextTimestamp),
             'previousFundingRate': undefined,
