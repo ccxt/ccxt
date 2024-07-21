@@ -25,6 +25,7 @@ interface Exchange {
     publicGetTimestamp (params?: {}): Promise<implicitReturnType>;
     publicGetStatus (params?: {}): Promise<implicitReturnType>;
     publicGetMarkPriceSymbolCurrent (params?: {}): Promise<implicitReturnType>;
+    publicGetMarkPriceAllSymbols (params?: {}): Promise<implicitReturnType>;
     publicGetMarginConfig (params?: {}): Promise<implicitReturnType>;
     publicPostBulletPublic (params?: {}): Promise<implicitReturnType>;
     privateGetUserInfo (params?: {}): Promise<implicitReturnType>;

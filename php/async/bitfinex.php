@@ -1669,7 +1669,7 @@ class bitfinex extends Exchange {
             //     )
             //
             $response = $this->safe_value($responses, 0, array());
-            $id = $this->safe_number($response, 'withdrawal_id');
+            $id = $this->safe_integer($response, 'withdrawal_id');
             $message = $this->safe_string($response, 'message');
             $errorMessage = $this->find_broadly_matched_key($this->exceptions['broad'], $message);
             if ($id === 0) {

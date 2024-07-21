@@ -143,6 +143,7 @@ public partial class kucoin : Exchange
                         { "timestamp", 4.5 },
                         { "status", 4.5 },
                         { "mark-price/{symbol}/current", 3 },
+                        { "mark-price/all-symbols", 3 },
                         { "margin/config", 25 },
                     } },
                     { "post", new Dictionary<string, object>() {
@@ -574,6 +575,7 @@ public partial class kucoin : Exchange
                             { "currencies", "v3" },
                             { "currencies/{currency}", "v3" },
                             { "symbols", "v2" },
+                            { "mark-price/all-symbols", "v3" },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {

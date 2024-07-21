@@ -1115,6 +1115,12 @@ public partial class woo
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}.</returns>

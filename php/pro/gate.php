@@ -1327,7 +1327,7 @@ class gate extends \ccxt\async\gate {
             } elseif ($event === 'finish') {
                 $status = $this->safe_string($parsed, 'status');
                 if ($status === null) {
-                    $left = $this->safe_number($info, 'left');
+                    $left = $this->safe_integer($info, 'left');
                     $parsed['status'] = ($left === 0) ? 'closed' : 'canceled';
                 }
             }

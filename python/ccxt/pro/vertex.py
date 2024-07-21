@@ -798,9 +798,10 @@ class vertex(ccxt.async_support.vertex):
         #
         marketId = self.safe_string(order, 'product_id')
         timestamp = self.parse_to_int(Precise.string_div(self.safe_string(order, 'timestamp'), '1000000'))
-        remaining = self.parse_to_numeric(self.convertFromX18(self.safe_string(order, 'amount')))
+        remainingString = self.convertFromX18(self.safe_string(order, 'amount'))
+        remaining = self.parse_to_numeric(remainingString)
         status = self.parse_ws_order_status(self.safe_string(order, 'reason'))
-        if remaining == 0 and status == 'open':
+        if Precise.string_eq(remainingString, '0') and status == 'open':
             status = 'closed'
         market = self.safe_market(marketId, market)
         symbol = market['symbol']

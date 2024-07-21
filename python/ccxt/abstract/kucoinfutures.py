@@ -18,6 +18,7 @@ class ImplicitAPI:
     public_get_timestamp = publicGetTimestamp = Entry('timestamp', 'public', 'GET', {'cost': 4.5})
     public_get_status = publicGetStatus = Entry('status', 'public', 'GET', {'cost': 4.5})
     public_get_mark_price_symbol_current = publicGetMarkPriceSymbolCurrent = Entry('mark-price/{symbol}/current', 'public', 'GET', {'cost': 3})
+    public_get_mark_price_all_symbols = publicGetMarkPriceAllSymbols = Entry('mark-price/all-symbols', 'public', 'GET', {'cost': 3})
     public_get_margin_config = publicGetMarginConfig = Entry('margin/config', 'public', 'GET', {'cost': 25})
     public_post_bullet_public = publicPostBulletPublic = Entry('bullet-public', 'public', 'POST', {'cost': 15})
     private_get_user_info = privateGetUserInfo = Entry('user-info', 'private', 'GET', {'cost': 30})

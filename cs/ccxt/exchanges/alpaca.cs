@@ -1059,6 +1059,7 @@ public partial class alpaca : Exchange
         headers = ((bool) isTrue((!isEqual(headers, null)))) ? headers : new Dictionary<string, object>() {};
         if (isTrue(isEqual(getValue(api, 1), "private")))
         {
+            this.checkRequiredCredentials();
             ((IDictionary<string,object>)headers)["APCA-API-KEY-ID"] = this.apiKey;
             ((IDictionary<string,object>)headers)["APCA-API-SECRET-KEY"] = this.secret;
         }

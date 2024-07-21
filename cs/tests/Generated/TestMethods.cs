@@ -1207,7 +1207,7 @@ public partial class testMainClass : BaseTest
         return newInput;
     }
 
-    public async virtual Task testMethodStatically(Exchange exchange, object method, object data, object type, object skipKeys)
+    public async virtual Task testRequestStatically(Exchange exchange, object method, object data, object type, object skipKeys)
     {
         object output = null;
         object requestUrl = null;
@@ -1258,7 +1258,7 @@ public partial class testMainClass : BaseTest
             }
         } catch(Exception e)
         {
-            this.requestTestsFailed = true;
+            this.responseTestsFailed = true;
             object errorMessage = add(add(add(add(add(add(add(add(add(add(add(add("[", this.lang), "][STATIC_RESPONSE_TEST_FAILURE]"), "["), this.exchangeHint(exchange)), "]"), "["), method), "]"), "["), getValue(data, "description")), "]"), ((object)e).ToString());
             dump(add("[TEST_FAILURE]", errorMessage));
         }
@@ -1360,7 +1360,7 @@ public partial class testMainClass : BaseTest
                 }
                 object type = exchange.safeString(exchangeData, "outputType");
                 object skipKeys = exchange.safeValue(exchangeData, "skipKeys", new List<object>() {});
-                await this.testMethodStatically(exchange, method, result, type, skipKeys);
+                await this.testRequestStatically(exchange, method, result, type, skipKeys);
                 // reset options
                 // exchange.options = exchange.deepExtend (oldExchangeOptions, {});
                 exchange.extendExchangeOptions(exchange.deepExtend(oldExchangeOptions, new Dictionary<string, object>() {}));

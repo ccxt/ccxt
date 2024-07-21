@@ -2335,7 +2335,7 @@ class bitfinex2 extends Exchange {
                 $feeCost = Precise::string_abs($feeCost);
             }
             $amount = $this->safe_number($data, 5);
-            $id = $this->safe_string($data, 0);
+            $id = $this->safe_integer($data, 0);
             $status = 'ok';
             if ($id === 0) {
                 $id = null;
