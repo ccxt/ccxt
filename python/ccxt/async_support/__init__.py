@@ -70,7 +70,7 @@ from ccxt.async_support.bitfinex2 import bitfinex2                        # noqa
 from ccxt.async_support.bitflyer import bitflyer                          # noqa: F401
 from ccxt.async_support.bitforex import bitforex                          # noqa: F401
 from ccxt.async_support.bitget import bitget                              # noqa: F401
-from ccxt.async_support.bitget_inverse import bitget_inverse              # noqa: F401
+from ccxt.async_support.bitget_futures import bitget_futures              # noqa: F401
 from ccxt.async_support.bithumb import bithumb                            # noqa: F401
 from ccxt.async_support.bitkk import bitkk                                # noqa: F401
 from ccxt.async_support.bitmart import bitmart                            # noqa: F401
@@ -196,7 +196,7 @@ exchanges = [
     'bitflyer',
     'bitforex',
     'bitget',
-    'bitget_inverse'
+    'bitget_futures'
     'bithumb',
     'bitkk',
     'bitmart',
