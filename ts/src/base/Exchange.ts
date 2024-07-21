@@ -6009,7 +6009,7 @@ export default class Exchange {
         return market['symbol'];
     }
 
-    parseFundingRate (contract: string, market: Market = undefined): object {
+    parseFundingRate (contract: Dict, market: Market = undefined): FundingRate {
         throw new NotSupported (this.id + ' parseFundingRate() is not supported yet');
     }
 
