@@ -2386,7 +2386,7 @@ export default class bitfinex2 extends Exchange {
                 feeCost = Precise.stringAbs (feeCost);
             }
             amount = this.safeNumber (data, 5);
-            id = this.safeString (data, 0);
+            id = this.safeInteger (data, 0);
             status = 'ok';
             if (id === 0) {
                 id = undefined;

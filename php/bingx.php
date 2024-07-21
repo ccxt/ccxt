@@ -77,6 +77,7 @@ class bingx extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => true,
                 'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => true,
@@ -5251,6 +5252,91 @@ class bingx extends Exchange {
             'info' => $marginMode,
             'symbol' => $market['symbol'],
             'marginMode' => $marginType,
+        );
+    }
+
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
+        /**
+         * fetch the trading fees for a $market
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Trading%20Commission%20Rate
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20Trading%20Commission%20Rate
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Trade%20Commission%20Rate
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = null;
+        $commission = array();
+        $data = $this->safe_dict($response, 'data', array());
+        if ($market['spot']) {
+            $response = $this->spotV1PrivateGetUserCommissionRate ($this->extend($request, $params));
+            //
+            //     {
+            //         "code" => 0,
+            //         "msg" => "",
+            //         "debugMsg" => "",
+            //         "data" => {
+            //             "takerCommissionRate" => 0.001,
+            //             "makerCommissionRate" => 0.001
+            //         }
+            //     }
+            //
+            $commission = $data;
+        } else {
+            if ($market['inverse']) {
+                $response = $this->cswapV1PrivateGetUserCommissionRate ($params);
+                //
+                //     {
+                //         "code" => 0,
+                //         "msg" => "",
+                //         "timestamp" => 1721365261438,
+                //         "data" => {
+                //             "takerCommissionRate" => "0.0005",
+                //             "makerCommissionRate" => "0.0002"
+                //         }
+                //     }
+                //
+                $commission = $data;
+            } else {
+                $response = $this->swapV2PrivateGetUserCommissionRate ($params);
+                //
+                //     {
+                //         "code" => 0,
+                //         "msg" => "",
+                //         "data" => {
+                //             "commission" => {
+                //                 "takerCommissionRate" => 0.0005,
+                //                 "makerCommissionRate" => 0.0002
+                //             }
+                //         }
+                //     }
+                //
+                $commission = $this->safe_dict($data, 'commission', array());
+            }
+        }
+        return $this->parse_trading_fee($commission, $market);
+    }
+
+    public function parse_trading_fee(array $fee, ?array $market = null): array {
+        //
+        //     {
+        //         "takerCommissionRate" => 0.001,
+        //         "makerCommissionRate" => 0.001
+        //     }
+        //
+        $symbol = ($market !== null) ? $market['symbol'] : null;
+        return array(
+            'info' => $fee,
+            'symbol' => $symbol,
+            'maker' => $this->safe_number($fee, 'makerCommissionRate'),
+            'taker' => $this->safe_number($fee, 'takerCommissionRate'),
+            'percentage' => false,
+            'tierBased' => false,
         );
     }
 

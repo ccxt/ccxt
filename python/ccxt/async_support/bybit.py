@@ -2914,18 +2914,21 @@ class bybit(Exchange, ImplicitAPI):
         :see: https://bybit-exchange.github.io/docs/v5/asset/all-balance
         :see: https://bybit-exchange.github.io/docs/v5/account/wallet-balance
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.type]: wallet type, ['spot', 'swap', 'fund']
+        :param str [params.type]: wallet type, ['spot', 'swap', 'funding']
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
         request: dict = {}
         enableUnifiedMargin, enableUnifiedAccount = await self.is_unified_enabled()
         isUnifiedAccount = (enableUnifiedMargin or enableUnifiedAccount)
+        rawType = self.safe_string(params, 'type')
         type = None
         type, params = self.get_bybit_type('fetchBalance', None, params)
+        lowercaseRawType = rawType.lower() if (rawType is not None) else None
         isSpot = (type == 'spot')
         isLinear = (type == 'linear')
         isInverse = (type == 'inverse')
+        isFunding = (lowercaseRawType == 'fund') or (lowercaseRawType == 'funding')
         if isUnifiedAccount:
             if isInverse:
                 type = 'contract'
@@ -2941,10 +2944,10 @@ class bybit(Exchange, ImplicitAPI):
         response = None
         if isSpot and (marginMode is not None):
             response = await self.privateGetV5SpotCrossMarginTradeAccount(self.extend(request, params))
-        elif unifiedType == 'FUND':
+        elif isFunding:
             # use self endpoint only we have no other choice
             # because it requires transfer permission
-            request['accountType'] = unifiedType
+            request['accountType'] = 'FUND'
             response = await self.privateGetV5AssetTransferQueryAccountCoinsBalance(self.extend(request, params))
         else:
             request['accountType'] = unifiedType

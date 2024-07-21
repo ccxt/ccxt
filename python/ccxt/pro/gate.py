@@ -1195,7 +1195,7 @@ class gate(ccxt.async_support.gate):
             elif event == 'finish':
                 status = self.safe_string(parsed, 'status')
                 if status is None:
-                    left = self.safe_number(info, 'left')
+                    left = self.safe_integer(info, 'left')
                     parsed['status'] = 'closed' if (left == 0) else 'canceled'
             stored.append(parsed)
             symbol = parsed['symbol']

@@ -686,9 +686,10 @@ class woofipro(ccxt.async_support.woofipro):
             'cost': self.safe_string(order, 'totalFee'),
             'currency': self.safe_string(order, 'feeAsset'),
         }
+        priceString = self.safe_string(order, 'price')
         price = self.safe_number(order, 'price')
         avgPrice = self.safe_number(order, 'avgPrice')
-        if (price == 0) and (avgPrice is not None):
+        if Precise.string_eq(priceString, '0') and (avgPrice is not None):
             price = avgPrice
         amount = self.safe_string(order, 'quantity')
         side = self.safe_string_lower(order, 'side')

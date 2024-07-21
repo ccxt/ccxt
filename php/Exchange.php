@@ -39,7 +39,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.3.63';
+$version = '4.3.64';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -58,7 +58,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.3.63';
+    const VERSION = '4.3.64';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -5200,15 +5200,15 @@ class Exchange {
             $this->load_markets();
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $tickers = $this->fetch_ticker_ws($symbol, $params);
+            $tickers = $this->fetch_tickers_ws(array( $symbol ), $params);
             $ticker = $this->safe_dict($tickers, $symbol);
             if ($ticker === null) {
-                throw new NullResponse($this->id . ' fetchTickers() could not find a $ticker for ' . $symbol);
+                throw new NullResponse($this->id . ' fetchTickerWs() could not find a $ticker for ' . $symbol);
             } else {
                 return $ticker;
             }
         } else {
-            throw new NotSupported($this->id . ' fetchTicker() is not supported yet');
+            throw new NotSupported($this->id . ' fetchTickerWs() is not supported yet');
         }
     }
 

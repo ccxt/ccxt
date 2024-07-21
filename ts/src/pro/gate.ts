@@ -1318,7 +1318,7 @@ export default class gate extends gateRest {
             } else if (event === 'finish') {
                 const status = this.safeString (parsed, 'status');
                 if (status === undefined) {
-                    const left = this.safeNumber (info, 'left');
+                    const left = this.safeInteger (info, 'left');
                     parsed['status'] = (left === 0) ? 'closed' : 'canceled';
                 }
             }

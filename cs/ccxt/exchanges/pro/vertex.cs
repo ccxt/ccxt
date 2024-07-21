@@ -945,9 +945,10 @@ public partial class vertex : ccxt.vertex
         //
         object marketId = this.safeString(order, "product_id");
         object timestamp = this.parseToInt(Precise.stringDiv(this.safeString(order, "timestamp"), "1000000"));
-        object remaining = this.parseToNumeric(this.convertFromX18(this.safeString(order, "amount")));
+        object remainingString = this.convertFromX18(this.safeString(order, "amount"));
+        object remaining = this.parseToNumeric(remainingString);
         object status = this.parseWsOrderStatus(this.safeString(order, "reason"));
-        if (isTrue(isTrue(isEqual(remaining, 0)) && isTrue(isEqual(status, "open"))))
+        if (isTrue(isTrue(Precise.stringEq(remainingString, "0")) && isTrue(isEqual(status, "open"))))
         {
             status = "closed";
         }

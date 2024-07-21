@@ -1480,7 +1480,7 @@ public partial class gate : ccxt.gate
                 object status = this.safeString(parsed, "status");
                 if (isTrue(isEqual(status, null)))
                 {
-                    object left = this.safeNumber(info, "left");
+                    object left = this.safeInteger(info, "left");
                     ((IDictionary<string,object>)parsed)["status"] = ((bool) isTrue((isEqual(left, 0)))) ? "closed" : "canceled";
                 }
             }
