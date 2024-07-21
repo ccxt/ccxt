@@ -317,7 +317,7 @@ public partial class bybit
     /// <item>
     /// <term>params.type</term>
     /// <description>
-    /// string : wallet type, ['spot', 'swap', 'fund']
+    /// string : wallet type, ['spot', 'swap', 'funding']
     /// </description>
     /// </item>
     /// </list>

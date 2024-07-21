@@ -3161,7 +3161,7 @@ public partial class bybit : Exchange
         * @see https://bybit-exchange.github.io/docs/v5/asset/all-balance
         * @see https://bybit-exchange.github.io/docs/v5/account/wallet-balance
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.type] wallet type, ['spot', 'swap', 'fund']
+        * @param {string} [params.type] wallet type, ['spot', 'swap', 'funding']
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -3171,13 +3171,16 @@ public partial class bybit : Exchange
         var enableUnifiedMargin = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[0];
         var enableUnifiedAccount = ((IList<object>) enableUnifiedMarginenableUnifiedAccountVariable)[1];
         object isUnifiedAccount = (isTrue(enableUnifiedMargin) || isTrue(enableUnifiedAccount));
+        object rawType = this.safeString(parameters, "type");
         object type = null;
         var typeparametersVariable = this.getBybitType("fetchBalance", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
+        object lowercaseRawType = ((bool) isTrue((!isEqual(rawType, null)))) ? ((string)rawType).ToLower() : null;
         object isSpot = (isEqual(type, "spot"));
         object isLinear = (isEqual(type, "linear"));
         object isInverse = (isEqual(type, "inverse"));
+        object isFunding = isTrue((isEqual(lowercaseRawType, "fund"))) || isTrue((isEqual(lowercaseRawType, "funding")));
         if (isTrue(isUnifiedAccount))
         {
             if (isTrue(isInverse))
@@ -3204,11 +3207,11 @@ public partial class bybit : Exchange
         if (isTrue(isTrue(isSpot) && isTrue((!isEqual(marginMode, null)))))
         {
             response = await this.privateGetV5SpotCrossMarginTradeAccount(this.extend(request, parameters));
-        } else if (isTrue(isEqual(unifiedType, "FUND")))
+        } else if (isTrue(isFunding))
         {
             // use this endpoint only we have no other choice
             // because it requires transfer permission
-            ((IDictionary<string,object>)request)["accountType"] = unifiedType;
+            ((IDictionary<string,object>)request)["accountType"] = "FUND";
             response = await this.privateGetV5AssetTransferQueryAccountCoinsBalance(this.extend(request, parameters));
         } else
         {
