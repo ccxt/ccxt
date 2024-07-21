@@ -3053,13 +3053,14 @@ export default class bybit extends Exchange {
         const request: Dict = {};
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
+        const rawType = this.safeString (params, 'type');
         let type = undefined;
         [ type, params ] = this.getBybitType ('fetchBalance', undefined, params);
-        const lowercaseType = (type !== undefined) ? type.toLowerCase () : undefined;
+        const lowercaseRawType = (rawType !== undefined) ? rawType.toLowerCase () : undefined;
         const isSpot = (type === 'spot');
         const isLinear = (type === 'linear');
         const isInverse = (type === 'inverse');
-        const isFunding = (lowercaseType === 'fund') || (type === 'funding');
+        const isFunding = (lowercaseRawType === 'fund') || (lowercaseRawType === 'funding');
         if (isUnifiedAccount) {
             if (isInverse) {
                 type = 'contract';
