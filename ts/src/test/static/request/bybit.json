@@ -654,6 +654,29 @@
                     "type": "funding"
                   }
                 ]
+            },
+            {
+                "description": "fetch funding balance using options",
+                "method": "fetchBalance",
+                "options": {
+                    "fetchBalance": {
+                        "defaultType": "fund"
+                    }
+                },
+                "url": "https://api.bybit.com/v5/asset/transfer/query-account-coins-balance?accountType=FUND",
+                "input": [
+                ]
+            },
+            {
+                "description": "fetch inverse balance",
+                "method": "fetchBalance",
+                "url": "https://api.bybit.com/v5/account/wallet-balance?accountType=CONTRACT",
+                "input": [
+                  {
+                    "type": "swap",
+                    "subType": "inverse"
+                  }
+                ]
             }
         ],
         "setLeverage": [
