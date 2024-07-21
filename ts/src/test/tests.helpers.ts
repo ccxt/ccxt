@@ -59,6 +59,7 @@ function getCliArgValue (arg) {
 }
 
 const proxyTestFileName = 'proxies';
+const rateLimitTestFileName = 'rateLimit';
 
 class baseMainTestClass {
     lang = 'JS';
@@ -180,7 +181,7 @@ async function getTestFiles (properties, ws = false) {
     const path = ws ? DIR_NAME + '../pro/test/' : DIR_NAME;
     // exchange tests
     const tests = {};
-    const finalPropList = properties.concat ([ proxyTestFileName ]);
+    const finalPropList = properties.concat ([ proxyTestFileName, rateLimitTestFileName ]);
     for (let i = 0; i < finalPropList.length; i++) {
         const name = finalPropList[i];
         const filePathWoExt = path + 'Exchange/test.' + name;
