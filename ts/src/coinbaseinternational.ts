@@ -490,7 +490,7 @@ export default class coinbaseinternational extends Exchange {
         return this.parseFundingRateHistories (rawRates, market, since, limit);
     }
 
-    parseFundingRateHistory (info, market: Market = undefined) {
+    parseFundingRateHistory (info: Dict, market: Market = undefined): FundingRateHistory {
         return this.parseFundingRate (info, market) as FundingRateHistory;
     }
 
