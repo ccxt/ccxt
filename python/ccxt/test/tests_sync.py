@@ -815,7 +815,7 @@ class testMainClass(baseMainTestClass):
                 new_input.append(current)
         return new_input
 
-    def test_method_statically(self, exchange, method, data, type, skip_keys):
+    def test_request_statically(self, exchange, method, data, type, skip_keys):
         output = None
         request_url = None
         try:
@@ -847,7 +847,7 @@ class testMainClass(baseMainTestClass):
                 unified_result_sync = call_exchange_method_dynamically_sync(exchange, method, self.sanitize_data_input(data['input']))
                 self.assert_static_response_output(mocked_exchange, skip_keys, unified_result_sync, expected_result)
         except Exception as e:
-            self.request_tests_failed = True
+            self.response_tests_failed = True
             error_message = '[' + self.lang + '][STATIC_RESPONSE_TEST_FAILURE]' + '[' + self.exchange_hint(exchange) + ']' + '[' + method + ']' + '[' + data['description'] + ']' + str(e)
             dump('[TEST_FAILURE]' + error_message)
         set_fetch_response(exchange, None)  # reset state
@@ -926,7 +926,7 @@ class testMainClass(baseMainTestClass):
                     continue
                 type = exchange.safe_string(exchange_data, 'outputType')
                 skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])
-                self.test_method_statically(exchange, method, result, type, skip_keys)
+                self.test_request_statically(exchange, method, result, type, skip_keys)
                 # reset options
                 # exchange.options = exchange.deepExtend (oldExchangeOptions, {});
                 exchange.extend_exchange_options(exchange.deep_extend(old_exchange_options, {}))

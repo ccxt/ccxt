@@ -159,6 +159,9 @@ class cryptocom extends Exchange {
                             'public/get-expired-settlement-price' => 10 / 3,
                             'public/get-insurance' => 1,
                         ),
+                        'post' => array(
+                            'public/staking/get-conversion-rate' => 2,
+                        ),
                     ),
                     'private' => array(
                         'post' => array(
@@ -188,6 +191,16 @@ class cryptocom extends Exchange {
                             'private/get-accounts' => 10 / 3,
                             'private/get-withdrawal-history' => 10 / 3,
                             'private/get-deposit-history' => 10 / 3,
+                            'private/staking/stake' => 2,
+                            'private/staking/unstake' => 2,
+                            'private/staking/get-staking-position' => 2,
+                            'private/staking/get-staking-instruments' => 2,
+                            'private/staking/get-open-stake' => 2,
+                            'private/staking/get-stake-history' => 2,
+                            'private/staking/get-reward-history' => 2,
+                            'private/staking/convert' => 2,
+                            'private/staking/get-open-convert' => 2,
+                            'private/staking/get-convert-history' => 2,
                         ),
                     ),
                 ),
@@ -803,6 +816,9 @@ class cryptocom extends Exchange {
             'timeframe' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
         if ($limit !== null) {
+            if ($limit > 300) {
+                $limit = 300;
+            }
             $request['count'] = $limit;
         }
         $now = $this->microseconds();
@@ -810,9 +826,9 @@ class cryptocom extends Exchange {
         $until = $this->safe_integer($params, 'until', $now);
         $params = $this->omit($params, array( 'until' ));
         if ($since !== null) {
-            $request['start_ts'] = $since;
+            $request['start_ts'] = $since - $duration * 1000;
             if ($limit !== null) {
-                $request['end_ts'] = $this->sum($since, $duration * ($limit + 1) * 1000) - 1;
+                $request['end_ts'] = $this->sum($since, $duration * $limit * 1000);
             } else {
                 $request['end_ts'] = $until;
             }

@@ -162,6 +162,9 @@ export default class cryptocom extends Exchange {
                             'public/get-expired-settlement-price': 10 / 3,
                             'public/get-insurance': 1,
                         },
+                        'post': {
+                            'public/staking/get-conversion-rate': 2,
+                        },
                     },
                     'private': {
                         'post': {
@@ -191,6 +194,16 @@ export default class cryptocom extends Exchange {
                             'private/get-accounts': 10 / 3,
                             'private/get-withdrawal-history': 10 / 3,
                             'private/get-deposit-history': 10 / 3,
+                            'private/staking/stake': 2,
+                            'private/staking/unstake': 2,
+                            'private/staking/get-staking-position': 2,
+                            'private/staking/get-staking-instruments': 2,
+                            'private/staking/get-open-stake': 2,
+                            'private/staking/get-stake-history': 2,
+                            'private/staking/get-reward-history': 2,
+                            'private/staking/convert': 2,
+                            'private/staking/get-open-convert': 2,
+                            'private/staking/get-convert-history': 2,
                         },
                     },
                 },
@@ -818,6 +831,9 @@ export default class cryptocom extends Exchange {
             'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
         };
         if (limit !== undefined) {
+            if (limit > 300) {
+                limit = 300;
+            }
             request['count'] = limit;
         }
         const now = this.microseconds ();
@@ -825,9 +841,9 @@ export default class cryptocom extends Exchange {
         const until = this.safeInteger (params, 'until', now);
         params = this.omit (params, [ 'until' ]);
         if (since !== undefined) {
-            request['start_ts'] = since;
+            request['start_ts'] = since - duration * 1000;
             if (limit !== undefined) {
-                request['end_ts'] = this.sum (since, duration * (limit + 1) * 1000) - 1;
+                request['end_ts'] = this.sum (since, duration * limit * 1000);
             } else {
                 request['end_ts'] = until;
             }

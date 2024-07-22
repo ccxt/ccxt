@@ -221,9 +221,9 @@ const sequentialMap = async (input, fn) => {
 
 //  ------------------------------------------------------------------------ //
 
-const testExchange = async (exchange) => {
+const percentsDone = () => ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%';
 
-    const percentsDone = () => ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%';
+const testExchange = async (exchange) => {
 
     // no need to test alias classes
     if (exchange.alias) {
@@ -240,16 +240,10 @@ const testExchange = async (exchange) => {
             (skipSettings[exchange].skipWs && wsFlag)
         ) 
     ) {
-        if (!('until' in skipSettings[exchange])) {
-            // if until not specified, skip forever
+        if (!('until' in skipSettings[exchange]) || new Date(skipSettings[exchange].until) > new Date()) {
             numExchangesTested++;
-            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, '[Skipped]'.yellow)
-            return [];
-        }
-        if (new Date(skipSettings[exchange].until) > new Date()) {
-            numExchangesTested++;
-            // if untilDate has not been yet reached, skip test for exchange
-            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, '[Skipped till ' + skipSettings[exchange].until + ']'.yellow)
+            const reason = ('until' in skipSettings[exchange]) ? ' till ' + skipSettings[exchange].until : '';
+            log.bright (('[' + percentsDone() + ']').dim, 'Tested', exchange.cyan, wsFlag, ('[Skipped]' + reason).yellow)
             return [];
         }
     }

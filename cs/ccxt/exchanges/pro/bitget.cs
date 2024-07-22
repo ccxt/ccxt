@@ -55,6 +55,9 @@ public partial class bitget : ccxt.bitget
                     { "1d", "1D" },
                     { "1w", "1W" },
                 } },
+                { "watchOrderBook", new Dictionary<string, object>() {
+                    { "checksum", true },
+                } },
             } },
             { "streaming", new Dictionary<string, object>() {
                 { "ping", this.ping },
@@ -604,9 +607,9 @@ public partial class bitget : ccxt.bitget
                 object responseChecksum = this.safeInteger(rawOrderBook, "checksum");
                 if (isTrue(!isEqual(calculatedChecksum, responseChecksum)))
                 {
-                    var error = new InvalidNonce(add(this.id, " invalid checksum"));
 
 
+                    var error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));
                     ((WebSocketClient)client).reject(error, messageHash);
                     return;
                 }

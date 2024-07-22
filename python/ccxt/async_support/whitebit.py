@@ -2404,7 +2404,7 @@ class whitebit(Exchange, ImplicitAPI):
         records = self.safe_list(response, 'records')
         return self.parse_transactions(records, currency, since, limit)
 
-    def is_fiat(self, currency):
+    def is_fiat(self, currency: str):
         fiatCurrencies = self.safe_value(self.options, 'fiatCurrencies', [])
         return self.in_array(currency, fiatCurrencies)
 

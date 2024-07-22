@@ -815,7 +815,7 @@ export default class binance extends Exchange {
                         'forceOrders': { 'cost': 20, 'noSymbol': 50 },
                         'allOrders': 5,
                         'openOrder': 1,
-                        'openOrders': 1,
+                        'openOrders': { 'cost': 1, 'noSymbol': 40 },
                         'order': 1,
                         'account': 5,
                         'balance': 5,
@@ -1007,18 +1007,18 @@ export default class binance extends Exchange {
                         'ping': 1,
                         'um/order': 1, // 1
                         'um/openOrder': 1, // 1
-                        'um/openOrders': 1, // 1
+                        'um/openOrders': { 'cost': 1, 'noSymbol': 40 },
                         'um/allOrders': 5, // 5
                         'cm/order': 1, // 1
                         'cm/openOrder': 1, // 1
-                        'cm/openOrders': 1, // 1
+                        'cm/openOrders': { 'cost': 1, 'noSymbol': 40 },
                         'cm/allOrders': 20, // 20
                         'um/conditional/openOrder': 1,
-                        'um/conditional/openOrders': 40,
+                        'um/conditional/openOrders': { 'cost': 1, 'noSymbol': 40 },
                         'um/conditional/orderHistory': 1,
                         'um/conditional/allOrders': 40,
                         'cm/conditional/openOrder': 1,
-                        'cm/conditional/openOrders': 40,
+                        'cm/conditional/openOrders': { 'cost': 1, 'noSymbol': 40 },
                         'cm/conditional/orderHistory': 1,
                         'cm/conditional/allOrders': 40,
                         'margin/order': 5,
@@ -6480,10 +6480,7 @@ export default class binance extends Exchange {
             const marketType = ('type' in market) ? market['type'] : defaultType;
             type = this.safeString (params, 'type', marketType);
         } else if (this.options['warnOnFetchOpenOrdersWithoutSymbol']) {
-            const symbols = this.symbols;
-            const numSymbols = symbols.length;
-            const fetchOpenOrdersRateLimit = this.parseToInt (numSymbols / 2);
-            throw new ExchangeError (this.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.toString () + ' seconds. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
+            throw new ExchangeError (this.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge this warning, set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         } else {
             const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
             type = this.safeString (params, 'type', defaultType);

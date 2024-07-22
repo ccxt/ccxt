@@ -43,11 +43,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.3.62';
+$version = '4.3.65';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.3.62';
+    const VERSION = '4.3.65';
 
     public $browser;
     public $marketsLoading = null;
@@ -1070,6 +1070,10 @@ class Exchange extends \ccxt\Exchange {
 
     public function after_construct() {
         $this->create_networks_by_id_object();
+    }
+
+    public function orderbook_checksum_message(?string $symbol) {
+        return $symbol . '  = false';
     }
 
     public function create_networks_by_id_object() {
@@ -3309,15 +3313,15 @@ class Exchange extends \ccxt\Exchange {
                 Async\await($this->load_markets());
                 $market = $this->market($symbol);
                 $symbol = $market['symbol'];
-                $tickers = Async\await($this->fetch_ticker_ws($symbol, $params));
+                $tickers = Async\await($this->fetch_tickers_ws(array( $symbol ), $params));
                 $ticker = $this->safe_dict($tickers, $symbol);
                 if ($ticker === null) {
-                    throw new NullResponse($this->id . ' fetchTickers() could not find a $ticker for ' . $symbol);
+                    throw new NullResponse($this->id . ' fetchTickerWs() could not find a $ticker for ' . $symbol);
                 } else {
                     return $ticker;
                 }
             } else {
-                throw new NotSupported($this->id . ' fetchTicker() is not supported yet');
+                throw new NotSupported($this->id . ' fetchTickerWs() is not supported yet');
             }
         }) ();
     }
@@ -5316,8 +5320,12 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function safe_open_interest($interest, ?array $market = null) {
+        $symbol = $this->safe_string($interest, 'symbol');
+        if ($symbol === null) {
+            $symbol = $this->safe_string($market, 'symbol');
+        }
         return $this->extend($interest, array(
-            'symbol' => $this->safe_string($market, 'symbol'),
+            'symbol' => $symbol,
             'baseVolume' => $this->safe_number($interest, 'baseVolume'), // deprecated
             'quoteVolume' => $this->safe_number($interest, 'quoteVolume'), // deprecated
             'openInterestAmount' => $this->safe_number($interest, 'openInterestAmount'),

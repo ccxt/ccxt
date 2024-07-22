@@ -707,8 +707,8 @@ class bitmart(ccxt.async_support.bitmart):
         symbol = market['symbol']
         openTimestamp = self.safe_integer(position, 'create_time')
         timestamp = self.safe_integer(position, 'update_time')
-        side = self.safe_number(position, 'position_type')
-        marginModeId = self.safe_number(position, 'open_type')
+        side = self.safe_integer(position, 'position_type')
+        marginModeId = self.safe_integer(position, 'open_type')
         return self.safe_position({
             'info': position,
             'id': None,
@@ -1234,7 +1234,7 @@ class bitmart(ccxt.async_support.bitmart):
                 ob['symbol'] = symbol
                 self.orderbooks[symbol] = ob
             orderbook = self.orderbooks[symbol]
-            way = self.safe_number(data, 'way')
+            way = self.safe_integer(data, 'way')
             side = 'bids' if (way == 1) else 'asks'
             if way == 1:
                 orderbook[side] = Bids([], limit)

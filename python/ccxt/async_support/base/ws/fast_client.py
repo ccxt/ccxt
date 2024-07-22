@@ -4,6 +4,7 @@ import asyncio
 import socket
 import collections
 from ccxt.async_support.base.ws.aiohttp_client import AiohttpClient
+from ccxt.base.errors import NetworkError
 
 
 class FastClient(AiohttpClient):
@@ -38,7 +39,7 @@ class FastClient(AiohttpClient):
             if self.connection._close_code == 1000:  # OK close
                 self.on_close(1000)
             else:
-                self.on_error(1006)  # ABNORMAL_CLOSURE
+                self.on_error(NetworkError("Abnormal closure of client"))  # ABNORMAL_CLOSURE
 
         def wrapper(func):
             def parse_frame(buf):

@@ -40,7 +40,9 @@ error_hierarchy = {
                 'ExchangeNotAvailable': {
                     'OnMaintenance': {},
                 },
-                'InvalidNonce': {},
+                'InvalidNonce': {
+                    'ChecksumError': {},
+                },
                 'RequestTimeout': {},
             },
             'BadResponse': {
@@ -184,6 +186,10 @@ class InvalidNonce(NetworkError):
     pass
 
 
+class ChecksumError(InvalidNonce):
+    pass
+
+
 class RequestTimeout(NetworkError):
     pass
 
@@ -235,6 +241,7 @@ __all__ = [
     'ExchangeNotAvailable',
     'OnMaintenance',
     'InvalidNonce',
+    'ChecksumError',
     'RequestTimeout',
     'BadResponse',
     'NullResponse',

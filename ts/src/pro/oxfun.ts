@@ -941,7 +941,7 @@ export default class oxfun extends oxfunRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const idsLength = ids.length;
+        const idsLength: number = ids.length;
         if (idsLength > 20) {
             throw new BadRequest (this.id + ' cancelOrdersWs() accepts up to 20 ids at a time');
         }

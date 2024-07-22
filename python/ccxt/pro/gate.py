@@ -14,7 +14,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import ChecksumError
 from ccxt.base.precise import Precise
 
 
@@ -105,6 +105,7 @@ class gate(ccxt.async_support.gate):
                     'interval': '100ms',
                     'snapshotDelay': 10,  # how many deltas to cache before fetching a snapshot
                     'snapshotMaxRetries': 3,
+                    'checksum': True,
                 },
                 'watchBalance': {
                     'settle': 'usdt',  # or btc
@@ -460,10 +461,12 @@ class gate(ccxt.async_support.gate):
         elif nonce >= deltaStart - 1:
             self.handle_delta(storedOrderBook, delta)
         else:
-            error = InvalidNonce(self.id + ' orderbook update has a nonce bigger than u')
             del client.subscriptions[messageHash]
             del self.orderbooks[symbol]
-            client.reject(error, messageHash)
+            checksum = self.handle_option('watchOrderBook', 'checksum', True)
+            if checksum:
+                error = ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
+                client.reject(error, messageHash)
         client.resolve(storedOrderBook, messageHash)
 
     def get_cache_index(self, orderBook, cache):
@@ -1192,7 +1195,7 @@ class gate(ccxt.async_support.gate):
             elif event == 'finish':
                 status = self.safe_string(parsed, 'status')
                 if status is None:
-                    left = self.safe_number(info, 'left')
+                    left = self.safe_integer(info, 'left')
                     parsed['status'] = 'closed' if (left == 0) else 'canceled'
             stored.append(parsed)
             symbol = parsed['symbol']
