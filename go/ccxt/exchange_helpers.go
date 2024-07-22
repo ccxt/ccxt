@@ -890,7 +890,7 @@ func promiseAll(tasksInterface interface{}) []interface{} {
 	return results
 }
 
-func parseInt(number interface{}) int64 {
+func ParseInt(number interface{}) int64 {
 	switch v := number.(type) {
 	case int:
 		return int64(v)

@@ -7,7 +7,7 @@ import (
 )
 
 // keysort sorts the keys of a map and returns a new map with the sorted keys.
-func (this *Exchange) keysort(parameters2 interface{}) map[string]interface{} {
+func (this *Exchange) Keysort(parameters2 interface{}) map[string]interface{} {
 	parameters := parameters2.(map[string]interface{})
 	keys := make([]string, 0, len(parameters))
 	for k := range parameters {
@@ -23,16 +23,16 @@ func (this *Exchange) keysort(parameters2 interface{}) map[string]interface{} {
 }
 
 // omit removes specified keys from a map.
-func (this *Exchange) omit(a interface{}, parameters ...interface{}) interface{} {
+func (this *Exchange) Omit(a interface{}, parameters ...interface{}) interface{} {
 	keys := make([]interface{}, len(parameters))
 	for i, parameter := range parameters {
 		keys[i] = parameter
 	}
-	return this.omitMap(a, keys)
+	return this.OmitMap(a, keys)
 }
 
 // omitMap removes specified keys from a map.
-func (this *Exchange) omitMap(aa interface{}, k interface{}) map[string]interface{} {
+func (this *Exchange) OmitMap(aa interface{}, k interface{}) map[string]interface{} {
 	if reflect.TypeOf(aa).Kind() == reflect.Slice {
 		return aa.(map[string]interface{})
 	}
@@ -50,7 +50,7 @@ func (this *Exchange) omitMap(aa interface{}, k interface{}) map[string]interfac
 	a := aa.(map[string]interface{})
 	outDict := make(map[string]interface{})
 	for key, value := range a {
-		if !this.contains(keys, key) {
+		if !this.Contains(keys, key) {
 			outDict[key] = value
 		}
 	}
@@ -58,11 +58,11 @@ func (this *Exchange) omitMap(aa interface{}, k interface{}) map[string]interfac
 }
 
 // omitN removes specified keys from a map.
-func (this *Exchange) omitN(aa interface{}, keys []interface{}) map[string]interface{} {
+func (this *Exchange) OmitN(aa interface{}, keys []interface{}) map[string]interface{} {
 	a := aa.(map[string]interface{})
 	outDict := make(map[string]interface{})
 	for key, value := range a {
-		if !this.contains(keys, key) {
+		if !this.Contains(keys, key) {
 			outDict[key] = value
 		}
 	}
@@ -70,7 +70,7 @@ func (this *Exchange) omitN(aa interface{}, keys []interface{}) map[string]inter
 }
 
 // contains checks if a slice contains a specific element.
-func (this *Exchange) contains(slice []interface{}, elem string) bool {
+func (this *Exchange) Contains(slice []interface{}, elem string) bool {
 	for _, s := range slice {
 		if s.(string) == elem {
 			return true
@@ -102,7 +102,7 @@ func (this *Exchange) toArray(a interface{}) []interface{} {
 }
 
 // arrayConcat concatenates two slices.
-func (this *Exchange) arrayConcat(aa, bb interface{}) interface{} {
+func (this *Exchange) ArrayConcat(aa, bb interface{}) interface{} {
 	if reflect.TypeOf(aa).Kind() == reflect.Slice && reflect.TypeOf(bb).Kind() == reflect.Slice {
 		a := aa.([]interface{})
 		b := bb.([]interface{})

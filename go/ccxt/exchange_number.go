@@ -32,7 +32,7 @@ var precisionConstants = map[string]int{
 	"PAD_WITH_ZERO":      PAD_WITH_ZERO,
 }
 
-func (this *Exchange) numberToString(x interface{}) string {
+func (this *Exchange) NumberToString(x interface{}) string {
 	switch v := x.(type) {
 	case nil:
 		return ""
@@ -68,7 +68,7 @@ func (this *Exchange) numberToString(x interface{}) string {
 var truncateRegExpCache = make(map[int]*regexp.Regexp)
 
 func (this *Exchange) truncateToString(num interface{}, precision int) string {
-	numStr := this.numberToString(num)
+	numStr := this.NumberToString(num)
 	if precision > 0 {
 		re, exists := truncateRegExpCache[precision]
 		if !exists {
@@ -132,7 +132,7 @@ func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode interface{
 		}
 	}
 
-	str := this.numberToString(x)
+	str := this.NumberToString(x)
 	isNegative := str[0] == '-'
 	strStart := 0
 	if isNegative {

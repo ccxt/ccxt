@@ -6,7 +6,7 @@ import (
 	"sort"
 )
 
-func (this *Exchange) sortBy(array interface{}, value1 interface{}, desc2 ...interface{}) []interface{} {
+func (this *Exchange) SortBy(array interface{}, value1 interface{}, desc2 ...interface{}) []interface{} {
 	var desc bool
 	var defaultValue interface{} = ""
 	if len(desc2) > 0 {
@@ -53,7 +53,7 @@ func (this *Exchange) sortBy(array interface{}, value1 interface{}, desc2 ...int
 	}
 }
 
-func (this *Exchange) sortBy2(array interface{}, key1 interface{}, key2 interface{}, desc2 ...interface{}) []interface{} {
+func (this *Exchange) SortBy2(array interface{}, key1 interface{}, key2 interface{}, desc2 ...interface{}) []interface{} {
 	var desc bool
 	if len(desc2) > 0 {
 		desc = desc2[0].(bool)
@@ -82,7 +82,7 @@ func (this *Exchange) sortBy2(array interface{}, key1 interface{}, key2 interfac
 	return nil
 }
 
-func (this *Exchange) filterBy(aa interface{}, key interface{}, value interface{}) []interface{} {
+func (this *Exchange) FilterBy(aa interface{}, key interface{}, value interface{}) []interface{} {
 	var targetA []interface{}
 	if reflect.TypeOf(aa).Kind() == reflect.Slice {
 		targetA = aa.([]interface{})
@@ -100,11 +100,11 @@ func (this *Exchange) filterBy(aa interface{}, key interface{}, value interface{
 	return outList
 }
 
-func (this *Exchange) extend(aa interface{}, bb ...interface{}) map[string]interface{} {
-	return extendMap(aa, bb...)
+func (this *Exchange) Extend(aa interface{}, bb ...interface{}) map[string]interface{} {
+	return ExtendMap(aa, bb...)
 }
 
-func extendMap(aa interface{}, bb ...interface{}) map[string]interface{} {
+func ExtendMap(aa interface{}, bb ...interface{}) map[string]interface{} {
 	a := aa.(map[string]interface{})
 	outDict := make(map[string]interface{})
 	for key, value := range a {
@@ -119,7 +119,7 @@ func extendMap(aa interface{}, bb ...interface{}) map[string]interface{} {
 	return outDict
 }
 
-func (this *Exchange) deepExtend2(objs ...interface{}) interface{} {
+func (this *Exchange) DeepExtend2(objs ...interface{}) interface{} {
 	outDict := make(map[string]interface{})
 	for _, obj := range objs {
 		if obj == nil {
@@ -129,9 +129,9 @@ func (this *Exchange) deepExtend2(objs ...interface{}) interface{} {
 			for key, value := range obj.(map[string]interface{}) {
 				if value != nil && reflect.TypeOf(value).Kind() == reflect.Map {
 					if _, exists := outDict[key]; exists {
-						outDict[key] = this.deepExtend2(outDict[key], value)
+						outDict[key] = this.DeepExtend2(outDict[key], value)
 					} else {
-						outDict[key] = this.deepExtend2(value)
+						outDict[key] = this.DeepExtend2(value)
 					}
 				} else {
 					outDict[key] = value
@@ -144,7 +144,7 @@ func (this *Exchange) deepExtend2(objs ...interface{}) interface{} {
 	return outDict
 }
 
-func (this *Exchange) deepExtend(objs ...interface{}) map[string]interface{} {
+func (this *Exchange) DeepExtend(objs ...interface{}) map[string]interface{} {
 	var outObj interface{}
 	for _, x := range objs {
 		if x == nil {
@@ -159,7 +159,7 @@ func (this *Exchange) deepExtend(objs ...interface{}) map[string]interface{} {
 				arg1 := outObj.(map[string]interface{})[k]
 				arg2 := dictX[k]
 				if arg1 != nil && arg2 != nil && reflect.TypeOf(arg1).Kind() == reflect.Map && reflect.TypeOf(arg2).Kind() == reflect.Map {
-					outObj.(map[string]interface{})[k] = this.deepExtend(arg1, arg2)
+					outObj.(map[string]interface{})[k] = this.DeepExtend(arg1, arg2)
 				} else {
 					if arg2 != nil {
 						outObj.(map[string]interface{})[k] = arg2
@@ -175,7 +175,7 @@ func (this *Exchange) deepExtend(objs ...interface{}) map[string]interface{} {
 	return outObj.(map[string]interface{})
 }
 
-func (this *Exchange) inArray(elem interface{}, list2 interface{}) bool {
+func (this *Exchange) InArray(elem interface{}, list2 interface{}) bool {
 	if list2 == nil {
 		return false
 	}
@@ -190,11 +190,11 @@ func (this *Exchange) inArray(elem interface{}, list2 interface{}) bool {
 	return false
 }
 
-func (this *Exchange) isArray(a interface{}) bool {
+func (this *Exchange) IsArray(a interface{}) bool {
 	return reflect.TypeOf(a).Kind() == reflect.Slice
 }
 
-func (this *Exchange) indexBy(a interface{}, key2 interface{}) map[string]interface{} {
+func (this *Exchange) IndexBy(a interface{}, key2 interface{}) map[string]interface{} {
 	outDict := make(map[string]interface{})
 	var targetX []interface{}
 	if reflect.TypeOf(a).Kind() == reflect.Slice {
@@ -221,7 +221,7 @@ func (this *Exchange) indexBy(a interface{}, key2 interface{}) map[string]interf
 	return outDict
 }
 
-func (this *Exchange) groupBy(trades interface{}, key2 interface{}) map[string]interface{} {
+func (this *Exchange) GroupBy(trades interface{}, key2 interface{}) map[string]interface{} {
 	key := key2.(string)
 	outDict := make(map[string]interface{})
 	list := trades.([]interface{})
@@ -240,7 +240,7 @@ func (this *Exchange) groupBy(trades interface{}, key2 interface{}) map[string]i
 	return outDict
 }
 
-func (this *Exchange) omitZero(value interface{}) interface{} {
+func (this *Exchange) OmitZero(value interface{}) interface{} {
 	switch v := value.(type) {
 	case float64:
 		if v == 0.0 {
@@ -259,7 +259,7 @@ func (this *Exchange) omitZero(value interface{}) interface{} {
 	return value
 }
 
-func (this *Exchange) sum(args ...interface{}) interface{} {
+func (this *Exchange) Sum(args ...interface{}) interface{} {
 	res := 0.0
 	for _, arg := range args {
 		res = this.sumValues(res, arg)

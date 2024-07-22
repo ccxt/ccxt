@@ -9,21 +9,21 @@ import (
 )
 
 // milliseconds returns the current time in milliseconds since the Unix epoch.
-func (this *Exchange) milliseconds() int64 {
+func (this *Exchange) Milliseconds() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
-func (this *Exchange) seconds() int64 {
-	return this.milliseconds() / 1000
+func (this *Exchange) Seconds() int64 {
+	return this.Milliseconds() / 1000
 }
 
 // microseconds returns the current time in microseconds since the Unix epoch.
-func (this *Exchange) microseconds() int64 {
+func (this *Exchange) Microseconds() int64 {
 	return time.Now().UnixNano() / int64(time.Microsecond)
 }
 
 // parseDate parses a date string and returns the timestamp in milliseconds since the Unix epoch.
-func (this *Exchange) parseDate(datetime2 interface{}) interface{} {
+func (this *Exchange) ParseDate(datetime2 interface{}) interface{} {
 	if datetime2 == nil || reflect.TypeOf(datetime2).Kind() != reflect.String {
 		return nil
 	}
@@ -51,12 +51,12 @@ func Iso8601(ts interface{}) string {
 }
 
 // iso8601 is a wrapper for Iso8601.
-func (this *Exchange) iso8601(ts interface{}) string {
+func (this *Exchange) Iso8601(ts interface{}) string {
 	return Iso8601(ts)
 }
 
 // ymdhms converts a timestamp to a formatted date string "yyyy-MM-dd HH:mm:ss".
-func (this *Exchange) ymdhms(ts interface{}, infix interface{}) string {
+func (this *Exchange) Ymdhms(ts interface{}, infix interface{}) string {
 	if infix == nil {
 		infix = " "
 	}
@@ -69,7 +69,7 @@ func (this *Exchange) ymdhms(ts interface{}, infix interface{}) string {
 }
 
 // yyyymmdd converts a timestamp to a formatted date string "yyyy-MM-dd".
-func (this *Exchange) yyyymmdd(ts interface{}, infix interface{}) string {
+func (this *Exchange) Yyyymmdd(ts interface{}, infix interface{}) string {
 	if infix == nil {
 		infix = "-"
 	}
@@ -82,7 +82,7 @@ func (this *Exchange) yyyymmdd(ts interface{}, infix interface{}) string {
 }
 
 // yymmdd converts a timestamp to a formatted date string "yy-MM-dd".
-func (this *Exchange) yymmdd(ts interface{}, args ...interface{}) string {
+func (this *Exchange) Yymmdd(ts interface{}, args ...interface{}) string {
 	infix := GetArg(args, 1, nil)
 	if infix == nil {
 		infix = "-"
@@ -96,7 +96,7 @@ func (this *Exchange) yymmdd(ts interface{}, args ...interface{}) string {
 }
 
 // ymd converts a timestamp to a formatted date string "yyyy-MM-dd".
-func (this *Exchange) ymd(ts interface{}, args ...interface{}) string {
+func (this *Exchange) Ymd(ts interface{}, args ...interface{}) string {
 	infix := GetArg(args, 1, nil)
 	if infix == nil {
 		infix = "-"
@@ -110,7 +110,7 @@ func (this *Exchange) ymd(ts interface{}, args ...interface{}) string {
 }
 
 // parse8601 parses an ISO 8601 date string and returns the timestamp in milliseconds since the Unix epoch.
-func (this *Exchange) parse8601(datetime2 interface{}) *int64 {
+func (this *Exchange) Parse8601(datetime2 interface{}) *int64 {
 	if datetime2 == nil || reflect.TypeOf(datetime2).Kind() != reflect.String {
 		return nil
 	}

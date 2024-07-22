@@ -983,7 +983,7 @@ class NewTranspiler {
 type ${capitalizedClassName} = ${className}\n
 func (this *${className}) Init(userConfig map[string]interface{}) {
 	this.Exchange = Exchange{}
-	this.Exchange.Init(userConfig, this.describe().(map[string]interface{}))
+	this.Exchange.Init(userConfig, this.describe().(map[string]interface{}), this)
 }\n`
         content = this.createGeneratedHeader().join('\n') + '\n' + content + '\n' +  initMethod;
         return goImports + content;

@@ -366,66 +366,66 @@ func StringMod(a, b interface{}) string {
 
 // wrappers
 
-func (e *PreciseStruct) stringMul(string1, string2 interface{}) string {
+func (e *PreciseStruct) StringMul(string1, string2 interface{}) string {
 	return StringMul(string1, string2)
 }
 
-func (e *PreciseStruct) stringDiv(string1, string2 interface{}, precision ...interface{}) string {
+func (e *PreciseStruct) StringDiv(string1, string2 interface{}, precision ...interface{}) string {
 	return StringDiv(string1, string2, precision...)
 }
 
-func (e *PreciseStruct) stringSub(string1, string2 interface{}) string {
+func (e *PreciseStruct) StringSub(string1, string2 interface{}) string {
 	return StringSub(string1, string2)
 }
 
-func (e *PreciseStruct) stringAdd(string1, string2 interface{}) string {
+func (e *PreciseStruct) StringAdd(string1, string2 interface{}) string {
 	return StringAdd(string1, string2)
 }
 
-func (e *PreciseStruct) stringOr(string1, string2 interface{}) string {
+func (e *PreciseStruct) StringOr(string1, string2 interface{}) string {
 	return StringOr(string1, string2)
 }
 
-func (e *PreciseStruct) stringGt(a, b interface{}) bool {
+func (e *PreciseStruct) StringGt(a, b interface{}) bool {
 	return StringGt(a, b)
 }
 
-func (e *PreciseStruct) stringEq(a, b interface{}) bool {
+func (e *PreciseStruct) StringEq(a, b interface{}) bool {
 	return StringEq(a, b)
 }
 
-func (e *PreciseStruct) stringMax(a, b interface{}) string {
+func (e *PreciseStruct) StringMax(a, b interface{}) string {
 	return StringMax(a, b)
 }
 
-func (e *PreciseStruct) stringEquals(a, b interface{}) bool {
+func (e *PreciseStruct) StringEquals(a, b interface{}) bool {
 	return StringEquals(a, b)
 }
 
-func (e *PreciseStruct) stringMin(string1, string2 interface{}) string {
+func (e *PreciseStruct) StringMin(string1, string2 interface{}) string {
 	return StringMin(string1, string2)
 }
 
-func (e *PreciseStruct) stringLt(a, b interface{}) bool {
+func (e *PreciseStruct) StringLt(a, b interface{}) bool {
 	return StringLt(a, b)
 }
 
-func (e *PreciseStruct) stringAbs(a interface{}) string {
+func (e *PreciseStruct) StringAbs(a interface{}) string {
 	return StringAbs(a)
 }
 
-func (e *PreciseStruct) stringNeg(a interface{}) string {
+func (e *PreciseStruct) StringNeg(a interface{}) string {
 	return StringNeg(a)
 }
 
-func (e *PreciseStruct) stringLe(a, b interface{}) bool {
+func (e *PreciseStruct) StringLe(a, b interface{}) bool {
 	return StringLe(a, b)
 }
 
-func (e *PreciseStruct) stringGe(a, b interface{}) bool {
+func (e *PreciseStruct) StringGe(a, b interface{}) bool {
 	return StringGe(a, b)
 }
 
-func (e *PreciseStruct) stringMod(a, b interface{}) string {
+func (e *PreciseStruct) StringMod(a, b interface{}) string {
 	return StringMod(a, b)
 }

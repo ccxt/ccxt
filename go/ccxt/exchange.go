@@ -11,6 +11,7 @@ import (
 )
 
 type Exchange struct {
+	Itf                 interface{}
 	version             string
 	Version             string
 	id                  string
@@ -124,13 +125,14 @@ var PAD_WITH_ZERO int = 1
 
 var ROUND int = 0
 
-func (this *Exchange) Init(userConfig map[string]interface{}, exchangeConfig map[string]interface{}) {
+func (this *Exchange) Init(userConfig map[string]interface{}, exchangeConfig map[string]interface{}, itf interface{}) {
 	// this = &Exchange{}
 	// var properties = this.describe()
-	var extendedProperties = this.deepExtend(exchangeConfig, userConfig)
+	var extendedProperties = this.DeepExtend(exchangeConfig, userConfig)
 
 	// this.id = SafeString(extendedProperties, "id", "").(string)
 	// this.Id = this.id
+	//this.itf = itf
 	this.initializeProperties(extendedProperties)
 
 	this.transformApiNew(this.Api)
@@ -164,7 +166,7 @@ func (this *Exchange) callEndpoint(endpoint2 interface{}, parameters interface{}
 		if valCost, ok := endPointData["cost"]; ok {
 			cost = valCost.(float64)
 		}
-		res := this.fetch2(path, api, method, parameters, map[string]interface{}{}, nil, map[string]interface{}{"cost": cost})
+		res := this.Fetch2(path, api, method, parameters, map[string]interface{}{}, nil, map[string]interface{}{"cost": cost})
 		return res
 	}
 	return nil
@@ -199,7 +201,7 @@ func ToSafeFloat(v interface{}) (float64, error) {
 }
 
 // json converts an object to a JSON string
-func (this *Exchange) json(object interface{}) interface{} {
+func (this *Exchange) Json(object interface{}) interface{} {
 	jsonBytes, err := j.Marshal(object)
 	if err != nil {
 		return nil
@@ -207,7 +209,7 @@ func (this *Exchange) json(object interface{}) interface{} {
 	return string(jsonBytes)
 }
 
-func (this *Exchange) parseNumber(v interface{}, a ...interface{}) interface{} {
+func (this *Exchange) ParseNumber(v interface{}, a ...interface{}) interface{} {
 	f, err := ToSafeFloat(v)
 	if err == nil {
 		return f
@@ -215,7 +217,7 @@ func (this *Exchange) parseNumber(v interface{}, a ...interface{}) interface{} {
 	return nil
 }
 
-func (this *Exchange) valueIsDefined(v interface{}) bool {
+func (this *Exchange) ValueIsDefined(v interface{}) bool {
 	return v != nil
 }
 
@@ -225,24 +227,24 @@ func callDynamically(args ...interface{}) interface{} {
 }
 
 // clone creates a deep copy of the input object. It supports arrays, slices, and maps.
-func (this *Exchange) clone(object interface{}) interface{} {
-	return this.deepCopy(reflect.ValueOf(object)).Interface()
+func (this *Exchange) Clone(object interface{}) interface{} {
+	return this.DeepCopy(reflect.ValueOf(object)).Interface()
 }
 
-func (this *Exchange) deepCopy(value reflect.Value) reflect.Value {
+func (this *Exchange) DeepCopy(value reflect.Value) reflect.Value {
 	switch value.Kind() {
 	case reflect.Array, reflect.Slice:
 		// Create a new slice/array of the same type and length
 		copy := reflect.MakeSlice(value.Type(), value.Len(), value.Cap())
 		for i := 0; i < value.Len(); i++ {
-			copy.Index(i).Set(this.deepCopy(value.Index(i)))
+			copy.Index(i).Set(this.DeepCopy(value.Index(i)))
 		}
 		return copy
 	case reflect.Map:
 		// Create a new map of the same type
 		copy := reflect.MakeMap(value.Type())
 		for _, key := range value.MapKeys() {
-			copy.SetMapIndex(key, this.deepCopy(value.MapIndex(key)))
+			copy.SetMapIndex(key, this.DeepCopy(value.MapIndex(key)))
 		}
 		return copy
 	default:
@@ -308,7 +310,7 @@ func (e *exampleArrayCache) ToArray() []interface{} {
 	return e.data
 }
 
-func (this *Exchange) parseTimeframe(timeframe interface{}) *int {
+func (this *Exchange) ParseTimeframe(timeframe interface{}) *int {
 	str, ok := timeframe.(string)
 	if !ok {
 		return nil
@@ -348,15 +350,15 @@ func (this *Exchange) parseTimeframe(timeframe interface{}) *int {
 	return &result
 }
 
-func (this *Exchange) checkAddress(add interface{}) bool {
+func (this *Exchange) CheckAddress(add interface{}) bool {
 	return true
 }
 
-func totp(secret interface{}) string {
+func Totp(secret interface{}) string {
 	return ""
 }
 
-func (this *Exchange) parseJson(input interface{}) interface{} {
+func (this *Exchange) ParseJson(input interface{}) interface{} {
 	return ParseJSON(input)
 }
 
@@ -418,7 +420,7 @@ func (this *Exchange) transformApiNew(api Dict, paths ...string) {
 				}
 
 				for i, part := range pathParts {
-					pathParts[i] = strings.Title(strings.ToLower(part))
+					pathParts[i] = strings.Title(part)
 				}
 				path := strings.Join(pathParts, "")
 				if len(path) > 0 {
@@ -430,7 +432,7 @@ func (this *Exchange) transformApiNew(api Dict, paths ...string) {
 					apiObj = paths[0]
 				}
 
-				this.TransformedApi[path] = Dict{
+				this.TransformedApi[path] = map[string]interface{}{
 					"method": strings.ToUpper(key),
 					"path":   endpoint,
 					"api":    apiObj,
@@ -461,4 +463,33 @@ func parseCost(costStr string) float64 {
 	var cost float64
 	fmt.Sscanf(costStr, "%f", &cost)
 	return cost
+}
+
+func internalCall(name string, itf interface{}, args ...interface{}) interface{} {
+	baseType := reflect.TypeOf(itf)
+
+	baseValue := reflect.ValueOf(itf)
+	method3 := baseValue.MethodByName(name)
+	fmt.Println(method3.Interface())
+	method2, err := baseType.MethodByName(name)
+
+	if !err {
+		fmt.Println((method2))
+	}
+
+	for i := 0; i < baseType.NumMethod(); i++ {
+		method := baseType.Method(i)
+		if name == method.Name {
+			in := make([]reflect.Value, len(args))
+			for k, param := range args {
+				in[k] = reflect.ValueOf(param)
+			}
+			var res []reflect.Value
+			/*temp := reflect.ValueOf(itf).MethodByName(name)
+			x1 := reflect.ValueOf(temp).FieldByName("flag").Uint()*/
+			res = reflect.ValueOf(itf).MethodByName(name).Call(in)
+			return res[0].Interface().(interface{})
+		}
+	}
+	return nil
 }

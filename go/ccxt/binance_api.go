@@ -7,3542 +7,3542 @@
 
 package ccxt
 
-    func (this *binance) sapiGetCopyTradingFuturesUserStatus (args ...interface{}) interface{} {
+    func (this *binance) SapiGetCopyTradingFuturesUserStatus (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetCopyTradingFuturesUserStatus", parameters);
     }
 
-    func (this *binance) sapiGetCopyTradingFuturesLeadSymbol (args ...interface{}) interface{} {
+    func (this *binance) SapiGetCopyTradingFuturesLeadSymbol (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetCopyTradingFuturesLeadSymbol", parameters);
     }
 
-    func (this *binance) sapiGetSystemStatus (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSystemStatus (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSystemStatus", parameters);
     }
 
-    func (this *binance) sapiGetAccountSnapshot (args ...interface{}) interface{} {
+    func (this *binance) SapiGetAccountSnapshot (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetAccountSnapshot", parameters);
     }
 
-    func (this *binance) sapiGetAccountInfo (args ...interface{}) interface{} {
+    func (this *binance) SapiGetAccountInfo (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetAccountInfo", parameters);
     }
 
-    func (this *binance) sapiGetMarginAsset (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginAsset (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginAsset", parameters);
     }
 
-    func (this *binance) sapiGetMarginPair (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginPair (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginPair", parameters);
     }
 
-    func (this *binance) sapiGetMarginAllAssets (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginAllAssets (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginAllAssets", parameters);
     }
 
-    func (this *binance) sapiGetMarginAllPairs (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginAllPairs (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginAllPairs", parameters);
     }
 
-    func (this *binance) sapiGetMarginPriceIndex (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginPriceIndex (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginPriceIndex", parameters);
     }
 
-    func (this *binance) sapiGetSpotDelistSchedule (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSpotDelistSchedule (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSpotDelistSchedule", parameters);
     }
 
-    func (this *binance) sapiGetAssetAssetDividend (args ...interface{}) interface{} {
+    func (this *binance) SapiGetAssetAssetDividend (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetAssetAssetDividend", parameters);
     }
 
-    func (this *binance) sapiGetAssetDribblet (args ...interface{}) interface{} {
+    func (this *binance) SapiGetAssetDribblet (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetAssetDribblet", parameters);
     }
 
-    func (this *binance) sapiGetAssetTransfer (args ...interface{}) interface{} {
+    func (this *binance) SapiGetAssetTransfer (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetAssetTransfer", parameters);
     }
 
-    func (this *binance) sapiGetAssetAssetDetail (args ...interface{}) interface{} {
+    func (this *binance) SapiGetAssetAssetDetail (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetAssetAssetDetail", parameters);
     }
 
-    func (this *binance) sapiGetAssetTradeFee (args ...interface{}) interface{} {
+    func (this *binance) SapiGetAssetTradeFee (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetAssetTradeFee", parameters);
     }
 
-    func (this *binance) sapiGetAssetLedgerTransferCloudMiningQueryByPage (args ...interface{}) interface{} {
+    func (this *binance) SapiGetAssetLedgerTransferCloudMiningQueryByPage (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetAssetLedgerTransferCloudMiningQueryByPage", parameters);
     }
 
-    func (this *binance) sapiGetAssetConvertTransferQueryByPage (args ...interface{}) interface{} {
+    func (this *binance) SapiGetAssetConvertTransferQueryByPage (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetAssetConvertTransferQueryByPage", parameters);
     }
 
-    func (this *binance) sapiGetAssetWalletBalance (args ...interface{}) interface{} {
+    func (this *binance) SapiGetAssetWalletBalance (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetAssetWalletBalance", parameters);
     }
 
-    func (this *binance) sapiGetAssetCustodyTransferHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiGetAssetCustodyTransferHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetAssetCustodyTransferHistory", parameters);
     }
 
-    func (this *binance) sapiGetMarginBorrowRepay (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginBorrowRepay (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginBorrowRepay", parameters);
     }
 
-    func (this *binance) sapiGetMarginLoan (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginLoan (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginLoan", parameters);
     }
 
-    func (this *binance) sapiGetMarginRepay (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginRepay (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginRepay", parameters);
     }
 
-    func (this *binance) sapiGetMarginAccount (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginAccount (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginAccount", parameters);
     }
 
-    func (this *binance) sapiGetMarginTransfer (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginTransfer (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginTransfer", parameters);
     }
 
-    func (this *binance) sapiGetMarginInterestHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginInterestHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginInterestHistory", parameters);
     }
 
-    func (this *binance) sapiGetMarginForceLiquidationRec (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginForceLiquidationRec (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginForceLiquidationRec", parameters);
     }
 
-    func (this *binance) sapiGetMarginOrder (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginOrder", parameters);
     }
 
-    func (this *binance) sapiGetMarginOpenOrders (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginOpenOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginOpenOrders", parameters);
     }
 
-    func (this *binance) sapiGetMarginAllOrders (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginAllOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginAllOrders", parameters);
     }
 
-    func (this *binance) sapiGetMarginMyTrades (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginMyTrades (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginMyTrades", parameters);
     }
 
-    func (this *binance) sapiGetMarginMaxBorrowable (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginMaxBorrowable (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginMaxBorrowable", parameters);
     }
 
-    func (this *binance) sapiGetMarginMaxTransferable (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginMaxTransferable (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginMaxTransferable", parameters);
     }
 
-    func (this *binance) sapiGetMarginTradeCoeff (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginTradeCoeff (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginTradeCoeff", parameters);
     }
 
-    func (this *binance) sapiGetMarginIsolatedTransfer (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginIsolatedTransfer (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginIsolatedTransfer", parameters);
     }
 
-    func (this *binance) sapiGetMarginIsolatedAccount (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginIsolatedAccount (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginIsolatedAccount", parameters);
     }
 
-    func (this *binance) sapiGetMarginIsolatedPair (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginIsolatedPair (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginIsolatedPair", parameters);
     }
 
-    func (this *binance) sapiGetMarginIsolatedAllPairs (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginIsolatedAllPairs (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginIsolatedAllPairs", parameters);
     }
 
-    func (this *binance) sapiGetMarginIsolatedAccountLimit (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginIsolatedAccountLimit (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginIsolatedAccountLimit", parameters);
     }
 
-    func (this *binance) sapiGetMarginInterestRateHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginInterestRateHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginInterestRateHistory", parameters);
     }
 
-    func (this *binance) sapiGetMarginOrderList (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginOrderList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginOrderList", parameters);
     }
 
-    func (this *binance) sapiGetMarginAllOrderList (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginAllOrderList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginAllOrderList", parameters);
     }
 
-    func (this *binance) sapiGetMarginOpenOrderList (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginOpenOrderList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginOpenOrderList", parameters);
     }
 
-    func (this *binance) sapiGetMarginCrossMarginData (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginCrossMarginData (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginCrossMarginData", parameters);
     }
 
-    func (this *binance) sapiGetMarginIsolatedMarginData (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginIsolatedMarginData (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginIsolatedMarginData", parameters);
     }
 
-    func (this *binance) sapiGetMarginIsolatedMarginTier (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginIsolatedMarginTier (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginIsolatedMarginTier", parameters);
     }
 
-    func (this *binance) sapiGetMarginRateLimitOrder (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginRateLimitOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginRateLimitOrder", parameters);
     }
 
-    func (this *binance) sapiGetMarginDribblet (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginDribblet (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginDribblet", parameters);
     }
 
-    func (this *binance) sapiGetMarginDust (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginDust (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginDust", parameters);
     }
 
-    func (this *binance) sapiGetMarginCrossMarginCollateralRatio (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginCrossMarginCollateralRatio (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginCrossMarginCollateralRatio", parameters);
     }
 
-    func (this *binance) sapiGetMarginExchangeSmallLiability (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginExchangeSmallLiability (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginExchangeSmallLiability", parameters);
     }
 
-    func (this *binance) sapiGetMarginExchangeSmallLiabilityHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginExchangeSmallLiabilityHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginExchangeSmallLiabilityHistory", parameters);
     }
 
-    func (this *binance) sapiGetMarginNextHourlyInterestRate (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginNextHourlyInterestRate (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginNextHourlyInterestRate", parameters);
     }
 
-    func (this *binance) sapiGetMarginCapitalFlow (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginCapitalFlow (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginCapitalFlow", parameters);
     }
 
-    func (this *binance) sapiGetMarginDelistSchedule (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginDelistSchedule (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginDelistSchedule", parameters);
     }
 
-    func (this *binance) sapiGetMarginAvailableInventory (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginAvailableInventory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginAvailableInventory", parameters);
     }
 
-    func (this *binance) sapiGetMarginLeverageBracket (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMarginLeverageBracket (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMarginLeverageBracket", parameters);
     }
 
-    func (this *binance) sapiGetLoanVipLoanableData (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLoanVipLoanableData (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLoanVipLoanableData", parameters);
     }
 
-    func (this *binance) sapiGetLoanVipCollateralData (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLoanVipCollateralData (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLoanVipCollateralData", parameters);
     }
 
-    func (this *binance) sapiGetLoanVipRequestData (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLoanVipRequestData (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLoanVipRequestData", parameters);
     }
 
-    func (this *binance) sapiGetLoanVipRequestInterestRate (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLoanVipRequestInterestRate (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLoanVipRequestInterestRate", parameters);
     }
 
-    func (this *binance) sapiGetLoanIncome (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLoanIncome (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLoanIncome", parameters);
     }
 
-    func (this *binance) sapiGetLoanOngoingOrders (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLoanOngoingOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLoanOngoingOrders", parameters);
     }
 
-    func (this *binance) sapiGetLoanLtvAdjustmentHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLoanLtvAdjustmentHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLoanLtvAdjustmentHistory", parameters);
     }
 
-    func (this *binance) sapiGetLoanBorrowHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLoanBorrowHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLoanBorrowHistory", parameters);
     }
 
-    func (this *binance) sapiGetLoanRepayHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLoanRepayHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLoanRepayHistory", parameters);
     }
 
-    func (this *binance) sapiGetLoanLoanableData (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLoanLoanableData (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLoanLoanableData", parameters);
     }
 
-    func (this *binance) sapiGetLoanCollateralData (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLoanCollateralData (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLoanCollateralData", parameters);
     }
 
-    func (this *binance) sapiGetLoanRepayCollateralRate (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLoanRepayCollateralRate (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLoanRepayCollateralRate", parameters);
     }
 
-    func (this *binance) sapiGetLoanFlexibleOngoingOrders (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLoanFlexibleOngoingOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLoanFlexibleOngoingOrders", parameters);
     }
 
-    func (this *binance) sapiGetLoanFlexibleBorrowHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLoanFlexibleBorrowHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLoanFlexibleBorrowHistory", parameters);
     }
 
-    func (this *binance) sapiGetLoanFlexibleRepayHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLoanFlexibleRepayHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLoanFlexibleRepayHistory", parameters);
     }
 
-    func (this *binance) sapiGetLoanFlexibleLtvAdjustmentHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLoanFlexibleLtvAdjustmentHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLoanFlexibleLtvAdjustmentHistory", parameters);
     }
 
-    func (this *binance) sapiGetLoanVipOngoingOrders (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLoanVipOngoingOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLoanVipOngoingOrders", parameters);
     }
 
-    func (this *binance) sapiGetLoanVipRepayHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLoanVipRepayHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLoanVipRepayHistory", parameters);
     }
 
-    func (this *binance) sapiGetLoanVipCollateralAccount (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLoanVipCollateralAccount (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLoanVipCollateralAccount", parameters);
     }
 
-    func (this *binance) sapiGetFiatOrders (args ...interface{}) interface{} {
+    func (this *binance) SapiGetFiatOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetFiatOrders", parameters);
     }
 
-    func (this *binance) sapiGetFiatPayments (args ...interface{}) interface{} {
+    func (this *binance) SapiGetFiatPayments (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetFiatPayments", parameters);
     }
 
-    func (this *binance) sapiGetFuturesTransfer (args ...interface{}) interface{} {
+    func (this *binance) SapiGetFuturesTransfer (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetFuturesTransfer", parameters);
     }
 
-    func (this *binance) sapiGetFuturesHistDataLink (args ...interface{}) interface{} {
+    func (this *binance) SapiGetFuturesHistDataLink (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetFuturesHistDataLink", parameters);
     }
 
-    func (this *binance) sapiGetRebateTaxQuery (args ...interface{}) interface{} {
+    func (this *binance) SapiGetRebateTaxQuery (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetRebateTaxQuery", parameters);
     }
 
-    func (this *binance) sapiGetCapitalConfigGetall (args ...interface{}) interface{} {
+    func (this *binance) SapiGetCapitalConfigGetall (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetCapitalConfigGetall", parameters);
     }
 
-    func (this *binance) sapiGetCapitalDepositAddress (args ...interface{}) interface{} {
+    func (this *binance) SapiGetCapitalDepositAddress (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetCapitalDepositAddress", parameters);
     }
 
-    func (this *binance) sapiGetCapitalDepositAddressList (args ...interface{}) interface{} {
+    func (this *binance) SapiGetCapitalDepositAddressList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetCapitalDepositAddressList", parameters);
     }
 
-    func (this *binance) sapiGetCapitalDepositHisrec (args ...interface{}) interface{} {
+    func (this *binance) SapiGetCapitalDepositHisrec (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetCapitalDepositHisrec", parameters);
     }
 
-    func (this *binance) sapiGetCapitalDepositSubAddress (args ...interface{}) interface{} {
+    func (this *binance) SapiGetCapitalDepositSubAddress (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetCapitalDepositSubAddress", parameters);
     }
 
-    func (this *binance) sapiGetCapitalDepositSubHisrec (args ...interface{}) interface{} {
+    func (this *binance) SapiGetCapitalDepositSubHisrec (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetCapitalDepositSubHisrec", parameters);
     }
 
-    func (this *binance) sapiGetCapitalWithdrawHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiGetCapitalWithdrawHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetCapitalWithdrawHistory", parameters);
     }
 
-    func (this *binance) sapiGetCapitalWithdrawAddressList (args ...interface{}) interface{} {
+    func (this *binance) SapiGetCapitalWithdrawAddressList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetCapitalWithdrawAddressList", parameters);
     }
 
-    func (this *binance) sapiGetCapitalContractConvertibleCoins (args ...interface{}) interface{} {
+    func (this *binance) SapiGetCapitalContractConvertibleCoins (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetCapitalContractConvertibleCoins", parameters);
     }
 
-    func (this *binance) sapiGetConvertTradeFlow (args ...interface{}) interface{} {
+    func (this *binance) SapiGetConvertTradeFlow (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetConvertTradeFlow", parameters);
     }
 
-    func (this *binance) sapiGetConvertExchangeInfo (args ...interface{}) interface{} {
+    func (this *binance) SapiGetConvertExchangeInfo (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetConvertExchangeInfo", parameters);
     }
 
-    func (this *binance) sapiGetConvertAssetInfo (args ...interface{}) interface{} {
+    func (this *binance) SapiGetConvertAssetInfo (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetConvertAssetInfo", parameters);
     }
 
-    func (this *binance) sapiGetConvertOrderStatus (args ...interface{}) interface{} {
+    func (this *binance) SapiGetConvertOrderStatus (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetConvertOrderStatus", parameters);
     }
 
-    func (this *binance) sapiGetConvertLimitQueryOpenOrders (args ...interface{}) interface{} {
+    func (this *binance) SapiGetConvertLimitQueryOpenOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetConvertLimitQueryOpenOrders", parameters);
     }
 
-    func (this *binance) sapiGetAccountStatus (args ...interface{}) interface{} {
+    func (this *binance) SapiGetAccountStatus (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetAccountStatus", parameters);
     }
 
-    func (this *binance) sapiGetAccountApiTradingStatus (args ...interface{}) interface{} {
+    func (this *binance) SapiGetAccountApiTradingStatus (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetAccountApiTradingStatus", parameters);
     }
 
-    func (this *binance) sapiGetAccountApiRestrictionsIpRestriction (args ...interface{}) interface{} {
+    func (this *binance) SapiGetAccountApiRestrictionsIpRestriction (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetAccountApiRestrictionsIpRestriction", parameters);
     }
 
-    func (this *binance) sapiGetBnbBurn (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBnbBurn (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBnbBurn", parameters);
     }
 
-    func (this *binance) sapiGetSubAccountFuturesAccount (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSubAccountFuturesAccount (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSubAccountFuturesAccount", parameters);
     }
 
-    func (this *binance) sapiGetSubAccountFuturesAccountSummary (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSubAccountFuturesAccountSummary (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSubAccountFuturesAccountSummary", parameters);
     }
 
-    func (this *binance) sapiGetSubAccountFuturesPositionRisk (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSubAccountFuturesPositionRisk (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSubAccountFuturesPositionRisk", parameters);
     }
 
-    func (this *binance) sapiGetSubAccountFuturesInternalTransfer (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSubAccountFuturesInternalTransfer (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSubAccountFuturesInternalTransfer", parameters);
     }
 
-    func (this *binance) sapiGetSubAccountList (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSubAccountList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSubAccountList", parameters);
     }
 
-    func (this *binance) sapiGetSubAccountMarginAccount (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSubAccountMarginAccount (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSubAccountMarginAccount", parameters);
     }
 
-    func (this *binance) sapiGetSubAccountMarginAccountSummary (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSubAccountMarginAccountSummary (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSubAccountMarginAccountSummary", parameters);
     }
 
-    func (this *binance) sapiGetSubAccountSpotSummary (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSubAccountSpotSummary (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSubAccountSpotSummary", parameters);
     }
 
-    func (this *binance) sapiGetSubAccountStatus (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSubAccountStatus (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSubAccountStatus", parameters);
     }
 
-    func (this *binance) sapiGetSubAccountSubTransferHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSubAccountSubTransferHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSubAccountSubTransferHistory", parameters);
     }
 
-    func (this *binance) sapiGetSubAccountTransferSubUserHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSubAccountTransferSubUserHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSubAccountTransferSubUserHistory", parameters);
     }
 
-    func (this *binance) sapiGetSubAccountUniversalTransfer (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSubAccountUniversalTransfer (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSubAccountUniversalTransfer", parameters);
     }
 
-    func (this *binance) sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSubAccountApiRestrictionsIpRestrictionThirdPartyList", parameters);
     }
 
-    func (this *binance) sapiGetSubAccountTransactionStatistics (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSubAccountTransactionStatistics (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSubAccountTransactionStatistics", parameters);
     }
 
-    func (this *binance) sapiGetSubAccountSubAccountApiIpRestriction (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSubAccountSubAccountApiIpRestriction (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSubAccountSubAccountApiIpRestriction", parameters);
     }
 
-    func (this *binance) sapiGetManagedSubaccountAsset (args ...interface{}) interface{} {
+    func (this *binance) SapiGetManagedSubaccountAsset (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetManagedSubaccountAsset", parameters);
     }
 
-    func (this *binance) sapiGetManagedSubaccountAccountSnapshot (args ...interface{}) interface{} {
+    func (this *binance) SapiGetManagedSubaccountAccountSnapshot (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetManagedSubaccountAccountSnapshot", parameters);
     }
 
-    func (this *binance) sapiGetManagedSubaccountQueryTransLogForInvestor (args ...interface{}) interface{} {
+    func (this *binance) SapiGetManagedSubaccountQueryTransLogForInvestor (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetManagedSubaccountQueryTransLogForInvestor", parameters);
     }
 
-    func (this *binance) sapiGetManagedSubaccountQueryTransLogForTradeParent (args ...interface{}) interface{} {
+    func (this *binance) SapiGetManagedSubaccountQueryTransLogForTradeParent (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetManagedSubaccountQueryTransLogForTradeParent", parameters);
     }
 
-    func (this *binance) sapiGetManagedSubaccountFetchFutureAsset (args ...interface{}) interface{} {
+    func (this *binance) SapiGetManagedSubaccountFetchFutureAsset (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetManagedSubaccountFetchFutureAsset", parameters);
     }
 
-    func (this *binance) sapiGetManagedSubaccountMarginAsset (args ...interface{}) interface{} {
+    func (this *binance) SapiGetManagedSubaccountMarginAsset (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetManagedSubaccountMarginAsset", parameters);
     }
 
-    func (this *binance) sapiGetManagedSubaccountInfo (args ...interface{}) interface{} {
+    func (this *binance) SapiGetManagedSubaccountInfo (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetManagedSubaccountInfo", parameters);
     }
 
-    func (this *binance) sapiGetManagedSubaccountDepositAddress (args ...interface{}) interface{} {
+    func (this *binance) SapiGetManagedSubaccountDepositAddress (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetManagedSubaccountDepositAddress", parameters);
     }
 
-    func (this *binance) sapiGetManagedSubaccountQueryTransLog (args ...interface{}) interface{} {
+    func (this *binance) SapiGetManagedSubaccountQueryTransLog (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetManagedSubaccountQueryTransLog", parameters);
     }
 
-    func (this *binance) sapiGetLendingDailyProductList (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLendingDailyProductList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLendingDailyProductList", parameters);
     }
 
-    func (this *binance) sapiGetLendingDailyUserLeftQuota (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLendingDailyUserLeftQuota (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLendingDailyUserLeftQuota", parameters);
     }
 
-    func (this *binance) sapiGetLendingDailyUserRedemptionQuota (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLendingDailyUserRedemptionQuota (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLendingDailyUserRedemptionQuota", parameters);
     }
 
-    func (this *binance) sapiGetLendingDailyTokenPosition (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLendingDailyTokenPosition (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLendingDailyTokenPosition", parameters);
     }
 
-    func (this *binance) sapiGetLendingUnionAccount (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLendingUnionAccount (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLendingUnionAccount", parameters);
     }
 
-    func (this *binance) sapiGetLendingUnionPurchaseRecord (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLendingUnionPurchaseRecord (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLendingUnionPurchaseRecord", parameters);
     }
 
-    func (this *binance) sapiGetLendingUnionRedemptionRecord (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLendingUnionRedemptionRecord (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLendingUnionRedemptionRecord", parameters);
     }
 
-    func (this *binance) sapiGetLendingUnionInterestHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLendingUnionInterestHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLendingUnionInterestHistory", parameters);
     }
 
-    func (this *binance) sapiGetLendingProjectList (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLendingProjectList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLendingProjectList", parameters);
     }
 
-    func (this *binance) sapiGetLendingProjectPositionList (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLendingProjectPositionList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLendingProjectPositionList", parameters);
     }
 
-    func (this *binance) sapiGetEthStakingEthHistoryStakingHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiGetEthStakingEthHistoryStakingHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetEthStakingEthHistoryStakingHistory", parameters);
     }
 
-    func (this *binance) sapiGetEthStakingEthHistoryRedemptionHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiGetEthStakingEthHistoryRedemptionHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetEthStakingEthHistoryRedemptionHistory", parameters);
     }
 
-    func (this *binance) sapiGetEthStakingEthHistoryRewardsHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiGetEthStakingEthHistoryRewardsHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetEthStakingEthHistoryRewardsHistory", parameters);
     }
 
-    func (this *binance) sapiGetEthStakingEthQuota (args ...interface{}) interface{} {
+    func (this *binance) SapiGetEthStakingEthQuota (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetEthStakingEthQuota", parameters);
     }
 
-    func (this *binance) sapiGetEthStakingEthHistoryRateHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiGetEthStakingEthHistoryRateHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetEthStakingEthHistoryRateHistory", parameters);
     }
 
-    func (this *binance) sapiGetEthStakingAccount (args ...interface{}) interface{} {
+    func (this *binance) SapiGetEthStakingAccount (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetEthStakingAccount", parameters);
     }
 
-    func (this *binance) sapiGetEthStakingWbethHistoryWrapHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiGetEthStakingWbethHistoryWrapHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetEthStakingWbethHistoryWrapHistory", parameters);
     }
 
-    func (this *binance) sapiGetEthStakingWbethHistoryUnwrapHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiGetEthStakingWbethHistoryUnwrapHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetEthStakingWbethHistoryUnwrapHistory", parameters);
     }
 
-    func (this *binance) sapiGetEthStakingEthHistoryWbethRewardsHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiGetEthStakingEthHistoryWbethRewardsHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetEthStakingEthHistoryWbethRewardsHistory", parameters);
     }
 
-    func (this *binance) sapiGetMiningPubAlgoList (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMiningPubAlgoList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMiningPubAlgoList", parameters);
     }
 
-    func (this *binance) sapiGetMiningPubCoinList (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMiningPubCoinList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMiningPubCoinList", parameters);
     }
 
-    func (this *binance) sapiGetMiningWorkerDetail (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMiningWorkerDetail (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMiningWorkerDetail", parameters);
     }
 
-    func (this *binance) sapiGetMiningWorkerList (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMiningWorkerList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMiningWorkerList", parameters);
     }
 
-    func (this *binance) sapiGetMiningPaymentList (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMiningPaymentList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMiningPaymentList", parameters);
     }
 
-    func (this *binance) sapiGetMiningStatisticsUserStatus (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMiningStatisticsUserStatus (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMiningStatisticsUserStatus", parameters);
     }
 
-    func (this *binance) sapiGetMiningStatisticsUserList (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMiningStatisticsUserList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMiningStatisticsUserList", parameters);
     }
 
-    func (this *binance) sapiGetMiningPaymentUid (args ...interface{}) interface{} {
+    func (this *binance) SapiGetMiningPaymentUid (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetMiningPaymentUid", parameters);
     }
 
-    func (this *binance) sapiGetBswapPools (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBswapPools (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBswapPools", parameters);
     }
 
-    func (this *binance) sapiGetBswapLiquidity (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBswapLiquidity (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBswapLiquidity", parameters);
     }
 
-    func (this *binance) sapiGetBswapLiquidityOps (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBswapLiquidityOps (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBswapLiquidityOps", parameters);
     }
 
-    func (this *binance) sapiGetBswapQuote (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBswapQuote (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBswapQuote", parameters);
     }
 
-    func (this *binance) sapiGetBswapSwap (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBswapSwap (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBswapSwap", parameters);
     }
 
-    func (this *binance) sapiGetBswapPoolConfigure (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBswapPoolConfigure (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBswapPoolConfigure", parameters);
     }
 
-    func (this *binance) sapiGetBswapAddLiquidityPreview (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBswapAddLiquidityPreview (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBswapAddLiquidityPreview", parameters);
     }
 
-    func (this *binance) sapiGetBswapRemoveLiquidityPreview (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBswapRemoveLiquidityPreview (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBswapRemoveLiquidityPreview", parameters);
     }
 
-    func (this *binance) sapiGetBswapUnclaimedRewards (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBswapUnclaimedRewards (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBswapUnclaimedRewards", parameters);
     }
 
-    func (this *binance) sapiGetBswapClaimedHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBswapClaimedHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBswapClaimedHistory", parameters);
     }
 
-    func (this *binance) sapiGetBlvtTokenInfo (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBlvtTokenInfo (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBlvtTokenInfo", parameters);
     }
 
-    func (this *binance) sapiGetBlvtSubscribeRecord (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBlvtSubscribeRecord (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBlvtSubscribeRecord", parameters);
     }
 
-    func (this *binance) sapiGetBlvtRedeemRecord (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBlvtRedeemRecord (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBlvtRedeemRecord", parameters);
     }
 
-    func (this *binance) sapiGetBlvtUserLimit (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBlvtUserLimit (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBlvtUserLimit", parameters);
     }
 
-    func (this *binance) sapiGetApiReferralIfNewUser (args ...interface{}) interface{} {
+    func (this *binance) SapiGetApiReferralIfNewUser (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetApiReferralIfNewUser", parameters);
     }
 
-    func (this *binance) sapiGetApiReferralCustomization (args ...interface{}) interface{} {
+    func (this *binance) SapiGetApiReferralCustomization (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetApiReferralCustomization", parameters);
     }
 
-    func (this *binance) sapiGetApiReferralUserCustomization (args ...interface{}) interface{} {
+    func (this *binance) SapiGetApiReferralUserCustomization (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetApiReferralUserCustomization", parameters);
     }
 
-    func (this *binance) sapiGetApiReferralRebateRecentRecord (args ...interface{}) interface{} {
+    func (this *binance) SapiGetApiReferralRebateRecentRecord (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetApiReferralRebateRecentRecord", parameters);
     }
 
-    func (this *binance) sapiGetApiReferralRebateHistoricalRecord (args ...interface{}) interface{} {
+    func (this *binance) SapiGetApiReferralRebateHistoricalRecord (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetApiReferralRebateHistoricalRecord", parameters);
     }
 
-    func (this *binance) sapiGetApiReferralKickbackRecentRecord (args ...interface{}) interface{} {
+    func (this *binance) SapiGetApiReferralKickbackRecentRecord (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetApiReferralKickbackRecentRecord", parameters);
     }
 
-    func (this *binance) sapiGetApiReferralKickbackHistoricalRecord (args ...interface{}) interface{} {
+    func (this *binance) SapiGetApiReferralKickbackHistoricalRecord (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetApiReferralKickbackHistoricalRecord", parameters);
     }
 
-    func (this *binance) sapiGetBrokerSubAccountApi (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBrokerSubAccountApi (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBrokerSubAccountApi", parameters);
     }
 
-    func (this *binance) sapiGetBrokerSubAccount (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBrokerSubAccount (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBrokerSubAccount", parameters);
     }
 
-    func (this *binance) sapiGetBrokerSubAccountApiCommissionFutures (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBrokerSubAccountApiCommissionFutures (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBrokerSubAccountApiCommissionFutures", parameters);
     }
 
-    func (this *binance) sapiGetBrokerSubAccountApiCommissionCoinFutures (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBrokerSubAccountApiCommissionCoinFutures (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBrokerSubAccountApiCommissionCoinFutures", parameters);
     }
 
-    func (this *binance) sapiGetBrokerInfo (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBrokerInfo (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBrokerInfo", parameters);
     }
 
-    func (this *binance) sapiGetBrokerTransfer (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBrokerTransfer (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBrokerTransfer", parameters);
     }
 
-    func (this *binance) sapiGetBrokerTransferFutures (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBrokerTransferFutures (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBrokerTransferFutures", parameters);
     }
 
-    func (this *binance) sapiGetBrokerRebateRecentRecord (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBrokerRebateRecentRecord (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBrokerRebateRecentRecord", parameters);
     }
 
-    func (this *binance) sapiGetBrokerRebateHistoricalRecord (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBrokerRebateHistoricalRecord (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBrokerRebateHistoricalRecord", parameters);
     }
 
-    func (this *binance) sapiGetBrokerSubAccountBnbBurnStatus (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBrokerSubAccountBnbBurnStatus (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBrokerSubAccountBnbBurnStatus", parameters);
     }
 
-    func (this *binance) sapiGetBrokerSubAccountDepositHist (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBrokerSubAccountDepositHist (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBrokerSubAccountDepositHist", parameters);
     }
 
-    func (this *binance) sapiGetBrokerSubAccountSpotSummary (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBrokerSubAccountSpotSummary (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBrokerSubAccountSpotSummary", parameters);
     }
 
-    func (this *binance) sapiGetBrokerSubAccountMarginSummary (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBrokerSubAccountMarginSummary (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBrokerSubAccountMarginSummary", parameters);
     }
 
-    func (this *binance) sapiGetBrokerSubAccountFuturesSummary (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBrokerSubAccountFuturesSummary (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBrokerSubAccountFuturesSummary", parameters);
     }
 
-    func (this *binance) sapiGetBrokerRebateFuturesRecentRecord (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBrokerRebateFuturesRecentRecord (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBrokerRebateFuturesRecentRecord", parameters);
     }
 
-    func (this *binance) sapiGetBrokerSubAccountApiIpRestriction (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBrokerSubAccountApiIpRestriction (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBrokerSubAccountApiIpRestriction", parameters);
     }
 
-    func (this *binance) sapiGetBrokerUniversalTransfer (args ...interface{}) interface{} {
+    func (this *binance) SapiGetBrokerUniversalTransfer (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetBrokerUniversalTransfer", parameters);
     }
 
-    func (this *binance) sapiGetAccountApiRestrictions (args ...interface{}) interface{} {
+    func (this *binance) SapiGetAccountApiRestrictions (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetAccountApiRestrictions", parameters);
     }
 
-    func (this *binance) sapiGetC2cOrderMatchListUserOrderHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiGetC2cOrderMatchListUserOrderHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetC2cOrderMatchListUserOrderHistory", parameters);
     }
 
-    func (this *binance) sapiGetNftHistoryTransactions (args ...interface{}) interface{} {
+    func (this *binance) SapiGetNftHistoryTransactions (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetNftHistoryTransactions", parameters);
     }
 
-    func (this *binance) sapiGetNftHistoryDeposit (args ...interface{}) interface{} {
+    func (this *binance) SapiGetNftHistoryDeposit (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetNftHistoryDeposit", parameters);
     }
 
-    func (this *binance) sapiGetNftHistoryWithdraw (args ...interface{}) interface{} {
+    func (this *binance) SapiGetNftHistoryWithdraw (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetNftHistoryWithdraw", parameters);
     }
 
-    func (this *binance) sapiGetNftUserGetAsset (args ...interface{}) interface{} {
+    func (this *binance) SapiGetNftUserGetAsset (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetNftUserGetAsset", parameters);
     }
 
-    func (this *binance) sapiGetPayTransactions (args ...interface{}) interface{} {
+    func (this *binance) SapiGetPayTransactions (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetPayTransactions", parameters);
     }
 
-    func (this *binance) sapiGetGiftcardVerify (args ...interface{}) interface{} {
+    func (this *binance) SapiGetGiftcardVerify (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetGiftcardVerify", parameters);
     }
 
-    func (this *binance) sapiGetGiftcardCryptographyRsaPublicKey (args ...interface{}) interface{} {
+    func (this *binance) SapiGetGiftcardCryptographyRsaPublicKey (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetGiftcardCryptographyRsaPublicKey", parameters);
     }
 
-    func (this *binance) sapiGetGiftcardBuyCodeTokenLimit (args ...interface{}) interface{} {
+    func (this *binance) SapiGetGiftcardBuyCodeTokenLimit (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetGiftcardBuyCodeTokenLimit", parameters);
     }
 
-    func (this *binance) sapiGetAlgoSpotOpenOrders (args ...interface{}) interface{} {
+    func (this *binance) SapiGetAlgoSpotOpenOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetAlgoSpotOpenOrders", parameters);
     }
 
-    func (this *binance) sapiGetAlgoSpotHistoricalOrders (args ...interface{}) interface{} {
+    func (this *binance) SapiGetAlgoSpotHistoricalOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetAlgoSpotHistoricalOrders", parameters);
     }
 
-    func (this *binance) sapiGetAlgoSpotSubOrders (args ...interface{}) interface{} {
+    func (this *binance) SapiGetAlgoSpotSubOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetAlgoSpotSubOrders", parameters);
     }
 
-    func (this *binance) sapiGetAlgoFuturesOpenOrders (args ...interface{}) interface{} {
+    func (this *binance) SapiGetAlgoFuturesOpenOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetAlgoFuturesOpenOrders", parameters);
     }
 
-    func (this *binance) sapiGetAlgoFuturesHistoricalOrders (args ...interface{}) interface{} {
+    func (this *binance) SapiGetAlgoFuturesHistoricalOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetAlgoFuturesHistoricalOrders", parameters);
     }
 
-    func (this *binance) sapiGetAlgoFuturesSubOrders (args ...interface{}) interface{} {
+    func (this *binance) SapiGetAlgoFuturesSubOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetAlgoFuturesSubOrders", parameters);
     }
 
-    func (this *binance) sapiGetPortfolioAccount (args ...interface{}) interface{} {
+    func (this *binance) SapiGetPortfolioAccount (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetPortfolioAccount", parameters);
     }
 
-    func (this *binance) sapiGetPortfolioCollateralRate (args ...interface{}) interface{} {
+    func (this *binance) SapiGetPortfolioCollateralRate (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetPortfolioCollateralRate", parameters);
     }
 
-    func (this *binance) sapiGetPortfolioPmLoan (args ...interface{}) interface{} {
+    func (this *binance) SapiGetPortfolioPmLoan (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetPortfolioPmLoan", parameters);
     }
 
-    func (this *binance) sapiGetPortfolioInterestHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiGetPortfolioInterestHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetPortfolioInterestHistory", parameters);
     }
 
-    func (this *binance) sapiGetPortfolioAssetIndexPrice (args ...interface{}) interface{} {
+    func (this *binance) SapiGetPortfolioAssetIndexPrice (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetPortfolioAssetIndexPrice", parameters);
     }
 
-    func (this *binance) sapiGetPortfolioRepayFuturesSwitch (args ...interface{}) interface{} {
+    func (this *binance) SapiGetPortfolioRepayFuturesSwitch (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetPortfolioRepayFuturesSwitch", parameters);
     }
 
-    func (this *binance) sapiGetPortfolioMarginAssetLeverage (args ...interface{}) interface{} {
+    func (this *binance) SapiGetPortfolioMarginAssetLeverage (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetPortfolioMarginAssetLeverage", parameters);
     }
 
-    func (this *binance) sapiGetStakingProductList (args ...interface{}) interface{} {
+    func (this *binance) SapiGetStakingProductList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetStakingProductList", parameters);
     }
 
-    func (this *binance) sapiGetStakingPosition (args ...interface{}) interface{} {
+    func (this *binance) SapiGetStakingPosition (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetStakingPosition", parameters);
     }
 
-    func (this *binance) sapiGetStakingStakingRecord (args ...interface{}) interface{} {
+    func (this *binance) SapiGetStakingStakingRecord (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetStakingStakingRecord", parameters);
     }
 
-    func (this *binance) sapiGetStakingPersonalLeftQuota (args ...interface{}) interface{} {
+    func (this *binance) SapiGetStakingPersonalLeftQuota (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetStakingPersonalLeftQuota", parameters);
     }
 
-    func (this *binance) sapiGetLendingAutoInvestTargetAssetList (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLendingAutoInvestTargetAssetList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLendingAutoInvestTargetAssetList", parameters);
     }
 
-    func (this *binance) sapiGetLendingAutoInvestTargetAssetRoiList (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLendingAutoInvestTargetAssetRoiList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLendingAutoInvestTargetAssetRoiList", parameters);
     }
 
-    func (this *binance) sapiGetLendingAutoInvestAllAsset (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLendingAutoInvestAllAsset (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLendingAutoInvestAllAsset", parameters);
     }
 
-    func (this *binance) sapiGetLendingAutoInvestSourceAssetList (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLendingAutoInvestSourceAssetList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLendingAutoInvestSourceAssetList", parameters);
     }
 
-    func (this *binance) sapiGetLendingAutoInvestPlanList (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLendingAutoInvestPlanList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLendingAutoInvestPlanList", parameters);
     }
 
-    func (this *binance) sapiGetLendingAutoInvestPlanId (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLendingAutoInvestPlanId (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLendingAutoInvestPlanId", parameters);
     }
 
-    func (this *binance) sapiGetLendingAutoInvestHistoryList (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLendingAutoInvestHistoryList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLendingAutoInvestHistoryList", parameters);
     }
 
-    func (this *binance) sapiGetLendingAutoInvestIndexInfo (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLendingAutoInvestIndexInfo (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLendingAutoInvestIndexInfo", parameters);
     }
 
-    func (this *binance) sapiGetLendingAutoInvestIndexUserSummary (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLendingAutoInvestIndexUserSummary (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLendingAutoInvestIndexUserSummary", parameters);
     }
 
-    func (this *binance) sapiGetLendingAutoInvestOneOffStatus (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLendingAutoInvestOneOffStatus (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLendingAutoInvestOneOffStatus", parameters);
     }
 
-    func (this *binance) sapiGetLendingAutoInvestRedeemHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLendingAutoInvestRedeemHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLendingAutoInvestRedeemHistory", parameters);
     }
 
-    func (this *binance) sapiGetLendingAutoInvestRebalanceHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiGetLendingAutoInvestRebalanceHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetLendingAutoInvestRebalanceHistory", parameters);
     }
 
-    func (this *binance) sapiGetSimpleEarnFlexibleList (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSimpleEarnFlexibleList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSimpleEarnFlexibleList", parameters);
     }
 
-    func (this *binance) sapiGetSimpleEarnLockedList (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSimpleEarnLockedList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSimpleEarnLockedList", parameters);
     }
 
-    func (this *binance) sapiGetSimpleEarnFlexiblePersonalLeftQuota (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSimpleEarnFlexiblePersonalLeftQuota (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSimpleEarnFlexiblePersonalLeftQuota", parameters);
     }
 
-    func (this *binance) sapiGetSimpleEarnLockedPersonalLeftQuota (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSimpleEarnLockedPersonalLeftQuota (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSimpleEarnLockedPersonalLeftQuota", parameters);
     }
 
-    func (this *binance) sapiGetSimpleEarnFlexibleSubscriptionPreview (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSimpleEarnFlexibleSubscriptionPreview (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSimpleEarnFlexibleSubscriptionPreview", parameters);
     }
 
-    func (this *binance) sapiGetSimpleEarnLockedSubscriptionPreview (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSimpleEarnLockedSubscriptionPreview (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSimpleEarnLockedSubscriptionPreview", parameters);
     }
 
-    func (this *binance) sapiGetSimpleEarnFlexibleHistoryRateHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSimpleEarnFlexibleHistoryRateHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSimpleEarnFlexibleHistoryRateHistory", parameters);
     }
 
-    func (this *binance) sapiGetSimpleEarnFlexiblePosition (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSimpleEarnFlexiblePosition (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSimpleEarnFlexiblePosition", parameters);
     }
 
-    func (this *binance) sapiGetSimpleEarnLockedPosition (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSimpleEarnLockedPosition (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSimpleEarnLockedPosition", parameters);
     }
 
-    func (this *binance) sapiGetSimpleEarnAccount (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSimpleEarnAccount (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSimpleEarnAccount", parameters);
     }
 
-    func (this *binance) sapiGetSimpleEarnFlexibleHistorySubscriptionRecord (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSimpleEarnFlexibleHistorySubscriptionRecord (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSimpleEarnFlexibleHistorySubscriptionRecord", parameters);
     }
 
-    func (this *binance) sapiGetSimpleEarnLockedHistorySubscriptionRecord (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSimpleEarnLockedHistorySubscriptionRecord (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSimpleEarnLockedHistorySubscriptionRecord", parameters);
     }
 
-    func (this *binance) sapiGetSimpleEarnFlexibleHistoryRedemptionRecord (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSimpleEarnFlexibleHistoryRedemptionRecord (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSimpleEarnFlexibleHistoryRedemptionRecord", parameters);
     }
 
-    func (this *binance) sapiGetSimpleEarnLockedHistoryRedemptionRecord (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSimpleEarnLockedHistoryRedemptionRecord (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSimpleEarnLockedHistoryRedemptionRecord", parameters);
     }
 
-    func (this *binance) sapiGetSimpleEarnFlexibleHistoryRewardsRecord (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSimpleEarnFlexibleHistoryRewardsRecord (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSimpleEarnFlexibleHistoryRewardsRecord", parameters);
     }
 
-    func (this *binance) sapiGetSimpleEarnLockedHistoryRewardsRecord (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSimpleEarnLockedHistoryRewardsRecord (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSimpleEarnLockedHistoryRewardsRecord", parameters);
     }
 
-    func (this *binance) sapiGetSimpleEarnFlexibleHistoryCollateralRecord (args ...interface{}) interface{} {
+    func (this *binance) SapiGetSimpleEarnFlexibleHistoryCollateralRecord (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetSimpleEarnFlexibleHistoryCollateralRecord", parameters);
     }
 
-    func (this *binance) sapiGetDciProductList (args ...interface{}) interface{} {
+    func (this *binance) SapiGetDciProductList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetDciProductList", parameters);
     }
 
-    func (this *binance) sapiGetDciProductPositions (args ...interface{}) interface{} {
+    func (this *binance) SapiGetDciProductPositions (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetDciProductPositions", parameters);
     }
 
-    func (this *binance) sapiGetDciProductAccounts (args ...interface{}) interface{} {
+    func (this *binance) SapiGetDciProductAccounts (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiGetDciProductAccounts", parameters);
     }
 
-    func (this *binance) sapiPostAssetDust (args ...interface{}) interface{} {
+    func (this *binance) SapiPostAssetDust (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostAssetDust", parameters);
     }
 
-    func (this *binance) sapiPostAssetDustBtc (args ...interface{}) interface{} {
+    func (this *binance) SapiPostAssetDustBtc (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostAssetDustBtc", parameters);
     }
 
-    func (this *binance) sapiPostAssetTransfer (args ...interface{}) interface{} {
+    func (this *binance) SapiPostAssetTransfer (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostAssetTransfer", parameters);
     }
 
-    func (this *binance) sapiPostAssetGetFundingAsset (args ...interface{}) interface{} {
+    func (this *binance) SapiPostAssetGetFundingAsset (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostAssetGetFundingAsset", parameters);
     }
 
-    func (this *binance) sapiPostAssetConvertTransfer (args ...interface{}) interface{} {
+    func (this *binance) SapiPostAssetConvertTransfer (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostAssetConvertTransfer", parameters);
     }
 
-    func (this *binance) sapiPostAccountDisableFastWithdrawSwitch (args ...interface{}) interface{} {
+    func (this *binance) SapiPostAccountDisableFastWithdrawSwitch (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostAccountDisableFastWithdrawSwitch", parameters);
     }
 
-    func (this *binance) sapiPostAccountEnableFastWithdrawSwitch (args ...interface{}) interface{} {
+    func (this *binance) SapiPostAccountEnableFastWithdrawSwitch (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostAccountEnableFastWithdrawSwitch", parameters);
     }
 
-    func (this *binance) sapiPostCapitalWithdrawApply (args ...interface{}) interface{} {
+    func (this *binance) SapiPostCapitalWithdrawApply (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostCapitalWithdrawApply", parameters);
     }
 
-    func (this *binance) sapiPostCapitalContractConvertibleCoins (args ...interface{}) interface{} {
+    func (this *binance) SapiPostCapitalContractConvertibleCoins (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostCapitalContractConvertibleCoins", parameters);
     }
 
-    func (this *binance) sapiPostCapitalDepositCreditApply (args ...interface{}) interface{} {
+    func (this *binance) SapiPostCapitalDepositCreditApply (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostCapitalDepositCreditApply", parameters);
     }
 
-    func (this *binance) sapiPostMarginBorrowRepay (args ...interface{}) interface{} {
+    func (this *binance) SapiPostMarginBorrowRepay (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostMarginBorrowRepay", parameters);
     }
 
-    func (this *binance) sapiPostMarginTransfer (args ...interface{}) interface{} {
+    func (this *binance) SapiPostMarginTransfer (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostMarginTransfer", parameters);
     }
 
-    func (this *binance) sapiPostMarginLoan (args ...interface{}) interface{} {
+    func (this *binance) SapiPostMarginLoan (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostMarginLoan", parameters);
     }
 
-    func (this *binance) sapiPostMarginRepay (args ...interface{}) interface{} {
+    func (this *binance) SapiPostMarginRepay (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostMarginRepay", parameters);
     }
 
-    func (this *binance) sapiPostMarginOrder (args ...interface{}) interface{} {
+    func (this *binance) SapiPostMarginOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostMarginOrder", parameters);
     }
 
-    func (this *binance) sapiPostMarginOrderOco (args ...interface{}) interface{} {
+    func (this *binance) SapiPostMarginOrderOco (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostMarginOrderOco", parameters);
     }
 
-    func (this *binance) sapiPostMarginDust (args ...interface{}) interface{} {
+    func (this *binance) SapiPostMarginDust (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostMarginDust", parameters);
     }
 
-    func (this *binance) sapiPostMarginExchangeSmallLiability (args ...interface{}) interface{} {
+    func (this *binance) SapiPostMarginExchangeSmallLiability (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostMarginExchangeSmallLiability", parameters);
     }
 
-    func (this *binance) sapiPostMarginIsolatedTransfer (args ...interface{}) interface{} {
+    func (this *binance) SapiPostMarginIsolatedTransfer (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostMarginIsolatedTransfer", parameters);
     }
 
-    func (this *binance) sapiPostMarginIsolatedAccount (args ...interface{}) interface{} {
+    func (this *binance) SapiPostMarginIsolatedAccount (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostMarginIsolatedAccount", parameters);
     }
 
-    func (this *binance) sapiPostMarginMaxLeverage (args ...interface{}) interface{} {
+    func (this *binance) SapiPostMarginMaxLeverage (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostMarginMaxLeverage", parameters);
     }
 
-    func (this *binance) sapiPostBnbBurn (args ...interface{}) interface{} {
+    func (this *binance) SapiPostBnbBurn (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostBnbBurn", parameters);
     }
 
-    func (this *binance) sapiPostSubAccountVirtualSubAccount (args ...interface{}) interface{} {
+    func (this *binance) SapiPostSubAccountVirtualSubAccount (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostSubAccountVirtualSubAccount", parameters);
     }
 
-    func (this *binance) sapiPostSubAccountMarginTransfer (args ...interface{}) interface{} {
+    func (this *binance) SapiPostSubAccountMarginTransfer (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostSubAccountMarginTransfer", parameters);
     }
 
-    func (this *binance) sapiPostSubAccountMarginEnable (args ...interface{}) interface{} {
+    func (this *binance) SapiPostSubAccountMarginEnable (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostSubAccountMarginEnable", parameters);
     }
 
-    func (this *binance) sapiPostSubAccountFuturesEnable (args ...interface{}) interface{} {
+    func (this *binance) SapiPostSubAccountFuturesEnable (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostSubAccountFuturesEnable", parameters);
     }
 
-    func (this *binance) sapiPostSubAccountFuturesTransfer (args ...interface{}) interface{} {
+    func (this *binance) SapiPostSubAccountFuturesTransfer (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostSubAccountFuturesTransfer", parameters);
     }
 
-    func (this *binance) sapiPostSubAccountFuturesInternalTransfer (args ...interface{}) interface{} {
+    func (this *binance) SapiPostSubAccountFuturesInternalTransfer (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostSubAccountFuturesInternalTransfer", parameters);
     }
 
-    func (this *binance) sapiPostSubAccountTransferSubToSub (args ...interface{}) interface{} {
+    func (this *binance) SapiPostSubAccountTransferSubToSub (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostSubAccountTransferSubToSub", parameters);
     }
 
-    func (this *binance) sapiPostSubAccountTransferSubToMaster (args ...interface{}) interface{} {
+    func (this *binance) SapiPostSubAccountTransferSubToMaster (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostSubAccountTransferSubToMaster", parameters);
     }
 
-    func (this *binance) sapiPostSubAccountUniversalTransfer (args ...interface{}) interface{} {
+    func (this *binance) SapiPostSubAccountUniversalTransfer (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostSubAccountUniversalTransfer", parameters);
     }
 
-    func (this *binance) sapiPostSubAccountOptionsEnable (args ...interface{}) interface{} {
+    func (this *binance) SapiPostSubAccountOptionsEnable (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostSubAccountOptionsEnable", parameters);
     }
 
-    func (this *binance) sapiPostManagedSubaccountDeposit (args ...interface{}) interface{} {
+    func (this *binance) SapiPostManagedSubaccountDeposit (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostManagedSubaccountDeposit", parameters);
     }
 
-    func (this *binance) sapiPostManagedSubaccountWithdraw (args ...interface{}) interface{} {
+    func (this *binance) SapiPostManagedSubaccountWithdraw (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostManagedSubaccountWithdraw", parameters);
     }
 
-    func (this *binance) sapiPostUserDataStream (args ...interface{}) interface{} {
+    func (this *binance) SapiPostUserDataStream (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostUserDataStream", parameters);
     }
 
-    func (this *binance) sapiPostUserDataStreamIsolated (args ...interface{}) interface{} {
+    func (this *binance) SapiPostUserDataStreamIsolated (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostUserDataStreamIsolated", parameters);
     }
 
-    func (this *binance) sapiPostFuturesTransfer (args ...interface{}) interface{} {
+    func (this *binance) SapiPostFuturesTransfer (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostFuturesTransfer", parameters);
     }
 
-    func (this *binance) sapiPostLendingCustomizedFixedPurchase (args ...interface{}) interface{} {
+    func (this *binance) SapiPostLendingCustomizedFixedPurchase (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostLendingCustomizedFixedPurchase", parameters);
     }
 
-    func (this *binance) sapiPostLendingDailyPurchase (args ...interface{}) interface{} {
+    func (this *binance) SapiPostLendingDailyPurchase (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostLendingDailyPurchase", parameters);
     }
 
-    func (this *binance) sapiPostLendingDailyRedeem (args ...interface{}) interface{} {
+    func (this *binance) SapiPostLendingDailyRedeem (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostLendingDailyRedeem", parameters);
     }
 
-    func (this *binance) sapiPostBswapLiquidityAdd (args ...interface{}) interface{} {
+    func (this *binance) SapiPostBswapLiquidityAdd (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostBswapLiquidityAdd", parameters);
     }
 
-    func (this *binance) sapiPostBswapLiquidityRemove (args ...interface{}) interface{} {
+    func (this *binance) SapiPostBswapLiquidityRemove (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostBswapLiquidityRemove", parameters);
     }
 
-    func (this *binance) sapiPostBswapSwap (args ...interface{}) interface{} {
+    func (this *binance) SapiPostBswapSwap (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostBswapSwap", parameters);
     }
 
-    func (this *binance) sapiPostBswapClaimRewards (args ...interface{}) interface{} {
+    func (this *binance) SapiPostBswapClaimRewards (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostBswapClaimRewards", parameters);
     }
 
-    func (this *binance) sapiPostBlvtSubscribe (args ...interface{}) interface{} {
+    func (this *binance) SapiPostBlvtSubscribe (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostBlvtSubscribe", parameters);
     }
 
-    func (this *binance) sapiPostBlvtRedeem (args ...interface{}) interface{} {
+    func (this *binance) SapiPostBlvtRedeem (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostBlvtRedeem", parameters);
     }
 
-    func (this *binance) sapiPostApiReferralCustomization (args ...interface{}) interface{} {
+    func (this *binance) SapiPostApiReferralCustomization (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostApiReferralCustomization", parameters);
     }
 
-    func (this *binance) sapiPostApiReferralUserCustomization (args ...interface{}) interface{} {
+    func (this *binance) SapiPostApiReferralUserCustomization (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostApiReferralUserCustomization", parameters);
     }
 
-    func (this *binance) sapiPostApiReferralRebateHistoricalRecord (args ...interface{}) interface{} {
+    func (this *binance) SapiPostApiReferralRebateHistoricalRecord (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostApiReferralRebateHistoricalRecord", parameters);
     }
 
-    func (this *binance) sapiPostApiReferralKickbackHistoricalRecord (args ...interface{}) interface{} {
+    func (this *binance) SapiPostApiReferralKickbackHistoricalRecord (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostApiReferralKickbackHistoricalRecord", parameters);
     }
 
-    func (this *binance) sapiPostBrokerSubAccount (args ...interface{}) interface{} {
+    func (this *binance) SapiPostBrokerSubAccount (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostBrokerSubAccount", parameters);
     }
 
-    func (this *binance) sapiPostBrokerSubAccountMargin (args ...interface{}) interface{} {
+    func (this *binance) SapiPostBrokerSubAccountMargin (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostBrokerSubAccountMargin", parameters);
     }
 
-    func (this *binance) sapiPostBrokerSubAccountFutures (args ...interface{}) interface{} {
+    func (this *binance) SapiPostBrokerSubAccountFutures (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostBrokerSubAccountFutures", parameters);
     }
 
-    func (this *binance) sapiPostBrokerSubAccountApi (args ...interface{}) interface{} {
+    func (this *binance) SapiPostBrokerSubAccountApi (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostBrokerSubAccountApi", parameters);
     }
 
-    func (this *binance) sapiPostBrokerSubAccountApiPermission (args ...interface{}) interface{} {
+    func (this *binance) SapiPostBrokerSubAccountApiPermission (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostBrokerSubAccountApiPermission", parameters);
     }
 
-    func (this *binance) sapiPostBrokerSubAccountApiCommission (args ...interface{}) interface{} {
+    func (this *binance) SapiPostBrokerSubAccountApiCommission (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostBrokerSubAccountApiCommission", parameters);
     }
 
-    func (this *binance) sapiPostBrokerSubAccountApiCommissionFutures (args ...interface{}) interface{} {
+    func (this *binance) SapiPostBrokerSubAccountApiCommissionFutures (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostBrokerSubAccountApiCommissionFutures", parameters);
     }
 
-    func (this *binance) sapiPostBrokerSubAccountApiCommissionCoinFutures (args ...interface{}) interface{} {
+    func (this *binance) SapiPostBrokerSubAccountApiCommissionCoinFutures (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostBrokerSubAccountApiCommissionCoinFutures", parameters);
     }
 
-    func (this *binance) sapiPostBrokerTransfer (args ...interface{}) interface{} {
+    func (this *binance) SapiPostBrokerTransfer (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostBrokerTransfer", parameters);
     }
 
-    func (this *binance) sapiPostBrokerTransferFutures (args ...interface{}) interface{} {
+    func (this *binance) SapiPostBrokerTransferFutures (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostBrokerTransferFutures", parameters);
     }
 
-    func (this *binance) sapiPostBrokerRebateHistoricalRecord (args ...interface{}) interface{} {
+    func (this *binance) SapiPostBrokerRebateHistoricalRecord (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostBrokerRebateHistoricalRecord", parameters);
     }
 
-    func (this *binance) sapiPostBrokerSubAccountBnbBurnSpot (args ...interface{}) interface{} {
+    func (this *binance) SapiPostBrokerSubAccountBnbBurnSpot (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostBrokerSubAccountBnbBurnSpot", parameters);
     }
 
-    func (this *binance) sapiPostBrokerSubAccountBnbBurnMarginInterest (args ...interface{}) interface{} {
+    func (this *binance) SapiPostBrokerSubAccountBnbBurnMarginInterest (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostBrokerSubAccountBnbBurnMarginInterest", parameters);
     }
 
-    func (this *binance) sapiPostBrokerSubAccountBlvt (args ...interface{}) interface{} {
+    func (this *binance) SapiPostBrokerSubAccountBlvt (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostBrokerSubAccountBlvt", parameters);
     }
 
-    func (this *binance) sapiPostBrokerSubAccountApiIpRestriction (args ...interface{}) interface{} {
+    func (this *binance) SapiPostBrokerSubAccountApiIpRestriction (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostBrokerSubAccountApiIpRestriction", parameters);
     }
 
-    func (this *binance) sapiPostBrokerSubAccountApiIpRestrictionIpList (args ...interface{}) interface{} {
+    func (this *binance) SapiPostBrokerSubAccountApiIpRestrictionIpList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostBrokerSubAccountApiIpRestrictionIpList", parameters);
     }
 
-    func (this *binance) sapiPostBrokerUniversalTransfer (args ...interface{}) interface{} {
+    func (this *binance) SapiPostBrokerUniversalTransfer (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostBrokerUniversalTransfer", parameters);
     }
 
-    func (this *binance) sapiPostBrokerSubAccountApiPermissionUniversalTransfer (args ...interface{}) interface{} {
+    func (this *binance) SapiPostBrokerSubAccountApiPermissionUniversalTransfer (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostBrokerSubAccountApiPermissionUniversalTransfer", parameters);
     }
 
-    func (this *binance) sapiPostBrokerSubAccountApiPermissionVanillaOptions (args ...interface{}) interface{} {
+    func (this *binance) SapiPostBrokerSubAccountApiPermissionVanillaOptions (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostBrokerSubAccountApiPermissionVanillaOptions", parameters);
     }
 
-    func (this *binance) sapiPostGiftcardCreateCode (args ...interface{}) interface{} {
+    func (this *binance) SapiPostGiftcardCreateCode (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostGiftcardCreateCode", parameters);
     }
 
-    func (this *binance) sapiPostGiftcardRedeemCode (args ...interface{}) interface{} {
+    func (this *binance) SapiPostGiftcardRedeemCode (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostGiftcardRedeemCode", parameters);
     }
 
-    func (this *binance) sapiPostGiftcardBuyCode (args ...interface{}) interface{} {
+    func (this *binance) SapiPostGiftcardBuyCode (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostGiftcardBuyCode", parameters);
     }
 
-    func (this *binance) sapiPostAlgoSpotNewOrderTwap (args ...interface{}) interface{} {
+    func (this *binance) SapiPostAlgoSpotNewOrderTwap (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostAlgoSpotNewOrderTwap", parameters);
     }
 
-    func (this *binance) sapiPostAlgoFuturesNewOrderVp (args ...interface{}) interface{} {
+    func (this *binance) SapiPostAlgoFuturesNewOrderVp (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostAlgoFuturesNewOrderVp", parameters);
     }
 
-    func (this *binance) sapiPostAlgoFuturesNewOrderTwap (args ...interface{}) interface{} {
+    func (this *binance) SapiPostAlgoFuturesNewOrderTwap (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostAlgoFuturesNewOrderTwap", parameters);
     }
 
-    func (this *binance) sapiPostStakingPurchase (args ...interface{}) interface{} {
+    func (this *binance) SapiPostStakingPurchase (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostStakingPurchase", parameters);
     }
 
-    func (this *binance) sapiPostStakingRedeem (args ...interface{}) interface{} {
+    func (this *binance) SapiPostStakingRedeem (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostStakingRedeem", parameters);
     }
 
-    func (this *binance) sapiPostStakingSetAutoStaking (args ...interface{}) interface{} {
+    func (this *binance) SapiPostStakingSetAutoStaking (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostStakingSetAutoStaking", parameters);
     }
 
-    func (this *binance) sapiPostEthStakingEthStake (args ...interface{}) interface{} {
+    func (this *binance) SapiPostEthStakingEthStake (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostEthStakingEthStake", parameters);
     }
 
-    func (this *binance) sapiPostEthStakingEthRedeem (args ...interface{}) interface{} {
+    func (this *binance) SapiPostEthStakingEthRedeem (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostEthStakingEthRedeem", parameters);
     }
 
-    func (this *binance) sapiPostEthStakingWbethWrap (args ...interface{}) interface{} {
+    func (this *binance) SapiPostEthStakingWbethWrap (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostEthStakingWbethWrap", parameters);
     }
 
-    func (this *binance) sapiPostMiningHashTransferConfig (args ...interface{}) interface{} {
+    func (this *binance) SapiPostMiningHashTransferConfig (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostMiningHashTransferConfig", parameters);
     }
 
-    func (this *binance) sapiPostMiningHashTransferConfigCancel (args ...interface{}) interface{} {
+    func (this *binance) SapiPostMiningHashTransferConfigCancel (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostMiningHashTransferConfigCancel", parameters);
     }
 
-    func (this *binance) sapiPostPortfolioRepay (args ...interface{}) interface{} {
+    func (this *binance) SapiPostPortfolioRepay (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostPortfolioRepay", parameters);
     }
 
-    func (this *binance) sapiPostLoanVipRenew (args ...interface{}) interface{} {
+    func (this *binance) SapiPostLoanVipRenew (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostLoanVipRenew", parameters);
     }
 
-    func (this *binance) sapiPostLoanVipBorrow (args ...interface{}) interface{} {
+    func (this *binance) SapiPostLoanVipBorrow (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostLoanVipBorrow", parameters);
     }
 
-    func (this *binance) sapiPostLoanBorrow (args ...interface{}) interface{} {
+    func (this *binance) SapiPostLoanBorrow (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostLoanBorrow", parameters);
     }
 
-    func (this *binance) sapiPostLoanRepay (args ...interface{}) interface{} {
+    func (this *binance) SapiPostLoanRepay (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostLoanRepay", parameters);
     }
 
-    func (this *binance) sapiPostLoanAdjustLtv (args ...interface{}) interface{} {
+    func (this *binance) SapiPostLoanAdjustLtv (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostLoanAdjustLtv", parameters);
     }
 
-    func (this *binance) sapiPostLoanCustomizeMarginCall (args ...interface{}) interface{} {
+    func (this *binance) SapiPostLoanCustomizeMarginCall (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostLoanCustomizeMarginCall", parameters);
     }
 
-    func (this *binance) sapiPostLoanFlexibleRepay (args ...interface{}) interface{} {
+    func (this *binance) SapiPostLoanFlexibleRepay (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostLoanFlexibleRepay", parameters);
     }
 
-    func (this *binance) sapiPostLoanFlexibleAdjustLtv (args ...interface{}) interface{} {
+    func (this *binance) SapiPostLoanFlexibleAdjustLtv (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostLoanFlexibleAdjustLtv", parameters);
     }
 
-    func (this *binance) sapiPostLoanVipRepay (args ...interface{}) interface{} {
+    func (this *binance) SapiPostLoanVipRepay (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostLoanVipRepay", parameters);
     }
 
-    func (this *binance) sapiPostConvertGetQuote (args ...interface{}) interface{} {
+    func (this *binance) SapiPostConvertGetQuote (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostConvertGetQuote", parameters);
     }
 
-    func (this *binance) sapiPostConvertAcceptQuote (args ...interface{}) interface{} {
+    func (this *binance) SapiPostConvertAcceptQuote (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostConvertAcceptQuote", parameters);
     }
 
-    func (this *binance) sapiPostConvertLimitPlaceOrder (args ...interface{}) interface{} {
+    func (this *binance) SapiPostConvertLimitPlaceOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostConvertLimitPlaceOrder", parameters);
     }
 
-    func (this *binance) sapiPostConvertLimitCancelOrder (args ...interface{}) interface{} {
+    func (this *binance) SapiPostConvertLimitCancelOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostConvertLimitCancelOrder", parameters);
     }
 
-    func (this *binance) sapiPostPortfolioAutoCollection (args ...interface{}) interface{} {
+    func (this *binance) SapiPostPortfolioAutoCollection (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostPortfolioAutoCollection", parameters);
     }
 
-    func (this *binance) sapiPostPortfolioAssetCollection (args ...interface{}) interface{} {
+    func (this *binance) SapiPostPortfolioAssetCollection (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostPortfolioAssetCollection", parameters);
     }
 
-    func (this *binance) sapiPostPortfolioBnbTransfer (args ...interface{}) interface{} {
+    func (this *binance) SapiPostPortfolioBnbTransfer (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostPortfolioBnbTransfer", parameters);
     }
 
-    func (this *binance) sapiPostPortfolioRepayFuturesSwitch (args ...interface{}) interface{} {
+    func (this *binance) SapiPostPortfolioRepayFuturesSwitch (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostPortfolioRepayFuturesSwitch", parameters);
     }
 
-    func (this *binance) sapiPostPortfolioRepayFuturesNegativeBalance (args ...interface{}) interface{} {
+    func (this *binance) SapiPostPortfolioRepayFuturesNegativeBalance (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostPortfolioRepayFuturesNegativeBalance", parameters);
     }
 
-    func (this *binance) sapiPostLendingAutoInvestPlanAdd (args ...interface{}) interface{} {
+    func (this *binance) SapiPostLendingAutoInvestPlanAdd (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostLendingAutoInvestPlanAdd", parameters);
     }
 
-    func (this *binance) sapiPostLendingAutoInvestPlanEdit (args ...interface{}) interface{} {
+    func (this *binance) SapiPostLendingAutoInvestPlanEdit (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostLendingAutoInvestPlanEdit", parameters);
     }
 
-    func (this *binance) sapiPostLendingAutoInvestPlanEditStatus (args ...interface{}) interface{} {
+    func (this *binance) SapiPostLendingAutoInvestPlanEditStatus (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostLendingAutoInvestPlanEditStatus", parameters);
     }
 
-    func (this *binance) sapiPostLendingAutoInvestOneOff (args ...interface{}) interface{} {
+    func (this *binance) SapiPostLendingAutoInvestOneOff (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostLendingAutoInvestOneOff", parameters);
     }
 
-    func (this *binance) sapiPostLendingAutoInvestRedeem (args ...interface{}) interface{} {
+    func (this *binance) SapiPostLendingAutoInvestRedeem (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostLendingAutoInvestRedeem", parameters);
     }
 
-    func (this *binance) sapiPostSimpleEarnFlexibleSubscribe (args ...interface{}) interface{} {
+    func (this *binance) SapiPostSimpleEarnFlexibleSubscribe (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostSimpleEarnFlexibleSubscribe", parameters);
     }
 
-    func (this *binance) sapiPostSimpleEarnLockedSubscribe (args ...interface{}) interface{} {
+    func (this *binance) SapiPostSimpleEarnLockedSubscribe (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostSimpleEarnLockedSubscribe", parameters);
     }
 
-    func (this *binance) sapiPostSimpleEarnFlexibleRedeem (args ...interface{}) interface{} {
+    func (this *binance) SapiPostSimpleEarnFlexibleRedeem (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostSimpleEarnFlexibleRedeem", parameters);
     }
 
-    func (this *binance) sapiPostSimpleEarnLockedRedeem (args ...interface{}) interface{} {
+    func (this *binance) SapiPostSimpleEarnLockedRedeem (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostSimpleEarnLockedRedeem", parameters);
     }
 
-    func (this *binance) sapiPostSimpleEarnFlexibleSetAutoSubscribe (args ...interface{}) interface{} {
+    func (this *binance) SapiPostSimpleEarnFlexibleSetAutoSubscribe (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostSimpleEarnFlexibleSetAutoSubscribe", parameters);
     }
 
-    func (this *binance) sapiPostSimpleEarnLockedSetAutoSubscribe (args ...interface{}) interface{} {
+    func (this *binance) SapiPostSimpleEarnLockedSetAutoSubscribe (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostSimpleEarnLockedSetAutoSubscribe", parameters);
     }
 
-    func (this *binance) sapiPostDciProductSubscribe (args ...interface{}) interface{} {
+    func (this *binance) SapiPostDciProductSubscribe (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostDciProductSubscribe", parameters);
     }
 
-    func (this *binance) sapiPostDciProductAutoCompoundEdit (args ...interface{}) interface{} {
+    func (this *binance) SapiPostDciProductAutoCompoundEdit (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPostDciProductAutoCompoundEdit", parameters);
     }
 
-    func (this *binance) sapiPutUserDataStream (args ...interface{}) interface{} {
+    func (this *binance) SapiPutUserDataStream (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPutUserDataStream", parameters);
     }
 
-    func (this *binance) sapiPutUserDataStreamIsolated (args ...interface{}) interface{} {
+    func (this *binance) SapiPutUserDataStreamIsolated (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiPutUserDataStreamIsolated", parameters);
     }
 
-    func (this *binance) sapiDeleteMarginOpenOrders (args ...interface{}) interface{} {
+    func (this *binance) SapiDeleteMarginOpenOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiDeleteMarginOpenOrders", parameters);
     }
 
-    func (this *binance) sapiDeleteMarginOrder (args ...interface{}) interface{} {
+    func (this *binance) SapiDeleteMarginOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiDeleteMarginOrder", parameters);
     }
 
-    func (this *binance) sapiDeleteMarginOrderList (args ...interface{}) interface{} {
+    func (this *binance) SapiDeleteMarginOrderList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiDeleteMarginOrderList", parameters);
     }
 
-    func (this *binance) sapiDeleteMarginIsolatedAccount (args ...interface{}) interface{} {
+    func (this *binance) SapiDeleteMarginIsolatedAccount (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiDeleteMarginIsolatedAccount", parameters);
     }
 
-    func (this *binance) sapiDeleteUserDataStream (args ...interface{}) interface{} {
+    func (this *binance) SapiDeleteUserDataStream (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiDeleteUserDataStream", parameters);
     }
 
-    func (this *binance) sapiDeleteUserDataStreamIsolated (args ...interface{}) interface{} {
+    func (this *binance) SapiDeleteUserDataStreamIsolated (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiDeleteUserDataStreamIsolated", parameters);
     }
 
-    func (this *binance) sapiDeleteBrokerSubAccountApi (args ...interface{}) interface{} {
+    func (this *binance) SapiDeleteBrokerSubAccountApi (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiDeleteBrokerSubAccountApi", parameters);
     }
 
-    func (this *binance) sapiDeleteBrokerSubAccountApiIpRestrictionIpList (args ...interface{}) interface{} {
+    func (this *binance) SapiDeleteBrokerSubAccountApiIpRestrictionIpList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiDeleteBrokerSubAccountApiIpRestrictionIpList", parameters);
     }
 
-    func (this *binance) sapiDeleteAlgoSpotOrder (args ...interface{}) interface{} {
+    func (this *binance) SapiDeleteAlgoSpotOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiDeleteAlgoSpotOrder", parameters);
     }
 
-    func (this *binance) sapiDeleteAlgoFuturesOrder (args ...interface{}) interface{} {
+    func (this *binance) SapiDeleteAlgoFuturesOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiDeleteAlgoFuturesOrder", parameters);
     }
 
-    func (this *binance) sapiDeleteSubAccountSubAccountApiIpRestrictionIpList (args ...interface{}) interface{} {
+    func (this *binance) SapiDeleteSubAccountSubAccountApiIpRestrictionIpList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiDeleteSubAccountSubAccountApiIpRestrictionIpList", parameters);
     }
 
-    func (this *binance) sapiV2GetEthStakingAccount (args ...interface{}) interface{} {
+    func (this *binance) SapiV2GetEthStakingAccount (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiV2GetEthStakingAccount", parameters);
     }
 
-    func (this *binance) sapiV2GetSubAccountFuturesAccount (args ...interface{}) interface{} {
+    func (this *binance) SapiV2GetSubAccountFuturesAccount (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiV2GetSubAccountFuturesAccount", parameters);
     }
 
-    func (this *binance) sapiV2GetSubAccountFuturesAccountSummary (args ...interface{}) interface{} {
+    func (this *binance) SapiV2GetSubAccountFuturesAccountSummary (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiV2GetSubAccountFuturesAccountSummary", parameters);
     }
 
-    func (this *binance) sapiV2GetSubAccountFuturesPositionRisk (args ...interface{}) interface{} {
+    func (this *binance) SapiV2GetSubAccountFuturesPositionRisk (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiV2GetSubAccountFuturesPositionRisk", parameters);
     }
 
-    func (this *binance) sapiV2GetLoanFlexibleOngoingOrders (args ...interface{}) interface{} {
+    func (this *binance) SapiV2GetLoanFlexibleOngoingOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiV2GetLoanFlexibleOngoingOrders", parameters);
     }
 
-    func (this *binance) sapiV2GetLoanFlexibleBorrowHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiV2GetLoanFlexibleBorrowHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiV2GetLoanFlexibleBorrowHistory", parameters);
     }
 
-    func (this *binance) sapiV2GetLoanFlexibleRepayHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiV2GetLoanFlexibleRepayHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiV2GetLoanFlexibleRepayHistory", parameters);
     }
 
-    func (this *binance) sapiV2GetLoanFlexibleLtvAdjustmentHistory (args ...interface{}) interface{} {
+    func (this *binance) SapiV2GetLoanFlexibleLtvAdjustmentHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiV2GetLoanFlexibleLtvAdjustmentHistory", parameters);
     }
 
-    func (this *binance) sapiV2GetLoanFlexibleLoanableData (args ...interface{}) interface{} {
+    func (this *binance) SapiV2GetLoanFlexibleLoanableData (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiV2GetLoanFlexibleLoanableData", parameters);
     }
 
-    func (this *binance) sapiV2GetLoanFlexibleCollateralData (args ...interface{}) interface{} {
+    func (this *binance) SapiV2GetLoanFlexibleCollateralData (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiV2GetLoanFlexibleCollateralData", parameters);
     }
 
-    func (this *binance) sapiV2PostEthStakingEthStake (args ...interface{}) interface{} {
+    func (this *binance) SapiV2PostEthStakingEthStake (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiV2PostEthStakingEthStake", parameters);
     }
 
-    func (this *binance) sapiV2PostSubAccountSubAccountApiIpRestriction (args ...interface{}) interface{} {
+    func (this *binance) SapiV2PostSubAccountSubAccountApiIpRestriction (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiV2PostSubAccountSubAccountApiIpRestriction", parameters);
     }
 
-    func (this *binance) sapiV2PostLoanFlexibleBorrow (args ...interface{}) interface{} {
+    func (this *binance) SapiV2PostLoanFlexibleBorrow (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiV2PostLoanFlexibleBorrow", parameters);
     }
 
-    func (this *binance) sapiV2PostLoanFlexibleRepay (args ...interface{}) interface{} {
+    func (this *binance) SapiV2PostLoanFlexibleRepay (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiV2PostLoanFlexibleRepay", parameters);
     }
 
-    func (this *binance) sapiV2PostLoanFlexibleAdjustLtv (args ...interface{}) interface{} {
+    func (this *binance) SapiV2PostLoanFlexibleAdjustLtv (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiV2PostLoanFlexibleAdjustLtv", parameters);
     }
 
-    func (this *binance) sapiV3GetSubAccountAssets (args ...interface{}) interface{} {
+    func (this *binance) SapiV3GetSubAccountAssets (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiV3GetSubAccountAssets", parameters);
     }
 
-    func (this *binance) sapiV3PostAssetGetUserAsset (args ...interface{}) interface{} {
+    func (this *binance) SapiV3PostAssetGetUserAsset (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiV3PostAssetGetUserAsset", parameters);
     }
 
-    func (this *binance) sapiV4GetSubAccountAssets (args ...interface{}) interface{} {
+    func (this *binance) SapiV4GetSubAccountAssets (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("sapiV4GetSubAccountAssets", parameters);
     }
 
-    func (this *binance) dapiPublicGetPing (args ...interface{}) interface{} {
+    func (this *binance) DapiPublicGetPing (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPublicGetPing", parameters);
     }
 
-    func (this *binance) dapiPublicGetTime (args ...interface{}) interface{} {
+    func (this *binance) DapiPublicGetTime (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPublicGetTime", parameters);
     }
 
-    func (this *binance) dapiPublicGetExchangeInfo (args ...interface{}) interface{} {
+    func (this *binance) DapiPublicGetExchangeInfo (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPublicGetExchangeInfo", parameters);
     }
 
-    func (this *binance) dapiPublicGetDepth (args ...interface{}) interface{} {
+    func (this *binance) DapiPublicGetDepth (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPublicGetDepth", parameters);
     }
 
-    func (this *binance) dapiPublicGetTrades (args ...interface{}) interface{} {
+    func (this *binance) DapiPublicGetTrades (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPublicGetTrades", parameters);
     }
 
-    func (this *binance) dapiPublicGetHistoricalTrades (args ...interface{}) interface{} {
+    func (this *binance) DapiPublicGetHistoricalTrades (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPublicGetHistoricalTrades", parameters);
     }
 
-    func (this *binance) dapiPublicGetAggTrades (args ...interface{}) interface{} {
+    func (this *binance) DapiPublicGetAggTrades (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPublicGetAggTrades", parameters);
     }
 
-    func (this *binance) dapiPublicGetPremiumIndex (args ...interface{}) interface{} {
+    func (this *binance) DapiPublicGetPremiumIndex (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPublicGetPremiumIndex", parameters);
     }
 
-    func (this *binance) dapiPublicGetFundingRate (args ...interface{}) interface{} {
+    func (this *binance) DapiPublicGetFundingRate (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPublicGetFundingRate", parameters);
     }
 
-    func (this *binance) dapiPublicGetKlines (args ...interface{}) interface{} {
+    func (this *binance) DapiPublicGetKlines (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPublicGetKlines", parameters);
     }
 
-    func (this *binance) dapiPublicGetContinuousKlines (args ...interface{}) interface{} {
+    func (this *binance) DapiPublicGetContinuousKlines (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPublicGetContinuousKlines", parameters);
     }
 
-    func (this *binance) dapiPublicGetIndexPriceKlines (args ...interface{}) interface{} {
+    func (this *binance) DapiPublicGetIndexPriceKlines (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPublicGetIndexPriceKlines", parameters);
     }
 
-    func (this *binance) dapiPublicGetMarkPriceKlines (args ...interface{}) interface{} {
+    func (this *binance) DapiPublicGetMarkPriceKlines (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPublicGetMarkPriceKlines", parameters);
     }
 
-    func (this *binance) dapiPublicGetPremiumIndexKlines (args ...interface{}) interface{} {
+    func (this *binance) DapiPublicGetPremiumIndexKlines (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPublicGetPremiumIndexKlines", parameters);
     }
 
-    func (this *binance) dapiPublicGetTicker24hr (args ...interface{}) interface{} {
+    func (this *binance) DapiPublicGetTicker24hr (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPublicGetTicker24hr", parameters);
     }
 
-    func (this *binance) dapiPublicGetTickerPrice (args ...interface{}) interface{} {
+    func (this *binance) DapiPublicGetTickerPrice (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPublicGetTickerPrice", parameters);
     }
 
-    func (this *binance) dapiPublicGetTickerBookTicker (args ...interface{}) interface{} {
+    func (this *binance) DapiPublicGetTickerBookTicker (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPublicGetTickerBookTicker", parameters);
     }
 
-    func (this *binance) dapiPublicGetConstituents (args ...interface{}) interface{} {
+    func (this *binance) DapiPublicGetConstituents (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPublicGetConstituents", parameters);
     }
 
-    func (this *binance) dapiPublicGetOpenInterest (args ...interface{}) interface{} {
+    func (this *binance) DapiPublicGetOpenInterest (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPublicGetOpenInterest", parameters);
     }
 
-    func (this *binance) dapiDataGetDeliveryPrice (args ...interface{}) interface{} {
+    func (this *binance) DapiDataGetDeliveryPrice (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiDataGetDeliveryPrice", parameters);
     }
 
-    func (this *binance) dapiDataGetOpenInterestHist (args ...interface{}) interface{} {
+    func (this *binance) DapiDataGetOpenInterestHist (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiDataGetOpenInterestHist", parameters);
     }
 
-    func (this *binance) dapiDataGetTopLongShortAccountRatio (args ...interface{}) interface{} {
+    func (this *binance) DapiDataGetTopLongShortAccountRatio (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiDataGetTopLongShortAccountRatio", parameters);
     }
 
-    func (this *binance) dapiDataGetTopLongShortPositionRatio (args ...interface{}) interface{} {
+    func (this *binance) DapiDataGetTopLongShortPositionRatio (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiDataGetTopLongShortPositionRatio", parameters);
     }
 
-    func (this *binance) dapiDataGetGlobalLongShortAccountRatio (args ...interface{}) interface{} {
+    func (this *binance) DapiDataGetGlobalLongShortAccountRatio (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiDataGetGlobalLongShortAccountRatio", parameters);
     }
 
-    func (this *binance) dapiDataGetTakerBuySellVol (args ...interface{}) interface{} {
+    func (this *binance) DapiDataGetTakerBuySellVol (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiDataGetTakerBuySellVol", parameters);
     }
 
-    func (this *binance) dapiDataGetBasis (args ...interface{}) interface{} {
+    func (this *binance) DapiDataGetBasis (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiDataGetBasis", parameters);
     }
 
-    func (this *binance) dapiPrivateGetPositionSideDual (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivateGetPositionSideDual (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivateGetPositionSideDual", parameters);
     }
 
-    func (this *binance) dapiPrivateGetOrderAmendment (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivateGetOrderAmendment (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivateGetOrderAmendment", parameters);
     }
 
-    func (this *binance) dapiPrivateGetOrder (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivateGetOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivateGetOrder", parameters);
     }
 
-    func (this *binance) dapiPrivateGetOpenOrder (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivateGetOpenOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivateGetOpenOrder", parameters);
     }
 
-    func (this *binance) dapiPrivateGetOpenOrders (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivateGetOpenOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivateGetOpenOrders", parameters);
     }
 
-    func (this *binance) dapiPrivateGetAllOrders (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivateGetAllOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivateGetAllOrders", parameters);
     }
 
-    func (this *binance) dapiPrivateGetBalance (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivateGetBalance (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivateGetBalance", parameters);
     }
 
-    func (this *binance) dapiPrivateGetAccount (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivateGetAccount (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivateGetAccount", parameters);
     }
 
-    func (this *binance) dapiPrivateGetPositionMarginHistory (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivateGetPositionMarginHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivateGetPositionMarginHistory", parameters);
     }
 
-    func (this *binance) dapiPrivateGetPositionRisk (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivateGetPositionRisk (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivateGetPositionRisk", parameters);
     }
 
-    func (this *binance) dapiPrivateGetUserTrades (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivateGetUserTrades (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivateGetUserTrades", parameters);
     }
 
-    func (this *binance) dapiPrivateGetIncome (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivateGetIncome (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivateGetIncome", parameters);
     }
 
-    func (this *binance) dapiPrivateGetLeverageBracket (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivateGetLeverageBracket (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivateGetLeverageBracket", parameters);
     }
 
-    func (this *binance) dapiPrivateGetForceOrders (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivateGetForceOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivateGetForceOrders", parameters);
     }
 
-    func (this *binance) dapiPrivateGetAdlQuantile (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivateGetAdlQuantile (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivateGetAdlQuantile", parameters);
     }
 
-    func (this *binance) dapiPrivateGetCommissionRate (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivateGetCommissionRate (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivateGetCommissionRate", parameters);
     }
 
-    func (this *binance) dapiPrivateGetIncomeAsyn (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivateGetIncomeAsyn (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivateGetIncomeAsyn", parameters);
     }
 
-    func (this *binance) dapiPrivateGetIncomeAsynId (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivateGetIncomeAsynId (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivateGetIncomeAsynId", parameters);
     }
 
-    func (this *binance) dapiPrivateGetPmExchangeInfo (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivateGetPmExchangeInfo (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivateGetPmExchangeInfo", parameters);
     }
 
-    func (this *binance) dapiPrivateGetPmAccountInfo (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivateGetPmAccountInfo (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivateGetPmAccountInfo", parameters);
     }
 
-    func (this *binance) dapiPrivatePostPositionSideDual (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivatePostPositionSideDual (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivatePostPositionSideDual", parameters);
     }
 
-    func (this *binance) dapiPrivatePostOrder (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivatePostOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivatePostOrder", parameters);
     }
 
-    func (this *binance) dapiPrivatePostBatchOrders (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivatePostBatchOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivatePostBatchOrders", parameters);
     }
 
-    func (this *binance) dapiPrivatePostCountdownCancelAll (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivatePostCountdownCancelAll (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivatePostCountdownCancelAll", parameters);
     }
 
-    func (this *binance) dapiPrivatePostLeverage (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivatePostLeverage (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivatePostLeverage", parameters);
     }
 
-    func (this *binance) dapiPrivatePostMarginType (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivatePostMarginType (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivatePostMarginType", parameters);
     }
 
-    func (this *binance) dapiPrivatePostPositionMargin (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivatePostPositionMargin (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivatePostPositionMargin", parameters);
     }
 
-    func (this *binance) dapiPrivatePostListenKey (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivatePostListenKey (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivatePostListenKey", parameters);
     }
 
-    func (this *binance) dapiPrivatePutListenKey (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivatePutListenKey (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivatePutListenKey", parameters);
     }
 
-    func (this *binance) dapiPrivatePutOrder (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivatePutOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivatePutOrder", parameters);
     }
 
-    func (this *binance) dapiPrivatePutBatchOrders (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivatePutBatchOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivatePutBatchOrders", parameters);
     }
 
-    func (this *binance) dapiPrivateDeleteOrder (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivateDeleteOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivateDeleteOrder", parameters);
     }
 
-    func (this *binance) dapiPrivateDeleteAllOpenOrders (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivateDeleteAllOpenOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivateDeleteAllOpenOrders", parameters);
     }
 
-    func (this *binance) dapiPrivateDeleteBatchOrders (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivateDeleteBatchOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivateDeleteBatchOrders", parameters);
     }
 
-    func (this *binance) dapiPrivateDeleteListenKey (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivateDeleteListenKey (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivateDeleteListenKey", parameters);
     }
 
-    func (this *binance) dapiPrivateV2GetLeverageBracket (args ...interface{}) interface{} {
+    func (this *binance) DapiPrivateV2GetLeverageBracket (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("dapiPrivateV2GetLeverageBracket", parameters);
     }
 
-    func (this *binance) fapiPublicGetPing (args ...interface{}) interface{} {
+    func (this *binance) FapiPublicGetPing (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPublicGetPing", parameters);
     }
 
-    func (this *binance) fapiPublicGetTime (args ...interface{}) interface{} {
+    func (this *binance) FapiPublicGetTime (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPublicGetTime", parameters);
     }
 
-    func (this *binance) fapiPublicGetExchangeInfo (args ...interface{}) interface{} {
+    func (this *binance) FapiPublicGetExchangeInfo (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPublicGetExchangeInfo", parameters);
     }
 
-    func (this *binance) fapiPublicGetDepth (args ...interface{}) interface{} {
+    func (this *binance) FapiPublicGetDepth (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPublicGetDepth", parameters);
     }
 
-    func (this *binance) fapiPublicGetTrades (args ...interface{}) interface{} {
+    func (this *binance) FapiPublicGetTrades (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPublicGetTrades", parameters);
     }
 
-    func (this *binance) fapiPublicGetHistoricalTrades (args ...interface{}) interface{} {
+    func (this *binance) FapiPublicGetHistoricalTrades (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPublicGetHistoricalTrades", parameters);
     }
 
-    func (this *binance) fapiPublicGetAggTrades (args ...interface{}) interface{} {
+    func (this *binance) FapiPublicGetAggTrades (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPublicGetAggTrades", parameters);
     }
 
-    func (this *binance) fapiPublicGetKlines (args ...interface{}) interface{} {
+    func (this *binance) FapiPublicGetKlines (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPublicGetKlines", parameters);
     }
 
-    func (this *binance) fapiPublicGetContinuousKlines (args ...interface{}) interface{} {
+    func (this *binance) FapiPublicGetContinuousKlines (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPublicGetContinuousKlines", parameters);
     }
 
-    func (this *binance) fapiPublicGetMarkPriceKlines (args ...interface{}) interface{} {
+    func (this *binance) FapiPublicGetMarkPriceKlines (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPublicGetMarkPriceKlines", parameters);
     }
 
-    func (this *binance) fapiPublicGetIndexPriceKlines (args ...interface{}) interface{} {
+    func (this *binance) FapiPublicGetIndexPriceKlines (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPublicGetIndexPriceKlines", parameters);
     }
 
-    func (this *binance) fapiPublicGetPremiumIndexKlines (args ...interface{}) interface{} {
+    func (this *binance) FapiPublicGetPremiumIndexKlines (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPublicGetPremiumIndexKlines", parameters);
     }
 
-    func (this *binance) fapiPublicGetFundingRate (args ...interface{}) interface{} {
+    func (this *binance) FapiPublicGetFundingRate (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPublicGetFundingRate", parameters);
     }
 
-    func (this *binance) fapiPublicGetFundingInfo (args ...interface{}) interface{} {
+    func (this *binance) FapiPublicGetFundingInfo (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPublicGetFundingInfo", parameters);
     }
 
-    func (this *binance) fapiPublicGetPremiumIndex (args ...interface{}) interface{} {
+    func (this *binance) FapiPublicGetPremiumIndex (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPublicGetPremiumIndex", parameters);
     }
 
-    func (this *binance) fapiPublicGetTicker24hr (args ...interface{}) interface{} {
+    func (this *binance) FapiPublicGetTicker24hr (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPublicGetTicker24hr", parameters);
     }
 
-    func (this *binance) fapiPublicGetTickerPrice (args ...interface{}) interface{} {
+    func (this *binance) FapiPublicGetTickerPrice (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPublicGetTickerPrice", parameters);
     }
 
-    func (this *binance) fapiPublicGetTickerBookTicker (args ...interface{}) interface{} {
+    func (this *binance) FapiPublicGetTickerBookTicker (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPublicGetTickerBookTicker", parameters);
     }
 
-    func (this *binance) fapiPublicGetOpenInterest (args ...interface{}) interface{} {
+    func (this *binance) FapiPublicGetOpenInterest (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPublicGetOpenInterest", parameters);
     }
 
-    func (this *binance) fapiPublicGetIndexInfo (args ...interface{}) interface{} {
+    func (this *binance) FapiPublicGetIndexInfo (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPublicGetIndexInfo", parameters);
     }
 
-    func (this *binance) fapiPublicGetAssetIndex (args ...interface{}) interface{} {
+    func (this *binance) FapiPublicGetAssetIndex (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPublicGetAssetIndex", parameters);
     }
 
-    func (this *binance) fapiPublicGetConstituents (args ...interface{}) interface{} {
+    func (this *binance) FapiPublicGetConstituents (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPublicGetConstituents", parameters);
     }
 
-    func (this *binance) fapiPublicGetApiTradingStatus (args ...interface{}) interface{} {
+    func (this *binance) FapiPublicGetApiTradingStatus (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPublicGetApiTradingStatus", parameters);
     }
 
-    func (this *binance) fapiPublicGetLvtKlines (args ...interface{}) interface{} {
+    func (this *binance) FapiPublicGetLvtKlines (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPublicGetLvtKlines", parameters);
     }
 
-    func (this *binance) fapiDataGetDeliveryPrice (args ...interface{}) interface{} {
+    func (this *binance) FapiDataGetDeliveryPrice (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiDataGetDeliveryPrice", parameters);
     }
 
-    func (this *binance) fapiDataGetOpenInterestHist (args ...interface{}) interface{} {
+    func (this *binance) FapiDataGetOpenInterestHist (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiDataGetOpenInterestHist", parameters);
     }
 
-    func (this *binance) fapiDataGetTopLongShortAccountRatio (args ...interface{}) interface{} {
+    func (this *binance) FapiDataGetTopLongShortAccountRatio (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiDataGetTopLongShortAccountRatio", parameters);
     }
 
-    func (this *binance) fapiDataGetTopLongShortPositionRatio (args ...interface{}) interface{} {
+    func (this *binance) FapiDataGetTopLongShortPositionRatio (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiDataGetTopLongShortPositionRatio", parameters);
     }
 
-    func (this *binance) fapiDataGetGlobalLongShortAccountRatio (args ...interface{}) interface{} {
+    func (this *binance) FapiDataGetGlobalLongShortAccountRatio (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiDataGetGlobalLongShortAccountRatio", parameters);
     }
 
-    func (this *binance) fapiDataGetTakerlongshortRatio (args ...interface{}) interface{} {
+    func (this *binance) FapiDataGetTakerlongshortRatio (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiDataGetTakerlongshortRatio", parameters);
     }
 
-    func (this *binance) fapiDataGetBasis (args ...interface{}) interface{} {
+    func (this *binance) FapiDataGetBasis (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiDataGetBasis", parameters);
     }
 
-    func (this *binance) fapiPrivateGetForceOrders (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetForceOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetForceOrders", parameters);
     }
 
-    func (this *binance) fapiPrivateGetAllOrders (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetAllOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetAllOrders", parameters);
     }
 
-    func (this *binance) fapiPrivateGetOpenOrder (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetOpenOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetOpenOrder", parameters);
     }
 
-    func (this *binance) fapiPrivateGetOpenOrders (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetOpenOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetOpenOrders", parameters);
     }
 
-    func (this *binance) fapiPrivateGetOrder (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetOrder", parameters);
     }
 
-    func (this *binance) fapiPrivateGetAccount (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetAccount (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetAccount", parameters);
     }
 
-    func (this *binance) fapiPrivateGetBalance (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetBalance (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetBalance", parameters);
     }
 
-    func (this *binance) fapiPrivateGetLeverageBracket (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetLeverageBracket (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetLeverageBracket", parameters);
     }
 
-    func (this *binance) fapiPrivateGetPositionMarginHistory (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetPositionMarginHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetPositionMarginHistory", parameters);
     }
 
-    func (this *binance) fapiPrivateGetPositionRisk (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetPositionRisk (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetPositionRisk", parameters);
     }
 
-    func (this *binance) fapiPrivateGetPositionSideDual (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetPositionSideDual (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetPositionSideDual", parameters);
     }
 
-    func (this *binance) fapiPrivateGetUserTrades (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetUserTrades (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetUserTrades", parameters);
     }
 
-    func (this *binance) fapiPrivateGetIncome (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetIncome (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetIncome", parameters);
     }
 
-    func (this *binance) fapiPrivateGetCommissionRate (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetCommissionRate (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetCommissionRate", parameters);
     }
 
-    func (this *binance) fapiPrivateGetRateLimitOrder (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetRateLimitOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetRateLimitOrder", parameters);
     }
 
-    func (this *binance) fapiPrivateGetApiTradingStatus (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetApiTradingStatus (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetApiTradingStatus", parameters);
     }
 
-    func (this *binance) fapiPrivateGetMultiAssetsMargin (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetMultiAssetsMargin (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetMultiAssetsMargin", parameters);
     }
 
-    func (this *binance) fapiPrivateGetApiReferralIfNewUser (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetApiReferralIfNewUser (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetApiReferralIfNewUser", parameters);
     }
 
-    func (this *binance) fapiPrivateGetApiReferralCustomization (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetApiReferralCustomization (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetApiReferralCustomization", parameters);
     }
 
-    func (this *binance) fapiPrivateGetApiReferralUserCustomization (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetApiReferralUserCustomization (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetApiReferralUserCustomization", parameters);
     }
 
-    func (this *binance) fapiPrivateGetApiReferralTraderNum (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetApiReferralTraderNum (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetApiReferralTraderNum", parameters);
     }
 
-    func (this *binance) fapiPrivateGetApiReferralOverview (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetApiReferralOverview (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetApiReferralOverview", parameters);
     }
 
-    func (this *binance) fapiPrivateGetApiReferralTradeVol (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetApiReferralTradeVol (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetApiReferralTradeVol", parameters);
     }
 
-    func (this *binance) fapiPrivateGetApiReferralRebateVol (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetApiReferralRebateVol (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetApiReferralRebateVol", parameters);
     }
 
-    func (this *binance) fapiPrivateGetApiReferralTraderSummary (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetApiReferralTraderSummary (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetApiReferralTraderSummary", parameters);
     }
 
-    func (this *binance) fapiPrivateGetAdlQuantile (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetAdlQuantile (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetAdlQuantile", parameters);
     }
 
-    func (this *binance) fapiPrivateGetPmAccountInfo (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetPmAccountInfo (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetPmAccountInfo", parameters);
     }
 
-    func (this *binance) fapiPrivateGetOrderAmendment (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetOrderAmendment (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetOrderAmendment", parameters);
     }
 
-    func (this *binance) fapiPrivateGetIncomeAsyn (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetIncomeAsyn (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetIncomeAsyn", parameters);
     }
 
-    func (this *binance) fapiPrivateGetIncomeAsynId (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetIncomeAsynId (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetIncomeAsynId", parameters);
     }
 
-    func (this *binance) fapiPrivateGetOrderAsyn (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetOrderAsyn (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetOrderAsyn", parameters);
     }
 
-    func (this *binance) fapiPrivateGetOrderAsynId (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetOrderAsynId (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetOrderAsynId", parameters);
     }
 
-    func (this *binance) fapiPrivateGetTradeAsyn (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetTradeAsyn (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetTradeAsyn", parameters);
     }
 
-    func (this *binance) fapiPrivateGetTradeAsynId (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetTradeAsynId (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetTradeAsynId", parameters);
     }
 
-    func (this *binance) fapiPrivateGetFeeBurn (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateGetFeeBurn (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateGetFeeBurn", parameters);
     }
 
-    func (this *binance) fapiPrivatePostBatchOrders (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivatePostBatchOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivatePostBatchOrders", parameters);
     }
 
-    func (this *binance) fapiPrivatePostPositionSideDual (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivatePostPositionSideDual (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivatePostPositionSideDual", parameters);
     }
 
-    func (this *binance) fapiPrivatePostPositionMargin (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivatePostPositionMargin (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivatePostPositionMargin", parameters);
     }
 
-    func (this *binance) fapiPrivatePostMarginType (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivatePostMarginType (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivatePostMarginType", parameters);
     }
 
-    func (this *binance) fapiPrivatePostOrder (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivatePostOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivatePostOrder", parameters);
     }
 
-    func (this *binance) fapiPrivatePostLeverage (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivatePostLeverage (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivatePostLeverage", parameters);
     }
 
-    func (this *binance) fapiPrivatePostListenKey (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivatePostListenKey (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivatePostListenKey", parameters);
     }
 
-    func (this *binance) fapiPrivatePostCountdownCancelAll (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivatePostCountdownCancelAll (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivatePostCountdownCancelAll", parameters);
     }
 
-    func (this *binance) fapiPrivatePostMultiAssetsMargin (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivatePostMultiAssetsMargin (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivatePostMultiAssetsMargin", parameters);
     }
 
-    func (this *binance) fapiPrivatePostApiReferralCustomization (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivatePostApiReferralCustomization (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivatePostApiReferralCustomization", parameters);
     }
 
-    func (this *binance) fapiPrivatePostApiReferralUserCustomization (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivatePostApiReferralUserCustomization (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivatePostApiReferralUserCustomization", parameters);
     }
 
-    func (this *binance) fapiPrivatePostFeeBurn (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivatePostFeeBurn (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivatePostFeeBurn", parameters);
     }
 
-    func (this *binance) fapiPrivatePutListenKey (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivatePutListenKey (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivatePutListenKey", parameters);
     }
 
-    func (this *binance) fapiPrivatePutOrder (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivatePutOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivatePutOrder", parameters);
     }
 
-    func (this *binance) fapiPrivatePutBatchOrders (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivatePutBatchOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivatePutBatchOrders", parameters);
     }
 
-    func (this *binance) fapiPrivateDeleteBatchOrders (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateDeleteBatchOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateDeleteBatchOrders", parameters);
     }
 
-    func (this *binance) fapiPrivateDeleteOrder (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateDeleteOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateDeleteOrder", parameters);
     }
 
-    func (this *binance) fapiPrivateDeleteAllOpenOrders (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateDeleteAllOpenOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateDeleteAllOpenOrders", parameters);
     }
 
-    func (this *binance) fapiPrivateDeleteListenKey (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateDeleteListenKey (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateDeleteListenKey", parameters);
     }
 
-    func (this *binance) fapiPublicV2GetTickerPrice (args ...interface{}) interface{} {
+    func (this *binance) FapiPublicV2GetTickerPrice (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPublicV2GetTickerPrice", parameters);
     }
 
-    func (this *binance) fapiPrivateV2GetAccount (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateV2GetAccount (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateV2GetAccount", parameters);
     }
 
-    func (this *binance) fapiPrivateV2GetBalance (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateV2GetBalance (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateV2GetBalance", parameters);
     }
 
-    func (this *binance) fapiPrivateV2GetPositionRisk (args ...interface{}) interface{} {
+    func (this *binance) FapiPrivateV2GetPositionRisk (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("fapiPrivateV2GetPositionRisk", parameters);
     }
 
-    func (this *binance) eapiPublicGetPing (args ...interface{}) interface{} {
+    func (this *binance) EapiPublicGetPing (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPublicGetPing", parameters);
     }
 
-    func (this *binance) eapiPublicGetTime (args ...interface{}) interface{} {
+    func (this *binance) EapiPublicGetTime (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPublicGetTime", parameters);
     }
 
-    func (this *binance) eapiPublicGetExchangeInfo (args ...interface{}) interface{} {
+    func (this *binance) EapiPublicGetExchangeInfo (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPublicGetExchangeInfo", parameters);
     }
 
-    func (this *binance) eapiPublicGetIndex (args ...interface{}) interface{} {
+    func (this *binance) EapiPublicGetIndex (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPublicGetIndex", parameters);
     }
 
-    func (this *binance) eapiPublicGetTicker (args ...interface{}) interface{} {
+    func (this *binance) EapiPublicGetTicker (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPublicGetTicker", parameters);
     }
 
-    func (this *binance) eapiPublicGetMark (args ...interface{}) interface{} {
+    func (this *binance) EapiPublicGetMark (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPublicGetMark", parameters);
     }
 
-    func (this *binance) eapiPublicGetDepth (args ...interface{}) interface{} {
+    func (this *binance) EapiPublicGetDepth (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPublicGetDepth", parameters);
     }
 
-    func (this *binance) eapiPublicGetKlines (args ...interface{}) interface{} {
+    func (this *binance) EapiPublicGetKlines (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPublicGetKlines", parameters);
     }
 
-    func (this *binance) eapiPublicGetTrades (args ...interface{}) interface{} {
+    func (this *binance) EapiPublicGetTrades (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPublicGetTrades", parameters);
     }
 
-    func (this *binance) eapiPublicGetHistoricalTrades (args ...interface{}) interface{} {
+    func (this *binance) EapiPublicGetHistoricalTrades (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPublicGetHistoricalTrades", parameters);
     }
 
-    func (this *binance) eapiPublicGetExerciseHistory (args ...interface{}) interface{} {
+    func (this *binance) EapiPublicGetExerciseHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPublicGetExerciseHistory", parameters);
     }
 
-    func (this *binance) eapiPublicGetOpenInterest (args ...interface{}) interface{} {
+    func (this *binance) EapiPublicGetOpenInterest (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPublicGetOpenInterest", parameters);
     }
 
-    func (this *binance) eapiPrivateGetAccount (args ...interface{}) interface{} {
+    func (this *binance) EapiPrivateGetAccount (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPrivateGetAccount", parameters);
     }
 
-    func (this *binance) eapiPrivateGetPosition (args ...interface{}) interface{} {
+    func (this *binance) EapiPrivateGetPosition (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPrivateGetPosition", parameters);
     }
 
-    func (this *binance) eapiPrivateGetOpenOrders (args ...interface{}) interface{} {
+    func (this *binance) EapiPrivateGetOpenOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPrivateGetOpenOrders", parameters);
     }
 
-    func (this *binance) eapiPrivateGetHistoryOrders (args ...interface{}) interface{} {
+    func (this *binance) EapiPrivateGetHistoryOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPrivateGetHistoryOrders", parameters);
     }
 
-    func (this *binance) eapiPrivateGetUserTrades (args ...interface{}) interface{} {
+    func (this *binance) EapiPrivateGetUserTrades (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPrivateGetUserTrades", parameters);
     }
 
-    func (this *binance) eapiPrivateGetExerciseRecord (args ...interface{}) interface{} {
+    func (this *binance) EapiPrivateGetExerciseRecord (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPrivateGetExerciseRecord", parameters);
     }
 
-    func (this *binance) eapiPrivateGetBill (args ...interface{}) interface{} {
+    func (this *binance) EapiPrivateGetBill (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPrivateGetBill", parameters);
     }
 
-    func (this *binance) eapiPrivateGetIncomeAsyn (args ...interface{}) interface{} {
+    func (this *binance) EapiPrivateGetIncomeAsyn (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPrivateGetIncomeAsyn", parameters);
     }
 
-    func (this *binance) eapiPrivateGetIncomeAsynId (args ...interface{}) interface{} {
+    func (this *binance) EapiPrivateGetIncomeAsynId (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPrivateGetIncomeAsynId", parameters);
     }
 
-    func (this *binance) eapiPrivateGetMarginAccount (args ...interface{}) interface{} {
+    func (this *binance) EapiPrivateGetMarginAccount (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPrivateGetMarginAccount", parameters);
     }
 
-    func (this *binance) eapiPrivateGetMmp (args ...interface{}) interface{} {
+    func (this *binance) EapiPrivateGetMmp (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPrivateGetMmp", parameters);
     }
 
-    func (this *binance) eapiPrivateGetCountdownCancelAll (args ...interface{}) interface{} {
+    func (this *binance) EapiPrivateGetCountdownCancelAll (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPrivateGetCountdownCancelAll", parameters);
     }
 
-    func (this *binance) eapiPrivateGetOrder (args ...interface{}) interface{} {
+    func (this *binance) EapiPrivateGetOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPrivateGetOrder", parameters);
     }
 
-    func (this *binance) eapiPrivatePostOrder (args ...interface{}) interface{} {
+    func (this *binance) EapiPrivatePostOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPrivatePostOrder", parameters);
     }
 
-    func (this *binance) eapiPrivatePostBatchOrders (args ...interface{}) interface{} {
+    func (this *binance) EapiPrivatePostBatchOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPrivatePostBatchOrders", parameters);
     }
 
-    func (this *binance) eapiPrivatePostListenKey (args ...interface{}) interface{} {
+    func (this *binance) EapiPrivatePostListenKey (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPrivatePostListenKey", parameters);
     }
 
-    func (this *binance) eapiPrivatePostMmpSet (args ...interface{}) interface{} {
+    func (this *binance) EapiPrivatePostMmpSet (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPrivatePostMmpSet", parameters);
     }
 
-    func (this *binance) eapiPrivatePostMmpReset (args ...interface{}) interface{} {
+    func (this *binance) EapiPrivatePostMmpReset (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPrivatePostMmpReset", parameters);
     }
 
-    func (this *binance) eapiPrivatePostCountdownCancelAll (args ...interface{}) interface{} {
+    func (this *binance) EapiPrivatePostCountdownCancelAll (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPrivatePostCountdownCancelAll", parameters);
     }
 
-    func (this *binance) eapiPrivatePostCountdownCancelAllHeartBeat (args ...interface{}) interface{} {
+    func (this *binance) EapiPrivatePostCountdownCancelAllHeartBeat (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPrivatePostCountdownCancelAllHeartBeat", parameters);
     }
 
-    func (this *binance) eapiPrivatePutListenKey (args ...interface{}) interface{} {
+    func (this *binance) EapiPrivatePutListenKey (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPrivatePutListenKey", parameters);
     }
 
-    func (this *binance) eapiPrivateDeleteOrder (args ...interface{}) interface{} {
+    func (this *binance) EapiPrivateDeleteOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPrivateDeleteOrder", parameters);
     }
 
-    func (this *binance) eapiPrivateDeleteBatchOrders (args ...interface{}) interface{} {
+    func (this *binance) EapiPrivateDeleteBatchOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPrivateDeleteBatchOrders", parameters);
     }
 
-    func (this *binance) eapiPrivateDeleteAllOpenOrders (args ...interface{}) interface{} {
+    func (this *binance) EapiPrivateDeleteAllOpenOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPrivateDeleteAllOpenOrders", parameters);
     }
 
-    func (this *binance) eapiPrivateDeleteAllOpenOrdersByUnderlying (args ...interface{}) interface{} {
+    func (this *binance) EapiPrivateDeleteAllOpenOrdersByUnderlying (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPrivateDeleteAllOpenOrdersByUnderlying", parameters);
     }
 
-    func (this *binance) eapiPrivateDeleteListenKey (args ...interface{}) interface{} {
+    func (this *binance) EapiPrivateDeleteListenKey (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("eapiPrivateDeleteListenKey", parameters);
     }
 
-    func (this *binance) publicGetPing (args ...interface{}) interface{} {
+    func (this *binance) PublicGetPing (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("publicGetPing", parameters);
     }
 
-    func (this *binance) publicGetTime (args ...interface{}) interface{} {
+    func (this *binance) PublicGetTime (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("publicGetTime", parameters);
     }
 
-    func (this *binance) publicGetDepth (args ...interface{}) interface{} {
+    func (this *binance) PublicGetDepth (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("publicGetDepth", parameters);
     }
 
-    func (this *binance) publicGetTrades (args ...interface{}) interface{} {
+    func (this *binance) PublicGetTrades (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("publicGetTrades", parameters);
     }
 
-    func (this *binance) publicGetAggTrades (args ...interface{}) interface{} {
+    func (this *binance) PublicGetAggTrades (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("publicGetAggTrades", parameters);
     }
 
-    func (this *binance) publicGetHistoricalTrades (args ...interface{}) interface{} {
+    func (this *binance) PublicGetHistoricalTrades (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("publicGetHistoricalTrades", parameters);
     }
 
-    func (this *binance) publicGetKlines (args ...interface{}) interface{} {
+    func (this *binance) PublicGetKlines (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("publicGetKlines", parameters);
     }
 
-    func (this *binance) publicGetUiKlines (args ...interface{}) interface{} {
+    func (this *binance) PublicGetUiKlines (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("publicGetUiKlines", parameters);
     }
 
-    func (this *binance) publicGetTicker24hr (args ...interface{}) interface{} {
+    func (this *binance) PublicGetTicker24hr (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("publicGetTicker24hr", parameters);
     }
 
-    func (this *binance) publicGetTicker (args ...interface{}) interface{} {
+    func (this *binance) PublicGetTicker (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("publicGetTicker", parameters);
     }
 
-    func (this *binance) publicGetTickerTradingDay (args ...interface{}) interface{} {
+    func (this *binance) PublicGetTickerTradingDay (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("publicGetTickerTradingDay", parameters);
     }
 
-    func (this *binance) publicGetTickerPrice (args ...interface{}) interface{} {
+    func (this *binance) PublicGetTickerPrice (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("publicGetTickerPrice", parameters);
     }
 
-    func (this *binance) publicGetTickerBookTicker (args ...interface{}) interface{} {
+    func (this *binance) PublicGetTickerBookTicker (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("publicGetTickerBookTicker", parameters);
     }
 
-    func (this *binance) publicGetExchangeInfo (args ...interface{}) interface{} {
+    func (this *binance) PublicGetExchangeInfo (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("publicGetExchangeInfo", parameters);
     }
 
-    func (this *binance) publicGetAvgPrice (args ...interface{}) interface{} {
+    func (this *binance) PublicGetAvgPrice (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("publicGetAvgPrice", parameters);
     }
 
-    func (this *binance) publicPutUserDataStream (args ...interface{}) interface{} {
+    func (this *binance) PublicPutUserDataStream (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("publicPutUserDataStream", parameters);
     }
 
-    func (this *binance) publicPostUserDataStream (args ...interface{}) interface{} {
+    func (this *binance) PublicPostUserDataStream (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("publicPostUserDataStream", parameters);
     }
 
-    func (this *binance) publicDeleteUserDataStream (args ...interface{}) interface{} {
+    func (this *binance) PublicDeleteUserDataStream (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("publicDeleteUserDataStream", parameters);
     }
 
-    func (this *binance) privateGetAllOrderList (args ...interface{}) interface{} {
+    func (this *binance) PrivateGetAllOrderList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("privateGetAllOrderList", parameters);
     }
 
-    func (this *binance) privateGetOpenOrderList (args ...interface{}) interface{} {
+    func (this *binance) PrivateGetOpenOrderList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("privateGetOpenOrderList", parameters);
     }
 
-    func (this *binance) privateGetOrderList (args ...interface{}) interface{} {
+    func (this *binance) PrivateGetOrderList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("privateGetOrderList", parameters);
     }
 
-    func (this *binance) privateGetOrder (args ...interface{}) interface{} {
+    func (this *binance) PrivateGetOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("privateGetOrder", parameters);
     }
 
-    func (this *binance) privateGetOpenOrders (args ...interface{}) interface{} {
+    func (this *binance) PrivateGetOpenOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("privateGetOpenOrders", parameters);
     }
 
-    func (this *binance) privateGetAllOrders (args ...interface{}) interface{} {
+    func (this *binance) PrivateGetAllOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("privateGetAllOrders", parameters);
     }
 
-    func (this *binance) privateGetAccount (args ...interface{}) interface{} {
+    func (this *binance) PrivateGetAccount (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("privateGetAccount", parameters);
     }
 
-    func (this *binance) privateGetMyTrades (args ...interface{}) interface{} {
+    func (this *binance) PrivateGetMyTrades (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("privateGetMyTrades", parameters);
     }
 
-    func (this *binance) privateGetRateLimitOrder (args ...interface{}) interface{} {
+    func (this *binance) PrivateGetRateLimitOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("privateGetRateLimitOrder", parameters);
     }
 
-    func (this *binance) privateGetMyPreventedMatches (args ...interface{}) interface{} {
+    func (this *binance) PrivateGetMyPreventedMatches (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("privateGetMyPreventedMatches", parameters);
     }
 
-    func (this *binance) privateGetMyAllocations (args ...interface{}) interface{} {
+    func (this *binance) PrivateGetMyAllocations (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("privateGetMyAllocations", parameters);
     }
 
-    func (this *binance) privateGetAccountCommission (args ...interface{}) interface{} {
+    func (this *binance) PrivateGetAccountCommission (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("privateGetAccountCommission", parameters);
     }
 
-    func (this *binance) privatePostOrderOco (args ...interface{}) interface{} {
+    func (this *binance) PrivatePostOrderOco (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("privatePostOrderOco", parameters);
     }
 
-    func (this *binance) privatePostOrderListOco (args ...interface{}) interface{} {
+    func (this *binance) PrivatePostOrderListOco (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("privatePostOrderListOco", parameters);
     }
 
-    func (this *binance) privatePostOrderListOto (args ...interface{}) interface{} {
+    func (this *binance) PrivatePostOrderListOto (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("privatePostOrderListOto", parameters);
     }
 
-    func (this *binance) privatePostOrderListOtoco (args ...interface{}) interface{} {
+    func (this *binance) PrivatePostOrderListOtoco (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("privatePostOrderListOtoco", parameters);
     }
 
-    func (this *binance) privatePostSorOrder (args ...interface{}) interface{} {
+    func (this *binance) PrivatePostSorOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("privatePostSorOrder", parameters);
     }
 
-    func (this *binance) privatePostSorOrderTest (args ...interface{}) interface{} {
+    func (this *binance) PrivatePostSorOrderTest (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("privatePostSorOrderTest", parameters);
     }
 
-    func (this *binance) privatePostOrder (args ...interface{}) interface{} {
+    func (this *binance) PrivatePostOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("privatePostOrder", parameters);
     }
 
-    func (this *binance) privatePostOrderCancelReplace (args ...interface{}) interface{} {
+    func (this *binance) PrivatePostOrderCancelReplace (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("privatePostOrderCancelReplace", parameters);
     }
 
-    func (this *binance) privatePostOrderTest (args ...interface{}) interface{} {
+    func (this *binance) PrivatePostOrderTest (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("privatePostOrderTest", parameters);
     }
 
-    func (this *binance) privateDeleteOpenOrders (args ...interface{}) interface{} {
+    func (this *binance) PrivateDeleteOpenOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("privateDeleteOpenOrders", parameters);
     }
 
-    func (this *binance) privateDeleteOrderList (args ...interface{}) interface{} {
+    func (this *binance) PrivateDeleteOrderList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("privateDeleteOrderList", parameters);
     }
 
-    func (this *binance) privateDeleteOrder (args ...interface{}) interface{} {
+    func (this *binance) PrivateDeleteOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("privateDeleteOrder", parameters);
     }
 
-    func (this *binance) papiGetPing (args ...interface{}) interface{} {
+    func (this *binance) PapiGetPing (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetPing", parameters);
     }
 
-    func (this *binance) papiGetUmOrder (args ...interface{}) interface{} {
+    func (this *binance) PapiGetUmOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetUmOrder", parameters);
     }
 
-    func (this *binance) papiGetUmOpenOrder (args ...interface{}) interface{} {
+    func (this *binance) PapiGetUmOpenOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetUmOpenOrder", parameters);
     }
 
-    func (this *binance) papiGetUmOpenOrders (args ...interface{}) interface{} {
+    func (this *binance) PapiGetUmOpenOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetUmOpenOrders", parameters);
     }
 
-    func (this *binance) papiGetUmAllOrders (args ...interface{}) interface{} {
+    func (this *binance) PapiGetUmAllOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetUmAllOrders", parameters);
     }
 
-    func (this *binance) papiGetCmOrder (args ...interface{}) interface{} {
+    func (this *binance) PapiGetCmOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetCmOrder", parameters);
     }
 
-    func (this *binance) papiGetCmOpenOrder (args ...interface{}) interface{} {
+    func (this *binance) PapiGetCmOpenOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetCmOpenOrder", parameters);
     }
 
-    func (this *binance) papiGetCmOpenOrders (args ...interface{}) interface{} {
+    func (this *binance) PapiGetCmOpenOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetCmOpenOrders", parameters);
     }
 
-    func (this *binance) papiGetCmAllOrders (args ...interface{}) interface{} {
+    func (this *binance) PapiGetCmAllOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetCmAllOrders", parameters);
     }
 
-    func (this *binance) papiGetUmConditionalOpenOrder (args ...interface{}) interface{} {
+    func (this *binance) PapiGetUmConditionalOpenOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetUmConditionalOpenOrder", parameters);
     }
 
-    func (this *binance) papiGetUmConditionalOpenOrders (args ...interface{}) interface{} {
+    func (this *binance) PapiGetUmConditionalOpenOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetUmConditionalOpenOrders", parameters);
     }
 
-    func (this *binance) papiGetUmConditionalOrderHistory (args ...interface{}) interface{} {
+    func (this *binance) PapiGetUmConditionalOrderHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetUmConditionalOrderHistory", parameters);
     }
 
-    func (this *binance) papiGetUmConditionalAllOrders (args ...interface{}) interface{} {
+    func (this *binance) PapiGetUmConditionalAllOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetUmConditionalAllOrders", parameters);
     }
 
-    func (this *binance) papiGetCmConditionalOpenOrder (args ...interface{}) interface{} {
+    func (this *binance) PapiGetCmConditionalOpenOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetCmConditionalOpenOrder", parameters);
     }
 
-    func (this *binance) papiGetCmConditionalOpenOrders (args ...interface{}) interface{} {
+    func (this *binance) PapiGetCmConditionalOpenOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetCmConditionalOpenOrders", parameters);
     }
 
-    func (this *binance) papiGetCmConditionalOrderHistory (args ...interface{}) interface{} {
+    func (this *binance) PapiGetCmConditionalOrderHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetCmConditionalOrderHistory", parameters);
     }
 
-    func (this *binance) papiGetCmConditionalAllOrders (args ...interface{}) interface{} {
+    func (this *binance) PapiGetCmConditionalAllOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetCmConditionalAllOrders", parameters);
     }
 
-    func (this *binance) papiGetMarginOrder (args ...interface{}) interface{} {
+    func (this *binance) PapiGetMarginOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetMarginOrder", parameters);
     }
 
-    func (this *binance) papiGetMarginOpenOrders (args ...interface{}) interface{} {
+    func (this *binance) PapiGetMarginOpenOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetMarginOpenOrders", parameters);
     }
 
-    func (this *binance) papiGetMarginAllOrders (args ...interface{}) interface{} {
+    func (this *binance) PapiGetMarginAllOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetMarginAllOrders", parameters);
     }
 
-    func (this *binance) papiGetMarginOrderList (args ...interface{}) interface{} {
+    func (this *binance) PapiGetMarginOrderList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetMarginOrderList", parameters);
     }
 
-    func (this *binance) papiGetMarginAllOrderList (args ...interface{}) interface{} {
+    func (this *binance) PapiGetMarginAllOrderList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetMarginAllOrderList", parameters);
     }
 
-    func (this *binance) papiGetMarginOpenOrderList (args ...interface{}) interface{} {
+    func (this *binance) PapiGetMarginOpenOrderList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetMarginOpenOrderList", parameters);
     }
 
-    func (this *binance) papiGetMarginMyTrades (args ...interface{}) interface{} {
+    func (this *binance) PapiGetMarginMyTrades (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetMarginMyTrades", parameters);
     }
 
-    func (this *binance) papiGetBalance (args ...interface{}) interface{} {
+    func (this *binance) PapiGetBalance (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetBalance", parameters);
     }
 
-    func (this *binance) papiGetAccount (args ...interface{}) interface{} {
+    func (this *binance) PapiGetAccount (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetAccount", parameters);
     }
 
-    func (this *binance) papiGetMarginMaxBorrowable (args ...interface{}) interface{} {
+    func (this *binance) PapiGetMarginMaxBorrowable (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetMarginMaxBorrowable", parameters);
     }
 
-    func (this *binance) papiGetMarginMaxWithdraw (args ...interface{}) interface{} {
+    func (this *binance) PapiGetMarginMaxWithdraw (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetMarginMaxWithdraw", parameters);
     }
 
-    func (this *binance) papiGetUmPositionRisk (args ...interface{}) interface{} {
+    func (this *binance) PapiGetUmPositionRisk (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetUmPositionRisk", parameters);
     }
 
-    func (this *binance) papiGetCmPositionRisk (args ...interface{}) interface{} {
+    func (this *binance) PapiGetCmPositionRisk (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetCmPositionRisk", parameters);
     }
 
-    func (this *binance) papiGetUmPositionSideDual (args ...interface{}) interface{} {
+    func (this *binance) PapiGetUmPositionSideDual (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetUmPositionSideDual", parameters);
     }
 
-    func (this *binance) papiGetCmPositionSideDual (args ...interface{}) interface{} {
+    func (this *binance) PapiGetCmPositionSideDual (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetCmPositionSideDual", parameters);
     }
 
-    func (this *binance) papiGetUmUserTrades (args ...interface{}) interface{} {
+    func (this *binance) PapiGetUmUserTrades (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetUmUserTrades", parameters);
     }
 
-    func (this *binance) papiGetCmUserTrades (args ...interface{}) interface{} {
+    func (this *binance) PapiGetCmUserTrades (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetCmUserTrades", parameters);
     }
 
-    func (this *binance) papiGetUmLeverageBracket (args ...interface{}) interface{} {
+    func (this *binance) PapiGetUmLeverageBracket (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetUmLeverageBracket", parameters);
     }
 
-    func (this *binance) papiGetCmLeverageBracket (args ...interface{}) interface{} {
+    func (this *binance) PapiGetCmLeverageBracket (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetCmLeverageBracket", parameters);
     }
 
-    func (this *binance) papiGetMarginForceOrders (args ...interface{}) interface{} {
+    func (this *binance) PapiGetMarginForceOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetMarginForceOrders", parameters);
     }
 
-    func (this *binance) papiGetUmForceOrders (args ...interface{}) interface{} {
+    func (this *binance) PapiGetUmForceOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetUmForceOrders", parameters);
     }
 
-    func (this *binance) papiGetCmForceOrders (args ...interface{}) interface{} {
+    func (this *binance) PapiGetCmForceOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetCmForceOrders", parameters);
     }
 
-    func (this *binance) papiGetUmApiTradingStatus (args ...interface{}) interface{} {
+    func (this *binance) PapiGetUmApiTradingStatus (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetUmApiTradingStatus", parameters);
     }
 
-    func (this *binance) papiGetUmCommissionRate (args ...interface{}) interface{} {
+    func (this *binance) PapiGetUmCommissionRate (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetUmCommissionRate", parameters);
     }
 
-    func (this *binance) papiGetCmCommissionRate (args ...interface{}) interface{} {
+    func (this *binance) PapiGetCmCommissionRate (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetCmCommissionRate", parameters);
     }
 
-    func (this *binance) papiGetMarginMarginLoan (args ...interface{}) interface{} {
+    func (this *binance) PapiGetMarginMarginLoan (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetMarginMarginLoan", parameters);
     }
 
-    func (this *binance) papiGetMarginRepayLoan (args ...interface{}) interface{} {
+    func (this *binance) PapiGetMarginRepayLoan (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetMarginRepayLoan", parameters);
     }
 
-    func (this *binance) papiGetMarginMarginInterestHistory (args ...interface{}) interface{} {
+    func (this *binance) PapiGetMarginMarginInterestHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetMarginMarginInterestHistory", parameters);
     }
 
-    func (this *binance) papiGetPortfolioInterestHistory (args ...interface{}) interface{} {
+    func (this *binance) PapiGetPortfolioInterestHistory (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetPortfolioInterestHistory", parameters);
     }
 
-    func (this *binance) papiGetUmIncome (args ...interface{}) interface{} {
+    func (this *binance) PapiGetUmIncome (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetUmIncome", parameters);
     }
 
-    func (this *binance) papiGetCmIncome (args ...interface{}) interface{} {
+    func (this *binance) PapiGetCmIncome (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetCmIncome", parameters);
     }
 
-    func (this *binance) papiGetUmAccount (args ...interface{}) interface{} {
+    func (this *binance) PapiGetUmAccount (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetUmAccount", parameters);
     }
 
-    func (this *binance) papiGetCmAccount (args ...interface{}) interface{} {
+    func (this *binance) PapiGetCmAccount (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetCmAccount", parameters);
     }
 
-    func (this *binance) papiGetRepayFuturesSwitch (args ...interface{}) interface{} {
+    func (this *binance) PapiGetRepayFuturesSwitch (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetRepayFuturesSwitch", parameters);
     }
 
-    func (this *binance) papiGetUmAdlQuantile (args ...interface{}) interface{} {
+    func (this *binance) PapiGetUmAdlQuantile (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetUmAdlQuantile", parameters);
     }
 
-    func (this *binance) papiGetCmAdlQuantile (args ...interface{}) interface{} {
+    func (this *binance) PapiGetCmAdlQuantile (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiGetCmAdlQuantile", parameters);
     }
 
-    func (this *binance) papiPostUmOrder (args ...interface{}) interface{} {
+    func (this *binance) PapiPostUmOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiPostUmOrder", parameters);
     }
 
-    func (this *binance) papiPostUmConditionalOrder (args ...interface{}) interface{} {
+    func (this *binance) PapiPostUmConditionalOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiPostUmConditionalOrder", parameters);
     }
 
-    func (this *binance) papiPostCmOrder (args ...interface{}) interface{} {
+    func (this *binance) PapiPostCmOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiPostCmOrder", parameters);
     }
 
-    func (this *binance) papiPostCmConditionalOrder (args ...interface{}) interface{} {
+    func (this *binance) PapiPostCmConditionalOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiPostCmConditionalOrder", parameters);
     }
 
-    func (this *binance) papiPostMarginOrder (args ...interface{}) interface{} {
+    func (this *binance) PapiPostMarginOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiPostMarginOrder", parameters);
     }
 
-    func (this *binance) papiPostMarginLoan (args ...interface{}) interface{} {
+    func (this *binance) PapiPostMarginLoan (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiPostMarginLoan", parameters);
     }
 
-    func (this *binance) papiPostRepayLoan (args ...interface{}) interface{} {
+    func (this *binance) PapiPostRepayLoan (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiPostRepayLoan", parameters);
     }
 
-    func (this *binance) papiPostMarginOrderOco (args ...interface{}) interface{} {
+    func (this *binance) PapiPostMarginOrderOco (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiPostMarginOrderOco", parameters);
     }
 
-    func (this *binance) papiPostUmLeverage (args ...interface{}) interface{} {
+    func (this *binance) PapiPostUmLeverage (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiPostUmLeverage", parameters);
     }
 
-    func (this *binance) papiPostCmLeverage (args ...interface{}) interface{} {
+    func (this *binance) PapiPostCmLeverage (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiPostCmLeverage", parameters);
     }
 
-    func (this *binance) papiPostUmPositionSideDual (args ...interface{}) interface{} {
+    func (this *binance) PapiPostUmPositionSideDual (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiPostUmPositionSideDual", parameters);
     }
 
-    func (this *binance) papiPostCmPositionSideDual (args ...interface{}) interface{} {
+    func (this *binance) PapiPostCmPositionSideDual (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiPostCmPositionSideDual", parameters);
     }
 
-    func (this *binance) papiPostAutoCollection (args ...interface{}) interface{} {
+    func (this *binance) PapiPostAutoCollection (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiPostAutoCollection", parameters);
     }
 
-    func (this *binance) papiPostBnbTransfer (args ...interface{}) interface{} {
+    func (this *binance) PapiPostBnbTransfer (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiPostBnbTransfer", parameters);
     }
 
-    func (this *binance) papiPostRepayFuturesSwitch (args ...interface{}) interface{} {
+    func (this *binance) PapiPostRepayFuturesSwitch (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiPostRepayFuturesSwitch", parameters);
     }
 
-    func (this *binance) papiPostRepayFuturesNegativeBalance (args ...interface{}) interface{} {
+    func (this *binance) PapiPostRepayFuturesNegativeBalance (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiPostRepayFuturesNegativeBalance", parameters);
     }
 
-    func (this *binance) papiPostListenKey (args ...interface{}) interface{} {
+    func (this *binance) PapiPostListenKey (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiPostListenKey", parameters);
     }
 
-    func (this *binance) papiPostAssetCollection (args ...interface{}) interface{} {
+    func (this *binance) PapiPostAssetCollection (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiPostAssetCollection", parameters);
     }
 
-    func (this *binance) papiPutListenKey (args ...interface{}) interface{} {
+    func (this *binance) PapiPutListenKey (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiPutListenKey", parameters);
     }
 
-    func (this *binance) papiDeleteUmOrder (args ...interface{}) interface{} {
+    func (this *binance) PapiDeleteUmOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiDeleteUmOrder", parameters);
     }
 
-    func (this *binance) papiDeleteUmConditionalOrder (args ...interface{}) interface{} {
+    func (this *binance) PapiDeleteUmConditionalOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiDeleteUmConditionalOrder", parameters);
     }
 
-    func (this *binance) papiDeleteUmAllOpenOrders (args ...interface{}) interface{} {
+    func (this *binance) PapiDeleteUmAllOpenOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiDeleteUmAllOpenOrders", parameters);
     }
 
-    func (this *binance) papiDeleteUmConditionalAllOpenOrders (args ...interface{}) interface{} {
+    func (this *binance) PapiDeleteUmConditionalAllOpenOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiDeleteUmConditionalAllOpenOrders", parameters);
     }
 
-    func (this *binance) papiDeleteCmOrder (args ...interface{}) interface{} {
+    func (this *binance) PapiDeleteCmOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiDeleteCmOrder", parameters);
     }
 
-    func (this *binance) papiDeleteCmConditionalOrder (args ...interface{}) interface{} {
+    func (this *binance) PapiDeleteCmConditionalOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiDeleteCmConditionalOrder", parameters);
     }
 
-    func (this *binance) papiDeleteCmAllOpenOrders (args ...interface{}) interface{} {
+    func (this *binance) PapiDeleteCmAllOpenOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiDeleteCmAllOpenOrders", parameters);
     }
 
-    func (this *binance) papiDeleteCmConditionalAllOpenOrders (args ...interface{}) interface{} {
+    func (this *binance) PapiDeleteCmConditionalAllOpenOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiDeleteCmConditionalAllOpenOrders", parameters);
     }
 
-    func (this *binance) papiDeleteMarginOrder (args ...interface{}) interface{} {
+    func (this *binance) PapiDeleteMarginOrder (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiDeleteMarginOrder", parameters);
     }
 
-    func (this *binance) papiDeleteMarginAllOpenOrders (args ...interface{}) interface{} {
+    func (this *binance) PapiDeleteMarginAllOpenOrders (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiDeleteMarginAllOpenOrders", parameters);
     }
 
-    func (this *binance) papiDeleteMarginOrderList (args ...interface{}) interface{} {
+    func (this *binance) PapiDeleteMarginOrderList (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiDeleteMarginOrderList", parameters);
     }
 
-    func (this *binance) papiDeleteListenKey (args ...interface{}) interface{} {
+    func (this *binance) PapiDeleteListenKey (args ...interface{}) interface{} {
         parameters := GetArg(args, 0, nil)
         return this.callEndpoint ("papiDeleteListenKey", parameters);
     }
