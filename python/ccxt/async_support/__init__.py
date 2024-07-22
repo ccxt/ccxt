@@ -72,6 +72,7 @@ from ccxt.async_support.bitforex import bitforex                          # noqa
 from ccxt.async_support.bitget import bitget                              # noqa: F401
 from ccxt.async_support.bitget_futures import bitget_futures              # noqa: F401
 from ccxt.async_support.bitget_inverse import bitget_inverse              # noqa: F401
+from ccxt.async_support.bitget_spot import bitget_spot                    # noqa: F401
 from ccxt.async_support.bithumb import bithumb                            # noqa: F401
 from ccxt.async_support.bitkk import bitkk                                # noqa: F401
 from ccxt.async_support.bitmart import bitmart                            # noqa: F401
@@ -99,6 +100,7 @@ from ccxt.async_support.bytetrade import bytetrade                        # noqa
 from ccxt.async_support.cex import cex                                    # noqa: F401
 from ccxt.async_support.chilebit import chilebit                          # noqa: F401
 from ccxt.async_support.coinbase import coinbase                          # noqa: F401
+from ccxt.async_support.coinbase_advanced_spot import coinbase_advanced_spot                          # noqa: F401
 from ccxt.async_support.coinbaseprime import coinbaseprime                # noqa: F401
 from ccxt.async_support.coinbasepro import coinbasepro                    # noqa: F401
 from ccxt.async_support.coincheck import coincheck                        # noqa: F401
@@ -197,8 +199,9 @@ exchanges = [
     'bitflyer',
     'bitforex',
     'bitget',
-    'bitget_futures'
-    'bitget_inverse'
+    'bitget_futures',
+    'bitget_inverse',
+    'bitget_spot',
     'bithumb',
     'bitkk',
     'bitmart',
@@ -226,6 +229,7 @@ exchanges = [
     'cex',
     'chilebit',
     'coinbase',
+    'coinbase_advanced_spot',
     'coinbaseprime',
     'coinbasepro',
     'coincheck',
