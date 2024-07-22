@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/hashkey.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { } from './base/types.js';
+import type { Bool, Dict, Market } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -74,7 +74,7 @@ export default class hashkey extends Exchange {
                 'fetchLeverage': false,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
-                'fetchMarkets': false,
+                'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
                 'fetchOHLCV': false,
@@ -94,7 +94,7 @@ export default class hashkey extends Exchange {
                 'fetchStatus': false,
                 'fetchTicker': false,
                 'fetchTickers': false,
-                'fetchTime': false,
+                'fetchTime': true,
                 'fetchTrades': false,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
@@ -132,78 +132,76 @@ export default class hashkey extends Exchange {
                 },
             },
             'api': {
-                'v1': {
-                    'public': {
-                        'get': {
-                            'api/v1/exchangeInfo': 1,
-                            'quote/v1/depth': 1,
-                            'quote/v1/trades': 1,
-                            'quote/v1/klines': 1,
-                            'quote/v1/ticker/24hr': 1,
-                            'quote/v1/ticker/price': 1,
-                            'quote/v1/ticker/bookTicker': 1,
-                            'quote/v1/depth/merged': 1,
-                            'quote/v1/markPrice': 1,
-                            'quote/v1/index': 1,
-                            'api/v1/ping': 1,
-                        },
+                'public': {
+                    'get': {
+                        'api/v1/exchangeInfo': 5,
+                        'quote/v1/depth': 1,
+                        'quote/v1/trades': 1,
+                        'quote/v1/klines': 1,
+                        'quote/v1/ticker/24hr': 1,
+                        'quote/v1/ticker/price': 1,
+                        'quote/v1/ticker/bookTicker': 1,
+                        'quote/v1/depth/merged': 1,
+                        'quote/v1/markPrice': 1,
+                        'quote/v1/index': 1,
+                        'api/v1/ping': 1,
+                        'api/v1/time': 5, // done
                     },
-                    'private': {
-                        'get': {
-                            'api/v1/time': 1,
-                            'api/v1/spot/order': 1,
-                            'api/v1/spot/openOrders': 1,
-                            'api/v1/spot/tradeOrders': 1,
-                            'api/v1/futures/leverage': 1,
-                            'api/v1/futures/order': 1,
-                            'api/v1/futures/openOrders': 1,
-                            'api/v1/futures/userTrades': 1,
-                            'api/v1/futures/positions': 1,
-                            'api/v1/futures/historyOrders': 1,
-                            'api/v1/futures/balance': 1,
-                            'api/v1/futures/liquidationAssignStatus': 1,
-                            'api/v1/futures/fundingRate': 1,
-                            'api/v1/futures/historyFundingRate': 1,
-                            'api/v1/futures/riskLimit': 1,
-                            'api/v1/futures/commissionRate': 1,
-                            'api/v1/futures/getBestOrders': 1,
-                            'api/v1/account/vipInfo': 1,
-                            'api/v1/account': 1,
-                            'api/v1/account/trades': 1,
-                            'api/v1/account/types': 1,
-                            'api/v1/account/checkApiKey': 1,
-                            'api/v1/account/balanceFlow': 1,
-                            'api/v1/spot/subAccount/openOrders': 1,
-                            'api/v1/spot/subAccount/tradeOrders': 1,
-                            'api/v1/subAccount/trades': 1,
-                            'api/v1/futures/subAccount/openOrders': 1,
-                            'api/v1/futures/subAccount/historyOrders': 1,
-                            'api/v1/futures/subAccount/userTrades': 1,
-                            'api/v1/account/deposit/address': 1,
-                            'api/v1/account/depositOrders': 1,
-                            'api/v1/account/withdrawOrders': 1,
-                        },
-                        'post': {
-                            'api/v1/userDataStream': 1,
-                            'api/v1/spot/orderTest': 1,
-                            'api/v1/spot/order': 1,
-                            'api/v1/spot/batchOrders': 1,
-                            'api/v1/futures/leverage': 1,
-                            'api/v1/futures/order': 1,
-                            'api/v1/futures/position/trading-stop': 1,
-                            'api/v1/futures/batchOrders': 1,
-                            'api/v1/account/assetTransfer': 1,
-                            'api/v1/account/authAddress': 1,
-                            'api/v1/account/withdraw': 1,
-                        },
-                        'delete': {
-                            'api/v1/spot/order': 1,
-                            'api/v1/spot/openOrders': 1,
-                            'api/v1/spot/cancelOrderByIds': 1,
-                            'api/v1/futures/order': 1,
-                            'api/v1/futures/batchOrders': 1,
-                            'api/v1/futures/cancelOrderByIds': 1,
-                        },
+                },
+                'private': {
+                    'get': {
+                        'api/v1/spot/order': 1,
+                        'api/v1/spot/openOrders': 1,
+                        'api/v1/spot/tradeOrders': 1,
+                        'api/v1/futures/leverage': 1,
+                        'api/v1/futures/order': 1,
+                        'api/v1/futures/openOrders': 1,
+                        'api/v1/futures/userTrades': 1,
+                        'api/v1/futures/positions': 1,
+                        'api/v1/futures/historyOrders': 1,
+                        'api/v1/futures/balance': 1,
+                        'api/v1/futures/liquidationAssignStatus': 1,
+                        'api/v1/futures/fundingRate': 1,
+                        'api/v1/futures/historyFundingRate': 1,
+                        'api/v1/futures/riskLimit': 1,
+                        'api/v1/futures/commissionRate': 1,
+                        'api/v1/futures/getBestOrders': 1,
+                        'api/v1/account/vipInfo': 1,
+                        'api/v1/account': 1,
+                        'api/v1/account/trades': 1,
+                        'api/v1/account/types': 1,
+                        'api/v1/account/checkApiKey': 1,
+                        'api/v1/account/balanceFlow': 1,
+                        'api/v1/spot/subAccount/openOrders': 1,
+                        'api/v1/spot/subAccount/tradeOrders': 1,
+                        'api/v1/subAccount/trades': 1,
+                        'api/v1/futures/subAccount/openOrders': 1,
+                        'api/v1/futures/subAccount/historyOrders': 1,
+                        'api/v1/futures/subAccount/userTrades': 1,
+                        'api/v1/account/deposit/address': 1,
+                        'api/v1/account/depositOrders': 1,
+                        'api/v1/account/withdrawOrders': 1,
+                    },
+                    'post': {
+                        'api/v1/userDataStream': 1,
+                        'api/v1/spot/orderTest': 1,
+                        'api/v1/spot/order': 1,
+                        'api/v1/spot/batchOrders': 1,
+                        'api/v1/futures/leverage': 1,
+                        'api/v1/futures/order': 1,
+                        'api/v1/futures/position/trading-stop': 1,
+                        'api/v1/futures/batchOrders': 1,
+                        'api/v1/account/assetTransfer': 1,
+                        'api/v1/account/authAddress': 1,
+                        'api/v1/account/withdraw': 1,
+                    },
+                    'delete': {
+                        'api/v1/spot/order': 1,
+                        'api/v1/spot/openOrders': 1,
+                        'api/v1/spot/cancelOrderByIds': 1,
+                        'api/v1/futures/order': 1,
+                        'api/v1/futures/batchOrders': 1,
+                        'api/v1/futures/cancelOrderByIds': 1,
                     },
                 },
             },
@@ -212,6 +210,7 @@ export default class hashkey extends Exchange {
                 },
             },
             'options': {
+                'recvWindow': undefined,
                 'sandboxMode': false,
                 'networks': {
                 },
@@ -227,8 +226,449 @@ export default class hashkey extends Exchange {
         });
     }
 
-    nonce () {
-        return this.milliseconds ();
+    async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name hashkey#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/check-server-time
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        const response = await this.publicGetApiV1Time (params);
+        //
+        //     {
+        //         "serverTime": 1721661553214
+        //     }
+        //
+        return this.safeInteger (response, 'serverTime');
+    }
+
+    async fetchMarkets (params = {}): Promise<Market[]> {
+        /**
+         * @method
+         * @name hashkey#fetchMarkets
+         * @description retrieves data on all markets for the exchange
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} an array of objects representing market data
+         */
+        const response = await this.publicGetApiV1ExchangeInfo (params);
+        //
+        //     {
+        //         "timezone": "UTC",
+        //         "serverTime": "1721661653952",
+        //         "brokerFilters": [],
+        //         "symbols": [
+        //             {
+        //                 "symbol": "BTCUSDT",
+        //                 "symbolName": "BTCUSDT",
+        //                 "status": "TRADING",
+        //                 "baseAsset": "BTC",
+        //                 "baseAssetName": "BTC",
+        //                 "baseAssetPrecision": "0.00001",
+        //                 "quoteAsset": "USDT",
+        //                 "quoteAssetName": "USDT",
+        //                 "quotePrecision": "0.0000001",
+        //                 "retailAllowed": true,
+        //                 "piAllowed": true,
+        //                 "corporateAllowed": true,
+        //                 "omnibusAllowed": true,
+        //                 "icebergAllowed": false,
+        //                 "isAggregate": false,
+        //                 "allowMargin": false,
+        //                 "filters": [
+        //                     {
+        //                         "minPrice": "0.01",
+        //                         "maxPrice": "100000.00000000",
+        //                         "tickSize": "0.01",
+        //                         "filterType": "PRICE_FILTER"
+        //                     },
+        //                     {
+        //                         "minQty": "0.00001",
+        //                         "maxQty": "8",
+        //                         "stepSize": "0.00001",
+        //                         "marketOrderMinQty": "0.00001",
+        //                         "marketOrderMaxQty": "4",
+        //                         "filterType": "LOT_SIZE"
+        //                     },
+        //                     {
+        //                         "minNotional": "1",
+        //                         "filterType": "MIN_NOTIONAL"
+        //                     },
+        //                     {
+        //                         "minAmount": "1",
+        //                         "maxAmount": "400000",
+        //                         "minBuyPrice": "0",
+        //                         "marketOrderMinAmount": "1",
+        //                         "marketOrderMaxAmount": "200000",
+        //                         "filterType": "TRADE_AMOUNT"
+        //                     },
+        //                     {
+        //                         "maxSellPrice": "0",
+        //                         "buyPriceUpRate": "0.1",
+        //                         "sellPriceDownRate": "0.1",
+        //                         "filterType": "LIMIT_TRADING"
+        //                     },
+        //                     {
+        //                         "buyPriceUpRate": "0.1",
+        //                         "sellPriceDownRate": "0.1",
+        //                         "filterType": "MARKET_TRADING"
+        //                     },
+        //                     {
+        //                         "noAllowMarketStartTime": "1710485700000",
+        //                         "noAllowMarketEndTime": "1710486000000",
+        //                         "limitOrderStartTime": "0",
+        //                         "limitOrderEndTime": "0",
+        //                         "limitMinPrice": "0",
+        //                         "limitMaxPrice": "0",
+        //                         "filterType": "OPEN_QUOTE"
+        //                     }
+        //                 ]
+        //             }
+        //         ],
+        //         "options": [],
+        //         "contracts": [
+        //             {
+        //                 "filters": [
+        //                     {
+        //                         "minPrice": "0.1",
+        //                         "maxPrice": "100000.00000000",
+        //                         "tickSize": "0.1",
+        //                         "filterType": "PRICE_FILTER"
+        //                     },
+        //                     {
+        //                         "minQty": "0.001",
+        //                         "maxQty": "10",
+        //                         "stepSize": "0.001",
+        //                         "marketOrderMinQty": "0",
+        //                         "marketOrderMaxQty": "0",
+        //                         "filterType": "LOT_SIZE"
+        //                     },
+        //                     {
+        //                         "minNotional": "0",
+        //                         "filterType": "MIN_NOTIONAL"
+        //                     },
+        //                     {
+        //                         "maxSellPrice": "999999",
+        //                         "buyPriceUpRate": "0.05",
+        //                         "sellPriceDownRate": "0.05",
+        //                         "maxEntrustNum": 200,
+        //                         "maxConditionNum": 200,
+        //                         "filterType": "LIMIT_TRADING"
+        //                     },
+        //                     {
+        //                         "buyPriceUpRate": "0.05",
+        //                         "sellPriceDownRate": "0.05",
+        //                         "filterType": "MARKET_TRADING"
+        //                     },
+        //                     {
+        //                         "noAllowMarketStartTime": "0",
+        //                         "noAllowMarketEndTime": "0",
+        //                         "limitOrderStartTime": "0",
+        //                         "limitOrderEndTime": "0",
+        //                         "limitMinPrice": "0",
+        //                         "limitMaxPrice": "0",
+        //                         "filterType": "OPEN_QUOTE"
+        //                     }
+        //                 ],
+        //                 "exchangeId": "301",
+        //                 "symbol": "BTCUSDT-PERPETUAL",
+        //                 "symbolName": "BTCUSDT-PERPETUAL",
+        //                 "status": "TRADING",
+        //                 "baseAsset": "BTCUSDT-PERPETUAL",
+        //                 "baseAssetPrecision": "0.001",
+        //                 "quoteAsset": "USDT",
+        //                 "quoteAssetPrecision": "0.1",
+        //                 "icebergAllowed": false,
+        //                 "inverse": false,
+        //                 "index": "USDT",
+        //                 "marginToken": "USDT",
+        //                 "marginPrecision": "0.0001",
+        //                 "contractMultiplier": "0.001",
+        //                 "underlying": "BTC",
+        //                 "riskLimits": [
+        //                     {
+        //                         "riskLimitId": "200000722",
+        //                         "quantity": "1000.00",
+        //                         "initialMargin": "0.10",
+        //                         "maintMargin": "0.005",
+        //                         "isWhite": false
+        //                     },
+        //                     {
+        //                         "riskLimitId": "200000723",
+        //                         "quantity": "2000.00",
+        //                         "initialMargin": "0.10",
+        //                         "maintMargin": "0.01",
+        //                         "isWhite": false
+        //                     }
+        //                 ]
+        //             }
+        //         ],
+        //         "coins": [
+        //                 {
+        //                 "orgId": "9001",
+        //                 "coinId": "BTC",
+        //                 "coinName": "BTC",
+        //                 "coinFullName": "Bitcoin",
+        //                 "allowWithdraw": true,
+        //                 "allowDeposit": true,
+        //                 "tokenType": "CHAIN_TOKEN",
+        //                 "chainTypes": [
+        //                     {
+        //                         "chainType": "Bitcoin",
+        //                         "withdrawFee": "0",
+        //                         "minWithdrawQuantity": "0.002",
+        //                         "maxWithdrawQuantity": "0",
+        //                         "minDepositQuantity": "0.0005",
+        //                         "allowDeposit": true,
+        //                         "allowWithdraw": true
+        //                     }
+        //                 ]
+        //             }
+        //         ]
+        //     }
+        //
+        const spotMarkets = this.safeList (response, 'symbols', []);
+        const swapMarkets = this.safeList (response, 'contracts', []);
+        return this.parseMarkets (this.arrayConcat (spotMarkets, swapMarkets));
+    }
+
+    parseMarket (market: Dict): Market {
+        // spot
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "symbolName": "BTCUSDT",
+        //         "status": "TRADING",
+        //         "baseAsset": "BTC",
+        //         "baseAssetName": "BTC",
+        //         "baseAssetPrecision": "0.00001",
+        //         "quoteAsset": "USDT",
+        //         "quoteAssetName": "USDT",
+        //         "quotePrecision": "0.0000001",
+        //         "retailAllowed": true,
+        //         "piAllowed": true,
+        //         "corporateAllowed": true,
+        //         "omnibusAllowed": true,
+        //         "icebergAllowed": false,
+        //         "isAggregate": false,
+        //         "allowMargin": false,
+        //         "filters": [
+        //             {
+        //                 "minPrice": "0.01",
+        //                 "maxPrice": "100000.00000000",
+        //                 "tickSize": "0.01",
+        //                 "filterType": "PRICE_FILTER"
+        //             },
+        //             {
+        //                 "minQty": "0.00001",
+        //                 "maxQty": "8",
+        //                 "stepSize": "0.00001",
+        //                 "marketOrderMinQty": "0.00001",
+        //                 "marketOrderMaxQty": "4",
+        //                 "filterType": "LOT_SIZE"
+        //             },
+        //             {
+        //                 "minNotional": "1",
+        //                 "filterType": "MIN_NOTIONAL"
+        //             },
+        //             {
+        //                 "minAmount": "1",
+        //                 "maxAmount": "400000",
+        //                 "minBuyPrice": "0",
+        //                 "marketOrderMinAmount": "1",
+        //                 "marketOrderMaxAmount": "200000",
+        //                 "filterType": "TRADE_AMOUNT"
+        //             },
+        //             {
+        //                 "maxSellPrice": "0",
+        //                 "buyPriceUpRate": "0.1",
+        //                 "sellPriceDownRate": "0.1",
+        //                 "filterType": "LIMIT_TRADING"
+        //             },
+        //             {
+        //                 "buyPriceUpRate": "0.1",
+        //                 "sellPriceDownRate": "0.1",
+        //                 "filterType": "MARKET_TRADING"
+        //             },
+        //             {
+        //                 "noAllowMarketStartTime": "1710485700000",
+        //                 "noAllowMarketEndTime": "1710486000000",
+        //                 "limitOrderStartTime": "0",
+        //                 "limitOrderEndTime": "0",
+        //                 "limitMinPrice": "0",
+        //                 "limitMaxPrice": "0",
+        //                 "filterType": "OPEN_QUOTE"
+        //             }
+        //         ]
+        //     }
+        //
+        // swap
+        //     {
+        //         "filters": [
+        //             {
+        //                 "minPrice": "0.1",
+        //                 "maxPrice": "100000.00000000",
+        //                 "tickSize": "0.1",
+        //                 "filterType": "PRICE_FILTER"
+        //             },
+        //             {
+        //                 "minQty": "0.001",
+        //                 "maxQty": "10",
+        //                 "stepSize": "0.001",
+        //                 "marketOrderMinQty": "0",
+        //                 "marketOrderMaxQty": "0",
+        //                 "filterType": "LOT_SIZE"
+        //             },
+        //             {
+        //                 "minNotional": "0",
+        //                 "filterType": "MIN_NOTIONAL"
+        //             },
+        //             {
+        //                 "maxSellPrice": "999999",
+        //                 "buyPriceUpRate": "0.05",
+        //                 "sellPriceDownRate": "0.05",
+        //                 "maxEntrustNum": 200,
+        //                 "maxConditionNum": 200,
+        //                 "filterType": "LIMIT_TRADING"
+        //             },
+        //             {
+        //                 "buyPriceUpRate": "0.05",
+        //                 "sellPriceDownRate": "0.05",
+        //                 "filterType": "MARKET_TRADING"
+        //             },
+        //             {
+        //                 "noAllowMarketStartTime": "0",
+        //                 "noAllowMarketEndTime": "0",
+        //                 "limitOrderStartTime": "0",
+        //                 "limitOrderEndTime": "0",
+        //                 "limitMinPrice": "0",
+        //                 "limitMaxPrice": "0",
+        //                 "filterType": "OPEN_QUOTE"
+        //             }
+        //         ],
+        //         "exchangeId": "301",
+        //         "symbol": "BTCUSDT-PERPETUAL",
+        //         "symbolName": "BTCUSDT-PERPETUAL",
+        //         "status": "TRADING",
+        //         "baseAsset": "BTCUSDT-PERPETUAL",
+        //         "baseAssetPrecision": "0.001",
+        //         "quoteAsset": "USDT",
+        //         "quoteAssetPrecision": "0.1",
+        //         "icebergAllowed": false,
+        //         "inverse": false,
+        //         "index": "USDT",
+        //         "marginToken": "USDT",
+        //         "marginPrecision": "0.0001",
+        //         "contractMultiplier": "0.001",
+        //         "underlying": "BTC",
+        //         "riskLimits": [
+        //             {
+        //                 "riskLimitId": "200000722",
+        //                 "quantity": "1000.00",
+        //                 "initialMargin": "0.10",
+        //                 "maintMargin": "0.005",
+        //                 "isWhite": false
+        //             },
+        //             {
+        //                 "riskLimitId": "200000723",
+        //                 "quantity": "2000.00",
+        //                 "initialMargin": "0.10",
+        //                 "maintMargin": "0.01",
+        //                 "isWhite": false
+        //             }
+        //         ]
+        //     }
+        //
+        const marketId = this.safeString (market, 'symbol');
+        const quoteId = this.safeString (market, 'quoteAsset');
+        const quote = this.safeCurrencyCode (quoteId);
+        const settleId = this.safeString (market, 'marginToken');
+        const settle = this.safeCurrencyCode (settleId);
+        let baseId = this.safeString (market, 'baseAsset');
+        let marketType = 'spot' as any;
+        let isSpot = true;
+        let isSwap = false;
+        let suffix = '';
+        const parts = marketId.split ('-');
+        // if id is 'SOMETHING-PERPETUAL' namely market is swap
+        if (parts.length > 1) {
+            marketType = 'swap';
+            isSpot = false;
+            isSwap = true;
+            baseId = this.safeString (market, 'underlying');
+            suffix = ':' + settleId;
+        }
+        const base = this.safeCurrencyCode (baseId);
+        const symbol = base + '/' + quote + suffix;
+        const status = this.safeString (market, 'status');
+        const active = status === 'TRADING';
+        let isLinear: Bool = undefined;
+        let subType = undefined;
+        const isInverse = this.safeBool (market, 'inverse');
+        if (isInverse !== undefined) {
+            if (isInverse) {
+                isLinear = false;
+                subType = 'inverse';
+            } else {
+                isLinear = true;
+                subType = 'linear';
+            }
+        }
+        const filtersList = this.safeList (market, 'filters', []);
+        const filters = this.indexBy (filtersList, 'filterType');
+        const priceFilter = this.safeDict (filters, 'PRICE_FILTER', {});
+        const amountFilter = this.safeDict (filters, 'LOT_SIZE');
+        return {
+            'id': marketId,
+            'symbol': symbol,
+            'base': base,
+            'quote': quote,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'active': active,
+            'type': marketType,
+            'subType': subType,
+            'spot': isSpot,
+            'margin': this.safeBool (market, 'allowMargin'),
+            'swap': isSwap,
+            'future': false,
+            'option': false,
+            'contract': isSwap,
+            'settle': settle,
+            'settleId': settleId,
+            'contractSize': this.safeNumber (market, 'contractMultiplier'), // todo check
+            'linear': isLinear,
+            'inverse': isInverse,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': this.safeNumber (amountFilter, 'stepSize'),
+                'price': this.safeNumber (priceFilter, 'tickSize'),
+            },
+            'limits': {
+                'amount': {
+                    'min': this.safeNumber (amountFilter, 'minQty'),
+                    'max': this.safeNumber (amountFilter, 'maxQty'),
+                },
+                'price': {
+                    'min': this.safeNumber (priceFilter, 'minPrice'),
+                    'max': this.safeNumber (priceFilter, 'maxPrice'),
+                },
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': this.safeNumber (market, 'min_notional'),
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
