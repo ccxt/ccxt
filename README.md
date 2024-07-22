@@ -20,6 +20,7 @@ Current feature list:
 
 
 ## Sponsored Promotion
+[![bingx-campaign](https://github.com/user-attachments/assets/374fd5de-7d70-4281-85aa-d827afeb7270)](https://bingx.com/en/act/contestNew/7947320527/)
 
 ## See Also
 
