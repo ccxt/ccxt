@@ -807,12 +807,13 @@ export default class hashkey extends Exchange {
         const amount = this.safeString (trade, 'q');
         const isBuyerMaker = this.safeBool (trade, 'ibm');
         const takerOrMaker = isBuyerMaker ? 'maker' : 'taker';
+        const buyerOrSeller = isBuyerMaker ? 'buy' : 'sell';
         return this.safeTrade ({
             'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'side': undefined,
+            'side': buyerOrSeller,
             'price': price,
             'amount': amount,
             'cost': undefined,
