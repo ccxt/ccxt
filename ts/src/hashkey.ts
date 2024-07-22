@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/hashkey.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Bool, Dict, Market } from './base/types.js';
+import type { Bool, Dict, Int, Market, OrderBook } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -244,6 +244,7 @@ export default class hashkey extends Exchange {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
+                    // {"code":-100012,"msg":"Parameter symbol [String] missing!"}
                 },
                 'broad': {
                 },
@@ -697,6 +698,45 @@ export default class hashkey extends Exchange {
             'created': undefined,
             'info': market,
         };
+    }
+
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name hashkey#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-order-book
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return mMaximum value is 200)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetQuoteV1Depth (this.extend (request, params));
+        //
+        //     {
+        //         "t": 1721681436393,
+        //         "b": [
+        //             ["67902.49", "0.00112"],
+        //             ["67901.08", "0.01014"]
+        //             ...
+        //         ],
+        //         "a": [
+        //             ["67905.99", "0.87134"],
+        //             ["67906", "0.57361"]
+        //             ...
+        //         ]
+        //     }
+        //
+        const timestamp = this.safeInteger (response, 'timestamp');
+        return this.parseOrderBook (response, symbol, timestamp, 'b', 'a');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
