@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/hashkey.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Bool, Dict, Int, Market, OHLCV, OrderBook, Trade } from './base/types.js';
+import type { Bool, Dict, Int, Market, OHLCV, OrderBook, Ticker, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -77,12 +77,12 @@ export default class hashkey extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
@@ -92,10 +92,10 @@ export default class hashkey extends Exchange {
                 'fetchPositionsHistory': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
-                'fetchTicker': false,
+                'fetchTicker': true,
                 'fetchTickers': false,
                 'fetchTime': true,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransactions': 'emulated',
@@ -749,7 +749,7 @@ export default class hashkey extends Exchange {
         //         ]
         //     }
         //
-        const timestamp = this.safeInteger (response, 'timestamp');
+        const timestamp = this.safeInteger (response, 't');
         return this.parseOrderBook (response, symbol, timestamp, 'b', 'a');
     }
 
@@ -898,6 +898,86 @@ export default class hashkey extends Exchange {
             this.safeNumber (ohlcv, 4),
             this.safeNumber (ohlcv, 5),
         ];
+    }
+
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name hashkey#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-24hr-ticker-price-change
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetQuoteV1Ticker24hr (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "t": 1721685896846,
+        //             "s": "BTCUSDT-PERPETUAL",
+        //             "c": "67756.7",
+        //             "h": "68479.9",
+        //             "l": "66594.3",
+        //             "o": "68279.7",
+        //             "b": "67756.6",
+        //             "a": "67756.7",
+        //             "v": "1604722",
+        //             "qv": "108827258.7761"
+        //         }
+        //     ]
+        //
+        const ticker = this.safeDict (response, 0, {});
+        return this.parseTicker (ticker, market);
+    }
+
+    parseTicker (ticker, market: Market = undefined): Ticker {
+        //
+        //     {
+        //         "t": 1721685896846,
+        //         "s": "BTCUSDT-PERPETUAL",
+        //         "c": "67756.7",
+        //         "h": "68479.9",
+        //         "l": "66594.3",
+        //         "o": "68279.7",
+        //         "b": "67756.6",
+        //         "a": "67756.7",
+        //         "v": "1604722",
+        //         "qv": "108827258.7761"
+        //     }
+        //
+        const timestamp = this.safeInteger (ticker, 't');
+        const marketId = this.safeString (ticker, 's');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const last = this.safeString (ticker, 'c');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'h'),
+            'low': this.safeString (ticker, 'l'),
+            'bid': this.safeString (ticker, 'b'),
+            'bidVolume': undefined,
+            'ask': this.safeString (ticker, 'a'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.safeString (ticker, 'o'),
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'v'),
+            'quoteVolume': this.safeString (ticker, 'qv'),
+            'info': ticker,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
