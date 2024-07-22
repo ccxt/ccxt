@@ -644,7 +644,7 @@ export default class hashkey extends Exchange {
         const filtersList = this.safeList (market, 'filters', []);
         const filters = this.indexBy (filtersList, 'filterType');
         const priceFilter = this.safeDict (filters, 'PRICE_FILTER', {});
-        const amountFilter = this.safeDict (filters, 'LOT_SIZE');
+        const amountFilter = this.safeDict (filters, 'LOT_SIZE', {});
         return {
             'id': marketId,
             'symbol': symbol,
