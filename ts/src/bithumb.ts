@@ -207,15 +207,13 @@ export default class bithumb extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
+        const result = [];
         const quoteCurrencies = this.safeValue (this.options, 'quoteCurrencies', {});
         const quotes = Object.keys (quoteCurrencies);
-        const result = [];
         const promises = [];
         for (let i = 0; i < quotes.length; i++) {
-            const quote = quotes[i];
-            const quoteId = quote;
             const request = {
-                'quoteId': quoteId,
+                'quoteId': quotes[i],
             };
             promises.push (this.publicGetTickerALLQuoteId (this.extend (request, params)));
             //
