@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/hashkey.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Bool, Dict, Int, Market, OrderBook } from './base/types.js';
+import type { Bool, Dict, Int, Market, OrderBook, Str, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -737,6 +737,77 @@ export default class hashkey extends Exchange {
         //
         const timestamp = this.safeInteger (response, 'timestamp');
         return this.parseOrderBook (response, symbol, timestamp, 'b', 'a');
+    }
+
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name hashkey#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-recent-trade-list
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch (maximum value is 100)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetQuoteV1Trades (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "t": 1721682745779,
+        //             "p": "67835.99",
+        //             "q": "0.00017",
+        //             "ibm": true
+        //         },
+        //         ...
+        //     ]
+        //
+        return this.parseTrades (response, market, since, limit);
+    }
+
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        // fetchTrades
+        //
+        //     {
+        //         "t": 1721682745779,
+        //         "p": "67835.99",
+        //         "q": "0.00017",
+        //         "ibm": true
+        //     }
+        //
+        const timestamp = this.safeInteger (trade, 't');
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const price = this.safeString (trade, 'p');
+        const amount = this.safeString (trade, 'q');
+        const isBuyerMaker = this.safeBool (trade, 'ibm');
+        const takerOrMaker = isBuyerMaker ? 'maker' : 'taker';
+        return this.safeTrade ({
+            'id': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'side': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'order': undefined,
+            'takerOrMaker': takerOrMaker,
+            'type': undefined,
+            'fee': undefined,
+            'info': trade,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
