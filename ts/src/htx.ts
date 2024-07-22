@@ -6,7 +6,7 @@ import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, ExchangeErro
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, FundingRateHistory, Balances, Str, Dict, Transaction, Ticker, OrderBook, Tickers, OrderRequest, Strings, Market, Currency, Num, Account, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, LeverageTiers, LeverageTier, int, DepositAddress, DepositAddressesByNetwork } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -6096,7 +6096,7 @@ export default class htx extends Exchange {
         return response;
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+    parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "currency": "usdt",
@@ -6110,7 +6110,6 @@ export default class htx extends Exchange {
         const currencyId = this.safeString (depositAddress, 'currency');
         currency = this.safeCurrency (currencyId, currency);
         const code = this.safeCurrencyCode (currencyId, currency);
-        const note = this.safeString (depositAddress, 'note');
         const networkId = this.safeString (depositAddress, 'chain');
         this.checkAddress (address);
         return {
@@ -6118,12 +6117,11 @@ export default class htx extends Exchange {
             'address': address,
             'tag': tag,
             'network': this.networkIdToCode (networkId),
-            'note': note,
             'info': depositAddress,
         };
     }
 
-    async fetchDepositAddressesByNetwork (code: string, params = {}) {
+    async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddressesByNetwork> {
         /**
          * @method
          * @name huobi#fetchDepositAddressesByNetwork
@@ -6156,7 +6154,7 @@ export default class htx extends Exchange {
         return this.indexBy (parsed, 'network');
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name huobi#fetchDepositAddress

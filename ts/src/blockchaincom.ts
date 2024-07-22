@@ -3,7 +3,7 @@ import Exchange from './abstract/blockchaincom.js';
 import { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int } from './base/types.js';
+import type { Balances, Currency, DepositAddress, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -829,7 +829,7 @@ export default class blockchaincom extends Exchange {
         return this.parseTrades (trades, market, since, limit, params); // need to define
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name blockchaincom#fetchDepositAddress
@@ -845,22 +845,32 @@ export default class blockchaincom extends Exchange {
             'currency': currency['id'],
         };
         const response = await this.privatePostDepositsCurrency (this.extend (request, params));
-        const rawAddress = this.safeString (response, 'address');
-        let tag = undefined;
-        let address = undefined;
-        if (rawAddress !== undefined) {
-            const addressParts = rawAddress.split (';');
-            // if a tag or memo is used it is separated by a colon in the 'address' value
-            tag = this.safeString (addressParts, 0);
-            address = this.safeString (addressParts, 1);
-        }
-        const result: Dict = { 'info': response };
-        result['currency'] = currency['code'];
-        result['address'] = address;
-        if (tag !== undefined) {
-            result['tag'] = tag;
-        }
-        return result;
+        //
+        //    {
+        //        type: 'crypto',
+        //        address: 'r9R3sTGDUCsKPKU9CUSAsazMudkViwoXnv:473639957'
+        //    }
+        //
+        return this.parseDepositAddress (response, currency);
+    }
+
+    parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
+        //
+        //    {
+        //        type: 'crypto',
+        //        address: 'r9R3sTGDUCsKPKU9CUSAsazMudkViwoXnv:473639957'
+        //    }
+        //
+        const rawAddress = this.safeString (depositAddress, 'address');
+        // if a tag or memo is used it is separated by a colon in the 'address' value
+        const addressParts = rawAddress.split (':');
+        return {
+            'info': depositAddress,
+            'currency': this.safeString (currency, 'code'),
+            'address': this.safeString (addressParts, 0),
+            'tag': this.safeString (addressParts, 1),
+            'network': undefined,
+        };
     }
 
     parseTransactionState (state) {

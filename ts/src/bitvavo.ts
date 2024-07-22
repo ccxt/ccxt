@@ -6,7 +6,7 @@ import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, Inval
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int } from './base/types.js';
+import type { Balances, Currencies, Currency, DepositAddress, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -1041,7 +1041,7 @@ export default class bitvavo extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name bitvavo#fetchDepositAddress
@@ -1066,11 +1066,11 @@ export default class bitvavo extends Exchange {
         const tag = this.safeString (response, 'paymentId');
         this.checkAddress (address);
         return {
+            'info': response,
             'currency': code,
             'address': address,
             'tag': tag,
             'network': undefined,
-            'info': response,
         };
     }
 

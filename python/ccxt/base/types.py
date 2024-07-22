@@ -139,6 +139,7 @@ class Position(TypedDict):
     stopLossPrice: Num
     takeProfitPrice: Num
 
+
 class OrderRequest(TypedDict):
     symbol: Str
     type: Str
@@ -353,9 +354,11 @@ class Option(TypedDict):
 
 OptionChain = Dict[str, Option]
 
+
 class MarketMarginMode(TypedDict):
     cross: bool
     isolated: bool
+
 
 class MarketInterface(TypedDict):
     info: Dict[str, Any]
@@ -392,6 +395,7 @@ class MarketInterface(TypedDict):
     precision: Any
     limits: Any
     created: Int
+
 
 class Limit(TypedDict):
     min: Num
@@ -482,7 +486,7 @@ class FundingRate(TypedDict):
     info: Dict[str, Any]
 
 
-class LeverageTier:
+class LeverageTier(TypedDict):
     tier: Num
     currency: Str
     minNotional: Num
@@ -490,6 +494,14 @@ class LeverageTier:
     maintenanceMarginRate: Num
     maxLeverage: Num
     info: Dict[str, Any]
+
+
+class DepositAddress(TypedDict):
+    info: Dict[str, Any]
+    currency: Str
+    address: Str
+    tag: Str
+    network: Str
 
 
 FundingRates = Dict[Str, FundingRate]
@@ -500,6 +512,7 @@ IsolatedBorrowRates = Dict[Str, IsolatedBorrowRate]
 CrossBorrowRates = Dict[Str, CrossBorrowRate]
 TransferEntries = Dict[Str, TransferEntry]
 LeverageTiers = Dict[Str, List[LeverageTier]]
+DepositAddressesByNetwork = Dict[Str, DepositAddress]
 
 Market = Optional[MarketInterface]
 Currency = Optional[CurrencyInterface]

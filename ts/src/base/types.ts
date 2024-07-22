@@ -260,22 +260,16 @@ export interface Balances extends Dictionary<Balance> {
 }
 
 export interface DepositAddress {
+    info: any;
     currency: Str;
     address: string;
-    status: Str;
-    info: any;
+    tag?: Str;
+    network?: Str;
 }
 
 export interface WithdrawalResponse {
     info: any;
     id: string;
-}
-
-export interface DepositAddressResponse {
-    currency: Str;
-    address: string;
-    info: any;
-    tag?: Str;
 }
 
 export interface FundingRate {
@@ -589,6 +583,8 @@ export interface TransferEntries extends Dictionary<TransferEntry> {
 }
 
 export interface LeverageTiers extends Dictionary<LeverageTier[]> {
+}
+export interface DepositAddressesByNetwork extends Dictionary<DepositAddress> {
 }
 
 /** [ timestamp, open, high, low, close, volume ] */

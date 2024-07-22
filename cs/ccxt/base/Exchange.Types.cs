@@ -1899,3 +1899,60 @@ public struct TransferEntries
         }
     }
 }
+
+public struct DepositAddress
+{
+    public Dictionary<string, object>? info;
+    public string? currency;
+    public string? address;
+    public string? tag;
+    public string? network;
+
+    public DepositAddress(object depositAddress)
+    {
+        info = Helper.GetInfo(depositAddress);
+        currency = Exchange.SafeString(depositAddress, "currency");
+        address = Exchange.SafeString(depositAddress, "address");
+        tag = Exchange.SafeString(depositAddress, "tag");
+        network = Exchange.SafeString(depositAddress, "network");
+    }
+}
+
+public struct DepositAddresses
+{
+    public Dictionary<string, object> info;
+    public Dictionary<string, DepositAddress> depositAddresses;
+
+    public DepositAddresses(object depositAddress2)
+    {
+        var depositAddresses = (Dictionary<string, object>)depositAddress2;
+
+        info = Helper.GetInfo(depositAddresses);
+        this.depositAddresses = new Dictionary<string, DepositAddress>();
+        foreach (var depositAddress in depositAddresses)
+        {
+            if (depositAddress.Key != "info")
+                this.depositAddresses.Add(depositAddress.Key, new DepositAddress(depositAddress.Value));
+        }
+    }
+
+    // Indexer
+    public DepositAddress this[string key]
+    {
+        get
+        {
+            if (depositAddresses.ContainsKey(key))
+            {
+                return depositAddresses[key];
+            }
+            else
+            {
+                throw new KeyNotFoundException($"The key '{key}' was not found in the depositAddresses.");
+            }
+        }
+        set
+        {
+            depositAddresses[key] = value;
+        }
+    }
+}

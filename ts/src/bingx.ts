@@ -6,7 +6,7 @@ import { AuthenticationError, PermissionDenied, AccountSuspended, ExchangeError,
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num, MarginModification, Currencies, TransferEntries, int, TradingFeeInterface } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num, MarginModification, Currencies, TransferEntries, int, TradingFeeInterface, DepositAddress, DepositAddressesByNetwork } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -4014,7 +4014,7 @@ export default class bingx extends Exchange {
         };
     }
 
-    async fetchDepositAddressesByNetwork (code: string, params = {}) {
+    async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddressesByNetwork> {
         /**
          * @method
          * @name bingx#fetchDepositAddressesByNetwork
@@ -4055,10 +4055,10 @@ export default class bingx extends Exchange {
         //
         const data = this.safeList (this.safeDict (response, 'data'), 'data');
         const parsed = this.parseDepositAddresses (data, [ currency['code'] ], false);
-        return this.indexBy (parsed, 'network');
+        return this.indexBy (parsed, 'network') as DepositAddressesByNetwork;
     }
 
-    async fetchDepositAddress (code: string, params = {}) {
+    async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
         /**
          * @method
          * @name bingx#fetchDepositAddress
@@ -4072,22 +4072,39 @@ export default class bingx extends Exchange {
         const network = this.safeString (params, 'network');
         params = this.omit (params, [ 'network' ]);
         const addressStructures = await this.fetchDepositAddressesByNetwork (code, params);
+        //
+        //    {
+        //        ERC20: {
+        //          currency: 'USDT',
+        //          address: '210bf3a3f628b21bb33a0c861e6fc8cce9e1a171',
+        //          tag: undefined,
+        //          network: 'ERC20',
+        //          info: {
+        //            coinId: '760',
+        //            coin: 'USDT',
+        //            network: 'ERC20',
+        //            address: '210bf3a3f628b21bb33a0c861e6fc8cce9e1a171'
+        //          }
+        //        },
+        //        ...
+        //    }
+        //
         if (network !== undefined) {
-            return this.safeDict (addressStructures, network);
+            return this.safeDict (addressStructures, network) as DepositAddress;
         } else {
             const options = this.safeDict (this.options, 'defaultNetworks');
             const defaultNetworkForCurrency = this.safeString (options, code);
             if (defaultNetworkForCurrency !== undefined) {
-                return this.safeDict (addressStructures, defaultNetworkForCurrency);
+                return this.safeDict (addressStructures, defaultNetworkForCurrency) as DepositAddress;
             } else {
                 const keys = Object.keys (addressStructures);
                 const key = this.safeString (keys, 0);
-                return this.safeDict (addressStructures, key);
+                return this.safeDict (addressStructures, key) as DepositAddress;
             }
         }
     }
 
-    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+    parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "coinId": "799",
