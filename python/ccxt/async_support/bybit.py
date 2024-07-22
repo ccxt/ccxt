@@ -2056,6 +2056,15 @@ class bybit(Exchange):
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             raise ExchangeError(feedback)  # unknown message
 
+    def get_bybit_type(self, method, market, params={}):
+        type = None
+        type, params = self.handle_market_type_and_params(method, market, params)
+        subType = None
+        subType, params = self.handle_sub_type_and_params(method, market, params)
+        if type == 'option' or type == 'spot':
+            return [type, params]
+        return [subType, params]
+
     async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')

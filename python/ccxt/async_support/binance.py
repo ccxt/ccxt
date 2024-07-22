@@ -2145,19 +2145,13 @@ class binance(Exchange):
             self.options['hasAlreadyAuthenticatedSuccessfully'] = True
         return response
 
-    @classmethod
-    def is_linear(cls, _type, sub_type=None):
-        if sub_type is None:
-            return(_type == 'future') or (_type == 'swap')
-        else:
-            return sub_type == 'linear'
+    def is_inverse(self):
+        default_type = self.safe_string(self.options, 'defaultType')
+        return default_type == "inverse"
 
-    @classmethod
-    def is_inverse(cls, _type, sub_type=None):
-        if sub_type is None:
-            return _type == 'delivery'
-        else:
-            return sub_type == 'inverse'
+    def is_linear(self):
+        default_type = self.safe_string(self.options, 'defaultType')
+        return default_type == "linear"
 
     async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
