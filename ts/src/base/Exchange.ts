@@ -1048,7 +1048,7 @@ export default class Exchange {
                         // @ts-ignore
                         this.httpProxyAgentModule = await import (/* webpackIgnore: true */ 'http-proxy-agent');
                         // @ts-ignore
-                        this.httpProxyAgentModule = await import (/* webpackIgnore: true */ 'https-proxy-agent');
+                        this.httpsProxyAgentModule = await import (/* webpackIgnore: true */ 'https-proxy-agent');
                     } catch (e) { }
                 }
                 if (this.socksProxyAgentModuleChecked === false) {
