@@ -2180,9 +2180,9 @@ class binance(Exchange):
         if limit is not None:
             request['limit'] = limit
         response = None
-        if self.is_linear(type, subType):
+        if self.is_linear():
             response = await self.fapiPublicGetFundingRate(self.extend(request, params))
-        elif self.is_inverse(type, subType):
+        elif self.is_inverse():
             response = await self.dapiPublicGetFundingRate(self.extend(request, params))
         else:
             raise NotSupported(self.id + ' fetchFundingRateHistory() is not supported for ' + type + ' markets')

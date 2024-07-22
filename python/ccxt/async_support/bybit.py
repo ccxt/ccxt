@@ -2065,6 +2065,14 @@ class bybit(Exchange):
             return [type, params]
         return [subType, params]
 
+    def is_inverse(self):
+        default_type = self.safe_string(self.options, 'defaultType')
+        return default_type == "inverse"
+
+    def is_linear(self):
+        default_type = self.safe_string(self.options, 'defaultType')
+        return default_type == "linear"
+
     async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
