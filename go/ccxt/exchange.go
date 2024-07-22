@@ -12,106 +12,101 @@ import (
 
 type Exchange struct {
 	Itf                 interface{}
-	version             string
 	Version             string
-	id                  string
 	Id                  string
-	name                string
-	options             map[string]interface{}
+	Name                string
 	Options             map[string]interface{}
-	has                 map[string]interface{}
 	Has                 map[string]interface{}
 	Api                 map[string]interface{}
 	TransformedApi      map[string]interface{}
-	markets             map[string]interface{}
-	currencies          map[string]interface{}
-	requiredCredentials map[string]interface{}
-	markets_by_id       map[string]interface{}
-	timeframes          map[string]interface{}
-	exceptions          map[string]interface{}
-	precision           map[string]interface{}
-	urls                interface{}
-	userAgents          map[string]interface{}
-	timeout             int64
-	rateLimit           float64
-	newUpdates          bool
-	alias               bool
-	verbose             bool
+	Markets             map[string]interface{}
+	Currencies          map[string]interface{}
+	RequiredCredentials map[string]interface{}
+	MarketsById         map[string]interface{}
+	Timeframes          map[string]interface{}
+	Exceptions          map[string]interface{}
+	Precision           map[string]interface{}
+	Urls                interface{}
+	UserAgents          map[string]interface{}
+	Timeout             int64
+	RateLimit           float64
+	NewUpdates          bool
+	Alias               bool
 	Verbose             bool
-	userAgent           string
-	enableRateLimit     bool
-	url                 string
-	hostname            string
-	baseCurrencies      map[string]interface{}
-	quoteCurrencies     map[string]interface{}
-	reloadingMarkets    bool
-	marketsLoading      bool
-	symbols             []string
-	codes               []string
-	ids                 []string
-	commonCurrencies    map[string]interface{}
-	precisionMode       int
-	limits              map[string]interface{}
-	fees                map[string]interface{}
-	currencies_by_id    map[string]interface{}
-	reduceFees          bool
+	UserAgent           string
+	EnableRateLimit     bool
+	Url                 string
+	Hostname            string
+	BaseCurrencies      map[string]interface{}
+	QuoteCurrencies     map[string]interface{}
+	ReloadingMarkets    bool
+	MarketsLoading      bool
+	Symbols             []string
+	Codes               []string
+	Ids                 []string
+	CommonCurrencies    map[string]interface{}
+	PrecisionMode       int
+	Limits              map[string]interface{}
+	Fees                map[string]interface{}
+	CurrenciesById      map[string]interface{}
+	ReduceFees          bool
 
-	accountsById interface{}
-	accounts     interface{}
+	AccountsById interface{}
+	Accounts     interface{}
 
 	// timestamps
-	lastRestRequestTimestamp int64
-	last_request_headers     interface{}
-	last_request_body        interface{}
-	last_request_url         interface{}
+	LastRestRequestTimestamp int64
+	LastRequestHeaders       interface{}
+	LastRequestBody          interface{}
+	LastRequestUrl           interface{}
 
 	// type check this
-	number interface{}
+	Number interface{}
 	// keys
-	secret        string
-	apiKey        string
-	password      string
-	uid           string
-	accountId     string
-	token         string
-	login         string
-	privateKey    string
-	walletAddress string
+	Secret        string
+	ApiKey        string
+	Password      string
+	Uid           string
+	AccountId     string
+	Token         string
+	Login         string
+	PrivateKey    string
+	WalletAddress string
 
-	httpProxy            string
-	httpsProxy           string
-	http_proxy           string
-	https_proxy          string
-	proxy                string
-	proxyUrl             string
-	proxyUrlCallback     interface{}
-	proxy_url            string
-	proxy_url_callback   interface{}
-	socksProxy           string
-	socks_proxy          string
-	socks_proxy_callback interface{}
+	HttpProxy            string
+	HttpsProxy           string
+	HttpProxy            string
+	HttpsProxy           string
+	Proxy                string
+	ProxyUrl             string
+	ProxyUrlCallback     interface{}
+	ProxyUrl             string
+	ProxyUrlCallback     interface{}
+	SocksProxy           string
+	SocksProxy           string
+	SocksProxyCallback   interface{}
 
-	httpsProxyCallback   interface{}
-	https_proxy_callback interface{}
+	HttpsProxyCallback   interface{}
+	HttpsProxyCallback   interface{}
 
-	httpProxyCallback   interface{}
-	http_proxy_callback interface{}
-	socksProxyCallback  interface{}
+	HttpProxyCallback   interface{}
+	HttpProxyCallback   interface{}
+	SocksProxyCallback  interface{}
 
-	wsSocksProxy   string
-	ws_socks_proxy string
+	WsSocksProxy   string
+	WsSocksProxy string
 
-	wssProxy  string
-	wss_proxy string
+	WssProxy  string
+	WssProxy string
 
-	ws_proxy string
-	wsProxy  string
+	WsProxy string
+	WsProxy  string
 
-	substituteCommonCurrencyCodes bool
+	SubstituteCommonCurrencyCodes bool
 
-	twofa interface{}
+	Twofa interface{}
 
-	paddingMode int
+	PaddingMode int
 }
 
 var DECIMAL_PLACES int = 0
