@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/hashkey.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Bool, Dict, Int, Market, OrderBook, Str, Trade } from './base/types.js';
+import type { Bool, Dict, Int, Market, OHLCV, OrderBook, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -110,6 +110,20 @@ export default class hashkey extends Exchange {
                 'withdraw': false,
             },
             'timeframes': {
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '8h': '8h',
+                '12h': '12h',
+                '1d': '1d',
+                '1w': '1w',
+                '1M': '1M',
             },
             'urls': {
                 'logo': '',
@@ -808,6 +822,82 @@ export default class hashkey extends Exchange {
             'fee': undefined,
             'info': trade,
         }, market);
+    }
+
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        /**
+         * @method
+         * @name hashkey#fetchOHLCV
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-kline
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch (max 1000)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest candle to fetch (default now)
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        timeframe = this.safeString (this.timeframes, timeframe, timeframe);
+        const request: Dict = {
+            'symbol': market['id'],
+            'interval': timeframe,
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+            params = this.omit (params, 'until');
+        }
+        const response = await this.publicGetQuoteV1Klines (this.extend (request, params));
+        //
+        //     [
+        //         [
+        //             1721684280000,
+        //             "67832.49",
+        //             "67862.5",
+        //             "67832.49",
+        //             "67861.44",
+        //             "0.01122",0,
+        //             "761.2763533",68,
+        //             "0.00561",
+        //             "380.640643"
+        //         ],
+        //         ...
+        //     ]
+        //
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        //
+        //     [
+        //         1721684280000,
+        //         "67832.49",
+        //         "67862.5",
+        //         "67832.49",
+        //         "67861.44",
+        //         "0.01122",0,
+        //         "761.2763533",68,
+        //         "0.00561",
+        //         "380.640643"
+        //     ]
+        //
+        return [
+            this.safeInteger (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
+        ];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
