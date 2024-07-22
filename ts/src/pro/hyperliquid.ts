@@ -128,14 +128,14 @@ export default class hyperliquid extends hyperliquidRest {
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
-         * @name binance#watchTickers
+         * @name hyperliquid#watchTickers
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, true, true, true);
+        symbols = this.marketSymbols (symbols, undefined, true);
         const messageHash = 'tickers';
         const url = this.urls['api']['ws']['public'];
         const request: Dict = {
