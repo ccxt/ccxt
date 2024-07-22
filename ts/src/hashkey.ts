@@ -207,6 +207,32 @@ export default class hashkey extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'maker': this.parseNumber ('0.0012'),
+                    'taker': this.parseNumber ('0.0012'),
+                    'tiers': {
+                        'taker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0012') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.00090') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.00085') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.00075') ],
+                            [ this.parseNumber ('50000000'), this.parseNumber ('0.00065') ],
+                            [ this.parseNumber ('200000000'), this.parseNumber ('0.00045') ],
+                            [ this.parseNumber ('400000000'), this.parseNumber ('0.00040') ],
+                            [ this.parseNumber ('800000000'), this.parseNumber ('0.00035') ],
+                        ],
+                        'maker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0012') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.00080') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.00070') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.00060') ],
+                            [ this.parseNumber ('50000000'), this.parseNumber ('0.00040') ],
+                            [ this.parseNumber ('200000000'), this.parseNumber ('0.00030') ],
+                            [ this.parseNumber ('400000000'), this.parseNumber ('0.00010') ],
+                            [ this.parseNumber ('800000000'), this.parseNumber ('0.00') ],
+                        ],
+                    },
                 },
             },
             'options': {
