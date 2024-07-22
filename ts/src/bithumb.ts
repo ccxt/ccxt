@@ -207,18 +207,60 @@ export default class bithumb extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const result = [];
         const quoteCurrencies = this.safeValue (this.options, 'quoteCurrencies', {});
         const quotes = Object.keys (quoteCurrencies);
+        const result = [];
+        const promises = [];
         for (let i = 0; i < quotes.length; i++) {
             const quote = quotes[i];
             const quoteId = quote;
-            const extension = this.safeValue (quoteCurrencies, quote, {});
-            const request: Dict = {
+            const request = {
                 'quoteId': quoteId,
             };
-            const response = await this.publicGetTickerALLQuoteId (this.extend (request, params));
-            const data = this.safeValue (response, 'data');
+            promises.push (this.publicGetTickerALLQuoteId (this.extend (request, params)));
+            //
+            //    {
+            //        "status": "0000",
+            //        "data": {
+            //            "ETH": {
+            //                "opening_price": "0.05153399",
+            //                "closing_price": "0.05145144",
+            //                "min_price": "0.05145144",
+            //                "max_price": "0.05160781",
+            //                "units_traded": "6.541124172077830855",
+            //                "acc_trade_value": "0.33705472498492329997697755",
+            //                "prev_closing_price": "0.0515943",
+            //                "units_traded_24H": "43.368879902677400513",
+            //                "acc_trade_value_24H": "2.24165339555398079994373342",
+            //                "fluctate_24H": "-0.00018203",
+            //                "fluctate_rate_24H": "-0.35"
+            //            },
+            //            "XRP": {
+            //                "opening_price": "0.00000918",
+            //                "closing_price": "0.0000092",
+            //                "min_price": "0.00000918",
+            //                "max_price": "0.0000092",
+            //                "units_traded": "6516.949363",
+            //                "acc_trade_value": "0.0598792533602796",
+            //                "prev_closing_price": "0.00000916",
+            //                "units_traded_24H": "229161.50354738",
+            //                "acc_trade_value_24H": "2.0446589371637117",
+            //                "fluctate_24H": "0.00000049",
+            //                "fluctate_rate_24H": "5.63"
+            //            },
+            //            ...
+            //            "date": "1721675913145"
+            //        }
+            //    }
+            //
+        }
+        const results = await Promise.all (promises);
+        for (let i = 0; i < quotes.length; i++) {
+            const quote = quotes[i];
+            const quoteId = quote;
+            const response = results[i];
+            const data = this.safeDict (response, 'data');
+            const extension = this.safeValue (quoteCurrencies, quote, {});
             const currencyIds = Object.keys (data);
             for (let j = 0; j < currencyIds.length; j++) {
                 const currencyId = currencyIds[j];
@@ -429,13 +471,17 @@ export default class bithumb extends Exchange {
         const result: Dict = {};
         const quoteCurrencies = this.safeValue (this.options, 'quoteCurrencies', {});
         const quotes = Object.keys (quoteCurrencies);
+        const promises = [];
+        for (let i = 0; i < quotes.length; i++) {
+            const request: Dict = {
+                'quoteId': quotes[i],
+            };
+            promises.push (this.publicGetTickerALLQuoteId (this.extend (request, params)));
+        }
+        const responses = await Promise.all (promises);
         for (let i = 0; i < quotes.length; i++) {
             const quote = quotes[i];
-            const quoteId = quote;
-            const request: Dict = {
-                'quoteId': quoteId,
-            };
-            const response = await this.publicGetTickerALLQuoteId (this.extend (request, params));
+            const response = responses[i];
             //
             //     {
             //         "status":"0000",
