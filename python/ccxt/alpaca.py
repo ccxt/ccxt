@@ -678,7 +678,7 @@ class alpaca(Exchange, ImplicitAPI):
         :param str type: 'market', 'limit' or 'stop_limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -787,7 +787,11 @@ class alpaca(Exchange, ImplicitAPI):
         if isinstance(response, list):
             return self.parse_orders(response, None)
         else:
-            return response
+            return [
+                self.safe_order({
+                    'info': response,
+                }),
+            ]
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -1052,6 +1056,7 @@ class alpaca(Exchange, ImplicitAPI):
         url = self.implode_hostname(self.urls['api'][api[0]])
         headers = headers if (headers is not None) else {}
         if api[1] == 'private':
+            self.check_required_credentials()
             headers['APCA-API-KEY-ID'] = self.apiKey
             headers['APCA-API-SECRET-KEY'] = self.secret
         query = self.omit(params, self.extract_params(path))

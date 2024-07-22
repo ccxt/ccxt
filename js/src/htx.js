@@ -1221,17 +1221,17 @@ export default class htx extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/6081
                 // https://github.com/ccxt/ccxt/issues/3365
                 // https://github.com/ccxt/ccxt/issues/2873
-                'GET': 'Themis',
-                'GTC': 'Game.com',
-                'HIT': 'HitChain',
+                'GET': 'THEMIS',
+                'GTC': 'GAMECOM',
+                'HIT': 'HITCHAIN',
                 // https://github.com/ccxt/ccxt/issues/7399
                 // https://coinmarketcap.com/currencies/pnetwork/
                 // https://coinmarketcap.com/currencies/penta/markets/
                 // https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
-                'PNT': 'Penta',
-                'SBTC': 'Super Bitcoin',
-                'SOUL': 'Soulsaver',
-                'BIFI': 'Bitcoin File', // conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
+                'PNT': 'PENTA',
+                'SBTC': 'SUPERBITCOIN',
+                'SOUL': 'SOULSAVER',
+                'BIFI': 'BITCOINFILE', // conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
             },
         });
     }
@@ -3233,6 +3233,7 @@ export default class htx extends Exchange {
             const instStatus = this.safeString(entry, 'instStatus');
             const currencyActive = instStatus === 'normal';
             let minPrecision = undefined;
+            let minDeposit = undefined;
             let minWithdraw = undefined;
             let maxWithdraw = undefined;
             let deposit = false;
@@ -3244,6 +3245,7 @@ export default class htx extends Exchange {
                 this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
                 this.options['networkNamesByChainIds'][uniqueChainId] = title;
                 const networkCode = this.networkIdToCode(uniqueChainId);
+                minDeposit = this.safeNumber(chainEntry, 'minDepositAmt');
                 minWithdraw = this.safeNumber(chainEntry, 'minWithdrawAmt');
                 maxWithdraw = this.safeNumber(chainEntry, 'maxWithdrawAmt');
                 const withdrawStatus = this.safeString(chainEntry, 'withdrawStatus');
@@ -3264,7 +3266,7 @@ export default class htx extends Exchange {
                     'network': networkCode,
                     'limits': {
                         'deposit': {
-                            'min': undefined,
+                            'min': minDeposit,
                             'max': undefined,
                         },
                         'withdraw': {
@@ -5149,7 +5151,7 @@ export default class htx extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
          * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
@@ -5276,7 +5278,7 @@ export default class htx extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
          * @param {float} [params.trailingPercent] *contract only* the percent to trail away from the current market price
@@ -5384,7 +5386,7 @@ export default class htx extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.stopPrice] the price a trigger order is triggered at
          * @param {string} [params.triggerType] *contract trigger orders only* ge: greater than or equal to, le: less than or equal to
@@ -6029,7 +6031,66 @@ export default class htx extends Exchange {
         //         "ts": 1604367997451
         //     }
         //
-        return response;
+        const data = this.safeDict(response, 'data');
+        return this.parseCancelOrders(data);
+    }
+    parseCancelOrders(orders) {
+        //
+        //    {
+        //        "success": [
+        //            "5983466"
+        //        ],
+        //        "failed": [
+        //            {
+        //                "err-msg": "Incorrect order state",
+        //                "order-state": 7,
+        //                "order-id": "",
+        //                "err-code": "order-orderstate-error",
+        //                "client-order-id": "first"
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        //    {
+        //        "errors": [
+        //            {
+        //                "order_id": "769206471845261312",
+        //                "err_code": 1061,
+        //                "err_msg": "This order doesnt exist."
+        //            }
+        //        ],
+        //        "successes": "1258075374411399168,1258075393254871040"
+        //    }
+        //
+        const successes = this.safeString(orders, 'successes');
+        let success = undefined;
+        if (successes !== undefined) {
+            success = successes.split(',');
+        }
+        else {
+            success = this.safeList(orders, 'success', []);
+        }
+        const failed = this.safeList2(orders, 'errors', 'failed', []);
+        const result = [];
+        for (let i = 0; i < success.length; i++) {
+            const order = success[i];
+            result.push(this.safeOrder({
+                'info': order,
+                'id': order,
+                'status': 'canceled',
+            }));
+        }
+        for (let i = 0; i < failed.length; i++) {
+            const order = failed[i];
+            result.push(this.safeOrder({
+                'info': order,
+                'id': this.safeString2(order, 'order-id', 'order_id'),
+                'status': 'failed',
+                'clientOrderId': this.safeString(order, 'client-order-id'),
+            }));
+        }
+        return result;
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**
@@ -6070,6 +6131,22 @@ export default class htx extends Exchange {
                 request['symbol'] = market['id'];
             }
             response = await this.spotPrivatePostV1OrderOrdersBatchCancelOpenOrders(this.extend(request, params));
+            //
+            //     {
+            //         "code": 200,
+            //         "data": {
+            //             "success-count": 2,
+            //             "failed-count": 0,
+            //             "next-id": 5454600
+            //         }
+            //     }
+            //
+            const data = this.safeDict(response, 'data');
+            return [
+                this.safeOrder({
+                    'info': data,
+                }),
+            ];
         }
         else {
             if (symbol === undefined) {
@@ -6149,31 +6226,19 @@ export default class htx extends Exchange {
             else {
                 throw new NotSupported(this.id + ' cancelAllOrders() does not support ' + marketType + ' markets');
             }
+            //
+            //     {
+            //         "status": "ok",
+            //         "data": {
+            //             "errors": [],
+            //             "successes": "1104754904426696704"
+            //         },
+            //         "ts": "1683435723755"
+            //     }
+            //
+            const data = this.safeDict(response, 'data');
+            return this.parseCancelOrders(data);
         }
-        //
-        // spot
-        //
-        //     {
-        //         "code": 200,
-        //         "data": {
-        //             "success-count": 2,
-        //             "failed-count": 0,
-        //             "next-id": 5454600
-        //         }
-        //     }
-        //
-        // future and swap
-        //
-        //     {
-        //         "status": "ok",
-        //         "data": {
-        //             "errors": [],
-        //             "successes": "1104754904426696704"
-        //         },
-        //         "ts": "1683435723755"
-        //     }
-        //
-        return response;
     }
     async cancelAllOrdersAfter(timeout, params = {}) {
         /**

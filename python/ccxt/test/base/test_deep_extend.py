@@ -5,7 +5,7 @@
 # import argparse
 import os
 import sys
-from pprint import pprint
+# from pprint import pprint
 # import json
 # import time
 
@@ -16,7 +16,7 @@ sys.path.append(root)
 
 # ------------------------------------------------------------------------------
 
-import ccxt  # noqa: E402
+# import ccxt  # noqa: E402
 
 # ------------------------------------------------------------------------------
 
@@ -49,7 +49,7 @@ def test_deep_extend():
         }
     ]
 
-    pprint(ccxt.Exchange.deep_extend(*values))
+    # pprint(ccxt.Exchange.deep_extend(*values))
 
     # assert.deepEqual ({
     #     a: 1,

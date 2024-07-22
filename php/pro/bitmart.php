@@ -506,7 +506,7 @@ class bitmart extends \ccxt\async\bitmart {
         $client->resolve ($newOrders, $messageHash);
     }
 
-    public function parse_ws_order($order, ?array $market = null) {
+    public function parse_ws_order(array $order, ?array $market = null) {
         //
         // spot
         //    {
@@ -778,8 +778,8 @@ class bitmart extends \ccxt\async\bitmart {
         $symbol = $market['symbol'];
         $openTimestamp = $this->safe_integer($position, 'create_time');
         $timestamp = $this->safe_integer($position, 'update_time');
-        $side = $this->safe_number($position, 'position_type');
-        $marginModeId = $this->safe_number($position, 'open_type');
+        $side = $this->safe_integer($position, 'position_type');
+        $marginModeId = $this->safe_integer($position, 'open_type');
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -881,7 +881,7 @@ class bitmart extends \ccxt\async\bitmart {
         return $symbol;
     }
 
-    public function parse_ws_trade($trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null) {
         // spot
         //    {
         //        "price" => "52700.50",
@@ -1349,7 +1349,7 @@ class bitmart extends \ccxt\async\bitmart {
                 $this->orderbooks[$symbol] = $ob;
             }
             $orderbook = $this->orderbooks[$symbol];
-            $way = $this->safe_number($data, 'way');
+            $way = $this->safe_integer($data, 'way');
             $side = ($way === 1) ? 'bids' : 'asks';
             if ($way === 1) {
                 $orderbook[$side] = new Bids (array(), $limit);

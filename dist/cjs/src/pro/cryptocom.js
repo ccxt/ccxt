@@ -44,6 +44,9 @@ class cryptocom extends cryptocom$1 {
                     'fetchPositionsSnapshot': true,
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
                 },
+                'watchOrderBook': {
+                    'checksum': true,
+                },
             },
             'streaming': {},
         });
@@ -217,7 +220,10 @@ class cryptocom extends cryptocom$1 {
             const previousNonce = this.safeInteger(data, 'pu');
             const currentNonce = orderbook['nonce'];
             if (currentNonce !== previousNonce) {
-                throw new errors.InvalidNonce(this.id + ' watchOrderBook() ' + symbol + ' ' + previousNonce + ' != ' + nonce);
+                const checksum = this.handleOption('watchOrderBook', 'checksum', true);
+                if (checksum) {
+                    throw new errors.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
+                }
             }
         }
         this.handleDeltas(orderbook['asks'], this.safeValue(books, 'asks', []));
@@ -327,7 +333,7 @@ class cryptocom extends cryptocom$1 {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -735,7 +741,7 @@ class cryptocom extends cryptocom$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */

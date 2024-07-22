@@ -12,7 +12,7 @@ class kraken extends kraken$1 {
         return this.deepExtend(super.describe(), {
             'has': {
                 'ws': true,
-                'watchBalance': false,
+                'watchBalance': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
@@ -35,6 +35,7 @@ class kraken extends kraken$1 {
                     'ws': {
                         'public': 'wss://ws.kraken.com',
                         'private': 'wss://ws-auth.kraken.com',
+                        'privateV2': 'wss://ws-auth.kraken.com/v2',
                         'beta': 'wss://beta-ws.kraken.com',
                         'beta-private': 'wss://beta-ws-auth.kraken.com',
                     },
@@ -48,7 +49,9 @@ class kraken extends kraken$1 {
                 'OHLCVLimit': 1000,
                 'ordersLimit': 1000,
                 'symbolsByOrderId': {},
-                'checksum': true,
+                'watchOrderBook': {
+                    'checksum': true,
+                },
             },
             'exceptions': {
                 'ws': {
@@ -115,7 +118,7 @@ class kraken extends kraken$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -172,7 +175,7 @@ class kraken extends kraken$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of the currency you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -746,7 +749,7 @@ class kraken extends kraken$1 {
             }
             // don't remove this line or I will poop on your face
             orderbook.limit();
-            const checksum = this.safeBool(this.options, 'checksum', true);
+            const checksum = this.handleOption('watchOrderBook', 'checksum', true);
             if (checksum) {
                 const priceString = this.safeString(example, 0);
                 const amountString = this.safeString(example, 1);
@@ -768,7 +771,7 @@ class kraken extends kraken$1 {
                 const payload = payloadArray.join('');
                 const localChecksum = this.crc32(payload, false);
                 if (localChecksum !== c) {
-                    const error = new errors.InvalidNonce(this.id + ' invalid checksum');
+                    const error = new errors.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
                     delete client.subscriptions[messageHash];
                     delete this.orderbooks[symbol];
                     client.reject(error, messageHash);
@@ -881,7 +884,7 @@ class kraken extends kraken$1 {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         return await this.watchPrivate('ownTrades', symbol, since, limit, params);
     }
@@ -1326,6 +1329,71 @@ class kraken extends kraken$1 {
         const url = this.urls['api']['ws']['public'];
         return await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), messageHashes, subscriptionArgs);
     }
+    async watchBalance(params = {}) {
+        /**
+         * @method
+         * @name kraken#watchBalance
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.kraken.com/api/docs/websocket-v2/balances
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        await this.loadMarkets();
+        const token = await this.authenticate();
+        const messageHash = 'balances';
+        const url = this.urls['api']['ws']['privateV2'];
+        const requestId = this.requestId();
+        const subscribe = {
+            'method': 'subscribe',
+            'req_id': requestId,
+            'params': {
+                'channel': 'balances',
+                'token': token,
+            },
+        };
+        const request = this.deepExtend(subscribe, params);
+        return await this.watch(url, messageHash, request, messageHash);
+    }
+    handleBalance(client, message) {
+        //
+        //     {
+        //         "channel": "balances",
+        //         "data": [
+        //             {
+        //                 "asset": "BTC",
+        //                 "asset_class": "currency",
+        //                 "balance": 1.2,
+        //                 "wallets": [
+        //                     {
+        //                         "type": "spot",
+        //                         "id": "main",
+        //                         "balance": 1.2
+        //                     }
+        //                 ]
+        //             }
+        //         ],
+        //         "type": "snapshot",
+        //         "sequence": 1
+        //     }
+        //
+        const data = this.safeList(message, 'data', []);
+        const result = { 'info': message };
+        for (let i = 0; i < data.length; i++) {
+            const currencyId = this.safeString(data[i], 'asset');
+            const code = this.safeCurrencyCode(currencyId);
+            const account = this.account();
+            const eq = this.safeString(data[i], 'balance');
+            account['total'] = eq;
+            result[code] = account;
+        }
+        const type = 'spot';
+        const balance = this.safeBalance(result);
+        const oldBalance = this.safeValue(this.balance, type, {});
+        const newBalance = this.deepExtend(oldBalance, balance);
+        this.balance[type] = this.safeBalance(newBalance);
+        const channel = this.safeString(message, 'channel');
+        client.resolve(this.balance[type], channel);
+    }
     getMessageHash(unifiedElementName, subChannelName = undefined, symbol = undefined) {
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...
         // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
@@ -1429,6 +1497,16 @@ class kraken extends kraken$1 {
             }
         }
         else {
+            const channel = this.safeString(message, 'channel');
+            if (channel !== undefined) {
+                const methods = {
+                    'balances': this.handleBalance,
+                };
+                const method = this.safeValue(methods, channel);
+                if (method !== undefined) {
+                    method.call(this, client, message);
+                }
+            }
             if (this.handleErrorMessage(client, message)) {
                 const event = this.safeString(message, 'event');
                 const methods = {

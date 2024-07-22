@@ -798,24 +798,24 @@ export default class mexc extends Exchange {
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',
                 'BIFI': 'BIFIF',
-                'BYN': 'BeyondFi',
+                'BYN': 'BEYONDFI',
                 'COFI': 'COFIX', // conflict with CoinFi
-                'DFI': 'DfiStarter',
-                'DFT': 'dFuture',
+                'DFI': 'DFISTARTER',
+                'DFT': 'DFUTURE',
                 'DRK': 'DRK',
-                'EGC': 'Egoras Credit',
+                'EGC': 'EGORASCREDIT',
                 'FLUX1': 'FLUX', // switched places
                 'FLUX': 'FLUX1', // switched places
-                'FREE': 'FreeRossDAO', // conflict with FREE Coin
+                'FREE': 'FREEROSSDAO', // conflict with FREE Coin
                 'GAS': 'GASDAO',
                 'GASNEO': 'GAS',
-                'GMT': 'GMT Token', // Conflict with GMT (STEPN)
+                'GMT': 'GMTTOKEN', // Conflict with GMT (STEPN)
                 'STEPN': 'GMT', // Conflict with GMT Token
-                'HERO': 'Step Hero', // conflict with Metahero
-                'MIMO': 'Mimosa',
-                'PROS': 'Pros.Finance', // conflict with Prosper
-                'SIN': 'Sin City Token',
-                'SOUL': 'Soul Swap',
+                'HERO': 'STEPHERO', // conflict with Metahero
+                'MIMO': 'MIMOSA',
+                'PROS': 'PROSFINANCE', // conflict with Prosper
+                'SIN': 'SINCITYTOKEN',
+                'SOUL': 'SOULSWAP',
             },
             'exceptions': {
                 'exact': {
@@ -2213,7 +2213,7 @@ export default class mexc extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
@@ -5242,9 +5242,10 @@ export default class mexc extends Exchange {
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
-        const networks = this.safeValue (this.options, 'networks', {});
+        const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeString2 (params, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString (networks, network, network); // handle ETH > ERC-20 alias
+        network = this.networkCodeToId (network);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);

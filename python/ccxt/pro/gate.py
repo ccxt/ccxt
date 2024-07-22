@@ -14,7 +14,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import ChecksumError
 from ccxt.base.precise import Precise
 
 
@@ -105,6 +105,7 @@ class gate(ccxt.async_support.gate):
                     'interval': '100ms',
                     'snapshotDelay': 10,  # how many deltas to cache before fetching a snapshot
                     'snapshotMaxRetries': 3,
+                    'checksum': True,
                 },
                 'watchBalance': {
                     'settle': 'usdt',  # or btc
@@ -138,7 +139,7 @@ class gate(ccxt.async_support.gate):
         :param str type: 'limit' or 'market' *"market" is contract only*
         :param str side: 'buy' or 'sell'
         :param float amount: the amount of currency to trade
-        :param float [price]: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+        :param float [price]: *ignored in "market" orders* the price at which the order is to be fulfilled at in units of the quote currency
         :param dict [params]:  extra parameters specific to the exchange API endpoint
         :param float [params.stopPrice]: The price at which a trigger order is triggered at
         :param str [params.timeInForce]: "GTC", "IOC", or "PO"
@@ -249,7 +250,7 @@ class gate(ccxt.async_support.gate):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of the currency you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -460,10 +461,12 @@ class gate(ccxt.async_support.gate):
         elif nonce >= deltaStart - 1:
             self.handle_delta(storedOrderBook, delta)
         else:
-            error = InvalidNonce(self.id + ' orderbook update has a nonce bigger than u')
             del client.subscriptions[messageHash]
             del self.orderbooks[symbol]
-            client.reject(error, messageHash)
+            checksum = self.handle_option('watchOrderBook', 'checksum', True)
+            if checksum:
+                error = ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
+                client.reject(error, messageHash)
         client.resolve(storedOrderBook, messageHash)
 
     def get_cache_index(self, orderBook, cache):
@@ -785,7 +788,7 @@ class gate(ccxt.async_support.gate):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         subType = None
@@ -1105,7 +1108,7 @@ class gate(ccxt.async_support.gate):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: spot, margin, swap, future, or option. Required if listening to all symbols.
         :param boolean [params.isInverse]: if future, listen to inverse or linear contracts
-        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -1192,7 +1195,7 @@ class gate(ccxt.async_support.gate):
             elif event == 'finish':
                 status = self.safe_string(parsed, 'status')
                 if status is None:
-                    left = self.safe_number(info, 'left')
+                    left = self.safe_integer(info, 'left')
                     parsed['status'] = 'closed' if (left == 0) else 'canceled'
             stored.append(parsed)
             symbol = parsed['symbol']

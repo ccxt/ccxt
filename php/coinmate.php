@@ -15,7 +15,7 @@ class coinmate extends Exchange {
             'id' => 'coinmate',
             'name' => 'CoinMate',
             'countries' => array( 'GB', 'CZ', 'EU' ), // UK, Czech Republic
-            'rateLimit' => 1000,
+            'rateLimit' => 600,
             'has' => array(
                 'CORS' => true,
                 'spot' => true,
@@ -164,28 +164,28 @@ class coinmate extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'maker' => $this->parse_number('0.0012'),
-                    'taker' => $this->parse_number('0.0025'),
+                    'taker' => $this->parse_number('0.006'),
+                    'maker' => $this->parse_number('0.004'),
                     'tiers' => array(
                         'taker' => array(
-                            array( $this->parse_number('0'), $this->parse_number('0.0035') ),
-                            array( $this->parse_number('10000'), $this->parse_number('0.0023') ),
-                            array( $this->parse_number('100000'), $this->parse_number('0.0021') ),
-                            array( $this->parse_number('250000'), $this->parse_number('0.0020') ),
-                            array( $this->parse_number('500000'), $this->parse_number('0.0015') ),
-                            array( $this->parse_number('1000000'), $this->parse_number('0.0013') ),
-                            array( $this->parse_number('3000000'), $this->parse_number('0.0010') ),
-                            array( $this->parse_number('15000000'), $this->parse_number('0.0005') ),
+                            array( $this->parse_number('0'), $this->parse_number('0.006') ),
+                            array( $this->parse_number('10000'), $this->parse_number('0.003') ),
+                            array( $this->parse_number('100000'), $this->parse_number('0.0023') ),
+                            array( $this->parse_number('250000'), $this->parse_number('0.0021') ),
+                            array( $this->parse_number('500000'), $this->parse_number('0.0018') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.0015') ),
+                            array( $this->parse_number('3000000'), $this->parse_number('0.0012') ),
+                            array( $this->parse_number('15000000'), $this->parse_number('0.001') ),
                         ),
                         'maker' => array(
-                            array( $this->parse_number('0'), $this->parse_number('0.003') ),
-                            array( $this->parse_number('10000'), $this->parse_number('0.0011') ),
-                            array( $this->parse_number('100000'), $this->parse_number('0.0010') ),
-                            array( $this->parse_number('250000'), $this->parse_number('0.0008') ),
+                            array( $this->parse_number('0'), $this->parse_number('0.004') ),
+                            array( $this->parse_number('10000'), $this->parse_number('0.002') ),
+                            array( $this->parse_number('100000'), $this->parse_number('0.0012') ),
+                            array( $this->parse_number('250000'), $this->parse_number('0.0009') ),
                             array( $this->parse_number('500000'), $this->parse_number('0.0005') ),
                             array( $this->parse_number('1000000'), $this->parse_number('0.0003') ),
                             array( $this->parse_number('3000000'), $this->parse_number('0.0002') ),
-                            array( $this->parse_number('15000000'), $this->parse_number('0') ),
+                            array( $this->parse_number('15000000'), $this->parse_number('-0.0004') ),
                         ),
                     ),
                 ),
@@ -976,7 +976,7 @@ class coinmate extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
@@ -1083,26 +1083,19 @@ class coinmate extends Exchange {
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
-        if ($response !== null) {
-            if (is_array($response) && array_key_exists('error', $response)) {
-                // array("error":true,"errorMessage":"Minimum Order Size 0.01 ETH","data":null)
-                if ($response['error']) {
-                    $message = $this->safe_string($response, 'errorMessage');
-                    $feedback = $this->id . ' ' . $message;
-                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
-                    $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
-                    throw new ExchangeError($this->id . ' ' . $this->json($response));
-                }
-            }
+        if ($response === null) {
+            return null; // fallback to default error handler
         }
-        if ($code > 400) {
-            if ($body) {
-                $feedback = $this->id . ' ' . $body;
-                $this->throw_exactly_matched_exception($this->exceptions['exact'], $body, $feedback);
-                $this->throw_broadly_matched_exception($this->exceptions['broad'], $body, $feedback);
-                throw new ExchangeError($feedback); // unknown $message
-            }
-            throw new ExchangeError($this->id . ' ' . $body);
+        //
+        //     array("error":true,"errorMessage":"Api internal error","data":null)
+        //     array("error":true,"errorMessage":"Access denied.","data":null)
+        //
+        $errorMessage = $this->safe_string($response, 'errorMessage');
+        if ($errorMessage !== null) {
+            $feedback = $this->id . ' ' . $body;
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorMessage, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
+            throw new ExchangeError($feedback); // unknown message
         }
         return null;
     }

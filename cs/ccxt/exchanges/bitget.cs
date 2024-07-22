@@ -4323,7 +4323,7 @@ public partial class bitget : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.cost] *spot only* how much you want to trade in units of the quote currency, for market buy orders only
         * @param {float} [params.triggerPrice] *swap only* The price at which a trigger order is triggered at
@@ -4828,7 +4828,7 @@ public partial class bitget : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] the price that a trigger order is triggered at
         * @param {float} [params.stopLossPrice] *swap only* The price at which a stop loss order is triggered at
@@ -5352,6 +5352,25 @@ public partial class bitget : Exchange
                 {
                     response = await this.privateSpotPostV2SpotTradeCancelSymbolOrder(this.extend(request, parameters));
                 }
+                //
+                //     {
+                //         "code": "00000",
+                //         "msg": "success",
+                //         "requestTime": 1700716953996,
+                //         "data": {
+                //             "symbol": "BTCUSDT"
+                //         }
+                //     }
+                //
+                object timestamp = this.safeInteger(response, "requestTime");
+                object responseData = this.safeDict(response, "data");
+                object marketId = this.safeString(responseData, "symbol");
+                return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+    { "symbol", this.safeSymbol(marketId, null, null, "spot") },
+    { "timestamp", timestamp },
+    { "datetime", this.iso8601(timestamp) },
+})};
             }
         } else
         {
@@ -5368,53 +5387,11 @@ public partial class bitget : Exchange
                 response = await this.privateMixPostV2MixOrderBatchCancelOrders(this.extend(request, parameters));
             }
         }
-        //
-        // spot
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700716953996,
-        //         "data": {
-        //             "symbol": "BTCUSDT"
-        //         }
-        //     }
-        //
-        // swap
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": "1680008815965",
-        //         "data": {
-        //             "successList": [
-        //                 {
-        //                     "orderId": "1024598257429823488",
-        //                     "clientOid": "876493ce-c287-4bfc-9f4a-8b1905881313"
-        //                 },
-        //             ],
-        //             "failureList": []
-        //         }
-        //     }
-        //
-        // spot margin
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700717155622,
-        //         "data": {
-        //             "resultList": [
-        //                 {
-        //                     "orderId": "1111453253721796609",
-        //                     "clientOid": "2ae7fc8a4ff949b6b60d770ca3950e2d"
-        //                 },
-        //             ],
-        //             "failure": []
-        //         }
-        //     }
-        //
-        return response;
+        object data = this.safeDict(response, "data");
+        object resultList = this.safeList2(data, "resultList", "successList");
+        object failureList = this.safeList2(data, "failure", "failureList");
+        object responseList = this.arrayConcat(resultList, failureList);
+        return this.parseOrders(responseList);
     }
 
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)

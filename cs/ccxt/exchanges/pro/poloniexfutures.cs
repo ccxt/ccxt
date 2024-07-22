@@ -50,6 +50,7 @@ public partial class poloniexfutures : ccxt.poloniexfutures
                     { "method", "/contractMarket/level2" },
                     { "snapshotDelay", 5 },
                     { "snapshotMaxRetries", 3 },
+                    { "checksum", true },
                 } },
                 { "streamLimit", 5 },
                 { "streamBySubscriptionsHash", new Dictionary<string, object>() {} },
@@ -937,7 +938,11 @@ public partial class poloniexfutures : ccxt.poloniexfutures
         }
         if (isTrue(!isEqual(nonce, lastSequence)))
         {
-            throw new InvalidNonce ((string)add(this.id, " watchOrderBook received an out-of-order nonce")) ;
+            object checksum = this.handleOption("watchOrderBook", "checksum", true);
+            if (isTrue(checksum))
+            {
+                throw new ChecksumError ((string)add(add(this.id, " "), this.orderbookChecksumMessage(""))) ;
+            }
         }
         object changes = this.safeList(delta, "changes");
         for (object i = 0; isLessThan(i, getArrayLength(changes)); postFixIncrement(ref i))

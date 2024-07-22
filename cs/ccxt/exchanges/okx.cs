@@ -878,6 +878,15 @@ public partial class okx : Exchange
                     { "70010", typeof(BadRequest) },
                     { "70013", typeof(BadRequest) },
                     { "70016", typeof(BadRequest) },
+                    { "1009", typeof(BadRequest) },
+                    { "4001", typeof(AuthenticationError) },
+                    { "4002", typeof(BadRequest) },
+                    { "4003", typeof(RateLimitExceeded) },
+                    { "4004", typeof(NetworkError) },
+                    { "4005", typeof(ExchangeNotAvailable) },
+                    { "4006", typeof(BadRequest) },
+                    { "4007", typeof(AuthenticationError) },
+                    { "4008", typeof(RateLimitExceeded) },
                 } },
                 { "broad", new Dictionary<string, object>() {
                     { "Internal Server Error", typeof(ExchangeNotAvailable) },
@@ -3001,7 +3010,7 @@ public partial class okx : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {bool} [params.reduceOnly] a mark to reduce the position size for margin, swap and future orders
         * @param {bool} [params.postOnly] true to place a post only order
@@ -3242,7 +3251,7 @@ public partial class okx : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of the currency you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.clientOrderId] client order id, uses id if not passed
         * @param {float} [params.stopLossPrice] stop loss trigger price
@@ -3491,7 +3500,7 @@ public partial class okx : Exchange
         * @description cancel multiple orders for multiple symbols
         * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-multiple-orders
         * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
-        * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol
+        * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.trigger] whether the order is a stop/trigger order
         * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
@@ -7728,6 +7737,10 @@ public partial class okx : Exchange
                 }
                 ((IDictionary<string,object>)getValue(getValue(depositWithdrawFees, code), "info"))[(string)currencyId] = feeInfo;
                 object chain = this.safeString(feeInfo, "chain");
+                if (isTrue(isEqual(chain, null)))
+                {
+                    continue;
+                }
                 object chainSplit = ((string)chain).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
                 object networkId = this.safeValue(chainSplit, 1);
                 object withdrawFee = this.safeNumber(feeInfo, "minFee");

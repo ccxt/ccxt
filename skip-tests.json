@@ -1,7 +1,5 @@
 {
     "ace": {
-        "skip": "temp",
-        "until": "2024-03-15",
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "temporary skip, because ids are numeric and we are in wip for numeric id tests",
@@ -129,8 +127,6 @@
         }
     },
     "bit2c": {
-        "skip": "temporary certificate issues",
-        "until": "2023-11-25",
         "skipMethods": {
             "loadMarkets": {
                 "precision": "not provided",
@@ -1272,7 +1268,8 @@
             },
             "ticker": {
                 "baseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L6610",
-                "spread":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3916"
+                "spread":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3916",
+                "vwap": "https://app.travis-ci.com/github/ccxt/ccxt/builds/271520319#L5664"
             },
             "fetchAccounts": {
                 "type": "type is not provided"
@@ -1689,7 +1686,6 @@
     },
     "xt": {
         "skipMethods": {
-            "fetchCurrencies": "a of lot fields are missing",
             "loadMarkets": {
                 "taker":"is undefined",
                 "maker":"is undefined",
@@ -1701,6 +1697,10 @@
             "fetchTickers": {
                 "ask": "weird values",
                 "bid": "weird values"
+            },
+            "watchOrderBook": {
+                "timestamp": "not provided",
+                "spread": "bid-ask crossing"
             }
         }
     },
@@ -1713,6 +1713,15 @@
                 "currencyIdAndCode": "different",
                 "amount": "handled seperately",
                 "precision": "handled seperately"
+            },
+            "watchTrades": {
+                "side": "not set"
+            },
+            "watchOrderBook": {
+                "spread": "cross"
+            },
+            "watchOrderBookForSymbols": {
+                "spread": "same"
             }
         }
     }

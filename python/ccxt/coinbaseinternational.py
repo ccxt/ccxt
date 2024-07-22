@@ -571,7 +571,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         }
         return self.v1PrivatePostPortfoliosMargin(self.extend(request, params))
 
-    def fetch_deposits_withdrawals(self, code: str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
         :see: https://docs.cloud.coinbase.com/intx/reference/gettransfers
@@ -1542,7 +1542,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str params['clientOrderId']: client order id
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`

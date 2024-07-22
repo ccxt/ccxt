@@ -89,7 +89,7 @@ export default class vertex extends vertexRest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -152,7 +152,7 @@ export default class vertex extends vertexRest {
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.user] user address, will default to this.walletAddress if not provided
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchMyTrades requires a symbol.');
@@ -266,7 +266,7 @@ export default class vertex extends vertexRest {
         const price = this.convertFromX18 (this.safeString (trade, 'price'));
         const amount = this.convertFromX18 (this.safeString2 (trade, 'taker_qty', 'filled_qty'));
         const cost = Precise.stringMul (price, amount);
-        const timestamp = Precise.stringDiv (this.safeString (trade, 'timestamp'), '1000000');
+        const timestamp = this.safeIntegerProduct (trade, 'timestamp', 0.000001);
         let takerOrMaker = undefined;
         const isTaker = this.safeBool (trade, 'is_taker');
         if (isTaker !== undefined) {
@@ -868,9 +868,10 @@ export default class vertex extends vertexRest {
         //
         const marketId = this.safeString (order, 'product_id');
         const timestamp = this.parseToInt (Precise.stringDiv (this.safeString (order, 'timestamp'), '1000000'));
-        const remaining = this.parseToNumeric (this.convertFromX18 (this.safeString (order, 'amount')));
+        const remainingString = this.convertFromX18 (this.safeString (order, 'amount'));
+        const remaining = this.parseToNumeric (remainingString);
         let status = this.parseWsOrderStatus (this.safeString (order, 'reason'));
-        if (remaining === 0 && status === 'open') {
+        if (Precise.stringEq (remainingString, '0') && status === 'open') {
             status = 'closed';
         }
         market = this.safeMarket (marketId, market);

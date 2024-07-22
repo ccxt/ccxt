@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import bitgetRest from '../bitget.js';
-import { AuthenticationError, BadRequest, ArgumentsRequired, InvalidNonce, ExchangeError, RateLimitExceeded } from '../base/errors.js';
+import { AuthenticationError, BadRequest, ArgumentsRequired, ChecksumError, ExchangeError, RateLimitExceeded } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -64,6 +64,9 @@ export default class bitget extends bitgetRest {
                     '12h': '12H',
                     '1d': '1D',
                     '1w': '1W',
+                },
+                'watchOrderBook': {
+                    'checksum': true,
                 },
             },
             'streaming': {
@@ -562,9 +565,9 @@ export default class bitget extends bitgetRest {
                 const calculatedChecksum = this.crc32(payload, true);
                 const responseChecksum = this.safeInteger(rawOrderBook, 'checksum');
                 if (calculatedChecksum !== responseChecksum) {
-                    const error = new InvalidNonce(this.id + ' invalid checksum');
                     delete client.subscriptions[messageHash];
                     delete this.orderbooks[symbol];
+                    const error = new ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
                     client.reject(error, messageHash);
                     return;
                 }
@@ -972,7 +975,7 @@ export default class bitget extends bitgetRest {
          * @param {string} [params.marginMode] 'isolated' or 'cross' for watching spot margin orders]
          * @param {string} [params.type] 'spot', 'swap'
          * @param {string} [params.subType] 'linear', 'inverse'
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let market = undefined;

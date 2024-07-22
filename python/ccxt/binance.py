@@ -19,7 +19,6 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import OperationRejected
 from ccxt.base.errors import MarginModeAlreadySet
 from ccxt.base.errors import MarketClosed
-from ccxt.base.errors import BadResponse
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -32,6 +31,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.errors import BadResponse
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -836,7 +836,7 @@ class binance(Exchange, ImplicitAPI):
                         'forceOrders': {'cost': 20, 'noSymbol': 50},
                         'allOrders': 5,
                         'openOrder': 1,
-                        'openOrders': 1,
+                        'openOrders': {'cost': 1, 'noSymbol': 40},
                         'order': 1,
                         'account': 5,
                         'balance': 5,
@@ -1028,18 +1028,18 @@ class binance(Exchange, ImplicitAPI):
                         'ping': 1,
                         'um/order': 1,  # 1
                         'um/openOrder': 1,  # 1
-                        'um/openOrders': 1,  # 1
+                        'um/openOrders': {'cost': 1, 'noSymbol': 40},
                         'um/allOrders': 5,  # 5
                         'cm/order': 1,  # 1
                         'cm/openOrder': 1,  # 1
-                        'cm/openOrders': 1,  # 1
+                        'cm/openOrders': {'cost': 1, 'noSymbol': 40},
                         'cm/allOrders': 20,  # 20
                         'um/conditional/openOrder': 1,
-                        'um/conditional/openOrders': 40,
+                        'um/conditional/openOrders': {'cost': 1, 'noSymbol': 40},
                         'um/conditional/orderHistory': 1,
                         'um/conditional/allOrders': 40,
                         'cm/conditional/openOrder': 1,
-                        'cm/conditional/openOrders': 40,
+                        'cm/conditional/openOrders': {'cost': 1, 'noSymbol': 40},
                         'cm/conditional/orderHistory': 1,
                         'cm/conditional/allOrders': 40,
                         'margin/order': 5,
@@ -1566,7 +1566,7 @@ class binance(Exchange, ImplicitAPI):
                         '-3042': BadRequest,  # {"code":-3042,"msg":"PriceIndex not available for self margin pair."}
                         '-3043': PermissionDenied,  # {"code":-3043,"msg":"Transferring in not allowed."}
                         '-3044': OperationFailed,  # {"code":-3044,"msg":"System busy."}
-                        '-3045': OperationFailed,  # {"code":-3045,"msg":"The system doesn't have enough asset now."}
+                        '-3045': OperationRejected,  # {"code":-3045,"msg":"The system doesn't have enough asset now."}
                         '-3999': PermissionDenied,  # {"code":-3999,"msg":"This function is only available for invited users."}
                         #
                         #        4xxx(different from contract markets)
@@ -1585,7 +1585,7 @@ class binance(Exchange, ImplicitAPI):
                         '-4011': BadRequest,  # {"code":-4011 ,"msg":"White list mail is invalid."}
                         '-4012': PermissionDenied,  # {"code":-4012 ,"msg":"White list is not opened."}
                         '-4013': AuthenticationError,  # {"code":-4013 ,"msg":"2FA is not opened."}
-                        '-4014': OperationFailed,  # {"code":-4014 ,"msg":"Withdraw is not allowed within 2 min login."}
+                        '-4014': OperationRejected,  # {"code":-4014 ,"msg":"Withdraw is not allowed within 2 min login."}
                         '-4015': PermissionDenied,  # {"code":-4015 ,"msg":"Withdraw is limited."}
                         '-4016': PermissionDenied,  # {"code":-4016 ,"msg":"Within 24 hours after password modification, withdrawal is prohibited."}
                         '-4017': PermissionDenied,  # {"code":-4017 ,"msg":"Within 24 hours after the release of 2FA, withdrawal is prohibited."}
@@ -1594,7 +1594,7 @@ class binance(Exchange, ImplicitAPI):
                         '-4020': ExchangeError,  # override commons
                         '-4021': BadRequest,  # {"code":-4021,"msg":"Asset withdrawal must be an %s multiple of %s."}
                         '-4022': BadRequest,  # {"code":-4022,"msg":"Not less than the minimum pick-up quantity %s."}
-                        '-4023': OperationFailed,  # {"code":-4023,"msg":"Within 24 hours, the withdrawal exceeds the maximum amount."}
+                        '-4023': OperationRejected,  # {"code":-4023,"msg":"Within 24 hours, the withdrawal exceeds the maximum amount."}
                         '-4024': InsufficientFunds,  # {"code":-4024,"msg":"You don't have self asset."}
                         '-4025': InsufficientFunds,  # {"code":-4025,"msg":"The number of hold asset is less than zero."}
                         '-4026': InsufficientFunds,  # {"code":-4026,"msg":"You have insufficient balance."}
@@ -1603,7 +1603,7 @@ class binance(Exchange, ImplicitAPI):
                         '-4029': BadRequest,  # {"code":-4029,"msg":"The withdrawal record does not exist."}
                         '-4030': BadResponse,  # {"code":-4030,"msg":"Confirmation of successful asset withdrawal. [TODO] possible bug in docs"}
                         '-4031': OperationFailed,  # {"code":-4031,"msg":"Cancellation failed."}
-                        '-4032': OperationFailed,  # {"code":-4032,"msg":"Withdraw verification exception."}
+                        '-4032': OperationRejected,  # {"code":-4032,"msg":"Withdraw verification exception."}
                         '-4033': BadRequest,  # {"code":-4033,"msg":"Illegal address."}
                         '-4034': OperationRejected,  # {"code":-4034,"msg":"The address is suspected of fake."}
                         '-4035': PermissionDenied,  # {"code":-4035,"msg":"This address is not on the whitelist. Please join and try again."}
@@ -1726,7 +1726,7 @@ class binance(Exchange, ImplicitAPI):
                         '-5003': InsufficientFunds,  # You don't have self asset.
                         '-5004': OperationRejected,  # The residual balances of %s have exceeded 0.001BTC, Please re-choose.
                         '-5005': OperationRejected,  # The residual balances of %s is too low, Please re-choose.
-                        '-5006': OperationFailed,  # Only transfer once in 24 hours.
+                        '-5006': OperationRejected,  # Only transfer once in 24 hours.
                         '-5007': BadRequest,  # Quantity must be greater than zero.
                         '-5008': OperationRejected,  # Insufficient amount of returnable assets.
                         '-5009': BadSymbol,  # Product does not exist.
@@ -1744,8 +1744,8 @@ class binance(Exchange, ImplicitAPI):
                         '-6004': BadRequest,  # Product not in purchase status
                         '-6005': BadRequest,  # Smaller than min purchase limit
                         '-6006': BadRequest,  # Redeem amount error
-                        '-6007': OperationFailed,  # Not in redeem time
-                        '-6008': OperationFailed,  # Product not in redeem status
+                        '-6007': OperationRejected,  # Not in redeem time
+                        '-6008': OperationRejected,  # Product not in redeem status
                         '-6009': RateLimitExceeded,  # Request frequency too high
                         '-6011': OperationRejected,  # Exceeding the maximum num allowed to purchase per user
                         '-6012': InsufficientFunds,  # Balance not enough
@@ -4574,7 +4574,7 @@ class binance(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -4636,7 +4636,7 @@ class binance(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
         :returns dict: request to be sent to the exchange
@@ -4760,7 +4760,7 @@ class binance(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -4812,7 +4812,7 @@ class binance(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -5490,7 +5490,7 @@ class binance(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit' or 'STOP_LOSS' or 'STOP_LOSS_LIMIT' or 'TAKE_PROFIT' or 'TAKE_PROFIT_LIMIT' or 'STOP'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of you want to trade in units of the base currency
-        :param float [price]: the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.reduceOnly]: for swap and future reduceOnly is a string 'true' or 'false' that cant be sent with close position set to True or in hedge mode. For spot margin and option reduceOnly is a boolean.
         :param str [params.marginMode]: 'cross' or 'isolated', for spot margin trading
@@ -5570,7 +5570,7 @@ class binance(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much you want to trade in units of the base currency
-        :param float [price]: the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: request to be sent to the exchange
         """
@@ -6201,10 +6201,7 @@ class binance(Exchange, ImplicitAPI):
             marketType = market['type'] if ('type' in market) else defaultType
             type = self.safe_string(params, 'type', marketType)
         elif self.options['warnOnFetchOpenOrdersWithoutSymbol']:
-            symbols = self.symbols
-            numSymbols = len(symbols)
-            fetchOpenOrdersRateLimit = self.parse_to_int(numSymbols / 2)
-            raise ExchangeError(self.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + str(fetchOpenOrdersRateLimit) + ' seconds. Do not call self method frequently to avoid ban. Set ' + self.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = False to suppress self warning message.')
+            raise ExchangeError(self.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits(10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge self warning, set ' + self.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = False to suppress self warning message.')
         else:
             defaultType = self.safe_string_2(self.options, 'fetchOpenOrders', 'defaultType', 'spot')
             type = self.safe_string(params, 'type', defaultType)
@@ -6647,22 +6644,64 @@ class binance(Exchange, ImplicitAPI):
         response = None
         if market['option']:
             response = self.eapiPrivateDeleteAllOpenOrders(self.extend(request, params))
+            #
+            #    {
+            #        "code": 0,
+            #        "msg": "success"
+            #    }
+            #
         elif market['linear']:
             if isPortfolioMargin:
                 if isConditional:
                     response = self.papiDeleteUmConditionalAllOpenOrders(self.extend(request, params))
+                    #
+                    #    {
+                    #        "code": "200",
+                    #        "msg": "The operation of cancel all conditional open order is done."
+                    #    }
+                    #
                 else:
                     response = self.papiDeleteUmAllOpenOrders(self.extend(request, params))
+                    #
+                    #    {
+                    #        "code": 200,
+                    #        "msg": "The operation of cancel all open order is done."
+                    #    }
+                    #
             else:
                 response = self.fapiPrivateDeleteAllOpenOrders(self.extend(request, params))
+                #
+                #    {
+                #        "code": 200,
+                #        "msg": "The operation of cancel all open order is done."
+                #    }
+                #
         elif market['inverse']:
             if isPortfolioMargin:
                 if isConditional:
                     response = self.papiDeleteCmConditionalAllOpenOrders(self.extend(request, params))
+                    #
+                    #    {
+                    #        "code": "200",
+                    #        "msg": "The operation of cancel all conditional open order is done."
+                    #    }
+                    #
                 else:
                     response = self.papiDeleteCmAllOpenOrders(self.extend(request, params))
+                    #
+                    #    {
+                    #        "code": 200,
+                    #        "msg": "The operation of cancel all open order is done."
+                    #    }
+                    #
             else:
                 response = self.dapiPrivateDeleteAllOpenOrders(self.extend(request, params))
+                #
+                #    {
+                #        "code": 200,
+                #        "msg": "The operation of cancel all open order is done."
+                #    }
+                #
         elif (type == 'margin') or (marginMode is not None) or isPortfolioMargin:
             if isPortfolioMargin:
                 response = self.papiDeleteMarginAllOpenOrders(self.extend(request, params))
@@ -6670,12 +6709,59 @@ class binance(Exchange, ImplicitAPI):
                 if marginMode == 'isolated':
                     request['isIsolated'] = True
                 response = self.sapiDeleteMarginOpenOrders(self.extend(request, params))
+                #
+                #    [
+                #        {
+                #          "symbol": "BTCUSDT",
+                #          "isIsolated": True,       # if isolated margin
+                #          "origClientOrderId": "E6APeyTJvkMvLMYMqu1KQ4",
+                #          "orderId": 11,
+                #          "orderListId": -1,
+                #          "clientOrderId": "pXLV6Hz6mprAcVYpVMTGgx",
+                #          "price": "0.089853",
+                #          "origQty": "0.178622",
+                #          "executedQty": "0.000000",
+                #          "cummulativeQuoteQty": "0.000000",
+                #          "status": "CANCELED",
+                #          "timeInForce": "GTC",
+                #          "type": "LIMIT",
+                #          "side": "BUY",
+                #          "selfTradePreventionMode": "NONE"
+                #        },
+                #        ...
+                #    ]
+                #
         else:
             response = self.privateDeleteOpenOrders(self.extend(request, params))
+            #
+            #    [
+            #        {
+            #            "symbol": "ADAUSDT",
+            #            "origClientOrderId": "x-R4BD3S82662cde7a90114475b86e21",
+            #            "orderId": 3935107,
+            #            "orderListId": -1,
+            #            "clientOrderId": "bqM2w1oTlugfRAjnTIFBE8",
+            #            "transactTime": 1720589016657,
+            #            "price": "0.35000000",
+            #            "origQty": "30.00000000",
+            #            "executedQty": "0.00000000",
+            #            "cummulativeQuoteQty": "0.00000000",
+            #            "status": "CANCELED",
+            #            "timeInForce": "GTC",
+            #            "type": "LIMIT",
+            #            "side": "BUY",
+            #            "selfTradePreventionMode": "EXPIRE_MAKER"
+            #        }
+            #    ]
+            #
         if isinstance(response, list):
             return self.parse_orders(response, market)
         else:
-            return response
+            return [
+                self.safe_order({
+                    'info': response,
+                }),
+            ]
 
     def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
         """
@@ -9014,34 +9100,38 @@ class binance(Exchange, ImplicitAPI):
         if marginMode == 'cross':
             # calculate collateral
             precision = self.safe_dict(market, 'precision', {})
-            if linear:
-                # walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
-                onePlusMaintenanceMarginPercentageString = None
-                entryPriceSignString = entryPriceString
-                if side == 'short':
-                    onePlusMaintenanceMarginPercentageString = Precise.string_add('1', maintenanceMarginPercentageString)
-                    entryPriceSignString = Precise.string_mul('-1', entryPriceSignString)
+            basePrecisionValue = self.safe_string(precision, 'base')
+            quotePrecisionValue = self.safe_string_2(precision, 'quote', 'price')
+            precisionIsUndefined = (basePrecisionValue is None) and (quotePrecisionValue is None)
+            if not precisionIsUndefined:
+                if linear:
+                    # walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
+                    onePlusMaintenanceMarginPercentageString = None
+                    entryPriceSignString = entryPriceString
+                    if side == 'short':
+                        onePlusMaintenanceMarginPercentageString = Precise.string_add('1', maintenanceMarginPercentageString)
+                        entryPriceSignString = Precise.string_mul('-1', entryPriceSignString)
+                    else:
+                        onePlusMaintenanceMarginPercentageString = Precise.string_add('-1', maintenanceMarginPercentageString)
+                    inner = Precise.string_mul(liquidationPriceString, onePlusMaintenanceMarginPercentageString)
+                    leftSide = Precise.string_add(inner, entryPriceSignString)
+                    quotePrecision = self.precision_from_string(self.safe_string_2(precision, 'quote', 'price'))
+                    if quotePrecision is not None:
+                        collateralString = Precise.string_div(Precise.string_mul(leftSide, contractsAbs), '1', quotePrecision)
                 else:
-                    onePlusMaintenanceMarginPercentageString = Precise.string_add('-1', maintenanceMarginPercentageString)
-                inner = Precise.string_mul(liquidationPriceString, onePlusMaintenanceMarginPercentageString)
-                leftSide = Precise.string_add(inner, entryPriceSignString)
-                quotePrecision = self.precision_from_string(self.safe_string_2(precision, 'quote', 'price'))
-                if quotePrecision is not None:
-                    collateralString = Precise.string_div(Precise.string_mul(leftSide, contractsAbs), '1', quotePrecision)
-            else:
-                # walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
-                onePlusMaintenanceMarginPercentageString = None
-                entryPriceSignString = entryPriceString
-                if side == 'short':
-                    onePlusMaintenanceMarginPercentageString = Precise.string_sub('1', maintenanceMarginPercentageString)
-                else:
-                    onePlusMaintenanceMarginPercentageString = Precise.string_sub('-1', maintenanceMarginPercentageString)
-                    entryPriceSignString = Precise.string_mul('-1', entryPriceSignString)
-                leftSide = Precise.string_mul(contractsAbs, contractSizeString)
-                rightSide = Precise.string_sub(Precise.string_div('1', entryPriceSignString), Precise.string_div(onePlusMaintenanceMarginPercentageString, liquidationPriceString))
-                basePrecision = self.precision_from_string(self.safe_string(precision, 'base'))
-                if basePrecision is not None:
-                    collateralString = Precise.string_div(Precise.string_mul(leftSide, rightSide), '1', basePrecision)
+                    # walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
+                    onePlusMaintenanceMarginPercentageString = None
+                    entryPriceSignString = entryPriceString
+                    if side == 'short':
+                        onePlusMaintenanceMarginPercentageString = Precise.string_sub('1', maintenanceMarginPercentageString)
+                    else:
+                        onePlusMaintenanceMarginPercentageString = Precise.string_sub('-1', maintenanceMarginPercentageString)
+                        entryPriceSignString = Precise.string_mul('-1', entryPriceSignString)
+                    leftSide = Precise.string_mul(contractsAbs, contractSizeString)
+                    rightSide = Precise.string_sub(Precise.string_div('1', entryPriceSignString), Precise.string_div(onePlusMaintenanceMarginPercentageString, liquidationPriceString))
+                    basePrecision = self.precision_from_string(self.safe_string(precision, 'base'))
+                    if basePrecision is not None:
+                        collateralString = Precise.string_div(Precise.string_mul(leftSide, rightSide), '1', basePrecision)
         else:
             collateralString = self.safe_string(position, 'isolatedMargin')
         collateralString = '0' if (collateralString is None) else collateralString
@@ -9606,9 +9696,10 @@ class binance(Exchange, ImplicitAPI):
         #
         result = []
         for i in range(0, len(response)):
-            parsed = self.parse_position_risk(response[i])
-            entryPrice = self.safe_string(parsed, 'entryPrice')
+            rawPosition = response[i]
+            entryPrice = self.safe_string(rawPosition, 'entryPrice')
             if (entryPrice != '0') and (entryPrice != '0.0') and (entryPrice != '0.00000000'):
+                parsed = self.parse_position_risk(response[i])
                 result.append(parsed)
         symbols = self.market_symbols(symbols)
         return self.filter_by_array_positions(result, 'symbol', symbols, False)
@@ -11111,6 +11202,8 @@ class binance(Exchange, ImplicitAPI):
         request: dict = {}
         if market['option']:
             request['underlyingAsset'] = market['baseId']
+            if market['expiry'] is None:
+                raise NotSupported(self.id + ' fetchOpenInterest does not support ' + symbol)
             request['expiration'] = self.yymmdd(market['expiry'])
         else:
             request['symbol'] = market['id']
@@ -11152,6 +11245,7 @@ class binance(Exchange, ImplicitAPI):
         #     ]
         #
         if market['option']:
+            symbol = market['symbol']
             result = self.parse_open_interests(response, market)
             for i in range(0, len(result)):
                 item = result[i]

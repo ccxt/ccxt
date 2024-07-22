@@ -2071,7 +2071,7 @@ class Transpiler {
             replace(/\.private_key/g, '.privateKey').
             replace(/\.api_key/g, '.apiKey');
         
-        const impHelper = `# -*- coding: utf-8 -*-\n\nimport asyncio\n\n\n` + 'from tests_helpers import get_cli_arg_value, dump, exit_script, get_test_files, init_exchange, set_exchange_prop, call_method, exception_message, io_file_exists, io_file_read, baseMainTestClass, AuthenticationError, NotSupported, OperationFailed, OnMaintenance, ExchangeNotAvailable, ProxyError, get_exchange_prop, close, json_parse, json_stringify, is_null_value, io_dir_read, convert_ascii, call_exchange_method_dynamically, set_fetch_response, call_exchange_method_dynamically_sync  # noqa: F401' + '\n\n';
+        const impHelper = `# -*- coding: utf-8 -*-\n\nimport asyncio\n\n\n` + 'from tests_helpers import get_cli_arg_value, dump, exit_script, get_test_files, init_exchange, set_exchange_prop, call_method, exception_message, io_file_exists, io_file_read, baseMainTestClass, AuthenticationError, NotSupported, OperationFailed, OnMaintenance, ExchangeNotAvailable, InvalidProxySettings, get_exchange_prop, close, json_parse, json_stringify, is_null_value, io_dir_read, convert_ascii, call_exchange_method_dynamically, set_fetch_response, call_exchange_method_dynamically_sync  # noqa: F401' + '\n\n';
         let newPython = impHelper + python3;
         newPython = snakeCaseFunctions (newPython);
         overwriteSafe (files.pyFileAsync, newPython);
@@ -2178,6 +2178,8 @@ class Transpiler {
 
         let allFiles = await this.readFilesAsync (tests.map(t => t.tsFile));
 
+        const needsEquals = allFiles.map(file => file.includes('function equals'));
+
         // apply regex to every file
         allFiles = allFiles.map( file => this.regexAll (file, [
             [ /\'use strict\';?\s+/g, '' ],
@@ -2230,6 +2232,7 @@ class Transpiler {
             let phpSync = phpFixes(result[1].content);
             let pythonSync = pyFixes (result[2].content, true);
             let pythonAsync = pyFixes (result[3].content);
+            const usesEqualsFunction = needsEquals[i];
             if (tests.base) {
                 phpAsync = '';
                 pythonAsync = '';
@@ -2342,6 +2345,16 @@ class Transpiler {
                         pythonHeaderAsync.push (`from ccxt.test${pySuffix} import ${snake_case}  # noqa E402`)
                     }
                 }
+            }
+
+            if (usesEqualsFunction) {
+                const pyEquals = [
+                    "",
+                    "def equals(a, b):",
+                    "    return a == b",
+                ].join('\n')
+                pythonHeaderSync.push(pyEquals);
+                pythonHeaderAsync.push(pyEquals);
             }
 
 

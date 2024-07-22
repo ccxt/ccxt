@@ -171,7 +171,7 @@ The CCXT library currently supports the following 101 cryptocurrency exchange ma
 | [![whitebit](https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg)](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)                        | whitebit              | [WhiteBit](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)                        | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://github.com/whitebit-exchange/api-docs)                                      | cex  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![woo](https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg)](https://x.woo.org/register?ref=YWOWC96B)                                                       | woo                   | [WOO X](https://x.woo.org/register?ref=YWOWC96B)                                                      | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.woo.org/)                                                              | cex  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![woofipro](https://github.com/ccxt/ccxt/assets/43336371/b1e7b348-a0fc-4605-8b7f-91176958fd69)](https://dex.woo.org/en/trade?ref=CCXT)                                                                       | woofipro              | [WOOFI PRO](https://dex.woo.org/en/trade?ref=CCXT)                                                    | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://orderly.network/docs/build-on-evm/building-on-evm)                          | dex  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![xt](https://user-images.githubusercontent.com/14319357/232636712-466df2fc-560a-4ca4-aab2-b1d954a58e24.jpg)](https://www.xt.com/en/accounts/register?ref=9PTM9VW)                                           | xt                    | [XT](https://www.xt.com/en/accounts/register?ref=9PTM9VW)                                             | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://doc.xt.com/)                                                                | cex  |                                                                                                                             |                                                                              |
+| [![xt](https://user-images.githubusercontent.com/14319357/232636712-466df2fc-560a-4ca4-aab2-b1d954a58e24.jpg)](https://www.xt.com/en/accounts/register?ref=9PTM9VW)                                           | xt                    | [XT](https://www.xt.com/en/accounts/register?ref=9PTM9VW)                                             | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://doc.xt.com/)                                                                | cex  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![yobit](https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg)](https://www.yobit.net)                                                                        | yobit                 | [YoBit](https://www.yobit.net)                                                                        | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://www.yobit.net/en/api/)                                                      | cex  |                                                                                                                             |                                                                              |
 | [![zaif](https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg)](https://zaif.jp)                                                                               | zaif                  | [Zaif](https://zaif.jp)                                                                               | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://techbureau-api-document.readthedocs.io/ja/latest/index.html)                | cex  |                                                                                                                             |                                                                              |
 | [![zonda](https://user-images.githubusercontent.com/1294454/159202310-a0e38007-5e7c-4ba9-a32f-c8263a0291fe.jpg)](https://auth.zondaglobal.com/ref/jHlbB4mIkdS1)                                               | zonda                 | [Zonda](https://auth.zondaglobal.com/ref/jHlbB4mIkdS1)                                                | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.zondacrypto.exchange/)                                                 | cex  |                                                                                                                             |                                                                              |
@@ -839,6 +839,7 @@ Each network is an associative array (aka dictionary) with the following keys:
     'expiryDatetime': '2022-03-26T00:00:00.000Z', // The datetime contract will in iso8601 format
     'strike': 4000,           // price at which a put or call option can be exercised
     'optionType': 'call',     // call or put string, call option represents an option with the right to buy and put an option with the right to sell
+    // note, 'taker' and 'maker' compose extended data for markets, however it might be better to use `fetchTradingFees` for more accuracy
     'taker':    0.002,        // taker fee rate, 0.002 = 0.2%
     'maker':    0.0016,       // maker fee rate, 0.0016 = 0.16%
     'percentage': true,       // whether the taker and maker fee rate is a multiplier or a fixed flat amount
@@ -871,7 +872,7 @@ Each market is an associative array (aka dictionary) with the following keys:
 - `baseId`. An exchange-specific id of the base currency for this market, not unified. Can be any string, literally. This is communicated to the exchange using the language the exchange understands.
 - `quoteId`. An exchange-specific id of the quote currency, not unified.
 - `active`. A boolean indicating whether or not trading this market is currently possible, more about it here: [`active` status](#active-status).
-- `maker`. Float, 0.0015 = 0.15%. Maker fees are paid when you provide liquidity to the exchange i.e. you *market-make* an order and someone else fills it. Maker fees are usually lower than taker fees. Fees can be negative, this is very common amongst derivative exchanges. A negative fee means the exchange will pay a rebate (reward) to the user for trading this market.
+- `maker`. Float, 0.0015 = 0.15%. Maker fees are paid when you provide liquidity to the exchange i.e. you *market-make* an order and someone else fills it. Maker fees are usually lower than taker fees. Fees can be negative, this is very common amongst derivative exchanges. A negative fee means the exchange will pay a rebate (reward) to the user for trading this market (note, 'taker' and 'maker' publicly available fees, not taking into consideration your vip-level/volume/etc. Use [`fetchTradingFees`](#fee-schedule) to get the fees specific to your account).
 - `taker`. Float, 0.002 = 0.2%. Taker fees are paid when you *take* liquidity from the exchange and fill someone else's order.
 - `percentage`. A boolean true/false value indicating whether `taker` and `maker` are multipliers or fixed flat amounts.
 - `tierBased`. A boolean true/false value indicating whether the fee depends on your trading tier (usually, your traded volume over a period of time).
@@ -3758,6 +3759,8 @@ Returns
 
     'total': { ... },    // total (free + used), by currency
 
+    'debt': { ... },     // debt, by currency
+
     //-------------------------------------------------------------------------
     // indexed by currency first, then by availability of funds
 
@@ -5654,7 +5657,7 @@ The `calculateFee` method can be used to precalculate trading fees that will be 
 
 The `calculateFee` method will return a unified fee structure with precalculated fees for an order with specified params.
 
-Accessing trading fee rates should be done via the `.markets` property, like so:
+Accessing trading fee rates should be done via [`fetchTradingFees`](#fee-schedule) which is the recommended approach. If that method is not supported by exchange, then via the `.markets` property, like so:
 
 ```javascript
 exchange.markets['ETH/BTC']['taker'] // taker fee rate for ETH/BTC
@@ -6540,6 +6543,7 @@ So, in such cases you will need to communicate a "CORS" proxy, which would redir
 
 # Error Handling
 
+- [Retry Mechanism](#retry-mechanism)
 - [Exception Hierarchy](#exception-hierarchy)
 - [ExchangeError](#exchangeerror)
 - [OperationFailed](#operationfailed)
@@ -6610,6 +6614,16 @@ try {
 }
 ```
 <!-- tabs:end -->
+
+## Retry Mechanism
+When dealing with HTTP requests, it's important to understand that requests might fail for various reasons. Common causes of these failures include the server being unavailable, network instability, or temporary server issues. To handle such scenarios gracefully, CCXT provide an option to automatically retry failed requests. You can set the value of `maxRetriesOnFailure` and `maxRetriesOnFailureDelay` to configure the number of retries and the delay between retries, example:
+
+```Python
+exchange.options['maxRetriesOnFailure'] = 3 # if we get an error like the ones mentioned above we will retry up to three times per request
+exchange.options['maxRetriesOnFailureDelay'] = 1000 # we will wait 1000ms (1s) between retries
+```
+
+It's important to highlight that only server/network-related issues will be part of the retry mechanism; if the user gets an error due to `InsufficientFunds` or `InvalidOrder,`  the request will not be repeated.
 
 ## Exception Hierarchy
 
@@ -6719,6 +6733,7 @@ An `OperationFailed` might happen when user sends **correctly constructed & vali
 Such exceptions are temporary and re-trying the request again might be enough. However, if the error still happens, then it may indicate some persistent problem with the exchange or with your connection.
 
 `OperationFailed` has the following sub-types: `RequestTimeout`,`DDoSProtection` (includes sub-type `RateLimitExceeded`),  `ExchangeNotAvailable`, `InvalidNonce`.
+
 
 #### DDoSProtection
 

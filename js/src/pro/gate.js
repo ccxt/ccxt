@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import gateRest from '../gate.js';
-import { AuthenticationError, BadRequest, ArgumentsRequired, InvalidNonce, ExchangeError, NotSupported } from '../base/errors.js';
+import { AuthenticationError, BadRequest, ArgumentsRequired, ChecksumError, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import Precise from '../base/Precise.js';
@@ -97,6 +97,7 @@ export default class gate extends gateRest {
                     'interval': '100ms',
                     'snapshotDelay': 10,
                     'snapshotMaxRetries': 3,
+                    'checksum': true,
                 },
                 'watchBalance': {
                     'settle': 'usdt',
@@ -132,7 +133,7 @@ export default class gate extends gateRest {
          * @param {string} type 'limit' or 'market' *"market" is contract only*
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount the amount of currency to trade
-         * @param {float} [price] *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+         * @param {float} [price] *ignored in "market" orders* the price at which the order is to be fulfilled at in units of the quote currency
          * @param {object} [params]  extra parameters specific to the exchange API endpoint
          * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
          * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
@@ -252,7 +253,7 @@ export default class gate extends gateRest {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of the currency you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -482,10 +483,13 @@ export default class gate extends gateRest {
             this.handleDelta(storedOrderBook, delta);
         }
         else {
-            const error = new InvalidNonce(this.id + ' orderbook update has a nonce bigger than u');
             delete client.subscriptions[messageHash];
             delete this.orderbooks[symbol];
-            client.reject(error, messageHash);
+            const checksum = this.handleOption('watchOrderBook', 'checksum', true);
+            if (checksum) {
+                const error = new ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
+                client.reject(error, messageHash);
+            }
         }
         client.resolve(storedOrderBook, messageHash);
     }
@@ -845,7 +849,7 @@ export default class gate extends gateRest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         let subType = undefined;
@@ -1193,7 +1197,7 @@ export default class gate extends gateRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] spot, margin, swap, future, or option. Required if listening to all symbols.
          * @param {boolean} [params.isInverse] if future, listen to inverse or linear contracts
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -1285,7 +1289,7 @@ export default class gate extends gateRest {
             else if (event === 'finish') {
                 const status = this.safeString(parsed, 'status');
                 if (status === undefined) {
-                    const left = this.safeNumber(info, 'left');
+                    const left = this.safeInteger(info, 'left');
                     parsed['status'] = (left === 0) ? 'closed' : 'canceled';
                 }
             }

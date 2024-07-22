@@ -182,6 +182,7 @@ public partial class bitmart : Exchange
                         { "contract/private/get-open-orders", 1.2 },
                         { "contract/private/current-plan-order", 1.2 },
                         { "contract/private/trades", 10 },
+                        { "contract/private/position-risk", 10 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "account/sub-account/main/v1/sub-to-main", 30 },
@@ -2370,7 +2371,7 @@ public partial class bitmart : Exchange
         * @param {string} type 'market', 'limit' or 'trailing' for swap markets only
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.marginMode] 'cross' or 'isolated'
         * @param {string} [params.leverage] *swap only* leverage level
@@ -2531,7 +2532,7 @@ public partial class bitmart : Exchange
         * @param {string} type 'market', 'limit' or 'trailing'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.leverage] leverage level
         * @param {boolean} [params.reduceOnly] *swap only* reduce only
@@ -2665,7 +2666,7 @@ public partial class bitmart : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.marginMode] 'cross' or 'isolated'
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

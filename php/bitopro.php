@@ -990,7 +990,7 @@ class bitopro extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
@@ -1072,6 +1072,23 @@ class bitopro extends Exchange {
         return $this->parse_order($response, $market);
     }
 
+    public function parse_cancel_orders($data) {
+        $dataKeys = is_array($data) ? array_keys($data) : array();
+        $orders = array();
+        for ($i = 0; $i < count($dataKeys); $i++) {
+            $marketId = $dataKeys[$i];
+            $orderIds = $data[$marketId];
+            for ($j = 0; $j < count($orderIds); $j++) {
+                $orders[] = $this->safe_order(array(
+                    'info' => $orderIds[$j],
+                    'id' => $orderIds[$j],
+                    'symbol' => $this->safe_symbol($marketId),
+                ));
+            }
+        }
+        return $orders;
+    }
+
     public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple orders
@@ -1100,7 +1117,8 @@ class bitopro extends Exchange {
         //         }
         //     }
         //
-        return $response;
+        $data = $this->safe_dict($response, 'data');
+        return $this->parse_cancel_orders($data);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
@@ -1123,7 +1141,7 @@ class bitopro extends Exchange {
         } else {
             $response = $this->privateDeleteOrdersAll ($this->extend($request, $params));
         }
-        $result = $this->safe_value($response, 'data', array());
+        $data = $this->safe_value($response, 'data', array());
         //
         //     {
         //         "data":{
@@ -1134,7 +1152,7 @@ class bitopro extends Exchange {
         //         }
         //     }
         //
-        return $result;
+        return $this->parse_cancel_orders($data);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {

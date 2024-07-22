@@ -317,7 +317,7 @@ public partial class bybit
     /// <item>
     /// <term>params.type</term>
     /// <description>
-    /// string : wallet type, ['spot', 'swap', 'fund']
+    /// string : wallet type, ['spot', 'swap', 'funding']
     /// </description>
     /// </item>
     /// </list>
@@ -363,7 +363,7 @@ public partial class bybit
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>

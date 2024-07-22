@@ -923,6 +923,15 @@ class okx extends Exchange {
                     '70010' => '\\ccxt\\BadRequest', // Timestamp parameters need to be in Unix timestamp format in milliseconds.
                     '70013' => '\\ccxt\\BadRequest', // endTs needs to be bigger than or equal to beginTs.
                     '70016' => '\\ccxt\\BadRequest', // Please specify your instrument settings for at least one instType.
+                    '1009' => '\\ccxt\\BadRequest',  // Request message exceeds the maximum frame length
+                    '4001' => '\\ccxt\\AuthenticationError',  // Login Failed
+                    '4002' => '\\ccxt\\BadRequest',  // Invalid Request
+                    '4003' => '\\ccxt\\RateLimitExceeded',  // APIKey subscription amount exceeds the limit 100
+                    '4004' => '\\ccxt\\NetworkError',  // No data received in 30s
+                    '4005' => '\\ccxt\\ExchangeNotAvailable',  // Buffer is full, cannot write data
+                    '4006' => '\\ccxt\\BadRequest',  // Abnormal disconnection
+                    '4007' => '\\ccxt\\AuthenticationError',  // API key has been updated or deleted. Please reconnect.
+                    '4008' => '\\ccxt\\RateLimitExceeded',  // The number of subscribed channels exceeds the maximum limit.
                 ),
                 'broad' => array(
                     'Internal Server Error' => '\\ccxt\\ExchangeNotAvailable', // array("code":500,"data":array(),"detailMsg":"","error_code":"500","error_message":"Internal Server Error","msg":"Internal Server Error")
@@ -2866,7 +2875,7 @@ class okx extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {bool} [$params->reduceOnly] a mark to reduce the position size for margin, swap and future orders
          * @param {bool} [$params->postOnly] true to place a post only $order
@@ -3069,7 +3078,7 @@ class okx extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of the currency you want to trade in units of the base currency
-         * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->clientOrderId] client $order $id, uses $id if not passed
          * @param {float} [$params->stopLossPrice] stop loss trigger $price
@@ -3284,7 +3293,7 @@ class okx extends Exchange {
          * cancel multiple $orders for multiple symbols
          * @see https://www.okx.com/docs-v5/en/#$order-book-trading-trade-post-cancel-multiple-$orders
          * @see https://www.okx.com/docs-v5/en/#$order-book-trading-algo-trading-post-cancel-algo-$order
-         * @param {CancellationRequest[]} $orders each $order should contain the parameters required by cancelOrder namely $id and $symbol
+         * @param {CancellationRequest[]} $orders each $order should contain the parameters required by cancelOrder namely $id and $symbol, example [array("id" => "a", "symbol" => "BTC/USDT"), array("id" => "b", "symbol" => "ETH/USDT")]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] whether the $order is a stop/trigger $order
          * @param {boolean} [$params->trailing] set to true if you want to cancel $trailing $orders
@@ -7229,6 +7238,9 @@ class okx extends Exchange {
                 }
                 $depositWithdrawFees[$code]['info'][$currencyId] = $feeInfo;
                 $chain = $this->safe_string($feeInfo, 'chain');
+                if ($chain === null) {
+                    continue;
+                }
                 $chainSplit = explode('-', $chain);
                 $networkId = $this->safe_value($chainSplit, 1);
                 $withdrawFee = $this->safe_number($feeInfo, 'minFee');

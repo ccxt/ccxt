@@ -696,7 +696,7 @@ export default class alpaca extends Exchange {
          * @param {string} type 'market', 'limit' or 'stop_limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -814,7 +814,11 @@ export default class alpaca extends Exchange {
         if (Array.isArray (response)) {
             return this.parseOrders (response, undefined);
         } else {
-            return response;
+            return [
+                this.safeOrder ({
+                    'info': response,
+                }),
+            ];
         }
     }
 
@@ -1105,6 +1109,7 @@ export default class alpaca extends Exchange {
         let url = this.implodeHostname (this.urls['api'][api[0]]);
         headers = (headers !== undefined) ? headers : {};
         if (api[1] === 'private') {
+            this.checkRequiredCredentials ();
             headers['APCA-API-KEY-ID'] = this.apiKey;
             headers['APCA-API-SECRET-KEY'] = this.secret;
         }
