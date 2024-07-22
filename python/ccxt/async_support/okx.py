@@ -100,6 +100,11 @@ class okx(Exchange):
                 },
             },
             'api': {
+                'public': {
+                    'get': [
+                        'public/funding-rate-history',
+                    ]
+                },
                 'general': {
                     'get': [
                         'time',

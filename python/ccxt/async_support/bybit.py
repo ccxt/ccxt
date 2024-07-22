@@ -24,7 +24,7 @@ class bybit(Exchange):
             'id': 'bybit',
             'name': 'Bybit',
             'countries': ['VG'],  # British Virgin Islands
-            'version': 'v2',
+            'version': 'v5',
             'userAgent': None,
             'rateLimit': 100,
             'has': {
@@ -91,6 +91,9 @@ class bybit(Exchange):
                         'symbols',
                         'time',
                         'announcement',
+                        # v5
+                        # market
+                        'v5/market/funding/history',
                     ],
                 },
                 'private': {

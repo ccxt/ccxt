@@ -256,3 +256,4 @@ class ImplicitAPI:
     private_margin_post_cross_order_batchplaceorder = privateMarginPostCrossOrderBatchPlaceOrder = Entry('cross/order/batchPlaceOrder', ['private', 'margin'], 'POST', {'cost': 2})
     private_margin_post_cross_order_cancelorder = privateMarginPostCrossOrderCancelOrder = Entry('cross/order/cancelOrder', ['private', 'margin'], 'POST', {'cost': 2})
     private_margin_post_cross_order_batchcancelorder = privateMarginPostCrossOrderBatchCancelOrder = Entry('cross/order/batchCancelOrder', ['private', 'margin'], 'POST', {'cost': 2})
+    public_mix_get_v2_mix_market_history_fund_rate = publicMixGetV2MixMarketHistoryFundRate = Entry('v2/mix/market/history-fund-rate', ['public', 'mix'], 'GET', {'cost': 1})

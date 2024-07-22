@@ -95,6 +95,13 @@ class bitget(Exchange):
                 'referral': 'https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j',
             },
             'api': {
+                'public': {
+                    'mix': {
+                        'get': [
+                            'v2/mix/market/history-fund-rate',
+                        ]
+                    }
+                },
                 'data': {
                     'get': [
                         'market/history/kline',  # Kline data

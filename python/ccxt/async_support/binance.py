@@ -2147,11 +2147,11 @@ class binance(Exchange):
 
     def is_inverse(self):
         default_type = self.safe_string(self.options, 'defaultType')
-        return default_type == "inverse"
+        return default_type == "inverse" or default_type == 'delivery'
 
     def is_linear(self):
         default_type = self.safe_string(self.options, 'defaultType')
-        return default_type == "linear"
+        return default_type == "linear" or default_type == 'future'
 
     async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
