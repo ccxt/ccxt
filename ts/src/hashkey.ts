@@ -666,6 +666,8 @@ export default class hashkey extends Exchange {
             'contractSize': this.safeNumber (market, 'contractMultiplier'), // todo check
             'linear': isLinear,
             'inverse': isInverse,
+            'taker': this.fees['trading']['taker'],
+            'maker': this.fees['trading']['maker'],
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
