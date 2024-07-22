@@ -90,6 +90,7 @@ export default class kraken extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
                 'fetchWithdrawals': true,
+                'fetchStatus': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'transfer': true,
@@ -639,6 +640,32 @@ export default class kraken extends Exchange {
             result.push(this.extend(defaults, markets[i]));
         }
         return result;
+    }
+    async fetchStatus(params = {}) {
+        /**
+         * @method
+         * @name kraken#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @see https://docs.kraken.com/api/docs/rest-api/get-system-status/
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+         */
+        const response = await this.publicGetSystemStatus(params);
+        //
+        // {
+        //     error: [],
+        //     result: { status: 'online', timestamp: '2024-07-22T16:34:44Z' }
+        // }
+        //
+        const result = this.safeDict(response, 'result');
+        const statusRaw = this.safeString(result, 'status');
+        return {
+            'status': (statusRaw === 'online') ? 'ok' : 'maintenance',
+            'updated': undefined,
+            'eta': undefined,
+            'url': undefined,
+            'info': response,
+        };
     }
     async fetchCurrencies(params = {}) {
         /**

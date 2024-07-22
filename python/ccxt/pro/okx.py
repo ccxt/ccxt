@@ -1528,7 +1528,7 @@ class okx(ccxt.async_support.okx):
         await self.load_markets()
         await self.authenticate()
         url = self.get_url('private', 'private')
-        messageHash = str(self.nonce())
+        messageHash = str(self.milliseconds())
         op = None
         op, params = self.handle_option_and_params(params, 'createOrderWs', 'op', 'batch-orders')
         args = self.create_order_request(symbol, type, side, amount, price, params)
@@ -1593,7 +1593,7 @@ class okx(ccxt.async_support.okx):
         await self.load_markets()
         await self.authenticate()
         url = self.get_url('private', 'private')
-        messageHash = str(self.nonce())
+        messageHash = str(self.milliseconds())
         op = None
         op, params = self.handle_option_and_params(params, 'editOrderWs', 'op', 'amend-order')
         args = self.edit_order_request(id, symbol, type, side, amount, price, params)
@@ -1619,7 +1619,7 @@ class okx(ccxt.async_support.okx):
         await self.load_markets()
         await self.authenticate()
         url = self.get_url('private', 'private')
-        messageHash = str(self.nonce())
+        messageHash = str(self.milliseconds())
         clientOrderId = self.safe_string_2(params, 'clOrdId', 'clientOrderId')
         params = self.omit(params, ['clientOrderId', 'clOrdId'])
         arg: dict = {
@@ -1653,7 +1653,7 @@ class okx(ccxt.async_support.okx):
         await self.load_markets()
         await self.authenticate()
         url = self.get_url('private', 'private')
-        messageHash = str(self.nonce())
+        messageHash = str(self.milliseconds())
         args = []
         for i in range(0, idsLength):
             arg: dict = {
@@ -1684,7 +1684,7 @@ class okx(ccxt.async_support.okx):
         if market['type'] != 'option':
             raise BadRequest(self.id + 'cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.')
         url = self.get_url('private', 'private')
-        messageHash = str(self.nonce())
+        messageHash = str(self.milliseconds())
         request: dict = {
             'id': messageHash,
             'op': 'mass-cancel',

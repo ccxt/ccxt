@@ -1681,7 +1681,7 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $url = $this->get_url('private', 'private');
-            $messageHash = (string) $this->nonce();
+            $messageHash = (string) $this->milliseconds();
             $op = null;
             list($op, $params) = $this->handle_option_and_params($params, 'createOrderWs', 'op', 'batch-orders');
             $args = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
@@ -1753,7 +1753,7 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $url = $this->get_url('private', 'private');
-            $messageHash = (string) $this->nonce();
+            $messageHash = (string) $this->milliseconds();
             $op = null;
             list($op, $params) = $this->handle_option_and_params($params, 'editOrderWs', 'op', 'amend-order');
             $args = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
@@ -1783,7 +1783,7 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $url = $this->get_url('private', 'private');
-            $messageHash = (string) $this->nonce();
+            $messageHash = (string) $this->milliseconds();
             $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
             $params = $this->omit($params, array( 'clientOrderId', 'clOrdId' ));
             $arg = array(
@@ -1823,7 +1823,7 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $url = $this->get_url('private', 'private');
-            $messageHash = (string) $this->nonce();
+            $messageHash = (string) $this->milliseconds();
             $args = array();
             for ($i = 0; $i < $idsLength; $i++) {
                 $arg = array(
@@ -1860,7 +1860,7 @@ class okx extends \ccxt\async\okx {
                 throw new BadRequest($this->id . 'cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.');
             }
             $url = $this->get_url('private', 'private');
-            $messageHash = (string) $this->nonce();
+            $messageHash = (string) $this->milliseconds();
             $request = array(
                 'id' => $messageHash,
                 'op' => 'mass-cancel',

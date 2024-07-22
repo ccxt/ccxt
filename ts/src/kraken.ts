@@ -82,6 +82,7 @@ export default class kraken extends Exchange {
                 'fetchOrderTrades': 'emulated',
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -89,7 +90,6 @@ export default class kraken extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
                 'fetchWithdrawals': true,
-                'fetchStatus': true,
                 'setLeverage': false,
                 'setMarginMode': false, // Kraken only supports cross margin
                 'transfer': true,
