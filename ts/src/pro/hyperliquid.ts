@@ -255,7 +255,7 @@ export default class hyperliquid extends hyperliquidRest {
                 this.safeDict (universe, i, {}),
                 this.safeDict (assetCtxs, i, {})
             );
-            const id = data['name'] + ':USDC/USDC';
+            const id = data['name'] + '/USDC:USDC';
             const market = this.safeMarket (id, undefined, undefined, 'swap');
             const ticker = this.parseWsTicker (data, market);
             parsedTickers.push (ticker);
