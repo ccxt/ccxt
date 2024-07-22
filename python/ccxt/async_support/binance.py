@@ -294,6 +294,11 @@ class binance(Exchange):
                         'listenKey',
                     ],
                 },
+                'dapiPublic': {
+                    'get': [
+                        'fundingRate',
+                    ]
+                },
                 'fapiPrivateV2': {
                     'get': [
                         'account',

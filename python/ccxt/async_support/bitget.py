@@ -95,13 +95,6 @@ class bitget(Exchange):
                 'referral': 'https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j',
             },
             'api': {
-                'public': {
-                    'mix': {
-                        'get': [
-                            'v2/mix/market/history-fund-rate',
-                        ]
-                    }
-                },
                 'data': {
                     'get': [
                         'market/history/kline',  # Kline data
@@ -112,6 +105,7 @@ class bitget(Exchange):
                         'market/trade',  # Get Trade Detail Data
                         'market/history/trade',  # Get record of trading
                         'market/detail',  # Get Market Detail 24h Volume
+                        'market/history-fund-rate',  # Query funding rate history
                         'common/symbols',  # Query all trading pairs and accuracy supported in the station
                         'common/currencys',  # Query all currencies supported in the station
                         'common/timestamp',  # Query system current time
