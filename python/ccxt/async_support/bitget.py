@@ -105,7 +105,7 @@ class bitget(Exchange):
                         'market/trade',  # Get Trade Detail Data
                         'market/history/trade',  # Get record of trading
                         'market/detail',  # Get Market Detail 24h Volume
-                        'market/history-fund-rate',  # Query funding rate history
+                        'market/history/fund-rate',  # Query funding rate history
                         'common/symbols',  # Query all trading pairs and accuracy supported in the station
                         'common/currencys',  # Query all currencies supported in the station
                         'common/timestamp',  # Query system current time
