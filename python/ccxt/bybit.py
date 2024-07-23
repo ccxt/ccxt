@@ -6345,3 +6345,87 @@ class bybit(Exchange):
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             raise ExchangeError(feedback)  # unknown message
         return None
+
+    def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches historical funding rate prices
+        :see: https://bybit-exchange.github.io/docs/v5/market/history-fund-rate
+        :param str symbol: unified symbol of the market to fetch the funding rate history for
+        :param int [since]: timestamp in ms of the earliest funding rate to fetch
+        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>` to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest funding rate
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
+        self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params,
+                                                           200)
+        if limit is None:
+            limit = 200
+        request: dict = {
+            # 'category': '',  # Product type. linear,inverse
+            # 'symbol': '',  # Symbol name
+            # 'startTime': 0,  # The start timestamp(ms)
+            # 'endTime': 0,  # The end timestamp(ms)
+            'limit': limit,  # Limit for data size per page. [1, 200]. Default: 200
+        }
+        market = self.market(symbol)
+        symbol = market['symbol']
+        request['symbol'] = market['id']
+        type = None
+        type, params = self.get_bybit_type('fetchFundingRateHistory', market, params)
+        if type == 'spot' or type == 'option':
+            raise NotSupported(self.id + ' fetchFundingRateHistory() only support linear and inverse market')
+        request['category'] = type
+        if since is not None:
+            request['startTime'] = since
+        until = self.safe_integer(params, 'until')  # unified in milliseconds
+        endTime = self.safe_integer(params, 'endTime', until)  # exchange-specific in milliseconds
+        params = self.omit(params, ['endTime', 'until'])
+        if endTime is not None:
+            request['endTime'] = endTime
+        else:
+            if since is not None:
+                # end time is required when since is not empty
+                fundingInterval = 60 * 60 * 8 * 1000
+                request['endTime'] = since + limit * fundingInterval
+        response = self.publicGetV5MarketFundingHistory(self.extend(request, params))
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "OK",
+        #         "result": {
+        #             "category": "linear",
+        #             "list": [
+        #                 {
+        #                     "symbol": "ETHPERP",
+        #                     "fundingRate": "0.0001",
+        #                     "fundingRateTimestamp": "1672041600000"
+        #                 }
+        #             ]
+        #         },
+        #         "retExtInfo": {},
+        #         "time": 1672051897447
+        #     }
+        #
+        rates = []
+        result = self.safe_dict(response, 'result')
+        resultList = self.safe_list(result, 'list')
+        for i in range(0, len(resultList)):
+            entry = resultList[i]
+            timestamp = self.safe_integer(entry, 'fundingRateTimestamp')
+            rates.append({
+                'info': entry,
+                'symbol': self.safe_symbol(self.safe_string(entry, 'symbol'), None, None, 'swap'),
+                'fundingRate': self.safe_number(entry, 'fundingRate'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+            })
+        sorted = self.sort_by(rates, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)

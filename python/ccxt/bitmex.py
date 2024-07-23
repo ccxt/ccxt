@@ -1462,3 +1462,59 @@ class bitmex(Exchange):
                     auth += body
             headers['api-signature'] = self.hmac(self.encode(auth), self.encode(self.secret))
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+        """
+        Fetches the history of funding rates
+        :see: https://www.bitmex.com/api/explorer/#not /Funding/Funding_get
+        :param str symbol: unified symbol of the market to fetch the funding rate history for
+        :param int [since]: timestamp in ms of the earliest funding rate to fetch
+        :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>` to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms for ending date filter
+        :param bool [params.reverse]: if True, will sort results newest first
+        :param int [params.start]: starting point for results
+        :param str [params.columns]: array of column names to fetch in info, if omitted, will return all columns
+        :param str [params.filter]: generic table filter, send json key/value pairs, such as {"key": "value"}, you can key on individual fields, and do more advanced querying on timestamps, see the `timestamp docs <https://www.bitmex.com/app/restAPI#Timestamp-Filters>` for more details
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/#/?id=funding-rate-history-structure>`
+        """
+        self.load_markets()
+        request: dict = {}
+        market = None
+        if symbol in self.currencies:
+            code = self.currency(symbol)
+            request['symbol'] = code['id']
+        elif symbol is not None:
+            splitSymbol = symbol.split(':')
+            splitSymbolLength = len(splitSymbol)
+            timeframes = ['nearest', 'daily', 'weekly', 'monthly', 'quarterly', 'biquarterly', 'perpetual']
+            if (splitSymbolLength > 1) and self.in_array(splitSymbol[1], timeframes):
+                code = self.currency(splitSymbol[0])
+                symbol = code['id'] + ':' + splitSymbol[1]
+                request['symbol'] = symbol
+            else:
+                market = self.market(symbol)
+                request['symbol'] = market['id']
+        if since is not None:
+            request['startTime'] = self.iso8601(since)
+        if limit is not None:
+            request['count'] = limit
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['until'])
+        if until is not None:
+            request['endTime'] = self.iso8601(until)
+        if (since is None) and (until is None):
+            request['reverse'] = True
+        response = self.publicGetFunding(self.extend(request, params))
+        #
+        #    [
+        #        {
+        #            "timestamp": "2016-05-07T12:00:00.000Z",
+        #            "symbol": "ETHXBT",
+        #            "fundingInterval": "2000-01-02T00:00:00.000Z",
+        #            "fundingRate": 0.0010890000000000001,
+        #            "fundingRateDaily": 0.0010890000000000001
+        #        }
+        #    ]
+        #
+        return self.parse_funding_rate_histories(response, market, since, limit)

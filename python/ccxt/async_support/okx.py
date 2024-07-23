@@ -100,11 +100,6 @@ class okx(Exchange):
                 },
             },
             'api': {
-                'public': {
-                    'get': [
-                        'public/funding-rate-history',
-                    ]
-                },
                 'general': {
                     'get': [
                         'time',
@@ -3166,57 +3161,3 @@ class okx(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
         if nonZeroErrorCode or nonEmptyMessage:
             raise ExchangeError(feedback)  # unknown message
-
-    async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
-        await self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
-        if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 100)
-        market = self.market(symbol)
-        request: dict = {
-            'instId': market['id'],
-        }
-        if since is not None:
-            request['before'] = max(since - 1, 0)
-        if limit is not None:
-            request['limit'] = limit
-        response = await self.publicGetPublicFundingRateHistory(self.extend(request, params))
-        #
-        #     {
-        #         "code":"0",
-        #         "msg":"",
-        #         "data":[
-        #             {
-        #                 "instType":"SWAP",
-        #                 "instId":"BTC-USDT-SWAP",
-        #                 "fundingRate":"0.018",
-        #                 "realizedRate":"0.017",
-        #                 "fundingTime":"1597026383085"
-        #             },
-        #             {
-        #                 "instType":"SWAP",
-        #                 "instId":"BTC-USDT-SWAP",
-        #                 "fundingRate":"0.018",
-        #                 "realizedRate":"0.017",
-        #                 "fundingTime":"1597026383085"
-        #             }
-        #         ]
-        #     }
-        #
-        rates = []
-        data = self.safe_list(response, 'data', [])
-        for i in range(0, len(data)):
-            rate = data[i]
-            timestamp = self.safe_integer(rate, 'fundingTime')
-            rates.append({
-                'info': rate,
-                'symbol': self.safe_symbol(self.safe_string(rate, 'instId')),
-                'fundingRate': self.safe_number(rate, 'realizedRate'),
-                'timestamp': timestamp,
-                'datetime': self.iso8601(timestamp),
-            })
-        sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)

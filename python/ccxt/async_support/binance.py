@@ -294,11 +294,6 @@ class binance(Exchange):
                         'listenKey',
                     ],
                 },
-                'dapiPublic': {
-                    'get': [
-                        'fundingRate',
-                    ]
-                },
                 'fapiPrivateV2': {
                     'get': [
                         'account',
@@ -2149,65 +2144,3 @@ class binance(Exchange):
         if (api == 'private') or (api == 'wapi'):
             self.options['hasAlreadyAuthenticatedSuccessfully'] = True
         return response
-
-    def is_inverse(self):
-        default_type = self.safe_string(self.options, 'defaultType')
-        return default_type == "inverse" or default_type == 'delivery'
-
-    def is_linear(self):
-        default_type = self.safe_string(self.options, 'defaultType')
-        return default_type == "linear" or default_type == 'future'
-
-    async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
-        await self.load_markets()
-        request: dict = {}
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
-        if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params)
-        defaultType = self.safe_string_2(self.options, 'fetchFundingRateHistory', 'defaultType', 'future')
-        type = self.safe_string(params, 'type', defaultType)
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            symbol = market['symbol']
-            request['symbol'] = market['id']
-        subType = None
-        subType, params = self.handle_sub_type_and_params('fetchFundingRateHistory', market, params, 'linear')
-        params = self.omit(params, 'type')
-        if since is not None:
-            request['startTime'] = since
-        until = self.safe_integer(params, 'until')  # unified in milliseconds
-        endTime = self.safe_integer(params, 'endTime', until)  # exchange-specific in milliseconds
-        params = self.omit(params, ['endTime', 'until'])
-        if endTime is not None:
-            request['endTime'] = endTime
-        if limit is not None:
-            request['limit'] = limit
-        response = None
-        if self.is_linear():
-            response = await self.fapiPublicGetFundingRate(self.extend(request, params))
-        elif self.is_inverse():
-            response = await self.dapiPublicGetFundingRate(self.extend(request, params))
-        else:
-            raise NotSupported(self.id + ' fetchFundingRateHistory() is not supported for ' + type + ' markets')
-        #
-        #     {
-        #         "symbol": "BTCUSDT",
-        #         "fundingRate": "0.00063521",
-        #         "fundingTime": "1621267200000",
-        #     }
-        #
-        rates = []
-        for i in range(0, len(response)):
-            entry = response[i]
-            timestamp = self.safe_integer(entry, 'fundingTime')
-            rates.append({
-                'info': entry,
-                'symbol': self.safe_symbol(self.safe_string(entry, 'symbol'), None, None, 'swap'),
-                'fundingRate': self.safe_number(entry, 'fundingRate'),
-                'timestamp': timestamp,
-                'datetime': self.iso8601(timestamp),
-            })
-        sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
