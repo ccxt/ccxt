@@ -130,6 +130,7 @@ class kucoinfutures(kucoin):
                         'contracts/active',
                         'contracts/{symbol}',
                         'contracts/risk-limit/{symbol}',
+                        'contract/funding-rates',
                         'ticker',
                         'level2/snapshot',
                         'level2/depth{limit}',
