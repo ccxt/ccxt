@@ -1098,7 +1098,7 @@ export default class Exchange {
         }
     }
 
-    checkOrderArguments (market, type, side, amount, price, params) {
+    checkOrderArguments (market: string, type: string, side: string, amount: number, price: number, params: Dict) {
         if (price === undefined) {
             if (type === 'limit') {
                   throw new ArgumentsRequired (this.id + ' createOrder() requires a price argument for a limit order');
