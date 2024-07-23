@@ -13,6 +13,7 @@ import testSortBy from './test.sortBy.js';
 import testGroupBy from './test.groupBy.js';
 import testFilterBy from './test.filterBy.js';
 import testOmit from './test.omit.js';
+import testSum from './test.omit.js';
 
 function baseTestsInit () {
     testLanguageSpecific ();
@@ -28,6 +29,7 @@ function baseTestsInit () {
     testGroupBy ();
     testFilterBy ();
     testOmit ();
+    testSum ();
 }
 
 export default baseTestsInit;
