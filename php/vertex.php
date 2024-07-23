@@ -395,7 +395,16 @@ class vertex extends Exchange {
                 'withdraw' => $this->safe_bool($data, 'can_withdraw'),
                 'networks' => null,
                 'fee' => null,
-                'limits' => null,
+                'limits' => array(
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
             );
         }
         return $result;

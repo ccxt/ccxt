@@ -16,6 +16,7 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import ChecksumError
 
 
 class htx(ccxt.async_support.htx):
@@ -109,6 +110,7 @@ class htx(ccxt.async_support.htx):
                 'api': 'api',  # or api-aws for clients hosted on AWS
                 'watchOrderBook': {
                     'maxRetries': 3,
+                    'checksum': True,
                 },
                 'ws': {
                     'gunzip': True,
@@ -549,7 +551,9 @@ class htx(ccxt.async_support.htx):
             orderbook.reset(snapshot)
             orderbook['nonce'] = version
         if (prevSeqNum is not None) and prevSeqNum > orderbook['nonce']:
-            raise InvalidNonce(self.id + ' watchOrderBook() received a mesage out of order')
+            checksum = self.handle_option('watchOrderBook', 'checksum', True)
+            if checksum:
+                raise ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
         spotConditon = market['spot'] and (prevSeqNum == orderbook['nonce'])
         nonSpotCondition = market['contract'] and (version - 1 == orderbook['nonce'])
         if spotConditon or nonSpotCondition:
@@ -641,7 +645,7 @@ class htx(ccxt.async_support.htx):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.check_required_credentials()
         await self.load_markets()

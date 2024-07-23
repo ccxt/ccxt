@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import okxRest from '../okx.js';
-import { ArgumentsRequired, BadRequest, ExchangeError, InvalidNonce, AuthenticationError } from '../base/errors.js';
+import { ArgumentsRequired, BadRequest, ExchangeError, ChecksumError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, Liquidation } from '../base/types.js';
@@ -49,6 +49,7 @@ export default class okx extends okxRest {
             },
             'options': {
                 'watchOrderBook': {
+                    'checksum': true,
                     //
                     // bbo-tbt
                     // 1. Newly added channel that sends tick-by-tick Level 1 data
@@ -96,7 +97,6 @@ export default class okx extends okxRest {
                 'ws': {
                     // 'inflate': true,
                 },
-                'checksum': true,
             },
             'streaming': {
                 // okex does not support built-in ws protocol-level ping-pong
@@ -943,7 +943,7 @@ export default class okx extends okxRest {
         this.handleDeltas (storedBids, bids);
         const marketId = this.safeString (message, 'instId');
         const symbol = this.safeSymbol (marketId);
-        const checksum = this.safeBool (this.options, 'checksum', true);
+        const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
         if (checksum) {
             const asksLength = storedAsks.length;
             const bidsLength = storedBids.length;
@@ -962,7 +962,7 @@ export default class okx extends okxRest {
             const responseChecksum = this.safeInteger (message, 'checksum');
             const localChecksum = this.crc32 (payload, true);
             if (responseChecksum !== localChecksum) {
-                const error = new InvalidNonce (this.id + ' invalid checksum');
+                const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
                 delete client.subscriptions[messageHash];
                 delete this.orderbooks[symbol];
                 client.reject (error, messageHash);
@@ -1252,7 +1252,7 @@ export default class okx extends okxRest {
          * @param {bool} [params.stop] true if fetching trigger or conditional trades
          * @param {string} [params.type] 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
          * @param {string} [params.marginMode] 'cross' or 'isolated', for automatically setting the type to spot margin
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         // By default, receive order updates from any instrument type
         let type = undefined;
@@ -1671,7 +1671,7 @@ export default class okx extends okxRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const url = this.getUrl ('private', 'private');
-        const messageHash = this.nonce ().toString ();
+        const messageHash = this.milliseconds ().toString ();
         let op = undefined;
         [ op, params ] = this.handleOptionAndParams (params, 'createOrderWs', 'op', 'batch-orders');
         const args = this.createOrderRequest (symbol, type, side, amount, price, params);
@@ -1743,7 +1743,7 @@ export default class okx extends okxRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const url = this.getUrl ('private', 'private');
-        const messageHash = this.nonce ().toString ();
+        const messageHash = this.milliseconds ().toString ();
         let op = undefined;
         [ op, params ] = this.handleOptionAndParams (params, 'editOrderWs', 'op', 'amend-order');
         const args = this.editOrderRequest (id, symbol, type, side, amount, price, params);
@@ -1773,7 +1773,7 @@ export default class okx extends okxRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const url = this.getUrl ('private', 'private');
-        const messageHash = this.nonce ().toString ();
+        const messageHash = this.milliseconds ().toString ();
         const clientOrderId = this.safeString2 (params, 'clOrdId', 'clientOrderId');
         params = this.omit (params, [ 'clientOrderId', 'clOrdId' ]);
         const arg: Dict = {
@@ -1803,7 +1803,7 @@ export default class okx extends okxRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const idsLength = ids.length;
+        const idsLength: number = ids.length;
         if (idsLength > 20) {
             throw new BadRequest (this.id + ' cancelOrdersWs() accepts up to 20 ids at a time');
         }
@@ -1813,7 +1813,7 @@ export default class okx extends okxRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const url = this.getUrl ('private', 'private');
-        const messageHash = this.nonce ().toString ();
+        const messageHash = this.milliseconds ().toString ();
         const args = [];
         for (let i = 0; i < idsLength; i++) {
             const arg: Dict = {
@@ -1850,7 +1850,7 @@ export default class okx extends okxRest {
             throw new BadRequest (this.id + 'cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.');
         }
         const url = this.getUrl ('private', 'private');
-        const messageHash = this.nonce ().toString ();
+        const messageHash = this.milliseconds ().toString ();
         const request: Dict = {
             'id': messageHash,
             'op': 'mass-cancel',
@@ -1898,7 +1898,7 @@ export default class okx extends okxRest {
         future.resolve (true);
     }
 
-    ping (client) {
+    ping (client: Client) {
         // OKX does not support the built-in WebSocket protocol-level ping-pong.
         // Instead, it requires a custom text-based ping-pong mechanism.
         return 'ping';

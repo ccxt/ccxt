@@ -396,7 +396,16 @@ class vertex extends vertex$1 {
                 'withdraw': this.safeBool(data, 'can_withdraw'),
                 'networks': undefined,
                 'fee': undefined,
-                'limits': undefined,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
             };
         }
         return result;

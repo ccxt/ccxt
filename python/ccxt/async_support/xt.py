@@ -40,7 +40,7 @@ class xt(Exchange, ImplicitAPI):
             'rateLimit': 100,
             'version': 'v4',
             'certified': False,
-            'pro': False,
+            'pro': True,
             'has': {
                 'CORS': False,
                 'spot': True,
@@ -235,6 +235,7 @@ class xt(Exchange, ImplicitAPI):
                             'withdraw': 1,
                             'balance/transfer': 1,
                             'balance/account/transfer': 1,
+                            'ws-token': 1,
                         },
                         'delete': {
                             'batch-order': 1,
@@ -835,7 +836,7 @@ class xt(Exchange, ImplicitAPI):
                 'name': self.safe_string(entry, 'fullName'),
                 'active': active,
                 'fee': self.parse_number(minWithdrawFeeString),
-                'precision': None,
+                'precision': minPrecision,
                 'deposit': deposit,
                 'withdraw': withdraw,
                 'networks': networks,
@@ -1436,8 +1437,12 @@ class xt(Exchange, ImplicitAPI):
         orderBook = self.safe_value(response, 'result', {})
         timestamp = self.safe_integer_2(orderBook, 'timestamp', 't')
         if market['spot']:
-            return self.parse_order_book(orderBook, symbol, timestamp)
-        return self.parse_order_book(orderBook, symbol, timestamp, 'b', 'a')
+            ob = self.parse_order_book(orderBook, symbol, timestamp)
+            ob['nonce'] = self.safe_integer(orderBook, 'lastUpdateId')
+            return ob
+        swapOb = self.parse_order_book(orderBook, symbol, timestamp, 'b', 'a')
+        swapOb['nonce'] = self.safe_integer_2(orderBook, 'u', 'lastUpdateId')
+        return swapOb
 
     async def fetch_ticker(self, symbol: str, params={}):
         """
@@ -1680,8 +1685,9 @@ class xt(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(ticker, 's')
         marketType = market['type'] if (market is not None) else None
+        hasSpotKeys = ('cv' in ticker) or ('aq' in ticker)
         if marketType is None:
-            marketType = ('cv' in ticker) or 'spot' if ('aq' in ticker) else 'contract'
+            marketType = 'spot' if hasSpotKeys else 'contract'
         market = self.safe_market(marketId, market, '_', marketType)
         symbol = market['symbol']
         timestamp = self.safe_integer(ticker, 't')
@@ -1889,6 +1895,29 @@ class xt(Exchange, ImplicitAPI):
         #         "b": True
         #     }
         #
+        # spot: watchMyTrades
+        #
+        #    {
+        #        "s": "btc_usdt",                # symbol
+        #        "t": 1656043204763,             # time
+        #        "i": "6316559590087251233",     # tradeId
+        #        "oi": "6216559590087220004",    # orderId
+        #        "p": "30000",                   # trade price
+        #        "q": "3",                       # qty quantity
+        #        "v": "90000"                    # volume trade amount
+        #    }
+        #
+        # spot: watchTrades
+        #
+        #    {
+        #        s: 'btc_usdt',
+        #        i: '228825383103928709',
+        #        t: 1684258222702,
+        #        p: '27003.65',
+        #        q: '0.000796',
+        #        b: True
+        #    }
+        #
         # swap and future: fetchTrades
         #
         #     {
@@ -1933,19 +1962,53 @@ class xt(Exchange, ImplicitAPI):
         #         "takerMaker": "TAKER"
         #     }
         #
+        # contract watchMyTrades
+        #
+        #    {
+        #        "symbol": 'btc_usdt',
+        #        "orderSide": 'SELL',
+        #        "positionSide": 'LONG',
+        #        "orderId": '231485367663419328',
+        #        "price": '27152.7',
+        #        "quantity": '33',
+        #        "marginUnfrozen": '2.85318000',
+        #        "timestamp": 1684892412565
+        #    }
+        #
+        # watchMyTrades(ws, swap)
+        #
+        #    {
+        #        'fee': '0.04080840',
+        #        'isMaker': False,
+        #        'marginUnfrozen': '0.75711984',
+        #        'orderId': '376172779053188416',
+        #        'orderSide': 'BUY',
+        #        'positionSide': 'LONG',
+        #        'price': '3400.70',
+        #        'quantity': '2',
+        #        'symbol': 'eth_usdt',
+        #        'timestamp': 1719388579622
+        #    }
+        #
         marketId = self.safe_string_2(trade, 's', 'symbol')
         marketType = market['type'] if (market is not None) else None
+        hasSpotKeys = ('b' in trade) or ('bizType' in trade) or ('oi' in trade)
         if marketType is None:
-            marketType = ('b' in trade) or 'spot' if ('bizType' in trade) else 'contract'
+            marketType = 'spot' if hasSpotKeys else 'contract'
         market = self.safe_market(marketId, market, '_', marketType)
         bidOrAsk = self.safe_string(trade, 'm')
         side = self.safe_string_lower(trade, 'orderSide')
         if bidOrAsk is not None:
             side = 'buy' if (bidOrAsk == 'BID') else 'sell'
         buyerMaker = self.safe_value(trade, 'b')
+        if buyerMaker is not None:
+            side = 'buy'
         takerOrMaker = self.safe_string_lower(trade, 'takerMaker')
         if buyerMaker is not None:
             takerOrMaker = 'maker' if buyerMaker else 'taker'
+        isMaker = self.safe_bool(trade, 'isMaker')
+        if isMaker is not None:
+            takerOrMaker = 'maker' if isMaker else 'taker'
         timestamp = self.safe_integer_n(trade, ['t', 'time', 'timestamp'])
         quantity = self.safe_string_2(trade, 'q', 'quantity')
         amount = None
@@ -1962,7 +2025,7 @@ class xt(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
-            'order': self.safe_string(trade, 'orderId'),
+            'order': self.safe_string_2(trade, 'orderId', 'oi'),
             'type': self.safe_string_lower(trade, 'orderType'),
             'side': side,
             'takerOrMaker': takerOrMaker,
@@ -3245,7 +3308,7 @@ class xt(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_ledger(self, code: str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered the balance of the user
         :see: https://doc.xt.com/#futures_usergetBalanceBill
@@ -3404,7 +3467,7 @@ class xt(Exchange, ImplicitAPI):
             'info': depositAddress,
         }
 
-    async def fetch_deposits(self, code: str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all deposits made to an account
         :see: https://doc.xt.com/#deposit_withdrawalhistoryDepositGet
@@ -3455,7 +3518,7 @@ class xt(Exchange, ImplicitAPI):
         deposits = self.safe_value(data, 'items', [])
         return self.parse_transactions(deposits, currency, since, limit, params)
 
-    async def fetch_withdrawals(self, code: str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
         """
         fetch all withdrawals made from an account
         :see: https://doc.xt.com/#deposit_withdrawalwithdrawHistory
@@ -4419,7 +4482,7 @@ class xt(Exchange, ImplicitAPI):
                     body['clientMedia'] = id
                 else:
                     body['media'] = id
-            isUndefinedBody = ((method == 'GET') or (path == 'order/{orderId}'))
+            isUndefinedBody = ((method == 'GET') or (path == 'order/{orderId}') or (path == 'ws-token'))
             body = None if isUndefinedBody else self.json(body)
             payloadString = None
             if (endpoint == 'spot') or (endpoint == 'user'):
@@ -4427,7 +4490,7 @@ class xt(Exchange, ImplicitAPI):
                 if isUndefinedBody:
                     if urlencoded:
                         url += '?' + urlencoded
-                        payloadString += '#' + method + '#' + payload + '#' + urlencoded
+                        payloadString += '#' + method + '#' + payload + '#' + self.rawencode(self.keysort(query))
                     else:
                         payloadString += '#' + method + '#' + payload
                 else:

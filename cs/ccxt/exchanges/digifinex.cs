@@ -1973,8 +1973,42 @@ public partial class digifinex : Exchange
             {
                 throw new OrderNotFound ((string)add(add(add(this.id, " cancelOrder() "), id), " not found")) ;
             }
+            object orders = this.parseCancelOrders(response);
+            return this.safeDict(orders, 0);
+        } else
+        {
+            return this.safeOrder(new Dictionary<string, object>() {
+                { "info", response },
+                { "orderId", this.safeString(response, "data") },
+            });
         }
-        return response;
+    }
+
+    public virtual object parseCancelOrders(object response)
+    {
+        object success = this.safeList(response, "success");
+        object error = this.safeList(response, "error");
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(success)); postFixIncrement(ref i))
+        {
+            object order = getValue(success, i);
+            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "info", order },
+                { "id", order },
+                { "status", "canceled" },
+            }));
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(error)); postFixIncrement(ref i))
+        {
+            object order = getValue(error, i);
+            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "info", order },
+                { "id", this.safeString2(order, "order-id", "order_id") },
+                { "status", "failed" },
+                { "clientOrderId", this.safeString(order, "client-order-id") },
+            }));
+        }
+        return result;
     }
 
     public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
@@ -2010,13 +2044,7 @@ public partial class digifinex : Exchange
         //         ]
         //     }
         //
-        object canceledOrders = this.safeValue(response, "success", new List<object>() {});
-        object numCanceledOrders = getArrayLength(canceledOrders);
-        if (isTrue(isLessThan(numCanceledOrders, 1)))
-        {
-            throw new OrderNotFound ((string)add(this.id, " cancelOrders() error")) ;
-        }
-        return response;
+        return this.parseCancelOrders(response);
     }
 
     public virtual object parseOrderStatus(object status)

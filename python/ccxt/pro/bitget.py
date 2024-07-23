@@ -14,7 +14,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import RateLimitExceeded
-from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import ChecksumError
 from ccxt.base.precise import Precise
 
 
@@ -67,6 +67,9 @@ class bitget(ccxt.async_support.bitget):
                     '12h': '12H',
                     '1d': '1D',
                     '1w': '1W',
+                },
+                'watchOrderBook': {
+                    'checksum': True,
                 },
             },
             'streaming': {
@@ -539,9 +542,9 @@ class bitget(ccxt.async_support.bitget):
                 calculatedChecksum = self.crc32(payload, True)
                 responseChecksum = self.safe_integer(rawOrderBook, 'checksum')
                 if calculatedChecksum != responseChecksum:
-                    error = InvalidNonce(self.id + ' invalid checksum')
                     del client.subscriptions[messageHash]
                     del self.orderbooks[symbol]
+                    error = ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
                     client.reject(error, messageHash)
                     return
         else:
@@ -920,7 +923,7 @@ class bitget(ccxt.async_support.bitget):
         :param str [params.marginMode]: 'isolated' or 'cross' for watching spot margin orders]
         :param str [params.type]: 'spot', 'swap'
         :param str [params.subType]: 'linear', 'inverse'
-        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -1675,7 +1678,7 @@ class bitget(ccxt.async_support.bitget):
         if topic.find('books') >= 0:
             self.handle_order_book(client, message)
 
-    def ping(self, client):
+    def ping(self, client: Client):
         return 'ping'
 
     def handle_pong(self, client: Client, message):

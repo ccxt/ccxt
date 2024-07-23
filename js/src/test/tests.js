@@ -1076,7 +1076,7 @@ class testMainClass extends baseMainTestClass {
         }
         return newInput;
     }
-    async testMethodStatically(exchange, method, data, type, skipKeys) {
+    async testRequestStatically(exchange, method, data, type, skipKeys) {
         let output = undefined;
         let requestUrl = undefined;
         try {
@@ -1120,7 +1120,7 @@ class testMainClass extends baseMainTestClass {
             }
         }
         catch (e) {
-            this.requestTestsFailed = true;
+            this.responseTestsFailed = true;
             const errorMessage = '[' + this.lang + '][STATIC_RESPONSE_TEST_FAILURE]' + '[' + this.exchangeHint(exchange) + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString();
             dump('[TEST_FAILURE]' + errorMessage);
         }
@@ -1181,7 +1181,7 @@ class testMainClass extends baseMainTestClass {
                 }
                 const type = exchange.safeString(exchangeData, 'outputType');
                 const skipKeys = exchange.safeValue(exchangeData, 'skipKeys', []);
-                await this.testMethodStatically(exchange, method, result, type, skipKeys);
+                await this.testRequestStatically(exchange, method, result, type, skipKeys);
                 // reset options
                 // exchange.options = exchange.deepExtend (oldExchangeOptions, {});
                 exchange.extendExchangeOptions(exchange.deepExtend(oldExchangeOptions, {}));

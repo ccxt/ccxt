@@ -571,7 +571,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
         }
         return self.v1PrivatePostPortfoliosMargin(self.extend(request, params))
 
-    def fetch_deposits_withdrawals(self, code: str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    def fetch_deposits_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch history of deposits and withdrawals
         :see: https://docs.cloud.coinbase.com/intx/reference/gettransfers

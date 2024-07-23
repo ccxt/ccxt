@@ -90,7 +90,7 @@ class vertex(ccxt.async_support.vertex):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -147,7 +147,7 @@ class vertex(ccxt.async_support.vertex):
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.user]: user address, will default to self.walletAddress if not provided
-        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchMyTrades requires a symbol.')
@@ -798,9 +798,10 @@ class vertex(ccxt.async_support.vertex):
         #
         marketId = self.safe_string(order, 'product_id')
         timestamp = self.parse_to_int(Precise.string_div(self.safe_string(order, 'timestamp'), '1000000'))
-        remaining = self.parse_to_numeric(self.convertFromX18(self.safe_string(order, 'amount')))
+        remainingString = self.convertFromX18(self.safe_string(order, 'amount'))
+        remaining = self.parse_to_numeric(remainingString)
         status = self.parse_ws_order_status(self.safe_string(order, 'reason'))
-        if remaining == 0 and status == 'open':
+        if Precise.string_eq(remainingString, '0') and status == 'open':
             status = 'closed'
         market = self.safe_market(marketId, market)
         symbol = market['symbol']

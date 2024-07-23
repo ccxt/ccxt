@@ -97,6 +97,9 @@ declare class OnMaintenance extends ExchangeNotAvailable {
 declare class InvalidNonce extends NetworkError {
     constructor(message: string);
 }
+declare class ChecksumError extends InvalidNonce {
+    constructor(message: string);
+}
 declare class RequestTimeout extends NetworkError {
     constructor(message: string);
 }
@@ -109,7 +112,7 @@ declare class NullResponse extends BadResponse {
 declare class CancelPending extends OperationFailed {
     constructor(message: string);
 }
-export { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, BadResponse, NullResponse, CancelPending };
+export { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending };
 declare const _default: {
     BaseError: typeof BaseError;
     ExchangeError: typeof ExchangeError;
@@ -144,6 +147,7 @@ declare const _default: {
     ExchangeNotAvailable: typeof ExchangeNotAvailable;
     OnMaintenance: typeof OnMaintenance;
     InvalidNonce: typeof InvalidNonce;
+    ChecksumError: typeof ChecksumError;
     RequestTimeout: typeof RequestTimeout;
     BadResponse: typeof BadResponse;
     NullResponse: typeof NullResponse;

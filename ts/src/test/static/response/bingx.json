@@ -1958,7 +1958,7 @@
                     "percentage": null,
                     "contracts": 0.1,
                     "contractSize": 1,
-                    "markPrice": null,
+                    "markPrice": 95.62,
                     "lastPrice": null,
                     "side": "long",
                     "hedged": null,

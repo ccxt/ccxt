@@ -221,7 +221,7 @@ class tradeogre extends Exchange {
                     'inverse' => null,
                     'contractSize' => null,
                     'taker' => $this->fees['trading']['taker'],
-                    'maker' => $this->fees['trading']['taker'],
+                    'maker' => $this->fees['trading']['maker'],
                     'expiry' => null,
                     'expiryDatetime' => null,
                     'strike' => null,

@@ -68,6 +68,7 @@ public partial class kraken : Exchange
                 { "fetchOrderTrades", "emulated" },
                 { "fetchPositions", true },
                 { "fetchPremiumIndexOHLCV", false },
+                { "fetchStatus", true },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
@@ -625,6 +626,35 @@ public partial class kraken : Exchange
         return result;
     }
 
+    public async override Task<object> fetchStatus(object parameters = null)
+    {
+        /**
+        * @method
+        * @name kraken#fetchStatus
+        * @description the latest known information on the availability of the exchange API
+        * @see https://docs.kraken.com/api/docs/rest-api/get-system-status/
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        object response = await this.publicGetSystemStatus(parameters);
+        //
+        // {
+        //     error: [],
+        //     result: { status: 'online', timestamp: '2024-07-22T16:34:44Z' }
+        // }
+        //
+        object result = this.safeDict(response, "result");
+        object statusRaw = this.safeString(result, "status");
+        return new Dictionary<string, object>() {
+            { "status", ((bool) isTrue((isEqual(statusRaw, "online")))) ? "ok" : "maintenance" },
+            { "updated", null },
+            { "eta", null },
+            { "url", null },
+            { "info", response },
+        };
+    }
+
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
         /**
@@ -1078,7 +1108,7 @@ public partial class kraken : Exchange
         {
             direction = "in";
         }
-        object timestamp = this.safeTimestamp(item, "time");
+        object timestamp = this.safeIntegerProduct(item, "time", 1000);
         return new Dictionary<string, object>() {
             { "info", item },
             { "id", id },
