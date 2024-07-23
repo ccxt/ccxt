@@ -21,6 +21,8 @@ export type NullableDict = Dict | undefined;
 export type List = Array<any>;
 export type NullableList = List | undefined;
 
+export type DictOrList = Dict | List;
+
 /** Request parameters */
 // type Params = Dictionary<string | number | boolean | string[]>;
 

@@ -54,6 +54,7 @@ Int = Optional[int]
 Bool = Optional[bool]
 MarketType = Literal['spot', 'margin', 'swap', 'future', 'option']
 SubType = Literal['linear', 'inverse']
+DictOrList = Union[Dict, List]
 
 
 class FeeInterface(TypedDict):
@@ -138,6 +139,7 @@ class Position(TypedDict):
     percentage: Num
     stopLossPrice: Num
     takeProfitPrice: Num
+
 
 class OrderRequest(TypedDict):
     symbol: Str
@@ -354,9 +356,11 @@ class Option(TypedDict):
 
 OptionChain = Dict[str, Option]
 
+
 class MarketMarginMode(TypedDict):
     cross: bool
     isolated: bool
+
 
 class MarketInterface(TypedDict):
     info: Dict[str, Any]
@@ -393,6 +397,7 @@ class MarketInterface(TypedDict):
     precision: Any
     limits: Any
     created: Int
+
 
 class Limit(TypedDict):
     min: Num
