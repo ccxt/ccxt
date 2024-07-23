@@ -1997,7 +1997,7 @@ export default class Exchange {
         return -1;
     }
 
-    findTimeframe (timeframe, timeframes = undefined) {
+    findTimeframe (timeframe: string, timeframes: Dict = undefined) {
         if (timeframes === undefined) {
             timeframes = this.timeframes;
         }
