@@ -1885,9 +1885,6 @@ export default class Exchange {
             return defaultValue;
         }
         if ((typeof value === 'object')) {
-            if (Array.isArray (value)) {
-                return defaultValue;
-            }
             return value;
         }
         return defaultValue;
