@@ -348,7 +348,7 @@ func (this *Exchange) initializeProperties(extendedProperties Dict) {
 
 	this.UserAgents = SafeValue(extendedProperties, "userAgents", map[string]interface{}{}).(map[string]interface{})
 	this.UserAgent = SafeString(extendedProperties, "userAgent", "").(string)
-	this.Timeout = SafeInteger(extendedProperties, "timeout", 10000)
+	this.Timeout = SafeInteger(extendedProperties, "timeout", 10000).(int64)
 	this.Id = SafeString(extendedProperties, "id", "").(string)
 	this.Alias = SafeValue(extendedProperties, "alias", false).(bool)
 
@@ -374,10 +374,10 @@ func (this *Exchange) initializeProperties(extendedProperties Dict) {
 		this.Currencies = propCurrencies
 	}
 
-	this.RateLimit = SafeFloat(extendedProperties, "rateLimit", -1)
+	this.RateLimit = SafeFloat(extendedProperties, "rateLimit", -1).(float64)
 	// this.status = SafeValue(extendedProperties, "status",map[string]interface{}{}).(map[string]interface{})
-	this.PrecisionMode = int(SafeInteger(extendedProperties, "precisionMode", this.PrecisionMode))
-	this.PaddingMode = int(SafeInteger(extendedProperties, "paddingMode", this.PaddingMode))
+	this.PrecisionMode = int(SafeInteger(extendedProperties, "precisionMode", this.PrecisionMode).(int64))
+	this.PaddingMode = int(SafeInteger(extendedProperties, "paddingMode", this.PaddingMode).(int64))
 	this.CommonCurrencies = SafeValue(extendedProperties, "commonCurrencies", map[string]interface{}{}).(map[string]interface{})
 	subVal := SafeValue(extendedProperties, "substituteCommonCurrencyCodes", true)
 	this.SubstituteCommonCurrencyCodes = subVal != nil && subVal.(bool)

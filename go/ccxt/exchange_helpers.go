@@ -75,6 +75,13 @@ func IsInteger(value interface{}) bool {
 }
 
 func GetValue(collection interface{}, key interface{}) interface{} {
+
+	if collection == nil {
+		return nil
+	}
+	if key == nil {
+		return nil
+	}
 	reflectValue := reflect.ValueOf(collection)
 
 	switch reflectValue.Kind() {
@@ -269,6 +276,14 @@ func IsEqual(a, b interface{}) bool {
 		return false
 	}
 
+	if (a == true && b == false) || (a == false && b == true) {
+		return false
+	}
+
+	if (a == true && b == true) || (a == false && b == false) {
+		return true
+	}
+
 	aVal, bVal, ok := NormalizeAndConvert(a, b)
 	if !ok {
 		return false
@@ -420,9 +435,9 @@ func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value 
 		if !key.Type().AssignableTo(val.Type().Key()) {
 			// return fmt.Errorf("key type %s does not match map key type %s", key.Type(), val.Type().Key())
 		}
-		if !valueVal.Type().AssignableTo(val.Type().Elem()) {
-			// return fmt.Errorf("value type %s does not match map value type %s", valueVal.Type(), val.Type().Elem())
-		}
+		// if !valueVal.Type().AssignableTo(val.Type().Elem()) {
+		// 	// return fmt.Errorf("value type %s does not match map value type %s", valueVal.Type(), val.Type().Elem())
+		// }
 		val.SetMapIndex(key, valueVal)
 	default:
 		// return fmt.Errorf("unsupported type: %s", val.Kind())
@@ -431,6 +446,13 @@ func AddElementToObject(arrayOrDict interface{}, stringOrInt interface{}, value 
 }
 
 func InOp(dict interface{}, key interface{}) bool {
+
+	if dict == nil {
+		return false
+	}
+	if key == nil {
+		return false
+	}
 	dictVal := reflect.ValueOf(dict)
 
 	// Ensure that the provided dict is a map
@@ -440,7 +462,7 @@ func InOp(dict interface{}, key interface{}) bool {
 
 	keyVal := reflect.ValueOf(key)
 
-	// Check if the map has the provided key
+	// Check if the map has the provided key todo:debug here
 	if dictVal.MapIndex(keyVal).IsValid() {
 		return true
 	}
@@ -866,6 +888,7 @@ type Task func() interface{}
 
 // promiseAll resolves a list of tasks asynchronously and returns a list with the results
 func promiseAll(tasksInterface interface{}) []interface{} {
+	return tasksInterface.([]interface{}) //  for now the execution is synchronous improve later with goroutines and channels
 	tasks, ok := tasksInterface.([]interface{})
 	if !ok {
 		return nil // Return nil if the input is not a slice of interfaces
