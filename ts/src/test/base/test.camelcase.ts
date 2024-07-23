@@ -3,139 +3,9 @@
 import assert, { strictEqual, deepEqual } from 'assert';
 import ccxt, { Exchange, functions } from '../../../ccxt.js';
 
-<<<<<<< HEAD:ts/src/test/base/test.base.ts
-const { Exchange, index, aggregate, unCamelCase, TICK_SIZE, DECIMAL_PLACES } = functions
-
-const equal = strictEqual
-
-global.log =  ololog
-
-function testCalculateFee (precisionMode) {
-    const exchange = new Exchange ({
-        'id': 'mock',
-        'markets': {
-            'FOO/BAR': market,
-        },
-        'precisionMode': precisionMode,
-    })
-
-    const price  = 100.00
-    const amount = 10.00
-    const taker  = exchange.parseNumber ('0.0025')
-    const maker  = exchange.parseNumber ('0.0010')
-    const fees   = { taker, maker }
-    const market = {
-        'id':     'foobar',
-        'symbol': 'FOO/BAR',
-        'base':   'FOO',
-        'quote':  'BAR',
-        'taker':   taker,
-        'maker':   maker,
-        'precision':{
-            'amount': exchange.parseNumber (exchange.isTickPrecision() ? '1e-8' : '8'),
-            'price': exchange.parseNumber (exchange.isTickPrecision() ? '1e-8' : '8'),
-        }
-    };
-
-    Object.keys (fees).forEach ((takerOrMaker) => {
-
-        const result = exchange.calculateFee (market['symbol'], 'limit', 'sell', amount, price, takerOrMaker, {})
-
-        deepEqual (result, {
-            'type': takerOrMaker,
-            'currency': 'BAR',
-            'rate': fees[takerOrMaker],
-            'cost': fees[takerOrMaker] * amount * price,
-        })
-    })
-}
-
-function testExchangeConfigExtension () {
-
-
-    const cost = { 'min': 0.001, 'max': 1000 }
-    const precision = { 'amount': 3 }
-    const exchange = new binance ({
-        'markets': {
-            'ETH/BTC': { 'limits': { cost }, precision },
-        },
-    })
-
-    deepEqual (exchange.markets['ETH/BTC'].limits.cost, cost)
-    deepEqual (exchange.markets['ETH/BTC'].precision, { 'price': 6, 'amount': 3 })
-    deepEqual (exchange.markets['ETH/BTC'].symbol, 'ETH/BTC')
-}
-
-function testAggregate () {
-
-    const bids = [
-        [ 789.1, 123.0 ],
-        [ 789.100, 123.0 ],
-        [ 123.0, 456.0 ],
-        [ 789.0, 123.0 ],
-        [ 789.10, 123.0 ],
-    ]
-
-    const asks = [
-        [ 123.0, 456.0 ],
-        [ 789.0, 123.0 ],
-        [ 789.10, 123.0 ],
-    ]
-
-    deepEqual (aggregate (bids.sort ()), [
-        [ 123.0, 456.0 ],
-        [ 789.0, 123.0 ],
-        [ 789.1, 369.0 ],
-    ])
-
-    deepEqual (aggregate (asks.sort ()), [
-        [ 123.0, 456.0 ],
-        [ 789.0, 123.0 ],
-        [ 789.10, 123.0 ],
-    ])
-
-    deepEqual (aggregate ([]), [])
-}
-
-function testSafeBalance () {
-
-    const exchange = new Exchange ({
-        'markets': {
-            'ETH/BTC': { 'id': 'ETH/BTC', 'symbol': 'ETH/BTC', 'base': 'ETH', 'quote': 'BTC', }
-        }
-    })
-
-    const input = {
-        'ETH': { 'free': 10, 'used': 10, 'total': 20 },
-        'ZEC': { 'free': 0, 'used': 0, 'total': 0 },
-    }
-
-    const expected = {
-        'ETH': { 'free': 10, 'used': 10, 'total': 20 },
-        'ZEC': { 'free': 0, 'used': 0, 'total': 0 },
-        'free': {
-            'ETH': 10,
-            'ZEC': 0,
-        },
-        'used': {
-            'ETH': 10,
-            'ZEC': 0,
-        },
-        'total': {
-            'ETH': 20,
-            'ZEC': 0,
-        },
-    }
-
-    const actual = exchange.safeBalance (input)
-
-    deepEqual (actual, expected)
-}
-=======
 const { index, aggregate, unCamelCase } = functions;
 
 const equal = strictEqual;
->>>>>>> 1046e0bacfe5718d3a8755019d64b38aa2d932c9:ts/src/test/base/test.camelcase.ts
 
 function testCamelCasePropertyConversion () {
 
@@ -180,24 +50,10 @@ function testUnCamelCase () {
     equal (unCamelCase ('hasFetchOHLCV'), 'has_fetch_ohlcv');
 }
 
-<<<<<<< HEAD:ts/src/test/base/test.base.ts
-// ----------------------------------------------------------------------------
-
-function testBase () {
-    testCalculateFee (TICK_SIZE);
-    testCalculateFee (DECIMAL_PLACES);
-    // testExchangeConfigExtension () // skipped
-    testAggregate ()
-    testSafeBalance ()
-    testCamelCasePropertyConversion ()
-    testCamelCasePropertyConversion2 ()
-    testLegacyHasSomething ()
-=======
 function testCamelCase () {
     testUnCamelCase ();
     testCamelCasePropertyConversion ();
     testCamelCasePropertyConversion2 ();
->>>>>>> 1046e0bacfe5718d3a8755019d64b38aa2d932c9:ts/src/test/base/test.camelcase.ts
 }
 
 export default testCamelCase;
