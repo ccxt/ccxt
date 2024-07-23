@@ -26,7 +26,6 @@ import {
     NotSupported,
     NullResponse,
     OperationFailed,
-    ProxyError,
     RateLimitExceeded,
     RequestTimeout
 } from "./errors.js";
