@@ -1317,14 +1317,15 @@ export default class bitvavo extends bitvavoRest {
             client.reject (e, messageHash);
         }
         if (!rejected) {
+            let text: string = '';
             if (typeof message !== 'string') {
                 try {
-                    message = this.json (message);
+                    text = this.json (message);
                 } catch (e) {
-                    message = message.toString ();
+                    text = message.toString ();
                 }
             }
-            const exception = new OperationFailed (this.id + ' WS handleErrorMessage() : ' + message);
+            const exception = new OperationFailed (this.id + ' WS handleErrorMessage() : ' + text);
             client.reject (exception, messageHash); // todo: maybe exception instead of string
         }
     }
