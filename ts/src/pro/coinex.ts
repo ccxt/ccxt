@@ -6,7 +6,6 @@ import coinexRest from '../coinex.js';
 import { AuthenticationError, BadRequest, ExchangeNotAvailable, NotSupported, RequestTimeout, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { md5 } from '../static_dependencies/noble-hashes/md5.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
@@ -30,8 +29,8 @@ export default class coinex extends coinexRest {
             'urls': {
                 'api': {
                     'ws': {
-                        'spot': 'wss://socket.coinex.com/',
-                        'swap': 'wss://perpetual.coinex.com/',
+                        'spot': 'wss://socket.coinex.com/v2/spot/',
+                        'swap': 'wss://socket.coinex.com/v2/futures/',
                     },
                 },
             },
@@ -231,6 +230,8 @@ export default class coinex extends coinexRest {
          * @method
          * @name coinex#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.coinex.com/api/v2/assets/balance/ws/spot_balance
+         * @see https://docs.coinex.com/api/v2/assets/balance/ws/futures_balance
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -240,10 +241,13 @@ export default class coinex extends coinexRest {
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const url = this.urls['api']['ws'][type];
-        const currencies = Object.keys (this.currencies_by_id);
+        let currencies = Object.keys (this.currencies_by_id);
+        if (currencies === undefined) {
+            currencies = [];
+        }
         const subscribe: Dict = {
-            'method': 'asset.subscribe',
-            'params': currencies,
+            'method': 'balance.subscribe',
+            'params': { 'ccy_list': currencies },
             'id': this.requestId (),
         };
         const request = this.deepExtend (subscribe, params);
@@ -416,8 +420,9 @@ export default class coinex extends coinexRest {
         /**
          * @method
          * @name coinex#watchTicker
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://docs.coinex.com/api/v2/spot/market/ws/market
+         * @see https://docs.coinex.com/api/v2/futures/market/ws/market-state
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -430,25 +435,28 @@ export default class coinex extends coinexRest {
         /**
          * @method
          * @name coinex#watchTickers
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket007_state_subscribe
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @see https://docs.coinex.com/api/v2/spot/market/ws/market
+         * @see https://docs.coinex.com/api/v2/futures/market/ws/market-state
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
+        let marketIds = this.marketIds (symbols);
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', undefined, params);
         const url = this.urls['api']['ws'][type];
         let messageHash = 'tickers';
-        if (symbols !== undefined) {
+        if (marketIds !== undefined) {
             messageHash = 'tickers::' + symbols.join (',');
+        } else {
+            marketIds = [];
         }
         const subscribe: Dict = {
             'method': 'state.subscribe',
+            'params': { 'market_list': marketIds },
             'id': this.requestId (),
-            'params': [],
         };
         const request = this.deepExtend (subscribe, params);
         const newTickers = await this.watch (url, messageHash, request, messageHash);
@@ -1073,58 +1081,33 @@ export default class coinex extends coinexRest {
         const url = this.urls['api']['ws'][type];
         const client = this.client (url);
         const time = this.milliseconds ();
+        const timestamp = this.numberToString (time);
         const isSpot = (type === 'spot');
         const spotMessageHash = 'authenticated:spot';
         const swapMessageHash = 'authenticated:swap';
         const messageHash = isSpot ? spotMessageHash : swapMessageHash;
         const future = client.future (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
-        if (type === 'spot') {
-            if (authenticated !== undefined) {
-                return await future;
-            }
-            const requestId = this.requestId ();
-            const subscribe: Dict = {
-                'id': requestId,
-                'future': spotMessageHash,
-            };
-            const signData = 'access_id=' + this.apiKey + '&tonce=' + this.numberToString (time) + '&secret_key=' + this.secret;
-            const hash = this.hash (this.encode (signData), md5);
-            const request: Dict = {
-                'method': 'server.sign',
-                'params': [
-                    this.apiKey,
-                    hash.toUpperCase (),
-                    time,
-                ],
-                'id': requestId,
-            };
-            this.watch (url, messageHash, request, requestId, subscribe);
-            client.subscriptions[messageHash] = true;
-            return await future;
-        } else {
-            if (authenticated !== undefined) {
-                return await future;
-            }
-            const requestId = this.requestId ();
-            const subscribe: Dict = {
-                'id': requestId,
-                'future': swapMessageHash,
-            };
-            const signData = 'access_id=' + this.apiKey + '&timestamp=' + this.numberToString (time) + '&secret_key=' + this.secret;
-            const hash = this.hash (this.encode (signData), sha256, 'hex');
-            const request: Dict = {
-                'method': 'server.sign',
-                'params': [
-                    this.apiKey,
-                    hash.toLowerCase (),
-                    time,
-                ],
-                'id': requestId,
-            };
-            this.watch (url, messageHash, request, requestId, subscribe);
-            client.subscriptions[messageHash] = true;
+        if (authenticated !== undefined) {
             return await future;
         }
+        const requestId = this.requestId ();
+        const subscribe: Dict = {
+            'id': requestId,
+            'future': spotMessageHash,
+        };
+        const hmac = this.hmac (this.encode (this.secret), this.encode (timestamp), sha256, 'base64'); // 'hex'
+        const request: Dict = {
+            'id': requestId,
+            'method': 'server.sign',
+            'params': {
+                'access_id': this.apiKey,
+                'signed_str': hmac.toLowerCase (),
+                'timestamp': time,
+            },
+        };
+        this.watch (url, messageHash, request, requestId, subscribe);
+        client.subscriptions[messageHash] = true;
+        return await future;
     }
 }
