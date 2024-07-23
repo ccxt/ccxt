@@ -11,6 +11,8 @@ import testAggregate from './test.aggregate.js';
 import testConfig from './test.config.js';
 import testSortBy from './test.sortBy.js';
 import testGroupBy from './test.groupBy.js';
+import testFilterBy from './test.filterBy.js';
+import testOmit from './test.omit.js';
 
 function baseTestsInit () {
     testLanguageSpecific ();
@@ -24,6 +26,8 @@ function baseTestsInit () {
     testConfig ();
     testSortBy ();
     testGroupBy ();
+    testFilterBy ();
+    testOmit ();
 }
 
 export default baseTestsInit;
