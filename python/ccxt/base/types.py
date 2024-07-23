@@ -241,6 +241,23 @@ class Transaction(TypedDict):
     internal: Bool
 
 
+class DepositWithdrawFeeNetwork(TypedDict):
+    fee: float
+    percentage: bool
+
+
+class DepositWithdrawFeeNetworks(TypedDict):
+    withdraw: DepositWithdrawFeeNetwork
+    deposit: DepositWithdrawFeeNetwork
+
+
+class DepositWithdrawFee(TypedDict):
+    info: Dict[str, Any]
+    withdraw: DepositWithdrawFeeNetwork
+    deposit: DepositWithdrawFeeNetwork
+    networks: Dict[str, DepositWithdrawFeeNetworks]
+
+
 class TransferEntry(TypedDict):
     info: Dict[str, any]
     id: Str
