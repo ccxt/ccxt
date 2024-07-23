@@ -208,7 +208,7 @@ export default class bithumb extends Exchange {
          * @returns {object[]} an array of objects representing market data
          */
         const result = [];
-        const quoteCurrencies = this.safeValue (this.options, 'quoteCurrencies', {});
+        const quoteCurrencies = this.safeDict (this.options, 'quoteCurrencies', {});
         const quotes = Object.keys (quoteCurrencies);
         const promises = [];
         for (let i = 0; i < quotes.length; i++) {
@@ -258,7 +258,7 @@ export default class bithumb extends Exchange {
             const quoteId = quote;
             const response = results[i];
             const data = this.safeDict (response, 'data');
-            const extension = this.safeValue (quoteCurrencies, quote, {});
+            const extension = this.safeDict (quoteCurrencies, quote, {});
             const currencyIds = Object.keys (data);
             for (let j = 0; j < currencyIds.length; j++) {
                 const currencyId = currencyIds[j];
@@ -328,7 +328,7 @@ export default class bithumb extends Exchange {
 
     parseBalance (response): Balances {
         const result: Dict = { 'info': response };
-        const balances = this.safeValue (response, 'data');
+        const balances = this.safeDict (response, 'data');
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
@@ -401,7 +401,7 @@ export default class bithumb extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const timestamp = this.safeInteger (data, 'timestamp');
         return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
@@ -467,7 +467,7 @@ export default class bithumb extends Exchange {
          */
         await this.loadMarkets ();
         const result: Dict = {};
-        const quoteCurrencies = this.safeValue (this.options, 'quoteCurrencies', {});
+        const quoteCurrencies = this.safeDict (this.options, 'quoteCurrencies', {});
         const quotes = Object.keys (quoteCurrencies);
         const promises = [];
         for (let i = 0; i < quotes.length; i++) {
@@ -501,7 +501,7 @@ export default class bithumb extends Exchange {
             //         }
             //     }
             //
-            const data = this.safeValue (response, 'data', {});
+            const data = this.safeDict (response, 'data', {});
             const timestamp = this.safeInteger (data, 'date');
             const tickers = this.omit (data, 'date');
             const currencyIds = Object.keys (tickers);
@@ -893,7 +893,7 @@ export default class bithumb extends Exchange {
         //     }
         //
         const timestamp = this.safeIntegerProduct (order, 'order_date', 0.001);
-        const sideProperty = this.safeValue2 (order, 'type', 'side');
+        const sideProperty = this.safeString2 (order, 'type', 'side');
         const side = (sideProperty === 'bid') ? 'buy' : 'sell';
         const status = this.parseOrderStatus (this.safeString (order, 'order_status'));
         const price = this.safeString2 (order, 'order_price', 'price');
@@ -923,7 +923,7 @@ export default class bithumb extends Exchange {
             symbol = market['symbol'];
         }
         const id = this.safeString (order, 'order_id');
-        const rawTrades = this.safeValue (order, 'contract', []);
+        const rawTrades = this.safeList (order, 'contract', []);
         return this.safeOrder ({
             'info': order,
             'id': id,
