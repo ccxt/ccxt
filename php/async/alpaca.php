@@ -1111,6 +1111,7 @@ class alpaca extends Exchange {
         $url = $this->implode_hostname($this->urls['api'][$api[0]]);
         $headers = ($headers !== null) ? $headers : array();
         if ($api[1] === 'private') {
+            $this->check_required_credentials();
             $headers['APCA-API-KEY-ID'] = $this->apiKey;
             $headers['APCA-API-SECRET-KEY'] = $this->secret;
         }

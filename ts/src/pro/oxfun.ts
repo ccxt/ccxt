@@ -1010,7 +1010,7 @@ export default class oxfun extends oxfunRest {
         }
     }
 
-    ping (client) {
+    ping (client: Client) {
         return 'ping';
     }
 

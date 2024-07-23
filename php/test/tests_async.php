@@ -1024,7 +1024,7 @@ class testMainClass extends baseMainTestClass {
         return $new_input;
     }
 
-    public function test_method_statically($exchange, $method, $data, $type, $skip_keys) {
+    public function test_request_statically($exchange, $method, $data, $type, $skip_keys) {
         return Async\async(function () use ($exchange, $method, $data, $type, $skip_keys) {
             $output = null;
             $request_url = null;
@@ -1065,7 +1065,7 @@ class testMainClass extends baseMainTestClass {
                     $this->assert_static_response_output($mocked_exchange, $skip_keys, $unified_result_sync, $expected_result);
                 }
             } catch(\Throwable $e) {
-                $this->request_tests_failed = true;
+                $this->response_tests_failed = true;
                 $error_message = '[' . $this->lang . '][STATIC_RESPONSE_TEST_FAILURE]' . '[' . $this->exchange_hint($exchange) . ']' . '[' . $method . ']' . '[' . $data['description'] . ']' . ((string) $e);
                 dump('[TEST_FAILURE]' . $error_message);
             }
@@ -1155,7 +1155,7 @@ class testMainClass extends baseMainTestClass {
                     }
                     $type = $exchange->safe_string($exchange_data, 'outputType');
                     $skip_keys = $exchange->safe_value($exchange_data, 'skipKeys', []);
-                    Async\await($this->test_method_statically($exchange, $method, $result, $type, $skip_keys));
+                    Async\await($this->test_request_statically($exchange, $method, $result, $type, $skip_keys));
                     // reset options
                     // exchange.options = exchange.deepExtend (oldExchangeOptions, {});
                     $exchange->extend_exchange_options($exchange->deep_extend($old_exchange_options, array()));

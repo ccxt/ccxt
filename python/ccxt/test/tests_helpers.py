@@ -73,7 +73,6 @@ parser.add_argument('--requestTests', action='store_true', help='run response te
 parser.add_argument('--sync', action='store_true', help='is sync')
 parser.add_argument('--baseTests', action='store_true', help='is base tests')
 parser.add_argument('--exchangeTests', action='store_true', help='is exchange tests')
-parser.add_argument('--nonce', type=int, help='integer')
 parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')
 parser.parse_args(namespace=argv)
@@ -279,6 +278,7 @@ def set_fetch_response(exchange: ccxt.Exchange, data):
     return exchange
 
 
+argvExchange = argv.exchange
 argvSymbol = argv.symbol if argv.symbol and '/' in argv.symbol else None
 # in python, we check it through "symbol" arg (as opposed to JS/PHP) because argvs were already built above
 argvMethod = argv.symbol if argv.symbol and '()' in argv.symbol else None

@@ -684,9 +684,10 @@ export default class woo extends wooRest {
             'cost': this.safeString (order, 'totalFee'),
             'currency': this.safeString (order, 'feeAsset'),
         };
+        const priceString = this.safeString (order, 'price');
         let price = this.safeNumber (order, 'price');
         const avgPrice = this.safeNumber (order, 'avgPrice');
-        if ((price === 0) && (avgPrice !== undefined)) {
+        if (Precise.stringEq (priceString, '0') && (avgPrice !== undefined)) {
             price = avgPrice;
         }
         const amount = this.safeFloat (order, 'quantity');

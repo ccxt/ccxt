@@ -178,6 +178,7 @@ class kucoin(Exchange, ImplicitAPI):
                         'status': 4.5,  # 3PW
                         # margin trading
                         'mark-price/{symbol}/current': 3,  # 2PW
+                        'mark-price/all-symbols': 3,
                         'margin/config': 25,  # 25SW
                     },
                     'post': {
@@ -663,6 +664,7 @@ class kucoin(Exchange, ImplicitAPI):
                             'currencies': 'v3',
                             'currencies/{currency}': 'v3',
                             'symbols': 'v2',
+                            'mark-price/all-symbols': 'v3',
                         },
                     },
                     'private': {

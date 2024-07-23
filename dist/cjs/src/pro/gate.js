@@ -1286,7 +1286,7 @@ class gate extends gate$1 {
             else if (event === 'finish') {
                 const status = this.safeString(parsed, 'status');
                 if (status === undefined) {
-                    const left = this.safeNumber(info, 'left');
+                    const left = this.safeInteger(info, 'left');
                     parsed['status'] = (left === 0) ? 'closed' : 'canceled';
                 }
             }

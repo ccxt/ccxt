@@ -2488,9 +2488,14 @@ class woo(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch funding history for
         :param int [limit]: the maximum number of funding history structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: a `funding history structure <https://docs.ccxt.com/#/?id=funding-history-structure>`
         """
         self.load_markets()
+        paginate = False
+        paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
+        if paginate:
+            return self.fetch_paginated_call_cursor('fetchFundingHistory', symbol, since, limit, params, 'page', 'page', 1, 500)
         request: dict = {}
         market: Market = None
         if symbol is not None:
@@ -2526,7 +2531,14 @@ class woo(Exchange, ImplicitAPI):
         #         "success":true
         #     }
         #
+        meta = self.safe_dict(response, 'meta', {})
+        cursor = self.safe_integer(meta, 'current_page')
         result = self.safe_list(response, 'rows', [])
+        resultLength = len(result)
+        if resultLength > 0:
+            lastItem = result[resultLength - 1]
+            lastItem['page'] = cursor
+            result[resultLength - 1] = lastItem
         return self.parse_incomes(result, market, since, limit)
 
     def parse_funding_rate(self, fundingRate, market: Market = None):

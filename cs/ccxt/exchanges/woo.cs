@@ -2884,10 +2884,19 @@ public partial class woo : Exchange
         * @param {int} [since] the earliest time in ms to fetch funding history for
         * @param {int} [limit] the maximum number of funding history structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
+        object paginate = false;
+        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
+        paginate = ((IList<object>)paginateparametersVariable)[0];
+        parameters = ((IList<object>)paginateparametersVariable)[1];
+        if (isTrue(paginate))
+        {
+            return await this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, parameters, "page", "page", 1, 500);
+        }
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -2930,7 +2939,16 @@ public partial class woo : Exchange
         //         "success":true
         //     }
         //
+        object meta = this.safeDict(response, "meta", new Dictionary<string, object>() {});
+        object cursor = this.safeInteger(meta, "current_page");
         object result = this.safeList(response, "rows", new List<object>() {});
+        object resultLength = getArrayLength(result);
+        if (isTrue(isGreaterThan(resultLength, 0)))
+        {
+            object lastItem = getValue(result, subtract(resultLength, 1));
+            ((IDictionary<string,object>)lastItem)["page"] = cursor;
+            ((List<object>)result)[Convert.ToInt32(subtract(resultLength, 1))] = lastItem;
+        }
         return this.parseIncomes(result, market, since, limit);
     }
 

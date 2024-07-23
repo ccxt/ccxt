@@ -785,7 +785,7 @@ export default class Exchange {
                         // @ts-ignore
                         this.httpProxyAgentModule = await import(/* webpackIgnore: true */ 'http-proxy-agent');
                         // @ts-ignore
-                        this.httpProxyAgentModule = await import(/* webpackIgnore: true */ 'https-proxy-agent');
+                        this.httpsProxyAgentModule = await import(/* webpackIgnore: true */ 'https-proxy-agent');
                     }
                     catch (e) { }
                 }
@@ -4320,17 +4320,17 @@ export default class Exchange {
             await this.loadMarkets();
             const market = this.market(symbol);
             symbol = market['symbol'];
-            const tickers = await this.fetchTickerWs(symbol, params);
+            const tickers = await this.fetchTickersWs([symbol], params);
             const ticker = this.safeDict(tickers, symbol);
             if (ticker === undefined) {
-                throw new NullResponse(this.id + ' fetchTickers() could not find a ticker for ' + symbol);
+                throw new NullResponse(this.id + ' fetchTickerWs() could not find a ticker for ' + symbol);
             }
             else {
                 return ticker;
             }
         }
         else {
-            throw new NotSupported(this.id + ' fetchTicker() is not supported yet');
+            throw new NotSupported(this.id + ' fetchTickerWs() is not supported yet');
         }
     }
     async watchTicker(symbol, params = {}) {
