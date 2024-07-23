@@ -871,7 +871,7 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' parseTransfer() is not supported yet');
     }
 
-    public function parse_account($account) {
+    public function parse_account(array $account) {
         throw new NotSupported($this->id . ' parseAccount() is not supported yet');
     }
 
@@ -1168,7 +1168,7 @@ class Exchange extends \ccxt\Exchange {
         ), $currency);
     }
 
-    public function safe_market_structure($market = null) {
+    public function safe_market_structure(?array $market = null) {
         $cleanStructure = array(
             'id' => null,
             'lowercaseId' => null,
@@ -2487,7 +2487,7 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
-    public function safe_position($position) {
+    public function safe_position(array $position) {
         // simplified version of => /pull/12765/
         $unrealizedPnlString = $this->safe_string($position, 'unrealisedPnl');
         $initialMarginString = $this->safe_string($position, 'initialMargin');
@@ -5319,7 +5319,7 @@ class Exchange extends \ccxt\Exchange {
         return array( $request, $params );
     }
 
-    public function safe_open_interest($interest, ?array $market = null) {
+    public function safe_open_interest(array $interest, ?array $market = null) {
         $symbol = $this->safe_string($interest, 'symbol');
         if ($symbol === null) {
             $symbol = $this->safe_string($market, 'symbol');

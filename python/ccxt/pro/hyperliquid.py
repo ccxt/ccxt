@@ -610,7 +610,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
                 method(client, message)
                 return
 
-    def ping(self, client):
+    def ping(self, client: Client):
         return {
             'method': 'ping',
         }

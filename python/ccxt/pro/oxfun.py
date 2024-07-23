@@ -914,7 +914,7 @@ class oxfun(ccxt.async_support.oxfun):
             if messageHash in client.subscriptions:
                 del client.subscriptions[messageHash]
 
-    def ping(self, client):
+    def ping(self, client: Client):
         return 'ping'
 
     def handle_pong(self, client: Client, message):

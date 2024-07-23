@@ -2589,7 +2589,7 @@ class whitebit extends Exchange {
         }) ();
     }
 
-    public function is_fiat(string $currency) {
+    public function is_fiat(string $currency): bool {
         $fiatCurrencies = $this->safe_value($this->options, 'fiatCurrencies', array());
         return $this->in_array($currency, $fiatCurrencies);
     }

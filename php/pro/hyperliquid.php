@@ -666,7 +666,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         }
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         return array(
             'method' => 'ping',
         );

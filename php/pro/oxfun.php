@@ -1017,7 +1017,7 @@ class oxfun extends \ccxt\async\oxfun {
         }
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         return 'ping';
     }
 

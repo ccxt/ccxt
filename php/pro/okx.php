@@ -1909,7 +1909,7 @@ class okx extends \ccxt\async\okx {
         $future->resolve (true);
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         // OKX does not support the built-in WebSocket protocol-level ping-pong.
         // Instead, it requires a custom text-based ping-pong mechanism.
         return 'ping';

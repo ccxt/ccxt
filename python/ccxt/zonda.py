@@ -1467,7 +1467,7 @@ class zonda(Exchange, ImplicitAPI):
         # {status: "Ok", errors: []}
         return self.parse_order(response)
 
-    def is_fiat(self, currency: str):
+    def is_fiat(self, currency: str) -> bool:
         fiatCurrencies: dict = {
             'USD': True,
             'EUR': True,

@@ -36,7 +36,7 @@ export default class poloniex extends poloniexRest {
     handleMessage(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): boolean;
     handleAuthenticate(client: Client, message: any): any;
-    ping(client: any): {
+    ping(client: Client): {
         event: string;
     };
 }

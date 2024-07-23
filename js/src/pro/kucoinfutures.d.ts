@@ -42,7 +42,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
     fetchBalanceSnapshot(client: any, message: any): Promise<void>;
     handleSubject(client: Client, message: any): void;
     getMessageHash(elementName: string, symbol?: Str): string;
-    ping(client: any): {
+    ping(client: Client): {
         id: any;
         type: string;
     };

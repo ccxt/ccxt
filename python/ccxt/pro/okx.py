@@ -1728,7 +1728,7 @@ class okx(ccxt.async_support.okx):
         future = self.safe_value(client.futures, 'authenticated')
         future.resolve(True)
 
-    def ping(self, client):
+    def ping(self, client: Client):
         # OKX does not support the built-in WebSocket protocol-level ping-pong.
         # Instead, it requires a custom text-based ping-pong mechanism.
         return 'ping'
