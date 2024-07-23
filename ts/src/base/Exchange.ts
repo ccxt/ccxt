@@ -2376,7 +2376,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseTransfer() is not supported yet');
     }
 
-    parseAccount (account): Account {
+    parseAccount (account: Dict): Account {
         throw new NotSupported (this.id + ' parseAccount() is not supported yet');
     }
 
