@@ -49,6 +49,7 @@ const {
     , urlencode
     , hmac
     , numberToString
+    , roundTimeframe
     , parseTimeframe
     , safeInteger2
     , safeStringLower
@@ -378,6 +379,7 @@ export default class Exchange {
     flatten = flatten
     unique = unique
     indexBy = indexBy
+    roundTimeframe = roundTimeframe
     sortBy = sortBy
     sortBy2 = sortBy2
     groupBy = groupBy
