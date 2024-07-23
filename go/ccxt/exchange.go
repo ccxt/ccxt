@@ -466,38 +466,151 @@ func parseCost(costStr string) float64 {
 	return cost
 }
 
+// func (this *Exchange) callInternal(name2 string, args ...interface{}) interface{} {
+// 	name := strings.Title(strings.ToLower(name2))
+// 	baseType := reflect.TypeOf(this.Itf)
+
+// 	for i := 0; i < baseType.NumMethod(); i++ {
+// 		method := baseType.Method(i)
+// 		if name == method.Name {
+// 			methodType := method.Type
+// 			numIn := methodType.NumIn()
+// 			isVariadic := methodType.IsVariadic()
+
+// 			in := make([]reflect.Value, numIn)
+// 			argCount := len(args)
+
+// 			for k := 0; k < numIn; k++ {
+// 				if k < argCount {
+// 					param := args[k]
+// 					if param == nil {
+// 						// Get the type of the k-th parameter
+// 						paramType := methodType.In(k)
+// 						// Create a zero value of the parameter type (which will be `nil` for pointers, slices, maps, etc.)
+// 						in[k] = reflect.Zero(paramType)
+// 					} else {
+// 						in[k] = reflect.ValueOf(param)
+// 					}
+// 				} else {
+// 					paramType := methodType.In(k)
+// 					in[k] = reflect.Zero(paramType)
+// 				}
+// 			}
+
+// 			if isVariadic && argCount >= numIn-1 {
+// 				variadicArgs := make([]reflect.Value, argCount-(numIn-1))
+// 				for k := numIn - 1; k < argCount; k++ {
+// 					param := args[k]
+// 					if param == nil {
+// 						paramType := methodType.In(numIn - 1).Elem()
+// 						variadicArgs[k-(numIn-1)] = reflect.Zero(paramType)
+// 					} else {
+// 						variadicArgs[k-(numIn-1)] = reflect.ValueOf(param)
+// 					}
+// 				}
+// 				in[numIn-1] = reflect.ValueOf(variadicArgs)
+// 			}
+
+// 			res := reflect.ValueOf(this.Itf).MethodByName(name).Call(in)
+// 			return res[0].Interface()
+// 		}
+// 	}
+// 	return nil
+// }
+
 func (this *Exchange) callInternal(name2 string, args ...interface{}) interface{} {
 	name := strings.Title(strings.ToLower(name2))
 	baseType := reflect.TypeOf(this.Itf)
 
-	// baseValue := reflect.ValueOf(this.Itf)
-	// method3 := baseValue.MethodByName(name)
-	// fmt.Println(method3.Interface())
-	// method2, err := baseType.MethodByName(name)
-
-	// if !err {
-	// 	fmt.Println((method2))
-	// }
-
 	for i := 0; i < baseType.NumMethod(); i++ {
 		method := baseType.Method(i)
 		if name == method.Name {
-			in := make([]reflect.Value, len(args))
-			for k, param := range args {
-				val := reflect.ValueOf(param)
-				if !val.IsValid() {
-					//fmt.Println(val)
-					//panic("value is invalid")
-					val = reflect.Zero(reflect.TypeOf((*string)(nil)))
+			methodType := method.Type
+			numIn := methodType.NumIn()
+			isVariadic := methodType.IsVariadic()
+
+			var in []reflect.Value
+			if isVariadic {
+				// Handle fixed arguments
+				for k := 0; k < numIn-1; k++ {
+					if k < len(args) {
+						in = append(in, reflect.ValueOf(args[k]))
+					} else {
+						paramType := methodType.In(k)
+						in = append(in, reflect.Zero(paramType))
+					}
 				}
-				in[k] = val
+
+				// Handle variadic arguments
+				variadicType := methodType.In(numIn - 1).Elem()
+				for k := numIn - 1; k < len(args); k++ {
+					if args[k] == nil {
+						in = append(in, reflect.Zero(variadicType))
+					} else {
+						in = append(in, reflect.ValueOf(args[k]))
+					}
+				}
+			} else {
+				for k := 0; k < numIn; k++ {
+					if k < len(args) {
+						if args[k] == nil {
+							paramType := methodType.In(k)
+							in = append(in, reflect.Zero(paramType))
+						} else {
+							in = append(in, reflect.ValueOf(args[k]))
+						}
+					} else {
+						paramType := methodType.In(k)
+						in = append(in, reflect.Zero(paramType))
+					}
+				}
 			}
-			var res []reflect.Value
-			/*temp := reflect.ValueOf(this.Itf).MethodByName(name)
-			x1 := reflect.ValueOf(temp).FieldByName("flag").Uint()*/
-			res = reflect.ValueOf(this.Itf).MethodByName(name).Call(in)
-			return res[0].Interface().(interface{})
+
+			res := reflect.ValueOf(this.Itf).MethodByName(name).Call(in)
+			if len(res) > 0 {
+				return res[0].Interface()
+			}
+			return nil
 		}
 	}
 	return nil
 }
+
+// func (this *Exchange) callInternal(name2 string, args ...interface{}) interface{} {
+// 	name := strings.Title(strings.ToLower(name2))
+// 	baseType := reflect.TypeOf(this.Itf)
+
+// 	// baseValue := reflect.ValueOf(this.Itf)
+// 	// method3 := baseValue.MethodByName(name)
+// 	// fmt.Println(method3.Interface())
+// 	// method2, err := baseType.MethodByName(name)
+
+// 	// if !err {
+// 	// 	fmt.Println((method2))
+// 	// }
+
+// 	for i := 0; i < baseType.NumMethod(); i++ {
+// 		method := baseType.Method(i)
+// 		if name == method.Name {
+// 			// methodType := method.Type
+// 			in := make([]reflect.Value, len(args))
+// 			for k, param := range args {
+// 				val := reflect.ValueOf(param)
+// 				if !val.IsValid() {
+// 					//fmt.Println(val)
+// 					//panic("value is invalid")
+// 					// paramType := val.Type()
+// 					// in[k] = reflect.Zero(paramType)
+// 					val = reflect.Zero(nil)
+// 				}
+// 				in[k] = val
+// 			}
+// 			var res []reflect.Value
+// 			/*temp := reflect.ValueOf(this.Itf).MethodByName(name)
+// 			x1 := reflect.ValueOf(temp).FieldByName("flag").Uint()*/
+// 			res = reflect.ValueOf(this.Itf).MethodByName(name).Call(in)
+// 			return res[0].Interface().(interface{})
+// 		}
+// 	}
+// 	return nil
+// }
