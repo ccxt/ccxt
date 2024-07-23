@@ -1,13 +1,17 @@
-// @ts-nocheck
 
-import assert, { strictEqual, deepEqual } from 'assert';
-import ccxt, { Exchange, functions } from '../../../ccxt.js';
+// AUTO_TRANSPILE_ENABLED
 
-const { index, aggregate, unCamelCase } = functions;
+import ccxt from '../../../ccxt.js';
+import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
 
-const equal = strictEqual;
 
-function testCalculateFee () {
+function testCalculateFee (tickPrecision = true) {
+
+    const exchange = new ccxt.Exchange ({
+        'id': 'sampleexchange',
+        'precisioinMode': tickPrecision ? 4 : 3, // 4 for ticksize, 3 for significant precision
+    });
+
     const price  = 100.00;
     const amount = 10.00;
     const taker  = 0.0025;
@@ -21,30 +25,31 @@ function testCalculateFee () {
         'taker':   taker,
         'maker':   maker,
         'spot': true,
-        'precision': {
-            'amount': 0.00000001,
-            'price': 0.00000001,
-        },
+    };
+    const markets = {
+        'FOO/BAR': market,
     };
 
-    const exchange = new Exchange ({
-        'id': 'mock',
-        'markets': {
-            'FOO/BAR': market,
-        },
-    });
+    exchange.setMarkets (markets);
 
-    Object.keys (fees).forEach ((takerOrMaker) => {
+    market['precision'] = {
+        'amount': tickPrecision ? exchange.parseNumber ('0.00000001') : exchange.parseNumber ('8'),
+        'price': tickPrecision ? exchange.parseNumber ('0.00000001') : exchange.parseNumber ('8'),
+    };
 
-        const result = exchange.calculateFee (market['symbol'], 'limit', 'sell', amount, price, takerOrMaker, {});
+    const keys = Object.keys (fees);
 
-        deepEqual (result, {
+    for (let i = 0; i < keys.length; i++) {
+        const takerOrMaker = keys[i];
+        const result = exchange.calculateFee (market['symbol'], 'limit', 'buy', amount, price, takerOrMaker, {});
+
+        testSharedMethods.deepEqual (result, {
             'type': takerOrMaker,
             'currency': 'BAR',
             'rate': fees[takerOrMaker],
             'cost': fees[takerOrMaker] * amount * price,
         });
-    });
+    }
 }
 
 export default testCalculateFee;
