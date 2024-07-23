@@ -1799,9 +1799,9 @@ class Transpiler {
     //-------------------------------------------------------------------------
 
     transpileCryptoTests () {
-        const jsFile = './ts/src/test/base/test.cryptography.ts' // using ts version to avoid formatting issues
-        const pyFile = './python/ccxt/test/base/test_cryptography.py'
-        const phpFile = './php/test/base/test_cryptography.php'
+        const jsFile = './ts/src/test/base/custom/test.cryptography.ts' // using ts version to avoid formatting issues
+        const pyFile = './python/ccxt/test/base/custom/test_cryptography.py'
+        const phpFile = './php/test/base/custom/test_cryptography.php'
 
         log.magenta ('Transpiling from', jsFile.yellow)
         let js = fs.readFileSync (jsFile).toString ()
@@ -1984,8 +1984,7 @@ class Transpiler {
         for (const testName of baseFunctionTests) {
             const unCamelCasedFileName = this.uncamelcaseName(testName);
             const tsFile = baseFolders.ts + testName + '.ts';
-            const tsContent = fs.readFileSync(tsFile).toString();
-            if (!tsContent.includes ('// AUTO_TRANSPILE_ENABLED')) {
+            if (testName.includes ('tests.init.')) {
                 continue;
             }
             const test = {

@@ -1080,7 +1080,7 @@ class NewTranspiler {
 
     transpileCryptoTestsToCSharp (outDir: string) {
 
-        const jsFile = './ts/src/test/base/test.cryptography.ts';
+        const jsFile = './ts/src/test/base/custom/test.cryptography.ts';
         const csharpFile = `${outDir}/Cryptography.cs`;
 
         log.magenta ('[csharp] Transpiling from', (jsFile as any).yellow)
@@ -1179,8 +1179,7 @@ class NewTranspiler {
 
         for (const testName of baseFunctionTests) {
             const tsFile = baseFolders.ts + testName + '.ts';
-            const tsContent = fs.readFileSync(tsFile).toString();
-            if (!tsContent.includes ('// AUTO_TRANSPILE_ENABLED')) {
+            if (testName.includes ('tests.init.')) {
                 continue;
             }
                 
