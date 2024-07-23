@@ -530,7 +530,7 @@ export default class probit extends probitRest {
         if (result === 'ok') {
             future.resolve (true);
         } else {
-            let text: string = '';
+            let text = '';
             if (typeof message !== 'string') {
                 try {
                     text = this.json (message);

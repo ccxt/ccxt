@@ -3789,7 +3789,7 @@ export default class binance extends binanceRest {
             }
         }
         if (!rejected) {
-            let text: string = '';
+            let text = '';
             if (typeof message !== 'string') {
                 try {
                     text = this.json (message);

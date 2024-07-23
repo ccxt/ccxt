@@ -1317,7 +1317,7 @@ export default class bitvavo extends bitvavoRest {
             client.reject (e, messageHash);
         }
         if (!rejected) {
-            let text: string = '';
+            let text = '';
             if (typeof message !== 'string') {
                 try {
                     text = this.json (message);

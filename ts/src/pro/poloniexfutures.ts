@@ -1028,7 +1028,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //        "type": "error"
         //    }
         //
-        let text: string = '';
+        let text = '';
         if (typeof message !== 'string') {
             try {
                 text = this.json (message);
