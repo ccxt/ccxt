@@ -1,58 +1,8 @@
-/*  ------------------------------------------------------------------------ */
-/* eslint-disable */
-import { deepExtend, groupBy, filterBy, omit, sum, sortBy } from '../../base/functions/generic.js'
-import { strictEqual, equal, deepEqual } from 'assert'
 
-function testDeepExtend() {
+// AUTO_TRANSPILE_ENABLED
 
-    let count = 0
-
-    const values = [{
-        a: 1,
-        b: 2,
-        d: {
-            a: 1,
-            b: [],
-            c: { test1: 123, test2: 321 }},
-        f: 5,
-        g: 123,
-        i: 321,
-        j: [1, 2],
-    },
-    {
-        b: 3,
-        c: 5,
-        d: {
-            b: { first: 'one', second: 'two' },
-            c: { test2: 222 }},
-        e: { one: 1, two: 2 },
-        f: [{ 'foo': 'bar' }],
-        g: (void 0),
-        h: /abc/g,
-        i: null,
-        j: [3, 4]
-    }]
-
-    const extended = deepExtend (...values)
-    deepEqual (extended, {
-        a: 1,
-        b: 3,
-        d: {
-            a: 1,
-            b: { first: 'one', second: 'two' },
-            c: { test1: 123, test2: 222 }
-        },
-        f: [{ 'foo': 'bar' }],
-        g: undefined,
-        c: 5,
-        e: { one: 1, two: 2 },
-        h: /abc/g,
-        i: null,
-        j: [3, 4]
-    })
-
-    deepEqual (deepExtend (undefined, undefined, {'foo': 'bar' }), { 'foo': 'bar' })
-}
+import ccxt from '../../../ccxt.js';
+import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
 
 function testGroupBy() {
 
