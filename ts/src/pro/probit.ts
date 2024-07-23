@@ -530,14 +530,15 @@ export default class probit extends probitRest {
         if (result === 'ok') {
             future.resolve (true);
         } else {
+            let text: string = '';
             if (typeof message !== 'string') {
                 try {
-                    message = this.json (message);
+                    text = this.json (message);
                 } catch (e) {
-                    message = message.toString ();
+                    text = message.toString ();
                 }
             }
-            const error = new OperationFailed (this.id + ' WS handleAuthenticate() : ' + message);
+            const error = new OperationFailed (this.id + ' WS handleAuthenticate() : ' + text);
             future.reject (error);
             delete client.subscriptions['authenticated'];
         }
