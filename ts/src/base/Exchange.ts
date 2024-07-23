@@ -1372,7 +1372,7 @@ export default class Exchange {
         // console.log ('Connected to', client.url)
     }
 
-    onError (client, error) {
+    onError (client: Client, error: Error) {
         if ((client.url in this.clients) && (this.clients[client.url].error)) {
             delete this.clients[client.url];
         }
