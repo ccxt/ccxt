@@ -88,6 +88,7 @@ class baseMainTestClass {
     public $lang = 'PHP';
     public $is_synchronous = is_synchronous;
     public $test_files = [];
+    public $test_files_misc = [];
     public $skipped_settings_for_exchange = [];
     public $skipped_methods = [];
     public $checked_public_tests = [];
@@ -150,6 +151,10 @@ function get_test_name($methodName) {
 
 function io_file_exists($path) {
     return file_exists($path);
+}
+
+function io_dir_exists($path) {
+    return is_dir($path);
 }
 
 function io_file_read($path, $decode = true) {

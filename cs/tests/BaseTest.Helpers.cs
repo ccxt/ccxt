@@ -22,6 +22,7 @@ public partial class testMainClass : BaseTest
     public bool sandbox = false;
     public object envVars = null;
     public dict testFiles = new dict();
+    public dict testFilesMisc = new dict();
     public bool privateTestOnly = Tests.privateOnly;
     public bool privateTest = Tests.privateTests;
     public bool info = Tests.info;
@@ -119,6 +120,7 @@ public partial class testMainClass : BaseTest
         // }
         return JsonHelper.Deserialize((string)a);
     }
+    public static object json(object obj) => jsonStringify;
 
     void initEnv()
     {
@@ -157,6 +159,13 @@ public partial class testMainClass : BaseTest
     {
         var path = path2 as string;
         var exists = System.IO.File.Exists(path);
+        return exists;
+    }
+
+    public static bool ioDirExists(object path2)
+    {
+        var path = path2 as string;
+        var exists = System.IO.Directory.Exists(path);
         return exists;
     }
 

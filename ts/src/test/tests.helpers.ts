@@ -81,6 +81,7 @@ class baseMainTestClass {
     skippedMethods = {};
     checkedPublicTests = {};
     testFiles = {};
+    testFilesMisc = {};
     publicTests = {};
     newLine = '\n';
     rootDir = DIR_NAME + '/../../../';
@@ -115,6 +116,10 @@ function getTestName (str) {
 }
 
 function ioFileExists (path) {
+    return fs.existsSync (path);
+}
+
+function ioDirExists (path) {
     return fs.existsSync (path);
 }
 
@@ -176,10 +181,27 @@ async function importTestFile (filePath) {
     return (await import (pathToFileURL (filePath + '.js') as any) as any)['default'];
 }
 
-async function getTestFiles (properties, ws = false) {
+async function getTestFiles (properties, ws = false, misc = false) {
     const path = ws ? DIR_NAME + '../pro/test/' : DIR_NAME;
     // exchange tests
     const tests = {};
+    // load miscelanous tests
+    if (misc) {
+        const miscPath = path + '/misc/';
+        const miscFiles = ioDirExists (miscPath) ? ioDirRead (miscPath) : [];
+        for (let i = 0; i < miscFiles.length; i++) {
+            const fileName = miscFiles[i]; // i.e. test.wsOrderBookSync.ts
+            let testName = fileName.replace ('test.', '');
+            testName = testName.replace ('test_', '');
+            testName = testName.replace ('test_', '');
+            testName = testName.replace ('.' + ext, '');
+            let filePath = miscPath + fileName;
+            filePath = filePath.replace ('.ts', ''); // only needed for ts
+            // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
+            tests[testName] = await importTestFile (filePath);
+        }
+        return tests;
+    }
     const finalPropList = properties.concat ([ proxyTestFileName ]);
     for (let i = 0; i < finalPropList.length; i++) {
         const name = finalPropList[i];

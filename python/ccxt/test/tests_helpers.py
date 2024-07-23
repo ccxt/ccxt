@@ -138,6 +138,7 @@ class baseMainTestClass():
     skipped_methods = {}
     check_public_tests = {}
     test_files = {}
+    test_files_misc = {}
     public_tests = {}
     new_line = '\n'
     root_dir = rootDir
@@ -176,6 +177,10 @@ def get_test_name(methodName):
 
 def io_file_exists(path):
     return os.path.isfile(path)
+
+
+def io_dir_exists(path):
+    return os.path.isdir(path)
 
 
 def io_file_read(path, decode=True):

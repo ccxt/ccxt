@@ -100,7 +100,8 @@ class testMainClass extends baseMainTestClass {
 
     checkIfSpecificTestIsChosen (methodArgv) {
         if (methodArgv !== undefined) {
-            const testFileNames = Object.keys (this.testFiles);
+            let testFileNames = Object.keys (this.testFiles);
+            testFileNames = testFileNames.concat (Object.keys (this.testFilesMisc));
             const possibleMethodNames = methodArgv.split (','); // i.e. `test.ts binance fetchBalance,fetchDeposits`
             if (possibleMethodNames.length >= 1) {
                 for (let i = 0; i < testFileNames.length; i++) {
@@ -121,6 +122,7 @@ class testMainClass extends baseMainTestClass {
         const properties = Object.keys (exchange.has);
         properties.push ('loadMarkets');
         this.testFiles = await getTestFiles (properties, this.wsTests);
+        this.testFilesMisc = await getTestFiles (properties, this.wsTests, true);
     }
 
     loadCredentialsFromEnv (exchange: Exchange) {
@@ -238,7 +240,8 @@ class testMainClass extends baseMainTestClass {
         const skippedPropertiesForMethod = this.getSkips (exchange, methodName);
         const isLoadMarkets = (methodName === 'loadMarkets');
         const isFetchCurrencies = (methodName === 'fetchCurrencies');
-        const isProxyTest = (methodName === this.proxyTestFileName);
+        const isRegularTest = (methodName in this.testFiles);
+        const isMiscTest = (methodName in this.testFilesMisc) || (methodName === this.proxyTestFileName);
         // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
         if (!isPublic && (methodName in this.checkedPublicTests) && !isFetchCurrencies) {
             return;
@@ -247,11 +250,11 @@ class testMainClass extends baseMainTestClass {
         const supportedByExchange = (methodName in exchange.has) && exchange.has[methodName];
         if (!isLoadMarkets && (this.onlySpecificTests.length > 0 && !exchange.inArray (methodName, this.onlySpecificTests))) {
             skipMessage = '[INFO] IGNORED_TEST';
-        } else if (!isLoadMarkets && !supportedByExchange && !isProxyTest) {
+        } else if (!isLoadMarkets && !supportedByExchange && !isMiscTest) {
             skipMessage = '[INFO] UNSUPPORTED_TEST'; // keep it aligned with the longest message
         } else if (typeof skippedPropertiesForMethod === 'string') {
             skipMessage = '[INFO] SKIPPED_TEST';
-        } else if (!(methodName in this.testFiles)) {
+        } else if (!isRegularTest && !isMiscTest) {
             skipMessage = '[INFO] UNIMPLEMENTED_TEST';
         }
         // exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
@@ -268,7 +271,8 @@ class testMainClass extends baseMainTestClass {
             const argsStringified = '(' + exchange.json (args) + ')'; // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
             dump (this.addPadding ('[INFO] TESTING', 25), this.exchangeHint (exchange), methodName, argsStringified);
         }
-        await callMethod (this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
+        const testfiles = isMiscTest ? this.testFilesMisc : this.testFiles;
+        await callMethod (testfiles, methodName, exchange, skippedPropertiesForMethod, args);
         if (this.info) {
             dump (this.addPadding ('[INFO] TESTING DONE', 25), this.exchangeHint (exchange), methodName);
         }
@@ -452,6 +456,12 @@ class testMainClass extends baseMainTestClass {
                 'watchTrades': [ symbol ],
                 'watchTradesForSymbols': [ [ symbol ] ],
             };
+            // add misc tests
+            if (getCliArgValue ('--miscWsTests')) {
+                tests = exchange.extend (tests, {
+                    'wsOrderBookSynchronization': [ symbol ],
+                });
+            }
         }
         const market = exchange.market (symbol);
         const isSpot = market['spot'];
