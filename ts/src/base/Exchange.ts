@@ -1447,7 +1447,7 @@ export default class Exchange {
         return value !== undefined && value !== null;
     }
 
-    arraySlice(array, first, second = undefined) {
+    arraySlice (array: any[], first: number, second: number = undefined) {
         if (second === undefined) {
             return array.slice(first);
         }
