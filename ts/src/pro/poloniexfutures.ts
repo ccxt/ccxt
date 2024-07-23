@@ -1028,14 +1028,15 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //        "type": "error"
         //    }
         //
+        let text: string = '';
         if (typeof message !== 'string') {
             try {
-                message = this.json (message);
+                text = this.json (message);
             } catch (e) {
-                message = message.toString ();
+                text = message.toString ();
             }
         }
-        const error = new OperationFailed (this.id + ' WS handleErrorMessage() : ' + message);
+        const error = new OperationFailed (this.id + ' WS handleErrorMessage() : ' + text);
         client.reject (error); // todo: maybe exception instead of string
     }
 
