@@ -1727,11 +1727,11 @@ export default class Exchange {
         return BigInt(value); // used on XT
     }
 
-    stringToCharsArray (value) {
+    stringToCharsArray (value: string) {
         return value.split ('');
     }
 
-    valueIsDefined (value){
+    valueIsDefined (value: any){
         return value !== undefined && value !== null;
     }
 
@@ -1779,7 +1779,7 @@ export default class Exchange {
 
     }
 
-    extendExchangeOptions (newOptions) {
+    extendExchangeOptions (newOptions: Dict) {
         this.options = this.extend (this.options, newOptions);
     }
 
@@ -1787,7 +1787,7 @@ export default class Exchange {
         return {};
     }
 
-    randomBytes (length) {
+    randomBytes (length: number) {
         const rng = new SecureRandom();
         const x:number[] = [];
         x.length = length;
