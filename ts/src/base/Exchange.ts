@@ -819,7 +819,7 @@ export default class Exchange {
         return this.httpAgent;
     }
 
-    getHttpAgentIfNeeded (url) {
+    getHttpAgentIfNeeded (url: string) {
         if (isNode) {
             // only for non-ssl proxy
             if (url.substring(0, 5) === 'ws://') {
@@ -833,7 +833,7 @@ export default class Exchange {
     }
 
 
-    async fetch (url, method = 'GET', headers: any = undefined, body: any = undefined) {
+    async fetch (url: string, method = 'GET', headers: any = undefined, body: any = undefined) {
 
         // load node-http(s) modules only on first call
         if (isNode) {
@@ -6749,7 +6749,7 @@ export default class Exchange {
         return input;
     }
 
-    handleUntilOption (key: string, request, params, multiplier = 1) {
+    handleUntilOption (key: string, request: Dict, params: Dict, multiplier = 1) {
         const until = this.safeInteger2 (params, 'until', 'till');
         if (until !== undefined) {
             request[key] = this.parseToInt (until * multiplier);
