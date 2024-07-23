@@ -2201,8 +2201,6 @@ class kucoinfutures(kucoin, ImplicitAPI):
         market = self.market(symbol)
         request = {
             'symbol': market['id'],
-            'from': 0,
-            'to': self.milliseconds(),
         }
         if limit is not None:
             request['maxCount'] = limit
@@ -2226,6 +2224,7 @@ class kucoinfutures(kucoin, ImplicitAPI):
         #            hasMore: True
         #        }
         #    }
+        #
         data = self.safe_value(response, 'data')
         dataList = self.safe_value(data, 'dataList')
         return self.parse_funding_rate_histories(dataList, market, since, limit)

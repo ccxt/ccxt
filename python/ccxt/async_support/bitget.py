@@ -105,7 +105,6 @@ class bitget(Exchange):
                         'market/trade',  # Get Trade Detail Data
                         'market/history/trade',  # Get record of trading
                         'market/detail',  # Get Market Detail 24h Volume
-                        'market/history-fund-rate',  # Query funding rate history
                         'common/symbols',  # Query all trading pairs and accuracy supported in the station
                         'common/currencys',  # Query all currencies supported in the station
                         'common/timestamp',  # Query system current time
@@ -2703,91 +2702,3 @@ class bitget(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
         if nonZeroErrorCode or nonEmptyMessage:
             raise ExchangeError(feedback)  # unknown message
-
-    def handle_product_type_and_params(self, market=None, params={}):
-        subType = None
-        subType, params = self.handle_sub_type_and_params('handleProductTypeAndParams', None, params)
-        defaultProductType = None
-        if (subType is not None) and (market is None):
-            # set default only if subType is defined and market is not defined, since there is also USDC productTypes which are also linear
-            sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-            if sandboxMode:
-                defaultProductType = 'SUSDT-FUTURES' if (subType == 'linear') else 'SCOIN-FUTURES'
-            else:
-                defaultProductType = 'USDT-FUTURES' if (subType == 'linear') else 'COIN-FUTURES'
-        productType = self.safe_string(params, 'productType', defaultProductType)
-        if (productType is None) and (market is not None):
-            settle = market['settle']
-            if settle == 'USDT':
-                productType = 'USDT-FUTURES'
-            elif settle == 'USDC':
-                productType = 'USDC-FUTURES'
-            elif settle == 'SUSDT':
-                productType = 'SUSDT-FUTURES'
-            elif settle == 'SUSDC':
-                productType = 'SUSDC-FUTURES'
-            elif (settle == 'SBTC') or (settle == 'SETH') or (settle == 'SEOS'):
-                productType = 'SCOIN-FUTURES'
-            else:
-                productType = 'COIN-FUTURES'
-        if productType is None:
-            raise ArgumentsRequired(self.id + ' requires a productType param, one of "USDT-FUTURES", "USDC-FUTURES", "COIN-FUTURES", "SUSDT-FUTURES", "SUSDC-FUTURES" or "SCOIN-FUTURES"')
-        params = self.omit(params, 'productType')
-        return [productType, params]
-
-    async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
-        await self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingRateHistory', 'paginate')
-        if paginate:
-            return await self.fetch_paginated_call_incremental('fetchFundingRateHistory', symbol, since, limit, params, 'pageNo', 100)
-        sandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
-        market = None
-        if sandboxMode:
-            sandboxSymbol = self.convert_symbol_for_sandbox(symbol)
-            market = self.market(sandboxSymbol)
-        else:
-            market = self.market(symbol)
-        productType = None
-        productType, params = self.handle_product_type_and_params(market, params)
-        request: dict = {
-            'symbol': market['id'],
-            'productType': productType,
-            # 'pageSize': limit,  # default 20
-            # 'pageNo': 1,
-        }
-        if limit is not None:
-            request['pageSize'] = limit
-        response = await self.publicMixGetV2MixMarketHistoryFundRate(self.extend(request, params))
-        #
-        #     {
-        #         "code": "00000",
-        #         "msg": "success",
-        #         "requestTime": 1652406728393,
-        #         "data": [
-        #             {
-        #                 "symbol": "BTCUSDT",
-        #                 "fundingRate": "-0.0003",
-        #                 "fundingTime": "1652396400000"
-        #             },
-        #         ]
-        #     }
-        #
-        data = self.safe_value(response, 'data', [])
-        rates = []
-        for i in range(0, len(data)):
-            entry = data[i]
-            marketId = self.safe_string(entry, 'symbol')
-            symbolInner = self.safe_symbol(marketId, market)
-            timestamp = self.safe_integer(entry, 'fundingTime')
-            rates.append({
-                'info': entry,
-                'symbol': symbolInner,
-                'fundingRate': self.safe_number(entry, 'fundingRate'),
-                'timestamp': timestamp,
-                'datetime': self.iso8601(timestamp),
-            })
-        sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
