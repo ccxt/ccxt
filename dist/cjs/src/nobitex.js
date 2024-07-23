@@ -147,6 +147,9 @@ class nobitex extends nobitex$1 {
         const result = [];
         for (let i = 0; i < marketKeys.length; i++) {
             const symbol = marketKeys[i];
+            if (markets[symbol]['isClosed']) {
+                continue;
+            }
             markets[symbol]['symbol'] = symbol;
             const market = await this.parseMarket(markets[symbol]);
             result.push(market);
@@ -154,20 +157,19 @@ class nobitex extends nobitex$1 {
         return result;
     }
     parseMarket(market) {
-        //        {
-        // symbol: btc-usdt
+        //        btc-rls: {
         // isClosed: false,
-        // bestSell: "39659550020",
-        // bestBuy: "39650000000",
-        // volumeSrc: "11.6924501388",
-        // volumeDst: "464510376461.05263193275",
-        // latest: "39659550020",
-        // mark: "39817678220",
-        // dayLow: "38539978000",
-        // dayHigh: "40809999990",
-        // dayOpen: "38553149810",
-        // dayClose: "39659550020",
-        // dayChange: "2.87"
+        // bestSell: "38820000000",
+        // bestBuy: "38819999960",
+        // volumeSrc: "4.429488914925",
+        // volumeDst: "171731356314.98355049425",
+        // latest: "38819999960",
+        // mark: "38883424370",
+        // dayLow: "38380000000",
+        // dayHigh: "39100000000",
+        // dayOpen: "38800000000",
+        // dayClose: "38819999960",
+        // dayChange: "0.05"
         // },
         const symbol = this.safeStringUpper(market, 'symbol');
         const id = symbol.replace('-', '');
@@ -250,6 +252,9 @@ class nobitex extends nobitex$1 {
         const result = [];
         for (let i = 0; i < marketKeys.length; i++) {
             let symbol = marketKeys[i];
+            if (markets[symbol]['isClosed']) {
+                continue;
+            }
             markets[symbol]['symbol'] = symbol;
             const ticker = await this.parseTicker(markets[symbol]);
             symbol = ticker['symbol'];

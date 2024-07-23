@@ -149,6 +149,9 @@ class nobitex extends Exchange {
             $result = array();
             for ($i = 0; $i < count($marketKeys); $i++) {
                 $symbol = $marketKeys[$i];
+                if ($markets[$symbol]['isClosed']) {
+                    continue;
+                }
                 $markets[$symbol]['symbol'] = $symbol;
                 $market = Async\await($this->parse_market($markets[$symbol]));
                 $result[] = $market;
@@ -158,20 +161,19 @@ class nobitex extends Exchange {
     }
 
     public function parse_market($market): array {
-        //        array(
-        // $symbol => btc-usdt
+        //        btc-rls => array(
         // isClosed => false,
-        // bestSell => "39659550020",
-        // bestBuy => "39650000000",
-        // volumeSrc => "11.6924501388",
-        // volumeDst => "464510376461.05263193275",
-        // latest => "39659550020",
-        // mark => "39817678220",
-        // dayLow => "38539978000",
-        // dayHigh => "40809999990",
-        // dayOpen => "38553149810",
-        // dayClose => "39659550020",
-        // dayChange => "2.87"
+        // bestSell => "38820000000",
+        // bestBuy => "38819999960",
+        // volumeSrc => "4.429488914925",
+        // volumeDst => "171731356314.98355049425",
+        // latest => "38819999960",
+        // mark => "38883424370",
+        // dayLow => "38380000000",
+        // dayHigh => "39100000000",
+        // dayOpen => "38800000000",
+        // dayClose => "38819999960",
+        // dayChange => "0.05"
         // ),
         $symbol = $this->safe_string_upper($market, 'symbol');
         $id = str_replace('-', '', $symbol);
@@ -254,6 +256,9 @@ class nobitex extends Exchange {
             $result = array();
             for ($i = 0; $i < count($marketKeys); $i++) {
                 $symbol = $marketKeys[$i];
+                if ($markets[$symbol]['isClosed']) {
+                    continue;
+                }
                 $markets[$symbol]['symbol'] = $symbol;
                 $ticker = Async\await($this->parse_ticker($markets[$symbol]));
                 $symbol = $ticker['symbol'];
