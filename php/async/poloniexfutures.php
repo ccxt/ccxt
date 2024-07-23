@@ -840,7 +840,7 @@ class poloniexfutures extends Exchange {
              * @param {string} $type 'limit' or 'market'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount the $amount of currency to trade
-             * @param {float} [$price] *ignored in "market" orders* the $price at which the order is to be fullfilled at in units of the quote currency
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params]  extra parameters specific to the exchange API endpoint
              * @param {float} [$params->leverage] Leverage size of the order
              * @param {float} [$params->stopPrice] The $price at which a trigger order is triggered at

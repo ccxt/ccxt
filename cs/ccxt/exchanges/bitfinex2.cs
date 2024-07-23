@@ -2514,7 +2514,7 @@ public partial class bitfinex2 : Exchange
                 feeCost = Precise.stringAbs(feeCost);
             }
             amount = this.safeNumber(data, 5);
-            id = this.safeString(data, 0);
+            id = this.safeInteger(data, 0);
             status = "ok";
             if (isTrue(isEqual(id, 0)))
             {
@@ -3949,7 +3949,7 @@ public partial class bitfinex2 : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price that the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.stopPrice] the price that triggers a trigger order
         * @param {boolean} [params.postOnly] set to true if you want to make a post only order

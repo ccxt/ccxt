@@ -43,7 +43,7 @@ export default class bitget extends bitgetRest {
     handleAuthenticate(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): boolean;
     handleMessage(client: Client, message: any): void;
-    ping(client: any): string;
+    ping(client: Client): string;
     handlePong(client: Client, message: any): any;
     handleSubscriptionStatus(client: Client, message: any): any;
 }

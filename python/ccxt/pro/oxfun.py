@@ -83,7 +83,7 @@ class oxfun(ccxt.async_support.oxfun):
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int|str [params.tag]: If given it will be echoed in the reply and the max size of tag is 32
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         return await self.watch_trades_for_symbols([symbol], since, limit, params)
 
@@ -715,7 +715,7 @@ class oxfun(ccxt.async_support.oxfun):
         :param str type: 'market', 'limit', 'STOP_LIMIT' or 'STOP_MARKET'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.clientOrderId]: a unique id for the order
         :param int [params.timestamp]: in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected.
@@ -754,7 +754,7 @@ class oxfun(ccxt.async_support.oxfun):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of the currency you want to trade in units of the base currency
-        :param float|None [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float|None [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param int [params.timestamp]: in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected.
         :param int [params.recvWindow]: in milliseconds. If an order reaches the matching engine and the current timestamp exceeds timestamp + recvWindow, then the order will be rejected. If timestamp is provided without recvWindow, then a default recvWindow of 1000ms is used.
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -854,7 +854,7 @@ class oxfun(ccxt.async_support.oxfun):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        idsLength = len(ids)
+        idsLength: number = len(ids)
         if idsLength > 20:
             raise BadRequest(self.id + ' cancelOrdersWs() accepts up to 20 ids at a time')
         if symbol is None:
@@ -914,7 +914,7 @@ class oxfun(ccxt.async_support.oxfun):
             if messageHash in client.subscriptions:
                 del client.subscriptions[messageHash]
 
-    def ping(self, client):
+    def ping(self, client: Client):
         return 'ping'
 
     def handle_pong(self, client: Client, message):

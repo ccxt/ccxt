@@ -106,7 +106,7 @@ export default class kucoin extends Exchange {
                 'fetchWithdrawals': true,
                 'repayCrossMargin': true,
                 'repayIsolatedMargin': true,
-                'setLeverage': false,
+                'setLeverage': true,
                 'setMarginMode': false,
                 'setPositionMode': false,
                 'signIn': false,
@@ -161,6 +161,7 @@ export default class kucoin extends Exchange {
                         'status': 4.5, // 3PW
                         // margin trading
                         'mark-price/{symbol}/current': 3, // 2PW
+                        'mark-price/all-symbols': 3,
                         'margin/config': 25, // 25SW
                     },
                     'post': {
@@ -202,6 +203,7 @@ export default class kucoin extends Exchange {
                         'market/orderbook/level3': 3, // 3SW
                         'hf/orders/active': 2, // 2SW
                         'hf/orders/active/symbols': 2, // 2SW
+                        'hf/margin/order/active/symbols': 2, // 2SW
                         'hf/orders/done': 2, // 2SW
                         'hf/orders/{orderId}': 2, // 2SW
                         'hf/orders/client-order/{clientOid}': 2, // 2SW
@@ -230,6 +232,7 @@ export default class kucoin extends Exchange {
                         'margin/currencies': 20, // 20SW
                         'risk/limit/strategy': 20, // 20SW (Deprecate)
                         'isolated/symbols': 20, // 20SW
+                        'margin/symbols': 5,
                         'isolated/account/{symbol}': 50, // 50SW
                         'margin/borrow': 15, // 15SW
                         'margin/repay': 15, // 15SW
@@ -240,6 +243,8 @@ export default class kucoin extends Exchange {
                         'purchase/orders': 10, // 10SW
                         // broker
                         'broker/api/rebase/download': 3,
+                        // affiliate
+                        'affiliate/inviter/statistics': 30,
                     },
                     'post': {
                         // account
@@ -279,6 +284,7 @@ export default class kucoin extends Exchange {
                         'lend/purchase/update': 10, // 10SW
                         // ws
                         'bullet-private': 10, // 10SW
+                        'position/update-user-leverage': 5,
                     },
                     'delete': {
                         // account
@@ -641,6 +647,7 @@ export default class kucoin extends Exchange {
                             'currencies': 'v3',
                             'currencies/{currency}': 'v3',
                             'symbols': 'v2',
+                            'mark-price/all-symbols': 'v3',
                         },
                     },
                     'private': {
@@ -665,6 +672,7 @@ export default class kucoin extends Exchange {
                             'oco/orders': 'v3',
                             // margin trading
                             'hf/margin/orders/active': 'v3',
+                            'hf/margin/order/active/symbols': 'v3',
                             'hf/margin/orders/done': 'v3',
                             'hf/margin/orders/{orderId}': 'v3',
                             'hf/margin/orders/client-order/{clientOid}': 'v3',
@@ -678,6 +686,8 @@ export default class kucoin extends Exchange {
                             'project/marketInterestRate': 'v3',
                             'redeem/orders': 'v3',
                             'purchase/orders': 'v3',
+                            'margin/symbols': 'v3',
+                            'affiliate/inviter/statistics': 'v2',
                         },
                         'POST': {
                             // account
@@ -697,6 +707,7 @@ export default class kucoin extends Exchange {
                             'purchase': 'v3',
                             'redeem': 'v3',
                             'lend/purchase/update': 'v3',
+                            'position/update-user-leverage': 'v3',
                         },
                         'DELETE': {
                             // account
@@ -1023,7 +1034,10 @@ export default class kucoin extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const response = await this.publicGetSymbols (params);
+        let fetchTickersFees = undefined;
+        [ fetchTickersFees, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'fetchTickersFees', true);
+        const promises = [];
+        promises.push (this.publicGetSymbols (params));
         //
         //     {
         //         "code": "200000",
@@ -1046,60 +1060,100 @@ export default class kucoin extends Exchange {
         //                 "isMarginEnabled": true,
         //                 "enableTrading": true
         //             },
-        //         ]
-        //     }
         //
-        const data = this.safeList (response, 'data');
-        const options = this.safeDict (this.options, 'fetchMarkets', {});
-        const fetchTickersFees = this.safeBool (options, 'fetchTickersFees', true);
-        let tickersResponse: Dict = {};
-        if (fetchTickersFees) {
-            tickersResponse = await this.publicGetMarketAllTickers (params);
+        const requestMarginables = this.checkRequiredCredentials (false);
+        if (requestMarginables) {
+            promises.push (this.privateGetMarginSymbols (params)); // cross margin symbols
+            //
+            //    {
+            //        "code": "200000",
+            //        "data": {
+            //            "timestamp": 1719393213421,
+            //            "items": [
+            //                {
+            //                    // same object as in market, with one additional field:
+            //                    "minFunds": "0.1"
+            //                },
+            //
+            promises.push (this.privateGetIsolatedSymbols (params)); // isolated margin symbols
+            //
+            //    {
+            //        "code": "200000",
+            //        "data": [
+            //            {
+            //                "symbol": "NKN-USDT",
+            //                "symbolName": "NKN-USDT",
+            //                "baseCurrency": "NKN",
+            //                "quoteCurrency": "USDT",
+            //                "maxLeverage": 5,
+            //                "flDebtRatio": "0.97",
+            //                "tradeEnable": true,
+            //                "autoRenewMaxDebtRatio": "0.96",
+            //                "baseBorrowEnable": true,
+            //                "quoteBorrowEnable": true,
+            //                "baseTransferInEnable": true,
+            //                "quoteTransferInEnable": true,
+            //                "baseBorrowCoefficient": "1",
+            //                "quoteBorrowCoefficient": "1"
+            //            },
+            //
         }
-        //
-        //     {
-        //         "code": "200000",
-        //         "data": {
-        //             "time":1602832092060,
-        //             "ticker":[
-        //                 {
-        //                     "symbol": "BTC-USDT",   // symbol
-        //                     "symbolName":"BTC-USDT", // Name of trading pairs, it would change after renaming
-        //                     "buy": "11328.9",   // bestAsk
-        //                     "sell": "11329",    // bestBid
-        //                     "changeRate": "-0.0055",    // 24h change rate
-        //                     "changePrice": "-63.6", // 24h change price
-        //                     "high": "11610",    // 24h highest price
-        //                     "low": "11200", // 24h lowest price
-        //                     "vol": "2282.70993217", // 24h volume，the aggregated trading volume in BTC
-        //                     "volValue": "25984946.157790431",   // 24h total, the trading volume in quote currency of last 24 hours
-        //                     "last": "11328.9",  // last price
-        //                     "averagePrice": "11360.66065903",   // 24h average transaction price yesterday
-        //                     "takerFeeRate": "0.001",    // Basic Taker Fee
-        //                     "makerFeeRate": "0.001",    // Basic Maker Fee
-        //                     "takerCoefficient": "1",    // Taker Fee Coefficient
-        //                     "makerCoefficient": "1" // Maker Fee Coefficient
-        //                 }
-        //             ]
-        //         }
-        //     }
-        //
-        const tickersData = this.safeDict (tickersResponse, 'data', {});
-        const tickers = this.safeList (tickersData, 'ticker', []);
-        const tickersByMarketId = this.indexBy (tickers, 'symbol');
+        if (fetchTickersFees) {
+            promises.push (this.publicGetMarketAllTickers (params));
+            //
+            //     {
+            //         "code": "200000",
+            //         "data": {
+            //             "time":1602832092060,
+            //             "ticker":[
+            //                 {
+            //                     "symbol": "BTC-USDT",   // symbol
+            //                     "symbolName":"BTC-USDT", // Name of trading pairs, it would change after renaming
+            //                     "buy": "11328.9",   // bestAsk
+            //                     "sell": "11329",    // bestBid
+            //                     "changeRate": "-0.0055",    // 24h change rate
+            //                     "changePrice": "-63.6", // 24h change price
+            //                     "high": "11610",    // 24h highest price
+            //                     "low": "11200", // 24h lowest price
+            //                     "vol": "2282.70993217", // 24h volume，the aggregated trading volume in BTC
+            //                     "volValue": "25984946.157790431",   // 24h total, the trading volume in quote currency of last 24 hours
+            //                     "last": "11328.9",  // last price
+            //                     "averagePrice": "11360.66065903",   // 24h average transaction price yesterday
+            //                     "takerFeeRate": "0.001",    // Basic Taker Fee
+            //                     "makerFeeRate": "0.001",    // Basic Maker Fee
+            //                     "takerCoefficient": "1",    // Taker Fee Coefficient
+            //                     "makerCoefficient": "1" // Maker Fee Coefficient
+            //                 }
+            //
+        }
+        const responses = await Promise.all (promises);
+        const symbolsData = this.safeList (responses[0], 'data');
+        const crossData = requestMarginables ? this.safeDict (responses[1], 'data', {}) : {};
+        const crossItems = this.safeList (crossData, 'items', []);
+        const crossById = this.indexBy (crossItems, 'symbol');
+        const isolatedData = requestMarginables ? responses[2] : {};
+        const isolatedItems = this.safeList (isolatedData, 'data', []);
+        const isolatedById = this.indexBy (isolatedItems, 'symbol');
+        const tickersIdx = requestMarginables ? 3 : 1;
+        const tickersResponse = this.safeDict (responses, tickersIdx, {});
+        const tickerItems = this.safeList (this.safeDict (tickersResponse, 'data', {}), 'ticker', []);
+        const tickersById = this.indexBy (tickerItems, 'symbol');
         const result = [];
-        for (let i = 0; i < data.length; i++) {
-            const market = data[i];
+        for (let i = 0; i < symbolsData.length; i++) {
+            const market = symbolsData[i];
             const id = this.safeString (market, 'symbol');
             const [ baseId, quoteId ] = id.split ('-');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             // const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
-            const ticker = this.safeDict (tickersByMarketId, id, {});
+            const ticker = this.safeDict (tickersById, id, {});
             const makerFeeRate = this.safeString (ticker, 'makerFeeRate');
             const takerFeeRate = this.safeString (ticker, 'takerFeeRate');
             const makerCoefficient = this.safeString (ticker, 'makerCoefficient');
             const takerCoefficient = this.safeString (ticker, 'takerCoefficient');
+            const hasCrossMargin = (id in crossById);
+            const hasIsolatedMargin = (id in isolatedById);
+            const isMarginable = this.safeBool (market, 'isMarginEnabled', false) || hasCrossMargin || hasIsolatedMargin;
             result.push ({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -1111,7 +1165,11 @@ export default class kucoin extends Exchange {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': this.safeBool (market, 'isMarginEnabled'),
+                'margin': isMarginable,
+                'marginMode': {
+                    'cross': hasCrossMargin,
+                    'isolated': hasIsolatedMargin,
+                },
                 'swap': false,
                 'future': false,
                 'option': false,
@@ -2009,7 +2067,7 @@ export default class kucoin extends Exchange {
          * @param {string} type 'limit' or 'market'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount the amount of currency to trade
-         * @param {float} [price] *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params]  extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @param {string} [params.marginMode] 'cross', // cross (cross mode) and isolated (isolated mode), set to cross by default, the isolated mode will be released soon, stay tuned
@@ -2295,7 +2353,7 @@ export default class kucoin extends Exchange {
          * @param {string} type not used
          * @param {string} side not used
          * @param {float} amount how much of the currency you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.clientOrderId] client order id, defaults to id if not passed
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2516,9 +2574,9 @@ export default class kucoin extends Exchange {
         await this.loadMarkets ();
         let lowercaseStatus = status.toLowerCase ();
         const until = this.safeInteger (params, 'until');
-        const stop = this.safeBool (params, 'stop', false);
+        const stop = this.safeBool2 (params, 'stop', 'trigger', false);
         const hf = this.safeBool (params, 'hf', false);
-        params = this.omit (params, [ 'stop', 'hf', 'until' ]);
+        params = this.omit (params, [ 'stop', 'hf', 'until', 'trigger' ]);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrdersByStatus', params);
         if (lowercaseStatus === 'open') {
             lowercaseStatus = 'active';
@@ -2694,7 +2752,7 @@ export default class kucoin extends Exchange {
         await this.loadMarkets ();
         const request: Dict = {};
         const clientOrderId = this.safeString2 (params, 'clientOid', 'clientOrderId');
-        const stop = this.safeBool (params, 'stop', false);
+        const stop = this.safeBool2 (params, 'stop', 'trigger', false);
         const hf = this.safeBool (params, 'hf', false);
         let market = undefined;
         if (symbol !== undefined) {
@@ -2706,7 +2764,7 @@ export default class kucoin extends Exchange {
             }
             request['symbol'] = market['id'];
         }
-        params = this.omit (params, [ 'stop', 'hf', 'clientOid', 'clientOrderId' ]);
+        params = this.omit (params, [ 'stop', 'hf', 'clientOid', 'clientOrderId', 'trigger' ]);
         let response = undefined;
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
@@ -4814,6 +4872,43 @@ export default class kucoin extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         return this.parseDepositWithdrawFees (data, codes, 'currency');
+    }
+
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#setLeverage
+         * @description set the level of leverage for a market
+         * @see https://www.kucoin.com/docs/rest/margin-trading/margin-trading-v3-/modify-leverage-multiplier
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} response from the exchange
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        let marketType: Str = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('setLeverage', undefined, params);
+        if ((symbol !== undefined) || marketType !== 'spot') {
+            market = this.market (symbol);
+            if (market['contract']) {
+                throw new NotSupported (this.id + ' setLeverage currently supports only spot margin');
+            }
+        }
+        let marginMode: Str = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
+        if (marginMode === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage requires a marginMode parameter');
+        }
+        const request: Dict = {};
+        if (marginMode === 'isolated' && symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage requires a symbol parameter for isolated margin');
+        }
+        if (symbol !== undefined) {
+            request['symbol'] = market['id'];
+        }
+        request['leverage'] = leverage.toString ();
+        request['isIsolated'] = (marginMode === 'isolated');
+        return await this.privatePostPositionUpdateUserLeverage (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

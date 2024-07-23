@@ -7,6 +7,7 @@ import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, B
 export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, DepositAddressResponse, Currency, MinMax, IndexType, Int, Bool, OrderType, OrderSide, Position, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, CrossBorrowRate, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, Conversion } from './types.js';
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 import { OrderBook as Ob } from './ws/OrderBook.js';
+import Client from './ws/Client.js';
 /**
  * @class Exchange
  */
@@ -15,6 +16,7 @@ export default class Exchange {
         [key: string]: any;
     };
     throttleProp: any;
+    sleep: (ms: any) => Promise<unknown>;
     api: any;
     proxy: any;
     proxyUrl: string;
@@ -647,7 +649,7 @@ export default class Exchange {
     indexedOrderBook(snapshot?: {}, depth?: number): IndexedOrderBook;
     countedOrderBook(snapshot?: {}, depth?: number): CountedOrderBook;
     handleMessage(client: any, message: any): void;
-    ping(client: any): any;
+    ping(client: Client): any;
     client(url: string): WsClient;
     watchMultiple(url: string, messageHashes: string[], message?: any, subscribeHashes?: any, subscription?: any): import("./ws/Future.js").FutureInterface;
     watch(url: string, messageHash: string, message?: any, subscribeHash?: any, subscription?: any): any;
@@ -657,7 +659,7 @@ export default class Exchange {
     close(): Promise<void>;
     loadOrderBook(client: any, messageHash: string, symbol: string, limit?: Int, params?: {}): Promise<void>;
     convertToBigInt(value: string): bigint;
-    stringToCharsArray(value: any): any;
+    stringToCharsArray(value: string): string[];
     valueIsDefined(value: any): boolean;
     arraySlice(array: any, first: any, second?: any): any;
     getProperty(obj: any, property: any, defaultValue?: any): any;
@@ -667,9 +669,9 @@ export default class Exchange {
     ethAbiEncode(types: any, args: any): Uint8Array;
     ethEncodeStructuredData(domain: any, messageTypes: any, messageData: any): Uint8Array;
     intToBase16(elem: any): string;
-    extendExchangeOptions(newOptions: any): void;
+    extendExchangeOptions(newOptions: Dict): void;
     createSafeDictionary(): {};
-    randomBytes(length: any): string;
+    randomBytes(length: number): string;
     safeBoolN(dictionaryOrList: any, keys: IndexType[], defaultValue?: boolean): boolean | undefined;
     safeBool2(dictionary: any, key1: IndexType, key2: IndexType, defaultValue?: boolean): boolean | undefined;
     safeBool(dictionary: any, key: IndexType, defaultValue?: boolean): boolean | undefined;
@@ -721,7 +723,7 @@ export default class Exchange {
     parseTrade(trade: Dict, market?: Market): Trade;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
-    parseAccount(account: any): Account;
+    parseAccount(account: Dict): Account;
     parseLedgerEntry(item: Dict, currency?: Currency): object;
     parseOrder(order: Dict, market?: Market): Order;
     fetchCrossBorrowRates(params?: {}): Promise<CrossBorrowRates>;
@@ -731,10 +733,10 @@ export default class Exchange {
     parsePosition(position: Dict, market?: Market): Position;
     parseFundingRateHistory(info: any, market?: Market): FundingRateHistory;
     parseBorrowInterest(info: Dict, market?: Market): BorrowInterest;
-    parseIsolatedBorrowRate(info: any, market?: Market): IsolatedBorrowRate;
-    parseWsTrade(trade: any, market?: Market): Trade;
-    parseWsOrder(order: any, market?: Market): Order;
-    parseWsOrderTrade(trade: any, market?: Market): Trade;
+    parseIsolatedBorrowRate(info: Dict, market?: Market): IsolatedBorrowRate;
+    parseWsTrade(trade: Dict, market?: Market): Trade;
+    parseWsOrder(order: Dict, market?: Market): Order;
+    parseWsOrderTrade(trade: Dict, market?: Market): Trade;
     parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
     fetchFundingRates(symbols?: Strings, params?: {}): Promise<{}>;
     watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
@@ -762,6 +764,7 @@ export default class Exchange {
     isRoundNumber(value: number): boolean;
     safeIntegerOmitZero(obj: object, key: IndexType, defaultValue?: Int): Int;
     afterConstruct(): void;
+    orderbookChecksumMessage(symbol: Str): string;
     createNetworksByIdObject(): void;
     getDefaultOptions(): {
         defaultNetworkCodeReplacements: {
@@ -794,11 +797,11 @@ export default class Exchange {
         info: Dictionary<any>;
     };
     safeCurrencyStructure(currency: object): CurrencyInterface;
-    safeMarketStructure(market?: any): MarketInterface;
+    safeMarketStructure(market?: Dict): MarketInterface;
     setMarkets(markets: any, currencies?: any): Dictionary<any>;
     getDescribeForExtendedWsExchange(currentRestInstance: any, parentRestInstance: any, wsBaseDescribe: Dictionary<any>): any;
-    safeBalance(balance: object): Balances;
-    safeOrder(order: object, market?: Market): Order;
+    safeBalance(balance: Dict): Balances;
+    safeOrder(order: Dict, market?: Market): Order;
     parseOrders(orders: object, market?: Market, since?: Int, limit?: Int, params?: {}): Order[];
     calculateFee(symbol: string, type: string, side: string, amount: number, price: number, takerOrMaker?: string, params?: {}): {
         type: string;
@@ -806,12 +809,12 @@ export default class Exchange {
         rate: number;
         cost: number;
     };
-    safeLiquidation(liquidation: object, market?: Market): Liquidation;
-    safeTrade(trade: object, market?: Market): Trade;
+    safeLiquidation(liquidation: Dict, market?: Market): Liquidation;
+    safeTrade(trade: Dict, market?: Market): Trade;
     findNearestCeiling(arr: number[], providedValue: number): number;
     invertFlatStringDictionary(dict: any): {};
     reduceFeesByCurrency(fees: any): any[];
-    safeTicker(ticker: object, market?: Market): Ticker;
+    safeTicker(ticker: Dict, market?: Market): Ticker;
     fetchBorrowRate(code: string, amount: any, params?: {}): Promise<{}>;
     repayCrossMargin(code: string, amount: any, params?: {}): Promise<{}>;
     repayIsolatedMargin(symbol: string, code: string, amount: any, params?: {}): Promise<{}>;
@@ -845,7 +848,7 @@ export default class Exchange {
     parseOHLCVs(ohlcvs: object[], market?: any, timeframe?: string, since?: Int, limit?: Int): OHLCV[];
     parseLeverageTiers(response: any, symbols?: string[], marketIdKey?: any): LeverageTiers;
     loadTradingLimits(symbols?: Strings, reload?: boolean, params?: {}): Promise<Dictionary<any>>;
-    safePosition(position: any): Position;
+    safePosition(position: Dict): Position;
     parsePositions(positions: any[], symbols?: string[], params?: {}): Position[];
     parseAccounts(accounts: any[], params?: {}): Account[];
     parseTrades(trades: any[], market?: Market, since?: Int, limit?: Int, params?: {}): Trade[];
@@ -1090,7 +1093,7 @@ export default class Exchange {
     sortCursorPaginatedResult(result: any): any;
     removeRepeatedElementsFromArray(input: any): any;
     handleUntilOption(key: string, request: any, params: any, multiplier?: number): any[];
-    safeOpenInterest(interest: any, market?: Market): OpenInterest;
+    safeOpenInterest(interest: Dict, market?: Market): OpenInterest;
     parseLiquidation(liquidation: any, market?: Market): Liquidation;
     parseLiquidations(liquidations: Dict[], market?: Market, since?: Int, limit?: Int): Liquidation[];
     parseGreeks(greeks: Dict, market?: Market): Greeks;

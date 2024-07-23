@@ -3,7 +3,7 @@
 import hyperliquidRest from '../hyperliquid.js';
 import { ExchangeError } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
-import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict } from '../base/types.js';
+import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
@@ -19,7 +19,7 @@ export default class hyperliquid extends hyperliquidRest {
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTicker': false,
-                'watchTickers': false,
+                'watchTickers': true,
                 'watchTrades': true,
                 'watchPosition': false,
             },
@@ -125,6 +125,33 @@ export default class hyperliquid extends hyperliquidRest {
         client.resolve (orderbook, messageHash);
     }
 
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name hyperliquid#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true);
+        const messageHash = 'tickers';
+        const url = this.urls['api']['ws']['public'];
+        const request: Dict = {
+            'method': 'subscribe',
+            'subscription': {
+                'type': 'webData2', // allMids
+                'user': '0x0000000000000000000000000000000000000000',
+            },
+        };
+        const tickers = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        if (this.newUpdates) {
+            return this.filterByArrayTickers (tickers, 'symbol', symbols);
+        }
+        return this.tickers;
+    }
+
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
@@ -135,7 +162,7 @@ export default class hyperliquid extends hyperliquidRest {
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.user] user address, will default to this.walletAddress if not provided
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         let userAddress = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('watchMyTrades', params);
@@ -159,6 +186,86 @@ export default class hyperliquid extends hyperliquidRest {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    handleWsTickers (client: Client, message) {
+        //
+        //     {
+        //         "channel": "webData2",
+        //         "data": {
+        //             "meta": {
+        //                 "universe": [
+        //                     {
+        //                         "szDecimals": 5,
+        //                         "name": "BTC",
+        //                         "maxLeverage": 50,
+        //                         "onlyIsolated": false
+        //                     },
+        //                     ...
+        //                 ],
+        //             },
+        //             "assetCtxs": [
+        //                 {
+        //                     "funding": "0.00003005",
+        //                     "openInterest": "2311.50778",
+        //                     "prevDayPx": "63475.0",
+        //                     "dayNtlVlm": "468043329.64289033",
+        //                     "premium": "0.00094264",
+        //                     "oraclePx": "64712.0",
+        //                     "markPx": "64774.0",
+        //                     "midPx": "64773.5",
+        //                     "impactPxs": [
+        //                         "64773.0",
+        //                         "64774.0"
+        //                     ]
+        //                 },
+        //                 ...
+        //             ],
+        //             "spotAssetCtxs": [
+        //                 {
+        //                     "prevDayPx": "0.20937",
+        //                     "dayNtlVlm": "11188888.61984999",
+        //                     "markPx": "0.19722",
+        //                     "midPx": "0.197145",
+        //                     "circulatingSupply": "598760557.12072003",
+        //                     "coin": "PURR/USDC"
+        //                 },
+        //                 ...
+        //             ],
+        //         }
+        //     }
+        //
+        // spot
+        const rawData = this.safeDict (message, 'data', {});
+        const spotAssets = this.safeList (rawData, 'spotAssetCtxs', []);
+        const parsedTickers = [];
+        for (let i = 0; i < spotAssets.length; i++) {
+            const assetObject = spotAssets[i];
+            const marketId = this.safeString (assetObject, 'coin');
+            const market = this.safeMarket (marketId, undefined, undefined, 'spot');
+            const ticker = this.parseWsTicker (assetObject, market);
+            parsedTickers.push (ticker);
+        }
+        // perpetuals
+        const meta = this.safeDict (rawData, 'meta', {});
+        const universe = this.safeList (meta, 'universe', []);
+        const assetCtxs = this.safeList (rawData, 'assetCtxs', []);
+        for (let i = 0; i < universe.length; i++) {
+            const data = this.extend (
+                this.safeDict (universe, i, {}),
+                this.safeDict (assetCtxs, i, {})
+            );
+            const id = data['name'] + '/USDC:USDC';
+            const market = this.safeMarket (id, undefined, undefined, 'swap');
+            const ticker = this.parseWsTicker (data, market);
+            parsedTickers.push (ticker);
+        }
+        const tickers = this.indexBy (parsedTickers, 'symbol');
+        client.resolve (tickers, 'tickers');
+    }
+
+    parseWsTicker (rawTicker, market: Market = undefined): Ticker {
+        return this.parseTicker (rawTicker, market);
     }
 
     handleMyTrades (client: Client, message) {
@@ -228,7 +335,7 @@ export default class hyperliquid extends hyperliquidRest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -288,7 +395,7 @@ export default class hyperliquid extends hyperliquidRest {
         client.resolve (trades, messageHash);
     }
 
-    parseWsTrade (trade, market: Market = undefined): Trade {
+    parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchMyTrades
         //
@@ -433,7 +540,7 @@ export default class hyperliquid extends hyperliquidRest {
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.user] user address, will default to this.walletAddress if not provided
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let userAddress = undefined;
@@ -538,6 +645,7 @@ export default class hyperliquid extends hyperliquidRest {
             'candle': this.handleOHLCV,
             'orderUpdates': this.handleOrder,
             'userFills': this.handleMyTrades,
+            'webData2': this.handleWsTickers,
         };
         const exacMethod = this.safeValue (methods, topic);
         if (exacMethod !== undefined) {
@@ -555,7 +663,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
     }
 
-    ping (client) {
+    ping (client: Client) {
         return {
             'method': 'ping',
         };

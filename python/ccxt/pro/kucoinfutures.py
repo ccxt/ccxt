@@ -1035,7 +1035,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         else:
             return elementName + 's@all'
 
-    def ping(self, client):
+    def ping(self, client: Client):
         # kucoin does not support built-in ws protocol-level ping-pong
         # instead it requires a custom json-based text ping-pong
         # https://docs.kucoin.com/#ping

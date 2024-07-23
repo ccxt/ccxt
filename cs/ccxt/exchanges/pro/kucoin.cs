@@ -41,6 +41,9 @@ public partial class kucoin : ccxt.kucoin
                     { "snapshotMaxRetries", 3 },
                     { "method", "/market/level2" },
                 } },
+                { "watchMyTrades", new Dictionary<string, object>() {
+                    { "method", "/spotMarket/tradeOrders" },
+                } },
             } },
             { "streaming", new Dictionary<string, object>() {
                 { "ping", this.ping },
@@ -159,6 +162,7 @@ public partial class kucoin : ccxt.kucoin
         * @method
         * @name kucoin#watchTicker
         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/market-snapshot
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -423,6 +427,7 @@ public partial class kucoin : ccxt.kucoin
         * @method
         * @name kucoin#watchOHLCV
         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/klines
         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
         * @param {string} timeframe the length of time each candle represents
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -499,6 +504,7 @@ public partial class kucoin : ccxt.kucoin
         * @method
         * @name kucoin#watchTrades
         * @description get the list of most recent trades for a particular symbol
+        * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
@@ -515,6 +521,7 @@ public partial class kucoin : ccxt.kucoin
         * @method
         * @name kucoin#watchTrades
         * @description get the list of most recent trades for a particular symbol
+        * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
@@ -897,6 +904,8 @@ public partial class kucoin : ccxt.kucoin
         * @method
         * @name kucoin#watchOrders
         * @description watches information on multiple orders made by the user
+        * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/private-order-change
+        * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/stop-order-event
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1043,6 +1052,11 @@ public partial class kucoin : ccxt.kucoin
         //
         object messageHash = "orders";
         object data = this.safeValue(message, "data");
+        object tradeId = this.safeString(data, "tradeId");
+        if (isTrue(!isEqual(tradeId, null)))
+        {
+            this.handleMyTrade(client as WebSocketClient, message);
+        }
         object parsed = this.parseWsOrder(data);
         object symbol = this.safeString(parsed, "symbol");
         object orderId = this.safeString(parsed, "id");
@@ -1077,16 +1091,21 @@ public partial class kucoin : ccxt.kucoin
         * @method
         * @name kucoin#watchMyTrades
         * @description watches information on multiple trades made by the user
+        * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/private-order-change
         * @param {string} symbol unified market symbol of the market trades were made in
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trade structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        * @param {string} [params.method] '/spotMarket/tradeOrders' or '/spot/tradeFills' default is '/spotMarket/tradeOrders'
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object url = await this.negotiate(true);
-        object topic = "/spot/tradeFills";
+        object topic = null;
+        var topicparametersVariable = this.handleOptionAndParams(parameters, "watchMyTrades", "method", "/spotMarket/tradeOrders");
+        topic = ((IList<object>)topicparametersVariable)[0];
+        parameters = ((IList<object>)topicparametersVariable)[1];
         object request = new Dictionary<string, object>() {
             { "privateChannel", true },
         };
@@ -1107,6 +1126,34 @@ public partial class kucoin : ccxt.kucoin
 
     public virtual void handleMyTrade(WebSocketClient client, object message)
     {
+        //
+        //     {
+        //         "type": "message",
+        //         "topic": "/spotMarket/tradeOrders",
+        //         "subject": "orderChange",
+        //         "channelType": "private",
+        //         "data": {
+        //             "symbol": "KCS-USDT",
+        //             "orderType": "limit",
+        //             "side": "sell",
+        //             "orderId": "5efab07953bdea00089965fa",
+        //             "liquidity": "taker",
+        //             "type": "match",
+        //             "feeType": "takerFee",
+        //             "orderTime": 1670329987026,
+        //             "size": "0.1",
+        //             "filledSize": "0.1",
+        //             "price": "0.938",
+        //             "matchPrice": "0.96738",
+        //             "matchSize": "0.1",
+        //             "tradeId": "5efab07a4ee4c7000a82d6d9",
+        //             "clientOid": "1593487481000313",
+        //             "remainSize": "0",
+        //             "status": "match",
+        //             "ts": 1670329987311000000
+        //         }
+        //     }
+        //
         if (isTrue(isEqual(this.myTrades, null)))
         {
             object limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1124,19 +1171,44 @@ public partial class kucoin : ccxt.kucoin
     public override object parseWsTrade(object trade, object market = null)
     {
         //
-        // {
-        //     "fee": 0.00262148,
-        //     "feeCurrency": "USDT",
-        //     "feeRate": 0.001,
-        //     "orderId": "62417436b29df8000183df2f",
-        //     "orderType": "market",
-        //     "price": 131.074,
-        //     "side": "sell",
-        //     "size": 0.02,
-        //     "symbol": "LTC-USDT",
-        //     "time": "1648456758734571745",
-        //     "tradeId": "624174362e113d2f467b3043"
-        //   }
+        // /spotMarket/tradeOrders
+        //
+        //     {
+        //         "symbol": "KCS-USDT",
+        //         "orderType": "limit",
+        //         "side": "sell",
+        //         "orderId": "5efab07953bdea00089965fa",
+        //         "liquidity": "taker",
+        //         "type": "match",
+        //         "feeType": "takerFee",
+        //         "orderTime": 1670329987026,
+        //         "size": "0.1",
+        //         "filledSize": "0.1",
+        //         "price": "0.938",
+        //         "matchPrice": "0.96738",
+        //         "matchSize": "0.1",
+        //         "tradeId": "5efab07a4ee4c7000a82d6d9",
+        //         "clientOid": "1593487481000313",
+        //         "remainSize": "0",
+        //         "status": "match",
+        //         "ts": 1670329987311000000
+        //     }
+        //
+        // /spot/tradeFills
+        //
+        //    {
+        //        "fee": 0.00262148,
+        //        "feeCurrency": "USDT",
+        //        "feeRate": 0.001,
+        //        "orderId": "62417436b29df8000183df2f",
+        //        "orderType": "market",
+        //        "price": 131.074,
+        //        "side": "sell",
+        //        "size": 0.02,
+        //        "symbol": "LTC-USDT",
+        //        "time": "1648456758734571745",
+        //        "tradeId": "624174362e113d2f467b3043"
+        //    }
         //
         object marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market, "-");
@@ -1144,18 +1216,13 @@ public partial class kucoin : ccxt.kucoin
         object type = this.safeString(trade, "orderType");
         object side = this.safeString(trade, "side");
         object tradeId = this.safeString(trade, "tradeId");
-        object price = this.safeString(trade, "price");
-        object amount = this.safeString(trade, "size");
+        object price = this.safeString(trade, "matchPrice");
+        object amount = this.safeString(trade, "matchSize");
         object order = this.safeString(trade, "orderId");
-        object timestamp = this.safeIntegerProduct(trade, "time", 0.000001);
+        object timestamp = this.safeIntegerProduct2(trade, "ts", "time", 0.000001);
         object feeCurrency = getValue(market, "quote");
         object feeRate = this.safeString(trade, "feeRate");
         object feeCost = this.safeString(trade, "fee");
-        object fee = new Dictionary<string, object>() {
-            { "cost", feeCost },
-            { "rate", feeRate },
-            { "currency", feeCurrency },
-        };
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "timestamp", timestamp },
@@ -1164,12 +1231,16 @@ public partial class kucoin : ccxt.kucoin
             { "id", tradeId },
             { "order", order },
             { "type", type },
-            { "takerOrMaker", null },
+            { "takerOrMaker", this.safeString(trade, "liquidity") },
             { "side", side },
             { "price", price },
             { "amount", amount },
             { "cost", null },
-            { "fee", fee },
+            { "fee", new Dictionary<string, object>() {
+                { "cost", feeCost },
+                { "rate", feeRate },
+                { "currency", feeCurrency },
+            } },
         }, market);
     }
 
@@ -1179,6 +1250,7 @@ public partial class kucoin : ccxt.kucoin
         * @method
         * @name kucoin#watchBalance
         * @description watch balance and get the amount of funds available for trading or funds locked in orders
+        * @see https://www.kucoin.com/docs/websocket/spot-trading/private-channels/account-balance-change
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */
@@ -1286,9 +1358,9 @@ public partial class kucoin : ccxt.kucoin
             { "trade.l3match", this.handleTrade },
             { "trade.candles.update", this.handleOHLCV },
             { "account.balance", this.handleBalance },
-            { "/spot/tradeFills", this.handleMyTrade },
             { "orderChange", this.handleOrder },
             { "stopOrder", this.handleOrder },
+            { "/spot/tradeFills", this.handleMyTrade },
         };
         object method = this.safeValue(methods, subject);
         if (isTrue(!isEqual(method, null)))

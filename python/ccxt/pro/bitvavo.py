@@ -476,7 +476,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=ortradeder-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchMyTrades() requires a symbol argument')
@@ -510,7 +510,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float price: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
         :param str [params.timeInForce]: "GTC", "IOC", or "PO"
         :param float [params.stopPrice]: The price at which a trigger order is triggered at
@@ -539,7 +539,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float [amount]: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """

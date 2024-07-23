@@ -810,24 +810,24 @@ class mexc(Exchange, ImplicitAPI):
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',
                 'BIFI': 'BIFIF',
-                'BYN': 'BeyondFi',
+                'BYN': 'BEYONDFI',
                 'COFI': 'COFIX',  # conflict with CoinFi
-                'DFI': 'DfiStarter',
-                'DFT': 'dFuture',
+                'DFI': 'DFISTARTER',
+                'DFT': 'DFUTURE',
                 'DRK': 'DRK',
-                'EGC': 'Egoras Credit',
+                'EGC': 'EGORASCREDIT',
                 'FLUX1': 'FLUX',  # switched places
                 'FLUX': 'FLUX1',  # switched places
-                'FREE': 'FreeRossDAO',  # conflict with FREE Coin
+                'FREE': 'FREEROSSDAO',  # conflict with FREE Coin
                 'GAS': 'GASDAO',
                 'GASNEO': 'GAS',
-                'GMT': 'GMT Token',  # Conflict with GMT(STEPN)
+                'GMT': 'GMTTOKEN',  # Conflict with GMT(STEPN)
                 'STEPN': 'GMT',  # Conflict with GMT Token
-                'HERO': 'Step Hero',  # conflict with Metahero
-                'MIMO': 'Mimosa',
-                'PROS': 'Pros.Finance',  # conflict with Prosper
-                'SIN': 'Sin City Token',
-                'SOUL': 'Soul Swap',
+                'HERO': 'STEPHERO',  # conflict with Metahero
+                'MIMO': 'MIMOSA',
+                'PROS': 'PROSFINANCE',  # conflict with Prosper
+                'SIN': 'SINCITYTOKEN',
+                'SOUL': 'SOULSWAP',
             },
             'exceptions': {
                 'exact': {
@@ -2124,7 +2124,7 @@ class mexc(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: only 'isolated' is supported for spot-margin trading
         :param float [params.triggerPrice]: The price at which a trigger order is triggered at
@@ -4905,9 +4905,10 @@ class mexc(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
-        networks = self.safe_value(self.options, 'networks', {})
+        networks = self.safe_dict(self.options, 'networks', {})
         network = self.safe_string_2(params, 'network', 'netWork')  # self line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network, network)  # handle ETH > ERC-20 alias
+        network = self.network_code_to_id(network)
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)

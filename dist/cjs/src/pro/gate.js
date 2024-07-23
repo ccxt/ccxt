@@ -94,6 +94,7 @@ class gate extends gate$1 {
                     'interval': '100ms',
                     'snapshotDelay': 10,
                     'snapshotMaxRetries': 3,
+                    'checksum': true,
                 },
                 'watchBalance': {
                     'settle': 'usdt',
@@ -129,7 +130,7 @@ class gate extends gate$1 {
          * @param {string} type 'limit' or 'market' *"market" is contract only*
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount the amount of currency to trade
-         * @param {float} [price] *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+         * @param {float} [price] *ignored in "market" orders* the price at which the order is to be fulfilled at in units of the quote currency
          * @param {object} [params]  extra parameters specific to the exchange API endpoint
          * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
          * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
@@ -225,8 +226,8 @@ class gate extends gate$1 {
          */
         await this.loadMarkets();
         const market = (symbol === undefined) ? undefined : this.market(symbol);
-        const stop = this.safeValue2(params, 'is_stop_order', 'stop', false);
-        params = this.omit(params, ['is_stop_order', 'stop']);
+        const stop = this.safeValueN(params, ['is_stop_order', 'stop', 'trigger'], false);
+        params = this.omit(params, ['is_stop_order', 'stop', 'trigger']);
         const [type, query] = this.handleMarketTypeAndParams('cancelOrder', market, params);
         const [request, requestParams] = (type === 'spot' || type === 'margin') ? this.spotOrderPrepareRequest(market, stop, query) : this.prepareRequest(market, type, query);
         const messageType = this.getTypeByMarket(market);
@@ -249,7 +250,7 @@ class gate extends gate$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of the currency you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -479,10 +480,13 @@ class gate extends gate$1 {
             this.handleDelta(storedOrderBook, delta);
         }
         else {
-            const error = new errors.InvalidNonce(this.id + ' orderbook update has a nonce bigger than u');
             delete client.subscriptions[messageHash];
             delete this.orderbooks[symbol];
-            client.reject(error, messageHash);
+            const checksum = this.handleOption('watchOrderBook', 'checksum', true);
+            if (checksum) {
+                const error = new errors.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
+                client.reject(error, messageHash);
+            }
         }
         client.resolve(storedOrderBook, messageHash);
     }
@@ -842,7 +846,7 @@ class gate extends gate$1 {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         let subType = undefined;
@@ -1190,7 +1194,7 @@ class gate extends gate$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] spot, margin, swap, future, or option. Required if listening to all symbols.
          * @param {boolean} [params.isInverse] if future, listen to inverse or linear contracts
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -1282,7 +1286,7 @@ class gate extends gate$1 {
             else if (event === 'finish') {
                 const status = this.safeString(parsed, 'status');
                 if (status === undefined) {
-                    const left = this.safeNumber(info, 'left');
+                    const left = this.safeInteger(info, 'left');
                     parsed['status'] = (left === 0) ? 'closed' : 'canceled';
                 }
             }

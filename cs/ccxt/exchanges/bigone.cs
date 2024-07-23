@@ -12,7 +12,7 @@ public partial class bigone : Exchange
             { "name", "BigONE" },
             { "countries", new List<object>() {"CN"} },
             { "version", "v3" },
-            { "rateLimit", 1200 },
+            { "rateLimit", 20 },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
                 { "spot", true },
@@ -1436,7 +1436,7 @@ public partial class bigone : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
@@ -1616,7 +1616,29 @@ public partial class bigone : Exchange
         //         }
         //     }
         //
-        return response;
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object cancelled = this.safeList(data, "cancelled", new List<object>() {});
+        object failed = this.safeList(data, "failed", new List<object>() {});
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(cancelled)); postFixIncrement(ref i))
+        {
+            object orderId = getValue(cancelled, i);
+            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "info", orderId },
+                { "id", orderId },
+                { "status", "canceled" },
+            }));
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(failed)); postFixIncrement(ref i))
+        {
+            object orderId = getValue(failed, i);
+            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "info", orderId },
+                { "id", orderId },
+                { "status", "failed" },
+            }));
+        }
+        return result;
     }
 
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)

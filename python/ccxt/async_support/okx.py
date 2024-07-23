@@ -22,7 +22,6 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import CancelPending
 from ccxt.base.errors import ContractUnavailable
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import NetworkError
@@ -32,6 +31,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
+from ccxt.base.errors import CancelPending
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -456,6 +456,7 @@ class okx(Exchange, ImplicitAPI):
                         'sprd/cancel-order': 1,
                         'sprd/mass-cancel': 1,
                         'sprd/amend-order': 1,
+                        'sprd/cancel-all-after': 10,
                         # trade
                         'trade/order': 1 / 3,
                         'trade/batch-orders': 1 / 15,
@@ -949,6 +950,15 @@ class okx(Exchange, ImplicitAPI):
                     '70010': BadRequest,  # Timestamp parameters need to be in Unix timestamp format in milliseconds.
                     '70013': BadRequest,  # endTs needs to be bigger than or equal to beginTs.
                     '70016': BadRequest,  # Please specify your instrument settings for at least one instType.
+                    '1009': BadRequest,  # Request message exceeds the maximum frame length
+                    '4001': AuthenticationError,  # Login Failed
+                    '4002': BadRequest,  # Invalid Request
+                    '4003': RateLimitExceeded,  # APIKey subscription amount exceeds the limit 100
+                    '4004': NetworkError,  # No data received in 30s
+                    '4005': ExchangeNotAvailable,  # Buffer is full, cannot write data
+                    '4006': BadRequest,  # Abnormal disconnection
+                    '4007': AuthenticationError,  # API key has been updated or deleted. Please reconnect.
+                    '4008': RateLimitExceeded,  # The number of subscribed channels exceeds the maximum limit.
                 },
                 'broad': {
                     'Internal Server Error': ExchangeNotAvailable,  # {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"Internal Server Error","msg":"Internal Server Error"}
@@ -2769,7 +2779,7 @@ class okx(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.reduceOnly]: a mark to reduce the position size for margin, swap and future orders
         :param bool [params.postOnly]: True to place a post only order
@@ -2947,7 +2957,7 @@ class okx(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of the currency you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: client order id, uses id if not passed
         :param float [params.stopLossPrice]: stop loss trigger price
@@ -3143,7 +3153,7 @@ class okx(Exchange, ImplicitAPI):
         cancel multiple orders for multiple symbols
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-multiple-orders
         :see: https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
-        :param CancellationRequest[] orders: each order should contain the parameters required by cancelOrder namely id and symbol
+        :param CancellationRequest[] orders: each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: whether the order is a stop/trigger order
         :param boolean [params.trailing]: set to True if you want to cancel trailing orders
@@ -5173,7 +5183,7 @@ class okx(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(positions)):
             result.append(self.parse_position(positions[i]))
-        return self.filter_by_array_positions(result, 'symbol', symbols, False)
+        return self.filter_by_array_positions(result, 'symbol', self.market_symbols(symbols), False)
 
     async def fetch_positions_for_symbol(self, symbol: str, params={}):
         """
@@ -6858,6 +6868,8 @@ class okx(Exchange, ImplicitAPI):
                     depositWithdrawFees[code] = self.deposit_withdraw_fee({})
                 depositWithdrawFees[code]['info'][currencyId] = feeInfo
                 chain = self.safe_string(feeInfo, 'chain')
+                if chain is None:
+                    continue
                 chainSplit = chain.split('-')
                 networkId = self.safe_value(chainSplit, 1)
                 withdrawFee = self.safe_number(feeInfo, 'minFee')

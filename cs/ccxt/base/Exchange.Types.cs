@@ -43,6 +43,17 @@ public struct Precision
         price = Exchange.SafeFloat(precision, "price");
     }
 }
+public struct MarketMarginMode
+{
+    public bool? cross;
+    public bool? isolated;
+    public MarketMarginMode(object marginMode2)
+    {
+        var marginMode = (Dictionary<string, object>)marginMode2;
+        cross = Exchange.SafeBool(marginMode, "cross");
+        isolated = Exchange.SafeBool(marginMode, "isolated");
+    }
+}
 
 public struct MinMax
 {
@@ -153,6 +164,7 @@ public struct Market
     public string? feeSide;
 
     public Precision? precision;
+    public MarketMarginMode? marginMode;
 
     public Limits? limits;
     public Dictionary<string, object> info;
@@ -194,6 +206,7 @@ public struct Market
         limits = market.ContainsKey("limits") ? new Limits(market["limits"]) : null;
         info = Helper.GetInfo(market);
         created = Exchange.SafeInteger(market, "created");
+        marginMode = market.ContainsKey("marginMode") ? new MarketMarginMode(market["marginMode"]) : null;
     }
 }
 
@@ -1531,7 +1544,7 @@ public struct MarketInterface
         uppercaseId = Exchange.SafeString(market, "uppercaseId");
         lowercaseId = Exchange.SafeString(market, "lowercaseId");
         symbol = Exchange.SafeString(market, "symbol");
-        baseCurrency = Exchange.SafeString(market, "baseCurrency");
+        baseCurrency = Exchange.SafeString(market, "base");
         quote = Exchange.SafeString(market, "quote");
         baseId = Exchange.SafeString(market, "baseId");
         quoteId = Exchange.SafeString(market, "quoteId");
@@ -1569,7 +1582,7 @@ public struct CurrencyLimits
     {
         var currencyLimits = (Dictionary<string, object>)currencyLimits2;
         amount = currencyLimits.ContainsKey("amount") ? new MinMax(currencyLimits["amount"]) : null;
-        withdraw = currencyLimits.ContainsKey("amount") ? new MinMax(currencyLimits["amount"]) : null;
+        withdraw = currencyLimits.ContainsKey("withdraw") ? new MinMax(currencyLimits["withdraw"]) : null;
     }
 }
 
@@ -1816,14 +1829,14 @@ public struct OptionChain
 
     public OptionChain(object optionchains2)
     {
-        var marginModes = (Dictionary<string, object>)optionchains2;
+        var optionChains = (Dictionary<string, object>)optionchains2;
 
-        info = Helper.GetInfo(marginModes);
+        info = Helper.GetInfo(optionChains);
         this.chains = new Dictionary<string, Option>();
-        foreach (var marginMode in marginModes)
+        foreach (var optionChain in optionChains)
         {
-            if (marginMode.Key != "info")
-                this.chains.Add(marginMode.Key, new Option(marginMode.Value));
+            if (optionChain.Key != "info")
+                this.chains.Add(optionChain.Key, new Option(optionChain.Value));
         }
     }
 

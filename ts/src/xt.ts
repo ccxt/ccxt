@@ -23,7 +23,7 @@ export default class xt extends Exchange {
             'rateLimit': 100,
             'version': 'v4',
             'certified': false,
-            'pro': false,
+            'pro': true,
             'has': {
                 'CORS': false,
                 'spot': true,
@@ -218,6 +218,7 @@ export default class xt extends Exchange {
                             'withdraw': 1,
                             'balance/transfer': 1,
                             'balance/account/transfer': 1,
+                            'ws-token': 1,
                         },
                         'delete': {
                             'batch-order': 1,
@@ -828,7 +829,7 @@ export default class xt extends Exchange {
                 'name': this.safeString (entry, 'fullName'),
                 'active': active,
                 'fee': this.parseNumber (minWithdrawFeeString),
-                'precision': undefined,
+                'precision': minPrecision,
                 'deposit': deposit,
                 'withdraw': withdraw,
                 'networks': networks,
@@ -1462,9 +1463,13 @@ export default class xt extends Exchange {
         const orderBook = this.safeValue (response, 'result', {});
         const timestamp = this.safeInteger2 (orderBook, 'timestamp', 't');
         if (market['spot']) {
-            return this.parseOrderBook (orderBook, symbol, timestamp);
+            const ob = this.parseOrderBook (orderBook, symbol, timestamp);
+            ob['nonce'] = this.safeInteger (orderBook, 'lastUpdateId');
+            return ob;
         }
-        return this.parseOrderBook (orderBook, symbol, timestamp, 'b', 'a');
+        const swapOb = this.parseOrderBook (orderBook, symbol, timestamp, 'b', 'a');
+        swapOb['nonce'] = this.safeInteger2 (orderBook, 'u', 'lastUpdateId');
+        return swapOb;
     }
 
     async fetchTicker (symbol: string, params = {}) {
@@ -1724,8 +1729,9 @@ export default class xt extends Exchange {
         //
         const marketId = this.safeString (ticker, 's');
         let marketType = (market !== undefined) ? market['type'] : undefined;
+        const hasSpotKeys = ('cv' in ticker) || ('aq' in ticker);
         if (marketType === undefined) {
-            marketType = ('cv' in ticker) || ('aq' in ticker) ? 'spot' : 'contract';
+            marketType = hasSpotKeys ? 'spot' : 'contract';
         }
         market = this.safeMarket (marketId, market, '_', marketType);
         const symbol = market['symbol'];
@@ -1951,6 +1957,29 @@ export default class xt extends Exchange {
         //         "b": true
         //     }
         //
+        // spot: watchMyTrades
+        //
+        //    {
+        //        "s": "btc_usdt",                // symbol
+        //        "t": 1656043204763,             // time
+        //        "i": "6316559590087251233",     // tradeId
+        //        "oi": "6216559590087220004",    // orderId
+        //        "p": "30000",                   // trade price
+        //        "q": "3",                       // qty quantity
+        //        "v": "90000"                    // volume trade amount
+        //    }
+        //
+        // spot: watchTrades
+        //
+        //    {
+        //        s: 'btc_usdt',
+        //        i: '228825383103928709',
+        //        t: 1684258222702,
+        //        p: '27003.65',
+        //        q: '0.000796',
+        //        b: true
+        //    }
+        //
         // swap and future: fetchTrades
         //
         //     {
@@ -1995,10 +2024,39 @@ export default class xt extends Exchange {
         //         "takerMaker": "TAKER"
         //     }
         //
+        // contract watchMyTrades
+        //
+        //    {
+        //        "symbol": 'btc_usdt',
+        //        "orderSide": 'SELL',
+        //        "positionSide": 'LONG',
+        //        "orderId": '231485367663419328',
+        //        "price": '27152.7',
+        //        "quantity": '33',
+        //        "marginUnfrozen": '2.85318000',
+        //        "timestamp": 1684892412565
+        //    }
+        //
+        // watchMyTrades (ws, swap)
+        //
+        //    {
+        //        'fee': '0.04080840',
+        //        'isMaker': False,
+        //        'marginUnfrozen': '0.75711984',
+        //        'orderId': '376172779053188416',
+        //        'orderSide': 'BUY',
+        //        'positionSide': 'LONG',
+        //        'price': '3400.70',
+        //        'quantity': '2',
+        //        'symbol': 'eth_usdt',
+        //        'timestamp': 1719388579622
+        //    }
+        //
         const marketId = this.safeString2 (trade, 's', 'symbol');
         let marketType = (market !== undefined) ? market['type'] : undefined;
+        const hasSpotKeys = ('b' in trade) || ('bizType' in trade) || ('oi' in trade);
         if (marketType === undefined) {
-            marketType = ('b' in trade) || ('bizType' in trade) ? 'spot' : 'contract';
+            marketType = hasSpotKeys ? 'spot' : 'contract';
         }
         market = this.safeMarket (marketId, market, '_', marketType);
         const bidOrAsk = this.safeString (trade, 'm');
@@ -2007,9 +2065,16 @@ export default class xt extends Exchange {
             side = (bidOrAsk === 'BID') ? 'buy' : 'sell';
         }
         const buyerMaker = this.safeValue (trade, 'b');
+        if (buyerMaker !== undefined) {
+            side = 'buy';
+        }
         let takerOrMaker = this.safeStringLower (trade, 'takerMaker');
         if (buyerMaker !== undefined) {
             takerOrMaker = buyerMaker ? 'maker' : 'taker';
+        }
+        const isMaker = this.safeBool (trade, 'isMaker');
+        if (isMaker !== undefined) {
+            takerOrMaker = isMaker ? 'maker' : 'taker';
         }
         const timestamp = this.safeIntegerN (trade, [ 't', 'time', 'timestamp' ]);
         const quantity = this.safeString2 (trade, 'q', 'quantity');
@@ -2029,7 +2094,7 @@ export default class xt extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'order': this.safeString (trade, 'orderId'),
+            'order': this.safeString2 (trade, 'orderId', 'oi'),
             'type': this.safeStringLower (trade, 'orderType'),
             'side': side,
             'takerOrMaker': takerOrMaker,
@@ -3409,7 +3474,7 @@ export default class xt extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name xt#fetchLedger
@@ -3581,7 +3646,7 @@ export default class xt extends Exchange {
         };
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name xt#fetchDeposits
@@ -3638,7 +3703,7 @@ export default class xt extends Exchange {
         return this.parseTransactions (deposits, currency, since, limit, params);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name xt#fetchWithdrawals
@@ -4689,7 +4754,7 @@ export default class xt extends Exchange {
                     body['media'] = id;
                 }
             }
-            const isUndefinedBody = ((method === 'GET') || (path === 'order/{orderId}'));
+            const isUndefinedBody = ((method === 'GET') || (path === 'order/{orderId}') || (path === 'ws-token'));
             body = isUndefinedBody ? undefined : this.json (body);
             let payloadString = undefined;
             if ((endpoint === 'spot') || (endpoint === 'user')) {
@@ -4697,7 +4762,7 @@ export default class xt extends Exchange {
                 if (isUndefinedBody) {
                     if (urlencoded) {
                         url += '?' + urlencoded;
-                        payloadString += '#' + method + '#' + payload + '#' + urlencoded;
+                        payloadString += '#' + method + '#' + payload + '#' + this.rawencode (this.keysort (query));
                     } else {
                         payloadString += '#' + method + '#' + payload;
                     }

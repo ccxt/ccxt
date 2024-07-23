@@ -14,6 +14,7 @@ class binancecoinm extends binance {
                 'doc': [
                     'https://binance-docs.github.io/apidocs/delivery/en/',
                     'https://binance-docs.github.io/apidocs/spot/en',
+                    'https://developers.binance.com/en',
                 ],
             },
             'has': {

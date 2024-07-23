@@ -55,6 +55,9 @@ abstract class kucoin extends \ccxt\Exchange {
     public function public_get_mark_price_symbol_current($params = array()) {
         return $this->request('mark-price/{symbol}/current', 'public', 'GET', $params, null, null, array("cost" => 3));
     }
+    public function public_get_mark_price_all_symbols($params = array()) {
+        return $this->request('mark-price/all-symbols', 'public', 'GET', $params, null, null, array("cost" => 3));
+    }
     public function public_get_margin_config($params = array()) {
         return $this->request('margin/config', 'public', 'GET', $params, null, null, array("cost" => 25));
     }
@@ -148,6 +151,9 @@ abstract class kucoin extends \ccxt\Exchange {
     public function private_get_hf_orders_active_symbols($params = array()) {
         return $this->request('hf/orders/active/symbols', 'private', 'GET', $params, null, null, array("cost" => 2));
     }
+    public function private_get_hf_margin_order_active_symbols($params = array()) {
+        return $this->request('hf/margin/order/active/symbols', 'private', 'GET', $params, null, null, array("cost" => 2));
+    }
     public function private_get_hf_orders_done($params = array()) {
         return $this->request('hf/orders/done', 'private', 'GET', $params, null, null, array("cost" => 2));
     }
@@ -229,6 +235,9 @@ abstract class kucoin extends \ccxt\Exchange {
     public function private_get_isolated_symbols($params = array()) {
         return $this->request('isolated/symbols', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
+    public function private_get_margin_symbols($params = array()) {
+        return $this->request('margin/symbols', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function private_get_isolated_account_symbol($params = array()) {
         return $this->request('isolated/account/{symbol}', 'private', 'GET', $params, null, null, array("cost" => 50));
     }
@@ -255,6 +264,9 @@ abstract class kucoin extends \ccxt\Exchange {
     }
     public function private_get_broker_api_rebase_download($params = array()) {
         return $this->request('broker/api/rebase/download', 'private', 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function private_get_affiliate_inviter_statistics($params = array()) {
+        return $this->request('affiliate/inviter/statistics', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function private_post_sub_user_created($params = array()) {
         return $this->request('sub/user/created', 'private', 'POST', $params, null, null, array("cost" => 22.5));
@@ -351,6 +363,9 @@ abstract class kucoin extends \ccxt\Exchange {
     }
     public function private_post_bullet_private($params = array()) {
         return $this->request('bullet-private', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    public function private_post_position_update_user_leverage($params = array()) {
+        return $this->request('position/update-user-leverage', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function private_delete_sub_api_key($params = array()) {
         return $this->request('sub/api-key', 'private', 'DELETE', $params, null, null, array("cost" => 45));
@@ -685,6 +700,9 @@ abstract class kucoin extends \ccxt\Exchange {
     public function publicGetMarkPriceSymbolCurrent($params = array()) {
         return $this->request('mark-price/{symbol}/current', 'public', 'GET', $params, null, null, array("cost" => 3));
     }
+    public function publicGetMarkPriceAllSymbols($params = array()) {
+        return $this->request('mark-price/all-symbols', 'public', 'GET', $params, null, null, array("cost" => 3));
+    }
     public function publicGetMarginConfig($params = array()) {
         return $this->request('margin/config', 'public', 'GET', $params, null, null, array("cost" => 25));
     }
@@ -778,6 +796,9 @@ abstract class kucoin extends \ccxt\Exchange {
     public function privateGetHfOrdersActiveSymbols($params = array()) {
         return $this->request('hf/orders/active/symbols', 'private', 'GET', $params, null, null, array("cost" => 2));
     }
+    public function privateGetHfMarginOrderActiveSymbols($params = array()) {
+        return $this->request('hf/margin/order/active/symbols', 'private', 'GET', $params, null, null, array("cost" => 2));
+    }
     public function privateGetHfOrdersDone($params = array()) {
         return $this->request('hf/orders/done', 'private', 'GET', $params, null, null, array("cost" => 2));
     }
@@ -859,6 +880,9 @@ abstract class kucoin extends \ccxt\Exchange {
     public function privateGetIsolatedSymbols($params = array()) {
         return $this->request('isolated/symbols', 'private', 'GET', $params, null, null, array("cost" => 20));
     }
+    public function privateGetMarginSymbols($params = array()) {
+        return $this->request('margin/symbols', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function privateGetIsolatedAccountSymbol($params = array()) {
         return $this->request('isolated/account/{symbol}', 'private', 'GET', $params, null, null, array("cost" => 50));
     }
@@ -885,6 +909,9 @@ abstract class kucoin extends \ccxt\Exchange {
     }
     public function privateGetBrokerApiRebaseDownload($params = array()) {
         return $this->request('broker/api/rebase/download', 'private', 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function privateGetAffiliateInviterStatistics($params = array()) {
+        return $this->request('affiliate/inviter/statistics', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function privatePostSubUserCreated($params = array()) {
         return $this->request('sub/user/created', 'private', 'POST', $params, null, null, array("cost" => 22.5));
@@ -981,6 +1008,9 @@ abstract class kucoin extends \ccxt\Exchange {
     }
     public function privatePostBulletPrivate($params = array()) {
         return $this->request('bullet-private', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    public function privatePostPositionUpdateUserLeverage($params = array()) {
+        return $this->request('position/update-user-leverage', 'private', 'POST', $params, null, null, array("cost" => 5));
     }
     public function privateDeleteSubApiKey($params = array()) {
         return $this->request('sub/api-key', 'private', 'DELETE', $params, null, null, array("cost" => 45));

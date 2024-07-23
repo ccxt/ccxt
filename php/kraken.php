@@ -75,6 +75,7 @@ class kraken extends Exchange {
                 'fetchOrderTrades' => 'emulated',
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -635,6 +636,31 @@ class kraken extends Exchange {
         return $result;
     }
 
+    public function fetch_status($params = array ()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         * @see https://docs.kraken.com/api/docs/rest-api/get-system-status/
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-status-structure status structure~
+         */
+        $response = $this->publicGetSystemStatus ($params);
+        //
+        // {
+        //     error => array(),
+        //     $result => array( status => 'online', timestamp => '2024-07-22T16:34:44Z' )
+        // }
+        //
+        $result = $this->safe_dict($response, 'result');
+        $statusRaw = $this->safe_string($result, 'status');
+        return array(
+            'status' => ($statusRaw === 'online') ? 'ok' : 'maintenance',
+            'updated' => null,
+            'eta' => null,
+            'url' => null,
+            'info' => $response,
+        );
+    }
+
     public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available $currencies on an exchange
@@ -1044,7 +1070,7 @@ class kraken extends Exchange {
         } else {
             $direction = 'in';
         }
-        $timestamp = $this->safe_timestamp($item, 'time');
+        $timestamp = $this->safe_integer_product($item, 'time', 1000);
         return array(
             'info' => $item,
             'id' => $id,
@@ -1381,7 +1407,7 @@ class kraken extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {bool} [$params->postOnly] if true, the order will only be posted to the order book and not executed immediately
          * @param {bool} [$params->reduceOnly] *margin only* indicates if this order is to reduce the size of a position
@@ -1816,7 +1842,7 @@ class kraken extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of the currency you want to trade in units of the base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->stopLossPrice] *margin only* the $price that a stop loss order is triggered at
          * @param {float} [$params->takeProfitPrice] *margin only* the $price that a take profit order is triggered at

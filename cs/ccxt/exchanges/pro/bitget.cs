@@ -55,6 +55,9 @@ public partial class bitget : ccxt.bitget
                     { "1d", "1D" },
                     { "1w", "1W" },
                 } },
+                { "watchOrderBook", new Dictionary<string, object>() {
+                    { "checksum", true },
+                } },
             } },
             { "streaming", new Dictionary<string, object>() {
                 { "ping", this.ping },
@@ -604,9 +607,9 @@ public partial class bitget : ccxt.bitget
                 object responseChecksum = this.safeInteger(rawOrderBook, "checksum");
                 if (isTrue(!isEqual(calculatedChecksum, responseChecksum)))
                 {
-                    var error = new InvalidNonce(add(this.id, " invalid checksum"));
 
 
+                    var error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));
                     ((WebSocketClient)client).reject(error, messageHash);
                     return;
                 }
@@ -1058,7 +1061,7 @@ public partial class bitget : ccxt.bitget
         * @param {string} [params.marginMode] 'isolated' or 'cross' for watching spot margin orders]
         * @param {string} [params.type] 'spot', 'swap'
         * @param {string} [params.subType] 'linear', 'inverse'
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

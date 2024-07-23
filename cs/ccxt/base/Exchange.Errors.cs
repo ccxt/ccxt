@@ -81,18 +81,6 @@ namespace ccxt;
         public MarketClosed(string message) : base(message) { }
         public MarketClosed(string message, OperationRejected inner) : base(message, inner) { }
     }
-   public class BadResponse : ExchangeError
-    {
-        public BadResponse() : base() { }
-        public BadResponse(string message) : base(message) { }
-        public BadResponse(string message, ExchangeError inner) : base(message, inner) { }
-    }
-   public class NullResponse : BadResponse
-    {
-        public NullResponse() : base() { }
-        public NullResponse(string message) : base(message) { }
-        public NullResponse(string message, BadResponse inner) : base(message, inner) { }
-    }
    public class InsufficientFunds : ExchangeError
     {
         public InsufficientFunds() : base() { }
@@ -129,12 +117,6 @@ namespace ccxt;
         public OrderNotCached(string message) : base(message) { }
         public OrderNotCached(string message, InvalidOrder inner) : base(message, inner) { }
     }
-   public class CancelPending : InvalidOrder
-    {
-        public CancelPending() : base() { }
-        public CancelPending(string message) : base(message) { }
-        public CancelPending(string message, InvalidOrder inner) : base(message, inner) { }
-    }
    public class OrderImmediatelyFillable : InvalidOrder
     {
         public OrderImmediatelyFillable() : base() { }
@@ -165,11 +147,11 @@ namespace ccxt;
         public NotSupported(string message) : base(message) { }
         public NotSupported(string message, ExchangeError inner) : base(message, inner) { }
     }
-   public class ProxyError : ExchangeError
+   public class InvalidProxySettings : ExchangeError
     {
-        public ProxyError() : base() { }
-        public ProxyError(string message) : base(message) { }
-        public ProxyError(string message, ExchangeError inner) : base(message, inner) { }
+        public InvalidProxySettings() : base() { }
+        public InvalidProxySettings(string message) : base(message) { }
+        public InvalidProxySettings(string message, ExchangeError inner) : base(message, inner) { }
     }
    public class ExchangeClosedByUser : ExchangeError
     {
@@ -219,9 +201,33 @@ namespace ccxt;
         public InvalidNonce(string message) : base(message) { }
         public InvalidNonce(string message, NetworkError inner) : base(message, inner) { }
     }
+   public class ChecksumError : InvalidNonce
+    {
+        public ChecksumError() : base() { }
+        public ChecksumError(string message) : base(message) { }
+        public ChecksumError(string message, InvalidNonce inner) : base(message, inner) { }
+    }
    public class RequestTimeout : NetworkError
     {
         public RequestTimeout() : base() { }
         public RequestTimeout(string message) : base(message) { }
         public RequestTimeout(string message, NetworkError inner) : base(message, inner) { }
+    }
+   public class BadResponse : OperationFailed
+    {
+        public BadResponse() : base() { }
+        public BadResponse(string message) : base(message) { }
+        public BadResponse(string message, OperationFailed inner) : base(message, inner) { }
+    }
+   public class NullResponse : BadResponse
+    {
+        public NullResponse() : base() { }
+        public NullResponse(string message) : base(message) { }
+        public NullResponse(string message, BadResponse inner) : base(message, inner) { }
+    }
+   public class CancelPending : OperationFailed
+    {
+        public CancelPending() : base() { }
+        public CancelPending(string message) : base(message) { }
+        public CancelPending(string message, OperationFailed inner) : base(message, inner) { }
     }

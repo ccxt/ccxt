@@ -2390,7 +2390,7 @@ class bitfinex2 extends Exchange {
                 $feeCost = Precise::string_abs($feeCost);
             }
             $amount = $this->safe_number($data, 5);
-            $id = $this->safe_string($data, 0);
+            $id = $this->safe_integer($data, 0);
             $status = 'ok';
             if ($id === 0) {
                 $id = null;
@@ -3697,7 +3697,7 @@ class bitfinex2 extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much you want to trade in units of the base currency
-             * @param {float} [$price] the $price that the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->stopPrice] the $price that triggers a trigger $order
              * @param {boolean} [$params->postOnly] set to true if you want to make a post only $order

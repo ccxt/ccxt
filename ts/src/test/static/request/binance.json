@@ -747,7 +747,7 @@
             {
                 "description": "Swap cancelOrders",
                 "method": "cancelOrders",
-                "url": "https://testnet.binancefuture.com/fapi/v1/batchOrders?timestamp=1699384523218&symbol=LTCUSDT&recvWindow=10000&orderidlist=[652511506]&signature=ced41362438af4b529b81484e1713dc0108b2715453e403d3e46fa93ba8a0a83",
+                "url": "https://testnet.binancefuture.com/fapi/v1/batchOrders?timestamp=1699384523218&symbol=LTCUSDT&recvWindow=10000&orderidlist=%5B652511506%5D&signature=ced41362438af4b529b81484e1713dc0108b2715453e403d3e46fa93ba8a0a83",
                 "input": [
                     [
                         "652511506"
@@ -3328,6 +3328,96 @@
                   }
                 ],
                 "output": "timestamp=1718724487672&coin=USDT&address=TKRxCKea88ZvHeGsXEY33CqAQHPDqcAw4N&amount=10.34332&network=TRX&recvWindow=10000&signature=d9a2ecdfd7a207b2e7770b45a1971a3ea6bfcdb9c0796691b6528a7a7b77fe02"
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "fetchCurrencies",
+                "method": "fetchCurrencies",
+                "url": "https://api.binance.com/sapi/v1/capital/config/getall?timestamp=1721628239072&recvWindow=10000&signature=sig",
+                "input": []
+            }
+        ],
+        "fetchStatus": [
+            {
+                "description": "fetchStatus",
+                "method": "fetchStatus",
+                "url": "https://api.binance.com/sapi/v1/system/status",
+                "input": []
+            }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "fetchDepositAddress",
+                "method": "fetchDepositAddress",
+                "url": "https://api.binance.com/sapi/v1/capital/deposit/address?timestamp=1721628239072&recvWindow=10000&signature=sig&coin=BTC",
+                "input": [
+                    "BTC"
+                ]
+            }
+        ],
+        "fetchTransactionFees": [
+            {
+                "description": "fetchTransactionFees",
+                "method": "fetchTransactionFees",
+                "url": "https://api.binance.com/sapi/v1/capital/config/getall?timestamp=1721628239072&recvWindow=10000&signature=sig",
+                "input": []
+            }
+        ],
+        "fetchDepositWithdrawFees": [
+            {
+                "description": "fetchDepositWithdrawFees",
+                "method": "fetchDepositWithdrawFees",
+                "url": "https://api.binance.com/sapi/v1/capital/config/getall?timestamp=1721628239072&recvWindow=10000&signature=sig",
+                "input": []
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "fetchPosition",
+                "method": "fetchPosition",
+                "url": "https://eapi.binance.com/eapi/v1/position?timestamp=1721628239072&recvWindow=10000&signature=sig&symbol=ETH-231229-800-C",
+                "input": [
+                    "ETH/USDT:USDT-231229-800-C"
+                ]
+            }
+        ],
+        "fetchOptionPositions": [
+            {
+                "description": "fetchOptionPositions",
+                "method": "fetchOptionPositions",
+                "url": "https://eapi.binance.com/eapi/v1/position?timestamp=1721628239072&recvWindow=10000&signature=sig",
+                "input": []
+            }
+        ],
+        "fetchSettlementHistory": [
+            {
+                "description": "fetchSettlementHistory",
+                "method": "fetchSettlementHistory",
+                "url": "https://eapi.binance.com/eapi/v1/exerciseHistory?underlying=ETHUSDT",
+                "input": [
+                    "ETH/USDT:USDT-231229-800-C"
+                ]
+            }
+        ],
+        "fetchMySettlementHistory": [
+            {
+                "description": "fetchMySettlementHistory",
+                "method": "fetchMySettlementHistory",
+                "url": "https://eapi.binance.com/eapi/v1/exerciseRecord?timestamp=1721628239072&recvWindow=10000&signature=sig&symbol=ETH-231229-800-C",
+                "input": [
+                    "ETH/USDT:USDT-231229-800-C"
+                ]
+            }
+        ],
+        "fetchBorrowRateHistory": [
+            {
+                "description": "fetchBorrowRateHistory",
+                "method": "fetchBorrowRateHistory",
+                "url": "https://eapi.binance.com/sapi/v1/margin/interestRateHistory?timestamp=1721628239072&recvWindow=10000&signature=sig&asset=BTC&limit=93",
+                "input": [
+                    "BTC"
+                ]
             }
         ]
     }

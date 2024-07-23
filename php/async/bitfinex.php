@@ -1100,7 +1100,7 @@ class bitfinex extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
@@ -1176,7 +1176,33 @@ class bitfinex extends Exchange {
             $request = array(
                 'order_id' => intval($id),
             );
-            return Async\await($this->privatePostOrderCancel ($this->extend($request, $params)));
+            $response = Async\await($this->privatePostOrderCancel ($this->extend($request, $params)));
+            //
+            //    {
+            //        $id => '161236928925',
+            //        cid => '1720172026812',
+            //        cid_date => '2024-07-05',
+            //        gid => null,
+            //        $symbol => 'adaust',
+            //        exchange => 'bitfinex',
+            //        price => '0.33',
+            //        avg_execution_price => '0.0',
+            //        side => 'buy',
+            //        type => 'exchange limit',
+            //        timestamp => '1720172026.813',
+            //        is_live => true,
+            //        is_cancelled => false,
+            //        is_hidden => false,
+            //        oco_order => null,
+            //        was_forced => false,
+            //        original_amount => '10.0',
+            //        remaining_amount => '10.0',
+            //        executed_amount => '0.0',
+            //        src => 'api',
+            //        meta => array()
+            //    }
+            //
+            return $this->parse_order($response);
         }) ();
     }
 
@@ -1185,11 +1211,19 @@ class bitfinex extends Exchange {
             /**
              * cancel all open orders
              * @see https://docs.bitfinex.com/v1/reference/rest-auth-cancel-all-orders
-             * @param {string} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
+             * @param {string} $symbol not used by bitfinex cancelAllOrders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array} response from exchange
+             * @return {array} $response from exchange
              */
-            return Async\await($this->privatePostOrderCancelAll ($params));
+            $response = Async\await($this->privatePostOrderCancelAll ($params));
+            //
+            //    array( result => 'Submitting 1 order cancellations.' )
+            //
+            return array(
+                $this->safe_order(array(
+                    'info' => $response,
+                )),
+            );
         }) ();
     }
 
@@ -1635,7 +1669,7 @@ class bitfinex extends Exchange {
             //     )
             //
             $response = $this->safe_value($responses, 0, array());
-            $id = $this->safe_number($response, 'withdrawal_id');
+            $id = $this->safe_integer($response, 'withdrawal_id');
             $message = $this->safe_string($response, 'message');
             $errorMessage = $this->find_broadly_matched_key($this->exceptions['broad'], $message);
             if ($id === 0) {
@@ -1680,7 +1714,7 @@ class bitfinex extends Exchange {
     }
 
     public function nonce() {
-        return $this->milliseconds();
+        return $this->microseconds();
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
