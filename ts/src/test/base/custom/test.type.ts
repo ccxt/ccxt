@@ -1,8 +1,7 @@
 /*  ------------------------------------------------------------------------ */
-//@ts-nocheck
-/* eslint-disable */
-import { functions } from '../../../ccxt.js'
+
 import { equal, deepEqual } from 'assert'
+import { functions } from '../../../../ccxt.js'
 
 const {
     safeFloat,
