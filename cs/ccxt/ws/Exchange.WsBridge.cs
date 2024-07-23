@@ -27,7 +27,7 @@ public partial class Exchange
         // var client = (WebSocketClient)client2;
         var options = this.safeDict (this.options, "ws");
         var useClearCache = this.safeBool (options, "clearCacheOnClose", true);
-        if (useClearCache) {
+        if (isTrue(isEqual(useClearCache, true))) {
             this.clearCache();
         }
         if (client.error)
