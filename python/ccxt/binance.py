@@ -2874,6 +2874,14 @@ class binance(Exchange):
             self.options['hasAlreadyAuthenticatedSuccessfully'] = True
         return response
 
+    def is_inverse(self):
+        default_type = self.safe_string(self.options, 'defaultType')
+        return default_type == "inverse" or default_type == 'delivery'
+
+    def is_linear(self):
+        default_type = self.safe_string(self.options, 'defaultType')
+        return default_type == "linear" or default_type == 'future'
+
     def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
         """
         fetches historical funding rate prices
@@ -2914,9 +2922,9 @@ class binance(Exchange):
         if limit is not None:
             request['limit'] = limit
         response = None
-        if self.is_linear(type, subType):
+        if self.is_linear():
             response = self.fapiPublicGetFundingRate(self.extend(request, params))
-        elif self.is_inverse(type, subType):
+        elif self.is_inverse():
             response = self.dapiPublicGetFundingRate(self.extend(request, params))
         else:
             raise NotSupported(self.id + ' fetchFundingRateHistory() is not supported for ' + type + ' markets')
