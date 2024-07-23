@@ -622,7 +622,7 @@ export default class Exchange {
         return encodeURIComponent (...args)
     }
 
-    checkRequiredVersion (requiredVersion, error = true) {
+    checkRequiredVersion (requiredVersion: string, error = true) {
         let result = true
         const [ major1, minor1, patch1 ] = requiredVersion.split ('.')
             , [ major2, minor2, patch2 ] = (Exchange as any).ccxtVersion.split ('.')
@@ -652,7 +652,7 @@ export default class Exchange {
         return result
     }
 
-    checkAddress (address) {
+    checkAddress (address: string) {
         if (address === undefined) {
             throw new InvalidAddress (this.id + ' address is undefined')
         }
