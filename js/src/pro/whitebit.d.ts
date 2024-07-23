@@ -31,7 +31,7 @@ export default class whitebit extends whitebitRest {
     handleMessage(client: Client, message: any): void;
     handleSubscriptionStatus(client: Client, message: any, id: any): void;
     handlePong(client: Client, message: any): any;
-    ping(client: any): {
+    ping(client: Client): {
         id: number;
         method: string;
         params: any[];

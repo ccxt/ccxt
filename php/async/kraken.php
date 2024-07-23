@@ -14,11 +14,11 @@ use ccxt\InsufficientFunds;
 use ccxt\InvalidAddress;
 use ccxt\InvalidOrder;
 use ccxt\OrderNotFound;
-use ccxt\CancelPending;
 use ccxt\NotSupported;
 use ccxt\RateLimitExceeded;
 use ccxt\ExchangeNotAvailable;
 use ccxt\InvalidNonce;
+use ccxt\CancelPending;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -90,6 +90,7 @@ class kraken extends Exchange {
                 'fetchOrderTrades' => 'emulated',
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -652,6 +653,33 @@ class kraken extends Exchange {
         return $result;
     }
 
+    public function fetch_status($params = array ()) {
+        return Async\async(function () use ($params) {
+            /**
+             * the latest known information on the availability of the exchange API
+             * @see https://docs.kraken.com/api/docs/rest-api/get-system-status/
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-status-structure status structure~
+             */
+            $response = Async\await($this->publicGetSystemStatus ($params));
+            //
+            // {
+            //     error => array(),
+            //     $result => array( status => 'online', timestamp => '2024-07-22T16:34:44Z' )
+            // }
+            //
+            $result = $this->safe_dict($response, 'result');
+            $statusRaw = $this->safe_string($result, 'status');
+            return array(
+                'status' => ($statusRaw === 'online') ? 'ok' : 'maintenance',
+                'updated' => null,
+                'eta' => null,
+                'url' => null,
+                'info' => $response,
+            );
+        }) ();
+    }
+
     public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
@@ -1073,7 +1101,7 @@ class kraken extends Exchange {
         } else {
             $direction = 'in';
         }
-        $timestamp = $this->safe_timestamp($item, 'time');
+        $timestamp = $this->safe_integer_product($item, 'time', 1000);
         return array(
             'info' => $item,
             'id' => $id,
@@ -1425,7 +1453,7 @@ class kraken extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {bool} [$params->postOnly] if true, the order will only be posted to the order book and not executed immediately
              * @param {bool} [$params->reduceOnly] *margin only* indicates if this order is to reduce the size of a position
@@ -1745,6 +1773,7 @@ class kraken extends Exchange {
             'filled' => $filled,
             'average' => $average,
             'remaining' => null,
+            'reduceOnly' => $this->safe_bool_2($order, 'reduceOnly', 'reduce_only'),
             'fee' => $fee,
             'trades' => $trades,
         ), $market);
@@ -1861,7 +1890,7 @@ class kraken extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of the currency you want to trade in units of the base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->stopLossPrice] *margin only* the $price that a stop loss order is triggered at
              * @param {float} [$params->takeProfitPrice] *margin only* the $price that a take profit order is triggered at
@@ -2149,7 +2178,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
              * cancels an open order
-             * @see https://docs.kraken.com/rest/#tag/Trading/operation/cancelOrder
+             * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrder
              * @param {string} $id order $id
              * @param {string} $symbol unified $symbol of the market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2190,7 +2219,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($ids, $symbol, $params) {
             /**
              * cancel multiple orders
-             * @see https://docs.kraken.com/rest/#tag/Trading/operation/cancelOrderBatch
+             * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelOrderBatch
              * @param {string[]} $ids open orders transaction ID (txid) or user reference (userref)
              * @param {string} $symbol unified market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2220,7 +2249,7 @@ class kraken extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * cancel all open orders
-             * @see https://docs.kraken.com/rest/#tag/Trading/operation/cancelAllOrders
+             * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/cancelAllOrders
              * @param {string} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~

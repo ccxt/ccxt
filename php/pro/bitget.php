@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
-use ccxt\InvalidNonce;
+use ccxt\ChecksumError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -63,6 +63,9 @@ class bitget extends \ccxt\async\bitget {
                     '12h' => '12H',
                     '1d' => '1D',
                     '1w' => '1W',
+                ),
+                'watchOrderBook' => array(
+                    'checksum' => true,
                 ),
             ),
             'streaming' => array(
@@ -569,9 +572,9 @@ class bitget extends \ccxt\async\bitget {
                 $calculatedChecksum = $this->crc32($payload, true);
                 $responseChecksum = $this->safe_integer($rawOrderBook, 'checksum');
                 if ($calculatedChecksum !== $responseChecksum) {
-                    $error = new InvalidNonce ($this->id . ' invalid checksum');
                     unset($client->subscriptions[$messageHash]);
                     unset($this->orderbooks[$symbol]);
+                    $error = new ChecksumError ($this->id . ' ' . $this->orderbook_checksum_message($symbol));
                     $client->reject ($error, $messageHash);
                     return;
                 }
@@ -987,7 +990,7 @@ class bitget extends \ccxt\async\bitget {
              * @param {string} [$params->marginMode] 'isolated' or 'cross' for watching spot margin $orders]
              * @param {string} [$params->type] 'spot', 'swap'
              * @param {string} [$params->subType] 'linear', 'inverse'
-             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1239,23 +1242,30 @@ class bitget extends \ccxt\async\bitget {
         // isolated and cross margin
         //
         //     {
-        //         "enterPointSource" => "web",
-        //         "force" => "gtc",
-        //         "feeDetail" => array(),
-        //         "orderType" => "limit",
-        //         "price" => "35000.000000000",
-        //         "quoteSize" => "10.500000000",
-        //         "side" => "buy",
-        //         "status" => "live",
-        //         "baseSize" => "0.000300000",
-        //         "cTime" => "1701923982427",
-        //         "clientOid" => "4902047879864dc980c4840e9906db4e",
-        //         "fillPrice" => "0.000000000",
-        //         "baseVolume" => "0.000000000",
-        //         "fillTotalAmount" => "0.000000000",
-        //         "loanType" => "auto-loan-and-repay",
-        //         "orderId" => "1116515595178356737"
-        //     }
+        //         enterPointSource => "web",
+        //         feeDetail => array(
+        //           array(
+        //             feeCoin => "AAVE",
+        //             deduction => "no",
+        //             totalDeductionFee => "0",
+        //             totalFee => "-0.00010740",
+        //           ),
+        //         ),
+        //         force => "gtc",
+        //         orderType => "limit",
+        //         $price => "93.170000000",
+        //         fillPrice => "93.170000000",
+        //         baseSize => "0.110600000", // total amount of $order
+        //         quoteSize => "10.304602000", // total $cost of $order (independently if $order is filled or pending)
+        //         baseVolume => "0.107400000", // filled amount of $order (during order's lifecycle, and not for this specific incoming update)
+        //         fillTotalAmount => "10.006458000", // filled $cost of $order (during order's lifecycle, and not for this specific incoming update)
+        //         $side => "buy",
+        //         status => "partially_filled",
+        //         cTime => "1717875017306",
+        //         clientOid => "b57afe789a06454e9c560a2aab7f7201",
+        //         loanType => "auto-loan",
+        //         orderId => "1183419084588060673",
+        //       }
         //
         $isSpot = !(is_array($order) && array_key_exists('posMode', $order));
         $isMargin = (is_array($order) && array_key_exists('loanType', $order));
@@ -1298,9 +1308,9 @@ class bitget extends \ccxt\async\bitget {
         $totalFilled = $this->safe_string($order, 'accBaseVolume');
         if ($isSpot) {
             if ($isMargin) {
-                $filledAmount = $this->omit_zero($this->safe_string($order, 'fillTotalAmount'));
-                $totalAmount = $this->omit_zero($this->safe_string($order, 'baseSize')); // for margin trading
-                $cost = $this->safe_string($order, 'quoteSize');
+                $totalAmount = $this->safe_string($order, 'baseSize');
+                $totalFilled = $this->safe_string($order, 'baseVolume');
+                $cost = $this->safe_string($order, 'fillTotalAmount');
             } else {
                 $partialFillAmount = $this->safe_string($order, 'baseVolume');
                 if ($partialFillAmount !== null) {
@@ -1807,7 +1817,7 @@ class bitget extends \ccxt\async\bitget {
         }
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         return 'ping';
     }
 

@@ -1165,7 +1165,7 @@ class bitmex extends \ccxt\async\bitmex {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
@@ -1563,11 +1563,17 @@ class bitmex extends \ccxt\async\bitmex {
         //
         $action = $this->safe_string($message, 'action');
         $table = $this->safe_string($message, 'table');
+        if ($table === null) {
+            return; // protecting from weird updates
+        }
         $data = $this->safe_value($message, 'data', array());
         // if it's an initial snapshot
         if ($action === 'partial') {
             $filter = $this->safe_dict($message, 'filter', array());
             $marketId = $this->safe_value($filter, 'symbol');
+            if ($marketId === null) {
+                return; // protecting from weird update
+            }
             $market = $this->safe_market($marketId);
             $symbol = $market['symbol'];
             if ($table === 'orderBookL2') {
@@ -1597,6 +1603,9 @@ class bitmex extends \ccxt\async\bitmex {
             $numUpdatesByMarketId = array();
             for ($i = 0; $i < count($data); $i++) {
                 $marketId = $this->safe_value($data[$i], 'symbol');
+                if ($marketId === null) {
+                    return; // protecting from weird update
+                }
                 if (!(is_array($numUpdatesByMarketId) && array_key_exists($marketId, $numUpdatesByMarketId))) {
                     $numUpdatesByMarketId[$marketId] = 0;
                 }

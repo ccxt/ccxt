@@ -1206,7 +1206,7 @@ public partial class bitmex : ccxt.bitmex
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trade structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1622,12 +1622,20 @@ public partial class bitmex : ccxt.bitmex
         //
         object action = this.safeString(message, "action");
         object table = this.safeString(message, "table");
+        if (isTrue(isEqual(table, null)))
+        {
+            return;  // protecting from weird updates
+        }
         object data = this.safeValue(message, "data", new List<object>() {});
         // if it's an initial snapshot
         if (isTrue(isEqual(action, "partial")))
         {
             object filter = this.safeDict(message, "filter", new Dictionary<string, object>() {});
             object marketId = this.safeValue(filter, "symbol");
+            if (isTrue(isEqual(marketId, null)))
+            {
+                return;  // protecting from weird update
+            }
             object market = this.safeMarket(marketId);
             object symbol = getValue(market, "symbol");
             if (isTrue(isEqual(table, "orderBookL2")))
@@ -1663,6 +1671,10 @@ public partial class bitmex : ccxt.bitmex
             for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
             {
                 object marketId = this.safeValue(getValue(data, i), "symbol");
+                if (isTrue(isEqual(marketId, null)))
+                {
+                    return;  // protecting from weird update
+                }
                 if (!isTrue((inOp(numUpdatesByMarketId, marketId))))
                 {
                     ((IDictionary<string,object>)numUpdatesByMarketId)[(string)marketId] = 0;

@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.gate import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, FundingHistory, Greeks, Int, Leverage, Leverages, LeverageTier, LeverageTiers, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, FundingHistory, Greeks, Int, Leverage, Leverages, LeverageTier, LeverageTiers, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -17,7 +17,6 @@ from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
-from ccxt.base.errors import BadResponse
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -25,6 +24,7 @@ from ccxt.base.errors import OrderImmediatelyFillable
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import BadResponse
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -100,6 +100,8 @@ class gate(Exchange, ImplicitAPI):
                 'borrowIsolatedMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'cancelOrders': True,
+                'cancelOrdersForSymbols': True,
                 'createMarketBuyOrderWithCost': True,
                 'createMarketOrder': True,
                 'createMarketOrderWithCost': False,
@@ -611,21 +613,21 @@ class gate(Exchange, ImplicitAPI):
             # copied from gatev2
             'commonCurrencies': {
                 '88MPH': 'MPH',
-                'AXIS': 'Axis DeFi',
-                'BIFI': 'Bitcoin File',
-                'BOX': 'DefiBox',
-                'BYN': 'BeyondFi',
-                'EGG': 'Goose Finance',
-                'GTC': 'Game.com',  # conflict with Gitcoin and Gastrocoin
-                'GTC_HT': 'Game.com HT',
-                'GTC_BSC': 'Game.com BSC',
-                'HIT': 'HitChain',
-                'MM': 'Million',  # conflict with MilliMeter
-                'MPH': 'Morpher',  # conflict with 88MPH
-                'POINT': 'GatePoint',
-                'RAI': 'Rai Reflex Index',  # conflict with RAI Finance
-                'SBTC': 'Super Bitcoin',
-                'TNC': 'Trinity Network Credit',
+                'AXIS': 'AXISDEFI',
+                'BIFI': 'BITCOINFILE',
+                'BOX': 'DEFIBOX',
+                'BYN': 'BEYONDFI',
+                'EGG': 'GOOSEFINANCE',
+                'GTC': 'GAMECOM',  # conflict with Gitcoin and Gastrocoin
+                'GTC_HT': 'GAMECOM_HT',
+                'GTC_BSC': 'GAMECOM_BSC',
+                'HIT': 'HITCHAIN',
+                'MM': 'MILLION',  # conflict with MilliMeter
+                'MPH': 'MORPHER',  # conflict with 88MPH
+                'POINT': 'GATEPOINT',
+                'RAI': 'RAIREFLEXINDEX',  # conflict with RAI Finance
+                'SBTC': 'SUPERBITCOIN',
+                'TNC': 'TRINITYNETWORKCREDIT',
                 'VAI': 'VAIOT',
                 'TRAC': 'TRACO',  # conflict with OriginTrail(TRAC)
             },
@@ -641,6 +643,7 @@ class gate(Exchange, ImplicitAPI):
                 'createOrder': {
                     'expiration': 86400,  # for conditional orders
                 },
+                'createMarketBuyOrderRequiresPrice': True,
                 'networks': {
                     'AVAXC': 'AVAX_C',
                     'BEP20': 'BSC',
@@ -798,6 +801,7 @@ class gate(Exchange, ImplicitAPI):
                     'NOT_ACCEPTABLE': BadRequest,
                     'METHOD_NOT_ALLOWED': BadRequest,
                     'NOT_FOUND': ExchangeError,
+                    'AUTHENTICATION_FAILED': AuthenticationError,
                     'INVALID_CREDENTIALS': AuthenticationError,
                     'INVALID_KEY': AuthenticationError,
                     'IP_FORBIDDEN': AuthenticationError,
@@ -3555,7 +3559,7 @@ class gate(Exchange, ImplicitAPI):
         :param str type: 'limit' or 'market' *"market" is contract only*
         :param str side: 'buy' or 'sell'
         :param float amount: the amount of currency to trade
-        :param float [price]: *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]:  extra parameters specific to the exchange API endpoint
         :param float [params.stopPrice]: The price at which a trigger order is triggered at
         :param str [params.timeInForce]: "GTC", "IOC", or "PO"
@@ -3669,17 +3673,14 @@ class gate(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    async def create_orders(self, orders: List[OrderRequest], params={}):
-        """
-        create a list of trade orders
-        :see: https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-2
-        :see: https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-orders
-        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
-        """
-        await self.load_markets()
+    def create_orders_request(self, orders: List[OrderRequest], params={}):
         ordersRequests = []
         orderSymbols = []
+        ordersLength = len(orders)
+        if ordersLength == 0:
+            raise BadRequest(self.id + ' createOrders() requires at least one order')
+        if ordersLength > 10:
+            raise BadRequest(self.id + ' createOrders() accepts a maximum of 10 orders at a time')
         for i in range(0, len(orders)):
             rawOrder = orders[i]
             marketId = self.safe_string(rawOrder, 'symbol')
@@ -3700,6 +3701,21 @@ class gate(Exchange, ImplicitAPI):
         market = self.market(symbols[0])
         if market['future'] or market['option']:
             raise NotSupported(self.id + ' createOrders() does not support futures or options markets')
+        return ordersRequests
+
+    async def create_orders(self, orders: List[OrderRequest], params={}):
+        """
+        create a list of trade orders
+        :see: https://www.gate.io/docs/developers/apiv4/en/#get-a-single-order-2
+        :see: https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-orders
+        :see: https://www.gate.io/docs/developers/apiv4/en/#create-a-batch-of-futures-orders
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        ordersRequests = self.create_orders_request(orders, params)
+        firstOrder = orders[0]
+        market = self.market(firstOrder['symbol'])
         response = None
         if market['spot']:
             response = await self.privateSpotPostBatchOrders(ordersRequests)
@@ -3771,7 +3787,7 @@ class gate(Exchange, ImplicitAPI):
                 if isMarketOrder:
                     request['price'] = price  # set to 0 for market orders
                 else:
-                    request['price'] = self.price_to_precision(symbol, price)
+                    request['price'] = '0' if (price == 0) else self.price_to_precision(symbol, price)
                 if reduceOnly is not None:
                     request['reduce_only'] = reduceOnly
                 if timeInForce is not None:
@@ -3842,7 +3858,7 @@ class gate(Exchange, ImplicitAPI):
                     'initial': {
                         'contract': market['id'],
                         'size': amount,  # positive = buy, negative = sell, set to 0 to close the position
-                        'price': self.price_to_precision(symbol, price),  # set to 0 to use market price
+                        # 'price': '0' if (price == 0) else self.price_to_precision(symbol, price),  # set to 0 to use market price
                         # 'close': False,  # set to True if trying to close the position
                         # 'tif': 'gtc',  # gtc, ioc, if using market price, only ioc is supported
                         # 'text': clientOrderId,  # web, api, app
@@ -3850,6 +3866,10 @@ class gate(Exchange, ImplicitAPI):
                     },
                     'settle': market['settleId'],
                 }
+                if type == 'market':
+                    request['initial']['price'] = '0'
+                else:
+                    request['initial']['price'] = '0' if (price == 0) else self.price_to_precision(symbol, price)
                 if trigger is None:
                     rule = None
                     triggerOrderPrice = None
@@ -3930,21 +3950,7 @@ class gate(Exchange, ImplicitAPI):
         params['createMarketBuyOrderRequiresPrice'] = False
         return await self.create_order(symbol, 'market', 'buy', cost, None, params)
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
-        """
-        edit a trade order, gate currently only supports the modification of the price or amount fields
-        :see: https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
-        :see: https://www.gate.io/docs/developers/apiv4/en/#amend-an-order-2
-        :param str id: order id
-        :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
-        :param str side: 'buy' or 'sell'
-        :param float amount: how much of the currency you want to trade in units of the base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
-        """
-        await self.load_markets()
+    def edit_order_request(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         market = self.market(symbol)
         marketType, query = self.handle_market_type_and_params('editOrder', market, params)
         account = self.convert_type_to_account(marketType)
@@ -3954,7 +3960,7 @@ class gate(Exchange, ImplicitAPI):
                 # exchange doesn't have market orders for spot
                 raise InvalidOrder(self.id + ' editOrder() does not support ' + type + ' orders for ' + marketType + ' markets')
         request: dict = {
-            'order_id': id,
+            'order_id': str(id),
             'currency_pair': market['id'],
             'account': account,
         }
@@ -3968,12 +3974,32 @@ class gate(Exchange, ImplicitAPI):
                     request['size'] = self.amount_to_precision(symbol, amount)
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
+        if not market['spot']:
+            request['settle'] = market['settleId']
+        return self.extend(request, query)
+
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+        """
+        edit a trade order, gate currently only supports the modification of the price or amount fields
+        :see: https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
+        :see: https://www.gate.io/docs/developers/apiv4/en/#amend-an-order-2
+        :param str id: order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of the currency you want to trade in units of the base currency
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        extendedRequest = self.edit_order_request(id, symbol, type, side, amount, price, params)
         response = None
         if market['spot']:
-            response = await self.privateSpotPatchOrdersOrderId(self.extend(request, query))
+            response = await self.privateSpotPatchOrdersOrderId(extendedRequest)
         else:
-            request['settle'] = market['settleId']
-            response = await self.privateFuturesPutSettleOrdersOrderId(self.extend(request, query))
+            response = await self.privateFuturesPutSettleOrdersOrderId(extendedRequest)
         #
         #     {
         #         "id": "243233276443",
@@ -4165,6 +4191,8 @@ class gate(Exchange, ImplicitAPI):
         #        "message": "Not enough balance"
         #    }
         #
+        #  {"user_id":10406147,"id":"id","succeeded":false,"message":"INVALID_PROTOCOL","label":"INVALID_PROTOCOL"}
+        #
         succeeded = self.safe_bool(order, 'succeeded', True)
         if not succeeded:
             # cancelOrders response
@@ -4172,6 +4200,7 @@ class gate(Exchange, ImplicitAPI):
                 'clientOrderId': self.safe_string(order, 'text'),
                 'info': order,
                 'status': 'rejected',
+                'id': self.safe_string(order, 'id'),
             })
         put = self.safe_value_2(order, 'put', 'initial', {})
         trigger = self.safe_value(order, 'trigger', {})
@@ -4274,6 +4303,23 @@ class gate(Exchange, ImplicitAPI):
             'info': order,
         }, market)
 
+    def fetch_order_request(self, id: str, symbol: Str = None, params={}):
+        market = None if (symbol is None) else self.market(symbol)
+        stop = self.safe_bool_n(params, ['trigger', 'is_stop_order', 'stop'], False)
+        params = self.omit(params, ['is_stop_order', 'stop', 'trigger'])
+        clientOrderId = self.safe_string_2(params, 'text', 'clientOrderId')
+        orderId = id
+        if clientOrderId is not None:
+            params = self.omit(params, ['text', 'clientOrderId'])
+            if clientOrderId[0] != 't':
+                clientOrderId = 't-' + clientOrderId
+            orderId = clientOrderId
+        type, query = self.handle_market_type_and_params('fetchOrder', market, params)
+        contract = (type == 'swap') or (type == 'future') or (type == 'option')
+        request, requestParams = self.prepare_request(market, type, query) if contract else self.spot_order_prepare_request(market, stop, query)
+        request['order_id'] = str(orderId)
+        return [request, requestParams]
+
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         Retrieves information on an order
@@ -4284,27 +4330,18 @@ class gate(Exchange, ImplicitAPI):
         :param str id: Order id
         :param str symbol: Unified market symbol, *required for spot and margin*
         :param dict [params]: Parameters specified by the exchange api
-        :param bool [params.stop]: True if the order being fetched is a trigger order
+        :param bool [params.trigger]: True if the order being fetched is a trigger order
         :param str [params.marginMode]: 'cross' or 'isolated' - marginMode for margin trading if not provided self.options['defaultMarginMode'] is used
         :param str [params.type]: 'spot', 'swap', or 'future', if not provided self.options['defaultMarginMode'] is used
         :param str [params.settle]: 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol is not None, default="usdt" for swap and "btc" for future
         :returns: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        stop = self.safe_value_2(params, 'is_stop_order', 'stop', False)
-        params = self.omit(params, ['is_stop_order', 'stop'])
-        clientOrderId = self.safe_string_2(params, 'text', 'clientOrderId')
-        orderId = id
-        if clientOrderId is not None:
-            params = self.omit(params, ['text', 'clientOrderId'])
-            if clientOrderId[0] != 't':
-                clientOrderId = 't-' + clientOrderId
-            orderId = clientOrderId
         market = None if (symbol is None) else self.market(symbol)
-        type, query = self.handle_market_type_and_params('fetchOrder', market, params)
-        contract = (type == 'swap') or (type == 'future') or (type == 'option')
-        request, requestParams = self.prepare_request(market, type, query) if contract else self.spot_order_prepare_request(market, stop, query)
-        request['order_id'] = orderId
+        result = self.handle_market_type_and_params('fetchOrder', market, params)
+        type = self.safe_string(result, 0)
+        stop = self.safe_bool_n(params, ['trigger', 'is_stop_order', 'stop'], False)
+        request, requestParams = self.fetch_order_request(id, symbol, params)
         response = None
         if type == 'spot' or type == 'margin':
             if stop:
@@ -4363,14 +4400,13 @@ class gate(Exchange, ImplicitAPI):
         """
         return await self.fetch_orders_by_status('finished', symbol, since, limit, params)
 
-    async def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
-        await self.load_markets()
+    def fetch_orders_by_status_request(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         market = None
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
-        stop = self.safe_value(params, 'stop')
-        params = self.omit(params, 'stop')
+        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        params = self.omit(params, ['stop', 'trigger'])
         type, query = self.handle_market_type_and_params('fetchOrdersByStatus', market, params)
         spot = (type == 'spot') or (type == 'margin')
         request, requestParams = self.multi_order_spot_prepare_request(market, stop, query) if spot else self.prepare_request(market, type, query)
@@ -4381,6 +4417,24 @@ class gate(Exchange, ImplicitAPI):
             request['limit'] = limit
         if since is not None and spot:
             request['from'] = self.parse_to_int(since / 1000)
+        lastId, finalParams = self.handle_param_string_2(requestParams, 'lastId', 'last_id')
+        if lastId is not None:
+            request['last_id'] = lastId
+        return [request, finalParams]
+
+    async def fetch_orders_by_status(self, status, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
+        stop = self.safe_bool_2(params, 'stop', 'trigger')
+        params = self.omit(params, ['trigger', 'stop'])
+        res = self.handle_market_type_and_params('fetchOrdersByStatus', market, params)
+        type = self.safe_string(res, 0)
+        params['type'] = type
+        request, requestParams = self.fetch_orders_by_status_request(status, symbol, since, limit, params)
+        spot = (type == 'spot') or (type == 'margin')
         openSpotOrders = spot and (status == 'open') and not stop
         response = None
         if type == 'spot' or type == 'margin':
@@ -4574,8 +4628,8 @@ class gate(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = None if (symbol is None) else self.market(symbol)
-        stop = self.safe_value_2(params, 'is_stop_order', 'stop', False)
-        params = self.omit(params, ['is_stop_order', 'stop'])
+        stop = self.safe_bool_n(params, ['is_stop_order', 'stop', 'trigger'], False)
+        params = self.omit(params, ['is_stop_order', 'stop', 'trigger'])
         type, query = self.handle_market_type_and_params('cancelOrder', market, params)
         request, requestParams = self.spot_order_prepare_request(market, stop, query) if (type == 'spot' or type == 'margin') else self.prepare_request(market, type, query)
         request['order_id'] = id
@@ -4681,6 +4735,80 @@ class gate(Exchange, ImplicitAPI):
         #     }
         #
         return self.parse_order(response, market)
+
+    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+        """
+        cancel multiple orders
+        :see: https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list
+        :see: https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list-2
+        :param str[] ids: order ids
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        type = None
+        defaultSettle = 'usdt' if (market is None) else market['settle']
+        settle = self.safe_string_lower(params, 'settle', defaultSettle)
+        type, params = self.handle_market_type_and_params('cancelOrders', market, params)
+        isSpot = (type == 'spot')
+        if isSpot and (symbol is None):
+            raise ArgumentsRequired(self.id + ' cancelOrders requires a symbol argument for spot markets')
+        if isSpot:
+            ordersRequests = []
+            for i in range(0, len(ids)):
+                id = ids[i]
+                orderItem: dict = {
+                    'id': id,
+                    'symbol': symbol,
+                }
+                ordersRequests.append(orderItem)
+            return await self.cancel_orders_for_symbols(ordersRequests, params)
+        request = {
+            'settle': settle,
+        }
+        finalList = [request]  # hacky but needs to be done here
+        for i in range(0, len(ids)):
+            finalList.append(ids[i])
+        response = await self.privateFuturesPostSettleBatchCancelOrders(finalList)
+        return self.parse_orders(response)
+
+    async def cancel_orders_for_symbols(self, orders: List[CancellationRequest], params={}):
+        """
+        cancel multiple orders for multiple symbols
+        :see: https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list
+        :param CancellationRequest[] orders: list of order ids with symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str[] [params.clientOrderIds]: client order ids
+        :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        ordersRequests = []
+        for i in range(0, len(orders)):
+            order = orders[i]
+            symbol = self.safe_string(order, 'symbol')
+            market = self.market(symbol)
+            if not market['spot']:
+                raise NotSupported(self.id + ' cancelOrdersForSymbols() supports only spot markets')
+            id = self.safe_string(order, 'id')
+            orderItem: dict = {
+                'id': id,
+                'currency_pair': market['id'],
+            }
+            ordersRequests.append(orderItem)
+        response = await self.privateSpotPostCancelBatchOrders(ordersRequests)
+        #
+        # [
+        #     {
+        #       "currency_pair": "BTC_USDT",
+        #       "id": "123456"
+        #     }
+        # ]
+        #
+        return self.parse_orders(response)
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
@@ -5608,7 +5736,20 @@ class gate(Exchange, ImplicitAPI):
         authentication = api[0]  # public, private
         type = api[1]  # spot, margin, future, delivery
         query = self.omit(params, self.extract_params(path))
-        if isinstance(params, list):
+        containsSettle = path.find('settle') > -1
+        if containsSettle and path.endswith('batch_cancel_orders'):  # weird check to prevent $settle in php and converting {settle} to array(settle)
+            # special case where we need to extract the settle from the path
+            # but the body is an array of strings
+            settle = self.safe_dict(params, 0)
+            path = self.implode_params(path, settle)
+            # remove the first element from params
+            newParams = []
+            anyParams = params
+            for i in range(1, len(anyParams)):
+                newParams.append(params[i])
+            params = newParams
+            query = newParams
+        elif isinstance(params, list):
             # endpoints like createOrders use an array instead of an object
             # so we infer the settle from one of the elements
             # they have to be all the same so relying on the first one is fine
@@ -6967,6 +7108,7 @@ class gate(Exchange, ImplicitAPI):
         #    {"label": "INVALID_PARAM_VALUE", "message": "invalid argument: Trigger.rule"}
         #    {"label": "INVALID_PARAM_VALUE", "message": "invalid argument: trigger.expiration invalid range"}
         #    {"label": "INVALID_ARGUMENT", "detail": "invalid size"}
+        #    {"user_id":10406147,"id":"id","succeeded":false,"message":"INVALID_PROTOCOL","label":"INVALID_PROTOCOL"}
         #
         label = self.safe_string(response, 'label')
         if label is not None:

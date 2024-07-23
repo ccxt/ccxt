@@ -558,7 +558,7 @@ class yobit(Exchange, ImplicitAPI):
             ids = self.ids
         else:
             ids = self.market_ids(symbols)
-        idsLength = len(ids)
+        idsLength: number = len(ids)
         idsString = '-'.join(ids)
         maxLength = self.safe_integer(self.options, 'maxUrlLength', 2048)
         # max URL length is 2048 symbols, including http schema, hostname, tld, etc...
@@ -760,7 +760,7 @@ class yobit(Exchange, ImplicitAPI):
         :param str type: must be 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """

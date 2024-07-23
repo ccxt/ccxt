@@ -698,7 +698,7 @@ class alpaca extends Exchange {
              * @param {string} $type 'market', 'limit' or 'stop_limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->triggerPrice] The $price at which a trigger $order is triggered at
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
@@ -816,7 +816,11 @@ class alpaca extends Exchange {
             if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
                 return $this->parse_orders($response, null);
             } else {
-                return $response;
+                return array(
+                    $this->safe_order(array(
+                        'info' => $response,
+                    )),
+                );
             }
         }) ();
     }
@@ -1107,6 +1111,7 @@ class alpaca extends Exchange {
         $url = $this->implode_hostname($this->urls['api'][$api[0]]);
         $headers = ($headers !== null) ? $headers : array();
         if ($api[1] === 'private') {
+            $this->check_required_credentials();
             $headers['APCA-API-KEY-ID'] = $this->apiKey;
             $headers['APCA-API-SECRET-KEY'] = $this->secret;
         }

@@ -1149,7 +1149,7 @@ export default class bitmex extends bitmexRest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         await this.authenticate();
@@ -1539,11 +1539,17 @@ export default class bitmex extends bitmexRest {
         //
         const action = this.safeString(message, 'action');
         const table = this.safeString(message, 'table');
+        if (table === undefined) {
+            return; // protecting from weird updates
+        }
         const data = this.safeValue(message, 'data', []);
         // if it's an initial snapshot
         if (action === 'partial') {
             const filter = this.safeDict(message, 'filter', {});
             const marketId = this.safeValue(filter, 'symbol');
+            if (marketId === undefined) {
+                return; // protecting from weird update
+            }
             const market = this.safeMarket(marketId);
             const symbol = market['symbol'];
             if (table === 'orderBookL2') {
@@ -1576,6 +1582,9 @@ export default class bitmex extends bitmexRest {
             const numUpdatesByMarketId = {};
             for (let i = 0; i < data.length; i++) {
                 const marketId = this.safeValue(data[i], 'symbol');
+                if (marketId === undefined) {
+                    return; // protecting from weird update
+                }
                 if (!(marketId in numUpdatesByMarketId)) {
                     numUpdatesByMarketId[marketId] = 0;
                 }

@@ -1327,7 +1327,7 @@ class lbank extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
@@ -1497,6 +1497,27 @@ class lbank extends Exchange {
         //          "status":-1
         //      }
         //
+        // cancelOrder
+        //
+        //    {
+        //        "executedQty":0.0,
+        //        "price":0.05,
+        //        "origQty":100.0,
+        //        "tradeType":"buy",
+        //        "status":0
+        //    }
+        //
+        // cancelAllOrders
+        //
+        //    {
+        //        "executedQty":0.00000000000000000000,
+        //        "orderId":"293ef71b-3e67-4962-af93-aa06990a045f",
+        //        "price":0.05000000000000000000,
+        //        "origQty":100.00000000000000000000,
+        //        "tradeType":"buy",
+        //        "status":0
+        //    }
+        //
         $id = $this->safe_string_2($order, 'orderId', 'order_id');
         $clientOrderId = $this->safe_string_2($order, 'clientOrderId', 'custom_id');
         $timestamp = $this->safe_integer_2($order, 'time', 'create_time');
@@ -1506,7 +1527,7 @@ class lbank extends Exchange {
         $timeInForce = null;
         $postOnly = false;
         $type = 'limit';
-        $rawType = $this->safe_string($order, 'type'); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
+        $rawType = $this->safe_string_2($order, 'type', 'tradeType'); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
         $parts = explode('_', $rawType);
         $side = $this->safe_string($parts, 0);
         $typePart = $this->safe_string($parts, 1); // $market, maker, ioc, fok or null (limit)
@@ -1879,12 +1900,12 @@ class lbank extends Exchange {
             //          "origQty":100.0,
             //          "tradeType":"buy",
             //          "status":0
-            //          ),
+            //      ),
             //      "error_code":0,
             //      "ts":1648501286196
             //  }
-            $result = $this->safe_value($response, 'data', array());
-            return $result;
+            $data = $this->safe_dict($response, 'data', array());
+            return $this->parse_order($data);
         }) ();
     }
 
@@ -1923,8 +1944,8 @@ class lbank extends Exchange {
             //          "ts":1648506641469
             //      }
             //
-            $result = $this->safe_value($response, 'data', array());
-            return $result;
+            $data = $this->safe_list($response, 'data', array());
+            return $this->parse_orders($data);
         }) ();
     }
 

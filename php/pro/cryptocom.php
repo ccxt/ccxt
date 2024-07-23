@@ -8,7 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\AuthenticationError;
 use ccxt\NetworkError;
-use ccxt\InvalidNonce;
+use ccxt\ChecksumError;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -49,6 +49,9 @@ class cryptocom extends \ccxt\async\cryptocom {
                 'watchPositions' => array(
                     'fetchPositionsSnapshot' => true, // or false
                     'awaitPositionsSnapshot' => true, // whether to wait for the positions snapshot before providing updates
+                ),
+                'watchOrderBook' => array(
+                    'checksum' => true,
                 ),
             ),
             'streaming' => array(
@@ -230,7 +233,10 @@ class cryptocom extends \ccxt\async\cryptocom {
             $previousNonce = $this->safe_integer($data, 'pu');
             $currentNonce = $orderbook['nonce'];
             if ($currentNonce !== $previousNonce) {
-                throw new InvalidNonce($this->id . ' watchOrderBook() ' . $symbol . ' ' . $previousNonce . ' != ' . $nonce);
+                $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
+                if ($checksum) {
+                    throw new ChecksumError($this->id . ' ' . $this->orderbook_checksum_message($symbol));
+                }
             }
         }
         $this->handle_deltas($orderbook['asks'], $this->safe_value($books, 'asks', array()));
@@ -343,7 +349,7 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -765,7 +771,7 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */

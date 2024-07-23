@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bithumb import ImplicitAPI
+import asyncio
 import hashlib
 from ccxt.base.types import Balances, Currency, Int, Market, MarketInterface, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
@@ -212,17 +213,56 @@ class bithumb(Exchange, ImplicitAPI):
         :returns dict[]: an array of objects representing market data
         """
         result = []
-        quoteCurrencies = self.safe_value(self.options, 'quoteCurrencies', {})
+        quoteCurrencies = self.safe_dict(self.options, 'quoteCurrencies', {})
         quotes = list(quoteCurrencies.keys())
+        promises = []
+        for i in range(0, len(quotes)):
+            request = {
+                'quoteId': quotes[i],
+            }
+            promises.append(self.publicGetTickerALLQuoteId(self.extend(request, params)))
+            #
+            #    {
+            #        "status": "0000",
+            #        "data": {
+            #            "ETH": {
+            #                "opening_price": "0.05153399",
+            #                "closing_price": "0.05145144",
+            #                "min_price": "0.05145144",
+            #                "max_price": "0.05160781",
+            #                "units_traded": "6.541124172077830855",
+            #                "acc_trade_value": "0.33705472498492329997697755",
+            #                "prev_closing_price": "0.0515943",
+            #                "units_traded_24H": "43.368879902677400513",
+            #                "acc_trade_value_24H": "2.24165339555398079994373342",
+            #                "fluctate_24H": "-0.00018203",
+            #                "fluctate_rate_24H": "-0.35"
+            #            },
+            #            "XRP": {
+            #                "opening_price": "0.00000918",
+            #                "closing_price": "0.0000092",
+            #                "min_price": "0.00000918",
+            #                "max_price": "0.0000092",
+            #                "units_traded": "6516.949363",
+            #                "acc_trade_value": "0.0598792533602796",
+            #                "prev_closing_price": "0.00000916",
+            #                "units_traded_24H": "229161.50354738",
+            #                "acc_trade_value_24H": "2.0446589371637117",
+            #                "fluctate_24H": "0.00000049",
+            #                "fluctate_rate_24H": "5.63"
+            #            },
+            #            ...
+            #            "date": "1721675913145"
+            #        }
+            #    }
+            #
+        results = await asyncio.gather(*promises)
         for i in range(0, len(quotes)):
             quote = quotes[i]
             quoteId = quote
-            extension = self.safe_value(quoteCurrencies, quote, {})
-            request: dict = {
-                'quoteId': quoteId,
-            }
-            response = await self.publicGetTickerALLQuoteId(self.extend(request, params))
-            data = self.safe_value(response, 'data')
+            response = results[i]
+            data = self.safe_dict(response, 'data')
+            extension = self.safe_dict(quoteCurrencies, quote, {})
             currencyIds = list(data.keys())
             for j in range(0, len(currencyIds)):
                 currencyId = currencyIds[j]
@@ -286,7 +326,7 @@ class bithumb(Exchange, ImplicitAPI):
 
     def parse_balance(self, response) -> Balances:
         result: dict = {'info': response}
-        balances = self.safe_value(response, 'data')
+        balances = self.safe_dict(response, 'data')
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
             code = codes[i]
@@ -351,7 +391,7 @@ class bithumb(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         timestamp = self.safe_integer(data, 'timestamp')
         return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity')
 
@@ -413,15 +453,18 @@ class bithumb(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         result: dict = {}
-        quoteCurrencies = self.safe_value(self.options, 'quoteCurrencies', {})
+        quoteCurrencies = self.safe_dict(self.options, 'quoteCurrencies', {})
         quotes = list(quoteCurrencies.keys())
+        promises = []
+        for i in range(0, len(quotes)):
+            request: dict = {
+                'quoteId': quotes[i],
+            }
+            promises.append(self.publicGetTickerALLQuoteId(self.extend(request, params)))
+        responses = await asyncio.gather(*promises)
         for i in range(0, len(quotes)):
             quote = quotes[i]
-            quoteId = quote
-            request: dict = {
-                'quoteId': quoteId,
-            }
-            response = await self.publicGetTickerALLQuoteId(self.extend(request, params))
+            response = responses[i]
             #
             #     {
             #         "status":"0000",
@@ -443,7 +486,7 @@ class bithumb(Exchange, ImplicitAPI):
             #         }
             #     }
             #
-            data = self.safe_value(response, 'data', {})
+            data = self.safe_dict(response, 'data', {})
             timestamp = self.safe_integer(data, 'date')
             tickers = self.omit(data, 'date')
             currencyIds = list(tickers.keys())
@@ -677,7 +720,7 @@ class bithumb(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -805,7 +848,7 @@ class bithumb(Exchange, ImplicitAPI):
         #     }
         #
         timestamp = self.safe_integer_product(order, 'order_date', 0.001)
-        sideProperty = self.safe_value_2(order, 'type', 'side')
+        sideProperty = self.safe_string_2(order, 'type', 'side')
         side = 'buy' if (sideProperty == 'bid') else 'sell'
         status = self.parse_order_status(self.safe_string(order, 'order_status'))
         price = self.safe_string_2(order, 'order_price', 'price')
@@ -830,7 +873,7 @@ class bithumb(Exchange, ImplicitAPI):
             market = self.safe_market(None, market)
             symbol = market['symbol']
         id = self.safe_string(order, 'order_id')
-        rawTrades = self.safe_value(order, 'contract', [])
+        rawTrades = self.safe_list(order, 'contract', [])
         return self.safe_order({
             'info': order,
             'id': id,

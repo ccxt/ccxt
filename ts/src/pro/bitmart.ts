@@ -498,7 +498,7 @@ export default class bitmart extends bitmartRest {
         client.resolve (newOrders, messageHash);
     }
 
-    parseWsOrder (order, market: Market = undefined) {
+    parseWsOrder (order: Dict, market: Market = undefined) {
         //
         // spot
         //    {
@@ -770,8 +770,8 @@ export default class bitmart extends bitmartRest {
         const symbol = market['symbol'];
         const openTimestamp = this.safeInteger (position, 'create_time');
         const timestamp = this.safeInteger (position, 'update_time');
-        const side = this.safeNumber (position, 'position_type');
-        const marginModeId = this.safeNumber (position, 'open_type');
+        const side = this.safeInteger (position, 'position_type');
+        const marginModeId = this.safeInteger (position, 'open_type');
         return this.safePosition ({
             'info': position,
             'id': undefined,
@@ -873,7 +873,7 @@ export default class bitmart extends bitmartRest {
         return symbol;
     }
 
-    parseWsTrade (trade, market: Market = undefined) {
+    parseWsTrade (trade: Dict, market: Market = undefined) {
         // spot
         //    {
         //        "price": "52700.50",
@@ -1341,7 +1341,7 @@ export default class bitmart extends bitmartRest {
                 this.orderbooks[symbol] = ob;
             }
             const orderbook = this.orderbooks[symbol];
-            const way = this.safeNumber (data, 'way');
+            const way = this.safeInteger (data, 'way');
             const side = (way === 1) ? 'bids' : 'asks';
             if (way === 1) {
                 orderbook[side] = new Bids ([], limit);

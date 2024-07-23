@@ -20,7 +20,7 @@ public partial class binance : ccxt.binance
                 { "watchBidsAsks", true },
                 { "watchMyTrades", true },
                 { "watchOHLCV", true },
-                { "watchOHLCVForSymbols", false },
+                { "watchOHLCVForSymbols", true },
                 { "watchOrderBook", true },
                 { "watchOrderBookForSymbols", true },
                 { "watchOrders", true },
@@ -78,6 +78,7 @@ public partial class binance : ccxt.binance
                         { "papi", "wss://fstream.binance.com/pm/ws" },
                     } },
                 } },
+                { "doc", "https://developers.binance.com/en" },
             } },
             { "streaming", new Dictionary<string, object>() {
                 { "keepAlive", 180000 },
@@ -120,6 +121,7 @@ public partial class binance : ccxt.binance
                 } },
                 { "watchOrderBook", new Dictionary<string, object>() {
                     { "maxRetries", 3 },
+                    { "checksum", true },
                 } },
                 { "watchBalance", new Dictionary<string, object>() {
                     { "fetchBalanceSnapshot", false },
@@ -196,8 +198,8 @@ public partial class binance : ccxt.binance
         * @method
         * @name binance#watchLiquidations
         * @description watch the public liquidations of a trading pair
-        * @see https://binance-docs.github.io/apidocs/futures/en/#liquidation-order-streams
-        * @see https://binance-docs.github.io/apidocs/delivery/en/#liquidation-order-streams
+        * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Liquidation-Order-Streams
+        * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Liquidation-Order-Streams
         * @param {string} symbol unified CCXT market symbol
         * @param {int} [since] the earliest time in ms to fetch liquidations for
         * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -214,8 +216,8 @@ public partial class binance : ccxt.binance
         * @method
         * @name binance#watchLiquidationsForSymbols
         * @description watch the public liquidations of a trading pair
-        * @see https://binance-docs.github.io/apidocs/futures/en/#all-market-liquidation-order-streams
-        * @see https://binance-docs.github.io/apidocs/delivery/en/#all-market-liquidation-order-streams
+        * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Market-Liquidation-Order-Streams
+        * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Market-Liquidation-Order-Streams
         * @param {string} symbol unified CCXT market symbol
         * @param {int} [since] the earliest time in ms to fetch liquidations for
         * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -437,8 +439,8 @@ public partial class binance : ccxt.binance
         * @method
         * @name binance#watchMyLiquidations
         * @description watch the private liquidations of a trading pair
-        * @see https://binance-docs.github.io/apidocs/futures/en/#event-order-update
-        * @see https://binance-docs.github.io/apidocs/delivery/en/#event-order-update
+        * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
+        * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Order-Update
         * @param {string} symbol unified CCXT market symbol
         * @param {int} [since] the earliest time in ms to fetch liquidations for
         * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -455,8 +457,8 @@ public partial class binance : ccxt.binance
         * @method
         * @name binance#watchMyLiquidationsForSymbols
         * @description watch the private liquidations of a trading pair
-        * @see https://binance-docs.github.io/apidocs/futures/en/#event-order-update
-        * @see https://binance-docs.github.io/apidocs/delivery/en/#event-order-update
+        * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
+        * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/user-data-streams/Event-Order-Update
         * @param {string} symbol unified CCXT market symbol
         * @param {int} [since] the earliest time in ms to fetch liquidations for
         * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -659,9 +661,9 @@ public partial class binance : ccxt.binance
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
-            object messageHash = add(add(getValue(market, "lowercaseId"), "@"), name);
-            ((IList<object>)messageHashes).Add(messageHash);
-            object symbolHash = add(add(add(messageHash, "@"), watchOrderBookRate), "ms");
+            ((IList<object>)messageHashes).Add(add("orderbook::", symbol));
+            object subscriptionHash = add(add(getValue(market, "lowercaseId"), "@"), name);
+            object symbolHash = add(add(add(subscriptionHash, "@"), watchOrderBookRate), "ms");
             ((IList<object>)subParams).Add(symbolHash);
         }
         object messageHashesLength = getArrayLength(messageHashes);
@@ -681,8 +683,7 @@ public partial class binance : ccxt.binance
             { "type", type },
             { "params", parameters },
         };
-        object message = this.extend(request, parameters);
-        object orderbook = await this.watchMultiple(url, messageHashes, message, messageHashes, subscription);
+        object orderbook = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscription);
         return (orderbook as IOrderBook).limit();
     }
 
@@ -692,7 +693,8 @@ public partial class binance : ccxt.binance
         * @method
         * @name binance#fetchOrderBookWs
         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-        * @see https://binance-docs.github.io/apidocs/futures/en/#order-book-2
+        * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#order-book
+        * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/websocket-api/Order-Book
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -770,10 +772,8 @@ public partial class binance : ccxt.binance
 
     public async virtual Task fetchOrderBookSnapshot(WebSocketClient client, object message, object subscription)
     {
-        object name = this.safeString(subscription, "name");
         object symbol = this.safeString(subscription, "symbol");
-        object market = this.market(symbol);
-        object messageHash = add(add(getValue(market, "lowercaseId"), "@"), name);
+        object messageHash = add("orderbook::", symbol);
         try
         {
             object defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
@@ -888,8 +888,7 @@ public partial class binance : ccxt.binance
         object marketId = this.safeString(message, "s");
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
-        object name = "depth";
-        object messageHash = add(add(getValue(market, "lowercaseId"), "@"), name);
+        object messageHash = add("orderbook::", symbol);
         if (!isTrue((inOp(this.orderbooks, symbol))))
         {
             //
@@ -941,10 +940,10 @@ public partial class binance : ccxt.binance
                             }
                         } else
                         {
-                            object checksum = this.safeBool(this.options, "checksum", true);
+                            object checksum = this.handleOption("watchOrderBook", "checksum", true);
                             if (isTrue(checksum))
                             {
-                                throw new InvalidNonce ((string)add(this.id, " handleOrderBook received an out-of-order nonce")) ;
+                                throw new ChecksumError ((string)add(add(this.id, " "), this.orderbookChecksumMessage(symbol))) ;
                             }
                         }
                     }
@@ -965,10 +964,10 @@ public partial class binance : ccxt.binance
                             }
                         } else
                         {
-                            object checksum = this.safeBool(this.options, "checksum", true);
+                            object checksum = this.handleOption("watchOrderBook", "checksum", true);
                             if (isTrue(checksum))
                             {
-                                throw new InvalidNonce ((string)add(this.id, " handleOrderBook received an out-of-order nonce")) ;
+                                throw new ChecksumError ((string)add(add(this.id, " "), this.orderbookChecksumMessage(symbol))) ;
                             }
                         }
                     }
@@ -1058,13 +1057,15 @@ public partial class binance : ccxt.binance
         {
             type = ((bool) isTrue(getValue(firstMarket, "linear"))) ? "future" : "delivery";
         }
+        object messageHashes = new List<object>() {};
         object subParams = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
-            object currentMessageHash = add(add(getValue(market, "lowercaseId"), "@"), name);
-            ((IList<object>)subParams).Add(currentMessageHash);
+            ((IList<object>)messageHashes).Add(add("trade::", symbol));
+            object rawHash = add(add(getValue(market, "lowercaseId"), "@"), name);
+            ((IList<object>)subParams).Add(rawHash);
         }
         object query = this.omit(parameters, "type");
         object subParamsLength = getArrayLength(subParams);
@@ -1078,7 +1079,7 @@ public partial class binance : ccxt.binance
         object subscribe = new Dictionary<string, object>() {
             { "id", requestId },
         };
-        object trades = await this.watchMultiple(url, subParams, this.extend(request, query), subParams, subscribe);
+        object trades = await this.watchMultiple(url, messageHashes, this.extend(request, query), messageHashes, subscribe);
         if (isTrue(this.newUpdates))
         {
             object first = this.safeValue(trades, 0);
@@ -1284,9 +1285,7 @@ public partial class binance : ccxt.binance
         object marketId = this.safeString(message, "s");
         object market = this.safeMarket(marketId, null, null, marketType);
         object symbol = getValue(market, "symbol");
-        object lowerCaseId = this.safeStringLower(message, "s");
-        object eventVar = this.safeString(message, "e");
-        object messageHash = add(add(lowerCaseId, "@"), eventVar);
+        object messageHash = add("trade::", symbol);
         object trade = this.parseWsTrade(message, market);
         object tradesArray = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(tradesArray, null)))
@@ -1314,40 +1313,75 @@ public partial class binance : ccxt.binance
         */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
+        ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOHLCV";
+        object result = await this.watchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframe}}, since, limit, parameters);
+        return getValue(getValue(result, symbol), timeframe);
+    }
+
+    public async override Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#watchOHLCVForSymbols
+        * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+        * @param {int} [since] timestamp in ms of the earliest candle to fetch
+        * @param {int} [limit] the maximum amount of candles to fetch
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+        */
+        parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
-        object marketId = getValue(market, "lowercaseId");
-        object interval = this.safeString(this.timeframes, timeframe, timeframe);
-        object options = this.safeValue(this.options, "watchOHLCV", new Dictionary<string, object>() {});
-        object nameOption = this.safeString(options, "name", "kline");
-        object name = this.safeString(parameters, "name", nameOption);
-        if (isTrue(isEqual(name, "indexPriceKline")))
+        object klineType = null;
+        var klineTypeparametersVariable = this.handleParamString2(parameters, "channel", "name", "kline");
+        klineType = ((IList<object>)klineTypeparametersVariable)[0];
+        parameters = ((IList<object>)klineTypeparametersVariable)[1];
+        object symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
+        object marketSymbols = this.marketSymbols(symbols, null, false, false, true);
+        object firstMarket = this.market(getValue(marketSymbols, 0));
+        object type = getValue(firstMarket, "type");
+        if (isTrue(getValue(firstMarket, "contract")))
         {
-            marketId = ((string)marketId).Replace((string)"_perp", (string)"");
+            type = ((bool) isTrue(getValue(firstMarket, "linear"))) ? "future" : "delivery";
         }
-        parameters = this.omit(parameters, "name");
-        object messageHash = add(add(add(add(marketId, "@"), name), "_"), interval);
-        object type = getValue(market, "type");
-        if (isTrue(getValue(market, "contract")))
+        object rawHashes = new List<object>() {};
+        object messageHashes = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
         {
-            type = ((bool) isTrue(getValue(market, "linear"))) ? "future" : "delivery";
+            object symAndTf = getValue(symbolsAndTimeframes, i);
+            object symbolString = getValue(symAndTf, 0);
+            object timeframeString = getValue(symAndTf, 1);
+            object interval = this.safeString(this.timeframes, timeframeString, timeframeString);
+            object market = this.market(symbolString);
+            object marketId = getValue(market, "lowercaseId");
+            if (isTrue(isEqual(klineType, "indexPriceKline")))
+            {
+                // weird behavior for index price kline we can't use the perp suffix
+                marketId = ((string)marketId).Replace((string)"_perp", (string)"");
+            }
+            ((IList<object>)rawHashes).Add(add(add(add(add(marketId, "@"), klineType), "_"), interval));
+            ((IList<object>)messageHashes).Add(add(add(add("ohlcv::", symbolString), "::"), timeframeString));
         }
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/"), this.stream(type, messageHash));
+        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/"), this.stream(type, "multipleOHLCV"));
         object requestId = this.requestId(url);
         object request = new Dictionary<string, object>() {
             { "method", "SUBSCRIBE" },
-            { "params", new List<object>() {messageHash} },
+            { "params", rawHashes },
             { "id", requestId },
         };
         object subscribe = new Dictionary<string, object>() {
             { "id", requestId },
         };
-        object ohlcv = await this.watch(url, messageHash, this.extend(request, parameters), messageHash, subscribe);
+        var symboltimeframecandlesVariable = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscribe);
+        var symbol = ((IList<object>) symboltimeframecandlesVariable)[0];
+        var timeframe = ((IList<object>) symboltimeframecandlesVariable)[1];
+        var candles = ((IList<object>) symboltimeframecandlesVariable)[2];
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(ohlcv, "getLimit", new object[] {symbol, limit});
+            limit = callDynamically(candles, "getLimit", new object[] {symbol, limit});
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        object filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
+        return this.createOHLCVObject(symbol, timeframe, filtered);
     }
 
     public virtual void handleOHLCV(WebSocketClient client, object message)
@@ -1391,25 +1425,25 @@ public partial class binance : ccxt.binance
             // indexPriceKline doesn't have the _PERP suffix
             marketId = this.safeString(message, "ps");
         }
-        object lowercaseMarketId = ((string)marketId).ToLower();
         object interval = this.safeString(kline, "i");
         // use a reverse lookup in a static map instead
-        object timeframe = this.findTimeframe(interval);
-        object messageHash = add(add(add(add(lowercaseMarketId, "@"), eventVar), "_"), interval);
+        object unifiedTimeframe = this.findTimeframe(interval);
         object parsed = new List<object> {this.safeInteger(kline, "t"), this.safeFloat(kline, "o"), this.safeFloat(kline, "h"), this.safeFloat(kline, "l"), this.safeFloat(kline, "c"), this.safeFloat(kline, "v")};
         object isSpot = (isTrue((isGreaterThan(getIndexOf(client.url, "/stream"), -1))) || isTrue((isGreaterThan(getIndexOf(client.url, "/testnet.binance"), -1))));
         object marketType = ((bool) isTrue((isSpot))) ? "spot" : "contract";
         object symbol = this.safeSymbol(marketId, null, null, marketType);
+        object messageHash = add(add(add("ohlcv::", symbol), "::"), unifiedTimeframe);
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
-        object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
+        object stored = this.safeValue(getValue(this.ohlcvs, symbol), unifiedTimeframe);
         if (isTrue(isEqual(stored, null)))
         {
             object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCacheByTimestamp(limit);
-            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
+            ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)unifiedTimeframe] = stored;
         }
         callDynamically(stored, "append", new object[] {parsed});
-        callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
+        object resolveData = new List<object>() {symbol, unifiedTimeframe, stored};
+        callDynamically(client as WebSocketClient, "resolve", new object[] {resolveData, messageHash});
     }
 
     public async override Task<object> fetchTickerWs(object symbol, object parameters = null)
@@ -1418,7 +1452,6 @@ public partial class binance : ccxt.binance
         * @method
         * @name binance#fetchTickerWs
         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-        * @see https://binance-docs.github.io/apidocs/voptions/en/#24hr-ticker-price-change-statistics
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.method] method to use can be ticker.price or ticker.book
@@ -1466,8 +1499,8 @@ public partial class binance : ccxt.binance
         /**
         * @method
         * @name binance#fetchOHLCVWs
-        * @see https://binance-docs.github.io/apidocs/websocket_api/en/#klines
         * @description query historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#klines
         * @param {string} symbol unified symbol of the market to query OHLCV data for
         * @param {string} timeframe the length of time each candle represents
         * @param {int} since timestamp in ms of the earliest candle to fetch
@@ -1617,10 +1650,10 @@ public partial class binance : ccxt.binance
         /**
         * @method
         * @name binance#watchBidsAsks
-        * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-book-ticker-streams
-        * @see https://binance-docs.github.io/apidocs/futures/en/#all-book-tickers-stream
-        * @see https://binance-docs.github.io/apidocs/delivery/en/#all-book-tickers-stream
         * @description watches best bid & ask for symbols
+        * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#symbol-order-book-ticker
+        * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/All-Book-Tickers-Stream
+        * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/All-Book-Tickers-Stream
         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -2228,9 +2261,8 @@ public partial class binance : ccxt.binance
         * @method
         * @name binance#fetchBalanceWs
         * @description fetch balance and get the amount of funds available for trading or funds locked in orders
-        * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-information-user_data
-        * @see https://binance-docs.github.io/apidocs/futures/en/#account-information-user_data
-        * @see https://binance-docs.github.io/apidocs/futures/en/#futures-account-balance-user_data
+        * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/websocket-api/Futures-Account-Balance
+        * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#account-information-user_data
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string|undefined} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
         * @param {string|undefined} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
@@ -2340,7 +2372,7 @@ public partial class binance : ccxt.binance
         /**
         * @method
         * @name binance#fetchPositionWs
-        * @see https://binance-docs.github.io/apidocs/futures/en/#position-information-user_data
+        * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Position-Information
         * @description fetch data on an open position
         * @param {string} symbol unified market symbol of the market the position is held in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2356,7 +2388,7 @@ public partial class binance : ccxt.binance
         * @method
         * @name binance#fetchPositionsWs
         * @description fetch all open positions
-        * @see https://binance-docs.github.io/apidocs/futures/en/#position-information-user_data
+        * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Position-Information
         * @param {string[]} [symbols] list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.returnRateLimits] set to true to return rate limit informations, defaults to false.
@@ -2631,14 +2663,14 @@ public partial class binance : ccxt.binance
         /**
         * @method
         * @name binance#createOrderWs
-        * @see https://binance-docs.github.io/apidocs/websocket_api/en/#place-new-order-trade
-        * @see https://binance-docs.github.io/apidocs/futures/en/#new-order-trade-2
         * @description create a trade order
+        * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#place-new-order-trade
+        * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/New-Order
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float|undefined} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float|undefined} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} params.test test order, default false
         * @param {boolean} params.returnRateLimits set to true to return rate limit information, default false
@@ -2792,14 +2824,14 @@ public partial class binance : ccxt.binance
         * @method
         * @name binance#editOrderWs
         * @description edit a trade order
-        * @see https://binance-docs.github.io/apidocs/websocket_api/en/#cancel-and-replace-order-trade
-        * @see https://binance-docs.github.io/apidocs/futures/en/#modify-order-trade-2
+        * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-and-replace-order-trade
+        * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Modify-Order
         * @param {string} id order id
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of the currency you want to trade in units of the base currency
-        * @param {float|undefined} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float|undefined} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -2957,9 +2989,9 @@ public partial class binance : ccxt.binance
         /**
         * @method
         * @name binance#cancelOrderWs
-        * @see https://binance-docs.github.io/apidocs/websocket_api/en/#cancel-order-trade
-        * @see https://binance-docs.github.io/apidocs/futures/en/#cancel-order-trade-2
         * @description cancel multiple orders
+        * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-order-trade
+        * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Cancel-Order
         * @param {string} id order id
         * @param {string} symbol unified market symbol, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3010,8 +3042,8 @@ public partial class binance : ccxt.binance
         /**
         * @method
         * @name binance#cancelAllOrdersWs
-        * @see https://binance-docs.github.io/apidocs/websocket_api/en/#current-open-orders-user_data
         * @description cancel all open orders in a market
+        * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#cancel-open-orders-trade
         * @param {string} symbol unified market symbol of the market to cancel orders in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -3051,9 +3083,9 @@ public partial class binance : ccxt.binance
         /**
         * @method
         * @name binance#fetchOrderWs
-        * @see https://binance-docs.github.io/apidocs/websocket_api/en/#query-order-user_data
-        * @see https://binance-docs.github.io/apidocs/futures/en/#query-order-user_data-2
         * @description fetches information on an order made by the user
+        * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-user_data
+        * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/websocket-api/Query-Order
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} params extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -3105,8 +3137,8 @@ public partial class binance : ccxt.binance
         /**
         * @method
         * @name binance#fetchOrdersWs
-        * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-order-history-user_data
         * @description fetches information on multiple orders made by the user
+        * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-list-user_data
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int|undefined} [since] the earliest time in ms to fetch orders for
         * @param {int|undefined} [limit] the maximum number of order structures to retrieve
@@ -3157,8 +3189,8 @@ public partial class binance : ccxt.binance
         /**
         * @method
         * @name binance#fetchClosedOrdersWs
-        * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-order-history-user_data
         * @description fetch closed orders
+        * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#query-order-list-user_data
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch open orders for
         * @param {int} [limit] the maximum number of open orders structures to retrieve
@@ -3184,8 +3216,8 @@ public partial class binance : ccxt.binance
         /**
         * @method
         * @name binance#fetchOpenOrdersWs
-        * @see https://binance-docs.github.io/apidocs/websocket_api/en/#current-open-orders-user_data
         * @description fetch all unfilled currently open orders
+        * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#current-open-orders-user_data
         * @param {string} symbol unified market symbol
         * @param {int|undefined} [since] the earliest time in ms to fetch open orders for
         * @param {int|undefined} [limit] the maximum number of open orders structures to retrieve
@@ -3232,9 +3264,9 @@ public partial class binance : ccxt.binance
         * @method
         * @name binance#watchOrders
         * @description watches information on multiple orders made by the user
-        * @see https://binance-docs.github.io/apidocs/spot/en/#payload-order-update
-        * @see https://binance-docs.github.io/apidocs/pm/en/#event-futures-order-update
-        * @see https://binance-docs.github.io/apidocs/pm/en/#event-margin-order-update
+        * @see https://developers.binance.com/docs/binance-spot-api-docs/user-data-stream#order-update
+        * @see https://developers.binance.com/docs/margin_trading/trade-data-stream/Event-Order-Update
+        * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/user-data-streams/Event-Order-Update
         * @param {string} symbol unified market symbol of the market the orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
@@ -3824,8 +3856,8 @@ public partial class binance : ccxt.binance
         /**
         * @method
         * @name binance#fetchMyTradesWs
-        * @see https://binance-docs.github.io/apidocs/websocket_api/en/#account-trade-history-user_data
         * @description fetch all trades made by the user
+        * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#account-trade-history-user_data
         * @param {string} symbol unified market symbol
         * @param {int|undefined} [since] the earliest time in ms to fetch trades for
         * @param {int|undefined} [limit] the maximum number of trades structures to retrieve
@@ -3887,8 +3919,8 @@ public partial class binance : ccxt.binance
         /**
         * @method
         * @name binance#fetchTradesWs
-        * @see https://binance-docs.github.io/apidocs/websocket_api/en/#recent-trades
         * @description fetch all trades made by the user
+        * @see https://developers.binance.com/docs/binance-spot-api-docs/web-socket-api#recent-trades
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trades structures to retrieve, default=500, max=1000
@@ -4001,7 +4033,7 @@ public partial class binance : ccxt.binance
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.portfolioMargin] set to true if you would like to watch trades in a portfolio margin account
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -4215,7 +4247,7 @@ public partial class binance : ccxt.binance
             rejected = true;
             // private endpoint uses id as messageHash
             ((WebSocketClient)client).reject(e, id);
-            // public endpoint stores messageHash in subscriptios
+            // public endpoint stores messageHash in subscriptions
             object subscriptionKeys = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
             for (object i = 0; isLessThan(i, getArrayLength(subscriptionKeys)); postFixIncrement(ref i))
             {

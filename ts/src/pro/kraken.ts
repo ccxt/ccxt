@@ -2,10 +2,10 @@
 //  ---------------------------------------------------------------------------
 
 import krakenRest from '../kraken.js';
-import { ExchangeError, BadSymbol, PermissionDenied, AccountSuspended, BadRequest, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, RateLimitExceeded, ExchangeNotAvailable, InvalidNonce, AuthenticationError } from '../base/errors.js';
+import { ExchangeError, BadSymbol, PermissionDenied, AccountSuspended, BadRequest, InsufficientFunds, InvalidOrder, OrderNotFound, NotSupported, RateLimitExceeded, ExchangeNotAvailable, ChecksumError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
-import type { Int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num, Dict } from '../base/types.js';
+import type { Int, Strings, OrderSide, OrderType, Str, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Num, Dict, Balances } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 //  ---------------------------------------------------------------------------
 
@@ -14,7 +14,7 @@ export default class kraken extends krakenRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchBalance': false, // no such type of subscription as of 2021-01-05
+                'watchBalance': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
@@ -37,6 +37,7 @@ export default class kraken extends krakenRest {
                     'ws': {
                         'public': 'wss://ws.kraken.com',
                         'private': 'wss://ws-auth.kraken.com',
+                        'privateV2': 'wss://ws-auth.kraken.com/v2',
                         'beta': 'wss://beta-ws.kraken.com',
                         'beta-private': 'wss://beta-ws-auth.kraken.com',
                     },
@@ -50,7 +51,9 @@ export default class kraken extends krakenRest {
                 'OHLCVLimit': 1000,
                 'ordersLimit': 1000,
                 'symbolsByOrderId': {},
-                'checksum': true,
+                'watchOrderBook': {
+                    'checksum': true,
+                },
             },
             'exceptions': {
                 'ws': {
@@ -118,7 +121,7 @@ export default class kraken extends krakenRest {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -177,7 +180,7 @@ export default class kraken extends krakenRest {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of the currency you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -767,7 +770,7 @@ export default class kraken extends krakenRest {
             }
             // don't remove this line or I will poop on your face
             orderbook.limit ();
-            const checksum = this.safeBool (this.options, 'checksum', true);
+            const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
             if (checksum) {
                 const priceString = this.safeString (example, 0);
                 const amountString = this.safeString (example, 1);
@@ -789,7 +792,7 @@ export default class kraken extends krakenRest {
                 const payload = payloadArray.join ('');
                 const localChecksum = this.crc32 (payload, false);
                 if (localChecksum !== c) {
-                    const error = new InvalidNonce (this.id + ' invalid checksum');
+                    const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
                     delete client.subscriptions[messageHash];
                     delete this.orderbooks[symbol];
                     client.reject (error, messageHash);
@@ -907,7 +910,7 @@ export default class kraken extends krakenRest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         return await this.watchPrivate ('ownTrades', symbol, since, limit, params);
     }
@@ -1357,6 +1360,73 @@ export default class kraken extends krakenRest {
         return await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes, subscriptionArgs);
     }
 
+    async watchBalance (params = {}): Promise<Balances> {
+        /**
+         * @method
+         * @name kraken#watchBalance
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.kraken.com/api/docs/websocket-v2/balances
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        await this.loadMarkets ();
+        const token = await this.authenticate ();
+        const messageHash = 'balances';
+        const url = this.urls['api']['ws']['privateV2'];
+        const requestId = this.requestId ();
+        const subscribe: Dict = {
+            'method': 'subscribe',
+            'req_id': requestId,
+            'params': {
+                'channel': 'balances',
+                'token': token,
+            },
+        };
+        const request = this.deepExtend (subscribe, params);
+        return await this.watch (url, messageHash, request, messageHash);
+    }
+
+    handleBalance (client: Client, message) {
+        //
+        //     {
+        //         "channel": "balances",
+        //         "data": [
+        //             {
+        //                 "asset": "BTC",
+        //                 "asset_class": "currency",
+        //                 "balance": 1.2,
+        //                 "wallets": [
+        //                     {
+        //                         "type": "spot",
+        //                         "id": "main",
+        //                         "balance": 1.2
+        //                     }
+        //                 ]
+        //             }
+        //         ],
+        //         "type": "snapshot",
+        //         "sequence": 1
+        //     }
+        //
+        const data = this.safeList (message, 'data', []);
+        const result: Dict = { 'info': message };
+        for (let i = 0; i < data.length; i++) {
+            const currencyId = this.safeString (data[i], 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            const eq = this.safeString (data[i], 'balance');
+            account['total'] = eq;
+            result[code] = account;
+        }
+        const type = 'spot';
+        const balance = this.safeBalance (result);
+        const oldBalance = this.safeValue (this.balance, type, {});
+        const newBalance = this.deepExtend (oldBalance, balance);
+        this.balance[type] = this.safeBalance (newBalance);
+        const channel = this.safeString (message, 'channel');
+        client.resolve (this.balance[type], channel);
+    }
+
     getMessageHash (unifiedElementName: string, subChannelName: Str = undefined, symbol: Str = undefined) {
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...
         // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
@@ -1460,6 +1530,16 @@ export default class kraken extends krakenRest {
                 method.call (this, client, message, subscription);
             }
         } else {
+            const channel = this.safeString (message, 'channel');
+            if (channel !== undefined) {
+                const methods: Dict = {
+                    'balances': this.handleBalance,
+                };
+                const method = this.safeValue (methods, channel);
+                if (method !== undefined) {
+                    method.call (this, client, message);
+                }
+            }
             if (this.handleErrorMessage (client, message)) {
                 const event = this.safeString (message, 'event');
                 const methods: Dict = {

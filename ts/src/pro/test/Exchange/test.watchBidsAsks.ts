@@ -4,14 +4,15 @@ import testTicker from '../../../test/Exchange/base/test.ticker.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
 import { ArgumentsRequired } from '../../../base/errors.js';
 import { Ticker } from '../../../base/types.js';
+import { Exchange } from "../../../../ccxt";
 
-async function testWatchBidsAsks (exchange, skippedProperties, symbol) {
+async function testWatchBidsAsks (exchange: Exchange, skippedProperties: object, symbol: string) {
     const withoutSymbol = testWatchBidsAsksHelper (exchange, skippedProperties, undefined);
     const withSymbol = testWatchBidsAsksHelper (exchange, skippedProperties, [ symbol ]);
     await Promise.all ([ withSymbol, withoutSymbol ]);
 }
 
-async function testWatchBidsAsksHelper (exchange, skippedProperties, argSymbols, argParams = {}) {
+async function testWatchBidsAsksHelper (exchange: Exchange, skippedProperties: object, argSymbols: string[], argParams = {}) {
     const method = 'watchBidsAsks';
     let now = exchange.milliseconds ();
     const ends = now + 15000;

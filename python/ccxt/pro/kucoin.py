@@ -47,6 +47,9 @@ class kucoin(ccxt.async_support.kucoin):
                     'snapshotMaxRetries': 3,
                     'method': '/market/level2',  # '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50'
                 },
+                'watchMyTrades': {
+                    'method': '/spotMarket/tradeOrders',  # or '/spot/tradeFills'
+                },
             },
             'streaming': {
                 # kucoin does not support built-in ws protocol-level ping-pong
@@ -153,6 +156,7 @@ class kucoin(ccxt.async_support.kucoin):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/market-snapshot
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -367,6 +371,7 @@ class kucoin(ccxt.async_support.kucoin):
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/klines
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -431,6 +436,7 @@ class kucoin(ccxt.async_support.kucoin):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -442,6 +448,7 @@ class kucoin(ccxt.async_support.kucoin):
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
@@ -741,6 +748,8 @@ class kucoin(ccxt.async_support.kucoin):
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/private-channels/private-order-change
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/private-channels/stop-order-event
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -874,6 +883,9 @@ class kucoin(ccxt.async_support.kucoin):
         #
         messageHash = 'orders'
         data = self.safe_value(message, 'data')
+        tradeId = self.safe_string(data, 'tradeId')
+        if tradeId is not None:
+            self.handle_my_trade(client, message)
         parsed = self.parse_ws_order(data)
         symbol = self.safe_string(parsed, 'symbol')
         orderId = self.safe_string(parsed, 'id')
@@ -898,15 +910,18 @@ class kucoin(ccxt.async_support.kucoin):
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made by the user
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/private-channels/private-order-change
         :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :param str [params.method]: '/spotMarket/tradeOrders' or '/spot/tradeFills' default is '/spotMarket/tradeOrders'
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         url = await self.negotiate(True)
-        topic = '/spot/tradeFills'
+        topic: Str = None
+        topic, params = self.handle_option_and_params(params, 'watchMyTrades', 'method', '/spotMarket/tradeOrders')
         request: dict = {
             'privateChannel': True,
         }
@@ -921,6 +936,34 @@ class kucoin(ccxt.async_support.kucoin):
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
 
     def handle_my_trade(self, client: Client, message):
+        #
+        #     {
+        #         "type": "message",
+        #         "topic": "/spotMarket/tradeOrders",
+        #         "subject": "orderChange",
+        #         "channelType": "private",
+        #         "data": {
+        #             "symbol": "KCS-USDT",
+        #             "orderType": "limit",
+        #             "side": "sell",
+        #             "orderId": "5efab07953bdea00089965fa",
+        #             "liquidity": "taker",
+        #             "type": "match",
+        #             "feeType": "takerFee",
+        #             "orderTime": 1670329987026,
+        #             "size": "0.1",
+        #             "filledSize": "0.1",
+        #             "price": "0.938",
+        #             "matchPrice": "0.96738",
+        #             "matchSize": "0.1",
+        #             "tradeId": "5efab07a4ee4c7000a82d6d9",
+        #             "clientOid": "1593487481000313",
+        #             "remainSize": "0",
+        #             "status": "match",
+        #             "ts": 1670329987311000000
+        #         }
+        #     }
+        #
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCacheBySymbolById(limit)
@@ -934,19 +977,44 @@ class kucoin(ccxt.async_support.kucoin):
 
     def parse_ws_trade(self, trade, market=None):
         #
-        # {
-        #     "fee": 0.00262148,
-        #     "feeCurrency": "USDT",
-        #     "feeRate": 0.001,
-        #     "orderId": "62417436b29df8000183df2f",
-        #     "orderType": "market",
-        #     "price": 131.074,
-        #     "side": "sell",
-        #     "size": 0.02,
-        #     "symbol": "LTC-USDT",
-        #     "time": "1648456758734571745",
-        #     "tradeId": "624174362e113d2f467b3043"
-        #   }
+        # /spotMarket/tradeOrders
+        #
+        #     {
+        #         "symbol": "KCS-USDT",
+        #         "orderType": "limit",
+        #         "side": "sell",
+        #         "orderId": "5efab07953bdea00089965fa",
+        #         "liquidity": "taker",
+        #         "type": "match",
+        #         "feeType": "takerFee",
+        #         "orderTime": 1670329987026,
+        #         "size": "0.1",
+        #         "filledSize": "0.1",
+        #         "price": "0.938",
+        #         "matchPrice": "0.96738",
+        #         "matchSize": "0.1",
+        #         "tradeId": "5efab07a4ee4c7000a82d6d9",
+        #         "clientOid": "1593487481000313",
+        #         "remainSize": "0",
+        #         "status": "match",
+        #         "ts": 1670329987311000000
+        #     }
+        #
+        # /spot/tradeFills
+        #
+        #    {
+        #        "fee": 0.00262148,
+        #        "feeCurrency": "USDT",
+        #        "feeRate": 0.001,
+        #        "orderId": "62417436b29df8000183df2f",
+        #        "orderType": "market",
+        #        "price": 131.074,
+        #        "side": "sell",
+        #        "size": 0.02,
+        #        "symbol": "LTC-USDT",
+        #        "time": "1648456758734571745",
+        #        "tradeId": "624174362e113d2f467b3043"
+        #    }
         #
         marketId = self.safe_string(trade, 'symbol')
         market = self.safe_market(marketId, market, '-')
@@ -954,18 +1022,13 @@ class kucoin(ccxt.async_support.kucoin):
         type = self.safe_string(trade, 'orderType')
         side = self.safe_string(trade, 'side')
         tradeId = self.safe_string(trade, 'tradeId')
-        price = self.safe_string(trade, 'price')
-        amount = self.safe_string(trade, 'size')
+        price = self.safe_string(trade, 'matchPrice')
+        amount = self.safe_string(trade, 'matchSize')
         order = self.safe_string(trade, 'orderId')
-        timestamp = self.safe_integer_product(trade, 'time', 0.000001)
+        timestamp = self.safe_integer_product_2(trade, 'ts', 'time', 0.000001)
         feeCurrency = market['quote']
         feeRate = self.safe_string(trade, 'feeRate')
         feeCost = self.safe_string(trade, 'fee')
-        fee = {
-            'cost': feeCost,
-            'rate': feeRate,
-            'currency': feeCurrency,
-        }
         return self.safe_trade({
             'info': trade,
             'timestamp': timestamp,
@@ -974,17 +1037,22 @@ class kucoin(ccxt.async_support.kucoin):
             'id': tradeId,
             'order': order,
             'type': type,
-            'takerOrMaker': None,
+            'takerOrMaker': self.safe_string(trade, 'liquidity'),
             'side': side,
             'price': price,
             'amount': amount,
             'cost': None,
-            'fee': fee,
+            'fee': {
+                'cost': feeCost,
+                'rate': feeRate,
+                'currency': feeCurrency,
+            },
         }, market)
 
     async def watch_balance(self, params={}) -> Balances:
         """
         watch balance and get the amount of funds available for trading or funds locked in orders
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/private-channels/account-balance-change
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
@@ -1079,15 +1147,15 @@ class kucoin(ccxt.async_support.kucoin):
             'trade.l3match': self.handle_trade,
             'trade.candles.update': self.handle_ohlcv,
             'account.balance': self.handle_balance,
-            '/spot/tradeFills': self.handle_my_trade,
             'orderChange': self.handle_order,
             'stopOrder': self.handle_order,
+            '/spot/tradeFills': self.handle_my_trade,
         }
         method = self.safe_value(methods, subject)
         if method is not None:
             method(client, message)
 
-    def ping(self, client):
+    def ping(self, client: Client):
         # kucoin does not support built-in ws protocol-level ping-pong
         # instead it requires a custom json-based text ping-pong
         # https://docs.kucoin.com/#ping

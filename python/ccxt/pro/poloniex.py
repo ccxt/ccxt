@@ -190,7 +190,7 @@ class poloniex(ccxt.async_support.poloniex):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the poloniex api endpoint
         :param str [params.timeInForce]: GTC(default), IOC, FOK
         :param str [params.clientOrderId]: Maximum 64-character length.*
@@ -1160,7 +1160,7 @@ class poloniex(ccxt.async_support.poloniex):
                 del client.subscriptions[messageHash]
         return message
 
-    def ping(self, client):
+    def ping(self, client: Client):
         return {
             'event': 'ping',
         }

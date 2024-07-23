@@ -10,7 +10,7 @@ from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
-from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import ChecksumError
 
 
 class poloniexfutures(ccxt.async_support.poloniexfutures):
@@ -57,6 +57,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
                     'method': '/contractMarket/level2',  # can also be '/contractMarket/level3v2'
                     'snapshotDelay': 5,
                     'snapshotMaxRetries': 3,
+                    'checksum': True,
                 },
                 'streamLimit': 5,  # called tunnels by poloniexfutures docs
                 'streamBySubscriptionsHash': {},
@@ -822,7 +823,9 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
         if nonce > sequence:
             return
         if nonce != lastSequence:
-            raise InvalidNonce(self.id + ' watchOrderBook received an out-of-order nonce')
+            checksum = self.handle_option('watchOrderBook', 'checksum', True)
+            if checksum:
+                raise ChecksumError(self.id + ' ' + self.orderbook_checksum_message(''))
         changes = self.safe_list(delta, 'changes')
         for i in range(0, len(changes)):
             change = changes[i]

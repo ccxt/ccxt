@@ -422,7 +422,7 @@ export default class p2b extends p2bRest {
         return false;
     }
 
-    ping (client) {
+    ping (client: Client) {
         /**
          * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#ping
          * @param client

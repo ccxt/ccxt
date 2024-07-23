@@ -75,6 +75,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} subscription to a websocket channel
              */
+            Async\await($this->load_markets());
             $this->check_required_credentials();
             $market = null;
             $messageHash = $name;
@@ -124,6 +125,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} subscription to a websocket channel
              */
+            Async\await($this->load_markets());
             $this->check_required_credentials();
             if ($this->is_empty($symbols)) {
                 $symbols = $this->symbols;
@@ -167,6 +169,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
              */
+            Async\await($this->load_markets());
             return Async\await($this->subscribe('RISK', array( $symbol ), $params));
         }) ();
     }
@@ -180,6 +183,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=funding-rates-structure funding rates structures~, indexe by market $symbols
              */
+            Async\await($this->load_markets());
             $fundingRate = Async\await($this->subscribe_multiple('RISK', $symbols, $params));
             $symbol = $this->safe_string($fundingRate, 'symbol');
             if ($this->newUpdates) {
@@ -200,6 +204,7 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
+            Async\await($this->load_markets());
             $channel = null;
             list($channel, $params) = $this->handle_option_and_params($params, 'watchTicker', 'channel', 'LEVEL1');
             return Async\await($this->subscribe($channel, array( $symbol ), $params));

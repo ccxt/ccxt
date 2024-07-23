@@ -77,6 +77,11 @@ public partial class testMainClass : BaseTest
 
     }
 
+    dict getTestFilesSync(object properties, bool ws = false)
+    {
+        return null; // empty in c#
+    }
+
     async Task<dict> getTestFiles(object properties, bool ws = false)
     {
         // var hasDict = properties as dict;
@@ -180,6 +185,10 @@ public partial class testMainClass : BaseTest
         return fileNameOnly;
     }
 
+    public object callMethodSync(object testFiles2, object methodName, object exchange, params object[] args) {
+        return null; // empty in c#
+    }
+
     public async Task<object> callMethod(object testFiles2, object methodName, object exchange, params object[] args)
     {
         var argsWithExchange = new List<object> { exchange };
@@ -227,6 +236,11 @@ public partial class testMainClass : BaseTest
         return awaittedResult;
     }
 
+    public object callExchangeMethodDynamicallySync(object exchange, object methodName, params object[] args)
+    {
+        throw new Exception("This functions shouldn't be used in C#");
+    }
+
     public static void addProxy(object exchange, object proxy)
     {
         exchange.GetType().GetProperty("httpProxy").SetValue(exchange, proxy);
@@ -242,12 +256,12 @@ public partial class testMainClass : BaseTest
         try
         {
             var propertyInfo = exchange.GetType().GetProperty(prop as string);
-            if (propertyInfo != null) 
+            if (propertyInfo != null)
             {
                 var value = propertyInfo.GetValue(exchange);
                 return value != null ? value : defaultValue;
             }
-            else 
+            else
             {
                 return defaultValue;
             }

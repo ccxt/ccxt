@@ -99,6 +99,7 @@ var oceanex = require('./src/oceanex.js');
 var okcoin = require('./src/okcoin.js');
 var okx = require('./src/okx.js');
 var onetrading = require('./src/onetrading.js');
+var oxfun = require('./src/oxfun.js');
 var p2b = require('./src/p2b.js');
 var paymium = require('./src/paymium.js');
 var phemex = require('./src/phemex.js');
@@ -109,11 +110,13 @@ var timex = require('./src/timex.js');
 var tokocrypto = require('./src/tokocrypto.js');
 var tradeogre = require('./src/tradeogre.js');
 var upbit = require('./src/upbit.js');
+var vertex = require('./src/vertex.js');
 var wavesexchange = require('./src/wavesexchange.js');
 var wazirx = require('./src/wazirx.js');
 var whitebit = require('./src/whitebit.js');
 var woo = require('./src/woo.js');
 var woofipro = require('./src/woofipro.js');
+var xt = require('./src/xt.js');
 var yobit = require('./src/yobit.js');
 var zaif = require('./src/zaif.js');
 var zonda = require('./src/zonda.js');
@@ -172,20 +175,23 @@ var ndax$1 = require('./src/pro/ndax.js');
 var okcoin$1 = require('./src/pro/okcoin.js');
 var okx$1 = require('./src/pro/okx.js');
 var onetrading$1 = require('./src/pro/onetrading.js');
+var oxfun$1 = require('./src/pro/oxfun.js');
 var p2b$1 = require('./src/pro/p2b.js');
 var phemex$1 = require('./src/pro/phemex.js');
 var poloniex$1 = require('./src/pro/poloniex.js');
 var poloniexfutures$1 = require('./src/pro/poloniexfutures.js');
 var probit$1 = require('./src/pro/probit.js');
 var upbit$1 = require('./src/pro/upbit.js');
+var vertex$1 = require('./src/pro/vertex.js');
 var wazirx$1 = require('./src/pro/wazirx.js');
 var whitebit$1 = require('./src/pro/whitebit.js');
 var woo$1 = require('./src/pro/woo.js');
 var woofipro$1 = require('./src/pro/woofipro.js');
+var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.3.42';
+const version = '4.3.66';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -275,6 +281,7 @@ const exchanges = {
     'okcoin': okcoin,
     'okx': okx,
     'onetrading': onetrading,
+    'oxfun': oxfun,
     'p2b': p2b,
     'paymium': paymium,
     'phemex': phemex,
@@ -285,11 +292,13 @@ const exchanges = {
     'tokocrypto': tokocrypto,
     'tradeogre': tradeogre,
     'upbit': upbit,
+    'vertex': vertex,
     'wavesexchange': wavesexchange,
     'wazirx': wazirx,
     'whitebit': whitebit,
     'woo': woo,
     'woofipro': woofipro,
+    'xt': xt,
     'yobit': yobit,
     'zaif': zaif,
     'zonda': zonda,
@@ -350,16 +359,19 @@ const pro = {
     'okcoin': okcoin$1,
     'okx': okx$1,
     'onetrading': onetrading$1,
+    'oxfun': oxfun$1,
     'p2b': p2b$1,
     'phemex': phemex$1,
     'poloniex': poloniex$1,
     'poloniexfutures': poloniexfutures$1,
     'probit': probit$1,
     'upbit': upbit$1,
+    'vertex': vertex$1,
     'wazirx': wazirx$1,
     'whitebit': whitebit$1,
     'woo': woo$1,
     'woofipro': woofipro$1,
+    'xt': xt$1,
 };
 pro.exchanges = Object.keys(pro);
 pro['Exchange'] = Exchange["default"]; // now the same for rest and ts
@@ -380,6 +392,7 @@ exports.BadResponse = errors.BadResponse;
 exports.BadSymbol = errors.BadSymbol;
 exports.BaseError = errors.BaseError;
 exports.CancelPending = errors.CancelPending;
+exports.ChecksumError = errors.ChecksumError;
 exports.ContractUnavailable = errors.ContractUnavailable;
 exports.DDoSProtection = errors.DDoSProtection;
 exports.DuplicateOrderId = errors.DuplicateOrderId;
@@ -390,6 +403,7 @@ exports.InsufficientFunds = errors.InsufficientFunds;
 exports.InvalidAddress = errors.InvalidAddress;
 exports.InvalidNonce = errors.InvalidNonce;
 exports.InvalidOrder = errors.InvalidOrder;
+exports.InvalidProxySettings = errors.InvalidProxySettings;
 exports.MarginModeAlreadySet = errors.MarginModeAlreadySet;
 exports.MarketClosed = errors.MarketClosed;
 exports.NetworkError = errors.NetworkError;
@@ -404,7 +418,6 @@ exports.OrderNotCached = errors.OrderNotCached;
 exports.OrderNotFillable = errors.OrderNotFillable;
 exports.OrderNotFound = errors.OrderNotFound;
 exports.PermissionDenied = errors.PermissionDenied;
-exports.ProxyError = errors.ProxyError;
 exports.RateLimitExceeded = errors.RateLimitExceeded;
 exports.RequestTimeout = errors.RequestTimeout;
 exports.errors = errors;
@@ -495,6 +508,7 @@ exports.oceanex = oceanex;
 exports.okcoin = okcoin;
 exports.okx = okx;
 exports.onetrading = onetrading;
+exports.oxfun = oxfun;
 exports.p2b = p2b;
 exports.paymium = paymium;
 exports.phemex = phemex;
@@ -505,11 +519,13 @@ exports.timex = timex;
 exports.tokocrypto = tokocrypto;
 exports.tradeogre = tradeogre;
 exports.upbit = upbit;
+exports.vertex = vertex;
 exports.wavesexchange = wavesexchange;
 exports.wazirx = wazirx;
 exports.whitebit = whitebit;
 exports.woo = woo;
 exports.woofipro = woofipro;
+exports.xt = xt;
 exports.yobit = yobit;
 exports.zaif = zaif;
 exports.zonda = zonda;

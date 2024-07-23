@@ -173,18 +173,24 @@ public partial class bithumb : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         object result = new List<object>() {};
-        object quoteCurrencies = this.safeValue(this.options, "quoteCurrencies", new Dictionary<string, object>() {});
+        object quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new Dictionary<string, object>() {});
         object quotes = new List<object>(((IDictionary<string,object>)quoteCurrencies).Keys);
+        object promises = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
+        {
+            object request = new Dictionary<string, object>() {
+                { "quoteId", getValue(quotes, i) },
+            };
+            ((IList<object>)promises).Add(this.publicGetTickerALLQuoteId(this.extend(request, parameters)));
+        }
+        object results = await promiseAll(promises);
         for (object i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
         {
             object quote = getValue(quotes, i);
             object quoteId = quote;
-            object extension = this.safeValue(quoteCurrencies, quote, new Dictionary<string, object>() {});
-            object request = new Dictionary<string, object>() {
-                { "quoteId", quoteId },
-            };
-            object response = await this.publicGetTickerALLQuoteId(this.extend(request, parameters));
-            object data = this.safeValue(response, "data");
+            object response = getValue(results, i);
+            object data = this.safeDict(response, "data");
+            object extension = this.safeDict(quoteCurrencies, quote, new Dictionary<string, object>() {});
             object currencyIds = new List<object>(((IDictionary<string,object>)data).Keys);
             for (object j = 0; isLessThan(j, getArrayLength(currencyIds)); postFixIncrement(ref j))
             {
@@ -261,7 +267,7 @@ public partial class bithumb : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object balances = this.safeValue(response, "data");
+        object balances = this.safeDict(response, "data");
         object codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
         {
@@ -340,7 +346,7 @@ public partial class bithumb : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object timestamp = this.safeInteger(data, "timestamp");
         return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
     }
@@ -409,16 +415,21 @@ public partial class bithumb : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object result = new Dictionary<string, object>() {};
-        object quoteCurrencies = this.safeValue(this.options, "quoteCurrencies", new Dictionary<string, object>() {});
+        object quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new Dictionary<string, object>() {});
         object quotes = new List<object>(((IDictionary<string,object>)quoteCurrencies).Keys);
+        object promises = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
+        {
+            object request = new Dictionary<string, object>() {
+                { "quoteId", getValue(quotes, i) },
+            };
+            ((IList<object>)promises).Add(this.publicGetTickerALLQuoteId(this.extend(request, parameters)));
+        }
+        object responses = await promiseAll(promises);
         for (object i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
         {
             object quote = getValue(quotes, i);
-            object quoteId = quote;
-            object request = new Dictionary<string, object>() {
-                { "quoteId", quoteId },
-            };
-            object response = await this.publicGetTickerALLQuoteId(this.extend(request, parameters));
+            object response = getValue(responses, i);
             //
             //     {
             //         "status":"0000",
@@ -440,7 +451,7 @@ public partial class bithumb : Exchange
             //         }
             //     }
             //
-            object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             object timestamp = this.safeInteger(data, "date");
             object tickers = this.omit(data, "date");
             object currencyIds = new List<object>(((IDictionary<string,object>)tickers).Keys);
@@ -707,7 +718,7 @@ public partial class bithumb : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -854,7 +865,7 @@ public partial class bithumb : Exchange
         //     }
         //
         object timestamp = this.safeIntegerProduct(order, "order_date", 0.001);
-        object sideProperty = this.safeValue2(order, "type", "side");
+        object sideProperty = this.safeString2(order, "type", "side");
         object side = ((bool) isTrue((isEqual(sideProperty, "bid")))) ? "buy" : "sell";
         object status = this.parseOrderStatus(this.safeString(order, "order_status"));
         object price = this.safeString2(order, "order_price", "price");
@@ -890,7 +901,7 @@ public partial class bithumb : Exchange
             symbol = getValue(market, "symbol");
         }
         object id = this.safeString(order, "order_id");
-        object rawTrades = this.safeValue(order, "contract", new List<object>() {});
+        object rawTrades = this.safeList(order, "contract", new List<object>() {});
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },

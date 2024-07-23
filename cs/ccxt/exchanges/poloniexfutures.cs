@@ -876,7 +876,7 @@ public partial class poloniexfutures : Exchange
         * @param {string} type 'limit' or 'market'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount the amount of currency to trade
-        * @param {float} [price] *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params]  extra parameters specific to the exchange API endpoint
         * @param {float} [params.leverage] Leverage size of the order
         * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
@@ -1313,7 +1313,7 @@ public partial class poloniexfutures : Exchange
         for (object i = 0; isLessThan(i, cancelledOrderIdsLength); postFixIncrement(ref i))
         {
             object cancelledOrderId = this.safeString(cancelledOrderIds, i);
-            ((IList<object>)result).Add(new Dictionary<string, object>() {
+            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
                 { "id", cancelledOrderId },
                 { "clientOrderId", null },
                 { "timestamp", null },
@@ -1335,7 +1335,7 @@ public partial class poloniexfutures : Exchange
                 { "postOnly", null },
                 { "stopPrice", null },
                 { "info", response },
-            });
+            }));
         }
         return result;
     }

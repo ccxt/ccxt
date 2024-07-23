@@ -1104,7 +1104,7 @@ class bitmex(ccxt.async_support.bitmex):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         await self.authenticate()
@@ -1469,11 +1469,15 @@ class bitmex(ccxt.async_support.bitmex):
         #
         action = self.safe_string(message, 'action')
         table = self.safe_string(message, 'table')
+        if table is None:
+            return  # protecting from weird updates
         data = self.safe_value(message, 'data', [])
         # if it's an initial snapshot
         if action == 'partial':
             filter = self.safe_dict(message, 'filter', {})
             marketId = self.safe_value(filter, 'symbol')
+            if marketId is None:
+                return  # protecting from weird update
             market = self.safe_market(marketId)
             symbol = market['symbol']
             if table == 'orderBookL2':
@@ -1501,6 +1505,8 @@ class bitmex(ccxt.async_support.bitmex):
             numUpdatesByMarketId: dict = {}
             for i in range(0, len(data)):
                 marketId = self.safe_value(data[i], 'symbol')
+                if marketId is None:
+                    return  # protecting from weird update
                 if not (marketId in numUpdatesByMarketId):
                     numUpdatesByMarketId[marketId] = 0
                 numUpdatesByMarketId[marketId] = self.sum(numUpdatesByMarketId, 1)

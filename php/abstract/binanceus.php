@@ -1631,7 +1631,7 @@ abstract class binanceus extends \ccxt\binance {
         return $this->request('openOrder', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
     public function fapiprivate_get_openorders($params = array()) {
-        return $this->request('openOrders', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openOrders', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
     public function fapiprivate_get_order($params = array()) {
         return $this->request('order', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
@@ -2005,6 +2005,12 @@ abstract class binanceus extends \ccxt\binance {
     public function private_post_orderlist_oco($params = array()) {
         return $this->request('orderList/oco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
     }
+    public function private_post_orderlist_oto($params = array()) {
+        return $this->request('orderList/oto', 'private', 'POST', $params, null, null, array("cost" => 0.2));
+    }
+    public function private_post_orderlist_otoco($params = array()) {
+        return $this->request('orderList/otoco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
+    }
     public function private_post_sor_order($params = array()) {
         return $this->request('sor/order', 'private', 'POST', $params, null, null, array("cost" => 0.2));
     }
@@ -2039,7 +2045,7 @@ abstract class binanceus extends \ccxt\binance {
         return $this->request('um/openOrder', 'papi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function papi_get_um_openorders($params = array()) {
-        return $this->request('um/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('um/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
     public function papi_get_um_allorders($params = array()) {
         return $this->request('um/allOrders', 'papi', 'GET', $params, null, null, array("cost" => 5));
@@ -2051,7 +2057,7 @@ abstract class binanceus extends \ccxt\binance {
         return $this->request('cm/openOrder', 'papi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function papi_get_cm_openorders($params = array()) {
-        return $this->request('cm/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('cm/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
     public function papi_get_cm_allorders($params = array()) {
         return $this->request('cm/allOrders', 'papi', 'GET', $params, null, null, array("cost" => 20));
@@ -2060,7 +2066,7 @@ abstract class binanceus extends \ccxt\binance {
         return $this->request('um/conditional/openOrder', 'papi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function papi_get_um_conditional_openorders($params = array()) {
-        return $this->request('um/conditional/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 40));
+        return $this->request('um/conditional/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
     public function papi_get_um_conditional_orderhistory($params = array()) {
         return $this->request('um/conditional/orderHistory', 'papi', 'GET', $params, null, null, array("cost" => 1));
@@ -2072,7 +2078,7 @@ abstract class binanceus extends \ccxt\binance {
         return $this->request('cm/conditional/openOrder', 'papi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function papi_get_cm_conditional_openorders($params = array()) {
-        return $this->request('cm/conditional/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 40));
+        return $this->request('cm/conditional/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
     public function papi_get_cm_conditional_orderhistory($params = array()) {
         return $this->request('cm/conditional/orderHistory', 'papi', 'GET', $params, null, null, array("cost" => 1));
@@ -3905,7 +3911,7 @@ abstract class binanceus extends \ccxt\binance {
         return $this->request('openOrder', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
     }
     public function fapiPrivateGetOpenOrders($params = array()) {
-        return $this->request('openOrders', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('openOrders', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
     public function fapiPrivateGetOrder($params = array()) {
         return $this->request('order', 'fapiPrivate', 'GET', $params, null, null, array("cost" => 1));
@@ -4279,6 +4285,12 @@ abstract class binanceus extends \ccxt\binance {
     public function privatePostOrderListOco($params = array()) {
         return $this->request('orderList/oco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
     }
+    public function privatePostOrderListOto($params = array()) {
+        return $this->request('orderList/oto', 'private', 'POST', $params, null, null, array("cost" => 0.2));
+    }
+    public function privatePostOrderListOtoco($params = array()) {
+        return $this->request('orderList/otoco', 'private', 'POST', $params, null, null, array("cost" => 0.2));
+    }
     public function privatePostSorOrder($params = array()) {
         return $this->request('sor/order', 'private', 'POST', $params, null, null, array("cost" => 0.2));
     }
@@ -4313,7 +4325,7 @@ abstract class binanceus extends \ccxt\binance {
         return $this->request('um/openOrder', 'papi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function papiGetUmOpenOrders($params = array()) {
-        return $this->request('um/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('um/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
     public function papiGetUmAllOrders($params = array()) {
         return $this->request('um/allOrders', 'papi', 'GET', $params, null, null, array("cost" => 5));
@@ -4325,7 +4337,7 @@ abstract class binanceus extends \ccxt\binance {
         return $this->request('cm/openOrder', 'papi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function papiGetCmOpenOrders($params = array()) {
-        return $this->request('cm/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('cm/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
     public function papiGetCmAllOrders($params = array()) {
         return $this->request('cm/allOrders', 'papi', 'GET', $params, null, null, array("cost" => 20));
@@ -4334,7 +4346,7 @@ abstract class binanceus extends \ccxt\binance {
         return $this->request('um/conditional/openOrder', 'papi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function papiGetUmConditionalOpenOrders($params = array()) {
-        return $this->request('um/conditional/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 40));
+        return $this->request('um/conditional/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
     public function papiGetUmConditionalOrderHistory($params = array()) {
         return $this->request('um/conditional/orderHistory', 'papi', 'GET', $params, null, null, array("cost" => 1));
@@ -4346,7 +4358,7 @@ abstract class binanceus extends \ccxt\binance {
         return $this->request('cm/conditional/openOrder', 'papi', 'GET', $params, null, null, array("cost" => 1));
     }
     public function papiGetCmConditionalOpenOrders($params = array()) {
-        return $this->request('cm/conditional/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 40));
+        return $this->request('cm/conditional/openOrders', 'papi', 'GET', $params, null, null, array("cost" => 1, "noSymbol" => 40));
     }
     public function papiGetCmConditionalOrderHistory($params = array()) {
         return $this->request('cm/conditional/orderHistory', 'papi', 'GET', $params, null, null, array("cost" => 1));

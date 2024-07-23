@@ -18,8 +18,7 @@ class coinone extends coinone$1 {
             'id': 'coinone',
             'name': 'CoinOne',
             'countries': ['KR'],
-            // 'enableRateLimit': false,
-            'rateLimit': 667,
+            'rateLimit': 50,
             'version': 'v2',
             'pro': false,
             'has': {
@@ -191,10 +190,10 @@ class coinone extends coinone$1 {
             },
             'precisionMode': number.TICK_SIZE,
             'exceptions': {
-                '405': errors.OnMaintenance,
                 '104': errors.OrderNotFound,
+                '107': errors.BadRequest,
                 '108': errors.BadSymbol,
-                '107': errors.BadRequest, // {"errorCode":"107","errorMsg":"Parameter error","result":"error"}
+                '405': errors.OnMaintenance,
             },
             'commonCurrencies': {
                 'SOC': 'Soda Coin',
@@ -747,7 +746,7 @@ class coinone extends coinone$1 {
          * @param {string} type must be 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1164,22 +1163,17 @@ class coinone extends coinone$1 {
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
-            return undefined;
+            return undefined; // fallback to default error handler
         }
-        if ('result' in response) {
-            const result = response['result'];
-            if (result !== 'success') {
-                //
-                //    {  "errorCode": "405",  "status": "maintenance",  "result": "error"}
-                //
-                const errorCode = this.safeString(response, 'errorCode');
-                const feedback = this.id + ' ' + body;
-                this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
-                throw new errors.ExchangeError(feedback);
-            }
-        }
-        else {
-            throw new errors.ExchangeError(this.id + ' ' + body);
+        //
+        //     {"result":"error","error_code":"107","error_msg":"Parameter value is wrong"}
+        //     {"result":"error","error_code":"108","error_msg":"Unknown CryptoCurrency"}
+        //
+        const errorCode = this.safeString(response, 'error_code');
+        if (errorCode !== undefined && errorCode !== '0') {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException(this.exceptions, errorCode, feedback);
+            throw new errors.ExchangeError(feedback); // unknown message
         }
         return undefined;
     }

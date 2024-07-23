@@ -79,7 +79,7 @@ public partial class testMainClass : BaseTest
                 object firstBid = exchange.safeString(getValue(bids, 0), 0);
                 object firstAsk = exchange.safeString(getValue(asks, 0), 0);
                 // check bid-ask spread
-                assert(Precise.stringLt(firstBid, firstAsk), add(add(add(add(add("bids[0][0] (", firstAsk), ") should be < than asks[0][0] ("), firstAsk), ")"), logText));
+                assert(Precise.stringLt(firstBid, firstAsk), add(add(add(add(add("bids[0][0] (", firstBid), ") should be < than asks[0][0] ("), firstAsk), ")"), logText));
             }
         }
     }

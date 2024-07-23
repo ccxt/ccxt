@@ -101,10 +101,10 @@ class bingx(ccxt.async_support.bingx):
         """
         await self.load_markets()
         market = self.market(symbol)
-        marketType, query = self.handle_market_type_and_params('watchTrades', market, params)
+        marketType, query = self.handle_market_type_and_params('watchTicker', market, params)
         url = self.safe_value(self.urls['api']['ws'], marketType)
         if url is None:
-            raise BadRequest(self.id + ' watchTrades is not supported for ' + marketType + ' markets.')
+            raise BadRequest(self.id + ' watchTicker is not supported for ' + marketType + ' markets.')
         subscriptionHash = market['id'] + '@ticker'
         messageHash = self.get_message_hash('ticker', market['symbol'])
         uuid = self.uuid()
@@ -409,23 +409,25 @@ class bingx(ccxt.async_support.bingx):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        marketType, query = self.handle_market_type_and_params('watchTrades', market, params)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('watchTrades', market, params)
         url = self.safe_value(self.urls['api']['ws'], marketType)
         if url is None:
             raise BadRequest(self.id + ' watchTrades is not supported for ' + marketType + ' markets.')
-        messageHash = market['id'] + '@trade'
+        rawHash = market['id'] + '@trade'
+        messageHash = 'trade::' + symbol
         uuid = self.uuid()
         request: dict = {
             'id': uuid,
-            'dataType': messageHash,
+            'dataType': rawHash,
         }
         if marketType == 'swap':
             request['reqType'] = 'sub'
-        trades = await self.watch(url, messageHash, self.extend(request, query), messageHash)
+        trades = await self.watch(url, messageHash, self.extend(request, params), messageHash)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
@@ -491,12 +493,13 @@ class bingx(ccxt.async_support.bingx):
         #    }
         #
         data = self.safe_value(message, 'data', [])
-        messageHash = self.safe_string(message, 'dataType')
-        marketId = messageHash.split('@')[0]
+        rawHash = self.safe_string(message, 'dataType')
+        marketId = rawHash.split('@')[0]
         isSwap = client.url.find('swap') >= 0
         marketType = 'swap' if isSwap else 'spot'
         market = self.safe_market(marketId, None, None, marketType)
         symbol = market['symbol']
+        messageHash = 'trade::' + symbol
         trades = None
         if isinstance(data, list):
             trades = self.parse_trades(data, market)
@@ -693,14 +696,14 @@ class bingx(ccxt.async_support.bingx):
         #        ]
         #    }
         #
-        data = self.safe_list(message, 'data', [])
-        candles = None
-        if isinstance(data, list):
-            candles = data
-        else:
-            candles = [self.safe_list(data, 'K', [])]
-        dataType = self.safe_string(message, 'dataType')
         isSwap = client.url.find('swap') >= 0
+        candles = None
+        if isSwap:
+            candles = self.safe_list(message, 'data', [])
+        else:
+            data = self.safe_dict(message, 'data', {})
+            candles = [self.safe_dict(data, 'K', {})]
+        dataType = self.safe_string(message, 'dataType')
         parts = dataType.split('@')
         firstPart = parts[0]
         isAllEndpoint = (firstPart == 'all')
@@ -821,7 +824,7 @@ class bingx(ccxt.async_support.bingx):
         :param int [since]: the earliest time in ms to trades orders for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         await self.authenticate()

@@ -94,7 +94,10 @@ class bitso extends Exchange {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87295554-11f98280-c50e-11ea-80d6-15b3bafa8cbf.jpg',
                 'api' => array(
-                    'rest' => 'https://api.bitso.com',
+                    'rest' => 'https://bitso.com/api',
+                ),
+                'test' => array(
+                    'rest' => 'https://stage.bitso.com/api',
                 ),
                 'www' => 'https://bitso.com',
                 'doc' => 'https://bitso.com/api_info',
@@ -951,7 +954,7 @@ class bitso extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
@@ -987,7 +990,19 @@ class bitso extends Exchange {
         $request = array(
             'oid' => $id,
         );
-        return $this->privateDeleteOrdersOid ($this->extend($request, $params));
+        $response = $this->privateDeleteOrdersOid ($this->extend($request, $params));
+        //
+        //     {
+        //         "success" => true,
+        //         "payload" => ["yWTQGxDMZ0VimZgZ"]
+        //     }
+        //
+        $payload = $this->safe_list($response, 'payload', array());
+        $orderId = $this->safe_string($payload, 0);
+        return $this->safe_order(array(
+            'info' => $response,
+            'id' => $orderId,
+        ));
     }
 
     public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {

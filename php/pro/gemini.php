@@ -8,6 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\NotSupported;
+use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -487,10 +488,11 @@ class gemini extends \ccxt\async\gemini {
             $entry = $rawBidAskChanges[$i];
             $rawSide = $this->safe_string($entry, 'side');
             $price = $this->safe_number($entry, 'price');
-            $size = $this->safe_number($entry, 'remaining');
-            if ($size === 0) {
+            $sizeString = $this->safe_string($entry, 'remaining');
+            if (Precise::string_eq($sizeString, '0')) {
                 continue;
             }
+            $size = $this->parse_number($sizeString);
             if ($rawSide === 'bid') {
                 $currentBidAsk['bid'] = $price;
                 $currentBidAsk['bidVolume'] = $size;
