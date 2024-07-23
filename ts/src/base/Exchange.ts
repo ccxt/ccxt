@@ -1117,7 +1117,7 @@ export default class Exchange {
         }
     }
 
-    remove0xPrefix (hexData) {
+    remove0xPrefix (hexData: string) {
         if (hexData.slice (0, 2) === '0x') {
             return hexData.slice (2);
         } else {
