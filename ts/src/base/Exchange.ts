@@ -6022,7 +6022,7 @@ export default class Exchange {
         return result;
     }
 
-    handleTriggerAndParams (params) {
+    handleTriggerAndParams (params: Dict) {
         const isTrigger = this.safeBool2 (params, 'trigger', 'stop');
         if (isTrigger) {
             params = this.omit (params, [ 'trigger', 'stop' ]);
@@ -6030,7 +6030,7 @@ export default class Exchange {
         return [ isTrigger, params ];
     }
 
-    isTriggerOrder (params) {
+    isTriggerOrder (params: Dict) {
         // for backwards compatibility
         return this.handleTriggerAndParams (params);
     }
