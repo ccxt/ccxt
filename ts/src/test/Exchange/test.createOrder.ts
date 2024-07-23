@@ -89,6 +89,10 @@ async function tco_CreateUnfillableOrder (exchange, market, logPrefix, skippedPr
             createdOrder = await tco_CreateOrderSafe (exchange, symbol, 'limit', 'sell', orderAmount, limitSellPrice_nonFillable, {}, skippedProperties);
         }
         const fetchedOrder = await testSharedMethods.tryFetchOrder (exchange, symbol, createdOrder['id'], skippedProperties);
+        // test fetched order object
+        if (fetchedOrder !== undefined) {
+            testOrder (exchange, skippedProperties, 'createOrder', fetchedOrder, symbol, exchange.milliseconds ());
+        }
         // ensure that order is not filled
         testSharedMethods.assertOrderState (exchange, skippedProperties, 'createdOrder',  createdOrder, 'open', false);
         testSharedMethods.assertOrderState (exchange, skippedProperties, 'fetchedOrder', fetchedOrder, 'open', true);

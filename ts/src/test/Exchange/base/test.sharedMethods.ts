@@ -3,7 +3,6 @@
 import assert from 'assert';
 import { Exchange } from "../../../../ccxt";
 import Precise from '../../../base/Precise.js';
-import testOrder from './test.order.js';
 import { OnMaintenance, OperationFailed } from '../../../base/errors.js';
 import { Str } from '../../../base/types';
 
@@ -435,10 +434,6 @@ async function tryFetchOrder (exchange, symbol, orderId, skippedProperties) {
                 }
             }
         }
-    }
-    // test fetched order object
-    if (fetchedOrder !== undefined) {
-        testOrder (exchange, skippedProperties, 'createOrder', fetchedOrder, symbol, exchange.milliseconds ());
     }
     return fetchedOrder;
 }
