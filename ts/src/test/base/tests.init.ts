@@ -9,7 +9,8 @@ import testSafeMethods from './test.safeMethods.js';
 import testCalculateFee from './test.calculateFee.js';
 import testAggregate from './test.aggregate.js';
 import testConfig from './test.config.js';
-import tesSortBy from './test.sortBy.js';
+import testSortBy from './test.sortBy.js';
+import testGroupBy from './test.groupBy.js';
 
 function baseTestsInit () {
     testLanguageSpecific ();
@@ -21,7 +22,8 @@ function baseTestsInit () {
     testCalculateFee ();
     testAggregate ();
     testConfig ();
-    tesSortBy ();
+    testSortBy ();
+    testGroupBy ();
 }
 
 export default baseTestsInit;
