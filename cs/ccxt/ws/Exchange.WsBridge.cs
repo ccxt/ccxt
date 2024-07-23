@@ -25,8 +25,8 @@ public partial class Exchange
     public virtual void onClose(WebSocketClient client, object error = null)
     {
         // var client = (WebSocketClient)client2;
-        var options = this.safeDict (this.options, 'ws');
-        var useClearCache = this.safeBool (options, 'clearCacheOnClose', true);
+        var options = this.safeDict (this.options, "ws");
+        var useClearCache = this.safeBool (options, "clearCacheOnClose", true);
         if (useClearCache) {
             this.clearCache();
         }
