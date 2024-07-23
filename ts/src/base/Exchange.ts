@@ -1156,7 +1156,7 @@ export default class Exchange {
         return new CountedOrderBook (snapshot, depth);
     }
 
-    handleMessage (client, message) {} // stub to override
+    handleMessage (client: Client, message) {} // stub to override
 
     // ping (client: Client) {} // stub to override
 
@@ -1367,7 +1367,7 @@ export default class Exchange {
         return future;
     }
 
-    onConnected (client, message = undefined) {
+    onConnected (client: Client, message = undefined) {
         // for user hooks
         // console.log ('Connected to', client.url)
     }
@@ -2159,7 +2159,7 @@ export default class Exchange {
         }
     }
 
-    findMessageHashes (client, element: string): string[] {
+    findMessageHashes (client: Client, element: string): string[] {
         const result = [];
         const messageHashes = Object.keys (client.futures);
         for (let i = 0; i < messageHashes.length; i++) {
