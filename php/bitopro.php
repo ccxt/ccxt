@@ -309,7 +309,7 @@ class bitopro extends Exchange {
         return $this->parse_markets($markets);
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $active = !$this->safe_value($market, 'maintain');
         $id = $this->safe_string($market, 'pair');
         $uppercaseId = strtoupper($id);
@@ -511,7 +511,7 @@ class bitopro extends Exchange {
         return $this->parse_order_book($response, $market['symbol'], null, 'bids', 'asks', 'price', 'amount');
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades
         //         {
@@ -879,7 +879,7 @@ class bitopro extends Exchange {
         return $this->parse_balance($balances);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             '-1' => 'open',
             '0' => 'open',
@@ -892,7 +892,7 @@ class bitopro extends Exchange {
         return $this->safe_string($statuses, $status, null);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder
         //         {
@@ -990,7 +990,7 @@ class bitopro extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
@@ -1072,6 +1072,23 @@ class bitopro extends Exchange {
         return $this->parse_order($response, $market);
     }
 
+    public function parse_cancel_orders($data) {
+        $dataKeys = is_array($data) ? array_keys($data) : array();
+        $orders = array();
+        for ($i = 0; $i < count($dataKeys); $i++) {
+            $marketId = $dataKeys[$i];
+            $orderIds = $data[$marketId];
+            for ($j = 0; $j < count($orderIds); $j++) {
+                $orders[] = $this->safe_order(array(
+                    'info' => $orderIds[$j],
+                    'id' => $orderIds[$j],
+                    'symbol' => $this->safe_symbol($marketId),
+                ));
+            }
+        }
+        return $orders;
+    }
+
     public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
         /**
          * cancel multiple orders
@@ -1100,7 +1117,8 @@ class bitopro extends Exchange {
         //         }
         //     }
         //
-        return $response;
+        $data = $this->safe_dict($response, 'data');
+        return $this->parse_cancel_orders($data);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
@@ -1123,7 +1141,7 @@ class bitopro extends Exchange {
         } else {
             $response = $this->privateDeleteOrdersAll ($this->extend($request, $params));
         }
-        $result = $this->safe_value($response, 'data', array());
+        $data = $this->safe_value($response, 'data', array());
         //
         //     {
         //         "data":{
@@ -1134,7 +1152,7 @@ class bitopro extends Exchange {
         //         }
         //     }
         //
-        return $result;
+        return $this->parse_cancel_orders($data);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -1308,7 +1326,7 @@ class bitopro extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $states = array(
             'COMPLETE' => 'ok',
             'INVALID' => 'failed',
@@ -1323,7 +1341,7 @@ class bitopro extends Exchange {
         return $this->safe_string($states, $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -1692,7 +1710,7 @@ class bitopro extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to the default $error handler
         }

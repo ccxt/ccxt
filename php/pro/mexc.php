@@ -38,7 +38,7 @@ class mexc extends \ccxt\async\mexc {
                 'api' => array(
                     'ws' => array(
                         'spot' => 'wss://wbs.mexc.com/ws',
-                        'swap' => 'wss://contract.mexc.com/ws',
+                        'swap' => 'wss://contract.mexc.com/edge',
                     ),
                 ),
             ),
@@ -65,7 +65,7 @@ class mexc extends \ccxt\async\mexc {
             ),
             'streaming' => array(
                 'ping' => array($this, 'ping'),
-                'keepAlive' => 10000,
+                'keepAlive' => 8000,
             ),
             'exceptions' => array(
             ),
@@ -531,8 +531,8 @@ class mexc extends \ccxt\async\mexc {
             return;
         }
         $orderbook['nonce'] = $deltaNonce;
-        $asks = $this->safe_value($delta, 'asks', array());
-        $bids = $this->safe_value($delta, 'bids', array());
+        $asks = $this->safe_list($delta, 'asks', array());
+        $bids = $this->safe_list($delta, 'bids', array());
         $asksOrderSide = $orderbook['asks'];
         $bidsOrderSide = $orderbook['bids'];
         $this->handle_bookside_delta($asksOrderSide, $asks);
@@ -637,7 +637,7 @@ class mexc extends \ccxt\async\mexc {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $messageHash = 'myTrades';
@@ -1222,7 +1222,7 @@ class mexc extends \ccxt\async\mexc {
         }
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         return array( 'method' => 'ping' );
     }
 }

@@ -7,7 +7,7 @@
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/coinmetro.js';
 import { ArgumentsRequired, BadRequest, BadSymbol, InsufficientFunds, InvalidOrder, ExchangeError, OrderNotFound, PermissionDenied, RateLimitExceeded } from './base/errors.js';
-import { DECIMAL_PLACES } from './base/functions/number.js';
+import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 //  ---------------------------------------------------------------------------
 /**
@@ -208,7 +208,7 @@ export default class coinmetro extends Exchange {
                     'maker': this.parseNumber('0'),
                 },
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             // exchange-specific options
             'options': {
                 'currenciesByIdForParseMarket': undefined,
@@ -312,7 +312,6 @@ export default class coinmetro extends Exchange {
             const deposit = this.safeValue(currency, 'canDeposit');
             const canTrade = this.safeValue(currency, 'canTrade');
             const active = canTrade ? withdraw : true;
-            const precision = this.safeInteger(currency, 'digits');
             const minAmount = this.safeNumber(currency, 'minQty');
             result[code] = this.safeCurrencyStructure({
                 'id': id,
@@ -323,7 +322,7 @@ export default class coinmetro extends Exchange {
                 'deposit': deposit,
                 'withdraw': withdraw,
                 'fee': undefined,
-                'precision': precision,
+                'precision': this.parseNumber(this.parsePrecision(this.safeString(currency, 'digits'))),
                 'limits': {
                     'amount': { 'min': minAmount, 'max': undefined },
                     'withdraw': { 'min': undefined, 'max': undefined },
@@ -354,19 +353,14 @@ export default class coinmetro extends Exchange {
         //
         //     [
         //         {
-        //             "pair": "PERPEUR",
-        //             "precision": 5,
-        //             "margin": false
-        //         },
-        //         {
-        //             "pair": "PERPUSD",
-        //             "precision": 5,
-        //             "margin": false
-        //         },
-        //         {
         //             "pair": "YFIEUR",
         //             "precision": 5,
         //             "margin": false
+        //         },
+        //         {
+        //             "pair": "BTCEUR",
+        //             "precision": 2,
+        //             "margin": true
         //         },
         //         ...
         //     ]
@@ -412,9 +406,7 @@ export default class coinmetro extends Exchange {
             'optionType': undefined,
             'precision': {
                 'amount': basePrecisionAndLimits['precision'],
-                'price': quotePrecisionAndLimits['precision'],
-                'base': basePrecisionAndLimits['precision'],
-                'quote': quotePrecisionAndLimits['precision'],
+                'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'precision'))),
             },
             'limits': {
                 'leverage': {
@@ -469,12 +461,11 @@ export default class coinmetro extends Exchange {
     parseMarketPrecisionAndLimits(currencyId) {
         const currencies = this.safeValue(this.options, 'currenciesByIdForParseMarket', {});
         const currency = this.safeValue(currencies, currencyId, {});
-        const precision = this.safeInteger(currency, 'precision');
         const limits = this.safeValue(currency, 'limits', {});
         const amountLimits = this.safeValue(limits, 'amount', {});
         const minLimit = this.safeNumber(amountLimits, 'min');
         const result = {
-            'precision': precision,
+            'precision': this.safeNumber(currency, 'precision'),
             'minLimit': minLimit,
         };
         return result;
@@ -1200,7 +1191,7 @@ export default class coinmetro extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount in market orders
          * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", "GTD"

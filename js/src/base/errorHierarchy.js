@@ -23,9 +23,6 @@ const errorHierarchy = {
                 },
                 'MarketClosed': {},
             },
-            'BadResponse': {
-                'NullResponse': {},
-            },
             'InsufficientFunds': {},
             'InvalidAddress': {
                 'AddressPending': {},
@@ -33,14 +30,13 @@ const errorHierarchy = {
             'InvalidOrder': {
                 'OrderNotFound': {},
                 'OrderNotCached': {},
-                'CancelPending': {},
                 'OrderImmediatelyFillable': {},
                 'OrderNotFillable': {},
                 'DuplicateOrderId': {},
                 'ContractUnavailable': {},
             },
             'NotSupported': {},
-            'ProxyError': {},
+            'InvalidProxySettings': {},
             'ExchangeClosedByUser': {},
         },
         'OperationFailed': {
@@ -50,9 +46,15 @@ const errorHierarchy = {
                 'ExchangeNotAvailable': {
                     'OnMaintenance': {},
                 },
-                'InvalidNonce': {},
+                'InvalidNonce': {
+                    'ChecksumError': {},
+                },
                 'RequestTimeout': {},
             },
+            'BadResponse': {
+                'NullResponse': {},
+            },
+            'CancelPending': {},
         },
     },
 };

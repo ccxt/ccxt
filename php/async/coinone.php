@@ -20,8 +20,7 @@ class coinone extends Exchange {
             'id' => 'coinone',
             'name' => 'CoinOne',
             'countries' => array( 'KR' ), // Korea
-            // 'enableRateLimit' => false,
-            'rateLimit' => 667,
+            'rateLimit' => 50,
             'version' => 'v2',
             'pro' => false,
             'has' => array(
@@ -193,10 +192,10 @@ class coinone extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
-                '405' => '\\ccxt\\OnMaintenance', // array("errorCode":"405","status":"maintenance","result":"error")
-                '104' => '\\ccxt\\OrderNotFound', // array("errorCode":"104","errorMsg":"Order id is not exist","result":"error")
-                '108' => '\\ccxt\\BadSymbol', // array("errorCode":"108","errorMsg":"Unknown CryptoCurrency","result":"error")
-                '107' => '\\ccxt\\BadRequest', // array("errorCode":"107","errorMsg":"Parameter error","result":"error")
+                '104' => '\\ccxt\\OrderNotFound',
+                '107' => '\\ccxt\\BadRequest',
+                '108' => '\\ccxt\\BadSymbol',
+                '405' => '\\ccxt\\OnMaintenance',
             ),
             'commonCurrencies' => array(
                 'SOC' => 'Soda Coin',
@@ -640,7 +639,7 @@ class coinone extends Exchange {
         ), $market);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -758,7 +757,7 @@ class coinone extends Exchange {
              * @param {string} $type must be 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
@@ -828,7 +827,7 @@ class coinone extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'live' => 'open',
             'partially_filled' => 'open',
@@ -839,7 +838,7 @@ class coinone extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -1077,7 +1076,7 @@ class coinone extends Exchange {
             //         "errorCode" => "0"
             //     }
             //
-            return $response;
+            return $this->safe_order($response);
         }) ();
     }
 
@@ -1179,23 +1178,19 @@ class coinone extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
-            return null;
+            return null; // fallback to default error handler
         }
-        if (is_array($response) && array_key_exists('result', $response)) {
-            $result = $response['result'];
-            if ($result !== 'success') {
-                //
-                //    array(  "errorCode" => "405",  "status" => "maintenance",  "result" => "error")
-                //
-                $errorCode = $this->safe_string($response, 'errorCode');
-                $feedback = $this->id . ' ' . $body;
-                $this->throw_exactly_matched_exception($this->exceptions, $errorCode, $feedback);
-                throw new ExchangeError($feedback);
-            }
-        } else {
-            throw new ExchangeError($this->id . ' ' . $body);
+        //
+        //     array("result":"error","error_code":"107","error_msg":"Parameter value is wrong")
+        //     array("result":"error","error_code":"108","error_msg":"Unknown CryptoCurrency")
+        //
+        $errorCode = $this->safe_string($response, 'error_code');
+        if ($errorCode !== null && $errorCode !== '0') {
+            $feedback = $this->id . ' ' . $body;
+            $this->throw_exactly_matched_exception($this->exceptions, $errorCode, $feedback);
+            throw new ExchangeError($feedback); // unknown message
         }
         return null;
     }

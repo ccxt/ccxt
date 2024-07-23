@@ -5,7 +5,7 @@ import currencycomRest from '../currencycom.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderBook, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
+import type { Int, OrderBook, Trade, Ticker, OHLCV, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -54,7 +54,7 @@ export default class currencycom extends currencycomRest {
         });
     }
 
-    ping (client) {
+    ping (client: Client) {
         // custom ping-pong
         const requestId = this.requestId ().toString ();
         return {
@@ -321,7 +321,7 @@ export default class currencycom extends currencycomRest {
         const messageHash = '/api/v1/account';
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ().toString ();
-        const payload = {
+        const payload: Dict = {
             'timestamp': this.milliseconds (),
             'apiKey': this.apiKey,
         };
@@ -433,7 +433,7 @@ export default class currencycom extends currencycomRest {
         const destination = 'OHLCMarketData.subscribe';
         const messageHash = destination + ':' + timeframe;
         const timeframes = this.safeValue (this.options, 'timeframes');
-        const request = {
+        const request: Dict = {
             'destination': destination,
             'payload': {
                 'intervals': [
@@ -476,17 +476,18 @@ export default class currencycom extends currencycomRest {
         const destination = 'depthMarketData.subscribe';
         const messageHash = destination + ':' + symbol;
         const timestamp = this.safeInteger (data, 'ts');
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook ();
+        // let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ();
         }
+        const orderbook = this.orderbooks[symbol];
         orderbook.reset ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
         });
-        const bids = this.safeValue (data, 'bid', {});
-        const asks = this.safeValue (data, 'ofr', {});
+        const bids = this.safeDict (data, 'bid', {});
+        const asks = this.safeDict (data, 'ofr', {});
         this.handleDeltas (orderbook['bids'], bids);
         this.handleDeltas (orderbook['asks'], asks);
         this.orderbooks[symbol] = orderbook;
@@ -549,7 +550,7 @@ export default class currencycom extends currencycomRest {
                 if (status === 'OK') {
                     const subscriptionDestination = this.safeString (subscription, 'destination');
                     if (subscriptionDestination !== undefined) {
-                        const methods = {
+                        const methods: Dict = {
                             '/api/v1/ticker/24hr': this.handleTicker,
                             '/api/v1/account': this.handleBalance,
                         };
@@ -566,7 +567,7 @@ export default class currencycom extends currencycomRest {
         }
         const destination = this.safeString (message, 'destination');
         if (destination !== undefined) {
-            const methods = {
+            const methods: Dict = {
                 'marketdepth.event': this.handleOrderBook,
                 'internal.trade': this.handleTrades,
                 'ohlc.event': this.handleOHLCV,

@@ -43,7 +43,7 @@ class phemex extends \ccxt\async\phemex {
                 'OHLCVLimit' => 1000,
             ),
             'streaming' => array(
-                'keepAlive' => 10000,
+                'keepAlive' => 9000,
             ),
         ));
     }
@@ -726,11 +726,11 @@ class phemex extends \ccxt\async\phemex {
             $this->orderbooks[$symbol] = $orderbook;
             $client->resolve ($orderbook, $messageHash);
         } else {
-            $orderbook = $this->safe_value($this->orderbooks, $symbol);
-            if ($orderbook !== null) {
-                $changes = $this->safe_value_2($message, 'book', 'orderbook_p', array());
-                $asks = $this->safe_value($changes, 'asks', array());
-                $bids = $this->safe_value($changes, 'bids', array());
+            if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+                $orderbook = $this->orderbooks[$symbol];
+                $changes = $this->safe_dict_2($message, 'book', 'orderbook_p', array());
+                $asks = $this->safe_list($changes, 'asks', array());
+                $bids = $this->safe_list($changes, 'bids', array());
                 $this->custom_handle_deltas($orderbook['asks'], $asks, $market);
                 $this->custom_handle_deltas($orderbook['bids'], $bids, $market);
                 $orderbook['nonce'] = $nonce;
@@ -750,7 +750,7 @@ class phemex extends \ccxt\async\phemex {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $market = null;

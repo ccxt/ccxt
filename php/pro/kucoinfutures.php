@@ -17,6 +17,10 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
+                'watchLiquidations' => false,
+                'watchLiquidatinsForSymbols' => false,
+                'watchMyLiquidations' => null,
+                'watchMyLiquidationsForSymbols' => null,
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchBidsAsks' => true,
@@ -1152,7 +1156,7 @@ class kucoinfutures extends \ccxt\async\kucoinfutures {
         }
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         // kucoin does not support built-in ws protocol-level ping-pong
         // instead it requires a custom json-based text ping-pong
         // https://docs.kucoin.com/#ping

@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.3.22'
+__version__ = '4.3.66'
 
 # ----------------------------------------------------------------------------
 
@@ -36,8 +36,8 @@ from ccxt.pro.blockchaincom import blockchaincom                          # noqa
 from ccxt.pro.bybit import bybit                                          # noqa: F401
 from ccxt.pro.cex import cex                                              # noqa: F401
 from ccxt.pro.coinbase import coinbase                                    # noqa: F401
+from ccxt.pro.coinbaseexchange import coinbaseexchange                    # noqa: F401
 from ccxt.pro.coinbaseinternational import coinbaseinternational          # noqa: F401
-from ccxt.pro.coinbasepro import coinbasepro                              # noqa: F401
 from ccxt.pro.coincheck import coincheck                                  # noqa: F401
 from ccxt.pro.coinex import coinex                                        # noqa: F401
 from ccxt.pro.coinone import coinone                                      # noqa: F401
@@ -67,16 +67,19 @@ from ccxt.pro.ndax import ndax                                            # noqa
 from ccxt.pro.okcoin import okcoin                                        # noqa: F401
 from ccxt.pro.okx import okx                                              # noqa: F401
 from ccxt.pro.onetrading import onetrading                                # noqa: F401
+from ccxt.pro.oxfun import oxfun                                          # noqa: F401
 from ccxt.pro.p2b import p2b                                              # noqa: F401
 from ccxt.pro.phemex import phemex                                        # noqa: F401
 from ccxt.pro.poloniex import poloniex                                    # noqa: F401
 from ccxt.pro.poloniexfutures import poloniexfutures                      # noqa: F401
 from ccxt.pro.probit import probit                                        # noqa: F401
 from ccxt.pro.upbit import upbit                                          # noqa: F401
+from ccxt.pro.vertex import vertex                                        # noqa: F401
 from ccxt.pro.wazirx import wazirx                                        # noqa: F401
 from ccxt.pro.whitebit import whitebit                                    # noqa: F401
 from ccxt.pro.woo import woo                                              # noqa: F401
 from ccxt.pro.woofipro import woofipro                                    # noqa: F401
+from ccxt.pro.xt import xt                                                # noqa: F401
 
 exchanges = [
     'alpaca',
@@ -103,8 +106,8 @@ exchanges = [
     'bybit',
     'cex',
     'coinbase',
+    'coinbaseexchange',
     'coinbaseinternational',
-    'coinbasepro',
     'coincheck',
     'coinex',
     'coinone',
@@ -134,14 +137,17 @@ exchanges = [
     'okcoin',
     'okx',
     'onetrading',
+    'oxfun',
     'p2b',
     'phemex',
     'poloniex',
     'poloniexfutures',
     'probit',
     'upbit',
+    'vertex',
     'wazirx',
     'whitebit',
     'woo',
     'woofipro',
+    'xt',
 ]

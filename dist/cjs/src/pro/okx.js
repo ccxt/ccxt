@@ -19,6 +19,10 @@ class okx extends okx$1 {
                 'watchTradesForSymbols': true,
                 'watchOrderBookForSymbols': true,
                 'watchBalance': true,
+                'watchLiquidations': 'emulated',
+                'watchLiquidationsForSymbols': true,
+                'watchMyLiquidations': 'emulated',
+                'watchMyLiquidationsForSymbols': true,
                 'watchOHLCV': true,
                 'watchOHLCVForSymbols': true,
                 'watchOrders': true,
@@ -42,6 +46,7 @@ class okx extends okx$1 {
             },
             'options': {
                 'watchOrderBook': {
+                    'checksum': true,
                     //
                     // bbo-tbt
                     // 1. Newly added channel that sends tick-by-tick Level 1 data
@@ -89,13 +94,12 @@ class okx extends okx$1 {
                 'ws': {
                 // 'inflate': true,
                 },
-                'checksum': true,
             },
             'streaming': {
                 // okex does not support built-in ws protocol-level ping-pong
                 // instead it requires a custom text-based ping-pong
                 'ping': this.ping,
-                'keepAlive': 20000,
+                'keepAlive': 18000,
             },
         });
     }
@@ -419,6 +423,255 @@ class okx extends okx$1 {
         }
         return message;
     }
+    async watchLiquidationsForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#watchLiquidationsForSymbols
+         * @description watch the public liquidations of a trading pair
+         * @see https://www.okx.com/docs-v5/en/#public-data-websocket-liquidation-orders-channel
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the okx api endpoint
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, true, true);
+        let messageHash = 'liquidations';
+        if (symbols !== undefined) {
+            messageHash += '::' + symbols.join(',');
+        }
+        const market = this.getMarketFromSymbols(symbols);
+        let type = undefined;
+        [type, params] = this.handleMarketTypeAndParams('watchliquidationsForSymbols', market, params);
+        const channel = 'liquidation-orders';
+        if (type === 'spot') {
+            type = 'SWAP';
+        }
+        else if (type === 'future') {
+            type = 'futures';
+        }
+        const uppercaseType = type.toUpperCase();
+        const request = {
+            'instType': uppercaseType,
+        };
+        const newLiquidations = await this.subscribe('public', messageHash, channel, undefined, this.extend(request, params));
+        if (this.newUpdates) {
+            return newLiquidations;
+        }
+        return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true);
+    }
+    handleLiquidation(client, message) {
+        //
+        //    {
+        //        "arg": {
+        //            "channel": "liquidation-orders",
+        //            "instType": "SWAP"
+        //        },
+        //        "data": [
+        //            {
+        //                "details": [
+        //                    {
+        //                        "bkLoss": "0",
+        //                        "bkPx": "0.007831",
+        //                        "ccy": "",
+        //                        "posSide": "short",
+        //                        "side": "buy",
+        //                        "sz": "13",
+        //                        "ts": "1692266434010"
+        //                    }
+        //                ],
+        //                "instFamily": "IOST-USDT",
+        //                "instId": "IOST-USDT-SWAP",
+        //                "instType": "SWAP",
+        //                "uly": "IOST-USDT"
+        //            }
+        //        ]
+        //    }
+        //
+        const rawLiquidations = this.safeList(message, 'data', []);
+        for (let i = 0; i < rawLiquidations.length; i++) {
+            const rawLiquidation = rawLiquidations[i];
+            const liquidation = this.parseWsLiquidation(rawLiquidation);
+            const symbol = this.safeString(liquidation, 'symbol');
+            let liquidations = this.safeValue(this.liquidations, symbol);
+            if (liquidations === undefined) {
+                const limit = this.safeInteger(this.options, 'liquidationsLimit', 1000);
+                liquidations = new Cache.ArrayCache(limit);
+            }
+            liquidations.append(liquidation);
+            this.liquidations[symbol] = liquidations;
+            client.resolve([liquidation], 'liquidations');
+            client.resolve([liquidation], 'liquidations::' + symbol);
+        }
+    }
+    async watchMyLiquidationsForSymbols(symbols = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#watchMyLiquidationsForSymbols
+         * @description watch the private liquidations of a trading pair
+         * @see https://www.okx.com/docs-v5/en/#trading-account-websocket-balance-and-position-channel
+         * @param {string} symbol unified CCXT market symbol
+         * @param {int} [since] the earliest time in ms to fetch liquidations for
+         * @param {int} [limit] the maximum number of liquidation structures to retrieve
+         * @param {object} [params] exchange specific parameters for the okx api endpoint
+         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
+         */
+        await this.loadMarkets();
+        const isStop = this.safeValue2(params, 'stop', 'trigger', false);
+        params = this.omit(params, ['stop', 'trigger']);
+        await this.authenticate({ 'access': isStop ? 'business' : 'private' });
+        symbols = this.marketSymbols(symbols, undefined, true, true);
+        let messageHash = 'myLiquidations';
+        if (symbols !== undefined) {
+            messageHash += '::' + symbols.join(',');
+        }
+        const channel = 'balance_and_position';
+        const newLiquidations = await this.subscribe('private', messageHash, channel, undefined, params);
+        if (this.newUpdates) {
+            return newLiquidations;
+        }
+        return this.filterBySymbolsSinceLimit(this.liquidations, symbols, since, limit, true);
+    }
+    handleMyLiquidation(client, message) {
+        //
+        //    {
+        //        "arg": {
+        //            "channel": "balance_and_position",
+        //            "uid": "77982378738415879"
+        //        },
+        //        "data": [{
+        //            "pTime": "1597026383085",
+        //            "eventType": "snapshot",
+        //            "balData": [{
+        //                "ccy": "BTC",
+        //                "cashBal": "1",
+        //                "uTime": "1597026383085"
+        //            }],
+        //            "posData": [{
+        //                "posId": "1111111111",
+        //                "tradeId": "2",
+        //                "instId": "BTC-USD-191018",
+        //                "instType": "FUTURES",
+        //                "mgnMode": "cross",
+        //                "posSide": "long",
+        //                "pos": "10",
+        //                "ccy": "BTC",
+        //                "posCcy": "",
+        //                "avgPx": "3320",
+        //                "uTIme": "1597026383085"
+        //            }],
+        //            "trades": [{
+        //                "instId": "BTC-USD-191018",
+        //                "tradeId": "2",
+        //            }]
+        //        }]
+        //    }
+        //
+        const rawLiquidations = this.safeList(message, 'data', []);
+        for (let i = 0; i < rawLiquidations.length; i++) {
+            const rawLiquidation = rawLiquidations[i];
+            const eventType = this.safeString(rawLiquidation, 'eventType');
+            if (eventType !== 'liquidation') {
+                return;
+            }
+            const liquidation = this.parseWsMyLiquidation(rawLiquidation);
+            const symbol = this.safeString(liquidation, 'symbol');
+            let liquidations = this.safeValue(this.liquidations, symbol);
+            if (liquidations === undefined) {
+                const limit = this.safeInteger(this.options, 'myLiquidationsLimit', 1000);
+                liquidations = new Cache.ArrayCache(limit);
+            }
+            liquidations.append(liquidation);
+            this.liquidations[symbol] = liquidations;
+            client.resolve([liquidation], 'myLiquidations');
+            client.resolve([liquidation], 'myLiquidations::' + symbol);
+        }
+    }
+    parseWsMyLiquidation(liquidation, market = undefined) {
+        //
+        //    {
+        //        "pTime": "1597026383085",
+        //        "eventType": "snapshot",
+        //        "balData": [{
+        //            "ccy": "BTC",
+        //            "cashBal": "1",
+        //            "uTime": "1597026383085"
+        //        }],
+        //        "posData": [{
+        //            "posId": "1111111111",
+        //            "tradeId": "2",
+        //            "instId": "BTC-USD-191018",
+        //            "instType": "FUTURES",
+        //            "mgnMode": "cross",
+        //            "posSide": "long",
+        //            "pos": "10",
+        //            "ccy": "BTC",
+        //            "posCcy": "",
+        //            "avgPx": "3320",
+        //            "uTIme": "1597026383085"
+        //        }],
+        //        "trades": [{
+        //            "instId": "BTC-USD-191018",
+        //            "tradeId": "2",
+        //        }]
+        //    }
+        //
+        const posData = this.safeList(liquidation, 'posData', []);
+        const firstPosData = this.safeDict(posData, 0, {});
+        const marketId = this.safeString(firstPosData, 'instId');
+        market = this.safeMarket(marketId, market);
+        const timestamp = this.safeInteger(firstPosData, 'uTIme');
+        return this.safeLiquidation({
+            'info': liquidation,
+            'symbol': this.safeSymbol(marketId, market),
+            'contracts': this.safeNumber(firstPosData, 'pos'),
+            'contractSize': this.safeNumber(market, 'contractSize'),
+            'price': this.safeNumber(liquidation, 'avgPx'),
+            'baseValue': undefined,
+            'quoteValue': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+        });
+    }
+    parseWsLiquidation(liquidation, market = undefined) {
+        //
+        // public liquidation
+        //    {
+        //        "details": [
+        //            {
+        //                "bkLoss": "0",
+        //                "bkPx": "0.007831",
+        //                "ccy": "",
+        //                "posSide": "short",
+        //                "side": "buy",
+        //                "sz": "13",
+        //                "ts": "1692266434010"
+        //            }
+        //        ],
+        //        "instFamily": "IOST-USDT",
+        //        "instId": "IOST-USDT-SWAP",
+        //        "instType": "SWAP",
+        //        "uly": "IOST-USDT"
+        //    }
+        //
+        const details = this.safeList(liquidation, 'details', []);
+        const liquidationDetails = this.safeDict(details, 0, {});
+        const marketId = this.safeString(liquidation, 'instId');
+        market = this.safeMarket(marketId, market);
+        const timestamp = this.safeInteger(liquidationDetails, 'ts');
+        return this.safeLiquidation({
+            'info': liquidation,
+            'symbol': this.safeSymbol(marketId, market),
+            'contracts': this.safeNumber(liquidationDetails, 'sz'),
+            'contractSize': this.safeNumber(market, 'contractSize'),
+            'price': this.safeNumber(liquidationDetails, 'bkPx'),
+            'baseValue': undefined,
+            'quoteValue': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+        });
+    }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -666,7 +919,7 @@ class okx extends okx$1 {
         this.handleDeltas(storedBids, bids);
         const marketId = this.safeString(message, 'instId');
         const symbol = this.safeSymbol(marketId);
-        const checksum = this.safeBool(this.options, 'checksum', true);
+        const checksum = this.handleOption('watchOrderBook', 'checksum', true);
         if (checksum) {
             const asksLength = storedAsks.length;
             const bidsLength = storedBids.length;
@@ -685,7 +938,7 @@ class okx extends okx$1 {
             const responseChecksum = this.safeInteger(message, 'checksum');
             const localChecksum = this.crc32(payload, true);
             if (responseChecksum !== localChecksum) {
-                const error = new errors.InvalidNonce(this.id + ' invalid checksum');
+                const error = new errors.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
                 delete client.subscriptions[messageHash];
                 delete this.orderbooks[symbol];
                 client.reject(error, messageHash);
@@ -819,11 +1072,10 @@ class okx extends okx$1 {
             }
         }
         else if ((channel === 'books5') || (channel === 'bbo-tbt')) {
-            let orderbook = this.safeValue(this.orderbooks, symbol);
-            if (orderbook === undefined) {
-                orderbook = this.orderBook({}, limit);
+            if (!(symbol in this.orderbooks)) {
+                this.orderbooks[symbol] = this.orderBook({}, limit);
             }
-            this.orderbooks[symbol] = orderbook;
+            const orderbook = this.orderbooks[symbol];
             for (let i = 0; i < data.length; i++) {
                 const update = data[i];
                 const timestamp = this.safeInteger(update, 'ts');
@@ -877,6 +1129,9 @@ class okx extends okx$1 {
         await this.loadMarkets();
         await this.authenticate();
         return await this.subscribe('private', 'account', 'account', undefined, params);
+    }
+    handleBalanceAndPosition(client, message) {
+        this.handleMyLiquidation(client, message);
     }
     handleBalance(client, message) {
         //
@@ -968,7 +1223,7 @@ class okx extends okx$1 {
          * @param {bool} [params.stop] true if fetching trigger or conditional trades
          * @param {string} [params.type] 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
          * @param {string} [params.marginMode] 'cross' or 'isolated', for automatically setting the type to spot margin
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         // By default, receive order updates from any instrument type
         let type = undefined;
@@ -1374,7 +1629,7 @@ class okx extends okx$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} params.test test order, default false
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1382,7 +1637,7 @@ class okx extends okx$1 {
         await this.loadMarkets();
         await this.authenticate();
         const url = this.getUrl('private', 'private');
-        const messageHash = this.nonce().toString();
+        const messageHash = this.milliseconds().toString();
         let op = undefined;
         [op, params] = this.handleOptionAndParams(params, 'createOrderWs', 'op', 'batch-orders');
         const args = this.createOrderRequest(symbol, type, side, amount, price, params);
@@ -1427,13 +1682,13 @@ class okx extends okx$1 {
         if (this.isEmpty(args)) {
             const method = this.safeString(message, 'op');
             const stringMsg = this.json(message);
-            this.handleErrors(undefined, undefined, client.url, method, undefined, stringMsg, stringMsg, undefined, undefined);
+            this.handleErrors(undefined, undefined, client.url, method, undefined, stringMsg, message, undefined, undefined);
         }
         const orders = this.parseOrders(args, undefined, undefined, undefined);
         const first = this.safeDict(orders, 0, {});
         client.resolve(first, messageHash);
     }
-    async editOrderWs(id, symbol, type, side, amount, price = undefined, params = {}) {
+    async editOrderWs(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         /**
          * @method
          * @name okx#editOrderWs
@@ -1445,14 +1700,14 @@ class okx extends okx$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of the currency you want to trade in units of the base currency
-         * @param {float|undefined} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float|undefined} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         await this.authenticate();
         const url = this.getUrl('private', 'private');
-        const messageHash = this.nonce().toString();
+        const messageHash = this.milliseconds().toString();
         let op = undefined;
         [op, params] = this.handleOptionAndParams(params, 'editOrderWs', 'op', 'amend-order');
         const args = this.editOrderRequest(id, symbol, type, side, amount, price, params);
@@ -1481,7 +1736,7 @@ class okx extends okx$1 {
         await this.loadMarkets();
         await this.authenticate();
         const url = this.getUrl('private', 'private');
-        const messageHash = this.nonce().toString();
+        const messageHash = this.milliseconds().toString();
         const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
         params = this.omit(params, ['clientOrderId', 'clOrdId']);
         const arg = {
@@ -1521,7 +1776,7 @@ class okx extends okx$1 {
         await this.loadMarkets();
         await this.authenticate();
         const url = this.getUrl('private', 'private');
-        const messageHash = this.nonce().toString();
+        const messageHash = this.milliseconds().toString();
         const args = [];
         for (let i = 0; i < idsLength; i++) {
             const arg = {
@@ -1557,7 +1812,7 @@ class okx extends okx$1 {
             throw new errors.BadRequest(this.id + 'cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.');
         }
         const url = this.getUrl('private', 'private');
-        const messageHash = this.nonce().toString();
+        const messageHash = this.milliseconds().toString();
         const request = {
             'id': messageHash,
             'op': 'mass-cancel',
@@ -1602,8 +1857,8 @@ class okx extends okx$1 {
         future.resolve(true);
     }
     ping(client) {
-        // okex does not support built-in ws protocol-level ping-pong
-        // instead it requires custom text-based ping-pong
+        // OKX does not support the built-in WebSocket protocol-level ping-pong.
+        // Instead, it requires a custom text-based ping-pong mechanism.
         return 'ping';
     }
     handlePong(client, message) {
@@ -1721,6 +1976,8 @@ class okx extends okx$1 {
                 // 'margin_account': this.handleBalance,
                 'orders': this.handleOrders,
                 'orders-algo': this.handleOrders,
+                'liquidation-orders': this.handleLiquidation,
+                'balance_and_position': this.handleBalanceAndPosition,
             };
             const method = this.safeValue(methods, channel);
             if (method === undefined) {

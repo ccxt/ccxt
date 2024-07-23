@@ -1195,7 +1195,7 @@ class kucoinfutures extends kucoin {
         return $this->parse_positions($items, $symbols);
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         //    {
         //        "code" => "200000",
@@ -1334,7 +1334,7 @@ class kucoinfutures extends kucoin {
          * @param {string} $type 'limit' or 'market'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount the $amount of currency to trade
-         * @param {float} [$price] *ignored in "market" orders* the $price at which the order is to be fullfilled at in units of the quote currency
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params]  extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] The $price a trigger order is triggered at
          * @param {float} [$params->stopLossPrice] $price to trigger stop-loss orders
@@ -1737,7 +1737,7 @@ class kucoinfutures extends kucoin {
         if ($paginate) {
             return $this->fetch_paginated_call_dynamic('fetchOrdersByStatus', $symbol, $since, $limit, $params);
         }
-        $stop = $this->safe_value_2($params, 'stop', 'trigger');
+        $stop = $this->safe_bool_2($params, 'stop', 'trigger');
         $until = $this->safe_integer($params, 'until');
         $params = $this->omit($params, array( 'stop', 'until', 'trigger' ));
         if ($status === 'closed') {
@@ -1943,7 +1943,7 @@ class kucoinfutures extends kucoin {
         return $this->parse_order($responseData, $market);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // fetchOrder, fetchOrdersByStatus
         //
@@ -2359,7 +2359,7 @@ class kucoinfutures extends kucoin {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -2602,7 +2602,7 @@ class kucoinfutures extends kucoin {
         return $this->parse_transactions($responseData, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function fetch_market_leverage_tiers(string $symbol, $params = array ()) {
+    public function fetch_market_leverage_tiers(string $symbol, $params = array ()): array {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single $market
          * @see https://www.kucoin.com/docs/rest/futures-trading/risk-limit/get-futures-risk-limit-level
@@ -2640,7 +2640,7 @@ class kucoinfutures extends kucoin {
         return $this->parse_market_leverage_tiers($data, $market);
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null): array {
         /**
          * @ignore
          * @param {array} $info Exchange $market response for 1 $market

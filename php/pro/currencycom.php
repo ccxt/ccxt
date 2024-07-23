@@ -55,7 +55,7 @@ class currencycom extends \ccxt\async\currencycom {
         ));
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         // custom ping-pong
         $requestId = (string) $this->request_id();
         return array(
@@ -481,17 +481,18 @@ class currencycom extends \ccxt\async\currencycom {
         $destination = 'depthMarketData.subscribe';
         $messageHash = $destination . ':' . $symbol;
         $timestamp = $this->safe_integer($data, 'ts');
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
-            $orderbook = $this->order_book();
+        // $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book();
         }
+        $orderbook = $this->orderbooks[$symbol];
         $orderbook->reset (array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         ));
-        $bids = $this->safe_value($data, 'bid', array());
-        $asks = $this->safe_value($data, 'ofr', array());
+        $bids = $this->safe_dict($data, 'bid', array());
+        $asks = $this->safe_dict($data, 'ofr', array());
         $this->handle_deltas($orderbook['bids'], $bids);
         $this->handle_deltas($orderbook['asks'], $asks);
         $this->orderbooks[$symbol] = $orderbook;

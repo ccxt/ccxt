@@ -861,8 +861,8 @@ class hitbtc extends Exchange {
                     $network = $this->safe_network($networkId);
                     $fee = $this->safe_number($rawNetwork, 'payout_fee');
                     $networkPrecision = $this->safe_number($rawNetwork, 'precision_payout');
-                    $payinEnabledNetwork = $this->safe_bool($entry, 'payin_enabled', false);
-                    $payoutEnabledNetwork = $this->safe_bool($entry, 'payout_enabled', false);
+                    $payinEnabledNetwork = $this->safe_bool($rawNetwork, 'payin_enabled', false);
+                    $payoutEnabledNetwork = $this->safe_bool($rawNetwork, 'payout_enabled', false);
                     $activeNetwork = $payinEnabledNetwork && $payoutEnabledNetwork;
                     if ($payinEnabledNetwork && !$depositEnabled) {
                         $depositEnabled = true;
@@ -1276,7 +1276,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // createOrder ($market)
         //
@@ -1426,7 +1426,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'PENDING' => 'pending',
             'FAILED' => 'failed',
@@ -1443,7 +1443,7 @@ class hitbtc extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // $transaction
         //
@@ -1631,7 +1631,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function parse_trading_fee($fee, ?array $market = null): array {
+    public function parse_trading_fee(array $fee, ?array $market = null): array {
         //
         //     {
         //         "symbol":"ARVUSDT", // returned from fetchTradingFees only
@@ -2285,7 +2285,7 @@ class hitbtc extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
              * @param {bool} [$params->margin] true for creating a margin order
@@ -2384,7 +2384,7 @@ class hitbtc extends Exchange {
         return array( $request, $params );
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'new' => 'open',
             'suspended' => 'open',
@@ -2396,7 +2396,7 @@ class hitbtc extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // limit
         //     {
@@ -2582,7 +2582,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function parse_margin_mode($marginMode, $market = null): array {
+    public function parse_margin_mode(array $marginMode, $market = null): array {
         $marketId = $this->safe_string($marginMode, 'symbol');
         return array(
             'info' => $marginMode,
@@ -3012,7 +3012,7 @@ class hitbtc extends Exchange {
         }) ();
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         //     array(
         //         {
@@ -3640,7 +3640,7 @@ class hitbtc extends Exchange {
         return array( $marginMode, $params );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         //
         //     {
         //       "error" => {

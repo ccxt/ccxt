@@ -46,6 +46,8 @@ class htx extends Exchange {
                 'cancelAllOrdersAfter' => true,
                 'cancelOrder' => true,
                 'cancelOrders' => true,
+                'closeAllPositions' => false,
+                'closePosition' => true,
                 'createDepositAddress' => null,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketOrderWithCost' => false,
@@ -1224,17 +1226,17 @@ class htx extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/6081
                 // https://github.com/ccxt/ccxt/issues/3365
                 // https://github.com/ccxt/ccxt/issues/2873
-                'GET' => 'Themis', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
-                'GTC' => 'Game.com', // conflict with Gitcoin and Gastrocoin
-                'HIT' => 'HitChain',
+                'GET' => 'THEMIS', // conflict with GET (Guaranteed Entrance Token, GET Protocol)
+                'GTC' => 'GAMECOM', // conflict with Gitcoin and Gastrocoin
+                'HIT' => 'HITCHAIN',
                 // https://github.com/ccxt/ccxt/issues/7399
                 // https://coinmarketcap.com/currencies/pnetwork/
                 // https://coinmarketcap.com/currencies/penta/markets/
                 // https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
-                'PNT' => 'Penta',
-                'SBTC' => 'Super Bitcoin',
-                'SOUL' => 'Soulsaver',
-                'BIFI' => 'Bitcoin File', // conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
+                'PNT' => 'PENTA',
+                'SBTC' => 'SUPERBITCOIN',
+                'SOUL' => 'SOULSAVER',
+                'BIFI' => 'BITCOINFILE', // conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
             ),
         ));
     }
@@ -1487,7 +1489,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function parse_trading_fee($fee, ?array $market = null): array {
+    public function parse_trading_fee(array $fee, ?array $market = null): array {
         //
         //     {
         //         "symbol":"btcusdt",
@@ -2480,7 +2482,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // spot fetchTrades (public)
         //
@@ -3208,6 +3210,7 @@ class htx extends Exchange {
                 $instStatus = $this->safe_string($entry, 'instStatus');
                 $currencyActive = $instStatus === 'normal';
                 $minPrecision = null;
+                $minDeposit = null;
                 $minWithdraw = null;
                 $maxWithdraw = null;
                 $deposit = false;
@@ -3219,6 +3222,7 @@ class htx extends Exchange {
                     $this->options['networkChainIdsByNames'][$code][$title] = $uniqueChainId;
                     $this->options['networkNamesByChainIds'][$uniqueChainId] = $title;
                     $networkCode = $this->network_id_to_code($uniqueChainId);
+                    $minDeposit = $this->safe_number($chainEntry, 'minDepositAmt');
                     $minWithdraw = $this->safe_number($chainEntry, 'minWithdrawAmt');
                     $maxWithdraw = $this->safe_number($chainEntry, 'maxWithdrawAmt');
                     $withdrawStatus = $this->safe_string($chainEntry, 'withdrawStatus');
@@ -3239,7 +3243,7 @@ class htx extends Exchange {
                         'network' => $networkCode,
                         'limits' => array(
                             'deposit' => array(
-                                'min' => null,
+                                'min' => $minDeposit,
                                 'max' => null,
                             ),
                             'withdraw' => array(
@@ -3965,10 +3969,10 @@ class htx extends Exchange {
                 'status' => '0', // support multiple query seperated by ',',such as '3,4,5', 0 => all. 3. Have sumbmitted the $orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
             );
             $response = null;
-            $stop = $this->safe_value($params, 'stop');
+            $stop = $this->safe_bool_2($params, 'stop', 'trigger');
             $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
             $trailing = $this->safe_bool($params, 'trailing', false);
-            $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing' ));
+            $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ));
             if ($stop || $stopLossTakeProfit || $trailing) {
                 if ($limit !== null) {
                     $request['page_size'] = $limit;
@@ -4327,10 +4331,10 @@ class htx extends Exchange {
                     $request['page_size'] = $limit;
                 }
                 $request['contract_code'] = $market['id'];
-                $stop = $this->safe_value($params, 'stop');
+                $stop = $this->safe_bool_2($params, 'stop', 'trigger');
                 $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
                 $trailing = $this->safe_bool($params, 'trailing', false);
-                $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing' ));
+                $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ));
                 if ($market['linear']) {
                     $marginMode = null;
                     list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
@@ -4573,7 +4577,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             // spot
             'partial-filled' => 'open',
@@ -4595,7 +4599,7 @@ class htx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // spot
         //
@@ -5092,7 +5096,7 @@ class htx extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much you want to trade in units of the base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->timeInForce] supports 'IOC' and 'FOK'
              * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount for $market buy orders
@@ -5209,7 +5213,7 @@ class htx extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much you want to trade in units of the base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->timeInForce] supports 'IOC' and 'FOK'
          * @param {float} [$params->trailingPercent] *contract only* the percent to trail away from the current $market $price
@@ -5312,14 +5316,14 @@ class htx extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much you want to trade in units of the base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->stopPrice] the $price a trigger order is triggered at
              * @param {string} [$params->triggerType] *contract trigger orders only* ge => greater than or equal to, le => less than or equal to
              * @param {float} [$params->stopLossPrice] *contract only* the $price a stop-loss order is triggered at
              * @param {float} [$params->takeProfitPrice] *contract only* the $price a take-profit order is triggered at
              * @param {string} [$params->operator] *spot and margin only* gte or lte, trigger $price condition
-             * @param {string} [$params->offset] *contract only* 'open', 'close', or 'both', required in hedge mode
+             * @param {string} [$params->offset] *contract only* 'both' (linear only), 'open', or 'close', required in hedge mode and for inverse markets
              * @param {bool} [$params->postOnly] *contract only* true or false
              * @param {int} [$params->leverRate] *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
              * @param {string} [$params->timeInForce] supports 'IOC' and 'FOK'
@@ -5373,6 +5377,10 @@ class htx extends Exchange {
                         }
                     }
                 } elseif ($market['inverse']) {
+                    $offset = $this->safe_string($params, 'offset');
+                    if ($offset === null) {
+                        throw new ArgumentsRequired($this->id . ' createOrder () requires an extra parameter $params["offset"] to be set to "open" or "close" when placing orders in inverse markets');
+                    }
                     if ($market['swap']) {
                         if ($isStop) {
                             $response = Async\await($this->contractPrivatePostSwapApiV1SwapTriggerOrder ($contractRequest));
@@ -5649,10 +5657,10 @@ class htx extends Exchange {
                 } else {
                     $request['contract_code'] = $market['id'];
                 }
-                $stop = $this->safe_value($params, 'stop');
+                $stop = $this->safe_bool_2($params, 'stop', 'trigger');
                 $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
                 $trailing = $this->safe_bool($params, 'trailing', false);
-                $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing' ));
+                $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ));
                 if ($market['linear']) {
                     $marginMode = null;
                     list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrder', $params);
@@ -5794,9 +5802,9 @@ class htx extends Exchange {
                 } else {
                     $request['contract_code'] = $market['id'];
                 }
-                $stop = $this->safe_value($params, 'stop');
+                $stop = $this->safe_bool_2($params, 'stop', 'trigger');
                 $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
-                $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit' ));
+                $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trigger' ));
                 if ($market['linear']) {
                     $marginMode = null;
                     list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelOrders', $params);
@@ -5891,8 +5899,67 @@ class htx extends Exchange {
             //         "ts" => 1604367997451
             //     }
             //
-            return $response;
+            $data = $this->safe_dict($response, 'data');
+            return $this->parse_cancel_orders($data);
         }) ();
+    }
+
+    public function parse_cancel_orders($orders) {
+        //
+        //    {
+        //        "success" => array(
+        //            "5983466"
+        //        ),
+        //        "failed" => array(
+        //            array(
+        //                "err-msg" => "Incorrect $order state",
+        //                "order-state" => 7,
+        //                "order-id" => "",
+        //                "err-code" => "order-orderstate-error",
+        //                "client-$order-id" => "first"
+        //            ),
+        //            ...
+        //        )
+        //    }
+        //
+        //    {
+        //        "errors" => array(
+        //            {
+        //                "order_id" => "769206471845261312",
+        //                "err_code" => 1061,
+        //                "err_msg" => "This $order doesnt exist."
+        //            }
+        //        ),
+        //        "successes" => "1258075374411399168,1258075393254871040"
+        //    }
+        //
+        $successes = $this->safe_string($orders, 'successes');
+        $success = null;
+        if ($successes !== null) {
+            $success = explode(',', $successes);
+        } else {
+            $success = $this->safe_list($orders, 'success', array());
+        }
+        $failed = $this->safe_list_2($orders, 'errors', 'failed', array());
+        $result = array();
+        for ($i = 0; $i < count($success); $i++) {
+            $order = $success[$i];
+            $result[] = $this->safe_order(array(
+                'info' => $order,
+                'id' => $order,
+                'status' => 'canceled',
+            ));
+        }
+        for ($i = 0; $i < count($failed); $i++) {
+            $order = $failed[$i];
+            $result[] = $this->safe_order(array(
+                'info' => $order,
+                'id' => $this->safe_string_2($order, 'order-id', 'order_id'),
+                'status' => 'failed',
+                'clientOrderId' => $this->safe_string($order, 'client-$order-id'),
+            ));
+        }
+        return $result;
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
@@ -5933,6 +6000,22 @@ class htx extends Exchange {
                     $request['symbol'] = $market['id'];
                 }
                 $response = Async\await($this->spotPrivatePostV1OrderOrdersBatchCancelOpenOrders ($this->extend($request, $params)));
+                //
+                //     {
+                //         "code" => 200,
+                //         "data" => {
+                //             "success-count" => 2,
+                //             "failed-count" => 0,
+                //             "next-id" => 5454600
+                //         }
+                //     }
+                //
+                $data = $this->safe_dict($response, 'data');
+                return array(
+                    $this->safe_order(array(
+                        'info' => $data,
+                    )),
+                );
             } else {
                 if ($symbol === null) {
                     throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
@@ -5941,10 +6024,10 @@ class htx extends Exchange {
                     $request['symbol'] = $market['settleId'];
                 }
                 $request['contract_code'] = $market['id'];
-                $stop = $this->safe_value($params, 'stop');
+                $stop = $this->safe_bool_2($params, 'stop', 'trigger');
                 $stopLossTakeProfit = $this->safe_value($params, 'stopLossTakeProfit');
                 $trailing = $this->safe_bool($params, 'trailing', false);
-                $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing' ));
+                $params = $this->omit($params, array( 'stop', 'stopLossTakeProfit', 'trailing', 'trigger' ));
                 if ($market['linear']) {
                     $marginMode = null;
                     list($marginMode, $params) = $this->handle_margin_mode_and_params('cancelAllOrders', $params);
@@ -5995,31 +6078,19 @@ class htx extends Exchange {
                 } else {
                     throw new NotSupported($this->id . ' cancelAllOrders() does not support ' . $marketType . ' markets');
                 }
+                //
+                //     {
+                //         "status" => "ok",
+                //         "data" => array(
+                //             "errors" => array(),
+                //             "successes" => "1104754904426696704"
+                //         ),
+                //         "ts" => "1683435723755"
+                //     }
+                //
+                $data = $this->safe_dict($response, 'data');
+                return $this->parse_cancel_orders($data);
             }
-            //
-            // spot
-            //
-            //     {
-            //         "code" => 200,
-            //         "data" => {
-            //             "success-count" => 2,
-            //             "failed-count" => 0,
-            //             "next-id" => 5454600
-            //         }
-            //     }
-            //
-            // future and swap
-            //
-            //     {
-            //         "status" => "ok",
-            //         "data" => array(
-            //             "errors" => array(),
-            //             "successes" => "1104754904426696704"
-            //         ),
-            //         "ts" => "1683435723755"
-            //     }
-            //
-            return $response;
         }) ();
     }
 
@@ -6283,7 +6354,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -6379,7 +6450,7 @@ class htx extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             // deposit $statuses
             'unknown' => 'failed',
@@ -6621,7 +6692,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function parse_isolated_borrow_rate($info, ?array $market = null): array {
+    public function parse_isolated_borrow_rate(array $info, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "1inchusdt",
@@ -6942,7 +7013,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest($info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null) {
         // isolated
         //    {
         //        "interest-rate":"0.000040830000000000",
@@ -7129,7 +7200,7 @@ class htx extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }
@@ -7350,7 +7421,7 @@ class htx extends Exchange {
         );
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         //    {
         //        "symbol" => "BTC",
@@ -7448,14 +7519,20 @@ class htx extends Exchange {
              * fetch all open positions
              * @param {string[]|null} $symbols list of unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->subType] 'linear' or 'inverse'
+             * @param {string} [$params->type] *inverse only* 'future', or 'swap'
+             * @param {string} [$params->marginMode] *linear only* 'cross' or 'isolated'
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=$position-structure $position structure~
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
             $market = null;
             if ($symbols !== null) {
-                $first = $this->safe_string($symbols, 0);
-                $market = $this->market($first);
+                $symbolsLength = count($symbols);
+                if ($symbolsLength > 0) {
+                    $first = $this->safe_string($symbols, 0);
+                    $market = $this->market($first);
+                }
             }
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchPositions', $params, 'cross');
@@ -7852,7 +7929,7 @@ class htx extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null) {
         //
         //     {
         //         "accountId" => 10000001,
@@ -7975,7 +8052,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
              * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
@@ -8019,7 +8096,7 @@ class htx extends Exchange {
         }) ();
     }
 
-    public function fetch_market_leverage_tiers(string $symbol, $params = array ()) {
+    public function fetch_market_leverage_tiers(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single $market
@@ -8993,6 +9070,67 @@ class htx extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         ));
+    }
+
+    public function close_position(string $symbol, ?string $side = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $side, $params) {
+            /**
+             * closes open positions for a contract $market, requires 'amount' in $params, unlike other exchanges
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-lightning-close-order  // USDT-M (isolated)
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-lightning-close-position  // USDT-M (cross)
+             * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-lightning-close-order  // Coin-M swap
+             * @see https://huobiapi.github.io/docs/dm/v1/en/#place-flash-close-order                      // Coin-M futures
+             * @param {string} $symbol unified CCXT $market $symbol
+             * @param {string} $side 'buy' or 'sell', the $side of the closing order, opposite $side side
+             * @param {array} [$params] extra parameters specific to the okx api endpoint
+             * @param {string} [$params->clientOrderId] client needs to provide unique API and have to maintain the API themselves afterwards. [1, 9223372036854775807]
+             * @param {array} [$params->marginMode] 'cross' or 'isolated', required for linear markets
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {number} [$params->amount] order quantity
+             * @param {string} [$params->order_price_type] 'lightning' by default, 'lightning_fok' => lightning fok type, 'lightning_ioc' => lightning ioc type 'market' by default, 'market' => $market order type, 'lightning_fok' => lightning
+             * @return {array} ~@link https://docs.ccxt.com/#/?id=position-structure an order structure~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $clientOrderId = $this->safe_string($params, 'clientOrderId');
+            if (!$market['contract']) {
+                throw new BadRequest($this->id . ' closePosition() $symbol supports contract markets only');
+            }
+            $this->check_required_argument('closePosition', $side, 'side');
+            $request = array(
+                'contract_code' => $market['id'],
+                'direction' => $side,
+            );
+            if ($clientOrderId !== null) {
+                $request['client_order_id'] = $clientOrderId;
+            }
+            if ($market['inverse']) {
+                $amount = $this->safe_string_2($params, 'volume', 'amount');
+                if ($amount === null) {
+                    throw new ArgumentsRequired($this->id . ' closePosition () requires an extra argument $params["amount"] for inverse markets');
+                }
+                $request['volume'] = $this->amount_to_precision($symbol, $amount);
+            }
+            $params = $this->omit($params, array( 'clientOrderId', 'volume', 'amount' ));
+            $response = null;
+            if ($market['inverse']) {  // Coin-M
+                if ($market['swap']) {
+                    $response = Async\await($this->contractPrivatePostSwapApiV1SwapLightningClosePosition ($this->extend($request, $params)));
+                } else {  // future
+                    $response = Async\await($this->contractPrivatePostApiV1LightningClosePosition ($this->extend($request, $params)));
+                }
+            } else {  // USDT-M
+                $marginMode = null;
+                list($marginMode, $params) = $this->handle_margin_mode_and_params('closePosition', $params, 'cross');
+                if ($marginMode === 'cross') {
+                    $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapCrossLightningClosePosition ($this->extend($request, $params)));
+                } else {  // isolated
+                    $response = Async\await($this->contractPrivatePostLinearSwapApiV1SwapLightningClosePosition ($this->extend($request, $params)));
+                }
+            }
+            return $this->parse_order($response, $market);
+        }) ();
     }
 
     public function set_position_mode(bool $hedged, ?string $symbol = null, $params = array ()) {

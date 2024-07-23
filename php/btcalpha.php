@@ -179,7 +179,7 @@ class btcalpha extends Exchange {
         return $this->parse_markets($response);
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $id = $this->safe_string($market, 'name');
         $baseId = $this->safe_string($market, 'currency1');
         $quoteId = $this->safe_string($market, 'currency2');
@@ -374,7 +374,7 @@ class btcalpha extends Exchange {
         return $result;
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -509,7 +509,7 @@ class btcalpha extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //  deposit
         //      {
@@ -555,7 +555,7 @@ class btcalpha extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             '10' => 'pending',  // New
             '20' => 'pending',  // Verified, waiting for approving
@@ -647,7 +647,7 @@ class btcalpha extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             '1' => 'open',
             '2' => 'canceled',
@@ -656,7 +656,7 @@ class btcalpha extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // fetchClosedOrders / fetchOrder
         //     {
@@ -700,7 +700,7 @@ class btcalpha extends Exchange {
         $filled = $this->safe_string($order, 'amount_filled');
         $amount = $this->safe_string($order, 'amount_original');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $id = $this->safe_string_2($order, 'oid', 'id');
+        $id = $this->safe_string_n($order, array( 'oid', 'id', 'order' ));
         $trades = $this->safe_value($order, 'trades');
         $side = $this->safe_string_2($order, 'my_side', 'type');
         return $this->safe_order(array(
@@ -737,7 +737,7 @@ class btcalpha extends Exchange {
          * @param {string} $type 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
@@ -776,7 +776,12 @@ class btcalpha extends Exchange {
             'order' => $id,
         );
         $response = $this->privatePostOrderCancel ($this->extend($request, $params));
-        return $response;
+        //
+        //    {
+        //        "order" => 63568
+        //    }
+        //
+        return $this->parse_order($response);
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -907,7 +912,7 @@ class btcalpha extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to default $error handler
         }
@@ -915,19 +920,12 @@ class btcalpha extends Exchange {
         //     array("date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC")
         //
         $error = $this->safe_string($response, 'error');
-        $feedback = $this->id . ' ' . $body;
         if ($error !== null) {
+            $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $feedback);
+            throw new ExchangeError($feedback); // unknown $error
         }
-        if ($code === 401 || $code === 403) {
-            throw new AuthenticationError($feedback);
-        } elseif ($code === 429) {
-            throw new DDoSProtection($feedback);
-        }
-        if ($code < 400) {
-            return null;
-        }
-        throw new ExchangeError($feedback);
+        return null;
     }
 }

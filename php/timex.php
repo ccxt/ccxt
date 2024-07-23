@@ -439,7 +439,7 @@ class timex extends Exchange {
         return null;
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //     {
         //         "from" => "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
@@ -735,7 +735,7 @@ class timex extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market $orders
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market $orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
@@ -863,12 +863,13 @@ class timex extends Exchange {
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->load_markets();
-        return $this->cancel_orders(array( $id ), $symbol, $params);
+        $orders = $this->cancel_orders(array( $id ), $symbol, $params);
+        return $this->safe_dict($orders, 0);
     }
 
     public function cancel_orders($ids, ?string $symbol = null, $params = array ()) {
         /**
-         * cancel multiple orders
+         * cancel multiple $orders
          * @see https://plasma-relay-backend.timex.io/swagger-ui/index.html?urls.primaryName=Relay#/Trading/deleteOrders
          * @param {string[]} $ids order $ids
          * @param {string} $symbol unified market $symbol, default is null
@@ -904,7 +905,22 @@ class timex extends Exchange {
         //         ),
         //         "unchangedOrders" => array( "string" ),
         //     }
-        return $response;
+        //
+        $changedOrders = $this->safe_list($response, 'changedOrders', array());
+        $unchangedOrders = $this->safe_list($response, 'unchangedOrders', array());
+        $orders = array();
+        for ($i = 0; $i < count($changedOrders); $i++) {
+            $newOrder = $this->safe_dict($changedOrders[$i], 'newOrder');
+            $orders[] = $this->parse_order($newOrder);
+        }
+        for ($i = 0; $i < count($unchangedOrders); $i++) {
+            $orders[] = $this->safe_order(array(
+                'info' => $unchangedOrders[$i],
+                'id' => $unchangedOrders[$i],
+                'status' => 'unchanged',
+            ));
+        }
+        return $orders;
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -1133,7 +1149,7 @@ class timex extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_trading_fee($fee, ?array $market = null): array {
+    public function parse_trading_fee(array $fee, ?array $market = null): array {
         //
         //     {
         //         "fee" => 0.0075,
@@ -1178,7 +1194,7 @@ class timex extends Exchange {
         return $this->parse_trading_fee($result, $market);
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         //
         //     {
         //         "symbol" => "ETHBTC",
@@ -1262,7 +1278,7 @@ class timex extends Exchange {
         );
     }
 
-    public function parse_currency($currency) {
+    public function parse_currency(array $currency) {
         //
         //     {
         //         "symbol" => "BTC",
@@ -1390,7 +1406,7 @@ class timex extends Exchange {
         ), $market);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1481,7 +1497,7 @@ class timex extends Exchange {
         );
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // fetchOrder, createOrder, cancelOrder, cancelOrders, fetchOpenOrders, fetchClosedOrders
         //
@@ -1624,7 +1640,7 @@ class timex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($statusCode, $statusText, $url, $method, $responseHeaders, $responseBody, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $statusCode, string $statusText, string $url, string $method, array $responseHeaders, $responseBody, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

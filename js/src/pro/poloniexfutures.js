@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import poloniexfuturesRest from '../poloniexfutures.js';
-import { AuthenticationError, BadRequest, InvalidNonce } from '../base/errors.js';
+import { AuthenticationError, BadRequest, ChecksumError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 export default class poloniexfutures extends poloniexfuturesRest {
@@ -52,6 +52,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
                     'method': '/contractMarket/level2',
                     'snapshotDelay': 5,
                     'snapshotMaxRetries': 3,
+                    'checksum': true,
                 },
                 'streamLimit': 5,
                 'streamBySubscriptionsHash': {},
@@ -846,31 +847,39 @@ export default class poloniexfutures extends poloniexfuturesRest {
     handleDelta(orderbook, delta) {
         //
         //    {
-        //        "sequence": 18,                   // Sequence number which is used to judge the continuity of pushed messages
-        //        "change": "5000.0,sell,83"        // Price, side, quantity
-        //        "timestamp": 1551770400000
-        //    }
+        //      sequence: 123677914,
+        //      lastSequence: 123677913,
+        //      change: '80.36,buy,4924',
+        //      changes: [ '80.19,buy,0',"80.15,buy,10794" ],
+        //      timestamp: 1715643483528
+        //    },
         //
         const sequence = this.safeInteger(delta, 'sequence');
+        const lastSequence = this.safeInteger(delta, 'lastSequence');
         const nonce = this.safeInteger(orderbook, 'nonce');
-        if (nonce !== sequence - 1) {
-            const checksum = this.safeBool(this.options, 'checksum', true);
+        if (nonce > sequence) {
+            return;
+        }
+        if (nonce !== lastSequence) {
+            const checksum = this.handleOption('watchOrderBook', 'checksum', true);
             if (checksum) {
-                // todo: client.reject from handleOrderBookMessage properly
-                throw new InvalidNonce(this.id + ' watchOrderBook received an out-of-order nonce');
+                throw new ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(''));
             }
         }
-        const change = this.safeString(delta, 'change');
-        const splitChange = change.split(',');
-        const price = this.safeNumber(splitChange, 0);
-        const side = this.safeString(splitChange, 1);
-        const size = this.safeNumber(splitChange, 2);
+        const changes = this.safeList(delta, 'changes');
+        for (let i = 0; i < changes.length; i++) {
+            const change = changes[i];
+            const splitChange = change.split(',');
+            const price = this.safeNumber(splitChange, 0);
+            const side = this.safeString(splitChange, 1);
+            const size = this.safeNumber(splitChange, 2);
+            const orderBookSide = (side === 'buy') ? orderbook['bids'] : orderbook['asks'];
+            orderBookSide.store(price, size);
+        }
         const timestamp = this.safeInteger(delta, 'timestamp');
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601(timestamp);
         orderbook['nonce'] = sequence;
-        const orderBookSide = (side === 'buy') ? orderbook['bids'] : orderbook['asks'];
-        orderBookSide.store(price, size);
     }
     handleBalance(client, message) {
         //

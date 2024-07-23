@@ -683,7 +683,7 @@ class alpaca extends Exchange {
          * @param {string} $type 'market', 'limit' or 'stop_limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] The $price at which a trigger $order is triggered at
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
@@ -781,7 +781,7 @@ class alpaca extends Exchange {
         //       "message" => "order is not found."
         //   }
         //
-        return $this->safe_value($response, 'message', array());
+        return $this->parse_order($response);
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
@@ -797,7 +797,11 @@ class alpaca extends Exchange {
         if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
             return $this->parse_orders($response, null);
         } else {
-            return $response;
+            return array(
+                $this->safe_order(array(
+                    'info' => $response,
+                )),
+            );
         }
     }
 
@@ -928,7 +932,7 @@ class alpaca extends Exchange {
         return $this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //    {
         //        "id":"6ecfcc34-4bed-4b53-83ba-c564aa832a81",
@@ -1015,7 +1019,7 @@ class alpaca extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'pending_new' => 'open',
             'accepted' => 'open',
@@ -1027,14 +1031,14 @@ class alpaca extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_time_in_force($timeInForce) {
+    public function parse_time_in_force(?string $timeInForce) {
         $timeInForces = array(
             'day' => 'Day',
         );
         return $this->safe_string($timeInForces, $timeInForce, $timeInForce);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         //   {
         //       "t":"2022-06-14T05:00:00.027869Z",
@@ -1079,6 +1083,7 @@ class alpaca extends Exchange {
         $url = $this->implode_hostname($this->urls['api'][$api[0]]);
         $headers = ($headers !== null) ? $headers : array();
         if ($api[1] === 'private') {
+            $this->check_required_credentials();
             $headers['APCA-API-KEY-ID'] = $this->apiKey;
             $headers['APCA-API-SECRET-KEY'] = $this->secret;
         }
@@ -1095,7 +1100,7 @@ class alpaca extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // default error handler
         }

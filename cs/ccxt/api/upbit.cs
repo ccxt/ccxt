@@ -121,6 +121,21 @@ public partial class upbit : Exchange
         return await this.callAsync ("privateGetOrders",parameters);
     }
 
+    public async Task<object> privateGetOrdersClosed (object parameters = null)
+    {
+        return await this.callAsync ("privateGetOrdersClosed",parameters);
+    }
+
+    public async Task<object> privateGetOrdersOpen (object parameters = null)
+    {
+        return await this.callAsync ("privateGetOrdersOpen",parameters);
+    }
+
+    public async Task<object> privateGetOrdersUuids (object parameters = null)
+    {
+        return await this.callAsync ("privateGetOrdersUuids",parameters);
+    }
+
     public async Task<object> privateGetWithdraws (object parameters = null)
     {
         return await this.callAsync ("privateGetWithdraws",parameters);

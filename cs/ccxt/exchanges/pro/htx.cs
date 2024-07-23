@@ -96,6 +96,7 @@ public partial class htx : ccxt.htx
                 { "api", "api" },
                 { "watchOrderBook", new Dictionary<string, object>() {
                     { "maxRetries", 3 },
+                    { "checksum", true },
                 } },
                 { "ws", new Dictionary<string, object>() {
                     { "gunzip", true },
@@ -618,7 +619,11 @@ public partial class htx : ccxt.htx
         }
         if (isTrue(isTrue((!isEqual(prevSeqNum, null))) && isTrue(isGreaterThan(prevSeqNum, getValue(orderbook, "nonce")))))
         {
-            throw new InvalidNonce ((string)add(this.id, " watchOrderBook() received a mesage out of order")) ;
+            object checksum = this.handleOption("watchOrderBook", "checksum", true);
+            if (isTrue(checksum))
+            {
+                throw new ChecksumError ((string)add(add(this.id, " "), this.orderbookChecksumMessage(symbol))) ;
+            }
         }
         object spotConditon = isTrue(getValue(market, "spot")) && isTrue((isEqual(prevSeqNum, getValue(orderbook, "nonce"))));
         object nonSpotCondition = isTrue(getValue(market, "contract")) && isTrue((isEqual(subtract(version, 1), getValue(orderbook, "nonce"))));
@@ -682,21 +687,20 @@ public partial class htx : ccxt.htx
         //     }
         //
         object messageHash = this.safeString(message, "ch");
-        object tick = this.safeValue(message, "tick");
+        object tick = this.safeDict(message, "tick");
         object eventVar = this.safeString(tick, "event");
-        object ch = this.safeValue(message, "ch");
+        object ch = this.safeString(message, "ch");
         object parts = ((string)ch).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         object marketId = this.safeString(parts, 1);
         object symbol = this.safeSymbol(marketId);
-        object orderbook = this.safeValue(this.orderbooks, symbol);
-        if (isTrue(isEqual(orderbook, null)))
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
             object size = this.safeString(parts, 3);
             object sizeParts = ((string)size).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             object limit = this.safeInteger(sizeParts, 1);
-            orderbook = this.orderBook(new Dictionary<string, object>() {}, limit);
-            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         }
+        object orderbook = getValue(this.orderbooks, symbol);
         if (isTrue(isTrue((isEqual(eventVar, null))) && isTrue((isEqual(getValue(orderbook, "nonce"), null)))))
         {
             ((IList<object>)(orderbook as ccxt.pro.OrderBook).cache).Add(message);
@@ -729,7 +733,7 @@ public partial class htx : ccxt.htx
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trade structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();

@@ -745,7 +745,7 @@ class huobijp extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1308,7 +1308,7 @@ class huobijp extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'partial-filled' => 'open',
             'partial-canceled' => 'canceled',
@@ -1319,7 +1319,7 @@ class huobijp extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //     {                  $id =>  13997833014,
         //                    "symbol" => "ethbtc",
@@ -1431,7 +1431,7 @@ class huobijp extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
@@ -1584,8 +1584,66 @@ class huobijp extends Exchange {
             //         }
             //     }
             //
-            return $response;
+            return $this->parse_cancel_orders($response);
         }) ();
+    }
+
+    public function parse_cancel_orders($orders) {
+        //
+        //    {
+        //        "success" => array(
+        //            "5983466"
+        //        ),
+        //        "failed" => array(
+        //            array(
+        //                "err-msg" => "Incorrect $order state",
+        //                "order-state" => 7,
+        //                "order-id" => "",
+        //                "err-code" => "order-orderstate-error",
+        //                "client-$order-id" => "first"
+        //            ),
+        //            ...
+        //        )
+        //    }
+        //
+        //    {
+        //        "errors" => array(
+        //            {
+        //                "order_id" => "769206471845261312",
+        //                "err_code" => 1061,
+        //                "err_msg" => "This $order doesnt exist."
+        //            }
+        //        ),
+        //        "successes" => "1258075374411399168,1258075393254871040"
+        //    }
+        //
+        $successes = $this->safe_string($orders, 'successes');
+        $success = null;
+        if ($successes !== null) {
+            $success = explode(',', $successes);
+        } else {
+            $success = $this->safe_list($orders, 'success', array());
+        }
+        $failed = $this->safe_list_2($orders, 'errors', 'failed', array());
+        $result = array();
+        for ($i = 0; $i < count($success); $i++) {
+            $order = $success[$i];
+            $result[] = $this->safe_order(array(
+                'info' => $order,
+                'id' => $order,
+                'status' => 'canceled',
+            ));
+        }
+        for ($i = 0; $i < count($failed); $i++) {
+            $order = $failed[$i];
+            $result[] = $this->safe_order(array(
+                'info' => $order,
+                'id' => $this->safe_string_2($order, 'order-id', 'order_id'),
+                'status' => 'failed',
+                'clientOrderId' => $this->safe_string($order, 'client-$order-id'),
+            ));
+        }
+        return $result;
     }
 
     public function cancel_all_orders(?string $symbol = null, $params = array ()) {
@@ -1620,7 +1678,12 @@ class huobijp extends Exchange {
             //         }
             //     }
             //
-            return $response;
+            $data = $this->safe_dict($response, 'data', array());
+            return array(
+                $this->safe_order(array(
+                    'info' => $data,
+                )),
+            );
         }) ();
     }
 
@@ -1735,7 +1798,7 @@ class huobijp extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -1816,7 +1879,7 @@ class huobijp extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             // deposit $statuses
             'unknown' => 'failed',
@@ -1938,7 +2001,7 @@ class huobijp extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

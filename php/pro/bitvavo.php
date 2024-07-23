@@ -527,7 +527,7 @@ class bitvavo extends \ccxt\async\bitvavo {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=ortradeder-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' watchMyTrades() requires a $symbol argument');
@@ -566,7 +566,7 @@ class bitvavo extends \ccxt\async\bitvavo {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+             * @param {float} $price the $price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
              * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
              * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO"
              * @param {float} [$params->stopPrice] The $price at which a trigger order is triggered at
@@ -598,7 +598,7 @@ class bitvavo extends \ccxt\async\bitvavo {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} [$amount] how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
              * @param {array} [$params] extra parameters specific to the bitvavo api endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */

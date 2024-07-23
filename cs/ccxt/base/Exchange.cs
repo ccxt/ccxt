@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Globalization;
 using System.Net;
+using System.IO.Compression;
 
 namespace ccxt;
 
@@ -232,6 +233,10 @@ public partial class Exchange
 #endif
 
                 var stringContent = body != null ? new StringContent(body, Encoding.UTF8, contentTypeHeader) : null;
+                if (stringContent != null)
+                {
+                    stringContent.Headers.ContentType.CharSet = "";
+                }
                 request.Content = stringContent;
 
                 if (method == "POST")
@@ -271,7 +276,19 @@ public partial class Exchange
                     // response = await httpClient.SendAsync(patchRequest);
                     response = await httpClient.SendAsync(request);
                 }
-                result = await response.Content.ReadAsStringAsync();
+
+                var responseEncoding = response.Content.Headers.ContentEncoding;
+                if (responseEncoding.Contains("gzip"))
+                {
+                    using var stream = await response.Content.ReadAsStreamAsync();
+                    using var decompressedStream = new GZipStream(stream, CompressionMode.Decompress);
+                    using var streamReader = new StreamReader(decompressedStream);
+                    result = await streamReader.ReadToEndAsync();
+                }
+                else
+                {
+                    result = await response.Content.ReadAsStringAsync();
+                }
             }
 
         }

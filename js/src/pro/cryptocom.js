@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import cryptocomRest from '../cryptocom.js';
-import { AuthenticationError, InvalidNonce, NetworkError } from '../base/errors.js';
+import { AuthenticationError, ChecksumError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
@@ -46,6 +46,9 @@ export default class cryptocom extends cryptocomRest {
                 'watchPositions': {
                     'fetchPositionsSnapshot': true,
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
+                },
+                'watchOrderBook': {
+                    'checksum': true,
                 },
             },
             'streaming': {},
@@ -105,14 +108,16 @@ export default class cryptocom extends cryptocomRest {
             params['params'] = {};
         }
         let bookSubscriptionType = undefined;
-        [bookSubscriptionType, params] = this.handleOptionAndParams2(params, 'watchOrderBook', 'watchOrderBookForSymbols', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
-        if (bookSubscriptionType !== undefined) {
-            params['params']['bookSubscriptionType'] = bookSubscriptionType;
-        }
+        let bookSubscriptionType2 = undefined;
+        [bookSubscriptionType, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
+        [bookSubscriptionType2, params] = this.handleOptionAndParams(params, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType);
+        params['params']['bookSubscriptionType'] = bookSubscriptionType2;
         let bookUpdateFrequency = undefined;
-        [bookUpdateFrequency, params] = this.handleOptionAndParams2(params, 'watchOrderBook', 'watchOrderBookForSymbols', 'bookUpdateFrequency');
-        if (bookUpdateFrequency !== undefined) {
-            params['params']['bookSubscriptionType'] = bookSubscriptionType;
+        let bookUpdateFrequency2 = undefined;
+        [bookUpdateFrequency, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'bookUpdateFrequency');
+        [bookUpdateFrequency2, params] = this.handleOptionAndParams(params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
+        if (bookUpdateFrequency2 !== undefined) {
+            params['params']['bookSubscriptionType'] = bookUpdateFrequency2;
         }
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
@@ -129,7 +134,7 @@ export default class cryptocom extends cryptocomRest {
         const price = this.safeFloat(delta, 0);
         const amount = this.safeFloat(delta, 1);
         const count = this.safeInteger(delta, 2);
-        bookside.store(price, amount, count);
+        bookside.storeArray([price, amount, count]);
     }
     handleDeltas(bookside, deltas) {
         for (let i = 0; i < deltas.length; i++) {
@@ -198,11 +203,11 @@ export default class cryptocom extends cryptocomRest {
         let data = this.safeValue(message, 'data');
         data = this.safeValue(data, 0);
         const timestamp = this.safeInteger(data, 't');
-        let orderbook = this.safeValue(this.orderbooks, symbol);
-        if (orderbook === undefined) {
+        if (!(symbol in this.orderbooks)) {
             const limit = this.safeInteger(message, 'depth');
-            orderbook = this.countedOrderBook({}, limit);
+            this.orderbooks[symbol] = this.countedOrderBook({}, limit);
         }
+        const orderbook = this.orderbooks[symbol];
         const channel = this.safeString(message, 'channel');
         const nonce = this.safeInteger2(data, 'u', 's');
         let books = data;
@@ -218,7 +223,10 @@ export default class cryptocom extends cryptocomRest {
             const previousNonce = this.safeInteger(data, 'pu');
             const currentNonce = orderbook['nonce'];
             if (currentNonce !== previousNonce) {
-                throw new InvalidNonce(this.id + ' watchOrderBook() ' + symbol + ' ' + previousNonce + ' != ' + nonce);
+                const checksum = this.handleOption('watchOrderBook', 'checksum', true);
+                if (checksum) {
+                    throw new ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
+                }
             }
         }
         this.handleDeltas(orderbook['asks'], this.safeValue(books, 'asks', []));
@@ -328,7 +336,7 @@ export default class cryptocom extends cryptocomRest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -736,7 +744,7 @@ export default class cryptocom extends cryptocomRest {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
