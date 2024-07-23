@@ -8,7 +8,7 @@ from ccxt.abstract.bingx import ImplicitAPI
 import asyncio
 import hashlib
 import numbers
-from ccxt.base.types import Balances, Currencies, Currency, Int, Leverage, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, TransferEntries
+from ccxt.base.types import Balances, Currencies, Currency, Int, Leverage, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, TransferEntries
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -95,6 +95,7 @@ class bingx(Exchange, ImplicitAPI):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
+                'fetchTradingFee': True,
                 'fetchTransfers': True,
                 'fetchWithdrawals': True,
                 'reduceMargin': True,
@@ -1700,6 +1701,7 @@ class bingx(Exchange, ImplicitAPI):
         :see: https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Assets
         :see: https://bingx-api.github.io/docs/#/swapV2/account-api.html#Get%20Perpetual%20Swap%20Account%20Asset%20Information
         :see: https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
+        :see: https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Account%20Assets
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.standard]: whether to fetch standard contract balances
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
@@ -1708,99 +1710,207 @@ class bingx(Exchange, ImplicitAPI):
         response = None
         standard = None
         standard, params = self.handle_option_and_params(params, 'fetchBalance', 'standard', False)
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchBalance', None, params)
         marketType, marketTypeQuery = self.handle_market_type_and_params('fetchBalance', None, params)
         if standard:
             response = await self.contractV1PrivateGetBalance(marketTypeQuery)
+            #
+            #     {
+            #         "code": 0,
+            #         "timestamp": 1721192833454,
+            #         "data": [
+            #             {
+            #                 "asset": "USDT",
+            #                 "balance": "4.72644300000000000000",
+            #                 "crossWalletBalance": "4.72644300000000000000",
+            #                 "crossUnPnl": "0",
+            #                 "availableBalance": "4.72644300000000000000",
+            #                 "maxWithdrawAmount": "4.72644300000000000000",
+            #                 "marginAvailable": False,
+            #                 "updateTime": 1721192833443
+            #             },
+            #         ]
+            #     }
+            #
         elif marketType == 'spot':
             response = await self.spotV1PrivateGetAccountBalance(marketTypeQuery)
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "debugMsg": "",
+            #         "data": {
+            #             "balances": [
+            #                 {
+            #                     "asset": "USDT",
+            #                     "free": "45.733046995800514",
+            #                     "locked": "0"
+            #                 },
+            #             ]
+            #         }
+            #     }
+            #
         else:
-            response = await self.swapV2PrivateGetUserBalance(marketTypeQuery)
-        #
-        # spot
-        #
-        #    {
-        #        "code": 0,
-        #        "msg": "",
-        #        "ttl": 1,
-        #        "data": {
-        #            "balances": [
-        #                {
-        #                    "asset": "USDT",
-        #                    "free": "16.73971130673954",
-        #                    "locked": "0"
-        #                }
-        #            ]
-        #        }
-        #    }
-        #
-        # swap
-        #
-        #    {
-        #        "code": 0,
-        #        "msg": "",
-        #        "data": {
-        #          "balance": {
-        #            "asset": "USDT",
-        #            "balance": "15.6128",
-        #            "equity": "15.6128",
-        #            "unrealizedProfit": "0.0000",
-        #            "realisedProfit": "0.0000",
-        #            "availableMargin": "15.6128",
-        #            "usedMargin": "0.0000",
-        #            "freezedMargin": "0.0000"
-        #          }
-        #        }
-        #    }
-        # standard futures
-        #    {
-        #        "code":"0",
-        #        "timestamp":"1691148990942",
-        #        "data":[
-        #           {
-        #              "asset":"VST",
-        #              "balance":"100000.00000000000000000000",
-        #              "crossWalletBalance":"100000.00000000000000000000",
-        #              "crossUnPnl":"0",
-        #              "availableBalance":"100000.00000000000000000000",
-        #              "maxWithdrawAmount":"100000.00000000000000000000",
-        #              "marginAvailable":false,
-        #              "updateTime":"1691148990902"
-        #           },
-        #           {
-        #              "asset":"USDT",
-        #              "balance":"0",
-        #              "crossWalletBalance":"0",
-        #              "crossUnPnl":"0",
-        #              "availableBalance":"0",
-        #              "maxWithdrawAmount":"0",
-        #              "marginAvailable":false,
-        #              "updateTime":"1691148990902"
-        #           },
-        #        ]
-        #     }
-        #
+            if subType == 'inverse':
+                response = await self.cswapV1PrivateGetUserBalance(marketTypeQuery)
+                #
+                #     {
+                #         "code": 0,
+                #         "msg": "",
+                #         "timestamp": 1721191833813,
+                #         "data": [
+                #             {
+                #                 "asset": "SOL",
+                #                 "balance": "0.35707951",
+                #                 "equity": "0.35791051",
+                #                 "unrealizedProfit": "0.00083099",
+                #                 "availableMargin": "0.35160653",
+                #                 "usedMargin": "0.00630397",
+                #                 "freezedMargin": "0",
+                #                 "shortUid": "12851936"
+                #             }
+                #         ]
+                #     }
+                #
+            else:
+                response = await self.swapV2PrivateGetUserBalance(marketTypeQuery)
+                #
+                #     {
+                #         "code": 0,
+                #         "msg": "",
+                #         "data": {
+                #             "balance": {
+                #                 "userId": "1177064765068660742",
+                #                 "asset": "USDT",
+                #                 "balance": "51.5198",
+                #                 "equity": "50.5349",
+                #                 "unrealizedProfit": "-0.9849",
+                #                 "realisedProfit": "-0.2134",
+                #                 "availableMargin": "49.1428",
+                #                 "usedMargin": "1.3922",
+                #                 "freezedMargin": "0.0000",
+                #                 "shortUid": "12851936"
+                #             }
+                #         }
+                #     }
+                #
         return self.parse_balance(response)
 
     def parse_balance(self, response) -> Balances:
-        data = self.safe_value(response, 'data')
-        balances = self.safe_value_2(data, 'balance', 'balances', data)
+        #
+        # standard
+        #
+        #     {
+        #         "code": 0,
+        #         "timestamp": 1721192833454,
+        #         "data": [
+        #             {
+        #                 "asset": "USDT",
+        #                 "balance": "4.72644300000000000000",
+        #                 "crossWalletBalance": "4.72644300000000000000",
+        #                 "crossUnPnl": "0",
+        #                 "availableBalance": "4.72644300000000000000",
+        #                 "maxWithdrawAmount": "4.72644300000000000000",
+        #                 "marginAvailable": False,
+        #                 "updateTime": 1721192833443
+        #             },
+        #         ]
+        #     }
+        #
+        # spot
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "debugMsg": "",
+        #         "data": {
+        #             "balances": [
+        #                 {
+        #                     "asset": "USDT",
+        #                     "free": "45.733046995800514",
+        #                     "locked": "0"
+        #                 },
+        #             ]
+        #         }
+        #     }
+        #
+        # inverse swap
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "timestamp": 1721191833813,
+        #         "data": [
+        #             {
+        #                 "asset": "SOL",
+        #                 "balance": "0.35707951",
+        #                 "equity": "0.35791051",
+        #                 "unrealizedProfit": "0.00083099",
+        #                 "availableMargin": "0.35160653",
+        #                 "usedMargin": "0.00630397",
+        #                 "freezedMargin": "0",
+        #                 "shortUid": "12851936"
+        #             }
+        #         ]
+        #     }
+        #
+        # linear swap
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "",
+        #         "data": {
+        #             "balance": {
+        #                 "userId": "1177064765068660742",
+        #                 "asset": "USDT",
+        #                 "balance": "51.5198",
+        #                 "equity": "50.5349",
+        #                 "unrealizedProfit": "-0.9849",
+        #                 "realisedProfit": "-0.2134",
+        #                 "availableMargin": "49.1428",
+        #                 "usedMargin": "1.3922",
+        #                 "freezedMargin": "0.0000",
+        #                 "shortUid": "12851936"
+        #             }
+        #         }
+        #     }
+        #
         result: dict = {'info': response}
-        if isinstance(balances, list):
-            for i in range(0, len(balances)):
-                balance = balances[i]
+        standardAndInverseBalances = self.safe_list(response, 'data')
+        firstStandardOrInverse = self.safe_dict(standardAndInverseBalances, 0)
+        isStandardOrInverse = firstStandardOrInverse is not None
+        spotData = self.safe_dict(response, 'data', {})
+        spotBalances = self.safe_list(spotData, 'balances')
+        firstSpot = self.safe_dict(spotBalances, 0)
+        isSpot = firstSpot is not None
+        if isStandardOrInverse:
+            for i in range(0, len(standardAndInverseBalances)):
+                balance = standardAndInverseBalances[i]
                 currencyId = self.safe_string(balance, 'asset')
                 code = self.safe_currency_code(currencyId)
                 account = self.account()
-                account['free'] = self.safe_string_2(balance, 'free', 'availableBalance')
+                account['free'] = self.safe_string_2(balance, 'availableMargin', 'availableBalance')
+                account['used'] = self.safe_string(balance, 'usedMargin')
+                account['total'] = self.safe_string(balance, 'maxWithdrawAmount')
+                result[code] = account
+        elif isSpot:
+            for i in range(0, len(spotBalances)):
+                balance = spotBalances[i]
+                currencyId = self.safe_string(balance, 'asset')
+                code = self.safe_currency_code(currencyId)
+                account = self.account()
+                account['free'] = self.safe_string(balance, 'free')
                 account['used'] = self.safe_string(balance, 'locked')
-                account['total'] = self.safe_string(balance, 'balance')
                 result[code] = account
         else:
-            currencyId = self.safe_string(balances, 'asset')
+            linearSwapData = self.safe_dict(response, 'data', {})
+            linearSwapBalance = self.safe_dict(linearSwapData, 'balance')
+            currencyId = self.safe_string(linearSwapBalance, 'asset')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_string(balances, 'availableMargin')
-            account['used'] = self.safe_string(balances, 'usedMargin')
+            account['free'] = self.safe_string(linearSwapBalance, 'availableMargin')
+            account['used'] = self.safe_string(linearSwapBalance, 'usedMargin')
             result[code] = account
         return self.safe_balance(result)
 
@@ -4425,6 +4535,7 @@ class bingx(Exchange, ImplicitAPI):
         """
         retrieves the users liquidated positions
         :see: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#User's%20Force%20Orders
+        :see: https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20force%20orders
         :param str [symbol]: unified CCXT market symbol
         :param int [since]: the earliest time in ms to fetch liquidations for
         :param int [limit]: the maximum number of liquidation structures to retrieve
@@ -4445,38 +4556,73 @@ class bingx(Exchange, ImplicitAPI):
             request['startTime'] = since
         if limit is not None:
             request['limit'] = limit
-        response = await self.swapV2PrivateGetTradeForceOrders(self.extend(request, params))
-        #
-        #     {
-        #         "code": 0,
-        #         "msg": "",
-        #         "data": {
-        #             "orders": [
-        #                 {
-        #                     "time": "int64",
-        #                     "symbol": "string",
-        #                     "side": "string",
-        #                      "type": "string",
-        #                     "positionSide": "string",
-        #                     "cumQuote": "string",
-        #                     "status": "string",
-        #                     "stopPrice": "string",
-        #                     "price": "string",
-        #                     "origQty": "string",
-        #                     "avgPrice": "string",
-        #                     "executedQty": "string",
-        #                     "orderId": "int64",
-        #                     "profit": "string",
-        #                     "commission": "string",
-        #                     "workingType": "string",
-        #                     "updateTime": "int64"
-        #                 },
-        #             ]
-        #         }
-        #     }
-        #
-        data = self.safe_dict(response, 'data', {})
-        liquidations = self.safe_list(data, 'orders', [])
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchMyLiquidations', market, params)
+        response = None
+        liquidations = None
+        if subType == 'inverse':
+            response = await self.cswapV1PrivateGetTradeForceOrders(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "timestamp": 1721280071678,
+            #         "data": [
+            #             {
+            #                 "orderId": "string",
+            #                 "symbol": "string",
+            #                 "type": "string",
+            #                 "side": "string",
+            #                 "positionSide": "string",
+            #                 "price": "string",
+            #                 "quantity": "float64",
+            #                 "stopPrice": "string",
+            #                 "workingType": "string",
+            #                 "status": "string",
+            #                 "time": "int64",
+            #                 "avgPrice": "string",
+            #                 "executedQty": "string",
+            #                 "profit": "string",
+            #                 "commission": "string",
+            #                 "updateTime": "string"
+            #             }
+            #         ]
+            #     }
+            #
+            liquidations = self.safe_list(response, 'data', [])
+        else:
+            response = await self.swapV2PrivateGetTradeForceOrders(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "data": {
+            #             "orders": [
+            #                 {
+            #                     "time": "int64",
+            #                     "symbol": "string",
+            #                     "side": "string",
+            #                     "type": "string",
+            #                     "positionSide": "string",
+            #                     "cumQuote": "string",
+            #                     "status": "string",
+            #                     "stopPrice": "string",
+            #                     "price": "string",
+            #                     "origQty": "string",
+            #                     "avgPrice": "string",
+            #                     "executedQty": "string",
+            #                     "orderId": "int64",
+            #                     "profit": "string",
+            #                     "commission": "string",
+            #                     "workingType": "string",
+            #                     "updateTime": "int64"
+            #                 },
+            #             ]
+            #         }
+            #     }
+            #
+            data = self.safe_dict(response, 'data', {})
+            liquidations = self.safe_list(data, 'orders', [])
         return self.parse_liquidations(liquidations, market, since, limit)
 
     def parse_liquidation(self, liquidation, market: Market = None):
@@ -4864,6 +5010,87 @@ class bingx(Exchange, ImplicitAPI):
             'info': marginMode,
             'symbol': market['symbol'],
             'marginMode': marginType,
+        }
+
+    async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
+        """
+        fetch the trading fees for a market
+        :see: https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Trading%20Commission%20Rate
+        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20Trading%20Commission%20Rate
+        :see: https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Trade%20Commission%20Rate
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'symbol': market['id'],
+        }
+        response = None
+        commission: dict = {}
+        data = self.safe_dict(response, 'data', {})
+        if market['spot']:
+            response = await self.spotV1PrivateGetUserCommissionRate(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "debugMsg": "",
+            #         "data": {
+            #             "takerCommissionRate": 0.001,
+            #             "makerCommissionRate": 0.001
+            #         }
+            #     }
+            #
+            commission = data
+        else:
+            if market['inverse']:
+                response = await self.cswapV1PrivateGetUserCommissionRate(params)
+                #
+                #     {
+                #         "code": 0,
+                #         "msg": "",
+                #         "timestamp": 1721365261438,
+                #         "data": {
+                #             "takerCommissionRate": "0.0005",
+                #             "makerCommissionRate": "0.0002"
+                #         }
+                #     }
+                #
+                commission = data
+            else:
+                response = await self.swapV2PrivateGetUserCommissionRate(params)
+                #
+                #     {
+                #         "code": 0,
+                #         "msg": "",
+                #         "data": {
+                #             "commission": {
+                #                 "takerCommissionRate": 0.0005,
+                #                 "makerCommissionRate": 0.0002
+                #             }
+                #         }
+                #     }
+                #
+                commission = self.safe_dict(data, 'commission', {})
+        return self.parse_trading_fee(commission, market)
+
+    def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
+        #
+        #     {
+        #         "takerCommissionRate": 0.001,
+        #         "makerCommissionRate": 0.001
+        #     }
+        #
+        symbol = market['symbol'] if (market is not None) else None
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': self.safe_number(fee, 'makerCommissionRate'),
+            'taker': self.safe_number(fee, 'takerCommissionRate'),
+            'percentage': False,
+            'tierBased': False,
         }
 
     def sign(self, path, section='public', method='GET', params={}, headers=None, body=None):

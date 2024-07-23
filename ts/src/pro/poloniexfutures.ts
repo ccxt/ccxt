@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import poloniexfuturesRest from '../poloniexfutures.js';
-import { AuthenticationError, BadRequest, InvalidNonce } from '../base/errors.js';
+import { AuthenticationError, BadRequest, ChecksumError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -51,6 +51,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
                     'method': '/contractMarket/level2', // can also be '/contractMarket/level3v2'
                     'snapshotDelay': 5,
                     'snapshotMaxRetries': 3,
+                    'checksum': true,
                 },
                 'streamLimit': 5, // called tunnels by poloniexfutures docs
                 'streamBySubscriptionsHash': {},
@@ -883,7 +884,10 @@ export default class poloniexfutures extends poloniexfuturesRest {
             return;
         }
         if (nonce !== lastSequence) {
-            throw new InvalidNonce (this.id + ' watchOrderBook received an out-of-order nonce');
+            const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
+            if (checksum) {
+                throw new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (''));
+            }
         }
         const changes = this.safeList (delta, 'changes');
         for (let i = 0; i < changes.length; i++) {

@@ -1494,7 +1494,7 @@ class zonda extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function is_fiat($currency) {
+    public function is_fiat(string $currency): bool {
         $fiatCurrencies = array(
             'USD' => true,
             'EUR' => true,

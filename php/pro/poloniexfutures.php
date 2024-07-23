@@ -8,7 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\AuthenticationError;
 use ccxt\BadRequest;
-use ccxt\InvalidNonce;
+use ccxt\ChecksumError;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -56,6 +56,7 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
                     'method' => '/contractMarket/level2', // can also be '/contractMarket/level3v2'
                     'snapshotDelay' => 5,
                     'snapshotMaxRetries' => 3,
+                    'checksum' => true,
                 ),
                 'streamLimit' => 5, // called tunnels by poloniexfutures docs
                 'streamBySubscriptionsHash' => array(),
@@ -894,7 +895,10 @@ class poloniexfutures extends \ccxt\async\poloniexfutures {
             return;
         }
         if ($nonce !== $lastSequence) {
-            throw new InvalidNonce($this->id . ' watchOrderBook received an out-of-order nonce');
+            $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
+            if ($checksum) {
+                throw new ChecksumError($this->id . ' ' . $this->orderbook_checksum_message(''));
+            }
         }
         $changes = $this->safe_list($delta, 'changes');
         for ($i = 0; $i < count($changes); $i++) {

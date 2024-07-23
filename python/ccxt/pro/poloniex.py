@@ -1160,7 +1160,7 @@ class poloniex(ccxt.async_support.poloniex):
                 del client.subscriptions[messageHash]
         return message
 
-    def ping(self, client):
+    def ping(self, client: Client):
         return {
             'event': 'ping',
         }

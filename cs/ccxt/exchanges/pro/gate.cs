@@ -93,6 +93,7 @@ public partial class gate : ccxt.gate
                     { "interval", "100ms" },
                     { "snapshotDelay", 10 },
                     { "snapshotMaxRetries", 3 },
+                    { "checksum", true },
                 } },
                 { "watchBalance", new Dictionary<string, object>() {
                     { "settle", "usdt" },
@@ -536,10 +537,14 @@ public partial class gate : ccxt.gate
             this.handleDelta(storedOrderBook, delta);
         } else
         {
-            var error = new InvalidNonce(add(this.id, " orderbook update has a nonce bigger than u"));
 
 
-            ((WebSocketClient)client).reject(error, messageHash);
+            object checksum = this.handleOption("watchOrderBook", "checksum", true);
+            if (isTrue(checksum))
+            {
+                var error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));
+                ((WebSocketClient)client).reject(error, messageHash);
+            }
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {storedOrderBook, messageHash});
     }
@@ -1475,7 +1480,7 @@ public partial class gate : ccxt.gate
                 object status = this.safeString(parsed, "status");
                 if (isTrue(isEqual(status, null)))
                 {
-                    object left = this.safeNumber(info, "left");
+                    object left = this.safeInteger(info, "left");
                     ((IDictionary<string,object>)parsed)["status"] = ((bool) isTrue((isEqual(left, 0)))) ? "closed" : "canceled";
                 }
             }

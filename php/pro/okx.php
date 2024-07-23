@@ -10,7 +10,7 @@ use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
-use ccxt\InvalidNonce;
+use ccxt\ChecksumError;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -54,6 +54,7 @@ class okx extends \ccxt\async\okx {
             ),
             'options' => array(
                 'watchOrderBook' => array(
+                    'checksum' => true,
                     //
                     // bbo-tbt
                     // 1. Newly added channel that sends tick-by-tick Level 1 data
@@ -101,7 +102,6 @@ class okx extends \ccxt\async\okx {
                 'ws' => array(
                     // 'inflate' => true,
                 ),
-                'checksum' => true,
             ),
             'streaming' => array(
                 // okex does not support built-in ws protocol-level ping-pong
@@ -952,7 +952,7 @@ class okx extends \ccxt\async\okx {
         $this->handle_deltas($storedBids, $bids);
         $marketId = $this->safe_string($message, 'instId');
         $symbol = $this->safe_symbol($marketId);
-        $checksum = $this->safe_bool($this->options, 'checksum', true);
+        $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
         if ($checksum) {
             $asksLength = count($storedAsks);
             $bidsLength = count($storedBids);
@@ -971,7 +971,7 @@ class okx extends \ccxt\async\okx {
             $responseChecksum = $this->safe_integer($message, 'checksum');
             $localChecksum = $this->crc32($payload, true);
             if ($responseChecksum !== $localChecksum) {
-                $error = new InvalidNonce ($this->id . ' invalid checksum');
+                $error = new ChecksumError ($this->id . ' ' . $this->orderbook_checksum_message($symbol));
                 unset($client->subscriptions[$messageHash]);
                 unset($this->orderbooks[$symbol]);
                 $client->reject ($error, $messageHash);
@@ -1681,7 +1681,7 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $url = $this->get_url('private', 'private');
-            $messageHash = (string) $this->nonce();
+            $messageHash = (string) $this->milliseconds();
             $op = null;
             list($op, $params) = $this->handle_option_and_params($params, 'createOrderWs', 'op', 'batch-orders');
             $args = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
@@ -1753,7 +1753,7 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $url = $this->get_url('private', 'private');
-            $messageHash = (string) $this->nonce();
+            $messageHash = (string) $this->milliseconds();
             $op = null;
             list($op, $params) = $this->handle_option_and_params($params, 'editOrderWs', 'op', 'amend-order');
             $args = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
@@ -1783,7 +1783,7 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $url = $this->get_url('private', 'private');
-            $messageHash = (string) $this->nonce();
+            $messageHash = (string) $this->milliseconds();
             $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
             $params = $this->omit($params, array( 'clientOrderId', 'clOrdId' ));
             $arg = array(
@@ -1823,7 +1823,7 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $url = $this->get_url('private', 'private');
-            $messageHash = (string) $this->nonce();
+            $messageHash = (string) $this->milliseconds();
             $args = array();
             for ($i = 0; $i < $idsLength; $i++) {
                 $arg = array(
@@ -1860,7 +1860,7 @@ class okx extends \ccxt\async\okx {
                 throw new BadRequest($this->id . 'cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.');
             }
             $url = $this->get_url('private', 'private');
-            $messageHash = (string) $this->nonce();
+            $messageHash = (string) $this->milliseconds();
             $request = array(
                 'id' => $messageHash,
                 'op' => 'mass-cancel',
@@ -1909,7 +1909,7 @@ class okx extends \ccxt\async\okx {
         $future->resolve (true);
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         // OKX does not support the built-in WebSocket protocol-level ping-pong.
         // Instead, it requires a custom text-based ping-pong mechanism.
         return 'ping';

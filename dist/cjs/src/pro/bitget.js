@@ -62,6 +62,9 @@ class bitget extends bitget$1 {
                     '1d': '1D',
                     '1w': '1W',
                 },
+                'watchOrderBook': {
+                    'checksum': true,
+                },
             },
             'streaming': {
                 'ping': this.ping,
@@ -559,9 +562,9 @@ class bitget extends bitget$1 {
                 const calculatedChecksum = this.crc32(payload, true);
                 const responseChecksum = this.safeInteger(rawOrderBook, 'checksum');
                 if (calculatedChecksum !== responseChecksum) {
-                    const error = new errors.InvalidNonce(this.id + ' invalid checksum');
                     delete client.subscriptions[messageHash];
                     delete this.orderbooks[symbol];
+                    const error = new errors.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
                     client.reject(error, messageHash);
                     return;
                 }

@@ -98,6 +98,7 @@ class kraken(Exchange, ImplicitAPI):
                 'fetchOrderTrades': 'emulated',
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -644,6 +645,30 @@ class kraken(Exchange, ImplicitAPI):
         for i in range(0, len(markets)):
             result.append(self.extend(defaults, markets[i]))
         return result
+
+    def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :see: https://docs.kraken.com/api/docs/rest-api/get-system-status/
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
+        """
+        response = self.publicGetSystemStatus(params)
+        #
+        # {
+        #     error: [],
+        #     result: {status: 'online', timestamp: '2024-07-22T16:34:44Z'}
+        # }
+        #
+        result = self.safe_dict(response, 'result')
+        statusRaw = self.safe_string(result, 'status')
+        return {
+            'status': 'ok' if (statusRaw == 'online') else 'maintenance',
+            'updated': None,
+            'eta': None,
+            'url': None,
+            'info': response,
+        }
 
     def fetch_currencies(self, params={}) -> Currencies:
         """

@@ -96,6 +96,7 @@ public partial class htx : ccxt.htx
                 { "api", "api" },
                 { "watchOrderBook", new Dictionary<string, object>() {
                     { "maxRetries", 3 },
+                    { "checksum", true },
                 } },
                 { "ws", new Dictionary<string, object>() {
                     { "gunzip", true },
@@ -618,7 +619,11 @@ public partial class htx : ccxt.htx
         }
         if (isTrue(isTrue((!isEqual(prevSeqNum, null))) && isTrue(isGreaterThan(prevSeqNum, getValue(orderbook, "nonce")))))
         {
-            throw new InvalidNonce ((string)add(this.id, " watchOrderBook() received a mesage out of order")) ;
+            object checksum = this.handleOption("watchOrderBook", "checksum", true);
+            if (isTrue(checksum))
+            {
+                throw new ChecksumError ((string)add(add(this.id, " "), this.orderbookChecksumMessage(symbol))) ;
+            }
         }
         object spotConditon = isTrue(getValue(market, "spot")) && isTrue((isEqual(prevSeqNum, getValue(orderbook, "nonce"))));
         object nonSpotCondition = isTrue(getValue(market, "contract")) && isTrue((isEqual(subtract(version, 1), getValue(orderbook, "nonce"))));

@@ -74,15 +74,16 @@ export default class bingx extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': true,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': true,
-                'fetchPosition': true,
                 'fetchPositions': true,
                 'fetchPositionsHistory': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': true,
@@ -1780,6 +1781,7 @@ export default class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Assets
          * @see https://bingx-api.github.io/docs/#/swapV2/account-api.html#Get%20Perpetual%20Swap%20Account%20Asset%20Information
          * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Query%20standard%20contract%20balance
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Account%20Assets
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.standard] whether to fetch standard contract balances
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
@@ -1788,104 +1790,216 @@ export default class bingx extends Exchange {
         let response = undefined;
         let standard = undefined;
         [standard, params] = this.handleOptionAndParams(params, 'fetchBalance', 'standard', false);
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchBalance', undefined, params);
         const [marketType, marketTypeQuery] = this.handleMarketTypeAndParams('fetchBalance', undefined, params);
         if (standard) {
             response = await this.contractV1PrivateGetBalance(marketTypeQuery);
+            //
+            //     {
+            //         "code": 0,
+            //         "timestamp": 1721192833454,
+            //         "data": [
+            //             {
+            //                 "asset": "USDT",
+            //                 "balance": "4.72644300000000000000",
+            //                 "crossWalletBalance": "4.72644300000000000000",
+            //                 "crossUnPnl": "0",
+            //                 "availableBalance": "4.72644300000000000000",
+            //                 "maxWithdrawAmount": "4.72644300000000000000",
+            //                 "marginAvailable": false,
+            //                 "updateTime": 1721192833443
+            //             },
+            //         ]
+            //     }
+            //
         }
         else if (marketType === 'spot') {
             response = await this.spotV1PrivateGetAccountBalance(marketTypeQuery);
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "",
+            //         "debugMsg": "",
+            //         "data": {
+            //             "balances": [
+            //                 {
+            //                     "asset": "USDT",
+            //                     "free": "45.733046995800514",
+            //                     "locked": "0"
+            //                 },
+            //             ]
+            //         }
+            //     }
+            //
         }
         else {
-            response = await this.swapV2PrivateGetUserBalance(marketTypeQuery);
+            if (subType === 'inverse') {
+                response = await this.cswapV1PrivateGetUserBalance(marketTypeQuery);
+                //
+                //     {
+                //         "code": 0,
+                //         "msg": "",
+                //         "timestamp": 1721191833813,
+                //         "data": [
+                //             {
+                //                 "asset": "SOL",
+                //                 "balance": "0.35707951",
+                //                 "equity": "0.35791051",
+                //                 "unrealizedProfit": "0.00083099",
+                //                 "availableMargin": "0.35160653",
+                //                 "usedMargin": "0.00630397",
+                //                 "freezedMargin": "0",
+                //                 "shortUid": "12851936"
+                //             }
+                //         ]
+                //     }
+                //
+            }
+            else {
+                response = await this.swapV2PrivateGetUserBalance(marketTypeQuery);
+                //
+                //     {
+                //         "code": 0,
+                //         "msg": "",
+                //         "data": {
+                //             "balance": {
+                //                 "userId": "1177064765068660742",
+                //                 "asset": "USDT",
+                //                 "balance": "51.5198",
+                //                 "equity": "50.5349",
+                //                 "unrealizedProfit": "-0.9849",
+                //                 "realisedProfit": "-0.2134",
+                //                 "availableMargin": "49.1428",
+                //                 "usedMargin": "1.3922",
+                //                 "freezedMargin": "0.0000",
+                //                 "shortUid": "12851936"
+                //             }
+                //         }
+                //     }
+                //
+            }
         }
-        //
-        // spot
-        //
-        //    {
-        //        "code": 0,
-        //        "msg": "",
-        //        "ttl": 1,
-        //        "data": {
-        //            "balances": [
-        //                {
-        //                    "asset": "USDT",
-        //                    "free": "16.73971130673954",
-        //                    "locked": "0"
-        //                }
-        //            ]
-        //        }
-        //    }
-        //
-        // swap
-        //
-        //    {
-        //        "code": 0,
-        //        "msg": "",
-        //        "data": {
-        //          "balance": {
-        //            "asset": "USDT",
-        //            "balance": "15.6128",
-        //            "equity": "15.6128",
-        //            "unrealizedProfit": "0.0000",
-        //            "realisedProfit": "0.0000",
-        //            "availableMargin": "15.6128",
-        //            "usedMargin": "0.0000",
-        //            "freezedMargin": "0.0000"
-        //          }
-        //        }
-        //    }
-        // standard futures
-        //    {
-        //        "code":"0",
-        //        "timestamp":"1691148990942",
-        //        "data":[
-        //           {
-        //              "asset":"VST",
-        //              "balance":"100000.00000000000000000000",
-        //              "crossWalletBalance":"100000.00000000000000000000",
-        //              "crossUnPnl":"0",
-        //              "availableBalance":"100000.00000000000000000000",
-        //              "maxWithdrawAmount":"100000.00000000000000000000",
-        //              "marginAvailable":false,
-        //              "updateTime":"1691148990902"
-        //           },
-        //           {
-        //              "asset":"USDT",
-        //              "balance":"0",
-        //              "crossWalletBalance":"0",
-        //              "crossUnPnl":"0",
-        //              "availableBalance":"0",
-        //              "maxWithdrawAmount":"0",
-        //              "marginAvailable":false,
-        //              "updateTime":"1691148990902"
-        //           },
-        //        ]
-        //     }
-        //
         return this.parseBalance(response);
     }
     parseBalance(response) {
-        const data = this.safeValue(response, 'data');
-        const balances = this.safeValue2(data, 'balance', 'balances', data);
+        //
+        // standard
+        //
+        //     {
+        //         "code": 0,
+        //         "timestamp": 1721192833454,
+        //         "data": [
+        //             {
+        //                 "asset": "USDT",
+        //                 "balance": "4.72644300000000000000",
+        //                 "crossWalletBalance": "4.72644300000000000000",
+        //                 "crossUnPnl": "0",
+        //                 "availableBalance": "4.72644300000000000000",
+        //                 "maxWithdrawAmount": "4.72644300000000000000",
+        //                 "marginAvailable": false,
+        //                 "updateTime": 1721192833443
+        //             },
+        //         ]
+        //     }
+        //
+        // spot
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "debugMsg": "",
+        //         "data": {
+        //             "balances": [
+        //                 {
+        //                     "asset": "USDT",
+        //                     "free": "45.733046995800514",
+        //                     "locked": "0"
+        //                 },
+        //             ]
+        //         }
+        //     }
+        //
+        // inverse swap
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "timestamp": 1721191833813,
+        //         "data": [
+        //             {
+        //                 "asset": "SOL",
+        //                 "balance": "0.35707951",
+        //                 "equity": "0.35791051",
+        //                 "unrealizedProfit": "0.00083099",
+        //                 "availableMargin": "0.35160653",
+        //                 "usedMargin": "0.00630397",
+        //                 "freezedMargin": "0",
+        //                 "shortUid": "12851936"
+        //             }
+        //         ]
+        //     }
+        //
+        // linear swap
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "data": {
+        //             "balance": {
+        //                 "userId": "1177064765068660742",
+        //                 "asset": "USDT",
+        //                 "balance": "51.5198",
+        //                 "equity": "50.5349",
+        //                 "unrealizedProfit": "-0.9849",
+        //                 "realisedProfit": "-0.2134",
+        //                 "availableMargin": "49.1428",
+        //                 "usedMargin": "1.3922",
+        //                 "freezedMargin": "0.0000",
+        //                 "shortUid": "12851936"
+        //             }
+        //         }
+        //     }
+        //
         const result = { 'info': response };
-        if (Array.isArray(balances)) {
-            for (let i = 0; i < balances.length; i++) {
-                const balance = balances[i];
+        const standardAndInverseBalances = this.safeList(response, 'data');
+        const firstStandardOrInverse = this.safeDict(standardAndInverseBalances, 0);
+        const isStandardOrInverse = firstStandardOrInverse !== undefined;
+        const spotData = this.safeDict(response, 'data', {});
+        const spotBalances = this.safeList(spotData, 'balances');
+        const firstSpot = this.safeDict(spotBalances, 0);
+        const isSpot = firstSpot !== undefined;
+        if (isStandardOrInverse) {
+            for (let i = 0; i < standardAndInverseBalances.length; i++) {
+                const balance = standardAndInverseBalances[i];
                 const currencyId = this.safeString(balance, 'asset');
                 const code = this.safeCurrencyCode(currencyId);
                 const account = this.account();
-                account['free'] = this.safeString2(balance, 'free', 'availableBalance');
+                account['free'] = this.safeString2(balance, 'availableMargin', 'availableBalance');
+                account['used'] = this.safeString(balance, 'usedMargin');
+                account['total'] = this.safeString(balance, 'maxWithdrawAmount');
+                result[code] = account;
+            }
+        }
+        else if (isSpot) {
+            for (let i = 0; i < spotBalances.length; i++) {
+                const balance = spotBalances[i];
+                const currencyId = this.safeString(balance, 'asset');
+                const code = this.safeCurrencyCode(currencyId);
+                const account = this.account();
+                account['free'] = this.safeString(balance, 'free');
                 account['used'] = this.safeString(balance, 'locked');
-                account['total'] = this.safeString(balance, 'balance');
                 result[code] = account;
             }
         }
         else {
-            const currencyId = this.safeString(balances, 'asset');
+            const linearSwapData = this.safeDict(response, 'data', {});
+            const linearSwapBalance = this.safeDict(linearSwapData, 'balance');
+            const currencyId = this.safeString(linearSwapBalance, 'asset');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
-            account['free'] = this.safeString(balances, 'availableMargin');
-            account['used'] = this.safeString(balances, 'usedMargin');
+            account['free'] = this.safeString(linearSwapBalance, 'availableMargin');
+            account['used'] = this.safeString(linearSwapBalance, 'usedMargin');
             result[code] = account;
         }
         return this.safeBalance(result);
@@ -4732,6 +4846,7 @@ export default class bingx extends Exchange {
          * @name bingx#fetchMyLiquidations
          * @description retrieves the users liquidated positions
          * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#User's%20Force%20Orders
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20force%20orders
          * @param {string} [symbol] unified CCXT market symbol
          * @param {int} [since] the earliest time in ms to fetch liquidations for
          * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -4755,38 +4870,75 @@ export default class bingx extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.swapV2PrivateGetTradeForceOrders(this.extend(request, params));
-        //
-        //     {
-        //         "code": 0,
-        //         "msg": "",
-        //         "data": {
-        //             "orders": [
-        //                 {
-        //                     "time": "int64",
-        //                     "symbol": "string",
-        //                     "side": "string",
-        //                      "type": "string",
-        //                     "positionSide": "string",
-        //                     "cumQuote": "string",
-        //                     "status": "string",
-        //                     "stopPrice": "string",
-        //                     "price": "string",
-        //                     "origQty": "string",
-        //                     "avgPrice": "string",
-        //                     "executedQty": "string",
-        //                     "orderId": "int64",
-        //                     "profit": "string",
-        //                     "commission": "string",
-        //                     "workingType": "string",
-        //                     "updateTime": "int64"
-        //                 },
-        //             ]
-        //         }
-        //     }
-        //
-        const data = this.safeDict(response, 'data', {});
-        const liquidations = this.safeList(data, 'orders', []);
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchMyLiquidations', market, params);
+        let response = undefined;
+        let liquidations = undefined;
+        if (subType === 'inverse') {
+            response = await this.cswapV1PrivateGetTradeForceOrders(this.extend(request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "",
+            //         "timestamp": 1721280071678,
+            //         "data": [
+            //             {
+            //                 "orderId": "string",
+            //                 "symbol": "string",
+            //                 "type": "string",
+            //                 "side": "string",
+            //                 "positionSide": "string",
+            //                 "price": "string",
+            //                 "quantity": "float64",
+            //                 "stopPrice": "string",
+            //                 "workingType": "string",
+            //                 "status": "string",
+            //                 "time": "int64",
+            //                 "avgPrice": "string",
+            //                 "executedQty": "string",
+            //                 "profit": "string",
+            //                 "commission": "string",
+            //                 "updateTime": "string"
+            //             }
+            //         ]
+            //     }
+            //
+            liquidations = this.safeList(response, 'data', []);
+        }
+        else {
+            response = await this.swapV2PrivateGetTradeForceOrders(this.extend(request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "",
+            //         "data": {
+            //             "orders": [
+            //                 {
+            //                     "time": "int64",
+            //                     "symbol": "string",
+            //                     "side": "string",
+            //                     "type": "string",
+            //                     "positionSide": "string",
+            //                     "cumQuote": "string",
+            //                     "status": "string",
+            //                     "stopPrice": "string",
+            //                     "price": "string",
+            //                     "origQty": "string",
+            //                     "avgPrice": "string",
+            //                     "executedQty": "string",
+            //                     "orderId": "int64",
+            //                     "profit": "string",
+            //                     "commission": "string",
+            //                     "workingType": "string",
+            //                     "updateTime": "int64"
+            //                 },
+            //             ]
+            //         }
+            //     }
+            //
+            const data = this.safeDict(response, 'data', {});
+            liquidations = this.safeList(data, 'orders', []);
+        }
         return this.parseLiquidations(liquidations, market, since, limit);
     }
     parseLiquidation(liquidation, market = undefined) {
@@ -5198,6 +5350,93 @@ export default class bingx extends Exchange {
             'info': marginMode,
             'symbol': market['symbol'],
             'marginMode': marginType,
+        };
+    }
+    async fetchTradingFee(symbol, params = {}) {
+        /**
+         * @method
+         * @name bingx#fetchTradingFee
+         * @description fetch the trading fees for a market
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Trading%20Commission%20Rate
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20Trading%20Commission%20Rate
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Trade%20Commission%20Rate
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         */
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        let response = undefined;
+        let commission = {};
+        const data = this.safeDict(response, 'data', {});
+        if (market['spot']) {
+            response = await this.spotV1PrivateGetUserCommissionRate(this.extend(request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "",
+            //         "debugMsg": "",
+            //         "data": {
+            //             "takerCommissionRate": 0.001,
+            //             "makerCommissionRate": 0.001
+            //         }
+            //     }
+            //
+            commission = data;
+        }
+        else {
+            if (market['inverse']) {
+                response = await this.cswapV1PrivateGetUserCommissionRate(params);
+                //
+                //     {
+                //         "code": 0,
+                //         "msg": "",
+                //         "timestamp": 1721365261438,
+                //         "data": {
+                //             "takerCommissionRate": "0.0005",
+                //             "makerCommissionRate": "0.0002"
+                //         }
+                //     }
+                //
+                commission = data;
+            }
+            else {
+                response = await this.swapV2PrivateGetUserCommissionRate(params);
+                //
+                //     {
+                //         "code": 0,
+                //         "msg": "",
+                //         "data": {
+                //             "commission": {
+                //                 "takerCommissionRate": 0.0005,
+                //                 "makerCommissionRate": 0.0002
+                //             }
+                //         }
+                //     }
+                //
+                commission = this.safeDict(data, 'commission', {});
+            }
+        }
+        return this.parseTradingFee(commission, market);
+    }
+    parseTradingFee(fee, market = undefined) {
+        //
+        //     {
+        //         "takerCommissionRate": 0.001,
+        //         "makerCommissionRate": 0.001
+        //     }
+        //
+        const symbol = (market !== undefined) ? market['symbol'] : undefined;
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': this.safeNumber(fee, 'makerCommissionRate'),
+            'taker': this.safeNumber(fee, 'takerCommissionRate'),
+            'percentage': false,
+            'tierBased': false,
         };
     }
     sign(path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
