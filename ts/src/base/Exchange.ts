@@ -4616,7 +4616,7 @@ export default class Exchange {
         return this.safeValue (fees, code);
     }
 
-    getSupportedMapping (key, mapping = {}) {
+    getSupportedMapping (key: string, mapping = {}) {
         if (key in mapping) {
             return mapping[key];
         } else {
