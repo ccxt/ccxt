@@ -1138,7 +1138,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         }
     }
 
-    ping (client) {
+    ping (client: Client) {
         // kucoin does not support built-in ws protocol-level ping-pong
         // instead it requires a custom json-based text ping-pong
         // https://docs.kucoin.com/#ping

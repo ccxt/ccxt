@@ -54,7 +54,7 @@ export default class currencycom extends currencycomRest {
         });
     }
 
-    ping (client) {
+    ping (client: Client) {
         // custom ping-pong
         const requestId = this.requestId ().toString ();
         return {

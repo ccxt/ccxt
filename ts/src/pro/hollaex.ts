@@ -591,7 +591,7 @@ export default class hollaex extends hollaexRest {
         }
     }
 
-    ping (client) {
+    ping (client: Client) {
         // hollaex does not support built-in ws protocol-level ping-pong
         return { 'op': 'ping' };
     }
