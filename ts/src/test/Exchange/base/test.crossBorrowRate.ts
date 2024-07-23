@@ -1,7 +1,7 @@
 import { Exchange } from "../../../../ccxt";
 import testSharedMethods from './test.sharedMethods.js';
 
-function testBorrowRate (exchange: Exchange, skippedProperties: object, method: string, entry: object, requestedCode: string) {
+function testCrossBorrowRate (exchange: Exchange, skippedProperties: object, method: string, entry: object, requestedCode: string) {
     const format = {
         'info': {}, // Or []
         'currency': 'USDT',
@@ -19,4 +19,4 @@ function testBorrowRate (exchange: Exchange, skippedProperties: object, method: 
     testSharedMethods.assertGreater (exchange, skippedProperties, method, entry, 'rate', '0');
 }
 
-export default testBorrowRate;
+export default testCrossBorrowRate;
