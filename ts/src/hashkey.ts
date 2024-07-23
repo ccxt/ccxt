@@ -3,7 +3,8 @@
 
 import Exchange from './abstract/hashkey.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Bool, Dict, Int, Market, OHLCV, OrderBook, Ticker, Trade } from './base/types.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import type { Balances, Bool, Dict, Int, Market, OHLCV, OrderBook, Ticker, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -981,6 +982,77 @@ export default class hashkey extends Exchange {
         }, market);
     }
 
+    async fetchBalance (params = {}): Promise<Balances> {
+        /**
+         * @method
+         * @name hashkey#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-account-information
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.accountId] account ID, for Master Key only
+         * @param {string} [params.timestamp] timestamp
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        await this.loadMarkets ();
+        const request: Dict = {};
+        const timestamp = this.microseconds ();
+        if (timestamp !== undefined) {
+            request['timestamp'] = timestamp;
+        }
+        const response = await this.privateGetApiV1Account (params);
+        //
+        //     {
+        //         "balances": [
+        //             {
+        //                 "asset":"USDT",
+        //                 "assetId":"USDT",
+        //                 "assetName":"USDT",
+        //                 "total":"40",
+        //                 "free":"40",
+        //                 "locked":"0"
+        //             },
+        //             ...
+        //         ],
+        //         "userId": "1732885739572845312"
+        //     }
+        //
+        return this.parseBalance (response);
+    }
+
+    parseBalance (balance): Balances {
+        //
+        //     {
+        //         "balances": [
+        //             {
+        //                 "asset":"USDT",
+        //                 "assetId":"USDT",
+        //                 "assetName":"USDT",
+        //                 "total":"40",
+        //                 "free":"40",
+        //                 "locked":"0"
+        //             },
+        //             ...
+        //         ],
+        //         "userId": "1732885739572845312"
+        //     }
+        //
+        const result: Dict = {
+            'info': balance,
+        };
+        const balances = this.safeList (balance, 'balances', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balanceEntry = balances[i];
+            const currencyId = this.safeString (balanceEntry, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeString (balanceEntry, 'total');
+            account['free'] = this.safeString (balanceEntry, 'free');
+            account['used'] = this.safeString (balanceEntry, 'locked');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api];
         let query = this.omit (params, this.extractParams (path));
@@ -989,6 +1061,18 @@ export default class hashkey extends Exchange {
         query = this.urlencode (query);
         if (query.length !== 0) {
             url += '?' + query;
+        }
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            const timestamp = this.milliseconds ();
+            let data = this.extend ({ 'recvWindow': this.options['recvWindow'], 'timestamp': timestamp }, params);
+            data = this.keysort (data);
+            const signature = this.hmac (this.encode (this.urlencode (data)), this.encode (this.secret), sha256);
+            url += '?' + this.urlencode (data);
+            url += '&' + 'signature=' + signature;
+            headers = {
+                'X-HK-APIKEY': this.apiKey,
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
