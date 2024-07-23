@@ -2310,7 +2310,7 @@ func  (this *binance) Describe() interface{}  {
     })
 }
 func  (this *binance) IsInverse(typeVar interface{}, optionalArgs ...interface{}) interface{}  {
-    subType := GetArg(optionalArgs, 1, nil)
+    subType := GetArg(optionalArgs, 0, nil)
     _ = subType
     if IsTrue(IsEqual(subType, nil)) {
         return (IsEqual(typeVar, "delivery"))
@@ -2319,7 +2319,7 @@ func  (this *binance) IsInverse(typeVar interface{}, optionalArgs ...interface{}
     }
 }
 func  (this *binance) IsLinear(typeVar interface{}, optionalArgs ...interface{}) interface{}  {
-    subType := GetArg(optionalArgs, 1, nil)
+    subType := GetArg(optionalArgs, 0, nil)
     _ = subType
     if IsTrue(IsEqual(subType, nil)) {
         return IsTrue((IsEqual(typeVar, "future"))) || IsTrue((IsEqual(typeVar, "swap")))
@@ -2453,11 +2453,11 @@ func  (this *binance) Market(symbol interface{}) interface{}  {
 func  (this *binance) SafeMarket(optionalArgs ...interface{}) interface{}  {
     marketId := GetArg(optionalArgs, 0, nil)
     _ = marketId
-    market := GetArg(optionalArgs, 1, nil)
+    market := GetArg(optionalArgs, 0, nil)
     _ = market
-    delimiter := GetArg(optionalArgs, 2, nil)
+    delimiter := GetArg(optionalArgs, 1, nil)
     _ = delimiter
-    marketType := GetArg(optionalArgs, 3, nil)
+    marketType := GetArg(optionalArgs, 2, nil)
     _ = marketType
     var isOption interface{} = IsTrue((!IsEqual(marketId, nil))) && IsTrue((IsTrue((IsGreaterThan(GetIndexOf(marketId, "-C"), OpNeg(IsTrue(1))))) || IsTrue((IsGreaterThan(GetIndexOf(marketId, "-P"), OpNeg(IsTrue(1)))))))
     if IsTrue(IsTrue(isOption) && !IsTrue((InOp(this.Markets_by_id, marketId)))) {
@@ -2471,7 +2471,7 @@ func  (this *binance) CostToPrecision(symbol interface{}, cost interface{}) inte
 }
 func  (this *binance) CurrencyToPrecision(code interface{}, fee interface{}, optionalArgs ...interface{}) interface{}  {
     // info is available in currencies only if the user has configured his api keys
-    networkCode := GetArg(optionalArgs, 2, nil)
+    networkCode := GetArg(optionalArgs, 1, nil)
     _ = networkCode
     if IsTrue(!IsEqual(this.SafeValue(GetValue(this.Currencies, code), "precision"), nil)) {
         return this.DecimalToPrecision(fee, TRUNCATE, GetValue(GetValue(this.Currencies, code), "precision"), this.PrecisionMode, this.PaddingMode)
@@ -3143,11 +3143,11 @@ func  (this *binance) ParseBalanceHelper(entry interface{}) interface{}  {
     return account
 }
 func  (this *binance) ParseBalanceCustom(response interface{}, optionalArgs ...interface{}) interface{}  {
-    typeVar := GetArg(optionalArgs, 1, nil)
+    typeVar := GetArg(optionalArgs, 0, nil)
     _ = typeVar
-    marginMode := GetArg(optionalArgs, 2, nil)
+    marginMode := GetArg(optionalArgs, 1, nil)
     _ = marginMode
-    isPortfolioMargin := GetArg(optionalArgs, 3, false)
+    isPortfolioMargin := GetArg(optionalArgs, 2, false)
     _ = isPortfolioMargin
     var result interface{} = map[string]interface{} {
         "info": response,
@@ -3535,9 +3535,9 @@ func  (this *binance) FetchOrderBook(symbol interface{}, optionalArgs ...interfa
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
     */
-    limit := GetArg(optionalArgs, 1, nil)
+    limit := GetArg(optionalArgs, 0, nil)
     _ = limit
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var market interface{} = this.Market(symbol)
@@ -3702,7 +3702,7 @@ func  (this *binance) ParseTicker(ticker interface{}, optionalArgs ...interface{
     //         "time":"1673899278514"
     //     }
     //
-    market := GetArg(optionalArgs, 1, nil)
+    market := GetArg(optionalArgs, 0, nil)
     _ = market
     var timestamp interface{} = this.SafeInteger(ticker, "closeTime")
     var marketType interface{} = nil
@@ -3793,7 +3793,7 @@ func  (this *binance) FetchTicker(symbol interface{}, optionalArgs ...interface{
     * @param {boolean} [params.rolling] (spot only) default false, if true, uses the rolling 24 hour ticker endpoint /api/v3/ticker
     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
     */
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var market interface{} = this.Market(symbol)
@@ -3837,7 +3837,7 @@ func  (this *binance) FetchBidsAsks(optionalArgs ...interface{}) interface{}  {
     */
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     symbols = this.MarketSymbols(symbols, nil, true, true, true)
@@ -3881,7 +3881,7 @@ func  (this *binance) FetchLastPrices(optionalArgs ...interface{}) interface{}  
     */
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     symbols = this.MarketSymbols(symbols, nil, true, true, true)
@@ -3933,7 +3933,7 @@ func  (this *binance) ParseLastPrice(entry interface{}, optionalArgs ...interfac
     //         "time": 1591257246176
     //     }
     //
-    market := GetArg(optionalArgs, 1, nil)
+    market := GetArg(optionalArgs, 0, nil)
     _ = market
     var timestamp interface{} = this.SafeInteger(entry, "time")
     var typeVar interface{} = Ternary(IsTrue((IsEqual(timestamp, nil))), "spot", "swap")
@@ -3966,7 +3966,7 @@ func  (this *binance) FetchTickers(optionalArgs ...interface{}) interface{}  {
     */
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     symbols = this.MarketSymbols(symbols, nil, true, true, true)
@@ -4049,7 +4049,7 @@ func  (this *binance) ParseOHLCV(ohlcv interface{}, optionalArgs ...interface{})
     //         "closeTime": 1677097200000
     //     }
     //
-    market := GetArg(optionalArgs, 1, nil)
+    market := GetArg(optionalArgs, 0, nil)
     _ = market
     var inverse interface{} = this.SafeBool(market, "inverse")
     var volumeIndex interface{} = Ternary(IsTrue(inverse), 7, 5)
@@ -4080,13 +4080,13 @@ func  (this *binance) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}
     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
     */
-    timeframe := GetArg(optionalArgs, 1, "1m")
+    timeframe := GetArg(optionalArgs, 0, "1m")
     _ = timeframe
-    since := GetArg(optionalArgs, 2, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 3, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    params := GetArg(optionalArgs, 4, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var paginate interface{} = false
@@ -4193,7 +4193,7 @@ func  (this *binance) FetchOHLCV(symbol interface{}, optionalArgs ...interface{}
     return this.ParseOHLCVs(response, market, timeframe, since, limit)
 }
 func  (this *binance) ParseTrade(trade interface{}, optionalArgs ...interface{}) interface{}  {
-    market := GetArg(optionalArgs, 1, nil)
+    market := GetArg(optionalArgs, 0, nil)
     _ = market
     if IsTrue(InOp(trade, "isDustTrade")) {
         return this.ParseDustTrade(trade, market)
@@ -4491,11 +4491,11 @@ func  (this *binance) FetchTrades(symbol interface{}, optionalArgs ...interface{
     * @param {int} [params.fromId] trade id to fetch from, default gets most recent trades, not used when fetchTradesMethod is 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', or 'eapiPublicGetTrades'
     * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
     */
-    since := GetArg(optionalArgs, 1, nil)
+    since := GetArg(optionalArgs, 0, nil)
     _ = since
-    limit := GetArg(optionalArgs, 2, nil)
+    limit := GetArg(optionalArgs, 1, nil)
     _ = limit
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var paginate interface{} = false
@@ -4623,9 +4623,9 @@ func  (this *binance) EditSpotOrder(id interface{}, symbol interface{}, typeVar 
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
     */
-    price := GetArg(optionalArgs, 5, nil)
+    price := GetArg(optionalArgs, 4, nil)
     _ = price
-    params := GetArg(optionalArgs, 6, map[string]interface{} {})
+    params := GetArg(optionalArgs, 5, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var market interface{} = this.Market(symbol)
@@ -4692,9 +4692,9 @@ func  (this *binance) EditSpotOrderRequest(id interface{}, symbol interface{}, t
     * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
     * @returns {object} request to be sent to the exchange
     */
-    price := GetArg(optionalArgs, 5, nil)
+    price := GetArg(optionalArgs, 4, nil)
     _ = price
-    params := GetArg(optionalArgs, 6, map[string]interface{} {})
+    params := GetArg(optionalArgs, 5, map[string]interface{} {})
     _ = params
     var market interface{} = this.Market(symbol)
     var clientOrderId interface{} = this.SafeStringN(params, []interface{}{"newClientOrderId", "clientOrderId", "origClientOrderId"})
@@ -4807,9 +4807,9 @@ func  (this *binance) EditSpotOrderRequest(id interface{}, symbol interface{}, t
     return this.Extend(request, params)
 }
 func  (this *binance) EditContractOrderRequest(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
-    price := GetArg(optionalArgs, 5, nil)
+    price := GetArg(optionalArgs, 4, nil)
     _ = price
-    params := GetArg(optionalArgs, 6, map[string]interface{} {})
+    params := GetArg(optionalArgs, 5, map[string]interface{} {})
     _ = params
     var market interface{} = this.Market(symbol)
     if !IsTrue(GetValue(market, "contract")) {
@@ -4847,9 +4847,9 @@ func  (this *binance) EditContractOrder(id interface{}, symbol interface{}, type
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
     */
-    price := GetArg(optionalArgs, 5, nil)
+    price := GetArg(optionalArgs, 4, nil)
     _ = price
-    params := GetArg(optionalArgs, 6, map[string]interface{} {})
+    params := GetArg(optionalArgs, 5, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var market interface{} = this.Market(symbol)
@@ -4906,11 +4906,11 @@ func  (this *binance) EditOrder(id interface{}, symbol interface{}, typeVar inte
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
     */
-    amount := GetArg(optionalArgs, 4, nil)
+    amount := GetArg(optionalArgs, 3, nil)
     _ = amount
-    price := GetArg(optionalArgs, 5, nil)
+    price := GetArg(optionalArgs, 4, nil)
     _ = price
-    params := GetArg(optionalArgs, 6, map[string]interface{} {})
+    params := GetArg(optionalArgs, 5, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var market interface{} = this.Market(symbol)
@@ -5421,7 +5421,7 @@ func  (this *binance) ParseOrder(order interface{}, optionalArgs ...interface{})
     //         "priceProtect": false
     //     }
     //
-    market := GetArg(optionalArgs, 1, nil)
+    market := GetArg(optionalArgs, 0, nil)
     _ = market
     var code interface{} = this.SafeString(order, "code")
     if IsTrue(!IsEqual(code, nil)) {
@@ -5518,7 +5518,7 @@ func  (this *binance) CreateOrders(orders interface{}, optionalArgs ...interface
     * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
     */
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var ordersRequests interface{} = []interface{}{}
@@ -5624,9 +5624,9 @@ func  (this *binance) CreateOrder(symbol interface{}, typeVar interface{}, side 
     * @param {string} [params.stopLossOrTakeProfit] 'stopLoss' or 'takeProfit', required for spot trailing orders
     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
     */
-    price := GetArg(optionalArgs, 4, nil)
+    price := GetArg(optionalArgs, 3, nil)
     _ = price
-    params := GetArg(optionalArgs, 5, map[string]interface{} {})
+    params := GetArg(optionalArgs, 4, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var market interface{} = this.Market(symbol)
@@ -5712,9 +5712,9 @@ func  (this *binance) CreateOrderRequest(symbol interface{}, typeVar interface{}
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} request to be sent to the exchange
     */
-    price := GetArg(optionalArgs, 4, nil)
+    price := GetArg(optionalArgs, 3, nil)
     _ = price
-    params := GetArg(optionalArgs, 5, map[string]interface{} {})
+    params := GetArg(optionalArgs, 4, map[string]interface{} {})
     _ = params
     var market interface{} = this.Market(symbol)
     var marketType interface{} = this.SafeString(params, "type", GetValue(market, "type"))
@@ -5995,7 +5995,7 @@ func  (this *binance) CreateMarketOrderWithCost(symbol interface{}, side interfa
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
     */
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var market interface{} = this.Market(symbol)
@@ -6016,7 +6016,7 @@ func  (this *binance) CreateMarketBuyOrderWithCost(symbol interface{}, cost inte
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
     */
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var market interface{} = this.Market(symbol)
@@ -6037,7 +6037,7 @@ func  (this *binance) CreateMarketSellOrderWithCost(symbol interface{}, cost int
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
     */
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var market interface{} = this.Market(symbol)
@@ -6066,9 +6066,9 @@ func  (this *binance) FetchOrder(id interface{}, optionalArgs ...interface{}) in
     * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch an order in a portfolio margin account
     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
     */
-    symbol := GetArg(optionalArgs, 1, nil)
+    symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     if IsTrue(IsEqual(symbol, nil)) {
         panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
@@ -6155,11 +6155,11 @@ func  (this *binance) FetchOrders(optionalArgs ...interface{}) interface{}  {
     */
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 1, nil)
+    since := GetArg(optionalArgs, 0, nil)
     _ = since
-    limit := GetArg(optionalArgs, 2, nil)
+    limit := GetArg(optionalArgs, 1, nil)
     _ = limit
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     if IsTrue(IsEqual(symbol, nil)) {
         panic(ArgumentsRequired(Add(this.Id, " fetchOrders() requires a symbol argument")))
@@ -6440,11 +6440,11 @@ func  (this *binance) FetchOpenOrders(optionalArgs ...interface{}) interface{}  
     */
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 1, nil)
+    since := GetArg(optionalArgs, 0, nil)
     _ = since
-    limit := GetArg(optionalArgs, 2, nil)
+    limit := GetArg(optionalArgs, 1, nil)
     _ = limit
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var market interface{} = nil
@@ -6542,9 +6542,9 @@ func  (this *binance) FetchOpenOrder(id interface{}, optionalArgs ...interface{}
     * @param {string} [params.trigger] set to true if you would like to fetch portfolio margin account stop or conditional orders
     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
     */
-    symbol := GetArg(optionalArgs, 1, nil)
+    symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     if IsTrue(IsEqual(symbol, nil)) {
         panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrder() requires a symbol argument")))
@@ -6766,11 +6766,11 @@ func  (this *binance) FetchClosedOrders(optionalArgs ...interface{}) interface{}
     */
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 1, nil)
+    since := GetArg(optionalArgs, 0, nil)
     _ = since
-    limit := GetArg(optionalArgs, 2, nil)
+    limit := GetArg(optionalArgs, 1, nil)
     _ = limit
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     if IsTrue(IsEqual(symbol, nil)) {
         panic(ArgumentsRequired(Add(this.Id, " fetchClosedOrders() requires a symbol argument")))
@@ -6804,11 +6804,11 @@ func  (this *binance) FetchCanceledOrders(optionalArgs ...interface{}) interface
     */
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 1, nil)
+    since := GetArg(optionalArgs, 0, nil)
     _ = since
-    limit := GetArg(optionalArgs, 2, nil)
+    limit := GetArg(optionalArgs, 1, nil)
     _ = limit
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     if IsTrue(IsEqual(symbol, nil)) {
         panic(ArgumentsRequired(Add(this.Id, " fetchCanceledOrders() requires a symbol argument")))
@@ -6842,11 +6842,11 @@ func  (this *binance) FetchCanceledAndClosedOrders(optionalArgs ...interface{}) 
     */
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 1, nil)
+    since := GetArg(optionalArgs, 0, nil)
     _ = since
-    limit := GetArg(optionalArgs, 2, nil)
+    limit := GetArg(optionalArgs, 1, nil)
     _ = limit
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     if IsTrue(IsEqual(symbol, nil)) {
         panic(ArgumentsRequired(Add(this.Id, " fetchCanceledAndClosedOrders() requires a symbol argument")))
@@ -6880,9 +6880,9 @@ func  (this *binance) CancelOrder(id interface{}, optionalArgs ...interface{}) i
     * @param {boolean} [params.stop] set to true if you would like to cancel a portfolio margin account conditional order
     * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
     */
-    symbol := GetArg(optionalArgs, 1, nil)
+    symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     if IsTrue(IsEqual(symbol, nil)) {
         panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
@@ -6982,7 +6982,7 @@ func  (this *binance) CancelAllOrders(optionalArgs ...interface{}) interface{}  
     */
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     if IsTrue(IsEqual(symbol, nil)) {
         panic(ArgumentsRequired(Add(this.Id, " cancelAllOrders() requires a symbol argument")))
@@ -7060,9 +7060,9 @@ func  (this *binance) CancelOrders(ids interface{}, optionalArgs ...interface{})
     * @param {int[]} [params.recvWindow]
     * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
     */
-    symbol := GetArg(optionalArgs, 1, nil)
+    symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     if IsTrue(IsEqual(symbol, nil)) {
         panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument")))
@@ -7135,13 +7135,13 @@ func  (this *binance) FetchOrderTrades(id interface{}, optionalArgs ...interface
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
     */
-    symbol := GetArg(optionalArgs, 1, nil)
+    symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 2, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 3, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    params := GetArg(optionalArgs, 4, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     if IsTrue(IsEqual(symbol, nil)) {
         panic(ArgumentsRequired(Add(this.Id, " fetchOrderTrades() requires a symbol argument")))
@@ -7181,11 +7181,11 @@ func  (this *binance) FetchMyTrades(optionalArgs ...interface{}) interface{}  {
     */
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 1, nil)
+    since := GetArg(optionalArgs, 0, nil)
     _ = since
-    limit := GetArg(optionalArgs, 2, nil)
+    limit := GetArg(optionalArgs, 1, nil)
     _ = limit
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var paginate interface{} = false
@@ -7423,11 +7423,11 @@ func  (this *binance) FetchMyDustTrades(optionalArgs ...interface{}) interface{}
     //
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 1, nil)
+    since := GetArg(optionalArgs, 0, nil)
     _ = since
-    limit := GetArg(optionalArgs, 2, nil)
+    limit := GetArg(optionalArgs, 1, nil)
     _ = limit
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var request interface{} = map[string]interface{} {}
@@ -7495,7 +7495,7 @@ func  (this *binance) ParseDustTrade(trade interface{}, optionalArgs ...interfac
     //       "isDustTrade": true
     //     }
     //
-    market := GetArg(optionalArgs, 1, nil)
+    market := GetArg(optionalArgs, 0, nil)
     _ = market
     var orderId interface{} = this.SafeString(trade, "transId")
     var timestamp interface{} = this.SafeInteger(trade, "operateTime")
@@ -7574,11 +7574,11 @@ func  (this *binance) FetchDeposits(optionalArgs ...interface{}) interface{}  {
     */
     code := GetArg(optionalArgs, 0, nil)
     _ = code
-    since := GetArg(optionalArgs, 1, nil)
+    since := GetArg(optionalArgs, 0, nil)
     _ = since
-    limit := GetArg(optionalArgs, 2, nil)
+    limit := GetArg(optionalArgs, 1, nil)
     _ = limit
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var paginate interface{} = false
@@ -7651,11 +7651,11 @@ func  (this *binance) FetchWithdrawals(optionalArgs ...interface{}) interface{} 
     */
     code := GetArg(optionalArgs, 0, nil)
     _ = code
-    since := GetArg(optionalArgs, 1, nil)
+    since := GetArg(optionalArgs, 0, nil)
     _ = since
-    limit := GetArg(optionalArgs, 2, nil)
+    limit := GetArg(optionalArgs, 1, nil)
     _ = limit
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var paginate interface{} = false
@@ -7707,7 +7707,7 @@ func  (this *binance) FetchWithdrawals(optionalArgs ...interface{}) interface{} 
     return this.ParseTransactions(response, currency, since, limit)
 }
 func  (this *binance) ParseTransactionStatusByType(status interface{}, optionalArgs ...interface{}) interface{}  {
-    typeVar := GetArg(optionalArgs, 1, nil)
+    typeVar := GetArg(optionalArgs, 0, nil)
     _ = typeVar
     if IsTrue(IsEqual(typeVar, nil)) {
         return status
@@ -7808,7 +7808,7 @@ func  (this *binance) ParseTransaction(transaction interface{}, optionalArgs ...
     //
     //    { id: "9a67628b16ba4988ae20d329333f16bc" }
     //
-    currency := GetArg(optionalArgs, 1, nil)
+    currency := GetArg(optionalArgs, 0, nil)
     _ = currency
     var id interface{} = this.SafeString2(transaction, "id", "orderNo")
     var address interface{} = this.SafeString(transaction, "address")
@@ -7951,7 +7951,7 @@ func  (this *binance) ParseTransfer(transfer interface{}, optionalArgs ...interf
     //                     ]
     //                 }
     //             }
-    currency := GetArg(optionalArgs, 1, nil)
+    currency := GetArg(optionalArgs, 0, nil)
     _ = currency
     var id interface{} = this.SafeString2(transfer, "tranId", "transactionId")
     var currencyId interface{} = this.SafeString2(transfer, "asset", "currency")
@@ -8002,7 +8002,7 @@ func  (this *binance) ParseIncome(income interface{}, optionalArgs ...interface{
     //       "tradeId": ""
     //     }
     //
-    market := GetArg(optionalArgs, 1, nil)
+    market := GetArg(optionalArgs, 0, nil)
     _ = market
     var marketId interface{} = this.SafeString(income, "symbol")
     var currencyId interface{} = this.SafeString(income, "asset")
@@ -8032,7 +8032,7 @@ func  (this *binance) Transfer(code interface{}, amount interface{}, fromAccount
     * @param {string} [params.symbol] the unified symbol, required for isolated margin transfers
     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
     */
-    params := GetArg(optionalArgs, 4, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var currency interface{} = this.Currency(code)
@@ -8137,11 +8137,11 @@ func  (this *binance) FetchTransfers(optionalArgs ...interface{}) interface{}  {
     */
     code := GetArg(optionalArgs, 0, nil)
     _ = code
-    since := GetArg(optionalArgs, 1, nil)
+    since := GetArg(optionalArgs, 0, nil)
     _ = since
-    limit := GetArg(optionalArgs, 2, nil)
+    limit := GetArg(optionalArgs, 1, nil)
     _ = limit
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var internal interface{} = this.SafeBool(params, "internal")
@@ -8212,7 +8212,7 @@ func  (this *binance) FetchDepositAddress(code interface{}, optionalArgs ...inte
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
     */
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var currency interface{} = this.Currency(code)
@@ -8294,7 +8294,7 @@ func  (this *binance) FetchTransactionFees(optionalArgs ...interface{}) interfac
     */
     codes := GetArg(optionalArgs, 0, nil)
     _ = codes
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var response interface{} = this.SapiGetCapitalConfigGetall(params)
@@ -8412,7 +8412,7 @@ func  (this *binance) FetchDepositWithdrawFees(optionalArgs ...interface{}) inte
     */
     codes := GetArg(optionalArgs, 0, nil)
     _ = codes
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var response interface{} = this.SapiGetCapitalConfigGetall(params)
@@ -8501,7 +8501,7 @@ func  (this *binance) ParseDepositWithdrawFee(fee interface{}, optionalArgs ...i
     //        ]
     //    }
     //
-    currency := GetArg(optionalArgs, 1, nil)
+    currency := GetArg(optionalArgs, 0, nil)
     _ = currency
     var networkList interface{} = this.SafeList(fee, "networkList", []interface{}{})
     var result interface{} = this.DepositWithdrawFee(fee)
@@ -8543,9 +8543,9 @@ func  (this *binance) Withdraw(code interface{}, amount interface{}, address int
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
     */
-    tag := GetArg(optionalArgs, 3, nil)
+    tag := GetArg(optionalArgs, 2, nil)
     _ = tag
-    params := GetArg(optionalArgs, 4, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     tagparamsVariable := this.HandleWithdrawTagAndParams(tag, params);
     tag = GetValue(tagparamsVariable,0);
@@ -8590,7 +8590,7 @@ func  (this *binance) ParseTradingFee(fee interface{}, optionalArgs ...interface
     //         "takerCommissionRate": "0.00040"   // 0.040%
     //     }
     //
-    market := GetArg(optionalArgs, 1, nil)
+    market := GetArg(optionalArgs, 0, nil)
     _ = market
     var marketId interface{} = this.SafeString(fee, "symbol")
     var symbol interface{} = this.SafeSymbol(marketId, market, nil, "spot")
@@ -8619,7 +8619,7 @@ func  (this *binance) FetchTradingFee(symbol interface{}, optionalArgs ...interf
     * @param {string} [params.subType] "linear" or "inverse"
     * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
     */
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var market interface{} = this.Market(symbol)
@@ -8873,7 +8873,7 @@ func  (this *binance) FuturesTransfer(code interface{}, amount interface{}, type
     * @param {float} params.recvWindow
     * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=futures-transfer-structure}
     */
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     if IsTrue(IsTrue((IsLessThan(typeVar, 1))) || IsTrue((IsGreaterThan(typeVar, 4)))) {
         panic(ArgumentsRequired(Add(this.Id, " type must be between 1 and 4")))
@@ -8904,7 +8904,7 @@ func  (this *binance) FetchFundingRate(symbol interface{}, optionalArgs ...inter
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
     */
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var market interface{} = this.Market(symbol)
@@ -8954,11 +8954,11 @@ func  (this *binance) FetchFundingRateHistory(optionalArgs ...interface{}) inter
     */
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 1, nil)
+    since := GetArg(optionalArgs, 0, nil)
     _ = since
-    limit := GetArg(optionalArgs, 2, nil)
+    limit := GetArg(optionalArgs, 1, nil)
     _ = limit
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var request interface{} = map[string]interface{} {}
@@ -9038,7 +9038,7 @@ func  (this *binance) FetchFundingRates(optionalArgs ...interface{}) interface{}
     */
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     symbols = this.MarketSymbols(symbols)
@@ -9079,7 +9079,7 @@ func  (this *binance) ParseFundingRate(contract interface{}, optionalArgs ...int
     //     "time": "1621252344001"
     //  }
     //
-    market := GetArg(optionalArgs, 1, nil)
+    market := GetArg(optionalArgs, 0, nil)
     _ = market
     var timestamp interface{} = this.SafeInteger(contract, "time")
     var marketId interface{} = this.SafeString(contract, "symbol")
@@ -9111,7 +9111,7 @@ func  (this *binance) ParseFundingRate(contract interface{}, optionalArgs ...int
     }
 }
 func  (this *binance) ParseAccountPositions(account interface{}, optionalArgs ...interface{}) interface{}  {
-    filterClosed := GetArg(optionalArgs, 1, false)
+    filterClosed := GetArg(optionalArgs, 0, false)
     _ = filterClosed
     var positions interface{} = this.SafeList(account, "positions")
     var assets interface{} = this.SafeList(account, "assets", []interface{}{})
@@ -9232,7 +9232,7 @@ func  (this *binance) ParseAccountPosition(position interface{}, optionalArgs ..
     //         "breakEvenPrice": "0.00000000"
     //     }
     //
-    market := GetArg(optionalArgs, 1, nil)
+    market := GetArg(optionalArgs, 0, nil)
     _ = market
     var marketId interface{} = this.SafeString(position, "symbol")
     market = this.SafeMarket(marketId, market, nil, "contract")
@@ -9463,7 +9463,7 @@ func  (this *binance) ParsePositionRisk(position interface{}, optionalArgs ...in
     //         "breakEvenPrice": "44542.81"
     //     }
     //
-    market := GetArg(optionalArgs, 1, nil)
+    market := GetArg(optionalArgs, 0, nil)
     _ = market
     var marketId interface{} = this.SafeString(position, "symbol")
     market = this.SafeMarket(marketId, market, nil, "contract")
@@ -9599,7 +9599,7 @@ func  (this *binance) ParsePositionRisk(position interface{}, optionalArgs ...in
 func  (this *binance) LoadLeverageBrackets(optionalArgs ...interface{}) interface{}  {
     reload := GetArg(optionalArgs, 0, false)
     _ = reload
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     // by default cache the leverage bracket
@@ -9668,7 +9668,7 @@ func  (this *binance) FetchLeverageTiers(optionalArgs ...interface{}) interface{
     */
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var typeVar interface{} = nil
@@ -9762,7 +9762,7 @@ func  (this *binance) ParseMarketLeverageTiers(info interface{}, optionalArgs ..
     //        ]
     //    }
     //
-    market := GetArg(optionalArgs, 1, nil)
+    market := GetArg(optionalArgs, 0, nil)
     _ = market
     var marketId interface{} = this.SafeString(info, "symbol")
     market = this.SafeMarket(marketId, market, nil, "contract")
@@ -9792,7 +9792,7 @@ func  (this *binance) FetchPosition(symbol interface{}, optionalArgs ...interfac
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
     */
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var market interface{} = this.Market(symbol)
@@ -9840,7 +9840,7 @@ func  (this *binance) FetchOptionPositions(optionalArgs ...interface{}) interfac
     */
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     symbols = this.MarketSymbols(symbols)
@@ -9912,7 +9912,7 @@ func  (this *binance) ParsePosition(position interface{}, optionalArgs ...interf
     //         "time": 1682492427106
     //     }
     //
-    market := GetArg(optionalArgs, 1, nil)
+    market := GetArg(optionalArgs, 0, nil)
     _ = market
     var marketId interface{} = this.SafeString(position, "symbol")
     market = this.SafeMarket(marketId, market)
@@ -9966,7 +9966,7 @@ func  (this *binance) FetchPositions(optionalArgs ...interface{}) interface{}  {
     */
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     var defaultValue interface{} = this.SafeString(this.Options, "fetchPositions", "positionRisk")
     var defaultMethod interface{} = nil
@@ -10002,7 +10002,7 @@ func  (this *binance) FetchAccountPositions(optionalArgs ...interface{}) interfa
     */
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     if IsTrue(!IsEqual(symbols, nil)) {
         if !IsTrue(IsArray(symbols)) {
@@ -10064,7 +10064,7 @@ func  (this *binance) FetchPositionsRisk(optionalArgs ...interface{}) interface{
     */
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     if IsTrue(!IsEqual(symbols, nil)) {
         if !IsTrue(IsArray(symbols)) {
@@ -10228,11 +10228,11 @@ func  (this *binance) FetchFundingHistory(optionalArgs ...interface{}) interface
     */
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 1, nil)
+    since := GetArg(optionalArgs, 0, nil)
     _ = since
-    limit := GetArg(optionalArgs, 2, nil)
+    limit := GetArg(optionalArgs, 1, nil)
     _ = limit
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var market interface{} = nil
@@ -10299,9 +10299,9 @@ func  (this *binance) SetLeverage(leverage interface{}, optionalArgs ...interfac
     * @param {boolean} [params.portfolioMargin] set to true if you would like to set the leverage for a trading pair in a portfolio margin account
     * @returns {object} response from the exchange
     */
-    symbol := GetArg(optionalArgs, 1, nil)
+    symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     if IsTrue(IsEqual(symbol, nil)) {
         panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
@@ -10351,9 +10351,9 @@ func  (this *binance) SetMarginMode(marginMode interface{}, optionalArgs ...inte
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} response from the exchange
     */
-    symbol := GetArg(optionalArgs, 1, nil)
+    symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     if IsTrue(IsEqual(symbol, nil)) {
         panic(ArgumentsRequired(Add(this.Id, " setMarginMode() requires a symbol argument")))
@@ -10442,9 +10442,9 @@ func  (this *binance) SetPositionMode(hedged interface{}, optionalArgs ...interf
     * @param {string} [params.subType] "linear" or "inverse"
     * @returns {object} response from the exchange
     */
-    symbol := GetArg(optionalArgs, 1, nil)
+    symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     var defaultType interface{} = this.SafeString(this.Options, "defaultType", "future")
     var typeVar interface{} = this.SafeString(params, "type", defaultType)
@@ -10506,7 +10506,7 @@ func  (this *binance) FetchLeverages(optionalArgs ...interface{}) interface{}  {
     */
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     this.LoadLeverageBrackets(false, params)
@@ -10542,7 +10542,7 @@ func  (this *binance) FetchLeverages(optionalArgs ...interface{}) interface{}  {
     return this.ParseLeverages(leverages, symbols, "symbol")
 }
 func  (this *binance) ParseLeverage(leverage interface{}, optionalArgs ...interface{}) interface{}  {
-    market := GetArg(optionalArgs, 1, nil)
+    market := GetArg(optionalArgs, 0, nil)
     _ = market
     var marketId interface{} = this.SafeString(leverage, "symbol")
     var marginModeRaw interface{} = this.SafeBool(leverage, "isolated")
@@ -10584,11 +10584,11 @@ func  (this *binance) FetchSettlementHistory(optionalArgs ...interface{}) interf
     */
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 1, nil)
+    since := GetArg(optionalArgs, 0, nil)
     _ = since
-    limit := GetArg(optionalArgs, 2, nil)
+    limit := GetArg(optionalArgs, 1, nil)
     _ = limit
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var market interface{} = Ternary(IsTrue((IsEqual(symbol, nil))), nil, this.Market(symbol))
@@ -10640,11 +10640,11 @@ func  (this *binance) FetchMySettlementHistory(optionalArgs ...interface{}) inte
     */
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 1, nil)
+    since := GetArg(optionalArgs, 0, nil)
     _ = since
-    limit := GetArg(optionalArgs, 2, nil)
+    limit := GetArg(optionalArgs, 1, nil)
     _ = limit
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var market interface{} = Ternary(IsTrue((IsEqual(symbol, nil))), nil, this.Market(symbol))
@@ -10773,9 +10773,9 @@ func  (this *binance) ParseSettlements(settlements interface{}, market interface
     return result
 }
 func  (this *binance) FetchLedgerEntry(id interface{}, optionalArgs ...interface{}) interface{}  {
-    code := GetArg(optionalArgs, 1, nil)
+    code := GetArg(optionalArgs, 0, nil)
     _ = code
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var typeVar interface{} = nil
@@ -10813,11 +10813,11 @@ func  (this *binance) FetchLedger(optionalArgs ...interface{}) interface{}  {
     */
     code := GetArg(optionalArgs, 0, nil)
     _ = code
-    since := GetArg(optionalArgs, 1, nil)
+    since := GetArg(optionalArgs, 0, nil)
     _ = since
-    limit := GetArg(optionalArgs, 2, nil)
+    limit := GetArg(optionalArgs, 1, nil)
     _ = limit
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var paginate interface{} = false
@@ -10930,7 +10930,7 @@ func  (this *binance) ParseLedgerEntry(item interface{}, optionalArgs ...interfa
     //         "tradeId": ""
     //     }
     //
-    currency := GetArg(optionalArgs, 1, nil)
+    currency := GetArg(optionalArgs, 0, nil)
     _ = currency
     var amount interface{} = this.SafeString2(item, "amount", "income")
     var direction interface{} = nil
@@ -10986,15 +10986,15 @@ func  (this *binance) ParseLedgerEntryType(typeVar interface{}) interface{}  {
     return this.SafeString(ledgerType, typeVar, typeVar)
 }
 func  (this *binance) Sign(path interface{}, optionalArgs ...interface{}) interface{}  {
-    api := GetArg(optionalArgs, 1, "public")
+    api := GetArg(optionalArgs, 0, "public")
     _ = api
-    method := GetArg(optionalArgs, 2, "GET")
+    method := GetArg(optionalArgs, 1, "GET")
     _ = method
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
-    headers := GetArg(optionalArgs, 4, nil)
+    headers := GetArg(optionalArgs, 3, nil)
     _ = headers
-    body := GetArg(optionalArgs, 5, nil)
+    body := GetArg(optionalArgs, 4, nil)
     _ = body
     var urls interface{} = this.Urls
     if !IsTrue((InOp(GetValue(urls, "api"), api))) {
@@ -11233,7 +11233,7 @@ func  (this *binance) HandleErrors(code interface{}, reason interface{}, url int
     return nil
 }
 func  (this *binance) CalculateRateLimiterCost(api interface{}, method interface{}, path interface{}, params interface{}, optionalArgs ...interface{}) interface{}  {
-    config := GetArg(optionalArgs, 4, map[string]interface{} {})
+    config := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = config
     if IsTrue(IsTrue((InOp(config, "noCoin"))) && !IsTrue((InOp(params, "coin")))) {
         return GetValue(config, "noCoin")
@@ -11254,17 +11254,17 @@ func  (this *binance) CalculateRateLimiterCost(api interface{}, method interface
     return this.SafeValue(config, "cost", 1)
 }
 func  (this *binance) Request(path interface{}, optionalArgs ...interface{}) interface{}  {
-    api := GetArg(optionalArgs, 1, "public")
+    api := GetArg(optionalArgs, 0, "public")
     _ = api
-    method := GetArg(optionalArgs, 2, "GET")
+    method := GetArg(optionalArgs, 1, "GET")
     _ = method
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
-    headers := GetArg(optionalArgs, 4, nil)
+    headers := GetArg(optionalArgs, 3, nil)
     _ = headers
-    body := GetArg(optionalArgs, 5, nil)
+    body := GetArg(optionalArgs, 4, nil)
     _ = body
-    config := GetArg(optionalArgs, 6, map[string]interface{} {})
+    config := GetArg(optionalArgs, 5, map[string]interface{} {})
     _ = config
     var response interface{} = this.Fetch2(path, api, method, params, headers, body, config)
     // a workaround for {"code":-2015,"msg":"Invalid API-key, IP, or permissions for action."}
@@ -11275,7 +11275,7 @@ func  (this *binance) Request(path interface{}, optionalArgs ...interface{}) int
 }
 func  (this *binance) ModifyMarginHelper(symbol interface{}, amount interface{}, addOrReduce interface{}, optionalArgs ...interface{}) interface{}  {
     // used to modify isolated positions
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     var defaultType interface{} = this.SafeString(this.Options, "defaultType", "future")
     if IsTrue(IsEqual(defaultType, "spot")) {
@@ -11338,7 +11338,7 @@ func  (this *binance) ParseMarginModification(data interface{}, optionalArgs ...
     //        clientTranId: ""
     //    }
     //
-    market := GetArg(optionalArgs, 1, nil)
+    market := GetArg(optionalArgs, 0, nil)
     _ = market
     var rawType interface{} = this.SafeInteger(data, "type")
     var errorCode interface{} = this.SafeString(data, "code")
@@ -11372,7 +11372,7 @@ func  (this *binance) ReduceMargin(symbol interface{}, amount interface{}, optio
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=reduce-margin-structure}
     */
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     return this.ModifyMarginHelper(symbol, amount, 2, params)
 }
@@ -11388,7 +11388,7 @@ func  (this *binance) AddMargin(symbol interface{}, amount interface{}, optional
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} a [margin structure]{@link https://docs.ccxt.com/#/?id=add-margin-structure}
     */
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     return this.ModifyMarginHelper(symbol, amount, 1, params)
 }
@@ -11402,7 +11402,7 @@ func  (this *binance) FetchCrossBorrowRate(code interface{}, optionalArgs ...int
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
     */
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var currency interface{} = this.Currency(code)
@@ -11436,7 +11436,7 @@ func  (this *binance) FetchIsolatedBorrowRate(symbol interface{}, optionalArgs .
     * @param {object} [params.vipLevel] user's current specific margin data will be returned if viplevel is omitted
     * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/#/?id=isolated-borrow-rate-structure}
     */
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     var request interface{} = map[string]interface{} {
         "symbol": symbol,
@@ -11503,11 +11503,11 @@ func  (this *binance) FetchBorrowRateHistory(code interface{}, optionalArgs ...i
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/#/?id=borrow-rate-structure}
     */
-    since := GetArg(optionalArgs, 1, nil)
+    since := GetArg(optionalArgs, 0, nil)
     _ = since
-    limit := GetArg(optionalArgs, 2, nil)
+    limit := GetArg(optionalArgs, 1, nil)
     _ = limit
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     if IsTrue(IsEqual(limit, nil)) {
@@ -11558,7 +11558,7 @@ func  (this *binance) ParseBorrowRate(info interface{}, optionalArgs ...interfac
     //        "vipLevel": 0
     //    }
     //
-    currency := GetArg(optionalArgs, 1, nil)
+    currency := GetArg(optionalArgs, 0, nil)
     _ = currency
     var timestamp interface{} = this.SafeInteger(info, "timestamp")
     var currencyId interface{} = this.SafeString(info, "asset")
@@ -11591,7 +11591,7 @@ func  (this *binance) ParseIsolatedBorrowRate(info interface{}, optionalArgs ...
     //        ]
     //    }
     //
-    market := GetArg(optionalArgs, 1, nil)
+    market := GetArg(optionalArgs, 0, nil)
     _ = market
     var marketId interface{} = this.SafeString(info, "symbol")
     market = this.SafeMarket(marketId, market, nil, "spot")
@@ -11621,7 +11621,7 @@ func  (this *binance) CreateGiftCode(code interface{}, amount interface{}, optio
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} The gift code id, code, currency and amount
     */
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var currency interface{} = this.Currency(code)
@@ -11660,7 +11660,7 @@ func  (this *binance) RedeemGiftCode(giftcardCode interface{}, optionalArgs ...i
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} response from the exchange
     */
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     var request interface{} = map[string]interface{} {
         "code": giftcardCode,
@@ -11689,7 +11689,7 @@ func  (this *binance) VerifyGiftCode(id interface{}, optionalArgs ...interface{}
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} response from the exchange
     */
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     var request interface{} = map[string]interface{} {
         "referenceNo": id,
@@ -11722,13 +11722,13 @@ func  (this *binance) FetchBorrowInterest(optionalArgs ...interface{}) interface
     */
     code := GetArg(optionalArgs, 0, nil)
     _ = code
-    symbol := GetArg(optionalArgs, 1, nil)
+    symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 2, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 3, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    params := GetArg(optionalArgs, 4, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var isPortfolioMargin interface{} = nil
@@ -11801,7 +11801,7 @@ func  (this *binance) FetchBorrowInterest(optionalArgs ...interface{}) interface
     return this.FilterByCurrencySinceLimit(interest, code, since, limit)
 }
 func  (this *binance) ParseBorrowInterest(info interface{}, optionalArgs ...interface{}) interface{}  {
-    market := GetArg(optionalArgs, 1, nil)
+    market := GetArg(optionalArgs, 0, nil)
     _ = market
     var symbol interface{} = this.SafeString(info, "isolatedSymbol")
     var timestamp interface{} = this.SafeInteger(info, "interestAccuredTime")
@@ -11832,7 +11832,7 @@ func  (this *binance) RepayCrossMargin(code interface{}, amount interface{}, opt
     * @param {boolean} [params.portfolioMargin] set to true if you would like to repay margin in a portfolio margin account
     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
     */
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var currency interface{} = this.Currency(code)
@@ -11872,7 +11872,7 @@ func  (this *binance) RepayIsolatedMargin(symbol interface{}, code interface{}, 
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
     */
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var currency interface{} = this.Currency(code)
@@ -11906,7 +11906,7 @@ func  (this *binance) BorrowCrossMargin(code interface{}, amount interface{}, op
     * @param {boolean} [params.portfolioMargin] set to true if you would like to borrow margin in a portfolio margin account
     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
     */
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var currency interface{} = this.Currency(code)
@@ -11946,7 +11946,7 @@ func  (this *binance) BorrowIsolatedMargin(symbol interface{}, code interface{},
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/#/?id=margin-loan-structure}
     */
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var currency interface{} = this.Currency(code)
@@ -11974,7 +11974,7 @@ func  (this *binance) ParseMarginLoan(info interface{}, optionalArgs ...interfac
     //         "clientTag":""
     //     }
     //
-    currency := GetArg(optionalArgs, 1, nil)
+    currency := GetArg(optionalArgs, 0, nil)
     _ = currency
     return map[string]interface{} {
         "id": this.SafeInteger(info, "tranId"),
@@ -12002,13 +12002,13 @@ func  (this *binance) FetchOpenInterestHistory(symbol interface{}, optionalArgs 
     * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
     * @returns {object} an array of [open interest structure]{@link https://docs.ccxt.com/#/?id=open-interest-structure}
     */
-    timeframe := GetArg(optionalArgs, 1, "5m")
+    timeframe := GetArg(optionalArgs, 0, "5m")
     _ = timeframe
-    since := GetArg(optionalArgs, 2, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 3, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    params := GetArg(optionalArgs, 4, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     if IsTrue(IsEqual(timeframe, "1m")) {
         panic(BadRequest(Add(this.Id, "fetchOpenInterestHistory cannot use the 1m timeframe")))
@@ -12079,7 +12079,7 @@ func  (this *binance) FetchOpenInterest(symbol interface{}, optionalArgs ...inte
     * @param {object} [params] exchange specific parameters
     * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
     */
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var market interface{} = this.Market(symbol)
@@ -12142,7 +12142,7 @@ func  (this *binance) FetchOpenInterest(symbol interface{}, optionalArgs ...inte
     return nil
 }
 func  (this *binance) ParseOpenInterest(interest interface{}, optionalArgs ...interface{}) interface{}  {
-    market := GetArg(optionalArgs, 1, nil)
+    market := GetArg(optionalArgs, 0, nil)
     _ = market
     var timestamp interface{} = this.SafeInteger2(interest, "timestamp", "time")
     var id interface{} = this.SafeString(interest, "symbol")
@@ -12184,11 +12184,11 @@ func  (this *binance) FetchMyLiquidations(optionalArgs ...interface{}) interface
     */
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 1, nil)
+    since := GetArg(optionalArgs, 0, nil)
     _ = since
-    limit := GetArg(optionalArgs, 2, nil)
+    limit := GetArg(optionalArgs, 1, nil)
     _ = limit
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var paginate interface{} = false
@@ -12408,7 +12408,7 @@ func  (this *binance) ParseLiquidation(liquidation interface{}, optionalArgs ...
     //         "updateTime": 1596542005050
     //     }
     //
-    market := GetArg(optionalArgs, 1, nil)
+    market := GetArg(optionalArgs, 0, nil)
     _ = market
     var marketId interface{} = this.SafeString(liquidation, "symbol")
     var timestamp interface{} = this.SafeInteger2(liquidation, "updatedTime", "updateTime")
@@ -12434,7 +12434,7 @@ func  (this *binance) FetchGreeks(symbol interface{}, optionalArgs ...interface{
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/#/?id=greeks-structure}
     */
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var market interface{} = this.Market(symbol)
@@ -12477,7 +12477,7 @@ func  (this *binance) ParseGreeks(greeks interface{}, optionalArgs ...interface{
     //         "lowPriceLimit": "5"
     //     }
     //
-    market := GetArg(optionalArgs, 1, nil)
+    market := GetArg(optionalArgs, 0, nil)
     _ = market
     var marketId interface{} = this.SafeString(greeks, "symbol")
     var symbol interface{} = this.SafeSymbol(marketId, market)
@@ -12507,7 +12507,7 @@ func  (this *binance) FetchTradingLimits(optionalArgs ...interface{}) interface{
     // this method should not be called directly, use loadTradingLimits () instead
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     var markets interface{} = this.FetchMarkets()
     var tradingLimits interface{} = map[string]interface{} {}
@@ -12534,7 +12534,7 @@ func  (this *binance) FetchPositionMode(optionalArgs ...interface{}) interface{}
     */
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     var market interface{} = nil
     if IsTrue(!IsEqual(symbol, nil)) {
@@ -12577,7 +12577,7 @@ func  (this *binance) FetchMarginModes(optionalArgs ...interface{}) interface{} 
     */
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var market interface{} = nil
@@ -12601,7 +12601,7 @@ func  (this *binance) FetchMarginModes(optionalArgs ...interface{}) interface{} 
     return this.ParseMarginModes(assets, symbols, "symbol", "swap")
 }
 func  (this *binance) ParseMarginMode(marginMode interface{}, optionalArgs ...interface{}) interface{}  {
-    market := GetArg(optionalArgs, 1, nil)
+    market := GetArg(optionalArgs, 0, nil)
     _ = market
     var marketId interface{} = this.SafeString(marginMode, "symbol")
     market = this.SafeMarket(marketId, market)
@@ -12622,7 +12622,7 @@ func  (this *binance) FetchOption(symbol interface{}, optionalArgs ...interface{
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/#/?id=option-chain-structure}
     */
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var market interface{} = this.Market(symbol)
@@ -12680,9 +12680,9 @@ func  (this *binance) ParseOption(chain interface{}, optionalArgs ...interface{}
     //         "exercisePrice": "63944.09893617"
     //     }
     //
-    currency := GetArg(optionalArgs, 1, nil)
+    currency := GetArg(optionalArgs, 0, nil)
     _ = currency
-    market := GetArg(optionalArgs, 2, nil)
+    market := GetArg(optionalArgs, 1, nil)
     _ = market
     var marketId interface{} = this.SafeString(chain, "symbol")
     market = this.SafeMarket(marketId, market)
@@ -12722,13 +12722,13 @@ func  (this *binance) FetchMarginAdjustmentHistory(optionalArgs ...interface{}) 
     */
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    typeVar := GetArg(optionalArgs, 1, nil)
+    typeVar := GetArg(optionalArgs, 0, nil)
     _ = typeVar
-    since := GetArg(optionalArgs, 2, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 3, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    params := GetArg(optionalArgs, 4, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     if IsTrue(IsEqual(symbol, nil)) {
@@ -12848,9 +12848,9 @@ func  (this *binance) FetchConvertQuote(fromCode interface{}, toCode interface{}
     * @param {string} [params.walletType] either 'SPOT' or 'FUNDING', the default is 'SPOT'
     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
     */
-    amount := GetArg(optionalArgs, 2, nil)
+    amount := GetArg(optionalArgs, 1, nil)
     _ = amount
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     if IsTrue(IsEqual(amount, nil)) {
         panic(ArgumentsRequired(Add(this.Id, " fetchConvertQuote() requires an amount argument")))
@@ -12889,9 +12889,9 @@ func  (this *binance) CreateConvertTrade(id interface{}, fromCode interface{}, t
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
     */
-    amount := GetArg(optionalArgs, 3, nil)
+    amount := GetArg(optionalArgs, 2, nil)
     _ = amount
-    params := GetArg(optionalArgs, 4, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var request interface{} = map[string]interface{} {}
@@ -12924,9 +12924,9 @@ func  (this *binance) FetchConvertTrade(id interface{}, optionalArgs ...interfac
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/#/?id=conversion-structure}
     */
-    code := GetArg(optionalArgs, 1, nil)
+    code := GetArg(optionalArgs, 0, nil)
     _ = code
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var request interface{} = map[string]interface{} {}
@@ -12978,11 +12978,11 @@ func  (this *binance) FetchConvertTradeHistory(optionalArgs ...interface{}) inte
     */
     code := GetArg(optionalArgs, 0, nil)
     _ = code
-    since := GetArg(optionalArgs, 1, nil)
+    since := GetArg(optionalArgs, 0, nil)
     _ = since
-    limit := GetArg(optionalArgs, 2, nil)
+    limit := GetArg(optionalArgs, 1, nil)
     _ = limit
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     this.LoadMarkets()
     var request interface{} = map[string]interface{} {}
@@ -13097,9 +13097,9 @@ func  (this *binance) ParseConversion(conversion interface{}, optionalArgs ...in
     //         "createTime": 1624248872184
     //     }
     //
-    fromCurrency := GetArg(optionalArgs, 1, nil)
+    fromCurrency := GetArg(optionalArgs, 0, nil)
     _ = fromCurrency
-    toCurrency := GetArg(optionalArgs, 2, nil)
+    toCurrency := GetArg(optionalArgs, 1, nil)
     _ = toCurrency
     var timestamp interface{} = this.SafeIntegerN(conversion, []interface{}{"time", "validTimestamp", "createTime"})
     var fromCur interface{} = this.SafeString2(conversion, "deductedAsset", "fromAsset")
@@ -13125,5 +13125,5 @@ type Binance = binance
 
 func (this *binance) Init(userConfig map[string]interface{}) {
 	this.Exchange = Exchange{}
-	this.Exchange.Init(userConfig, this.describe().(map[string]interface{}), this)
+	this.Exchange.Init(userConfig, this.Describe().(map[string]interface{}), this)
 }

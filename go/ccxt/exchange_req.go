@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func (this *Exchange) fetch(url interface{}, method interface{}, headers interface{}, body interface{}) interface{} {
+func (this *Exchange) Fetch(url interface{}, method interface{}, headers interface{}, body interface{}) interface{} {
 	// Convert url to string
 	urlStr, ok := url.(string)
 	if !ok {

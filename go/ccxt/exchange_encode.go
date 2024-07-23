@@ -72,7 +72,7 @@ func (e *Exchange) base58ToBinary(pt interface{}) []byte {
 	return nil
 }
 
-func (e *Exchange) binaryConcat(a, b interface{}) []byte {
+func (e *Exchange) BinaryConcat(a, b interface{}) []byte {
 	var first, second []byte
 	if s, ok := a.(string); ok {
 		first = []byte(s)
@@ -95,37 +95,37 @@ func (e *Exchange) numberToBE(n, padding interface{}) string {
 	return n.(string) // stub
 }
 
-func binaryToHex(buff []byte) string {
+func BinaryToHex(buff []byte) string {
 	return strings.ToLower(hex.EncodeToString(buff))
 }
 
-func (e *Exchange) binaryToBase16(buff2 interface{}) string {
+func (e *Exchange) BinaryToBase16(buff2 interface{}) string {
 	buff := buff2.([]byte)
-	return binaryToHex(buff)
+	return BinaryToHex(buff)
 }
 
-func (e *Exchange) binaryToBase58(buff2 interface{}) string {
+func (e *Exchange) BinaryToBase58(buff2 interface{}) string {
 	buff := buff2.([]byte)
-	return binaryToHex(buff)
+	return BinaryToHex(buff)
 }
 
-func (e *Exchange) binaryToBase64(buff []byte) string {
+func (e *Exchange) BinaryToBase64(buff []byte) string {
 	return base64.StdEncoding.EncodeToString(buff)
 }
 
-func (e *Exchange) stringToBinary(buff string) []byte {
+func (e *Exchange) StringToBinary(buff string) []byte {
 	return []byte(buff)
 }
 
-func (e *Exchange) encode(data interface{}) string {
+func (e *Exchange) Encode(data interface{}) string {
 	return data.(string) // stub
 }
 
-func (e *Exchange) decode(data interface{}) string {
+func (e *Exchange) Decode(data interface{}) string {
 	return data.(string) // stub
 }
 
-func (e *Exchange) intToBase16(number interface{}) string {
+func (e *Exchange) IntToBase16(number interface{}) string {
 	n := number.(int64)
 	return fmt.Sprintf("%x", n)
 }
@@ -135,7 +135,7 @@ func (e *Exchange) packb(data interface{}) interface{} {
 	return nil
 }
 
-func (e *Exchange) rawencode(parameters2 interface{}) string {
+func (e *Exchange) Rawencode(parameters2 interface{}) string {
 	parameters := parameters2.(map[string]interface{})
 	keys := make([]string, 0, len(parameters))
 	for k := range parameters {
@@ -152,7 +152,7 @@ func (e *Exchange) rawencode(parameters2 interface{}) string {
 	return strings.Join(outList, "&")
 }
 
-func (e *Exchange) urlencodeWithArrayRepeat(parameters2 interface{}) string {
+func (e *Exchange) UrlencodeWithArrayRepeat(parameters2 interface{}) string {
 	parameters := parameters2.(map[string]interface{})
 	var outList []string
 	for key, value := range parameters {
@@ -167,7 +167,7 @@ func (e *Exchange) urlencodeWithArrayRepeat(parameters2 interface{}) string {
 	return strings.Join(outList, "&")
 }
 
-func (e *Exchange) urlEncodeNested(parameters2 interface{}) string {
+func (e *Exchange) UrlEncodeNested(parameters2 interface{}) string {
 	parameters := parameters2.(map[string]interface{})
 	queryString := url.Values{}
 	for key, value := range parameters {
@@ -186,7 +186,7 @@ func (e *Exchange) urlEncodeNested(parameters2 interface{}) string {
 	return queryString.Encode()
 }
 
-func (e *Exchange) urlencode(parameters2 interface{}) string {
+func (e *Exchange) Urlencode(parameters2 interface{}) string {
 	parameters := parameters2.(map[string]interface{})
 	var queryString []string
 	for key, value := range parameters {
@@ -205,7 +205,7 @@ func (e *Exchange) urlencode(parameters2 interface{}) string {
 	return strings.Join(queryString, "&")
 }
 
-func (e *Exchange) encodeURIComponent(str interface{}) string {
+func (e *Exchange) EncodeURIComponent(str interface{}) string {
 	s := str.(string)
 	var result bytes.Buffer
 	unreserved := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.~"
@@ -219,11 +219,11 @@ func (e *Exchange) encodeURIComponent(str interface{}) string {
 	return result.String()
 }
 
-func (e *Exchange) urlencodebase64(s interface{}) string {
-	return base64urlencode(s)
+func (e *Exchange) Urlencodebase64(s interface{}) string {
+	return Base64urlencode(s)
 }
 
-func base64urlencode(s interface{}) string {
+func Base64urlencode(s interface{}) string {
 	var str string
 	if stringVal, ok := s.(string); ok {
 		str = stringToBase64(stringVal)

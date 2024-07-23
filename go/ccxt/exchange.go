@@ -20,6 +20,8 @@ type Exchange struct {
 	Api                 map[string]interface{}
 	TransformedApi      map[string]interface{}
 	Markets             map[string]interface{}
+	Markets_by_id       map[string]interface{}
+	Currencies_by_id    map[string]interface{}
 	Currencies          map[string]interface{}
 	RequiredCredentials map[string]interface{}
 	MarketsById         map[string]interface{}
@@ -57,7 +59,10 @@ type Exchange struct {
 	// timestamps
 	LastRestRequestTimestamp int64
 	LastRequestHeaders       interface{}
+	Last_request_headers     interface{}
 	LastRequestBody          interface{}
+	Last_request_body        interface{}
+	Last_request_url         interface{}
 	LastRequestUrl           interface{}
 
 	// type check this
@@ -75,32 +80,33 @@ type Exchange struct {
 
 	HttpProxy            string
 	HttpsProxy           string
-	HttpProxy            string
-	HttpsProxy           string
+	Http_proxy           string
+	Https_proxy          string
 	Proxy                string
 	ProxyUrl             string
 	ProxyUrlCallback     interface{}
-	ProxyUrl             string
-	ProxyUrlCallback     interface{}
+	Proxy_url            string
+	Proxy_url_callback   interface{}
 	SocksProxy           string
-	SocksProxy           string
+	Socks_proxy          string
 	SocksProxyCallback   interface{}
+	Socks_proxy_callback interface{}
 
 	HttpsProxyCallback   interface{}
-	HttpsProxyCallback   interface{}
+	Https_proxy_callback interface{}
 
 	HttpProxyCallback   interface{}
-	HttpProxyCallback   interface{}
-	SocksProxyCallback  interface{}
+	Http_proxy_callback interface{}
+	SocksroxyCallback   interface{}
 
 	WsSocksProxy   string
-	WsSocksProxy string
+	Ws_socks_proxy string
 
 	WssProxy  string
-	WssProxy string
+	Wss_proxy string
 
-	WsProxy string
 	WsProxy  string
+	Ws_proxy string
 
 	SubstituteCommonCurrencyCodes bool
 
@@ -124,7 +130,7 @@ func (this *Exchange) Init(userConfig map[string]interface{}, exchangeConfig map
 	// this = &Exchange{}
 	// var properties = this.describe()
 	var extendedProperties = this.DeepExtend(exchangeConfig, userConfig)
-
+	this.Itf = itf
 	// this.id = SafeString(extendedProperties, "id", "").(string)
 	// this.Id = this.id
 	//this.itf = itf
@@ -135,16 +141,16 @@ func (this *Exchange) Init(userConfig map[string]interface{}, exchangeConfig map
 	fmt.Println(this.TransformedApi)
 }
 
-func (this *Exchange) loadMarkets(params ...interface{}) {
+func (this *Exchange) LoadMarkets(params ...interface{}) {
 	// to do
 	// this.safeBool()
 }
 
-func (this *Exchange) throttle(cost interface{}) {
+func (this *Exchange) Throttle(cost interface{}) {
 	// to do
 }
 
-func (this *Exchange) log(args ...interface{}) {
+func (this *Exchange) Log(args ...interface{}) {
 	// convert to str and print
 	fmt.Println(args)
 }
@@ -252,7 +258,7 @@ type ArrayCache interface {
 	ToArray() []interface{}
 }
 
-func (this *Exchange) arraySlice(array interface{}, first interface{}, second ...interface{}) interface{} {
+func (this *Exchange) ArraySlice(array interface{}, first interface{}, second ...interface{}) interface{} {
 	firstInt := reflect.ValueOf(first).Convert(reflect.TypeOf(0)).Interface().(int)
 	parsedArray := reflect.ValueOf(array)
 
@@ -460,29 +466,36 @@ func parseCost(costStr string) float64 {
 	return cost
 }
 
-func internalCall(name string, itf interface{}, args ...interface{}) interface{} {
-	baseType := reflect.TypeOf(itf)
+func (this *Exchange) callInternal(name2 string, args ...interface{}) interface{} {
+	name := strings.Title(strings.ToLower(name2))
+	baseType := reflect.TypeOf(this.Itf)
 
-	baseValue := reflect.ValueOf(itf)
-	method3 := baseValue.MethodByName(name)
-	fmt.Println(method3.Interface())
-	method2, err := baseType.MethodByName(name)
+	// baseValue := reflect.ValueOf(this.Itf)
+	// method3 := baseValue.MethodByName(name)
+	// fmt.Println(method3.Interface())
+	// method2, err := baseType.MethodByName(name)
 
-	if !err {
-		fmt.Println((method2))
-	}
+	// if !err {
+	// 	fmt.Println((method2))
+	// }
 
 	for i := 0; i < baseType.NumMethod(); i++ {
 		method := baseType.Method(i)
 		if name == method.Name {
 			in := make([]reflect.Value, len(args))
 			for k, param := range args {
-				in[k] = reflect.ValueOf(param)
+				val := reflect.ValueOf(param)
+				if !val.IsValid() {
+					//fmt.Println(val)
+					//panic("value is invalid")
+					val = reflect.Zero(reflect.TypeOf((*string)(nil)))
+				}
+				in[k] = val
 			}
 			var res []reflect.Value
-			/*temp := reflect.ValueOf(itf).MethodByName(name)
+			/*temp := reflect.ValueOf(this.Itf).MethodByName(name)
 			x1 := reflect.ValueOf(temp).FieldByName("flag").Uint()*/
-			res = reflect.ValueOf(itf).MethodByName(name).Call(in)
+			res = reflect.ValueOf(this.Itf).MethodByName(name).Call(in)
 			return res[0].Interface().(interface{})
 		}
 	}

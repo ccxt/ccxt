@@ -1016,7 +1016,7 @@ func mathMax(a, b interface{}) interface{} {
 // }
 
 // parseFloat tries to convert various types of input to a float64
-func parseFloat(input interface{}) interface{} {
+func ParseFloat(input interface{}) interface{} {
 	switch v := input.(type) {
 	case float32:
 		return float64(v)

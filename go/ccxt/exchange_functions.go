@@ -80,7 +80,7 @@ func (this *Exchange) Contains(slice []interface{}, elem string) bool {
 }
 
 // toArray converts a map to a slice of its values.
-func (this *Exchange) toArray(a interface{}) []interface{} {
+func (this *Exchange) ToArray(a interface{}) []interface{} {
 	if a == nil {
 		return nil
 	}
@@ -124,12 +124,12 @@ func (this *Exchange) ArrayConcat(aa, bb interface{}) interface{} {
 }
 
 // aggregate is a stub function that returns an empty slice.
-func (this *Exchange) aggregate(bidasks interface{}) []interface{} {
+func (this *Exchange) Aggregate(bidasks interface{}) []interface{} {
 	var outList []interface{}
 	return outList
 }
 
-func (this *Exchange) extractParams(str2 interface{}) []interface{} {
+func (this *Exchange) ExtractParams(str2 interface{}) []interface{} {
 	str := str2.(string)
 	// Compile the regular expression
 	regex := regexp.MustCompile(`\{([^\}]+)\}`)

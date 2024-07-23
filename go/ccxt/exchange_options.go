@@ -1,6 +1,6 @@
 package ccxt
 
-func (this *Exchange) describe() map[string]interface{} {
+func (this *Exchange) Describe() map[string]interface{} {
 	return map[string]interface{}{
 		"id":              nil,
 		"name":            nil,
@@ -331,61 +331,59 @@ func (this *Exchange) describe() map[string]interface{} {
 func (this *Exchange) initializeProperties(extendedProperties Dict) {
 
 	this.TransformedApi = map[string]interface{}{}
-	this.version = SafeString(extendedProperties, "version", "").(string)
-	this.Version = this.version
+	this.Version = SafeString(extendedProperties, "version", "").(string)
 
 	reqCred := SafeValue(extendedProperties, "requiredCredentials", map[string]interface{}{})
-	this.requiredCredentials = reqCred.(map[string]interface{})
-	this.apiKey = SafeString(extendedProperties, "apiKey", "").(string)
-	this.secret = SafeString(extendedProperties, "secret", "").(string)
-	this.password = SafeString(extendedProperties, "password", "").(string)
-	this.login = SafeString(extendedProperties, "login", "").(string)
-	this.twofa = SafeString(extendedProperties, "twofa", "").(string)
-	this.privateKey = SafeString(extendedProperties, "privateKey", "").(string)
-	this.walletAddress = SafeString(extendedProperties, "walletAddress", "").(string)
-	this.token = SafeString(extendedProperties, "token", "").(string)
-	this.uid = SafeString(extendedProperties, "uid", "").(string)
-	this.accountId = SafeString(extendedProperties, "accountId", "").(string)
+	this.RequiredCredentials = reqCred.(map[string]interface{})
+	this.ApiKey = SafeString(extendedProperties, "apiKey", "").(string)
+	this.Secret = SafeString(extendedProperties, "secret", "").(string)
+	this.Password = SafeString(extendedProperties, "password", "").(string)
+	this.Login = SafeString(extendedProperties, "login", "").(string)
+	this.Twofa = SafeString(extendedProperties, "twofa", "").(string)
+	this.PrivateKey = SafeString(extendedProperties, "privateKey", "").(string)
+	this.WalletAddress = SafeString(extendedProperties, "walletAddress", "").(string)
+	this.Token = SafeString(extendedProperties, "token", "").(string)
+	this.Uid = SafeString(extendedProperties, "uid", "").(string)
+	this.AccountId = SafeString(extendedProperties, "accountId", "").(string)
 
-	this.userAgents = SafeValue(extendedProperties, "userAgents", map[string]interface{}{}).(map[string]interface{})
-	this.userAgent = SafeString(extendedProperties, "userAgent", "").(string)
-	this.timeout = SafeInteger(extendedProperties, "timeout", 10000)
-	this.id = SafeString(extendedProperties, "id", "").(string)
-	this.Id = this.id
-	this.alias = SafeValue(extendedProperties, "alias", false).(bool)
+	this.UserAgents = SafeValue(extendedProperties, "userAgents", map[string]interface{}{}).(map[string]interface{})
+	this.UserAgent = SafeString(extendedProperties, "userAgent", "").(string)
+	this.Timeout = SafeInteger(extendedProperties, "timeout", 10000)
+	this.Id = SafeString(extendedProperties, "id", "").(string)
+	this.Alias = SafeValue(extendedProperties, "alias", false).(bool)
 
 	this.Api = SafeValue(extendedProperties, "api", map[string]interface{}{}).(map[string]interface{})
-	this.hostname = SafeString(extendedProperties, "hostname", "").(string)
-	this.urls = SafeValue(extendedProperties, "urls", map[string]interface{}{}).(map[string]interface{})
+	this.Hostname = SafeString(extendedProperties, "hostname", "").(string)
+	this.Urls = SafeValue(extendedProperties, "urls", map[string]interface{}{}).(map[string]interface{})
 
-	this.options = map[string]interface{}{}
+	this.Options = map[string]interface{}{}
 	extendedOptions := SafeValue(extendedProperties, "options", map[string]interface{}{}).(map[string]interface{})
 	for k, v := range extendedOptions {
-		this.options[k] = v
+		this.Options[k] = v
 	}
 
-	this.verbose = SafeValue(extendedProperties, "verbose", false).(bool)
-	this.timeframes = SafeValue(extendedProperties, "timeframes", map[string]interface{}{}).(map[string]interface{})
-	this.fees = SafeValue(extendedProperties, "fees", map[string]interface{}{}).(map[string]interface{})
-	this.has = SafeValue(extendedProperties, "has", map[string]interface{}{}).(map[string]interface{})
+	this.Verbose = SafeValue(extendedProperties, "verbose", false).(bool)
+	this.Timeframes = SafeValue(extendedProperties, "timeframes", map[string]interface{}{}).(map[string]interface{})
+	this.Fees = SafeValue(extendedProperties, "fees", map[string]interface{}{}).(map[string]interface{})
+	this.Has = SafeValue(extendedProperties, "has", map[string]interface{}{}).(map[string]interface{})
 	// this.httpExceptions = SafeValue(extendedProperties, "httpExceptions",map[string]interface{}{}).(map[string]interface{})
-	this.exceptions = SafeValue(extendedProperties, "exceptions", map[string]interface{}{}).(map[string]interface{})
-	this.markets = SafeValue(extendedProperties, "markets", map[string]interface{}{}).(map[string]interface{})
+	this.Exceptions = SafeValue(extendedProperties, "exceptions", map[string]interface{}{}).(map[string]interface{})
+	this.Markets = SafeValue(extendedProperties, "markets", map[string]interface{}{}).(map[string]interface{})
 	propCurrencies := SafeValue(extendedProperties, "currencies", map[string]interface{}{}).(map[string]interface{})
 	if len(propCurrencies) > 0 {
-		this.currencies = propCurrencies
+		this.Currencies = propCurrencies
 	}
 
-	this.rateLimit = SafeFloat(extendedProperties, "rateLimit", -1)
+	this.RateLimit = SafeFloat(extendedProperties, "rateLimit", -1)
 	// this.status = SafeValue(extendedProperties, "status",map[string]interface{}{}).(map[string]interface{})
-	this.precisionMode = int(SafeInteger(extendedProperties, "precisionMode", this.precisionMode))
-	this.paddingMode = int(SafeInteger(extendedProperties, "paddingMode", this.paddingMode))
-	this.commonCurrencies = SafeValue(extendedProperties, "commonCurrencies", map[string]interface{}{}).(map[string]interface{})
+	this.PrecisionMode = int(SafeInteger(extendedProperties, "precisionMode", this.PrecisionMode))
+	this.PaddingMode = int(SafeInteger(extendedProperties, "paddingMode", this.PaddingMode))
+	this.CommonCurrencies = SafeValue(extendedProperties, "commonCurrencies", map[string]interface{}{}).(map[string]interface{})
 	subVal := SafeValue(extendedProperties, "substituteCommonCurrencyCodes", true)
-	this.substituteCommonCurrencyCodes = subVal != nil && subVal.(bool)
-	this.name = SafeString(extendedProperties, "name", "").(string)
-	this.httpsProxy = SafeString(extendedProperties, "httpsProxy", "").(string)
-	this.httpProxy = SafeString(extendedProperties, "httpProxy", "").(string)
-	this.newUpdates = SafeValue(extendedProperties, "newUpdates", true).(bool)
-	this.accounts = SafeValue(extendedProperties, "accounts", []interface{}{}).([]interface{})
+	this.SubstituteCommonCurrencyCodes = subVal != nil && subVal.(bool)
+	this.Name = SafeString(extendedProperties, "name", "").(string)
+	this.HttpsProxy = SafeString(extendedProperties, "httpsProxy", "").(string)
+	this.HttpProxy = SafeString(extendedProperties, "httpProxy", "").(string)
+	this.NewUpdates = SafeValue(extendedProperties, "newUpdates", true).(bool)
+	this.Accounts = SafeValue(extendedProperties, "accounts", []interface{}{}).([]interface{})
 }

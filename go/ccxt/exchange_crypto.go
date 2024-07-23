@@ -18,17 +18,19 @@ import (
 	// "golang.org/x/crypto/sha3"
 )
 
-func sha1() string      { return "sha1" }
+func Sha1() string      { return "sha1" }
+func Sha256() string    { return "sha256" }
 func sha256() string    { return "sha256" }
-func sha384() string    { return "sha384" }
-func sha512() string    { return "sha512" }
-func md5() string       { return "md5" }
+func Sha384() string    { return "sha384" }
+func Sha512() string    { return "sha512" }
+func Md5() string       { return "md5" }
+func Ed25519() string   { return "ed25519" }
 func ed25519() string   { return "ed25519" }
-func keccak() string    { return "keccak" }
-func secp256k1() string { return "secp256k1" }
-func p256() string      { return "p256" }
+func Keccak() string    { return "keccak" }
+func Secp256k1() string { return "secp256k1" }
+func P256() string      { return "p256" }
 
-func (this *Exchange) hmac(request2 interface{}, secret2 interface{}, algorithm2 func() string, args ...interface{}) string {
+func (this *Exchange) Hmac(request2 interface{}, secret2 interface{}, algorithm2 func() string, args ...interface{}) string {
 	digest := GetArg(args, 0, "hex").(string)
 	return Hmac(request2, secret2, algorithm2, digest)
 }
@@ -97,7 +99,7 @@ func signHMACMD5(data, secret []byte) []byte {
 	return h.Sum(nil)
 }
 
-func (this *Exchange) hash(request2 interface{}, hash func() string, digest2 interface{}) interface{} {
+func (this *Exchange) Hash(request2 interface{}, hash func() string, digest2 interface{}) interface{} {
 	return Hash(request2, hash, digest2)
 }
 
@@ -226,7 +228,7 @@ func Jwt(data interface{}, secret interface{}, hash func() string, isRsa bool, o
 	return token + "." + signature
 }
 
-func rsa(data2 interface{}, publicKey2 interface{}, hashAlgorithm2 interface{}) string {
+func Rsa(data2 interface{}, publicKey2 interface{}, hashAlgorithm2 interface{}) string {
 	data := data2.(string)
 	publicKey := publicKey2.(string)
 	hashAlgorithm := hashAlgorithm2.(string)
@@ -296,6 +298,6 @@ func rsa(data2 interface{}, publicKey2 interface{}, hashAlgorithm2 interface{}) 
 	return base64.StdEncoding.EncodeToString(signData)
 }
 
-func eddsa(data2 interface{}, publicKey2 interface{}, hashAlgorithm2 interface{}) string {
+func Eddsa(data2 interface{}, publicKey2 interface{}, hashAlgorithm2 interface{}) string {
 	return ""
 }

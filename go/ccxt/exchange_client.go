@@ -1,5 +1,5 @@
 package ccxt
 
 type Client struct {
-	futures map[string]interface{}
+	Futures map[string]interface{}
 }

@@ -89,7 +89,7 @@ func (this *Exchange) truncate(num interface{}, precision int) float64 {
 	return result
 }
 
-func (this *Exchange) precisionFromString(str2 interface{}) int {
+func (this *Exchange) PrecisionFromString(str2 interface{}) int {
 	str := str2.(string)
 	if strings.ContainsAny(str, "eE") {
 		numStr := regexp.MustCompile(`\d\.?\d*[eE]`).ReplaceAllString(str, "")
@@ -104,7 +104,7 @@ func (this *Exchange) precisionFromString(str2 interface{}) int {
 	return 0
 }
 
-func (this *Exchange) decimalToPrecision(value interface{}, roundingMode interface{}, numPrecisionDigits interface{}, args ...interface{}) string {
+func (this *Exchange) DecimalToPrecision(value interface{}, roundingMode interface{}, numPrecisionDigits interface{}, args ...interface{}) string {
 	countingMode := GetArg(args, 1, nil)
 	paddingMode := GetArg(args, 2, nil)
 	return this._decimalToPrecision(value, roundingMode, numPrecisionDigits, countingMode, paddingMode)
@@ -125,7 +125,7 @@ func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode interface{
 	if numPrecisionDigits < 0 {
 		toNearest := math.Pow(10, float64(-numPrecisionDigits))
 		if roundingMode == ROUND {
-			return this.decimalToPrecision(x.(float64)/toNearest*toNearest, roundingMode, 0, countingMode, paddingMode)
+			return this.DecimalToPrecision(x.(float64)/toNearest*toNearest, roundingMode, 0, countingMode, paddingMode)
 		}
 		if roundingMode == TRUNCATE {
 			return fmt.Sprintf("%v", x.(float64)-math.Mod(x.(float64), toNearest))

@@ -13,7 +13,7 @@ import (
 // )
 
 // Function to replace parameters in the path
-func (this *Exchange) implodeParams(path interface{}, parameter interface{}) interface{} {
+func (this *Exchange) ImplodeParams(path interface{}, parameter interface{}) interface{} {
 	pathStr, ok := path.(string)
 	if !ok {
 		return path
@@ -54,7 +54,7 @@ func parseTimeframe(timeframe interface{}) int64 {
 	return 0
 }
 
-func (this *Exchange) roundTimeframe(timeframe interface{}, timestamp interface{}, direction ...interface{}) interface{} {
+func (this *Exchange) RoundTimeframe(timeframe interface{}, timestamp interface{}, direction ...interface{}) interface{} {
 	// Default direction is ROUND_DOWN
 	roundDirection := ROUND_DOWN
 	if len(direction) > 0 {

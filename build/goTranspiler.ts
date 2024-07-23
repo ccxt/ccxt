@@ -57,6 +57,49 @@ const EXCHANGES_FOLDER = './go/ccxt/';
 // const EXAMPLES_OUTPUT_FOLDER = './examples/cs/examples/';
 const csharpComments ={};
 
+const VIRTUAL_BASE_METHODS = [
+    "parseTrade",
+    "parseTicker",
+    "parseOrder",
+    "parseOrderStatus",
+    "parseOrderSide",
+    "parseOrderType",
+    "parseOHLCV",
+    "parsePosition",
+    "parseBalance",
+    "parseDepositAddress",
+    "parseDeposit",
+    "parseWithdrawal",
+    "parseDepositStatus",
+    "parseWithdrawalStatus",
+    "parseTransaction",
+    "createOrder",
+    "editOrder",
+    "cancelOrder",
+    "fetchOrder",
+    "fetchOrders",
+    "fetchOpenOrders",
+    "fetchClosedOrders",
+    "fetchMyTrades",
+    "fetchTransactions",
+    "fetchDeposits",
+    "fetchWithdrawals",
+    "fetchDeposits",
+    "fetchWithdrawals",
+    "fetchBalance",
+    "fetchStatus",
+    "fetchTicker",
+    "fetchTickers",
+    "fetchOHLCV",
+    "fetchTrades",
+    "fetchOrderBook",
+    "fetchOrderBooks",
+    "fetchL2OrderBook",
+    "fetchL3OrderBook",
+    "fetchOrderTrades",
+    "sign"
+]
+
 class NewTranspiler {
 
     transpiler: Transpiler;
@@ -718,7 +761,9 @@ class NewTranspiler {
         // to c#
         // const tsContent = fs.readFileSync (baseExchangeFile, 'utf8');
         // const delimited = tsContent.split (delimiter)
+        this.transpiler.goTranspiler.wrapCallMethods = VIRTUAL_BASE_METHODS;
         const baseFile = this.transpiler.transpileGoByPath(baseExchangeFile);
+        this.transpiler.goTranspiler.wrapCallMethods = [];
         let baseClass = baseFile.content as any;// remove this later
 
         // create wrappers with specific types
@@ -729,7 +774,7 @@ class NewTranspiler {
         baseClass = baseClass.replaceAll (/currentRestInstance interface\{\},/g, "currentRestInstance Exchange,");
         baseClass = baseClass.replaceAll (/parentRestInstance interface\{\},/g, "parentRestInstance Exchange,");
         baseClass = baseClass.replaceAll (/client interface\{\},/g, "client Client,");
-        baseClass = baseClass.replaceAll (/this.number = String/g, 'this.number = "string"');
+        baseClass = baseClass.replaceAll (/this.Number = String/g, 'this.Number = "string"');
 
         // baseClass = baseClass.replaceAll("client.futures", "getValue(client, \"futures\")"); // tmp fix for c# not needed after ws-merge
         // baseClass = baseClass.replace("((object)this).number = String;", "this.number = typeof(String);"); // tmp fix for c#
@@ -983,7 +1028,7 @@ class NewTranspiler {
 type ${capitalizedClassName} = ${className}\n
 func (this *${className}) Init(userConfig map[string]interface{}) {
 	this.Exchange = Exchange{}
-	this.Exchange.Init(userConfig, this.describe().(map[string]interface{}), this)
+	this.Exchange.Init(userConfig, this.Describe().(map[string]interface{}), this)
 }\n`
         content = this.createGeneratedHeader().join('\n') + '\n' + content + '\n' +  initMethod;
         return goImports + content;
