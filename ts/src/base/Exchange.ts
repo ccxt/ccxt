@@ -2670,7 +2670,7 @@ export default class Exchange {
         }, currency);
     }
 
-    safeMarketStructure (market = undefined): MarketInterface {
+    safeMarketStructure (market: Dict = undefined): MarketInterface {
         const cleanStructure = {
             'id': undefined,
             'lowercaseId': undefined,
@@ -2850,7 +2850,7 @@ export default class Exchange {
         return superWithRestDescribe;
     }
 
-    safeBalance (balance: object): Balances {
+    safeBalance (balance: Dict): Balances {
         const balances = this.omit (balance, [ 'info', 'timestamp', 'datetime', 'free', 'used', 'total' ]);
         const codes = Object.keys (balances);
         balance['free'] = {};
@@ -2891,7 +2891,7 @@ export default class Exchange {
         return balance as any;
     }
 
-    safeOrder (order: object, market: Market = undefined): Order {
+    safeOrder (order: Dict, market: Market = undefined): Order {
         // parses numbers as strings
         // * it is important pass the trades as unparsed rawTrades
         let amount = this.omitZero (this.safeString (order, 'amount'));
@@ -3255,7 +3255,7 @@ export default class Exchange {
         };
     }
 
-    safeLiquidation (liquidation: object, market: Market = undefined): Liquidation {
+    safeLiquidation (liquidation: Dict, market: Market = undefined): Liquidation {
         const contracts = this.safeString (liquidation, 'contracts');
         const contractSize = this.safeString (market, 'contractSize');
         const price = this.safeString (liquidation, 'price');
@@ -3275,7 +3275,7 @@ export default class Exchange {
         return liquidation as Liquidation;
     }
 
-    safeTrade (trade: object, market: Market = undefined): Trade {
+    safeTrade (trade: Dict, market: Market = undefined): Trade {
         const amount = this.safeString (trade, 'amount');
         const price = this.safeString (trade, 'price');
         let cost = this.safeString (trade, 'cost');
@@ -3444,7 +3444,7 @@ export default class Exchange {
         return result;
     }
 
-    safeTicker (ticker: object, market: Market = undefined): Ticker {
+    safeTicker (ticker: Dict, market: Market = undefined): Ticker {
         let open = this.omitZero (this.safeString (ticker, 'open'));
         let close = this.omitZero (this.safeString (ticker, 'close'));
         let last = this.omitZero (this.safeString (ticker, 'last'));
@@ -3988,7 +3988,7 @@ export default class Exchange {
         return this.markets;
     }
 
-    safePosition (position): Position {
+    safePosition (position: Dict): Position {
         // simplified version of: /pull/12765/
         const unrealizedPnlString = this.safeString (position, 'unrealisedPnl');
         const initialMarginString = this.safeString (position, 'initialMargin');
@@ -6729,7 +6729,7 @@ export default class Exchange {
         return [ request, params ];
     }
 
-    safeOpenInterest (interest, market: Market = undefined): OpenInterest {
+    safeOpenInterest (interest: Dict, market: Market = undefined): OpenInterest {
         let symbol = this.safeString (interest, 'symbol');
         if (symbol === undefined) {
             symbol = this.safeString (market, 'symbol');
