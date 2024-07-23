@@ -1040,7 +1040,7 @@ export default class ndax extends Exchange {
         return result;
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         const result: Dict = {
             'info': response,
             'timestamp': undefined,

@@ -484,7 +484,7 @@ export default class btcmarkets extends Exchange {
         return this.parse8601 (this.safeString (response, 'timestamp'));
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];

@@ -458,7 +458,7 @@ export default class cex extends Exchange {
         return result;
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         const result: Dict = { 'info': response };
         const ommited = [ 'username', 'timestamp' ];
         const balances = this.omit (response, ommited);

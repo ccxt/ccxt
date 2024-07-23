@@ -320,7 +320,7 @@ export default class coinmate extends Exchange {
         return result;
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         const balances = this.safeValue (response, 'data', {});
         const result: Dict = { 'info': response };
         const currencyIds = Object.keys (balances);

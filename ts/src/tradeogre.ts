@@ -5,7 +5,7 @@ import { Market } from '../ccxt.js';
 import Exchange from './abstract/tradeogre.js';
 import { InsufficientFunds, AuthenticationError, BadRequest, ExchangeError, ArgumentsRequired } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Num, Order, OrderSide, OrderType, Str, Ticker, IndexType, Dict, int } from './base/types.js';
+import type { Int, Num, Order, OrderSide, OrderType, Str, Ticker, IndexType, Dict, int, Balances } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -436,7 +436,7 @@ export default class tradeogre extends Exchange {
         return this.parseBalance (result);
     }
 
-    parseBalance (response) {
+    parseBalance (response: Dict): Balances {
         //
         //    {
         //        "USDT": "12"

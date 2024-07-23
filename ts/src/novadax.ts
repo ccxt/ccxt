@@ -696,7 +696,7 @@ export default class novadax extends Exchange {
         ];
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         const data = this.safeValue (response, 'data', []);
         const result: Dict = {
             'info': response,

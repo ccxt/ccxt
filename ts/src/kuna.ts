@@ -904,7 +904,7 @@ export default class kuna extends Exchange {
         }, market);
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         //
         //    [
         //        {

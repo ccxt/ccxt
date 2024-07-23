@@ -233,7 +233,7 @@ export default class independentreserve extends Exchange {
         return result;
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];

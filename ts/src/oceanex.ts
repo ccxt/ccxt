@@ -606,7 +606,7 @@ export default class oceanex extends Exchange {
         return this.safeValue (response, 'data');
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         const data = this.safeValue (response, 'data');
         const balances = this.safeValue (data, 'accounts', []);
         const result: Dict = { 'info': response };

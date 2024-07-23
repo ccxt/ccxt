@@ -707,7 +707,7 @@ export default class timex extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         const result: Dict = {
             'info': response,
             'timestamp': undefined,

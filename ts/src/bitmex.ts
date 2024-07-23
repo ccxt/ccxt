@@ -712,7 +712,7 @@ export default class bitmex extends Exchange {
         };
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         //
         //     [
         //         {

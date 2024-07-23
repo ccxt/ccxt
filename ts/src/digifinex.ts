@@ -769,7 +769,7 @@ export default class digifinex extends Exchange {
         return result;
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         //
         // spot and margin
         //

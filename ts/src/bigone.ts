@@ -1298,7 +1298,7 @@ export default class bigone extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         const result: Dict = {
             'info': response,
             'timestamp': undefined,

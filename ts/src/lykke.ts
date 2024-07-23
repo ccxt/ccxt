@@ -672,7 +672,7 @@ export default class lykke extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         //
         //     [
         //         {

@@ -115,7 +115,7 @@ export default class paymium extends Exchange {
         });
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         const result: Dict = { 'info': response };
         const currencies = Object.keys (this.currencies);
         for (let i = 0; i < currencies.length; i++) {

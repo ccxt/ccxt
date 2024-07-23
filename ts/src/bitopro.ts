@@ -846,7 +846,7 @@ export default class bitopro extends Exchange {
         return result;
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         //
         //     [{
         //         "currency":"twd",

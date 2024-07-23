@@ -1123,7 +1123,7 @@ export default class coinlist extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         //
         //     {
         //         "asset_balances": {

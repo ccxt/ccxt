@@ -1606,7 +1606,7 @@ export default class poloniex extends Exchange {
         return this.parseTrades (trades);
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         const result: Dict = {
             'info': response,
             'timestamp': undefined,

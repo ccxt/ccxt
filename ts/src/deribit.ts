@@ -935,16 +935,16 @@ export default class deribit extends Exchange {
         return result;
     }
 
-    parseBalance (balance): Balances {
+    parseBalance (response: Dict): Balances {
         const result: Dict = {
-            'info': balance,
+            'info': response,
         };
-        const currencyId = this.safeString (balance, 'currency');
+        const currencyId = this.safeString (response, 'currency');
         const currencyCode = this.safeCurrencyCode (currencyId);
         const account = this.account ();
-        account['free'] = this.safeString (balance, 'available_funds');
-        account['used'] = this.safeString (balance, 'maintenance_margin');
-        account['total'] = this.safeString (balance, 'equity');
+        account['free'] = this.safeString (response, 'available_funds');
+        account['used'] = this.safeString (response, 'maintenance_margin');
+        account['total'] = this.safeString (response, 'equity');
         result[currencyCode] = account;
         return this.safeBalance (result);
     }

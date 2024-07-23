@@ -4618,7 +4618,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchBalanceWs() is not supported yet');
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         throw new NotSupported (this.id + ' parseBalance() is not supported yet');
     }
 

@@ -2036,7 +2036,7 @@ export default class woofipro extends Exchange {
         return this.parseTrades (trades, market, since, limit, params);
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         const result: Dict = {
             'info': response,
         };

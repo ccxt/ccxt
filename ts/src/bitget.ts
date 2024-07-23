@@ -3574,8 +3574,8 @@ export default class bitget extends Exchange {
         return this.parseBalance (data);
     }
 
-    parseBalance (balance): Balances {
-        const result: Dict = { 'info': balance };
+    parseBalance (response: Dict): Balances {
+        const result: Dict = { 'info': response };
         //
         // spot
         //
@@ -3636,8 +3636,8 @@ export default class bitget extends Exchange {
         //         "ctime": "1697251265504"
         //     }
         //
-        for (let i = 0; i < balance.length; i++) {
-            const entry = balance[i];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
             const account = this.account ();
             const currencyId = this.safeString2 (entry, 'marginCoin', 'coin');
             const code = this.safeCurrencyCode (currencyId);

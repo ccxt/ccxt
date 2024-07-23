@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/xt.js';
-import { Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, LeverageTier, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry } from './base/types.js';
+import { Balances, Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, LeverageTier, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NetworkError, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
@@ -2187,7 +2187,7 @@ export default class xt extends Exchange {
         return this.parseBalance (balances);
     }
 
-    parseBalance (response) {
+    parseBalance (response: Dict): Balances {
         //
         // spot
         //

@@ -235,7 +235,7 @@ export default class zaif extends Exchange {
         };
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         const balances = this.safeValue (response, 'return', {});
         const deposit = this.safeValue (balances, 'deposit');
         const result: Dict = {

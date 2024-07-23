@@ -125,7 +125,7 @@ export default class bl3p extends Exchange {
         });
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         const data = this.safeValue (response, 'data', {});
         const wallets = this.safeValue (data, 'wallets', {});
         const result: Dict = { 'info': data };

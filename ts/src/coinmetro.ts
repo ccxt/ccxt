@@ -957,7 +957,7 @@ export default class coinmetro extends Exchange {
         return this.parseBalance (list);
     }
 
-    parseBalance (balances): Balances {
+    parseBalance (response: Dict): Balances {
         //
         //     [
         //         {
@@ -981,10 +981,10 @@ export default class coinmetro extends Exchange {
         //     ]
         //
         const result: Dict = {
-            'info': balances,
+            'info': response,
         };
-        for (let i = 0; i < balances.length; i++) {
-            const balanceEntry = this.safeDict (balances, i, {});
+        for (let i = 0; i < response.length; i++) {
+            const balanceEntry = this.safeDict (response, i, {});
             const currencyId = this.safeString (balanceEntry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();

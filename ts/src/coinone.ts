@@ -379,7 +379,7 @@ export default class coinone extends Exchange {
         return result;
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         const result: Dict = { 'info': response };
         const balances = this.omit (response, [
             'errorCode',
