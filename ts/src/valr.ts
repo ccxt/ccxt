@@ -232,6 +232,7 @@ export default class valr extends Exchange {
                         '{pair}/orderbook/full', // fetchL3OrderBook
                         'currencies', // fetchCurrencies
                         'pairs', // fetchMarkets
+                        'pairs/{type}',
                         'ordertypes',
                         '{pair}/ordertypes',
                         'marketsummary', // fetchTickers
@@ -251,6 +252,7 @@ export default class valr extends Exchange {
                         'account/balances', // fetchBalance
                         'account/balances/all',
                         'account/transactionhistory',
+                        'account/transactionhistory/subaccounts',
                         'account/{pair}/tradehistory', // fetchMyTrades
                         'account/fees/trade', // fetchTradingFees
                         'marketdata/{pair}/orderbook', // fetchOrderBook
@@ -269,7 +271,6 @@ export default class valr extends Exchange {
                         'wallet/fiat/{currency}/deposit/reference', // fetchDepositAddress
                         'wallet/fiat/{currency}/deposit/reference/{currencyBuy}',
                         'wallet/fiat/{currency}/auto-buy',
-                        'wire/accounts',
                         'simple/{pair}/order/{id}',
                         'pay/limits',
                         'pay/payid',
@@ -305,10 +306,10 @@ export default class valr extends Exchange {
                         'wallet/crypto/{currency}/withdraw', // withdraw
                         'wallet/fiat/{currency}/accounts',
                         'wallet/fiat/{currency}/withdraw', // withdraw
-                        'wire/withdrawals',
                         'simple/{pair}/quote', // TODO fetchConvertQuote
                         'simple/{pair}/order', // TODO createConvertTrade
                         'pay',
+                        'orders/conditionals',
                         'orders/limit', // createOrder
                         'orders/market', // createOrder
                         'orders/stop/limit',
@@ -317,15 +318,19 @@ export default class valr extends Exchange {
                         'staking/un-stake',
                     ],
                     'put': [
+                        'account/subaccount',
                         'pay/transactionid/{id}/reverse',
                         'orders/modify', // editOrder
                         'margin/account/status',
                     ],
                     'delete': [
+                        'account/subaccount',
                         'wallet/fiat/{currency}/accounts/{id}',
                         'orders/order', // cancelOrder
                         'orders', // cancelAllOrders
                         'orders/{pair}', // cancelAllOrders
+                        'orders/conditionals/',
+                        'orders/conditionals/{pair}',
                     ],
                 },
                 'privateV2': {
