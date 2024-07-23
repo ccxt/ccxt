@@ -2,7 +2,6 @@
 
 import testNumber from './test.number.js';
 import testDatetime from './test.datetime.js';
-import testCryptography from './test.cryptography.js';
 import testExtend from './test.extend.js';
 import testSafeMethods from './test.safeMethods.js';
 import testCalculateFee from './test.calculateFee.js';
@@ -13,6 +12,7 @@ import testGroupBy from './test.groupBy.js';
 import testFilterBy from './test.filterBy.js';
 import testOmit from './test.omit.js';
 import testSum from './test.sum.js';
+import testCryptography from './custom/test.cryptography.js'; // is transpiled separately
 import testLanguageSpecific from './custom/test.languageSpecific.js';
 
 function baseTestsInit () {

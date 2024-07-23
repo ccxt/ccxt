@@ -1081,7 +1081,7 @@ class NewTranspiler {
     transpileCryptoTestsToCSharp (outDir: string) {
 
         const jsFile = './ts/src/test/base/custom/test.cryptography.ts';
-        const csharpFile = `${outDir}/Cryptography.cs`;
+        const csharpFile = `${outDir}/custom/Cryptography.cs`;
 
         log.magenta ('[csharp] Transpiling from', (jsFile as any).yellow)
 
