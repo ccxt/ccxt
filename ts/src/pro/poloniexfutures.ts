@@ -1036,8 +1036,8 @@ export default class poloniexfutures extends poloniexfuturesRest {
                 text = message.toString ();
             }
         }
-        const error = new OperationFailed (this.id + ' WS handleErrorMessage() : ' + text);
-        client.reject (error); // todo: maybe exception instead of string
+        const exception = new OperationFailed (this.id + ' WS handleErrorMessage() : ' + text);
+        client.reject (exception);
     }
 
     handleMessage (client: Client, message) {
