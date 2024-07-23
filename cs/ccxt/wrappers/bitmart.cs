@@ -115,6 +115,7 @@ public partial class bitmart
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#get-ticker-of-a-trading-pair-v3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -134,7 +135,7 @@ public partial class bitmart
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://developer-pro.bitmart.com/en/spot/#get-ticker-of-all-pairs-v2"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#get-ticker-of-all-pairs-v3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -179,9 +180,10 @@ public partial class bitmart
         return new OrderBook(res);
     }
     /// <summary>
-    /// get the list of most recent trades for a particular symbol
+    /// get a list of the most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#get-recent-trades-v3"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -192,7 +194,7 @@ public partial class bitmart
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum amount of trades to fetch
+    /// int : the maximum number of trades to fetch
     /// </description>
     /// </item>
     /// <item>
@@ -413,7 +415,7 @@ public partial class bitmart
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -498,6 +500,26 @@ public partial class bitmart
         return new Order(res);
     }
     /// <summary>
+    /// create a list of trade orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#new-batch-order-v4-signed"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object :  extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<List<Order>> CreateOrders(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createOrders(orders, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    /// <summary>
     /// create a trade order
     /// </summary>
     /// <remarks>
@@ -507,7 +529,7 @@ public partial class bitmart
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -595,7 +617,7 @@ public partial class bitmart
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -653,6 +675,26 @@ public partial class bitmart
     {
         var res = await this.cancelOrder(id, symbol, parameters);
         return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// cancel multiple orders
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developer-pro.bitmart.com/en/spot/#cancel-batch-order-v4-signed"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<List<Dictionary<string, object>>> CancelOrders(List<string> ids, string symbol = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.cancelOrders(ids, symbol, parameters);
+        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
     /// <summary>
     /// cancel all open orders in a market

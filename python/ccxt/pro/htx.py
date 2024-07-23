@@ -16,6 +16,7 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import ChecksumError
 
 
 class htx(ccxt.async_support.htx):
@@ -109,6 +110,7 @@ class htx(ccxt.async_support.htx):
                 'api': 'api',  # or api-aws for clients hosted on AWS
                 'watchOrderBook': {
                     'maxRetries': 3,
+                    'checksum': True,
                 },
                 'ws': {
                     'gunzip': True,
@@ -124,7 +126,7 @@ class htx(ccxt.async_support.htx):
                         '2002': AuthenticationError,  # {action: 'sub', code: 2002, ch: 'accounts.update#2', message: 'invalid.auth.state'}
                         '2021': BadRequest,
                         '2001': BadSymbol,  # {action: 'sub', code: 2001, ch: 'orders#2ltcusdt', message: 'invalid.symbol'}
-                        '2011': BadSymbol,  # {op: 'sub', cid: '1649149285', topic: 'orders_cross.hereltc-usdt', 'err-code': 2011, 'err-msg': "Contract doesn't exist.", ts: 1649149287637}
+                        '2011': BadSymbol,  # {op: 'sub', cid: '1649149285', topic: 'orders_cross.ltc-usdt', 'err-code': 2011, 'err-msg': "Contract doesn't exist.", ts: 1649149287637}
                         '2040': BadRequest,  # {op: 'sub', cid: '1649152947', 'err-code': 2040, 'err-msg': 'Missing required parameter.', ts: 1649152948684}
                         '4007': BadRequest,  # {op: 'sub', cid: '1', topic: 'accounts_unify.USDT', 'err-code': 4007, 'err-msg': 'Non - single account user is not available, please check through the cross and isolated account asset interface', ts: 1698419318540}
                     },
@@ -432,13 +434,13 @@ class htx(ccxt.async_support.htx):
         market = self.market(symbol)
         url = self.get_url_by_market_type(market['type'], market['linear'], False, True)
         requestId = self.request_id()
-        request = {
+        request: dict = {
             'req': messageHash,
             'id': requestId,
         }
         # self is a temporary subscription by a specific requestId
         # it has a very short lifetime until the snapshot is received over ws
-        snapshotSubscription = {
+        snapshotSubscription: dict = {
             'id': requestId,
             'messageHash': messageHash,
             'symbol': symbol,
@@ -549,7 +551,9 @@ class htx(ccxt.async_support.htx):
             orderbook.reset(snapshot)
             orderbook['nonce'] = version
         if (prevSeqNum is not None) and prevSeqNum > orderbook['nonce']:
-            raise InvalidNonce(self.id + ' watchOrderBook() received a mesage out of order')
+            checksum = self.handle_option('watchOrderBook', 'checksum', True)
+            if checksum:
+                raise ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
         spotConditon = market['spot'] and (prevSeqNum == orderbook['nonce'])
         nonSpotCondition = market['contract'] and (version - 1 == orderbook['nonce'])
         if spotConditon or nonSpotCondition:
@@ -608,19 +612,18 @@ class htx(ccxt.async_support.htx):
         #     }
         #
         messageHash = self.safe_string(message, 'ch')
-        tick = self.safe_value(message, 'tick')
+        tick = self.safe_dict(message, 'tick')
         event = self.safe_string(tick, 'event')
-        ch = self.safe_value(message, 'ch')
+        ch = self.safe_string(message, 'ch')
         parts = ch.split('.')
         marketId = self.safe_string(parts, 1)
         symbol = self.safe_symbol(marketId)
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
+        if not (symbol in self.orderbooks):
             size = self.safe_string(parts, 3)
             sizeParts = size.split('_')
             limit = self.safe_integer(sizeParts, 1)
-            orderbook = self.order_book({}, limit)
-            self.orderbooks[symbol] = orderbook
+            self.orderbooks[symbol] = self.order_book({}, limit)
+        orderbook = self.orderbooks[symbol]
         if (event is None) and (orderbook['nonce'] is None):
             orderbook.cache.append(message)
         else:
@@ -642,7 +645,7 @@ class htx(ccxt.async_support.htx):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         self.check_required_credentials()
         await self.load_markets()
@@ -886,7 +889,7 @@ class htx(ccxt.async_support.htx):
                 status = self.parse_order_status(self.safe_string_2(data, 'orderStatus', 'status', 'closed'))
                 filled = self.safe_string(data, 'execAmt')
                 remaining = self.safe_string(data, 'remainAmt')
-                order = {
+                order: dict = {
                     'id': orderId,
                     'trades': trades,
                     'status': status,
@@ -903,13 +906,13 @@ class htx(ccxt.async_support.htx):
             rawTrades = self.safe_value(message, 'trade', [])
             tradesLength = len(rawTrades)
             if tradesLength > 0:
-                tradesObject = {
+                tradesObject: dict = {
                     'trades': rawTrades,
                     'ch': messageHash,
                     'symbol': marketId,
                 }
                 # inject order params in every trade
-                extendTradeParams = {
+                extendTradeParams: dict = {
                     'order': self.safe_string(parsedOrder, 'id'),
                     'type': self.safe_string(parsedOrder, 'type'),
                     'side': self.safe_string(parsedOrder, 'side'),
@@ -1334,7 +1337,7 @@ class htx(ccxt.async_support.htx):
                 else:
                     # subscribe to all
                     channel = prefix + '.' + '*'
-        subscriptionParams = {
+        subscriptionParams: dict = {
             'type': type,
             'subType': subType,
             'margin': marginMode,
@@ -1541,7 +1544,7 @@ class htx(ccxt.async_support.htx):
                                 account = self.account()
                                 account['free'] = self.safe_string_2(balance, 'margin_balance', 'margin_available')
                                 account['used'] = self.safe_string(balance, 'margin_frozen')
-                                accountsByCode = {}
+                                accountsByCode: dict = {}
                                 accountsByCode[code] = account
                                 symbol = market['symbol']
                                 self.balance[symbol] = self.safe_balance(accountsByCode)
@@ -1687,7 +1690,7 @@ class htx(ccxt.async_support.htx):
         type = self.safe_string(parts, 0)
         if type == 'market':
             methodName = self.safe_string(parts, 2)
-            methods = {
+            methods: dict = {
                 'depth': self.handle_order_book,
                 'mbp': self.handle_order_book,
                 'detail': self.handle_ticker,
@@ -1772,7 +1775,7 @@ class htx(ccxt.async_support.htx):
         #        "data": {"user-id": "35930539"}
         #    }
         #
-        promise = client.futures['authenticated']
+        promise = client.futures['auth']
         promise.resolve(message)
 
     def handle_error_message(self, client: Client, message):
@@ -1800,6 +1803,12 @@ class htx(ccxt.async_support.htx):
         #         'err-msg': "Non - single account user is not available, please check through the cross and isolated account asset interface",
         #         "ts": 1698419490189
         #     }
+        #     {
+        #         "action":"req",
+        #         "code":2002,
+        #         "ch":"auth",
+        #         "message":"auth.fail"
+        #     }
         #
         status = self.safe_string(message, 'status')
         if status == 'error':
@@ -1810,6 +1819,7 @@ class htx(ccxt.async_support.htx):
                 errorCode = self.safe_string(message, 'err-code')
                 try:
                     self.throw_exactly_matched_exception(self.exceptions['ws']['exact'], errorCode, self.json(message))
+                    raise ExchangeError(self.json(message))
                 except Exception as e:
                     messageHash = self.safe_string(subscription, 'messageHash')
                     client.reject(e, messageHash)
@@ -1817,11 +1827,12 @@ class htx(ccxt.async_support.htx):
                     if id in client.subscriptions:
                         del client.subscriptions[id]
             return False
-        code = self.safe_integer_2(message, 'code', 'err-code')
-        if code is not None and ((code != 200) and (code != 0)):
+        code = self.safe_string_2(message, 'code', 'err-code')
+        if code is not None and ((code != '200') and (code != '0')):
             feedback = self.id + ' ' + self.json(message)
             try:
                 self.throw_exactly_matched_exception(self.exceptions['ws']['exact'], code, feedback)
+                raise ExchangeError(feedback)
             except Exception as e:
                 if isinstance(e, AuthenticationError):
                     client.reject(e, 'auth')
@@ -2075,7 +2086,7 @@ class htx(ccxt.async_support.htx):
 
     def get_url_by_market_type(self, type, isLinear=True, isPrivate=False, isFeed=False):
         api = self.safe_string(self.options, 'api', 'api')
-        hostname = {'hostname': self.hostname}
+        hostname: dict = {'hostname': self.hostname}
         hostnameURL = None
         url = None
         if type == 'spot':
@@ -2095,11 +2106,11 @@ class htx(ccxt.async_support.htx):
 
     async def subscribe_public(self, url, symbol, messageHash, method=None, params={}):
         requestId = self.request_id()
-        request = {
+        request: dict = {
             'sub': messageHash,
             'id': requestId,
         }
-        subscription = {
+        subscription: dict = {
             'id': requestId,
             'messageHash': messageHash,
             'symbol': symbol,
@@ -2111,7 +2122,7 @@ class htx(ccxt.async_support.htx):
 
     async def subscribe_private(self, channel, messageHash, type, subtype, params={}, subscriptionParams={}):
         requestId = self.request_id()
-        subscription = {
+        subscription: dict = {
             'id': requestId,
             'messageHash': messageHash,
             'params': params,
@@ -2132,13 +2143,11 @@ class htx(ccxt.async_support.htx):
         isLinear = subtype == 'linear'
         url = self.get_url_by_market_type(type, isLinear, True)
         hostname = self.urls['hostnames']['spot'] if (type == 'spot') else self.urls['hostnames']['contract']
-        authParams = {
+        authParams: dict = {
             'type': type,
             'url': url,
             'hostname': hostname,
         }
-        if type == 'spot':
-            self.options['ws']['gunzip'] = False
         await self.authenticate(authParams)
         return await self.watch(url, messageHash, self.extend(request, params), channel, extendedSubsription)
 
@@ -2149,7 +2158,7 @@ class htx(ccxt.async_support.htx):
         if url is None or hostname is None or type is None:
             raise ArgumentsRequired(self.id + ' authenticate requires a url, hostname and type argument')
         self.check_required_credentials()
-        messageHash = 'authenticated'
+        messageHash = 'auth'
         relativePath = url.replace('wss://' + hostname, '')
         client = self.client(url)
         future = client.future(messageHash)
@@ -2177,7 +2186,7 @@ class htx(ccxt.async_support.htx):
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
             request = None
             if type == 'spot':
-                newParams = {
+                newParams: dict = {
                     'authType': 'api',
                     'accessKey': self.apiKey,
                     'signatureMethod': 'HmacSHA256',
@@ -2201,7 +2210,7 @@ class htx(ccxt.async_support.htx):
                     'Signature': signature,
                 }
             requestId = self.request_id()
-            subscription = {
+            subscription: dict = {
                 'id': requestId,
                 'messageHash': messageHash,
                 'params': params,

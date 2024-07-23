@@ -266,20 +266,56 @@ public partial class coinbase : ccxt.coinbase
         //        ]
         //    }
         //
+        // note! seems coinbase might also send empty data like:
+        //
+        //    {
+        //        "channel": "ticker_batch",
+        //        "client_id": "",
+        //        "timestamp": "2024-05-24T18:22:24.546809523Z",
+        //        "sequence_num": 1,
+        //        "events": [
+        //            {
+        //                "type": "snapshot",
+        //                "tickers": [
+        //                    {
+        //                        "type": "ticker",
+        //                        "product_id": "",
+        //                        "price": "",
+        //                        "volume_24_h": "",
+        //                        "low_24_h": "",
+        //                        "high_24_h": "",
+        //                        "low_52_w": "",
+        //                        "high_52_w": "",
+        //                        "price_percent_chg_24_h": ""
+        //                    }
+        //                ]
+        //            }
+        //        ]
+        //    }
+        //
+        //
         object channel = this.safeString(message, "channel");
         object events = this.safeValue(message, "events", new List<object>() {});
+        object datetime = this.safeString(message, "timestamp");
+        object timestamp = this.parse8601(datetime);
         object newTickers = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
         {
             object tickersObj = getValue(events, i);
-            object tickers = this.safeValue(tickersObj, "tickers", new List<object>() {});
+            object tickers = this.safeList(tickersObj, "tickers", new List<object>() {});
             for (object j = 0; isLessThan(j, getArrayLength(tickers)); postFixIncrement(ref j))
             {
                 object ticker = getValue(tickers, j);
                 object result = this.parseWsTicker(ticker);
+                ((IDictionary<string,object>)result)["timestamp"] = timestamp;
+                ((IDictionary<string,object>)result)["datetime"] = datetime;
                 object symbol = getValue(result, "symbol");
                 ((IDictionary<string,object>)this.tickers)[(string)symbol] = result;
                 object wsMarketId = this.safeString(ticker, "product_id");
+                if (isTrue(isEqual(wsMarketId, null)))
+                {
+                    continue;
+                }
                 object messageHash = add(add(channel, "::"), wsMarketId);
                 ((IList<object>)newTickers).Add(result);
                 callDynamically(client as WebSocketClient, "resolve", new object[] {result, messageHash});
@@ -748,6 +784,27 @@ public partial class coinbase : ccxt.coinbase
         return message;
     }
 
+    public virtual object handleHeartbeats(WebSocketClient client, object message)
+    {
+        // although the subscription takes a product_ids parameter (i.e. symbol),
+        // there is no (clear) way of mapping the message back to the symbol.
+        //
+        //     {
+        //         "channel": "heartbeats",
+        //         "client_id": "",
+        //         "timestamp": "2023-06-23T20:31:26.122969572Z",
+        //         "sequence_num": 0,
+        //         "events": [
+        //           {
+        //               "current_time": "2023-06-23 20:31:56.121961769 +0000 UTC m=+91717.525857105",
+        //               "heartbeat_counter": "3049"
+        //           }
+        //         ]
+        //     }
+        //
+        return message;
+    }
+
     public override void handleMessage(WebSocketClient client, object message)
     {
         object channel = this.safeString(message, "channel");
@@ -758,6 +815,7 @@ public partial class coinbase : ccxt.coinbase
             { "market_trades", this.handleTrade },
             { "user", this.handleOrder },
             { "l2_data", this.handleOrderBook },
+            { "heartbeats", this.handleHeartbeats },
         };
         object type = this.safeString(message, "type");
         if (isTrue(isEqual(type, "error")))
@@ -766,6 +824,9 @@ public partial class coinbase : ccxt.coinbase
             throw new ExchangeError ((string)errorMessage) ;
         }
         object method = this.safeValue(methods, channel);
-        DynamicInvoker.InvokeMethod(method, new object[] { client, message});
+        if (isTrue(method))
+        {
+            DynamicInvoker.InvokeMethod(method, new object[] { client, message});
+        }
     }
 }

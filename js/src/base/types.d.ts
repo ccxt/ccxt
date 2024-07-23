@@ -1,4 +1,5 @@
 export declare type Int = number | undefined;
+export declare type int = number;
 export declare type Str = string | undefined;
 export declare type Strings = string[] | undefined;
 export declare type Num = number | undefined;
@@ -72,6 +73,10 @@ export interface MarketInterface {
         amount: Num;
         price: Num;
         cost?: Num;
+    };
+    marginMode?: {
+        isolated: boolean;
+        cross: boolean;
     };
     limits: {
         amount?: MinMax;
@@ -264,6 +269,8 @@ export interface FundingRate {
     previousFundingTimestamp?: number;
     previousFundingDatetime?: string;
     previousFundingRate?: number;
+}
+export interface FundingRates extends Dictionary<FundingRate> {
 }
 export interface Position {
     symbol: string;
@@ -521,6 +528,8 @@ export interface IsolatedBorrowRates extends Dictionary<IsolatedBorrowRates> {
 export interface CrossBorrowRates extends Dictionary<CrossBorrowRates> {
 }
 export interface TransferEntries extends Dictionary<TransferEntry> {
+}
+export interface LeverageTiers extends Dictionary<LeverageTier[]> {
 }
 /** [ timestamp, open, high, low, close, volume ] */
 export declare type OHLCV = [Num, Num, Num, Num, Num, Num];

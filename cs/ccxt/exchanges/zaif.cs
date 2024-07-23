@@ -459,7 +459,7 @@ public partial class zaif : Exchange
         * @param {string} type must be 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -499,7 +499,23 @@ public partial class zaif : Exchange
         object request = new Dictionary<string, object>() {
             { "order_id", id },
         };
-        return await this.privatePostCancelOrder(this.extend(request, parameters));
+        object response = await this.privatePostCancelOrder(this.extend(request, parameters));
+        //
+        //    {
+        //        "success": 1,
+        //        "return": {
+        //            "order_id": 184,
+        //            "funds": {
+        //                "jpy": 15320,
+        //                "btc": 1.392,
+        //                "mona": 2600,
+        //                "kaori": 0.1
+        //            }
+        //        }
+        //    }
+        //
+        object data = this.safeDict(response, "return");
+        return this.parseOrder(data);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -514,6 +530,18 @@ public partial class zaif : Exchange
         //         "comment" : "demo"
         //     }
         //
+        // cancelOrder
+        //
+        //    {
+        //        "order_id": 184,
+        //        "funds": {
+        //            "jpy": 15320,
+        //            "btc": 1.392,
+        //            "mona": 2600,
+        //            "kaori": 0.1
+        //        }
+        //    }
+        //
         object side = this.safeString(order, "action");
         side = ((bool) isTrue((isEqual(side, "bid")))) ? "buy" : "sell";
         object timestamp = this.safeTimestamp(order, "timestamp");
@@ -521,7 +549,7 @@ public partial class zaif : Exchange
         object symbol = this.safeSymbol(marketId, market, "_");
         object price = this.safeString(order, "price");
         object amount = this.safeString(order, "amount");
-        object id = this.safeString(order, "id");
+        object id = this.safeString2(order, "id", "order_id");
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
             { "clientOrderId", null },

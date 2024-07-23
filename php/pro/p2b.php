@@ -81,7 +81,7 @@ class p2b extends \ccxt\async\p2b {
                 'params' => $request,
                 'id' => $this->milliseconds(),
             );
-            $query = array_merge($subscribe, $params);
+            $query = $this->extend($subscribe, $params);
             return Async\await($this->watch($url, $messageHash, $query, $messageHash));
         }) ();
     }
@@ -427,7 +427,7 @@ class p2b extends \ccxt\async\p2b {
         return false;
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         /**
          * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#ping
          * @param $client

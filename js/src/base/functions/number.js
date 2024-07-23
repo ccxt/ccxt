@@ -84,8 +84,8 @@ const truncate_to_string = (num, precision = 0) => {
 const truncate = (num, precision = 0) => parseFloat(truncate_to_string(num, precision));
 function precisionFromString(str) {
     // support string formats like '1e-4'
-    if (str.indexOf('e') > -1) {
-        const numStr = str.replace(/\de/, '');
+    if (str.indexOf('e') > -1 || str.indexOf('E') > -1) {
+        const numStr = str.replace(/\d\.?\d*[eE]/, '');
         return parseInt(numStr) * -1;
     }
     // support integer formats (without dot) like '1', '10' etc [Note: bug in decimalToPrecision, so this should not be used atm]
@@ -274,13 +274,18 @@ const _decimalToPrecision = (x, roundingMode, numPrecisionDigits, countingMode =
     return String.fromCharCode(...out);
 };
 function omitZero(stringNumber) {
-    if (stringNumber === undefined || stringNumber === '') {
-        return undefined;
+    try {
+        if (stringNumber === undefined || stringNumber === '') {
+            return undefined;
+        }
+        if (parseFloat(stringNumber) === 0) {
+            return undefined;
+        }
+        return stringNumber;
     }
-    if (parseFloat(stringNumber) === 0) {
-        return undefined;
+    catch (e) {
+        return stringNumber;
     }
-    return stringNumber;
 }
 /*  ------------------------------------------------------------------------ */
 export { numberToString, precisionFromString, decimalToPrecision, truncate_to_string, truncate, omitZero, precisionConstants, ROUND, TRUNCATE, ROUND_UP, ROUND_DOWN, DECIMAL_PLACES, SIGNIFICANT_DIGITS, TICK_SIZE, NO_PADDING, PAD_WITH_ZERO, };

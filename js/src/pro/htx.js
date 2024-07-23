@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import htxRest from '../htx.js';
-import { ExchangeError, InvalidNonce, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError } from '../base/errors.js';
+import { ExchangeError, InvalidNonce, ChecksumError, ArgumentsRequired, BadRequest, BadSymbol, AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
@@ -100,6 +100,7 @@ export default class htx extends htxRest {
                 'api': 'api',
                 'watchOrderBook': {
                     'maxRetries': 3,
+                    'checksum': true,
                 },
                 'ws': {
                     'gunzip': true,
@@ -571,7 +572,10 @@ export default class htx extends htxRest {
             orderbook['nonce'] = version;
         }
         if ((prevSeqNum !== undefined) && prevSeqNum > orderbook['nonce']) {
-            throw new InvalidNonce(this.id + ' watchOrderBook() received a mesage out of order');
+            const checksum = this.handleOption('watchOrderBook', 'checksum', true);
+            if (checksum) {
+                throw new ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
+            }
         }
         const spotConditon = market['spot'] && (prevSeqNum === orderbook['nonce']);
         const nonSpotCondition = market['contract'] && (version - 1 === orderbook['nonce']);
@@ -632,20 +636,19 @@ export default class htx extends htxRest {
         //     }
         //
         const messageHash = this.safeString(message, 'ch');
-        const tick = this.safeValue(message, 'tick');
+        const tick = this.safeDict(message, 'tick');
         const event = this.safeString(tick, 'event');
-        const ch = this.safeValue(message, 'ch');
+        const ch = this.safeString(message, 'ch');
         const parts = ch.split('.');
         const marketId = this.safeString(parts, 1);
         const symbol = this.safeSymbol(marketId);
-        let orderbook = this.safeValue(this.orderbooks, symbol);
-        if (orderbook === undefined) {
+        if (!(symbol in this.orderbooks)) {
             const size = this.safeString(parts, 3);
             const sizeParts = size.split('_');
             const limit = this.safeInteger(sizeParts, 1);
-            orderbook = this.orderBook({}, limit);
-            this.orderbooks[symbol] = orderbook;
+            this.orderbooks[symbol] = this.orderBook({}, limit);
         }
+        const orderbook = this.orderbooks[symbol];
         if ((event === undefined) && (orderbook['nonce'] === undefined)) {
             orderbook.cache.push(message);
         }
@@ -672,7 +675,7 @@ export default class htx extends htxRest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         this.checkRequiredCredentials();
         await this.loadMarkets();
@@ -1900,7 +1903,7 @@ export default class htx extends htxRest {
         //        "data": { "user-id": "35930539" }
         //    }
         //
-        const promise = client.futures['authenticated'];
+        const promise = client.futures['auth'];
         promise.resolve(message);
     }
     handleErrorMessage(client, message) {
@@ -1928,6 +1931,12 @@ export default class htx extends htxRest {
         //         'err-msg': "Non - single account user is not available, please check through the cross and isolated account asset interface",
         //         "ts": 1698419490189
         //     }
+        //     {
+        //         "action":"req",
+        //         "code":2002,
+        //         "ch":"auth",
+        //         "message":"auth.fail"
+        //     }
         //
         const status = this.safeString(message, 'status');
         if (status === 'error') {
@@ -1938,6 +1947,7 @@ export default class htx extends htxRest {
                 const errorCode = this.safeString(message, 'err-code');
                 try {
                     this.throwExactlyMatchedException(this.exceptions['ws']['exact'], errorCode, this.json(message));
+                    throw new ExchangeError(this.json(message));
                 }
                 catch (e) {
                     const messageHash = this.safeString(subscription, 'messageHash');
@@ -1950,11 +1960,12 @@ export default class htx extends htxRest {
             }
             return false;
         }
-        const code = this.safeInteger2(message, 'code', 'err-code');
-        if (code !== undefined && ((code !== 200) && (code !== 0))) {
+        const code = this.safeString2(message, 'code', 'err-code');
+        if (code !== undefined && ((code !== '200') && (code !== '0'))) {
             const feedback = this.id + ' ' + this.json(message);
             try {
                 this.throwExactlyMatchedException(this.exceptions['ws']['exact'], code, feedback);
+                throw new ExchangeError(feedback);
             }
             catch (e) {
                 if (e instanceof AuthenticationError) {
@@ -2308,9 +2319,6 @@ export default class htx extends htxRest {
             'url': url,
             'hostname': hostname,
         };
-        if (type === 'spot') {
-            this.options['ws']['gunzip'] = false;
-        }
         await this.authenticate(authParams);
         return await this.watch(url, messageHash, this.extend(request, params), channel, extendedSubsription);
     }
@@ -2322,7 +2330,7 @@ export default class htx extends htxRest {
             throw new ArgumentsRequired(this.id + ' authenticate requires a url, hostname and type argument');
         }
         this.checkRequiredCredentials();
-        const messageHash = 'authenticated';
+        const messageHash = 'auth';
         const relativePath = url.replace('wss://' + hostname, '');
         const client = this.client(url);
         const future = client.future(messageHash);

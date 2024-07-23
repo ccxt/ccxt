@@ -412,9 +412,9 @@ public partial class bitmart : ccxt.bitmart
         /**
         * @method
         * @name bitmart#watchOrders
-        * @see https://developer-pro.bitmart.com/en/spot/#private-order-channel
-        * @see https://developer-pro.bitmart.com/en/futures/#private-order-channel
         * @description watches information on multiple orders made by the user
+        * @see https://developer-pro.bitmart.com/en/spot/#private-order-progress
+        * @see https://developer-pro.bitmart.com/en/futures/#private-order-channel
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
@@ -439,13 +439,17 @@ public partial class bitmart : ccxt.bitmart
         object request = null;
         if (isTrue(isEqual(type, "spot")))
         {
-            if (isTrue(isEqual(symbol, null)))
+            object argsRequest = "spot/user/order:";
+            if (isTrue(!isEqual(symbol, null)))
             {
-                throw new ArgumentsRequired ((string)add(this.id, " watchOrders() requires a symbol argument for spot markets")) ;
+                argsRequest = add(argsRequest, getValue(market, "id"));
+            } else
+            {
+                argsRequest = "spot/user/orders:ALL_SYMBOLS";
             }
             request = new Dictionary<string, object>() {
                 { "op", "subscribe" },
-                { "args", new List<object>() {add("spot/user/order:", getValue(market, "id"))} },
+                { "args", new List<object>() {argsRequest} },
             };
         } else
         {
@@ -844,8 +848,8 @@ public partial class bitmart : ccxt.bitmart
         object symbol = getValue(market, "symbol");
         object openTimestamp = this.safeInteger(position, "create_time");
         object timestamp = this.safeInteger(position, "update_time");
-        object side = this.safeNumber(position, "position_type");
-        object marginModeId = this.safeNumber(position, "open_type");
+        object side = this.safeInteger(position, "position_type");
+        object marginModeId = this.safeInteger(position, "open_type");
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -1469,7 +1473,7 @@ public partial class bitmart : ccxt.bitmart
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;
             }
             object orderbook = getValue(this.orderbooks, symbol);
-            object way = this.safeNumber(data, "way");
+            object way = this.safeInteger(data, "way");
             object side = ((bool) isTrue((isEqual(way, 1)))) ? "bids" : "asks";
             if (isTrue(isEqual(way, 1)))
             {

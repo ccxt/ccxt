@@ -242,6 +242,9 @@ class okx extends Exchange {
                         'sprd/books' => 1 / 2,
                         'sprd/ticker' => 1,
                         'sprd/public-trades' => 1 / 5,
+                        'market/sprd-ticker' => 2,
+                        'market/sprd-candles' => 2,
+                        'market/sprd-history-candles' => 2,
                         'tradingBot/grid/ai-param' => 1,
                         'tradingBot/grid/min-investment' => 1,
                         'tradingBot/public/rsi-back-testing' => 1,
@@ -249,6 +252,9 @@ class okx extends Exchange {
                         'finance/staking-defi/eth/apy-history' => 5 / 3,
                         'finance/savings/lending-rate-summary' => 5 / 3,
                         'finance/savings/lending-rate-history' => 5 / 3,
+                        'finance/fixed-loan/lending-offers' => 10 / 3,
+                        'finance/fixed-loan/lending-apy-history' => 10 / 3,
+                        'finance/fixed-loan/pending-lending-volume' => 10 / 3,
                         // public broker
                         'finance/sfp/dcd/products' => 2 / 3,
                         // copytrading
@@ -336,6 +342,9 @@ class okx extends Exchange {
                         'account/greeks' => 2,
                         'account/position-tiers' => 2,
                         'account/mmp-config' => 4,
+                        'account/fixed-loan/borrowing-limit' => 4,
+                        'account/fixed-loan/borrowing-quote' => 5,
+                        'account/fixed-loan/borrowing-orders-list' => 5,
                         // subaccount
                         'users/subaccount/list' => 10,
                         'account/subaccount/balances' => 10 / 3,
@@ -419,6 +428,7 @@ class okx extends Exchange {
                         'sprd/cancel-order' => 1,
                         'sprd/mass-cancel' => 1,
                         'sprd/amend-order' => 1,
+                        'sprd/cancel-all-after' => 10,
                         // trade
                         'trade/order' => 1 / 3,
                         'trade/batch-orders' => 1 / 15,
@@ -461,6 +471,10 @@ class okx extends Exchange {
                         'account/set-account-level' => 4,
                         'account/mmp-reset' => 4,
                         'account/mmp-config' => 100,
+                        'account/fixed-loan/borrowing-order' => 5,
+                        'account/fixed-loan/amend-borrowing-order' => 5,
+                        'account/fixed-loan/manual-reborrow' => 5,
+                        'account/fixed-loan/repay-borrowing-order' => 5,
                         // subaccount
                         'users/subaccount/modify-apikey' => 10,
                         'asset/subaccount/transfer' => 10,
@@ -909,6 +923,15 @@ class okx extends Exchange {
                     '70010' => '\\ccxt\\BadRequest', // Timestamp parameters need to be in Unix timestamp format in milliseconds.
                     '70013' => '\\ccxt\\BadRequest', // endTs needs to be bigger than or equal to beginTs.
                     '70016' => '\\ccxt\\BadRequest', // Please specify your instrument settings for at least one instType.
+                    '1009' => '\\ccxt\\BadRequest',  // Request message exceeds the maximum frame length
+                    '4001' => '\\ccxt\\AuthenticationError',  // Login Failed
+                    '4002' => '\\ccxt\\BadRequest',  // Invalid Request
+                    '4003' => '\\ccxt\\RateLimitExceeded',  // APIKey subscription amount exceeds the limit 100
+                    '4004' => '\\ccxt\\NetworkError',  // No data received in 30s
+                    '4005' => '\\ccxt\\ExchangeNotAvailable',  // Buffer is full, cannot write data
+                    '4006' => '\\ccxt\\BadRequest',  // Abnormal disconnection
+                    '4007' => '\\ccxt\\AuthenticationError',  // API key has been updated or deleted. Please reconnect.
+                    '4008' => '\\ccxt\\RateLimitExceeded',  // The number of subscribed channels exceeds the maximum limit.
                 ),
                 'broad' => array(
                     'Internal Server Error' => '\\ccxt\\ExchangeNotAvailable', // array("code":500,"data":array(),"detailMsg":"","error_code":"500","error_message":"Internal Server Error","msg":"Internal Server Error")
@@ -1360,7 +1383,7 @@ class okx extends Exchange {
         return $result;
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         //
         //     {
         //         "alias" => "", // this_week, next_week, quarter, next_quarter
@@ -1455,7 +1478,7 @@ class okx extends Exchange {
         $maxLeverage = $this->safe_string($market, 'lever', '1');
         $maxLeverage = Precise::string_max($maxLeverage, '1');
         $maxSpotCost = $this->safe_number($market, 'maxMktSz');
-        return array_merge($fees, array(
+        return $this->extend($fees, array(
             'id' => $id,
             'symbol' => $symbol,
             'base' => $base,
@@ -1516,7 +1539,7 @@ class okx extends Exchange {
             for ($i = 0; $i < count($optionsUnderlying); $i++) {
                 $underlying = $optionsUnderlying[$i];
                 $request['uly'] = $underlying;
-                $promises[] = $this->publicGetPublicInstruments (array_merge($request, $params));
+                $promises[] = $this->publicGetPublicInstruments ($this->extend($request, $params));
             }
             $promisesResult = $promises;
             $markets = array();
@@ -1527,7 +1550,7 @@ class okx extends Exchange {
             }
             return $this->parse_markets($markets);
         }
-        $response = $this->publicGetPublicInstruments (array_merge($request, $params));
+        $response = $this->publicGetPublicInstruments ($this->extend($request, $params));
         //
         // spot, future, swap, option
         //
@@ -1739,9 +1762,9 @@ class okx extends Exchange {
         }
         $response = null;
         if (($method === 'publicGetMarketBooksFull') || ($limit > 400)) {
-            $response = $this->publicGetMarketBooksFull (array_merge($request, $params));
+            $response = $this->publicGetMarketBooksFull ($this->extend($request, $params));
         } else {
-            $response = $this->publicGetMarketBooks (array_merge($request, $params));
+            $response = $this->publicGetMarketBooks ($this->extend($request, $params));
         }
         //
         //     {
@@ -1839,7 +1862,7 @@ class okx extends Exchange {
         $request = array(
             'instId' => $market['id'],
         );
-        $response = $this->publicGetMarketTicker (array_merge($request, $params));
+        $response = $this->publicGetMarketTicker ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -1896,7 +1919,7 @@ class okx extends Exchange {
                 $request['uly'] = $currencyId;
             }
         }
-        $response = $this->publicGetMarketTickers (array_merge($request, $params));
+        $response = $this->publicGetMarketTickers ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -1927,7 +1950,7 @@ class okx extends Exchange {
         return $this->parse_tickers($tickers, $symbols);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // public fetchTrades
         //
@@ -2044,7 +2067,7 @@ class okx extends Exchange {
         );
         $response = null;
         if ($market['option']) {
-            $response = $this->publicGetPublicOptionTrades (array_merge($request, $params));
+            $response = $this->publicGetPublicOptionTrades ($this->extend($request, $params));
         } else {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 100
@@ -2052,9 +2075,9 @@ class okx extends Exchange {
             $method = null;
             list($method, $params) = $this->handle_option_and_params($params, 'fetchTrades', 'method', 'publicGetMarketTrades');
             if ($method === 'publicGetMarketTrades') {
-                $response = $this->publicGetMarketTrades (array_merge($request, $params));
+                $response = $this->publicGetMarketTrades ($this->extend($request, $params));
             } elseif ($method === 'publicGetMarketHistoryTrades') {
-                $response = $this->publicGetMarketHistoryTrades (array_merge($request, $params));
+                $response = $this->publicGetMarketHistoryTrades ($this->extend($request, $params));
             }
         }
         //
@@ -2190,22 +2213,22 @@ class okx extends Exchange {
         $response = null;
         if ($price === 'mark') {
             if ($isHistoryCandles) {
-                $response = $this->publicGetMarketHistoryMarkPriceCandles (array_merge($request, $params));
+                $response = $this->publicGetMarketHistoryMarkPriceCandles ($this->extend($request, $params));
             } else {
-                $response = $this->publicGetMarketMarkPriceCandles (array_merge($request, $params));
+                $response = $this->publicGetMarketMarkPriceCandles ($this->extend($request, $params));
             }
         } elseif ($price === 'index') {
             $request['instId'] = $market['info']['instFamily']; // okx index candles require instFamily instead of instId
             if ($isHistoryCandles) {
-                $response = $this->publicGetMarketHistoryIndexCandles (array_merge($request, $params));
+                $response = $this->publicGetMarketHistoryIndexCandles ($this->extend($request, $params));
             } else {
-                $response = $this->publicGetMarketIndexCandles (array_merge($request, $params));
+                $response = $this->publicGetMarketIndexCandles ($this->extend($request, $params));
             }
         } else {
             if ($isHistoryCandles) {
-                $response = $this->publicGetMarketHistoryCandles (array_merge($request, $params));
+                $response = $this->publicGetMarketHistoryCandles ($this->extend($request, $params));
             } else {
-                $response = $this->publicGetMarketCandles (array_merge($request, $params));
+                $response = $this->publicGetMarketCandles ($this->extend($request, $params));
             }
         }
         //
@@ -2253,7 +2276,7 @@ class okx extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetPublicFundingRateHistory (array_merge($request, $params));
+        $response = $this->publicGetPublicFundingRateHistory ($this->extend($request, $params));
         //
         //     {
         //         "code":"0",
@@ -2346,7 +2369,7 @@ class okx extends Exchange {
         return $this->safe_balance($result);
     }
 
-    public function parse_trading_fee($fee, ?array $market = null): array {
+    public function parse_trading_fee(array $fee, ?array $market = null): array {
         // https://www.okx.com/docs-v5/en/#rest-api-account-get-$fee-rates
         //
         //     {
@@ -2394,7 +2417,7 @@ class okx extends Exchange {
         } else {
             throw new NotSupported($this->id . ' fetchTradingFee() supports spot, swap, future or option markets only');
         }
-        $response = $this->privateGetAccountTradeFee (array_merge($request, $params));
+        $response = $this->privateGetAccountTradeFee ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -2424,6 +2447,7 @@ class okx extends Exchange {
          * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-balance
          * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-balance
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->type] wallet type, ['funding' or 'trading'] default is 'trading'
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
         $this->load_markets();
@@ -2433,9 +2457,9 @@ class okx extends Exchange {
         );
         $response = null;
         if ($marketType === 'funding') {
-            $response = $this->privateGetAssetBalances (array_merge($request, $query));
+            $response = $this->privateGetAssetBalances ($this->extend($request, $query));
         } else {
-            $response = $this->privateGetAccountBalance (array_merge($request, $query));
+            $response = $this->privateGetAccountBalance ($this->extend($request, $query));
         }
         //
         //     {
@@ -2838,7 +2862,7 @@ class okx extends Exchange {
             $request['clOrdId'] = $clientOrderId;
             $params = $this->omit($params, array( 'clOrdId', 'clientOrderId' ));
         }
-        return array_merge($request, $params);
+        return $this->extend($request, $params);
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
@@ -2851,7 +2875,7 @@ class okx extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {bool} [$params->reduceOnly] a mark to reduce the position size for margin, swap and future orders
          * @param {bool} [$params->postOnly] true to place a post only $order
@@ -2919,7 +2943,7 @@ class okx extends Exchange {
             $amount = $this->safe_value($rawOrder, 'amount');
             $price = $this->safe_value($rawOrder, 'price');
             $orderParams = $this->safe_dict($rawOrder, 'params', array());
-            $extendedParams = array_merge($orderParams, $params); // the request does not accept extra $params since it's a list, so we're extending each order with the common $params
+            $extendedParams = $this->extend($orderParams, $params); // the request does not accept extra $params since it's a list, so we're extending each order with the common $params
             $orderRequest = $this->create_order_request($marketId, $type, $side, $amount, $price, $extendedParams);
             $ordersRequests[] = $orderRequest;
         }
@@ -3041,7 +3065,7 @@ class okx extends Exchange {
             }
         }
         $params = $this->omit($params, array( 'clOrdId', 'clientOrderId', 'takeProfitPrice', 'stopLossPrice', 'stopLoss', 'takeProfit' ));
-        return array_merge($request, $params);
+        return $this->extend($request, $params);
     }
 
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
@@ -3054,7 +3078,7 @@ class okx extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of the currency you want to trade in units of the base currency
-         * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->clientOrderId] client $order $id, uses $id if not passed
          * @param {float} [$params->stopLossPrice] stop loss trigger $price
@@ -3083,9 +3107,9 @@ class okx extends Exchange {
         }
         $response = null;
         if ($isAlgoOrder) {
-            $response = $this->privatePostTradeAmendAlgos (array_merge($request, $params));
+            $response = $this->privatePostTradeAmendAlgos ($this->extend($request, $params));
         } else {
-            $response = $this->privatePostTradeAmendOrder (array_merge($request, $params));
+            $response = $this->privatePostTradeAmendOrder ($this->extend($request, $params));
         }
         //
         //     {
@@ -3145,7 +3169,7 @@ class okx extends Exchange {
             $request['ordId'] = $id;
         }
         $query = $this->omit($params, array( 'clOrdId', 'clientOrderId' ));
-        $response = $this->privatePostTradeCancelOrder (array_merge($request, $query));
+        $response = $this->privatePostTradeCancelOrder ($this->extend($request, $query));
         // array("code":"0","data":[array("clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":"")],"msg":"")
         $data = $this->safe_value($response, 'data', array());
         $order = $this->safe_dict($data, 0);
@@ -3269,7 +3293,7 @@ class okx extends Exchange {
          * cancel multiple $orders for multiple symbols
          * @see https://www.okx.com/docs-v5/en/#$order-book-trading-trade-post-cancel-multiple-$orders
          * @see https://www.okx.com/docs-v5/en/#$order-book-trading-algo-trading-post-cancel-algo-$order
-         * @param {CancellationRequest[]} $orders each $order should contain the parameters required by cancelOrder namely $id and $symbol
+         * @param {CancellationRequest[]} $orders each $order should contain the parameters required by cancelOrder namely $id and $symbol, example [array("id" => "a", "symbol" => "BTC/USDT"), array("id" => "b", "symbol" => "ETH/USDT")]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] whether the $order is a stop/trigger $order
          * @param {boolean} [$params->trailing] set to true if you want to cancel $trailing $orders
@@ -3355,7 +3379,7 @@ class okx extends Exchange {
         $request = array(
             'timeOut' => ($timeout > 0) ? $this->parse_to_int($timeout / 1000) : 0,
         );
-        $response = $this->privatePostTradeCancelAllAfter (array_merge($request, $params));
+        $response = $this->privatePostTradeCancelAllAfter ($this->extend($request, $params));
         //
         //     {
         //         "code":"0",
@@ -3371,7 +3395,7 @@ class okx extends Exchange {
         return $response;
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'canceled' => 'canceled',
             'order_failed' => 'canceled',
@@ -3383,7 +3407,7 @@ class okx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -3634,9 +3658,9 @@ class okx extends Exchange {
         $query = $this->omit($params, array( 'method', 'clOrdId', 'clientOrderId', 'stop', 'trigger' ));
         $response = null;
         if ($method === 'privateGetTradeOrderAlgo') {
-            $response = $this->privateGetTradeOrderAlgo (array_merge($request, $query));
+            $response = $this->privateGetTradeOrderAlgo ($this->extend($request, $query));
         } else {
-            $response = $this->privateGetTradeOrder (array_merge($request, $query));
+            $response = $this->privateGetTradeOrder ($this->extend($request, $query));
         }
         //
         // Spot and Swap
@@ -3797,9 +3821,9 @@ class okx extends Exchange {
         $query = $this->omit($params, array( 'method', 'stop', 'trigger', 'trailing' ));
         $response = null;
         if ($method === 'privateGetTradeOrdersAlgoPending') {
-            $response = $this->privateGetTradeOrdersAlgoPending (array_merge($request, $query));
+            $response = $this->privateGetTradeOrdersAlgoPending ($this->extend($request, $query));
         } else {
-            $response = $this->privateGetTradeOrdersPending (array_merge($request, $query));
+            $response = $this->privateGetTradeOrdersPending ($this->extend($request, $query));
         }
         //
         //     {
@@ -3976,9 +4000,9 @@ class okx extends Exchange {
         $send = $this->omit($query, array( 'method', 'stop', 'trigger', 'trailing' ));
         $response = null;
         if ($method === 'privateGetTradeOrdersAlgoHistory') {
-            $response = $this->privateGetTradeOrdersAlgoHistory (array_merge($request, $send));
+            $response = $this->privateGetTradeOrdersAlgoHistory ($this->extend($request, $send));
         } else {
-            $response = $this->privateGetTradeOrdersHistory (array_merge($request, $send));
+            $response = $this->privateGetTradeOrdersHistory ($this->extend($request, $send));
         }
         //
         //     {
@@ -4162,11 +4186,11 @@ class okx extends Exchange {
         $send = $this->omit($query, array( 'method', 'stop', 'trigger', 'trailing' ));
         $response = null;
         if ($method === 'privateGetTradeOrdersAlgoHistory') {
-            $response = $this->privateGetTradeOrdersAlgoHistory (array_merge($request, $send));
+            $response = $this->privateGetTradeOrdersAlgoHistory ($this->extend($request, $send));
         } elseif ($method === 'privateGetTradeOrdersHistoryArchive') {
-            $response = $this->privateGetTradeOrdersHistoryArchive (array_merge($request, $send));
+            $response = $this->privateGetTradeOrdersHistoryArchive ($this->extend($request, $send));
         } else {
-            $response = $this->privateGetTradeOrdersHistory (array_merge($request, $send));
+            $response = $this->privateGetTradeOrdersHistory ($this->extend($request, $send));
         }
         //
         //     {
@@ -4308,7 +4332,7 @@ class okx extends Exchange {
         if (($limit !== null) && ($since === null)) {  // $limit = n, okx will return the n most recent results, instead of the n results after $limit, so $limit should only be sent when $since is null
             $request['limit'] = $limit; // default 100, max 100
         }
-        $response = $this->privateGetTradeFillsHistory (array_merge($request, $query));
+        $response = $this->privateGetTradeFillsHistory ($this->extend($request, $query));
         //
         //     {
         //         "code" => "0",
@@ -4356,7 +4380,7 @@ class okx extends Exchange {
             // 'before' => '1', // return the page before the specified page number
             // 'limit' => $limit, // optional, number of results per $request, default = maximum = 100
         );
-        return $this->fetch_my_trades($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_my_trades($symbol, $since, $limit, $this->extend($request, $params));
     }
 
     public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -4422,11 +4446,11 @@ class okx extends Exchange {
         list($request, $params) = $this->handle_until_option('end', $request, $params);
         $response = null;
         if ($method === 'privateGetAccountBillsArchive') {
-            $response = $this->privateGetAccountBillsArchive (array_merge($request, $query));
+            $response = $this->privateGetAccountBillsArchive ($this->extend($request, $query));
         } elseif ($method === 'privateGetAssetBills') {
-            $response = $this->privateGetAssetBills (array_merge($request, $query));
+            $response = $this->privateGetAssetBills ($this->extend($request, $query));
         } else {
-            $response = $this->privateGetAccountBills (array_merge($request, $query));
+            $response = $this->privateGetAccountBills ($this->extend($request, $query));
         }
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
@@ -4497,7 +4521,7 @@ class okx extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null) {
         //
         // privateGetAccountBills, privateGetAccountBillsArchive
         //
@@ -4687,7 +4711,7 @@ class okx extends Exchange {
         $request = array(
             'ccy' => $currency['id'],
         );
-        $response = $this->privateGetAssetDepositAddress (array_merge($request, $params));
+        $response = $this->privateGetAssetDepositAddress ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -4798,7 +4822,7 @@ class okx extends Exchange {
         }
         $request['fee'] = $this->number_to_string($fee); // withdrawals to OKCoin or OKX are $fee-free, please set 0
         $query = $this->omit($params, array( 'fee' ));
-        $response = $this->privatePostAssetWithdrawal (array_merge($request, $query));
+        $response = $this->privatePostAssetWithdrawal ($this->extend($request, $query));
         //
         //     {
         //         "code" => "0",
@@ -4854,7 +4878,7 @@ class okx extends Exchange {
             $request['limit'] = $limit; // default 100, max 100
         }
         list($request, $params) = $this->handle_until_option('after', $request, $params);
-        $response = $this->privateGetAssetDepositHistory (array_merge($request, $params));
+        $response = $this->privateGetAssetDepositHistory ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -4915,7 +4939,7 @@ class okx extends Exchange {
             $currency = $this->currency($code);
             $request['ccy'] = $currency['id'];
         }
-        $response = $this->privateGetAssetDepositHistory (array_merge($request, $params));
+        $response = $this->privateGetAssetDepositHistory ($this->extend($request, $params));
         $data = $this->safe_value($response, 'data');
         $deposit = $this->safe_dict($data, 0, array());
         return $this->parse_transaction($deposit, $currency);
@@ -4958,7 +4982,7 @@ class okx extends Exchange {
             $request['limit'] = $limit; // default 100, max 100
         }
         list($request, $params) = $this->handle_until_option('after', $request, $params);
-        $response = $this->privateGetAssetWithdrawalHistory (array_merge($request, $params));
+        $response = $this->privateGetAssetWithdrawalHistory ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -5011,7 +5035,7 @@ class okx extends Exchange {
             $currency = $this->currency($code);
             $request['ccy'] = $currency['id'];
         }
-        $response = $this->privateGetAssetWithdrawalHistory (array_merge($request, $params));
+        $response = $this->privateGetAssetWithdrawalHistory ($this->extend($request, $params));
         //
         //    {
         //        "code" => "0",
@@ -5038,7 +5062,7 @@ class okx extends Exchange {
         return $this->parse_transaction($withdrawal);
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         //
         // deposit $statuses
         //
@@ -5084,7 +5108,7 @@ class okx extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // withdraw
         //
@@ -5203,7 +5227,7 @@ class okx extends Exchange {
             'instId' => $market['id'],
             'mgnMode' => $marginMode,
         );
-        $response = $this->privateGetAccountLeverageInfo (array_merge($request, $params));
+        $response = $this->privateGetAccountLeverageInfo ($this->extend($request, $params));
         //
         //     {
         //        "code" => "0",
@@ -5222,7 +5246,7 @@ class okx extends Exchange {
         return $this->parse_leverage($data, $market);
     }
 
-    public function parse_leverage($leverage, $market = null): array {
+    public function parse_leverage(array $leverage, ?array $market = null): array {
         $marketId = null;
         $marginMode = null;
         $longLeverage = null;
@@ -5270,7 +5294,7 @@ class okx extends Exchange {
         if ($type !== null) {
             $request['instType'] = $this->convert_to_instrument_type($type);
         }
-        $response = $this->privateGetAccountPositions (array_merge($request, $query));
+        $response = $this->privateGetAccountPositions ($this->extend($request, $query));
         //
         //     {
         //         "code" => "0",
@@ -5357,9 +5381,9 @@ class okx extends Exchange {
         $method = $this->safe_string($fetchPositionsOptions, 'method', 'privateGetAccountPositions');
         $response = null;
         if ($method === 'privateGetAccountPositionsHistory') {
-            $response = $this->privateGetAccountPositionsHistory (array_merge($request, $params));
+            $response = $this->privateGetAccountPositionsHistory ($this->extend($request, $params));
         } else {
-            $response = $this->privateGetAccountPositions (array_merge($request, $params));
+            $response = $this->privateGetAccountPositions ($this->extend($request, $params));
         }
         //
         //     {
@@ -5412,7 +5436,7 @@ class okx extends Exchange {
         for ($i = 0; $i < count($positions); $i++) {
             $result[] = $this->parse_position($positions[$i]);
         }
-        return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
+        return $this->filter_by_array_positions($result, 'symbol', $this->market_symbols($symbols), false);
     }
 
     public function fetch_positions_for_symbol(string $symbol, $params = array ()) {
@@ -5427,7 +5451,7 @@ class okx extends Exchange {
         return $this->fetch_positions(array( $symbol ), $params);
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         //     {
         //        "adl" => "3",
@@ -5634,7 +5658,7 @@ class okx extends Exchange {
             $request['from'] = $this->safe_string($params, 'from', '6');
             $request['to'] = $this->safe_string($params, 'to', '6');
         }
-        $response = $this->privatePostAssetTransfer (array_merge($request, $params));
+        $response = $this->privatePostAssetTransfer ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -5746,7 +5770,7 @@ class okx extends Exchange {
             'transId' => $id,
             // 'type' => 0, // default is 0 $transfer within account, 1 master to sub, 2 sub to master
         );
-        $response = $this->privateGetAssetTransferState (array_merge($request, $params));
+        $response = $this->privateGetAssetTransferState ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -5797,7 +5821,7 @@ class okx extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetAccountBillsArchive (array_merge($request, $params));
+        $response = $this->privateGetAccountBillsArchive ($this->extend($request, $params));
         //
         //    {
         //        "code" => "0",
@@ -5906,6 +5930,22 @@ class okx extends Exchange {
         //        "nextFundingRate" => "0.00017",
         //        "nextFundingTime" => "1634284800000"
         //    }
+        // ws
+        //     {
+        //        "fundingRate":"0.0001875391284828",
+        //        "fundingTime":"1700726400000",
+        //        "instId":"BTC-USD-SWAP",
+        //        "instType":"SWAP",
+        //        "method" => "next_period",
+        //        "maxFundingRate":"0.00375",
+        //        "minFundingRate":"-0.00375",
+        //        "nextFundingRate":"0.0002608059239328",
+        //        "nextFundingTime":"1700755200000",
+        //        "premium" => "0.0001233824646391",
+        //        "settFundingRate":"0.0001699799259033",
+        //        "settState":"settled",
+        //        "ts":"1700724675402"
+        //     }
         //
         // in the response above $nextFundingRate is actually two funding rates from now
         //
@@ -5953,7 +5993,7 @@ class okx extends Exchange {
         $request = array(
             'instId' => $market['id'],
         );
-        $response = $this->publicGetPublicFundingRate (array_merge($request, $params));
+        $response = $this->publicGetPublicFundingRate ($this->extend($request, $params));
         //
         //    {
         //        "code" => "0",
@@ -6084,7 +6124,7 @@ class okx extends Exchange {
             $request['instType'] = $this->convert_to_instrument_type($type);
         }
         // AccountBillsArchive has the same cost but supports three months of $data
-        $response = $this->privateGetAccountBillsArchive (array_merge($request, $query));
+        $response = $this->privateGetAccountBillsArchive ($this->extend($request, $query));
         //
         //    {
         //        "bal" => "0.0242946200998573",
@@ -6175,7 +6215,7 @@ class okx extends Exchange {
                 throw new BadRequest($this->id . ' setLeverage() requires the $posSide argument to be either "long", "short" or "net"');
             }
         }
-        $response = $this->privatePostAccountSetLeverage (array_merge($request, $params));
+        $response = $this->privatePostAccountSetLeverage ($this->extend($request, $params));
         //
         //     {
         //       "code" => "0",
@@ -6244,7 +6284,7 @@ class okx extends Exchange {
         $request = array(
             'posMode' => $hedgeMode,
         );
-        $response = $this->privatePostAccountSetPositionMode (array_merge($request, $params));
+        $response = $this->privatePostAccountSetPositionMode ($this->extend($request, $params));
         //
         //    {
         //        "code" => "0",
@@ -6290,7 +6330,7 @@ class okx extends Exchange {
             'mgnMode' => $marginMode,
             'instId' => $market['id'],
         );
-        $response = $this->privatePostAccountSetLeverage (array_merge($request, $params));
+        $response = $this->privatePostAccountSetLeverage ($this->extend($request, $params));
         //
         //     {
         //       "code" => "0",
@@ -6350,7 +6390,7 @@ class okx extends Exchange {
         $request = array(
             'ccy' => $currency['id'],
         );
-        $response = $this->privateGetAccountInterestRate (array_merge($request, $params));
+        $response = $this->privateGetAccountInterestRate ($this->extend($request, $params));
         //
         //    {
         //        "code" => "0",
@@ -6456,7 +6496,7 @@ class okx extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetFinanceSavingsLendingRateHistory (array_merge($request, $params));
+        $response = $this->publicGetFinanceSavingsLendingRateHistory ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -6499,7 +6539,7 @@ class okx extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetFinanceSavingsLendingRateHistory (array_merge($request, $params));
+        $response = $this->publicGetFinanceSavingsLendingRateHistory ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -6529,7 +6569,7 @@ class okx extends Exchange {
             'type' => $type,
             'posSide' => $posSide,
         );
-        $response = $this->privatePostAccountPositionMarginBalance (array_merge($request, $params));
+        $response = $this->privatePostAccountPositionMarginBalance ($this->extend($request, $params));
         //
         //     {
         //       "code" => "0",
@@ -6547,12 +6587,12 @@ class okx extends Exchange {
         $data = $this->safe_list($response, 'data', array());
         $entry = $this->safe_dict($data, 0, array());
         $errorCode = $this->safe_string($response, 'code');
-        return array_merge($this->parse_margin_modification($entry, $market), array(
+        return $this->extend($this->parse_margin_modification($entry, $market), array(
             'status' => ($errorCode === '0') ? 'ok' : 'failed',
         ));
     }
 
-    public function parse_margin_modification($data, ?array $market = null): array {
+    public function parse_margin_modification(array $data, ?array $market = null): array {
         //
         // addMargin/reduceMargin
         //
@@ -6651,7 +6691,7 @@ class okx extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
-    public function fetch_market_leverage_tiers(string $symbol, $params = array ()) {
+    public function fetch_market_leverage_tiers(string $symbol, $params = array ()): array {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single $market
          * @see https://www.okx.com/docs-v5/en/#rest-api-public-$data-get-position-tiers
@@ -6682,7 +6722,7 @@ class okx extends Exchange {
         if ($type === 'MARGIN') {
             $request['instId'] = $market['id'];
         }
-        $response = $this->publicGetPublicPositionTiers (array_merge($request, $params));
+        $response = $this->publicGetPublicPositionTiers ($this->extend($request, $params));
         //
         //    {
         //        "code" => "0",
@@ -6708,7 +6748,7 @@ class okx extends Exchange {
         return $this->parse_market_leverage_tiers($data, $market);
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null): array {
         /**
          * @ignore
          * @param {array} $info Exchange response for 1 $market
@@ -6785,7 +6825,7 @@ class okx extends Exchange {
             $market = $this->market($symbol);
             $request['instId'] = $market['id'];
         }
-        $response = $this->privateGetAccountInterestAccrued (array_merge($request, $params));
+        $response = $this->privateGetAccountInterestAccrued ($this->extend($request, $params));
         //
         //    {
         //        "code" => "0",
@@ -6810,7 +6850,7 @@ class okx extends Exchange {
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
 
-    public function parse_borrow_interest($info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null) {
         $instId = $this->safe_string($info, 'instId');
         if ($instId !== null) {
             $market = $this->safe_market($instId, $market);
@@ -6845,7 +6885,7 @@ class okx extends Exchange {
             'amt' => $this->currency_to_precision($code, $amount),
             'side' => 'borrow',
         );
-        $response = $this->privatePostAccountBorrowRepay (array_merge($request, $params));
+        $response = $this->privatePostAccountBorrowRepay ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -6889,7 +6929,7 @@ class okx extends Exchange {
             'side' => 'repay',
             'ordId' => $id,
         );
-        $response = $this->privatePostAccountBorrowRepay (array_merge($request, $params));
+        $response = $this->privatePostAccountBorrowRepay ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -6954,7 +6994,7 @@ class okx extends Exchange {
             'uly' => $uly,
             'instId' => $market['id'],
         );
-        $response = $this->publicGetPublicOpenInterest (array_merge($request, $params));
+        $response = $this->publicGetPublicOpenInterest ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -7012,7 +7052,7 @@ class okx extends Exchange {
         $response = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchOpenInterestHistory', $market, $params);
         if ($type === 'option') {
-            $response = $this->publicGetRubikStatOptionOpenInterestVolume (array_merge($request, $params));
+            $response = $this->publicGetRubikStatOptionOpenInterestVolume ($this->extend($request, $params));
         } else {
             if ($since !== null) {
                 $request['begin'] = $since;
@@ -7022,7 +7062,7 @@ class okx extends Exchange {
                 $request['end'] = $until;
                 $params = $this->omit($params, array( 'until' ));
             }
-            $response = $this->publicGetRubikStatContractsOpenInterestVolume (array_merge($request, $params));
+            $response = $this->publicGetRubikStatContractsOpenInterestVolume ($this->extend($request, $params));
         }
         //
         //    {
@@ -7198,6 +7238,9 @@ class okx extends Exchange {
                 }
                 $depositWithdrawFees[$code]['info'][$currencyId] = $feeInfo;
                 $chain = $this->safe_string($feeInfo, 'chain');
+                if ($chain === null) {
+                    continue;
+                }
                 $chainSplit = explode('-', $chain);
                 $networkId = $this->safe_value($chainSplit, 1);
                 $withdrawFee = $this->safe_number($feeInfo, 'minFee');
@@ -7255,7 +7298,7 @@ class okx extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetPublicDeliveryExerciseHistory (array_merge($request, $params));
+        $response = $this->publicGetPublicDeliveryExerciseHistory ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -7318,7 +7361,7 @@ class okx extends Exchange {
             $details = $this->safe_list($entry, 'details', array());
             for ($j = 0; $j < count($details); $j++) {
                 $settlement = $this->parse_settlement($details[$j], $market);
-                $result[] = array_merge($settlement, array(
+                $result[] = $this->extend($settlement, array(
                     'timestamp' => $timestamp,
                     'datetime' => $this->iso8601($timestamp),
                 ));
@@ -7347,7 +7390,7 @@ class okx extends Exchange {
         $request = array(
             'instType' => $this->convert_to_instrument_type($marketType),
         );
-        $response = $this->publicGetPublicUnderlying (array_merge($request, $params));
+        $response = $this->publicGetPublicUnderlying ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -7381,7 +7424,7 @@ class okx extends Exchange {
             'instFamily' => $market['info']['instFamily'],
             'expTime' => $this->safe_string($optionParts, 2),
         );
-        $response = $this->publicGetPublicOptSummary (array_merge($request, $params));
+        $response = $this->publicGetPublicOptSummary ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -7422,7 +7465,7 @@ class okx extends Exchange {
         return null;
     }
 
-    public function parse_greeks($greeks, ?array $market = null) {
+    public function parse_greeks(array $greeks, ?array $market = null): array {
         //
         //     {
         //         "askVol" => "0",
@@ -7514,7 +7557,7 @@ class okx extends Exchange {
             $currency = $this->currency($code);
             $request['ccy'] = $currency['id'];
         }
-        $response = $this->privatePostTradeClosePosition (array_merge($request, $params));
+        $response = $this->privatePostTradeClosePosition ($this->extend($request, $params));
         //
         //    {
         //        "code" => "1",
@@ -7550,7 +7593,7 @@ class okx extends Exchange {
         $request = array(
             'instId' => $market['id'],
         );
-        $response = $this->publicGetMarketTicker (array_merge($request, $params));
+        $response = $this->publicGetMarketTicker ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -7597,7 +7640,7 @@ class okx extends Exchange {
             'uly' => $currency['code'] . '-USD',
             'instType' => 'OPTION',
         );
-        $response = $this->publicGetMarketTickers (array_merge($request, $params));
+        $response = $this->publicGetMarketTickers ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -7628,7 +7671,7 @@ class okx extends Exchange {
         return $this->parse_option_chain($result, null, 'instId');
     }
 
-    public function parse_option($chain, ?array $currency = null, ?array $market = null) {
+    public function parse_option(array $chain, ?array $currency = null, ?array $market = null): Option {
         //
         //     {
         //         "instType" => "OPTION",
@@ -7673,7 +7716,7 @@ class okx extends Exchange {
         );
     }
 
-    public function fetch_convert_quote(string $fromCode, string $toCode, ?float $amount = null, $params = array ()): Conversion {
+    public function fetch_convert_quote(string $fromCode, string $toCode, ?float $amount = null, $params = array ()): array {
         /**
          * fetch a quote for converting from one currency to another
          * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-estimate-quote
@@ -7691,7 +7734,7 @@ class okx extends Exchange {
             'rfqSz' => $this->number_to_string($amount),
             'side' => 'sell',
         );
-        $response = $this->privatePostAssetConvertEstimateQuote (array_merge($request, $params));
+        $response = $this->privatePostAssetConvertEstimateQuote ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -7724,7 +7767,7 @@ class okx extends Exchange {
         return $this->parse_conversion($result, $fromCurrency, $toCurrency);
     }
 
-    public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array ()): Conversion {
+    public function create_convert_trade(string $id, string $fromCode, string $toCode, ?float $amount = null, $params = array ()): array {
         /**
          * convert from one currency to another
          * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-convert-trade
@@ -7744,7 +7787,7 @@ class okx extends Exchange {
             'sz' => $this->number_to_string($amount),
             'side' => 'sell',
         );
-        $response = $this->privatePostAssetConvertTrade (array_merge($request, $params));
+        $response = $this->privatePostAssetConvertTrade ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -7776,7 +7819,7 @@ class okx extends Exchange {
         return $this->parse_conversion($result, $fromCurrency, $toCurrency);
     }
 
-    public function fetch_convert_trade(string $id, ?string $code = null, $params = array ()): Conversion {
+    public function fetch_convert_trade(string $id, ?string $code = null, $params = array ()): array {
         /**
          * fetch the $data for a conversion trade
          * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-convert-history
@@ -7789,7 +7832,7 @@ class okx extends Exchange {
         $request = array(
             'clTReqId' => $id,
         );
-        $response = $this->privateGetAssetConvertHistory (array_merge($request, $params));
+        $response = $this->privateGetAssetConvertHistory ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -7846,7 +7889,7 @@ class okx extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetAssetConvertHistory (array_merge($request, $params));
+        $response = $this->privateGetAssetConvertHistory ($this->extend($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -7872,7 +7915,7 @@ class okx extends Exchange {
         return $this->parse_conversions($rows, $code, 'baseCcy', 'quoteCcy', $since, $limit);
     }
 
-    public function parse_conversion($conversion, ?array $fromCurrency = null, ?array $toCurrency = null): Conversion {
+    public function parse_conversion(array $conversion, ?array $fromCurrency = null, ?array $toCurrency = null): array {
         //
         // fetchConvertQuote
         //
@@ -8004,7 +8047,7 @@ class okx extends Exchange {
         return $result;
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             return null; // fallback to default $error handler
         }
@@ -8090,9 +8133,9 @@ class okx extends Exchange {
         $oneWeekAgo = $now - 604800000;
         $threeMonthsAgo = $now - 7776000000;
         if (($since === null) || ($since > $oneWeekAgo)) {
-            $response = $this->privateGetAccountBills (array_merge($request, $params));
+            $response = $this->privateGetAccountBills ($this->extend($request, $params));
         } elseif ($since > $threeMonthsAgo) {
-            $response = $this->privateGetAccountBillsArchive (array_merge($request, $params));
+            $response = $this->privateGetAccountBillsArchive ($this->extend($request, $params));
         } else {
             throw new BadRequest($this->id . ' fetchMarginAdjustmentHistory () cannot fetch margin adjustments older than 3 months');
         }
@@ -8184,7 +8227,7 @@ class okx extends Exchange {
         if ($instType !== null) {
             $request['instType'] = $instType;
         }
-        $response = $this->privateGetAccountPositionsHistory (array_merge($request, $params));
+        $response = $this->privateGetAccountPositionsHistory ($this->extend($request, $params));
         //
         //    {
         //        code => '0',

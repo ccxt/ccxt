@@ -41,3 +41,4 @@ __pycache__
 bin/
 obj/
 
+.custom_gitignore

@@ -1,10 +1,10 @@
 import bybitRest from '../bybit.js';
-import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Liquidation } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class bybit extends bybitRest {
     describe(): any;
     requestId(): any;
-    getUrlByMarketType(symbol?: Str, isPrivate?: boolean, method?: Str, params?: {}): any;
+    getUrlByMarketType(symbol?: Str, isPrivate?: boolean, method?: Str, params?: {}): Promise<any>;
     cleanParams(params: any): any;
     createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
@@ -13,6 +13,7 @@ export default class bybit extends bybitRest {
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleTicker(client: Client, message: any): void;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
     handleOHLCV(client: Client, message: any): void;
     parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
@@ -31,6 +32,9 @@ export default class bybit extends bybitRest {
     setPositionsCache(client: Client, symbols?: Strings): void;
     loadPositionsSnapshot(client: any, messageHash: any): Promise<void>;
     handlePositions(client: any, message: any): void;
+    watchLiquidations(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
+    handleLiquidation(client: Client, message: any): void;
+    parseWsLiquidation(liquidation: any, market?: any): Liquidation;
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     handleOrderWs(client: Client, message: any): void;
     handleOrder(client: Client, message: any): void;
@@ -42,7 +46,7 @@ export default class bybit extends bybitRest {
     authenticate(url: any, params?: {}): Promise<any>;
     handleErrorMessage(client: Client, message: any): boolean;
     handleMessage(client: Client, message: any): void;
-    ping(client: any): {
+    ping(client: Client): {
         req_id: any;
         op: string;
     };

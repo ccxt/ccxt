@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import bitmartRest from '../bitmart.js';
-import { ArgumentsRequired, AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
+import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { Asks, Bids } from '../base/ws/OrderBookSide.js';
@@ -358,9 +358,9 @@ export default class bitmart extends bitmartRest {
         /**
          * @method
          * @name bitmart#watchOrders
-         * @see https://developer-pro.bitmart.com/en/spot/#private-order-channel
-         * @see https://developer-pro.bitmart.com/en/futures/#private-order-channel
          * @description watches information on multiple orders made by the user
+         * @see https://developer-pro.bitmart.com/en/spot/#private-order-progress
+         * @see https://developer-pro.bitmart.com/en/futures/#private-order-channel
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -380,12 +380,16 @@ export default class bitmart extends bitmartRest {
         await this.authenticate(type, params);
         let request = undefined;
         if (type === 'spot') {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired(this.id + ' watchOrders() requires a symbol argument for spot markets');
+            let argsRequest = 'spot/user/order:';
+            if (symbol !== undefined) {
+                argsRequest += market['id'];
+            }
+            else {
+                argsRequest = 'spot/user/orders:ALL_SYMBOLS';
             }
             request = {
                 'op': 'subscribe',
-                'args': ['spot/user/order:' + market['id']],
+                'args': [argsRequest],
             };
         }
         else {
@@ -753,8 +757,8 @@ export default class bitmart extends bitmartRest {
         const symbol = market['symbol'];
         const openTimestamp = this.safeInteger(position, 'create_time');
         const timestamp = this.safeInteger(position, 'update_time');
-        const side = this.safeNumber(position, 'position_type');
-        const marginModeId = this.safeNumber(position, 'open_type');
+        const side = this.safeInteger(position, 'position_type');
+        const marginModeId = this.safeInteger(position, 'open_type');
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -1318,7 +1322,7 @@ export default class bitmart extends bitmartRest {
                 this.orderbooks[symbol] = ob;
             }
             const orderbook = this.orderbooks[symbol];
-            const way = this.safeNumber(data, 'way');
+            const way = this.safeInteger(data, 'way');
             const side = (way === 1) ? 'bids' : 'asks';
             if (way === 1) {
                 orderbook[side] = new Bids([], limit);

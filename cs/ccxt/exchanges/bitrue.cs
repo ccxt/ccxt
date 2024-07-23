@@ -1887,7 +1887,7 @@ public partial class bitrue : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] *spot only* the price at which a trigger order is triggered at
         * @param {string} [params.clientOrderId] a unique id for the order, automatically generated if not sent
@@ -3242,6 +3242,12 @@ public partial class bitrue : Exchange
                 object signMessage = add(add(timestamp, method), signPath);
                 if (isTrue(isEqual(method, "GET")))
                 {
+                    object keys = new List<object>(((IDictionary<string,object>)parameters).Keys);
+                    object keysLength = getArrayLength(keys);
+                    if (isTrue(isGreaterThan(keysLength, 0)))
+                    {
+                        signMessage = add(signMessage, add("?", this.urlencode(parameters)));
+                    }
                     object signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256);
                     headers = new Dictionary<string, object>() {
                         { "X-CH-APIKEY", this.apiKey },
@@ -3255,7 +3261,7 @@ public partial class bitrue : Exchange
                         { "recvWindow", recvWindow },
                     }, parameters);
                     body = this.json(query);
-                    signMessage = add(signMessage, json(body));
+                    signMessage = add(signMessage, body);
                     object signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256);
                     headers = new Dictionary<string, object>() {
                         { "Content-Type", "application/json" },

@@ -110,7 +110,7 @@ class poloniex extends \ccxt\async\poloniex {
                         'signatureVersion' => '2',          // optional
                     ),
                 );
-                $message = array_merge($request, $params);
+                $message = $this->extend($request, $params);
                 $future = Async\await($this->watch($url, $messageHash, $message, $messageHash));
                 //
                 //    {
@@ -167,7 +167,7 @@ class poloniex extends \ccxt\async\poloniex {
             if ($name !== 'balances') {
                 $subscribe['symbols'] = $marketIds;
             }
-            $request = array_merge($subscribe, $params);
+            $request = $this->extend($subscribe, $params);
             return Async\await($this->watch($url, $messageHash, $request, $messageHash));
         }) ();
     }
@@ -202,7 +202,7 @@ class poloniex extends \ccxt\async\poloniex {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the poloniex api endpoint
              * @param {string} [$params->timeInForce] GTC (default), IOC, FOK
              * @param {string} [$params->clientOrderId] Maximum 64-character length.*
@@ -256,7 +256,7 @@ class poloniex extends \ccxt\async\poloniex {
                     $request['price'] = $this->price_to_precision($symbol, $price);
                 }
             }
-            return Async\await($this->trade_request('createOrder', array_merge($request, $params)));
+            return Async\await($this->trade_request('createOrder', $this->extend($request, $params)));
         }) ();
     }
 
@@ -296,7 +296,7 @@ class poloniex extends \ccxt\async\poloniex {
             $request = array(
                 'orderIds' => $ids,
             );
-            return Async\await($this->trade_request('cancelOrders', array_merge($request, $params)));
+            return Async\await($this->trade_request('cancelOrders', $this->extend($request, $params)));
         }) ();
     }
 
@@ -1279,7 +1279,7 @@ class poloniex extends \ccxt\async\poloniex {
         return $message;
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         return array(
             'event' => 'ping',
         );

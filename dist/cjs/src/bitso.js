@@ -97,7 +97,10 @@ class bitso extends bitso$1 {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87295554-11f98280-c50e-11ea-80d6-15b3bafa8cbf.jpg',
                 'api': {
-                    'rest': 'https://api.bitso.com',
+                    'rest': 'https://bitso.com/api',
+                },
+                'test': {
+                    'rest': 'https://stage.bitso.com/api',
                 },
                 'www': 'https://bitso.com',
                 'doc': 'https://bitso.com/api_info',
@@ -965,7 +968,7 @@ class bitso extends bitso$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1002,7 +1005,19 @@ class bitso extends bitso$1 {
         const request = {
             'oid': id,
         };
-        return await this.privateDeleteOrdersOid(this.extend(request, params));
+        const response = await this.privateDeleteOrdersOid(this.extend(request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "payload": ["yWTQGxDMZ0VimZgZ"]
+        //     }
+        //
+        const payload = this.safeList(response, 'payload', []);
+        const orderId = this.safeString(payload, 0);
+        return this.safeOrder({
+            'info': response,
+            'id': orderId,
+        });
     }
     async cancelOrders(ids, symbol = undefined, params = {}) {
         /**

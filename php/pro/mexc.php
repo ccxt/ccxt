@@ -38,7 +38,7 @@ class mexc extends \ccxt\async\mexc {
                 'api' => array(
                     'ws' => array(
                         'spot' => 'wss://wbs.mexc.com/ws',
-                        'swap' => 'wss://contract.mexc.com/ws',
+                        'swap' => 'wss://contract.mexc.com/edge',
                     ),
                 ),
             ),
@@ -65,7 +65,7 @@ class mexc extends \ccxt\async\mexc {
             ),
             'streaming' => array(
                 'ping' => array($this, 'ping'),
-                'keepAlive' => 10000,
+                'keepAlive' => 8000,
             ),
             'exceptions' => array(
             ),
@@ -168,7 +168,7 @@ class mexc extends \ccxt\async\mexc {
                 'method' => 'SUBSCRIPTION',
                 'params' => array( $channel ),
             );
-            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $channel));
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $channel));
         }) ();
     }
 
@@ -181,7 +181,7 @@ class mexc extends \ccxt\async\mexc {
                 'method' => 'SUBSCRIPTION',
                 'params' => array( $channel ),
             );
-            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $channel));
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $channel));
         }) ();
     }
 
@@ -192,7 +192,7 @@ class mexc extends \ccxt\async\mexc {
                 'method' => $channel,
                 'param' => $requestParams,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
         }) ();
     }
@@ -213,7 +213,7 @@ class mexc extends \ccxt\async\mexc {
                     'reqTime' => $timestamp,
                 ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $channel));
         }) ();
     }
@@ -531,8 +531,8 @@ class mexc extends \ccxt\async\mexc {
             return;
         }
         $orderbook['nonce'] = $deltaNonce;
-        $asks = $this->safe_value($delta, 'asks', array());
-        $bids = $this->safe_value($delta, 'bids', array());
+        $asks = $this->safe_list($delta, 'asks', array());
+        $bids = $this->safe_list($delta, 'bids', array());
         $asksOrderSide = $orderbook['asks'];
         $bidsOrderSide = $orderbook['bids'];
         $this->handle_bookside_delta($asksOrderSide, $asks);
@@ -637,7 +637,7 @@ class mexc extends \ccxt\async\mexc {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $messageHash = 'myTrades';
@@ -1137,7 +1137,7 @@ class mexc extends \ccxt\async\mexc {
                 'listenKey' => $listenKey,
             );
             try {
-                Async\await($this->spotPrivatePutUserDataStream (array_merge($request, $params)));
+                Async\await($this->spotPrivatePutUserDataStream ($this->extend($request, $params)));
                 $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1200000);
                 $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $listenKey, $params);
             } catch (Exception $error) {
@@ -1222,7 +1222,7 @@ class mexc extends \ccxt\async\mexc {
         }
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         return array( 'method' => 'ping' );
     }
 }

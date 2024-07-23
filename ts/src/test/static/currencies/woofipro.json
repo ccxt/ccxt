@@ -1,0 +1,42 @@
+{
+    "USDC": {
+        "id": "USDC",
+        "name": "USDC",
+        "code": "USDC",
+        "precision": 1e-6,
+        "networks": {
+            "10": {
+                "id": "10",
+                "network": "10",
+                "limits": { "withdraw": {}, "deposit": {} },
+                "fee": 1,
+                "precision": 0.000001,
+                "info": {
+                    "chain_id": "10",
+                    "contract_address": "0x0b2c639c533813f4aa9d7837caf62653d097ff85",
+                    "decimals": "6",
+                    "withdrawal_fee": "1.00000000",
+                    "cross_chain_withdrawal_fee": "2.00000000"
+                }
+            },
+            "137": {
+                "id": "137",
+                "network": "137",
+                "limits": { "withdraw": {}, "deposit": {} },
+                "fee": 1,
+                "precision": 0.000001,
+                "info": {
+                    "chain_id": "137",
+                    "contract_address": "0x3c499c542cef5e3811e1192ce70d8cc03d5c3359",
+                    "decimals": "6",
+                    "withdrawal_fee": "1.00000000",
+                    "cross_chain_withdrawal_fee": "2.00000000"
+                }
+            }
+        },
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    }
+}

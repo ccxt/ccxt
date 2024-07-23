@@ -184,5 +184,14 @@ public partial class BaseTest
         return await ((Task<object>)res);
     }
 
+}
 
+
+
+public partial class BaseTest
+{
+    public void testLanguageSpecific()
+    {
+
+    }
 }

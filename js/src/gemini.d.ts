@@ -1,5 +1,5 @@
 import Exchange from './abstract/gemini.js';
-import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, int } from './base/types.js';
 /**
  * @class gemini
  * @augments Exchange
@@ -7,7 +7,7 @@ import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Ord
 export default class gemini extends Exchange {
     describe(): any;
     fetchCurrencies(params?: {}): Promise<Currencies>;
-    fetchCurrenciesFromWeb(params?: {}): Promise<{}>;
+    fetchCurrenciesFromWeb(params?: {}): Promise<Dict>;
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchMarketsFromWeb(params?: {}): Promise<any[]>;
     parseMarketActive(status: any): boolean;
@@ -21,12 +21,12 @@ export default class gemini extends Exchange {
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     fetchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    parseTrade(trade: any, market?: Market): Trade;
+    parseTrade(trade: Dict, market?: Market): Trade;
     fetchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseBalance(response: any): Balances;
     fetchTradingFees(params?: {}): Promise<TradingFees>;
     fetchBalance(params?: {}): Promise<Balances>;
-    parseOrder(order: any, market?: Market): Order;
+    parseOrder(order: Dict, market?: Market): Order;
     fetchOrder(id: string, symbol?: Str, params?: {}): Promise<Order>;
     fetchOpenOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
@@ -35,8 +35,8 @@ export default class gemini extends Exchange {
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     nonce(): number;
     fetchDepositsWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    parseTransaction(transaction: any, currency?: Currency): Transaction;
-    parseTransactionStatus(status: any): string;
+    parseTransaction(transaction: Dict, currency?: Currency): Transaction;
+    parseTransactionStatus(status: Str): string;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
         currency: string;
         network: any;
@@ -52,7 +52,7 @@ export default class gemini extends Exchange {
         body: any;
         headers: any;
     };
-    handleErrors(httpCode: any, reason: any, url: any, method: any, headers: any, body: any, response: any, requestHeaders: any, requestBody: any): any;
+    handleErrors(httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
     createDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         address: string;

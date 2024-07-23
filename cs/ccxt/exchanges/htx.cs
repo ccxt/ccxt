@@ -31,6 +31,8 @@ public partial class htx : Exchange
                 { "cancelAllOrdersAfter", true },
                 { "cancelOrder", true },
                 { "cancelOrders", true },
+                { "closeAllPositions", false },
+                { "closePosition", true },
                 { "createDepositAddress", null },
                 { "createMarketBuyOrderWithCost", true },
                 { "createMarketOrderWithCost", false },
@@ -1123,13 +1125,13 @@ public partial class htx : Exchange
                 } },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
-                { "GET", "Themis" },
-                { "GTC", "Game.com" },
-                { "HIT", "HitChain" },
-                { "PNT", "Penta" },
-                { "SBTC", "Super Bitcoin" },
-                { "SOUL", "Soulsaver" },
-                { "BIFI", "Bitcoin File" },
+                { "GET", "THEMIS" },
+                { "GTC", "GAMECOM" },
+                { "HIT", "HITCHAIN" },
+                { "PNT", "PENTA" },
+                { "SBTC", "SUPERBITCOIN" },
+                { "SOUL", "SOULSAVER" },
+                { "BIFI", "BITCOINFILE" },
             } },
         });
     }
@@ -3229,6 +3231,7 @@ public partial class htx : Exchange
             object instStatus = this.safeString(entry, "instStatus");
             object currencyActive = isEqual(instStatus, "normal");
             object minPrecision = null;
+            object minDeposit = null;
             object minWithdraw = null;
             object maxWithdraw = null;
             object deposit = false;
@@ -3241,6 +3244,7 @@ public partial class htx : Exchange
                 ((IDictionary<string,object>)getValue(getValue(this.options, "networkChainIdsByNames"), code))[(string)title] = uniqueChainId;
                 ((IDictionary<string,object>)getValue(this.options, "networkNamesByChainIds"))[(string)uniqueChainId] = title;
                 object networkCode = this.networkIdToCode(uniqueChainId);
+                minDeposit = this.safeNumber(chainEntry, "minDepositAmt");
                 minWithdraw = this.safeNumber(chainEntry, "minWithdrawAmt");
                 maxWithdraw = this.safeNumber(chainEntry, "maxWithdrawAmt");
                 object withdrawStatus = this.safeString(chainEntry, "withdrawStatus");
@@ -3262,7 +3266,7 @@ public partial class htx : Exchange
                     { "network", networkCode },
                     { "limits", new Dictionary<string, object>() {
                         { "deposit", new Dictionary<string, object>() {
-                            { "min", null },
+                            { "min", minDeposit },
                             { "max", null },
                         } },
                         { "withdraw", new Dictionary<string, object>() {
@@ -4038,10 +4042,10 @@ public partial class htx : Exchange
             { "status", "0" },
         };
         object response = null;
-        object stop = this.safeValue(parameters, "stop");
+        object stop = this.safeBool2(parameters, "stop", "trigger");
         object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
         object trailing = this.safeBool(parameters, "trailing", false);
-        parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing"});
+        parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger"});
         if (isTrue(isTrue(isTrue(stop) || isTrue(stopLossTakeProfit)) || isTrue(trailing)))
         {
             if (isTrue(!isEqual(limit, null)))
@@ -4463,10 +4467,10 @@ public partial class htx : Exchange
                 ((IDictionary<string,object>)request)["page_size"] = limit;
             }
             ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
-            object stop = this.safeValue(parameters, "stop");
+            object stop = this.safeBool2(parameters, "stop", "trigger");
             object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
             object trailing = this.safeBool(parameters, "trailing", false);
-            parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing"});
+            parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger"});
             if (isTrue(getValue(market, "linear")))
             {
                 object marginMode = null;
@@ -5271,7 +5275,7 @@ public partial class htx : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
         * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
@@ -5410,7 +5414,7 @@ public partial class htx : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
         * @param {float} [params.trailingPercent] *contract only* the percent to trail away from the current market price
@@ -5535,14 +5539,14 @@ public partial class htx : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.stopPrice] the price a trigger order is triggered at
         * @param {string} [params.triggerType] *contract trigger orders only* ge: greater than or equal to, le: less than or equal to
         * @param {float} [params.stopLossPrice] *contract only* the price a stop-loss order is triggered at
         * @param {float} [params.takeProfitPrice] *contract only* the price a take-profit order is triggered at
         * @param {string} [params.operator] *spot and margin only* gte or lte, trigger price condition
-        * @param {string} [params.offset] *contract only* 'open', 'close', or 'both', required in hedge mode
+        * @param {string} [params.offset] *contract only* 'both' (linear only), 'open', or 'close', required in hedge mode and for inverse markets
         * @param {bool} [params.postOnly] *contract only* true or false
         * @param {int} [params.leverRate] *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
         * @param {string} [params.timeInForce] supports 'IOC' and 'FOK'
@@ -5614,6 +5618,11 @@ public partial class htx : Exchange
                 }
             } else if (isTrue(getValue(market, "inverse")))
             {
+                object offset = this.safeString(parameters, "offset");
+                if (isTrue(isEqual(offset, null)))
+                {
+                    throw new ArgumentsRequired ((string)add(this.id, " createOrder () requires an extra parameter params[\"offset\"] to be set to \"open\" or \"close\" when placing orders in inverse markets")) ;
+                }
                 if (isTrue(getValue(market, "swap")))
                 {
                     if (isTrue(isStop))
@@ -5929,10 +5938,10 @@ public partial class htx : Exchange
             {
                 ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
             }
-            object stop = this.safeValue(parameters, "stop");
+            object stop = this.safeBool2(parameters, "stop", "trigger");
             object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
             object trailing = this.safeBool(parameters, "trailing", false);
-            parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing"});
+            parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger"});
             if (isTrue(getValue(market, "linear")))
             {
                 object marginMode = null;
@@ -6108,9 +6117,9 @@ public partial class htx : Exchange
             {
                 ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
             }
-            object stop = this.safeValue(parameters, "stop");
+            object stop = this.safeBool2(parameters, "stop", "trigger");
             object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
-            parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit"});
+            parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trigger"});
             if (isTrue(getValue(market, "linear")))
             {
                 object marginMode = null;
@@ -6226,7 +6235,71 @@ public partial class htx : Exchange
         //         "ts": 1604367997451
         //     }
         //
-        return response;
+        object data = this.safeDict(response, "data");
+        return this.parseCancelOrders(data);
+    }
+
+    public virtual object parseCancelOrders(object orders)
+    {
+        //
+        //    {
+        //        "success": [
+        //            "5983466"
+        //        ],
+        //        "failed": [
+        //            {
+        //                "err-msg": "Incorrect order state",
+        //                "order-state": 7,
+        //                "order-id": "",
+        //                "err-code": "order-orderstate-error",
+        //                "client-order-id": "first"
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        //    {
+        //        "errors": [
+        //            {
+        //                "order_id": "769206471845261312",
+        //                "err_code": 1061,
+        //                "err_msg": "This order doesnt exist."
+        //            }
+        //        ],
+        //        "successes": "1258075374411399168,1258075393254871040"
+        //    }
+        //
+        object successes = this.safeString(orders, "successes");
+        object success = null;
+        if (isTrue(!isEqual(successes, null)))
+        {
+            success = ((string)successes).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
+        } else
+        {
+            success = this.safeList(orders, "success", new List<object>() {});
+        }
+        object failed = this.safeList2(orders, "errors", "failed", new List<object>() {});
+        object result = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(success)); postFixIncrement(ref i))
+        {
+            object order = getValue(success, i);
+            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "info", order },
+                { "id", order },
+                { "status", "canceled" },
+            }));
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(failed)); postFixIncrement(ref i))
+        {
+            object order = getValue(failed, i);
+            ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "info", order },
+                { "id", this.safeString2(order, "order-id", "order_id") },
+                { "status", "failed" },
+                { "clientOrderId", this.safeString(order, "client-order-id") },
+            }));
+        }
+        return result;
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -6262,6 +6335,20 @@ public partial class htx : Exchange
                 ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
             }
             response = await this.spotPrivatePostV1OrderOrdersBatchCancelOpenOrders(this.extend(request, parameters));
+            //
+            //     {
+            //         "code": 200,
+            //         "data": {
+            //             "success-count": 2,
+            //             "failed-count": 0,
+            //             "next-id": 5454600
+            //         }
+            //     }
+            //
+            object data = this.safeDict(response, "data");
+            return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", data },
+})};
         } else
         {
             if (isTrue(isEqual(symbol, null)))
@@ -6273,10 +6360,10 @@ public partial class htx : Exchange
                 ((IDictionary<string,object>)request)["symbol"] = getValue(market, "settleId");
             }
             ((IDictionary<string,object>)request)["contract_code"] = getValue(market, "id");
-            object stop = this.safeValue(parameters, "stop");
+            object stop = this.safeBool2(parameters, "stop", "trigger");
             object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
             object trailing = this.safeBool(parameters, "trailing", false);
-            parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing"});
+            parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger"});
             if (isTrue(getValue(market, "linear")))
             {
                 object marginMode = null;
@@ -6352,31 +6439,19 @@ public partial class htx : Exchange
             {
                 throw new NotSupported ((string)add(add(add(this.id, " cancelAllOrders() does not support "), marketType), " markets")) ;
             }
+            //
+            //     {
+            //         "status": "ok",
+            //         "data": {
+            //             "errors": [],
+            //             "successes": "1104754904426696704"
+            //         },
+            //         "ts": "1683435723755"
+            //     }
+            //
+            object data = this.safeDict(response, "data");
+            return this.parseCancelOrders(data);
         }
-        //
-        // spot
-        //
-        //     {
-        //         "code": 200,
-        //         "data": {
-        //             "success-count": 2,
-        //             "failed-count": 0,
-        //             "next-id": 5454600
-        //         }
-        //     }
-        //
-        // future and swap
-        //
-        //     {
-        //         "status": "ok",
-        //         "data": {
-        //             "errors": [],
-        //             "successes": "1104754904426696704"
-        //         },
-        //         "ts": "1683435723755"
-        //     }
-        //
-        return response;
     }
 
     public async override Task<object> cancelAllOrdersAfter(object timeout, object parameters = null)
@@ -7941,6 +8016,9 @@ public partial class htx : Exchange
         * @description fetch all open positions
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.subType] 'linear' or 'inverse'
+        * @param {string} [params.type] *inverse only* 'future', or 'swap'
+        * @param {string} [params.marginMode] *linear only* 'cross' or 'isolated'
         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -7949,8 +8027,12 @@ public partial class htx : Exchange
         object market = null;
         if (isTrue(!isEqual(symbols, null)))
         {
-            object first = this.safeString(symbols, 0);
-            market = this.market(first);
+            object symbolsLength = getArrayLength(symbols);
+            if (isTrue(isGreaterThan(symbolsLength, 0)))
+            {
+                object first = this.safeString(symbols, 0);
+                market = this.market(first);
+            }
         }
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("fetchPositions", parameters, "cross");
@@ -9339,6 +9421,81 @@ public partial class htx : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         });
+    }
+
+    public async override Task<object> closePosition(object symbol, object side = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name htx#closePositions
+        * @description closes open positions for a contract market, requires 'amount' in params, unlike other exchanges
+        * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#isolated-place-lightning-close-order  // USDT-M (isolated)
+        * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#cross-place-lightning-close-position  // USDT-M (cross)
+        * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#place-lightning-close-order  // Coin-M swap
+        * @see https://huobiapi.github.io/docs/dm/v1/en/#place-flash-close-order                      // Coin-M futures
+        * @param {string} symbol unified CCXT market symbol
+        * @param {string} side 'buy' or 'sell', the side of the closing order, opposite side as position side
+        * @param {object} [params] extra parameters specific to the okx api endpoint
+        * @param {string} [params.clientOrderId] client needs to provide unique API and have to maintain the API themselves afterwards. [1, 9223372036854775807]
+        * @param {object} [params.marginMode] 'cross' or 'isolated', required for linear markets
+        *
+        * EXCHANGE SPECIFIC PARAMETERS
+        * @param {number} [params.amount] order quantity
+        * @param {string} [params.order_price_type] 'lightning' by default, 'lightning_fok': lightning fok type, 'lightning_ioc': lightning ioc type 'market' by default, 'market': market order type, 'lightning_fok': lightning
+        * @returns {object} [an order structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object clientOrderId = this.safeString(parameters, "clientOrderId");
+        if (!isTrue(getValue(market, "contract")))
+        {
+            throw new BadRequest ((string)add(this.id, " closePosition() symbol supports contract markets only")) ;
+        }
+        this.checkRequiredArgument("closePosition", side, "side");
+        object request = new Dictionary<string, object>() {
+            { "contract_code", getValue(market, "id") },
+            { "direction", side },
+        };
+        if (isTrue(!isEqual(clientOrderId, null)))
+        {
+            ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
+        }
+        if (isTrue(getValue(market, "inverse")))
+        {
+            object amount = this.safeString2(parameters, "volume", "amount");
+            if (isTrue(isEqual(amount, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " closePosition () requires an extra argument params[\"amount\"] for inverse markets")) ;
+            }
+            ((IDictionary<string,object>)request)["volume"] = this.amountToPrecision(symbol, amount);
+        }
+        parameters = this.omit(parameters, new List<object>() {"clientOrderId", "volume", "amount"});
+        object response = null;
+        if (isTrue(getValue(market, "inverse")))
+        {
+            if (isTrue(getValue(market, "swap")))
+            {
+                response = await this.contractPrivatePostSwapApiV1SwapLightningClosePosition(this.extend(request, parameters));
+            } else
+            {
+                response = await this.contractPrivatePostApiV1LightningClosePosition(this.extend(request, parameters));
+            }
+        } else
+        {
+            object marginMode = null;
+            var marginModeparametersVariable = this.handleMarginModeAndParams("closePosition", parameters, "cross");
+            marginMode = ((IList<object>)marginModeparametersVariable)[0];
+            parameters = ((IList<object>)marginModeparametersVariable)[1];
+            if (isTrue(isEqual(marginMode, "cross")))
+            {
+                response = await this.contractPrivatePostLinearSwapApiV1SwapCrossLightningClosePosition(this.extend(request, parameters));
+            } else
+            {
+                response = await this.contractPrivatePostLinearSwapApiV1SwapLightningClosePosition(this.extend(request, parameters));
+            }
+        }
+        return this.parseOrder(response, market);
     }
 
     public async override Task<object> setPositionMode(object hedged, object symbol = null, object parameters = null)
