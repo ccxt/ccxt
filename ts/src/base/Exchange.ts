@@ -1378,7 +1378,7 @@ export default class Exchange {
         }
     }
 
-    onClose (client, error) {
+    onClose (client: Client, error: Error) {
         if (client.error) {
             // connection closed due to an error, do nothing
         } else {
