@@ -617,7 +617,7 @@ export default class Exchange {
         }
     }
 
-    encodeURIComponent (...args) {
+    encodeURIComponent (...args: any) {
         // @ts-expect-error
         return encodeURIComponent (...args)
     }
@@ -732,7 +732,7 @@ export default class Exchange {
         }
     }
 
-    log (... args) {
+    log (...args: any) {
         console.log (... args)
     }
 
@@ -1125,7 +1125,7 @@ export default class Exchange {
         }
     }
 
-    spawn(method, ...args) {
+    spawn(method: any, ...args: any) {
         const future = Future();
         // using setTimeout 0 to force the execution to run after the future is returned
         setTimeout(() => {
@@ -1134,7 +1134,7 @@ export default class Exchange {
         return future;
     }
 
-    delay (timeout, method, ... args) {
+    delay (timeout: number, method: any, ...args: any) {
         setTimeout (() => {
             this.spawn (method, ... args)
         }, timeout);
