@@ -1,4 +1,4 @@
-// @ts-nocheck
+
 // AUTO_TRANSPILE_ENABLED
 
 import assert from 'assert';
@@ -8,7 +8,7 @@ import {  ROUND_DOWN, ROUND_UP } from '../../base/functions/number.js';
 function testDatetime () {
 
     const exchange = new ccxt.Exchange ({
-        'id': 'regirock',
+        'id': 'sampleexchange',
     });
 
     assert (exchange.iso8601 (514862627000) === '1986-04-26T01:23:47.000Z');
@@ -57,16 +57,16 @@ function testDatetime () {
     // assert (exchange.parseDate ('Sun, 08 Dec 2024 02:03:04 GMT') === 1733623384000);
 
 
-    assert (exchange.roundTimeframe('5m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_DOWN) === exchange.parse8601('2019-08-12 13:20:00'));
-    assert (exchange.roundTimeframe('10m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_DOWN) === exchange.parse8601('2019-08-12 13:20:00'));
-    assert (exchange.roundTimeframe('30m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_DOWN) === exchange.parse8601('2019-08-12 13:00:00'));
-    assert (exchange.roundTimeframe('1d', exchange.parse8601('2019-08-12 13:22:08'), ROUND_DOWN) === exchange.parse8601('2019-08-12 00:00:00'));
+    assert (exchange.roundTimeframe ('5m', exchange.parse8601 ('2019-08-12 13:22:08'), ROUND_DOWN) === exchange.parse8601 ('2019-08-12 13:20:00'));
+    assert (exchange.roundTimeframe ('10m', exchange.parse8601 ('2019-08-12 13:22:08'), ROUND_DOWN) === exchange.parse8601 ('2019-08-12 13:20:00'));
+    assert (exchange.roundTimeframe ('30m', exchange.parse8601 ('2019-08-12 13:22:08'), ROUND_DOWN) === exchange.parse8601 ('2019-08-12 13:00:00'));
+    assert (exchange.roundTimeframe ('1d', exchange.parse8601 ('2019-08-12 13:22:08'), ROUND_DOWN) === exchange.parse8601 ('2019-08-12 00:00:00'));
 
-    assert (exchange.roundTimeframe('5m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_UP) === exchange.parse8601('2019-08-12 13:25:00'));
-    assert (exchange.roundTimeframe('10m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_UP) === exchange.parse8601('2019-08-12 13:30:00'));
-    assert (exchange.roundTimeframe('30m', exchange.parse8601('2019-08-12 13:22:08'), ROUND_UP) === exchange.parse8601('2019-08-12 13:30:00'));
-    assert (exchange.roundTimeframe('1h', exchange.parse8601('2019-08-12 13:22:08'), ROUND_UP) === exchange.parse8601('2019-08-12 14:00:00'));
-    assert (exchange.roundTimeframe('1d', exchange.parse8601('2019-08-12 13:22:08'), ROUND_UP) === exchange.parse8601('2019-08-13 00:00:00'));
+    assert (exchange.roundTimeframe ('5m', exchange.parse8601 ('2019-08-12 13:22:08'), ROUND_UP) === exchange.parse8601 ('2019-08-12 13:25:00'));
+    assert (exchange.roundTimeframe ('10m', exchange.parse8601 ('2019-08-12 13:22:08'), ROUND_UP) === exchange.parse8601 ('2019-08-12 13:30:00'));
+    assert (exchange.roundTimeframe ('30m', exchange.parse8601 ('2019-08-12 13:22:08'), ROUND_UP) === exchange.parse8601 ('2019-08-12 13:30:00'));
+    assert (exchange.roundTimeframe ('1h', exchange.parse8601 ('2019-08-12 13:22:08'), ROUND_UP) === exchange.parse8601 ('2019-08-12 14:00:00'));
+    assert (exchange.roundTimeframe ('1d', exchange.parse8601 ('2019-08-12 13:22:08'), ROUND_UP) === exchange.parse8601 ('2019-08-13 00:00:00'));
 
     // todo:
     // $this->assertSame(null, Exchange::iso8601(null));
