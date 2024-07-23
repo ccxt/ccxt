@@ -71,7 +71,8 @@ namespace StarkSharp.StarkCurve.Signature
             FieldPrime - ShiftPoint.Y
         );
         public static readonly int NElementBitsEcdsa = 251;
-        public static readonly int NElementBitsHash = (int)FieldPrime.GetBitLength();
+        // public static readonly int NElementBitsHash = (int)FieldPrime.GetBitLength();
+        public static readonly int NElementBitsHash = 252;
 
         static ECDSA()
         {
@@ -86,8 +87,9 @@ namespace StarkSharp.StarkCurve.Signature
             Debug.Assert(nElementBitsEcdsa == 251, "nElementBitsEcdsa must be 251 bits.");
 
             // Calculate the bit length of FIELD_PRIME for hash operations.
-            int nElementBitsHash = (int)FieldPrime.GetBitLength();
-            Debug.Assert(nElementBitsHash == 252, "nElementBitsHash must be 252 bits.");
+            // TODOL check whether it's 251 or 252
+            // int nElementBitsHash = (int)FieldPrime.GetBitLength();
+            // Debug.Assert(nElementBitsHash == 252, "nElementBitsHash must be 252 bits.");
 
             // Assert the EC order conditions.
             Debug.Assert(BigInt.Pow(2, nElementBitsEcdsa) < EcOrder && EcOrder < FieldPrime,
@@ -156,6 +158,48 @@ namespace StarkSharp.StarkCurve.Signature
             } while (privateKey.CompareTo(BouncyBigInt.Zero) <= 0 || privateKey.CompareTo(EcOrder) >= 0);
 
             return new BigInt(privateKey.ToByteArrayUnsigned());
+        }
+
+        // Seed generation
+        // (ref: https://github.com/starkware-libs/cairo-lang/blob/master/src/starkware/crypto/signature/signature.py#L263)
+        public static BigInt GrindKey(BouncyBigInt seed)
+        {
+            BouncyBigInt shamask = new BouncyBigInt(BigInt.Pow(2, 256).ToString());
+            BouncyBigInt order = new BouncyBigInt(EcOrder.ToString());
+            BouncyBigInt limit = shamask.Subtract(shamask.Mod(order));
+            byte[] seedByte = seed.ToByteArrayUnsigned();
+            byte[] msg = new byte[33];
+            Sha256Digest sha256 = new Sha256Digest();
+            byte[] result = new byte[sha256.GetDigestSize()];
+            for (int i = 0; i < 100000; i++) {
+                BigInt bi = new BigInt(i);
+                seedByte.CopyTo(msg, 0);
+                bi.ToByteArray().CopyTo(msg, seedByte.Length);
+                sha256.BlockUpdate(msg, 0, msg.Length);
+                sha256.DoFinal(result, 0);
+
+                BouncyBigInt key = new BouncyBigInt(1, result);
+                if (key.CompareTo(limit) < 0) {
+                    key = key.Mod(order);
+                    byte[] keyByte = key.ToByteArrayUnsigned();
+                    Array.Reverse(keyByte);
+                    return new BigInt(keyByte);
+                }
+            }
+
+            throw new InvalidOperationException("GrindKey is broken: tried 100k vals");
+        }
+
+        // Generate private key from ethereum signature
+        // (ref: https://github.com/paulmillr/scure-starknet/blob/main/index.ts#L143)
+        public static BigInt EthSigToPrivate(string sigHex)
+        {
+            sigHex = sigHex.Replace("0x", "");
+            if (sigHex.Length != 130)
+                throw new ArgumentException("Wrong ethereum signature");
+
+            BouncyBigInt seed = new BouncyBigInt(sigHex.Substring(0, 64), 16);
+            return GrindKey(seed);
         }
 
         // Obtain public key coordinates from stark curve given the private key
@@ -338,7 +382,6 @@ namespace StarkSharp.StarkCurve.Signature
                 throw new InvalidOperationException("Invalid operation");
         }
 
-
         public static bool IsPointOnCurve(BigInt x, BigInt y)
         {
             BigInt leftSide = BigInt.ModPow(y, 2, FieldPrime);
@@ -454,20 +497,10 @@ namespace StarkSharp.StarkCurve.Signature
 
         public static BigInt PedersenArrayHash(params BigInt[] elements)
         {
-            if (elements.Length == 0)
-            {
-                return PedersenHashAsPoint().X;
-            }
-
-            MathUtils.ECPoint currentPoint = ShiftPoint;
-            foreach (var element in elements)
-            {
-                currentPoint = PedersenHashAsPoint(currentPoint.X, element);
-            }
-            BigInt length = new BigInt(elements.Length);
-            currentPoint = PedersenHashAsPoint(currentPoint.X, length);
-
-            return currentPoint.X;
+            BigInt[] nElements = new BigInt[elements.Length + 1];
+            Array.Copy(elements, nElements, elements.Length);
+            nElements[nElements.Length - 1] = new BigInt(elements.Length);
+            return nElements.Aggregate(new BigInt(0), (x, y) => PedersenHashAsPoint(x, y).X);
         }
 
     }

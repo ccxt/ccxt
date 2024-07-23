@@ -3,7 +3,10 @@ using System.Text.RegularExpressions;
 using System.Globalization;
 using System.Net;
 using StarkSharp.StarkCurve.Signature;
+using StarkSharp.Rpc.Utils;
+using StarkSharp.StarkSharp.Base.StarkSharp.Hash;
 using System.IO.Compression;
+using System.Numerics;
 
 namespace ccxt;
 
@@ -771,16 +774,48 @@ public partial class Exchange
         return false;
     }
 
+    public object retrieveStarkAccount(object signature, object accountClassHash, object accountProxyClassHash)
+    {
+        var signatureStr = signature.ToString();
+        var accountClassHashStr = accountClassHash.ToString();
+        var accountProxyClassHashStr = accountProxyClassHash.ToString();
+        BigInteger privatekey = ECDSA.EthSigToPrivate(signatureStr);
+        BigInteger publicKey = ECDSA.PrivateToStarkKey(privatekey);
+        // compute address
+        List<string> calldata = new List<string>{
+            accountClassHash.ToString(),
+            StarknetOps.CalculateFunctionSelector("initialize"),
+            "2",
+            publicKey.ToString("X"),
+            "0",
+        };
+        BigInteger accountAddress = Address.ComputeStarknetAddress(
+            accountProxyClassHash.ToString(),
+            calldata,
+            publicKey.ToString("X")
+        );
+        var account = createSafeDictionary();
+        account["pub"] = add("0x", publicKey.ToString("X"));
+        account["priv"] = privatekey.ToString("X");
+        account["account"] = accountAddress.ToString("X");
+        return account;
+    }
+
     public object starknetSign(object msgHash, object privateKey)
     {
 
         var msgHashStr = msgHash.ToString();
         var bytes = Exchange.StringToByteArray(msgHashStr.Replace("0x", ""));
         var privateKeyString = privateKey.ToString()[-64];
-        var bigIntHash = new System.Numerics.BigInteger(bytes);
-        var bigIntKey = new System.Numerics.BigInteger(privateKeyString);
+        var bigIntHash = new BigInteger(bytes);
+        var bigIntKey = new BigInteger(privateKeyString);
         var res = ECDSA.Sign(bigIntHash, bigIntKey);
         return this.json(new List<string> { res.R.ToString(), res.S.ToString() });
+    }
+
+    public object starknetEncodeStructuredData(object domain2, object messageTypes2, object messageData2, object address)
+    {
+        return "test";
     }
 
     public ECDSA.ECSignature Stark()
@@ -788,7 +823,7 @@ public partial class Exchange
         // debug only remove later
         var msgHash = "111111";
         var bytes = Exchange.StringToByteArray(msgHash);
-        var bigInt = new System.Numerics.BigInteger(bytes);
+        var bigInt = new BigInteger(bytes);
         var res = ECDSA.Sign(bigInt, bigInt);
         return res;
     }
