@@ -3445,7 +3445,7 @@ export default class Exchange {
         return result;
     }
 
-    safePreciseDiv (a: string, b: string): string {
+    preciseDiv (a: Str = undefined, b: Str = undefined): string {
         let value = Precise.stringDiv (a, b);
         if (value === '0' && a !== undefined && a !== '0' && b !== undefined && b !== '0') {
             value = Precise.stringDiv (a, b, 36); // increase precision
@@ -3464,7 +3464,7 @@ export default class Exchange {
         const baseVolume = this.safeString (ticker, 'baseVolume');
         const quoteVolume = this.safeString (ticker, 'quoteVolume');
         if (vwap === undefined) {
-            vwap = this.safePreciseDiv (this.omitZero (quoteVolume), baseVolume);
+            vwap = this.preciseDiv (this.omitZero (quoteVolume), baseVolume);
         }
         if ((last !== undefined) && (close === undefined)) {
             close = last;
@@ -3476,7 +3476,7 @@ export default class Exchange {
                 change = Precise.stringSub (last, open);
             }
             if (average === undefined) {
-                average = this.safePreciseDiv (Precise.stringAdd (last, open), '2');
+                average = this.preciseDiv (Precise.stringAdd (last, open), '2');
             }
         }
         if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && Precise.stringGt (open, '0')) {
