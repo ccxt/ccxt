@@ -153,7 +153,7 @@ export default class hashkey extends Exchange {
                         'quote/v1/depth': 1, // done
                         'quote/v1/trades': 1, // done
                         'quote/v1/klines': 1, // done
-                        'quote/v1/ticker/24hr': 1,
+                        'quote/v1/ticker/24hr': 1, // done
                         'quote/v1/ticker/price': 1,
                         'quote/v1/ticker/bookTicker': 1,
                         'quote/v1/depth/merged': 1,
