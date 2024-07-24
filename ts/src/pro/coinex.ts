@@ -1085,7 +1085,6 @@ export default class coinex extends coinexRest {
         const client = this.client (url);
         const time = this.milliseconds ();
         const timestamp = time.toString ();
-        const payload = timestamp + this.secret;
         const isSpot = (type === 'spot');
         const spotMessageHash = 'authenticated:spot';
         const swapMessageHash = 'authenticated:swap';
@@ -1100,7 +1099,7 @@ export default class coinex extends coinexRest {
             'id': requestId,
             'future': spotMessageHash,
         };
-        const hmac = this.hash (this.encode (payload), sha256, 'hex');
+        const hmac = this.hmac (this.encode (timestamp), this.encode (this.secret), sha256, 'hex');
         const request: Dict = {
             'id': requestId,
             'method': 'server.sign',
