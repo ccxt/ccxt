@@ -994,11 +994,6 @@ export default class hashkey extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
-        const request: Dict = {};
-        const timestamp = this.microseconds ();
-        if (timestamp !== undefined) {
-            request['timestamp'] = timestamp;
-        }
         const response = await this.privateGetApiV1Account (params);
         //
         //     {
