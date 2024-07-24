@@ -149,10 +149,10 @@ export default class hashkey extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'api/v1/exchangeInfo': 5,
-                        'quote/v1/depth': 1,
-                        'quote/v1/trades': 1,
-                        'quote/v1/klines': 1,
+                        'api/v1/exchangeInfo': 5, // done
+                        'quote/v1/depth': 1, // done
+                        'quote/v1/trades': 1, // done
+                        'quote/v1/klines': 1, // done
                         'quote/v1/ticker/24hr': 1,
                         'quote/v1/ticker/price': 1,
                         'quote/v1/ticker/bookTicker': 1,
@@ -515,7 +515,7 @@ export default class hashkey extends Exchange {
         const spotMarkets = this.safeList (response, 'symbols', []);
         const swapMarkets = this.safeList (response, 'contracts', []);
         let markets = this.arrayConcat (spotMarkets, swapMarkets);
-        if (markets.length === 0) {
+        if (this.isEmpty (markets)) {
             markets = [ response ]; // if user provides params.symbol the exchange returns a single object insted of list of objects
         }
         return this.parseMarkets (markets);
@@ -882,7 +882,7 @@ export default class hashkey extends Exchange {
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-order-book
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return mMaximum value is 200)
+         * @param {int} [limit] the maximum amount of order book entries to return (maximum value is 200)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
@@ -961,25 +961,20 @@ export default class hashkey extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (trade, 't');
-        const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol');
         const price = this.safeString (trade, 'p');
         const amount = this.safeString (trade, 'q');
-        const isBuyerMaker = this.safeBool (trade, 'ibm');
-        const takerOrMaker = isBuyerMaker ? 'maker' : 'taker';
-        const buyerOrSeller = isBuyerMaker ? 'buy' : 'sell';
         return this.safeTrade ({
             'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'side': buyerOrSeller,
+            'side': undefined,
             'price': price,
             'amount': amount,
             'cost': undefined,
             'order': undefined,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': undefined,
             'type': undefined,
             'fee': undefined,
             'info': trade,
@@ -997,7 +992,7 @@ export default class hashkey extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch (max 1000)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] timestamp in ms of the latest candle to fetch (default now)
+         * @param {int} [params.until] timestamp in ms of the latest candle to fetch
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
