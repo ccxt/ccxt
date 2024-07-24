@@ -2084,6 +2084,17 @@ class kucoinfutures(kucoin):
             })
         return tiers
 
+    def parse_funding_rate_history(self, info, market=None):
+        timestamp = self.safe_number(info, 'timepoint')
+        marketId = self.safe_string(info, 'symbol')
+        return {
+            'info': info,
+            'symbol': self.safe_symbol(marketId, market),
+            'fundingRate': self.safe_number(info, 'fundingRate'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
+
     def fetch_funding_rate_history(self, symbol: Optional[str] = None, since: Optional[int] = None, limit: Optional[int] = None, params={}):
         """
         :see: https://www.kucoin.com/docs/rest/futures-trading/funding-fees/get-public-funding-history#request-url
@@ -2129,14 +2140,3 @@ class kucoinfutures(kucoin):
         #
         data = self.safe_value(response, 'data')
         return self.parse_funding_rate_histories(data, market, since, limit)
-
-    def parse_funding_rate_history(self, info, market=None):
-        timestamp = self.safe_number(info, 'timePoint')
-        marketId = self.safe_string(info, 'symbol')
-        return {
-            'info': info,
-            'symbol': self.safe_symbol(marketId, market),
-            'fundingRate': self.safe_number(info, 'value'),
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-        }
