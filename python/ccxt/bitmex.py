@@ -1469,7 +1469,7 @@ class bitmex(Exchange):
         for i in range(0, len(response)):
             entry = response[i]
             date = datetime.fromisoformat(self.safe_string(entry, 'timestamp'))
-            timestamp = datetime.timestamp(date)
+            timestamp = datetime.timestamp(date) * 1000
             rates.append({
                 'info': entry,
                 'symbol': self.safe_symbol(self.safe_string(entry, 'symbol'), None, None, 'swap'),
