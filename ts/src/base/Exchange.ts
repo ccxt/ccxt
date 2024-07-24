@@ -3445,6 +3445,17 @@ export default class Exchange {
         return result;
     }
 
+    preciseDivReplacement (a: string, b: string) {
+        let value = Precise.stringDiv (a, b);
+        if (value === '0' && a !== undefined && a !== '0' && b !== undefined && b !== '0') {
+            const num1 = this.parseNumber (a);
+            const num2 = this.parseNumber (b);
+            const newValue = num1 / num2;
+            value = this.numberToString (newValue);
+        }
+        return value;
+    }
+
     safeTicker (ticker: Dict, market: Market = undefined): Ticker {
         let open = this.omitZero (this.safeString (ticker, 'open'));
         let close = this.omitZero (this.safeString (ticker, 'close'));
@@ -3456,7 +3467,7 @@ export default class Exchange {
         const baseVolume = this.safeString (ticker, 'baseVolume');
         const quoteVolume = this.safeString (ticker, 'quoteVolume');
         if (vwap === undefined) {
-            vwap = Precise.stringDiv (this.omitZero (quoteVolume), baseVolume);
+            vwap = this.preciseDivReplacement (this.omitZero (quoteVolume), baseVolume);
         }
         if ((last !== undefined) && (close === undefined)) {
             close = last;
@@ -3468,11 +3479,11 @@ export default class Exchange {
                 change = Precise.stringSub (last, open);
             }
             if (average === undefined) {
-                average = Precise.stringDiv (Precise.stringAdd (last, open), '2');
+                average = this.preciseDivReplacement (Precise.stringAdd (last, open), '2');
             }
         }
         if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && Precise.stringGt (open, '0')) {
-            percentage = Precise.stringMul (Precise.stringDiv (change, open), '100');
+            percentage = Precise.stringMul (this.preciseDivReplacement (change, open), '100');
         }
         if ((change === undefined) && (percentage !== undefined) && (open !== undefined)) {
             change = Precise.stringDiv (Precise.stringMul (percentage, open), '100');
