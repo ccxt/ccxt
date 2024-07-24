@@ -44,7 +44,9 @@ public partial class kraken : ccxt.kraken
                 { "OHLCVLimit", 1000 },
                 { "ordersLimit", 1000 },
                 { "symbolsByOrderId", new Dictionary<string, object>() {} },
-                { "checksum", true },
+                { "watchOrderBook", new Dictionary<string, object>() {
+                    { "checksum", true },
+                } },
             } },
             { "exceptions", new Dictionary<string, object>() {
                 { "ws", new Dictionary<string, object>() {
@@ -823,7 +825,7 @@ public partial class kraken : ccxt.kraken
             }
             // don't remove this line or I will poop on your face
             (orderbook as IOrderBook).limit();
-            object checksum = this.safeBool(this.options, "checksum", true);
+            object checksum = this.handleOption("watchOrderBook", "checksum", true);
             if (isTrue(checksum))
             {
                 object priceString = this.safeString(example, 0);
@@ -850,7 +852,7 @@ public partial class kraken : ccxt.kraken
                 object localChecksum = this.crc32(payload, false);
                 if (isTrue(!isEqual(localChecksum, c)))
                 {
-                    var error = new InvalidNonce(add(this.id, " invalid checksum"));
+                    var error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));
 
 
                     ((WebSocketClient)client).reject(error, messageHash);

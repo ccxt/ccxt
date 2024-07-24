@@ -940,7 +940,7 @@ export default class whitebit extends whitebitRest {
         return message;
     }
 
-    ping (client) {
+    ping (client: Client) {
         return {
             'id': 0,
             'method': 'ping',

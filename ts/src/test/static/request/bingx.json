@@ -703,6 +703,15 @@
                   "1792480780099366912",
                   "LTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "Inverse swap cancel order",
+                "method": "cancelOrder",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/cancelOrder?orderId=1816002957423951872&symbol=SOL-USD&timestamp=1721803854831&signature=b0bcc0da4c0354baaa87558cb429c19d56852fd079d043f2ac015bab125add79",
+                "input": [
+                  "1816002957423951872",
+                  "SOL/USD:SOL"
+                ]
             }
         ],
         "cancelOrders": [
@@ -878,6 +887,14 @@
                     {
                         "type": "swap"
                     }
+                ]
+            },
+            {
+                "description": "Inverse swap fetch open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/openOrders?symbol=SOL-USD&timestamp=1721806459310&signature=d4d74676f855a257c4482aa92bc9d86772ce099c4eb59a011dd81937c5ea6ff6",
+                "input": [
+                  "SOL/USD:SOL"
                 ]
             }
         ],
@@ -1427,11 +1444,20 @@
         "fetchMyLiquidations": [
             {
                 "disabled": true,
-                "description": "fetch my liquidations",
+                "description": "Linear swap fetch my liquidations",
                 "method": "fetchMyLiquidations",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/forceOrders?autoCloseType=LIQUIDATION&symbol=BTC-USDT&timestamp=1713364573101&signature=f8eb5457ce479316113f59ab7c9be200d7bd2b39e394a480143b0f2ec59a1d91",
                 "input": [
                   "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "disabled": true,
+                "description": "Inverse swap fetch my liquidations",
+                "method": "fetchMyLiquidations",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/forceOrders?autoCloseType=LIQUIDATION&symbol=SOL-USD&timestamp=1721280070629&signature=32b7e26877af1f0ed4f3936811cb38f68bc27eac5e44b63022de5a92123f6b7f",
+                "input": [
+                  "SOL/USD:SOL"
                 ]
             }
         ],
@@ -1494,6 +1520,32 @@
                   {
                     "side": "LONG"
                   }
+                ]
+            }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "Spot fetch trading fee",
+                "method": "fetchTradingFee",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/user/commissionRate?symbol=BTC-USDT&timestamp=1721369051762&signature=9fc2fc12f8f0139fb5b47fa5dfd7b7be239da2b6c55e99a84e67c19df1022c87",
+                "input": [
+                  "BTC/USDT"
+                ]
+            },
+            {
+                "description": "linear swap trading trading fee",
+                "method": "fetchTradingFee",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/user/commissionRate?timestamp=1721381183575&signature=4265388b5907de2e012b4567fb6bf146a4d44951f92fb8e8003a3c31cf204259",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Inverse swap fetch trading fee",
+                "method": "fetchTradingFee",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/user/commissionRate?timestamp=1721370753542&signature=82ecf511c5fdb7655ef37166633af2dbacc75b0c9a3e6f6994cddd77db45096f",
+                "input": [
+                  "BTC/USD:BTC"
                 ]
             }
         ]

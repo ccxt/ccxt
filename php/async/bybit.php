@@ -3053,7 +3053,7 @@ class bybit extends Exchange {
              * @see https://bybit-exchange.github.io/docs/v5/asset/all-balance
              * @see https://bybit-exchange.github.io/docs/v5/account/wallet-balance
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @param {string} [$params->type] wallet $type, ['spot', 'swap', 'fund']
+             * @param {string} [$params->type] wallet $type, ['spot', 'swap', 'funding']
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
@@ -3061,10 +3061,18 @@ class bybit extends Exchange {
             list($enableUnifiedMargin, $enableUnifiedAccount) = Async\await($this->is_unified_enabled());
             $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
             $type = null;
-            list($type, $params) = $this->get_bybit_type('fetchBalance', null, $params);
+            // don't use getBybitType here
+            list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+            $subType = null;
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchBalance', null, $params);
+            if (($type === 'swap') || ($type === 'future')) {
+                $type = $subType;
+            }
+            $lowercaseRawType = ($type !== null) ? strtolower($type) : null;
             $isSpot = ($type === 'spot');
             $isLinear = ($type === 'linear');
             $isInverse = ($type === 'inverse');
+            $isFunding = ($lowercaseRawType === 'fund') || ($lowercaseRawType === 'funding');
             if ($isUnifiedAccount) {
                 if ($isInverse) {
                     $type = 'contract';
@@ -3083,10 +3091,10 @@ class bybit extends Exchange {
             $response = null;
             if ($isSpot && ($marginMode !== null)) {
                 $response = Async\await($this->privateGetV5SpotCrossMarginTradeAccount ($this->extend($request, $params)));
-            } elseif ($unifiedType === 'FUND') {
+            } elseif ($isFunding) {
                 // use this endpoint only we have no other choice
                 // because it requires transfer permission
-                $request['accountType'] = $unifiedType;
+                $request['accountType'] = 'FUND';
                 $response = Async\await($this->privateGetV5AssetTransferQueryAccountCoinsBalance ($this->extend($request, $params)));
             } else {
                 $request['accountType'] = $unifiedType;

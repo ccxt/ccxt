@@ -46,6 +46,7 @@ public partial class okx : ccxt.okx
             } },
             { "options", new Dictionary<string, object>() {
                 { "watchOrderBook", new Dictionary<string, object>() {
+                    { "checksum", true },
                     { "depth", "books" },
                 } },
                 { "watchBalance", "spot" },
@@ -68,7 +69,6 @@ public partial class okx : ccxt.okx
                     { "op", "amend-order" },
                 } },
                 { "ws", new Dictionary<string, object>() {} },
-                { "checksum", true },
             } },
             { "streaming", new Dictionary<string, object>() {
                 { "ping", this.ping },
@@ -1012,7 +1012,7 @@ public partial class okx : ccxt.okx
         this.handleDeltas(storedBids, bids);
         object marketId = this.safeString(message, "instId");
         object symbol = this.safeSymbol(marketId);
-        object checksum = this.safeBool(this.options, "checksum", true);
+        object checksum = this.handleOption("watchOrderBook", "checksum", true);
         if (isTrue(checksum))
         {
             object asksLength = getArrayLength(storedAsks);
@@ -1036,7 +1036,7 @@ public partial class okx : ccxt.okx
             object localChecksum = this.crc32(payload, true);
             if (isTrue(!isEqual(responseChecksum, localChecksum)))
             {
-                var error = new InvalidNonce(add(this.id, " invalid checksum"));
+                var error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));
 
 
                 ((WebSocketClient)client).reject(error, messageHash);
@@ -1810,7 +1810,7 @@ public partial class okx : ccxt.okx
         await this.loadMarkets();
         await this.authenticate();
         object url = this.getUrl("private", "private");
-        object messageHash = ((object)this.nonce()).ToString();
+        object messageHash = ((object)this.milliseconds()).ToString();
         object op = null;
         var opparametersVariable = this.handleOptionAndParams(parameters, "createOrderWs", "op", "batch-orders");
         op = ((IList<object>)opparametersVariable)[0];
@@ -1890,7 +1890,7 @@ public partial class okx : ccxt.okx
         await this.loadMarkets();
         await this.authenticate();
         object url = this.getUrl("private", "private");
-        object messageHash = ((object)this.nonce()).ToString();
+        object messageHash = ((object)this.milliseconds()).ToString();
         object op = null;
         var opparametersVariable = this.handleOptionAndParams(parameters, "editOrderWs", "op", "amend-order");
         op = ((IList<object>)opparametersVariable)[0];
@@ -1925,7 +1925,7 @@ public partial class okx : ccxt.okx
         await this.loadMarkets();
         await this.authenticate();
         object url = this.getUrl("private", "private");
-        object messageHash = ((object)this.nonce()).ToString();
+        object messageHash = ((object)this.milliseconds()).ToString();
         object clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "clOrdId"});
         object arg = new Dictionary<string, object>() {
@@ -1971,7 +1971,7 @@ public partial class okx : ccxt.okx
         await this.loadMarkets();
         await this.authenticate();
         object url = this.getUrl("private", "private");
-        object messageHash = ((object)this.nonce()).ToString();
+        object messageHash = ((object)this.milliseconds()).ToString();
         object args = new List<object>() {};
         for (object i = 0; isLessThan(i, idsLength); postFixIncrement(ref i))
         {
@@ -2013,7 +2013,7 @@ public partial class okx : ccxt.okx
             throw new BadRequest ((string)add(this.id, "cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.")) ;
         }
         object url = this.getUrl("private", "private");
-        object messageHash = ((object)this.nonce()).ToString();
+        object messageHash = ((object)this.milliseconds()).ToString();
         object request = new Dictionary<string, object>() {
             { "id", messageHash },
             { "op", "mass-cancel" },

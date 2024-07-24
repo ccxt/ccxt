@@ -380,7 +380,7 @@ class coinone(ccxt.async_support.coinone):
                     method(client, message)
                     return
 
-    def ping(self, client):
+    def ping(self, client: Client):
         return {
             'request_type': 'PING',
         }

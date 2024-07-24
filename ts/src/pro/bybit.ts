@@ -2126,7 +2126,7 @@ export default class bybit extends bybitRest {
         }
     }
 
-    ping (client) {
+    ping (client: Client) {
         return {
             'req_id': this.requestId (),
             'op': 'ping',

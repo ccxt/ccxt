@@ -1209,7 +1209,7 @@ export default class mexc extends mexcRest {
         }
     }
 
-    ping (client) {
+    ping (client: Client) {
         return { 'method': 'ping' };
     }
 }

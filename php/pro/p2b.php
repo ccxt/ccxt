@@ -427,7 +427,7 @@ class p2b extends \ccxt\async\p2b {
         return false;
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         /**
          * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#ping
          * @param $client

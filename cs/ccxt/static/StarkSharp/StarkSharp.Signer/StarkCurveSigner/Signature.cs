@@ -181,9 +181,11 @@ namespace StarkSharp.StarkCurve.Signature
                 BouncyBigInt key = new BouncyBigInt(1, result);
                 if (key.CompareTo(limit) < 0) {
                     key = key.Mod(order);
-                    byte[] keyByte = key.ToByteArrayUnsigned();
-                    Array.Reverse(keyByte);
-                    return new BigInt(keyByte);
+                    // require to append one zero for positive value
+                    // byte[] keyByte = key.ToByteArrayUnsigned();
+                    // Array.Reverse(keyByte);
+                    // return new BigInt(keyByte);
+                    return BigInt.Parse(key.ToString());
                 }
             }
 

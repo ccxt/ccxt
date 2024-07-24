@@ -20,7 +20,7 @@ from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import ChecksumError
 from ccxt.base.precise import Precise
 
 
@@ -67,7 +67,9 @@ class kraken(ccxt.async_support.kraken):
                 'OHLCVLimit': 1000,
                 'ordersLimit': 1000,
                 'symbolsByOrderId': {},
-                'checksum': True,
+                'watchOrderBook': {
+                    'checksum': True,
+                },
             },
             'exceptions': {
                 'ws': {
@@ -716,7 +718,7 @@ class kraken(ccxt.async_support.kraken):
                 example = self.safe_value(b, 0)
             # don't remove self line or I will poop on your face
             orderbook.limit()
-            checksum = self.safe_bool(self.options, 'checksum', True)
+            checksum = self.handle_option('watchOrderBook', 'checksum', True)
             if checksum:
                 priceString = self.safe_string(example, 0)
                 amountString = self.safe_string(example, 1)
@@ -735,7 +737,7 @@ class kraken(ccxt.async_support.kraken):
                 payload = ''.join(payloadArray)
                 localChecksum = self.crc32(payload, False)
                 if localChecksum != c:
-                    error = InvalidNonce(self.id + ' invalid checksum')
+                    error = ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
                     del client.subscriptions[messageHash]
                     del self.orderbooks[symbol]
                     client.reject(error, messageHash)

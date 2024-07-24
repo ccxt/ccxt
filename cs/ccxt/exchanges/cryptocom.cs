@@ -838,6 +838,10 @@ public partial class cryptocom : Exchange
         };
         if (isTrue(!isEqual(limit, null)))
         {
+            if (isTrue(isGreaterThan(limit, 300)))
+            {
+                limit = 300;
+            }
             ((IDictionary<string,object>)request)["count"] = limit;
         }
         object now = this.microseconds();
@@ -846,10 +850,10 @@ public partial class cryptocom : Exchange
         parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(since, null)))
         {
-            ((IDictionary<string,object>)request)["start_ts"] = since;
+            ((IDictionary<string,object>)request)["start_ts"] = subtract(since, multiply(duration, 1000));
             if (isTrue(!isEqual(limit, null)))
             {
-                ((IDictionary<string,object>)request)["end_ts"] = subtract(this.sum(since, multiply(multiply(duration, (add(limit, 1))), 1000)), 1);
+                ((IDictionary<string,object>)request)["end_ts"] = this.sum(since, multiply(multiply(duration, limit), 1000));
             } else
             {
                 ((IDictionary<string,object>)request)["end_ts"] = until;

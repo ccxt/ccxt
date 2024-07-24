@@ -55,6 +55,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     public function public_get_mark_price_symbol_current($params = array()) {
         return $this->request('mark-price/{symbol}/current', 'public', 'GET', $params, null, null, array("cost" => 3));
     }
+    public function public_get_mark_price_all_symbols($params = array()) {
+        return $this->request('mark-price/all-symbols', 'public', 'GET', $params, null, null, array("cost" => 3));
+    }
     public function public_get_margin_config($params = array()) {
         return $this->request('margin/config', 'public', 'GET', $params, null, null, array("cost" => 25));
     }
@@ -753,6 +756,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     }
     public function publicGetMarkPriceSymbolCurrent($params = array()) {
         return $this->request('mark-price/{symbol}/current', 'public', 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function publicGetMarkPriceAllSymbols($params = array()) {
+        return $this->request('mark-price/all-symbols', 'public', 'GET', $params, null, null, array("cost" => 3));
     }
     public function publicGetMarginConfig($params = array()) {
         return $this->request('margin/config', 'public', 'GET', $params, null, null, array("cost" => 25));

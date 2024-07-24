@@ -856,7 +856,7 @@ class whitebit(ccxt.async_support.whitebit):
         client.lastPong = self.milliseconds()
         return message
 
-    def ping(self, client):
+    def ping(self, client: Client):
         return {
             'id': 0,
             'method': 'ping',

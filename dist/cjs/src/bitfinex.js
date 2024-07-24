@@ -1638,7 +1638,7 @@ class bitfinex extends bitfinex$1 {
         //     ]
         //
         const response = this.safeValue(responses, 0, {});
-        const id = this.safeNumber(response, 'withdrawal_id');
+        const id = this.safeInteger(response, 'withdrawal_id');
         const message = this.safeString(response, 'message');
         const errorMessage = this.findBroadlyMatchedKey(this.exceptions['broad'], message);
         if (id === 0) {

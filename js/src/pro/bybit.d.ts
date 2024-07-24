@@ -46,7 +46,7 @@ export default class bybit extends bybitRest {
     authenticate(url: any, params?: {}): Promise<any>;
     handleErrorMessage(client: Client, message: any): boolean;
     handleMessage(client: Client, message: any): void;
-    ping(client: any): {
+    ping(client: Client): {
         req_id: any;
         op: string;
     };

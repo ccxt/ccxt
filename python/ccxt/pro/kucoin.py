@@ -1155,7 +1155,7 @@ class kucoin(ccxt.async_support.kucoin):
         if method is not None:
             method(client, message)
 
-    def ping(self, client):
+    def ping(self, client: Client):
         # kucoin does not support built-in ws protocol-level ping-pong
         # instead it requires a custom json-based text ping-pong
         # https://docs.kucoin.com/#ping

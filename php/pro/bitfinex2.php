@@ -8,7 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
-use ccxt\InvalidNonce;
+use ccxt\ChecksumError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -40,9 +40,9 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
                 'watchOrderBook' => array(
                     'prec' => 'P0',
                     'freq' => 'F0',
+                    'checksum' => true,
                 ),
                 'ordersLimit' => 1000,
-                'checksum' => true,
             ),
         ));
     }
@@ -699,10 +699,13 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         $localChecksum = $this->crc32($payload, true);
         $responseChecksum = $this->safe_integer($message, 2);
         if ($responseChecksum !== $localChecksum) {
-            $error = new InvalidNonce ($this->id . ' invalid checksum');
             unset($client->subscriptions[$messageHash]);
             unset($this->orderbooks[$symbol]);
-            $client->reject ($error, $messageHash);
+            $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
+            if ($checksum) {
+                $error = new ChecksumError ($this->id . ' ' . $this->orderbook_checksum_message($symbol));
+                $client->reject ($error, $messageHash);
+            }
         }
     }
 

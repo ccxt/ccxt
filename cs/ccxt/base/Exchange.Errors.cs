@@ -201,6 +201,12 @@ namespace ccxt;
         public InvalidNonce(string message) : base(message) { }
         public InvalidNonce(string message, NetworkError inner) : base(message, inner) { }
     }
+   public class ChecksumError : InvalidNonce
+    {
+        public ChecksumError() : base() { }
+        public ChecksumError(string message) : base(message) { }
+        public ChecksumError(string message, InvalidNonce inner) : base(message, inner) { }
+    }
    public class RequestTimeout : NetworkError
     {
         public RequestTimeout() : base() { }

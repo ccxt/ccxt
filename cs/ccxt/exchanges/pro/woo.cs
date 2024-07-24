@@ -728,9 +728,10 @@ public partial class woo : ccxt.woo
             { "cost", this.safeString(order, "totalFee") },
             { "currency", this.safeString(order, "feeAsset") },
         };
+        object priceString = this.safeString(order, "price");
         object price = this.safeNumber(order, "price");
         object avgPrice = this.safeNumber(order, "avgPrice");
-        if (isTrue(isTrue((isEqual(price, 0))) && isTrue((!isEqual(avgPrice, null)))))
+        if (isTrue(isTrue(Precise.stringEq(priceString, "0")) && isTrue((!isEqual(avgPrice, null)))))
         {
             price = avgPrice;
         }

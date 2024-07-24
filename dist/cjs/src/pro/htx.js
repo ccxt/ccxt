@@ -97,6 +97,7 @@ class htx extends htx$1 {
                 'api': 'api',
                 'watchOrderBook': {
                     'maxRetries': 3,
+                    'checksum': true,
                 },
                 'ws': {
                     'gunzip': true,
@@ -568,7 +569,10 @@ class htx extends htx$1 {
             orderbook['nonce'] = version;
         }
         if ((prevSeqNum !== undefined) && prevSeqNum > orderbook['nonce']) {
-            throw new errors.InvalidNonce(this.id + ' watchOrderBook() received a mesage out of order');
+            const checksum = this.handleOption('watchOrderBook', 'checksum', true);
+            if (checksum) {
+                throw new errors.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
+            }
         }
         const spotConditon = market['spot'] && (prevSeqNum === orderbook['nonce']);
         const nonSpotCondition = market['contract'] && (version - 1 === orderbook['nonce']);

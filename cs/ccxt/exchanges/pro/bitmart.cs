@@ -848,8 +848,8 @@ public partial class bitmart : ccxt.bitmart
         object symbol = getValue(market, "symbol");
         object openTimestamp = this.safeInteger(position, "create_time");
         object timestamp = this.safeInteger(position, "update_time");
-        object side = this.safeNumber(position, "position_type");
-        object marginModeId = this.safeNumber(position, "open_type");
+        object side = this.safeInteger(position, "position_type");
+        object marginModeId = this.safeInteger(position, "open_type");
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", null },
@@ -1473,7 +1473,7 @@ public partial class bitmart : ccxt.bitmart
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = ob;
             }
             object orderbook = getValue(this.orderbooks, symbol);
-            object way = this.safeNumber(data, "way");
+            object way = this.safeInteger(data, "way");
             object side = ((bool) isTrue((isEqual(way, 1)))) ? "bids" : "asks";
             if (isTrue(isEqual(way, 1)))
             {

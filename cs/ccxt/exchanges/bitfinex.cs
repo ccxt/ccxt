@@ -1720,7 +1720,7 @@ public partial class bitfinex : Exchange
         //     ]
         //
         object response = this.safeValue(responses, 0, new Dictionary<string, object>() {});
-        object id = this.safeNumber(response, "withdrawal_id");
+        object id = this.safeInteger(response, "withdrawal_id");
         object message = this.safeString(response, "message");
         object errorMessage = this.findBroadlyMatchedKey(getValue(this.exceptions, "broad"), message);
         if (isTrue(isEqual(id, 0)))
