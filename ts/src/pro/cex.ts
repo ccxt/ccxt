@@ -3,7 +3,7 @@
 import cexRest from '../cex.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import type { Int, OrderSide, OrderType, Strings, Str, OrderBook, Trade, Ticker, Tickers, OHLCV, Order, Balances, Num, Dict } from '../base/types.js';
-import { ArgumentsRequired, ExchangeError, BadRequest, OperationFailed } from '../base/errors.js';
+import { ArgumentsRequired, ExchangeError, BadRequest } from '../base/errors.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
@@ -1049,8 +1049,7 @@ export default class cex extends cexRest {
         const messageHash = 'orderbook:' + symbol;
         if (incrementalId !== storedOrderBook['nonce'] + 1) {
             delete client.subscriptions[messageHash];
-            const error = new OperationFailed (this.id + ' watchOrderBook() skipped a message');
-            client.reject (error, messageHash);
+            client.reject (this.id + ' watchOrderBook() skipped a message', messageHash);
             return;
         }
         const timestamp = this.safeInteger (data, 'time');

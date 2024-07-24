@@ -1309,25 +1309,13 @@ export default class bitvavo extends bitvavoRest {
         const code = this.safeInteger (error, 'errorCode');
         const action = this.safeString (message, 'action');
         const messageHash = this.buildMessageHash (action, message);
-        let rejected = false;
         try {
             this.handleErrors (code, error, client.url, undefined, undefined, error, message, undefined, undefined);
         } catch (e) {
-            rejected = true;
             client.reject (e, messageHash);
+            return;
         }
-        if (!rejected) {
-            let text = '';
-            if (typeof message !== 'string') {
-                try {
-                    text = this.json (message);
-                } catch (e) {
-                    text = message.toString ();
-                }
-            }
-            const exception = new OperationFailed (this.id + ' WS handleErrorMessage() : ' + text);
-            client.reject (exception, messageHash);
-        }
+        client.reject (message, messageHash);
     }
 
     handleMessage (client: Client, message) {

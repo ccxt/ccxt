@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import probitRest from '../probit.js';
-import { NotSupported, ExchangeError, OperationFailed } from '../base/errors.js';
+import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -530,16 +530,7 @@ export default class probit extends probitRest {
         if (result === 'ok') {
             future.resolve (true);
         } else {
-            let text = '';
-            if (typeof message !== 'string') {
-                try {
-                    text = this.json (message);
-                } catch (e) {
-                    text = message.toString ();
-                }
-            }
-            const error = new OperationFailed (this.id + ' WS handleAuthenticate() : ' + text);
-            future.reject (error);
+            future.reject (message);
             delete client.subscriptions['authenticated'];
         }
     }

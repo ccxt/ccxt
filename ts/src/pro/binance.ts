@@ -3,7 +3,7 @@
 
 import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
-import { ChecksumError, ArgumentsRequired, BadRequest, NotSupported, OperationFailed } from '../base/errors.js';
+import { ChecksumError, ArgumentsRequired, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances, Num, Dict, Liquidation } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -3789,20 +3789,11 @@ export default class binance extends binanceRest {
             }
         }
         if (!rejected) {
-            let text = '';
-            if (typeof message !== 'string') {
-                try {
-                    text = this.json (message);
-                } catch (e) {
-                    text = message.toString ();
-                }
-            }
-            const exception = new OperationFailed (text);
-            client.reject (exception, id); // todo: needs revision, first arg might need to be an exception
+            client.reject (message, id);
         }
         // reset connection if 5xx error
-        if (this.safeString (code, 0) === '5') {
-            client.reset (message);
+        if (code >= 500 && code < 600) {
+            client.reset (message); // `reset` also rejects pending promises
         }
     }
 

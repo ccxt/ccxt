@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import poloniexfuturesRest from '../poloniexfutures.js';
-import { AuthenticationError, BadRequest, ChecksumError, OperationFailed } from '../base/errors.js';
+import { AuthenticationError, BadRequest, ChecksumError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import type { Int, Str, OrderBook, Order, Trade, Ticker, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -1028,16 +1028,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         //        "type": "error"
         //    }
         //
-        let text = '';
-        if (typeof message !== 'string') {
-            try {
-                text = this.json (message);
-            } catch (e) {
-                text = message.toString ();
-            }
-        }
-        const exception = new OperationFailed (this.id + ' WS handleErrorMessage() : ' + text);
-        client.reject (exception);
+        client.reject (message);
     }
 
     handleMessage (client: Client, message) {
