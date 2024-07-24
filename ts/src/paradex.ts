@@ -221,7 +221,9 @@ export default class paradex extends Exchange {
             'precisionMode': TICK_SIZE,
             'commonCurrencies': {
             },
-            'options': {},
+            'options': {
+                'broker': 'CCXT',
+            },
         });
     }
 
@@ -1992,6 +1994,7 @@ export default class paradex extends Exchange {
             this.checkRequiredCredentials ();
             headers = {
                 'Accept': 'application/json',
+                'PARADEX-PARTNER': this.safeString (this.options, 'broker', 'CCXT'),
             };
             // TODO: optimize
             if (path === 'auth') {

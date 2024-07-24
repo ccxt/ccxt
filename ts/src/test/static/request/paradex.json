@@ -127,6 +127,30 @@
                         "clientOrderId": "helloworld"
                     }
                 ]
+            },
+            {
+                "description": "create market buy order",
+                "method": "createOrder",
+                "url": "https://api.prod.paradex.trade/v1/orders",
+                "input": [
+                  "SOL/USD:USDC",
+                  "market",
+                  "buy",
+                  0.1
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"MARKET\",\"size\":\"0.1\",\"signature\":\"[\\\"960080708898797183928029809172791379248539766925379037410238144931416428683\\\",\\\"2105400033629372680154136446725663660284562666186469337283885745287960888896\\\"]\",\"signature_timestamp\":1721829169000}"
+            },
+            {
+                "description": "market sell order",
+                "method": "createOrder",
+                "url": "https://api.prod.paradex.trade/v1/orders",
+                "input": [
+                  "SOL/USD:USDC",
+                  "market",
+                  "sell",
+                  0.1
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"SELL\",\"type\":\"MARKET\",\"size\":\"0.1\",\"signature\":\"[\\\"1468894355587050285420949071350345737433437568442442138979146276284680442953\\\",\\\"2574741288777905528175391129576450744028621767206012283486121432563461556821\\\"]\",\"signature_timestamp\":1721829219000}"
             }
         ],
         "cancelOrder": [
