@@ -137,6 +137,15 @@ namespace StarkSharp.Rpc.Utils
                     return CalculateFunctionSelector(input);
             }
         }
+
+        public static string EncodeShortString(string data)
+        {
+            if (data.Length > 31) {
+                throw new InvalidOperationException("Shortstring cannot be longer than 31 characters.");
+            }
+            // TODO: verify whether the shortstring is in vm range
+            return NumericOps.ByteArrayToHexPresentation(ConvertToUTF8Bytes(data));
+        }
     }
 }
 

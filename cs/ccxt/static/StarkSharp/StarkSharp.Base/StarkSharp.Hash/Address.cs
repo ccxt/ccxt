@@ -30,7 +30,7 @@ namespace StarkSharp.StarkSharp.Base.StarkSharp.Hash
             return rawAddress % L2_ADDRESS_UPPER_BOUND;
         }
 
-        private static BigInteger ComputeHashOnElements(string[] data)
+        public static BigInteger ComputeHashOnElements(string[] data)
         {
             // Convert data strings to big integers using LINQ
             BigInteger[] dataAsBigIntegers = data.Select(d => HexToBigInteger(d)).ToArray();
@@ -49,7 +49,7 @@ namespace StarkSharp.StarkSharp.Base.StarkSharp.Hash
                 // Try to parse the hex string
                 if (!BigInteger.TryParse(hexNumber, NumberStyles.AllowHexSpecifier, CultureInfo.InvariantCulture, out BigInteger result))
                 {
-                    Console.WriteLine("Error converting hex to BigInteger: Invalid hex string.");
+                    // Console.WriteLine("Error converting hex to BigInteger: Invalid hex string.");
                 }
                 // Make the BigInteger positive if it's interpreted as negative
                 if (result.Sign < 0)
