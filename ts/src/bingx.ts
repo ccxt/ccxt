@@ -3005,6 +3005,7 @@ export default class bingx extends Exchange {
         //    }
         //
         // inverse swap cancelAllOrders, cancelOrder
+        // inverse swap cancelAllOrders, cancelOrder, fetchOpenOrders
         //
         //     {
         //         "symbol": "SOL-USD",
@@ -3782,9 +3783,10 @@ export default class bingx extends Exchange {
         /**
          * @method
          * @name bingx#fetchOpenOrders
-         * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Open%20Orders
-         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20all%20current%20pending%20orders
          * @description fetch all unfilled currently open orders
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Current%20Open%20Orders
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Current%20All%20Open%20Orders
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20all%20current%20pending%20orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of open order structures to retrieve
@@ -3798,12 +3800,19 @@ export default class bingx extends Exchange {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
+        let type = undefined;
+        let subType = undefined;
         let response = undefined;
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
-        if (marketType === 'spot') {
-            response = await this.spotV1PrivateGetTradeOpenOrders (this.extend (request, query));
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params);
+        if (type === 'spot') {
+            response = await this.spotV1PrivateGetTradeOpenOrders (this.extend (request, params));
         } else {
-            response = await this.swapV2PrivateGetTradeOpenOrders (this.extend (request, query));
+            if (subType === 'inverse') {
+                response = await this.cswapV1PrivateGetTradeOpenOrders (this.extend (request, params));
+            } else {
+                response = await this.swapV2PrivateGetTradeOpenOrders (this.extend (request, params));
+            }
         }
         //
         //  spot
@@ -3831,7 +3840,61 @@ export default class bingx extends Exchange {
         //        }
         //    }
         //
-        // swap
+        // inverse swap
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "data": {
+        //             "orders": [
+        //                 {
+        //                     "symbol": "SOL-USD",
+        //                     "orderId": "1816013900044320768",
+        //                     "side": "BUY",
+        //                     "positionSide": "Long",
+        //                     "type": "LIMIT",
+        //                     "quantity": 1,
+        //                     "origQty": "",
+        //                     "price": "150",
+        //                     "executedQty": "0",
+        //                     "avgPrice": "0.000",
+        //                     "cumQuote": "",
+        //                     "stopPrice": "",
+        //                     "profit": "0.0000",
+        //                     "commission": "0.0000",
+        //                     "status": "Pending",
+        //                     "time": 1721806428334,
+        //                     "updateTime": 1721806428352,
+        //                     "clientOrderId": "",
+        //                     "leverage": "",
+        //                     "takeProfit": {
+        //                         "type": "TAKE_PROFIT",
+        //                         "quantity": 0,
+        //                         "stopPrice": 0,
+        //                         "price": 0,
+        //                         "workingType": "MARK_PRICE",
+        //                         "stopGuaranteed": ""
+        //                     },
+        //                     "stopLoss": {
+        //                         "type": "STOP",
+        //                         "quantity": 0,
+        //                         "stopPrice": 0,
+        //                         "price": 0,
+        //                         "workingType": "MARK_PRICE",
+        //                         "stopGuaranteed": ""
+        //                     },
+        //                     "advanceAttr": 0,
+        //                     "positionID": 0,
+        //                     "takeProfitEntrustPrice": 0,
+        //                     "stopLossEntrustPrice": 0,
+        //                     "orderType": "",
+        //                     "workingType": "MARK_PRICE"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        // linear swap
         //
         //    {
         //        "code": 0,
