@@ -4,7 +4,7 @@
 import Exchange from './abstract/hashkey.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Bool, Dict, Int, Market, OHLCV, OrderBook, Ticker, Trade } from './base/types.js';
+import type { Account, Balances, Bool, Dict, Int, Market, OHLCV, OrderBook, Ticker, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -53,8 +53,8 @@ export default class hashkey extends Exchange {
                 'createTrailingAmountOrder': false,
                 'createTrailingPercentOrder': false,
                 'createTriggerOrder': false,
-                'fetchAccounts': false,
-                'fetchBalance': false,
+                'fetchAccounts': true,
+                'fetchBalance': true,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
                 'fetchClosedOrders': false,
@@ -254,6 +254,30 @@ export default class hashkey extends Exchange {
                 'recvWindow': undefined,
                 'sandboxMode': false,
                 'networks': {
+                    'BTC': 'BTC',
+                    'ERC20': 'ETH',
+                    'AVAX': 'AvalancheC',
+                    'SOL': 'Solana',
+                    'MATIC': 'Polygon',
+                    'ATOM': 'Cosmos',
+                    'DOT': 'Polkadot',
+                    'LTC': 'LTC',
+                    'OPTIMISM': 'Optimism',
+                    'ARB': 'Arbitrum',
+                    'DOGE': 'Dogecoin',
+                },
+                'networksById': {
+                    'BTC': 'BTC',
+                    'ETH': 'ERC20',
+                    'AvalancheC': 'AVAX',
+                    'Solana': 'SOL',
+                    'Cosmos': 'ATOM',
+                    'Arbitrum': 'ARB',
+                    'Polygon': 'MATIC',
+                    'Optimism': 'OPTIMISM',
+                    'Polkadot': 'DOT',
+                    'LTC': 'LTC',
+                    'Dogecoin': 'DOGE',
                 },
             },
             'commonCurrencies': {},
