@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import okxRest from '../okx.js';
-import { ArgumentsRequired, BadRequest, ExchangeError, ChecksumError, AuthenticationError } from '../base/errors.js';
+import { ArgumentsRequired, BadRequest, ExchangeError, ChecksumError, AuthenticationError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, Liquidation } from '../base/types.js';
@@ -918,7 +918,7 @@ export default class okx extends okxRest {
         }
     }
 
-    handleOrderBookMessage (client: Client, message, orderbook, messageHash) {
+    handleOrderBookMessage (client: Client, message, orderbook, messageHash, market = undefined) {
         //
         //     {
         //         "asks": [
@@ -933,6 +933,9 @@ export default class okx extends okxRest {
         //         ],
         //         "instId": "BTC-USDT",
         //         "ts": "1626537446491"
+        //         "checksum": -855196043,
+        //         "prevSeqId": 123456,
+        //         "seqId": 123457
         //     }
         //
         const asks = this.safeValue (message, 'asks', []);
@@ -942,9 +945,12 @@ export default class okx extends okxRest {
         this.handleDeltas (storedAsks, asks);
         this.handleDeltas (storedBids, bids);
         const marketId = this.safeString (message, 'instId');
-        const symbol = this.safeSymbol (marketId);
+        const symbol = this.safeSymbol (marketId, market);
         const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
+        const seqId = this.safeInteger (message, 'seqId');
         if (checksum) {
+            const prevSeqId = this.safeInteger (message, 'prevSeqId');
+            const nonce = orderbook['nonce'];
             const asksLength = storedAsks.length;
             const bidsLength = storedBids.length;
             const payloadArray = [];
@@ -961,14 +967,21 @@ export default class okx extends okxRest {
             const payload = payloadArray.join (':');
             const responseChecksum = this.safeInteger (message, 'checksum');
             const localChecksum = this.crc32 (payload, true);
+            let error = undefined;
+            if (prevSeqId !== -1 && nonce !== prevSeqId) {
+                error = new InvalidNonce (this.id + ' watchOrderBook received invalid nonce');
+            }
             if (responseChecksum !== localChecksum) {
-                const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+                error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+            }
+            if (error !== undefined) {
                 delete client.subscriptions[messageHash];
                 delete this.orderbooks[symbol];
                 client.reject (error, messageHash);
             }
         }
         const timestamp = this.safeInteger (message, 'ts');
+        orderbook['nonce'] = seqId;
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
         return orderbook;
@@ -1090,7 +1103,7 @@ export default class okx extends okxRest {
                 const orderbook = this.orderbooks[symbol];
                 for (let i = 0; i < data.length; i++) {
                     const update = data[i];
-                    this.handleOrderBookMessage (client, update, orderbook, messageHash);
+                    this.handleOrderBookMessage (client, update, orderbook, messageHash, market);
                     client.resolve (orderbook, messageHash);
                 }
             }
