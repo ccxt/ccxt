@@ -95,8 +95,11 @@ namespace StarkSharp.StarkSharp.Base.StarkSharp.Hash
                 Type valueType = memberValue.Value.GetType();
                 if (valueType == typeof(string)) {
                     string value = memberValue.Value.ToString();
+                    Regex numRegex = new Regex("^[0-9]+$");
                     Regex hexRegex = new Regex("^(0x)?[0-9A-Fa-f]+$");
-                    if (hexRegex.IsMatch(value)) {
+                    if (numRegex.IsMatch(value)) {
+                        result.Add(BigInteger.Parse(value).ToString("x"));
+                    } else if (hexRegex.IsMatch(value)) {
                         result.Add(value.Replace("0x", ""));
                     } else {
                         result.Add(NumericOps.ByteArrayToHexPresentation(Encoding.UTF8.GetBytes(value)));
