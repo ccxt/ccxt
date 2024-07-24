@@ -836,6 +836,9 @@ class cryptocom extends Exchange {
                 'timeframe' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
             if ($limit !== null) {
+                if ($limit > 300) {
+                    $limit = 300;
+                }
                 $request['count'] = $limit;
             }
             $now = $this->microseconds();
@@ -843,9 +846,9 @@ class cryptocom extends Exchange {
             $until = $this->safe_integer($params, 'until', $now);
             $params = $this->omit($params, array( 'until' ));
             if ($since !== null) {
-                $request['start_ts'] = $since;
+                $request['start_ts'] = $since - $duration * 1000;
                 if ($limit !== null) {
-                    $request['end_ts'] = $this->sum($since, $duration * ($limit + 1) * 1000) - 1;
+                    $request['end_ts'] = $this->sum($since, $duration * $limit * 1000);
                 } else {
                     $request['end_ts'] = $until;
                 }

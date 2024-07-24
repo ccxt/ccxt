@@ -388,7 +388,7 @@ class p2b(ccxt.async_support.p2b):
             raise ExchangeError(self.id + ' error: ' + self.json(error))
         return False
 
-    def ping(self, client):
+    def ping(self, client: Client):
         """
         :see: https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#ping
          * @param client

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.62'
+__version__ = '4.3.66'
 
 # -----------------------------------------------------------------------------
 
@@ -53,6 +53,7 @@ from ccxt.base.errors import RateLimitExceeded                        # noqa: F4
 from ccxt.base.errors import ExchangeNotAvailable                     # noqa: F401
 from ccxt.base.errors import OnMaintenance                            # noqa: F401
 from ccxt.base.errors import InvalidNonce                             # noqa: F401
+from ccxt.base.errors import ChecksumError                            # noqa: F401
 from ccxt.base.errors import RequestTimeout                           # noqa: F401
 from ccxt.base.errors import BadResponse                              # noqa: F401
 from ccxt.base.errors import NullResponse                             # noqa: F401

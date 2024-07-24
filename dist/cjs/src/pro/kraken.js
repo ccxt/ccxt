@@ -49,7 +49,9 @@ class kraken extends kraken$1 {
                 'OHLCVLimit': 1000,
                 'ordersLimit': 1000,
                 'symbolsByOrderId': {},
-                'checksum': true,
+                'watchOrderBook': {
+                    'checksum': true,
+                },
             },
             'exceptions': {
                 'ws': {
@@ -747,7 +749,7 @@ class kraken extends kraken$1 {
             }
             // don't remove this line or I will poop on your face
             orderbook.limit();
-            const checksum = this.safeBool(this.options, 'checksum', true);
+            const checksum = this.handleOption('watchOrderBook', 'checksum', true);
             if (checksum) {
                 const priceString = this.safeString(example, 0);
                 const amountString = this.safeString(example, 1);
@@ -769,7 +771,7 @@ class kraken extends kraken$1 {
                 const payload = payloadArray.join('');
                 const localChecksum = this.crc32(payload, false);
                 if (localChecksum !== c) {
-                    const error = new errors.InvalidNonce(this.id + ' invalid checksum');
+                    const error = new errors.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
                     delete client.subscriptions[messageHash];
                     delete this.orderbooks[symbol];
                     client.reject(error, messageHash);

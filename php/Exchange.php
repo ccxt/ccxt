@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.3.62';
+$version = '4.3.66';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.3.62';
+    const VERSION = '4.3.66';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2846,7 +2846,7 @@ class Exchange {
         throw new NotSupported($this->id . ' parseTransfer() is not supported yet');
     }
 
-    public function parse_account($account) {
+    public function parse_account(array $account) {
         throw new NotSupported($this->id . ' parseAccount() is not supported yet');
     }
 
@@ -3043,6 +3043,10 @@ class Exchange {
         $this->create_networks_by_id_object();
     }
 
+    public function orderbook_checksum_message(?string $symbol) {
+        return $symbol . '  = false';
+    }
+
     public function create_networks_by_id_object() {
         // automatically generate network-id-to-code mappings
         $networkIdsToCodesGenerated = $this->invert_flat_string_dictionary($this->safe_value($this->options, 'networks', array())); // invert defined networks dictionary
@@ -3135,7 +3139,7 @@ class Exchange {
         ), $currency);
     }
 
-    public function safe_market_structure($market = null) {
+    public function safe_market_structure(?array $market = null) {
         $cleanStructure = array(
             'id' => null,
             'lowercaseId' => null,
@@ -4448,7 +4452,7 @@ class Exchange {
         return $this->markets;
     }
 
-    public function safe_position($position) {
+    public function safe_position(array $position) {
         // simplified version of => /pull/12765/
         $unrealizedPnlString = $this->safe_string($position, 'unrealisedPnl');
         $initialMarginString = $this->safe_string($position, 'initialMargin');
@@ -5237,15 +5241,15 @@ class Exchange {
             $this->load_markets();
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
-            $tickers = $this->fetch_ticker_ws($symbol, $params);
+            $tickers = $this->fetch_tickers_ws(array( $symbol ), $params);
             $ticker = $this->safe_dict($tickers, $symbol);
             if ($ticker === null) {
-                throw new NullResponse($this->id . ' fetchTickers() could not find a $ticker for ' . $symbol);
+                throw new NullResponse($this->id . ' fetchTickerWs() could not find a $ticker for ' . $symbol);
             } else {
                 return $ticker;
             }
         } else {
-            throw new NotSupported($this->id . ' fetchTicker() is not supported yet');
+            throw new NotSupported($this->id . ' fetchTickerWs() is not supported yet');
         }
     }
 
@@ -7126,7 +7130,7 @@ class Exchange {
         return array( $request, $params );
     }
 
-    public function safe_open_interest($interest, ?array $market = null) {
+    public function safe_open_interest(array $interest, ?array $market = null) {
         $symbol = $this->safe_string($interest, 'symbol');
         if ($symbol === null) {
             $symbol = $this->safe_string($market, 'symbol');

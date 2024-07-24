@@ -7,7 +7,7 @@
 // ----------------------------------------------------------------------------
 import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
-import { InvalidNonce, ArgumentsRequired, BadRequest, NotSupported } from '../base/errors.js';
+import { ChecksumError, ArgumentsRequired, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { rsa } from '../base/functions/rsa.js';
@@ -130,6 +130,7 @@ export default class binance extends binanceRest {
                 },
                 'watchOrderBook': {
                     'maxRetries': 3,
+                    'checksum': true,
                 },
                 'watchBalance': {
                     'fetchBalanceSnapshot': false,
@@ -857,10 +858,10 @@ export default class binance extends binanceRest {
                             }
                         }
                         else {
-                            const checksum = this.safeBool(this.options, 'checksum', true);
+                            const checksum = this.handleOption('watchOrderBook', 'checksum', true);
                             if (checksum) {
                                 // todo: client.reject from handleOrderBookMessage properly
-                                throw new InvalidNonce(this.id + ' handleOrderBook received an out-of-order nonce');
+                                throw new ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
                             }
                         }
                     }
@@ -878,10 +879,10 @@ export default class binance extends binanceRest {
                             }
                         }
                         else {
-                            const checksum = this.safeBool(this.options, 'checksum', true);
+                            const checksum = this.handleOption('watchOrderBook', 'checksum', true);
                             if (checksum) {
                                 // todo: client.reject from handleOrderBookMessage properly
-                                throw new InvalidNonce(this.id + ' handleOrderBook received an out-of-order nonce');
+                                throw new ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
                             }
                         }
                     }

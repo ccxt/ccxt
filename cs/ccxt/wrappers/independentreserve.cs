@@ -324,4 +324,30 @@ public partial class independentreserve
         var res = await this.fetchDepositAddress(code, parameters);
         return ((Dictionary<string, object>)res);
     }
+    /// <summary>
+    /// make a withdrawal
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.independentreserve.com/features/api#WithdrawDigitalCurrency"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.comment</term>
+    /// <description>
+    /// object : withdrawal comment, should not exceed 500 characters
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.withdraw(code, amount, address, tag, parameters);
+        return new Transaction(res);
+    }
 }

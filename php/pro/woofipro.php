@@ -746,9 +746,10 @@ class woofipro extends \ccxt\async\woofipro {
             'cost' => $this->safe_string($order, 'totalFee'),
             'currency' => $this->safe_string($order, 'feeAsset'),
         );
+        $priceString = $this->safe_string($order, 'price');
         $price = $this->safe_number($order, 'price');
         $avgPrice = $this->safe_number($order, 'avgPrice');
-        if (($price === 0) && ($avgPrice !== null)) {
+        if (Precise::string_eq($priceString, '0') && ($avgPrice !== null)) {
             $price = $avgPrice;
         }
         $amount = $this->safe_string($order, 'quantity');

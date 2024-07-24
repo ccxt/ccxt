@@ -73,6 +73,7 @@ public partial class bingx : Exchange
                 { "fetchTickers", true },
                 { "fetchTime", true },
                 { "fetchTrades", true },
+                { "fetchTradingFee", true },
                 { "fetchTransfers", true },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", true },
@@ -275,6 +276,10 @@ public partial class bingx : Exchange
                                 { "trade/leverage", 2 },
                                 { "trade/forceOrders", 2 },
                                 { "trade/allFillOrders", 2 },
+                                { "trade/openOrders", 2 },
+                                { "trade/orderDetail", 2 },
+                                { "trade/orderHistory", 2 },
+                                { "trade/marginType", 2 },
                                 { "user/commissionRate", 2 },
                                 { "user/positions", 2 },
                                 { "user/balance", 2 },
@@ -283,9 +288,12 @@ public partial class bingx : Exchange
                                 { "trade/order", 2 },
                                 { "trade/leverage", 2 },
                                 { "trade/closeAllPositions", 2 },
+                                { "trade/marginType", 2 },
+                                { "trade/positionMargin", 2 },
                             } },
                             { "delete", new Dictionary<string, object>() {
                                 { "trade/allOpenOrders", 2 },
+                                { "trade/cancelOrder", 2 },
                             } },
                         } },
                     } },
@@ -3013,7 +3021,8 @@ public partial class bingx : Exchange
         //        "clientOrderID": ""
         //    }
         //
-        // inverse swap cancelAllOrders
+        // inverse swap cancelAllOrders, cancelOrder
+        // inverse swap cancelAllOrders, cancelOrder, fetchOpenOrders
         //
         //     {
         //         "symbol": "SOL-USD",
@@ -3193,13 +3202,14 @@ public partial class bingx : Exchange
         * @method
         * @name bingx#cancelOrder
         * @description cancels an open order
-        * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Cancel%20an%20Order
-        * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Cancel%20an%20Order
+        * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Cancel%20Order
+        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Cancel%20Order
+        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Cancel%20an%20Order
         * @param {string} id order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.clientOrderId] a unique id for the order
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -3221,15 +3231,26 @@ public partial class bingx : Exchange
             ((IDictionary<string,object>)request)["orderId"] = id;
         }
         object response = null;
-        var marketTypequeryVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters);
-        var marketType = ((IList<object>) marketTypequeryVariable)[0];
-        var query = ((IList<object>) marketTypequeryVariable)[1];
-        if (isTrue(isEqual(marketType, "spot")))
+        object type = null;
+        object subType = null;
+        var typeparametersVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        var subTypeparametersVariable = this.handleSubTypeAndParams("cancelOrder", market, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        if (isTrue(isEqual(type, "spot")))
         {
-            response = await this.spotV1PrivatePostTradeCancel(this.extend(request, query));
+            response = await this.spotV1PrivatePostTradeCancel(this.extend(request, parameters));
         } else
         {
-            response = await this.swapV2PrivateDeleteTradeOrder(this.extend(request, query));
+            if (isTrue(isEqual(subType, "inverse")))
+            {
+                response = await this.cswapV1PrivateDeleteTradeCancelOrder(this.extend(request, parameters));
+            } else
+            {
+                response = await this.swapV2PrivateDeleteTradeOrder(this.extend(request, parameters));
+            }
         }
         //
         // spot
@@ -3250,7 +3271,59 @@ public partial class bingx : Exchange
         //       }
         //   }
         //
-        // swap
+        // inverse swap
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "data": {
+        //             "order": {
+        //                 "symbol": "SOL-USD",
+        //                 "orderId": "1816002957423951872",
+        //                 "side": "BUY",
+        //                 "positionSide": "Long",
+        //                 "type": "Pending",
+        //                 "quantity": 0,
+        //                 "origQty": "0",
+        //                 "price": "150",
+        //                 "executedQty": "0",
+        //                 "avgPrice": "0",
+        //                 "cumQuote": "0",
+        //                 "stopPrice": "",
+        //                 "profit": "0.0000",
+        //                 "commission": "0.000000",
+        //                 "status": "CANCELLED",
+        //                 "time": 1721803819410,
+        //                 "updateTime": 1721803819427,
+        //                 "clientOrderId": "",
+        //                 "leverage": "",
+        //                 "takeProfit": {
+        //                     "type": "",
+        //                     "quantity": 0,
+        //                     "stopPrice": 0,
+        //                     "price": 0,
+        //                     "workingType": "",
+        //                     "stopGuaranteed": ""
+        //                 },
+        //                 "stopLoss": {
+        //                     "type": "",
+        //                     "quantity": 0,
+        //                     "stopPrice": 0,
+        //                     "price": 0,
+        //                     "workingType": "",
+        //                     "stopGuaranteed": ""
+        //                 },
+        //                 "advanceAttr": 0,
+        //                 "positionID": 0,
+        //                 "takeProfitEntrustPrice": 0,
+        //                 "stopLossEntrustPrice": 0,
+        //                 "orderType": "",
+        //                 "workingType": ""
+        //             }
+        //         }
+        //     }
+        //
+        // linear swap
         //
         //    {
         //        "code": 0,
@@ -3277,9 +3350,9 @@ public partial class bingx : Exchange
         //        }
         //    }
         //
-        object data = this.safeValue(response, "data");
-        object first = this.safeDict(data, "order", data);
-        return this.parseOrder(first, market);
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object order = this.safeDict(data, "order", data);
+        return this.parseOrder(order, market);
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -3637,9 +3710,10 @@ public partial class bingx : Exchange
         /**
         * @method
         * @name bingx#fetchOpenOrders
-        * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Open%20Orders
-        * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20all%20current%20pending%20orders
         * @description fetch all unfilled currently open orders
+        * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Current%20Open%20Orders
+        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Current%20All%20Open%20Orders
+        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20all%20current%20pending%20orders
         * @param {string} symbol unified market symbol
         * @param {int} [since] the earliest time in ms to fetch open orders for
         * @param {int} [limit] the maximum number of open order structures to retrieve
@@ -3655,16 +3729,27 @@ public partial class bingx : Exchange
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
         }
+        object type = null;
+        object subType = null;
         object response = null;
-        var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
-        var marketType = ((IList<object>) marketTypequeryVariable)[0];
-        var query = ((IList<object>) marketTypequeryVariable)[1];
-        if (isTrue(isEqual(marketType, "spot")))
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOpenOrders", market, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        if (isTrue(isEqual(type, "spot")))
         {
-            response = await this.spotV1PrivateGetTradeOpenOrders(this.extend(request, query));
+            response = await this.spotV1PrivateGetTradeOpenOrders(this.extend(request, parameters));
         } else
         {
-            response = await this.swapV2PrivateGetTradeOpenOrders(this.extend(request, query));
+            if (isTrue(isEqual(subType, "inverse")))
+            {
+                response = await this.cswapV1PrivateGetTradeOpenOrders(this.extend(request, parameters));
+            } else
+            {
+                response = await this.swapV2PrivateGetTradeOpenOrders(this.extend(request, parameters));
+            }
         }
         //
         //  spot
@@ -3692,7 +3777,61 @@ public partial class bingx : Exchange
         //        }
         //    }
         //
-        // swap
+        // inverse swap
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "",
+        //         "data": {
+        //             "orders": [
+        //                 {
+        //                     "symbol": "SOL-USD",
+        //                     "orderId": "1816013900044320768",
+        //                     "side": "BUY",
+        //                     "positionSide": "Long",
+        //                     "type": "LIMIT",
+        //                     "quantity": 1,
+        //                     "origQty": "",
+        //                     "price": "150",
+        //                     "executedQty": "0",
+        //                     "avgPrice": "0.000",
+        //                     "cumQuote": "",
+        //                     "stopPrice": "",
+        //                     "profit": "0.0000",
+        //                     "commission": "0.0000",
+        //                     "status": "Pending",
+        //                     "time": 1721806428334,
+        //                     "updateTime": 1721806428352,
+        //                     "clientOrderId": "",
+        //                     "leverage": "",
+        //                     "takeProfit": {
+        //                         "type": "TAKE_PROFIT",
+        //                         "quantity": 0,
+        //                         "stopPrice": 0,
+        //                         "price": 0,
+        //                         "workingType": "MARK_PRICE",
+        //                         "stopGuaranteed": ""
+        //                     },
+        //                     "stopLoss": {
+        //                         "type": "STOP",
+        //                         "quantity": 0,
+        //                         "stopPrice": 0,
+        //                         "price": 0,
+        //                         "workingType": "MARK_PRICE",
+        //                         "stopGuaranteed": ""
+        //                     },
+        //                     "advanceAttr": 0,
+        //                     "positionID": 0,
+        //                     "takeProfitEntrustPrice": 0,
+        //                     "stopLossEntrustPrice": 0,
+        //                     "orderType": "",
+        //                     "workingType": "MARK_PRICE"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        // linear swap
         //
         //    {
         //        "code": 0,
@@ -4765,6 +4904,7 @@ public partial class bingx : Exchange
         * @name bingx#fetchMyLiquidations
         * @description retrieves the users liquidated positions
         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#User's%20Force%20Orders
+        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20force%20orders
         * @param {string} [symbol] unified CCXT market symbol
         * @param {int} [since] the earliest time in ms to fetch liquidations for
         * @param {int} [limit] the maximum number of liquidation structures to retrieve
@@ -4794,38 +4934,78 @@ public partial class bingx : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await this.swapV2PrivateGetTradeForceOrders(this.extend(request, parameters));
-        //
-        //     {
-        //         "code": 0,
-        //         "msg": "",
-        //         "data": {
-        //             "orders": [
-        //                 {
-        //                     "time": "int64",
-        //                     "symbol": "string",
-        //                     "side": "string",
-        //                      "type": "string",
-        //                     "positionSide": "string",
-        //                     "cumQuote": "string",
-        //                     "status": "string",
-        //                     "stopPrice": "string",
-        //                     "price": "string",
-        //                     "origQty": "string",
-        //                     "avgPrice": "string",
-        //                     "executedQty": "string",
-        //                     "orderId": "int64",
-        //                     "profit": "string",
-        //                     "commission": "string",
-        //                     "workingType": "string",
-        //                     "updateTime": "int64"
-        //                 },
-        //             ]
-        //         }
-        //     }
-        //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object liquidations = this.safeList(data, "orders", new List<object>() {});
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchMyLiquidations", market, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object response = null;
+        object liquidations = null;
+        if (isTrue(isEqual(subType, "inverse")))
+        {
+            response = await this.cswapV1PrivateGetTradeForceOrders(this.extend(request, parameters));
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "",
+            //         "timestamp": 1721280071678,
+            //         "data": [
+            //             {
+            //                 "orderId": "string",
+            //                 "symbol": "string",
+            //                 "type": "string",
+            //                 "side": "string",
+            //                 "positionSide": "string",
+            //                 "price": "string",
+            //                 "quantity": "float64",
+            //                 "stopPrice": "string",
+            //                 "workingType": "string",
+            //                 "status": "string",
+            //                 "time": "int64",
+            //                 "avgPrice": "string",
+            //                 "executedQty": "string",
+            //                 "profit": "string",
+            //                 "commission": "string",
+            //                 "updateTime": "string"
+            //             }
+            //         ]
+            //     }
+            //
+            liquidations = this.safeList(response, "data", new List<object>() {});
+        } else
+        {
+            response = await this.swapV2PrivateGetTradeForceOrders(this.extend(request, parameters));
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "",
+            //         "data": {
+            //             "orders": [
+            //                 {
+            //                     "time": "int64",
+            //                     "symbol": "string",
+            //                     "side": "string",
+            //                     "type": "string",
+            //                     "positionSide": "string",
+            //                     "cumQuote": "string",
+            //                     "status": "string",
+            //                     "stopPrice": "string",
+            //                     "price": "string",
+            //                     "origQty": "string",
+            //                     "avgPrice": "string",
+            //                     "executedQty": "string",
+            //                     "orderId": "int64",
+            //                     "profit": "string",
+            //                     "commission": "string",
+            //                     "workingType": "string",
+            //                     "updateTime": "int64"
+            //                 },
+            //             ]
+            //         }
+            //     }
+            //
+            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+            liquidations = this.safeList(data, "orders", new List<object>() {});
+        }
         return this.parseLiquidations(liquidations, market, since, limit);
     }
 
@@ -5118,6 +5298,100 @@ public partial class bingx : Exchange
             { "info", marginMode },
             { "symbol", getValue(market, "symbol") },
             { "marginMode", marginType },
+        };
+    }
+
+    public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bingx#fetchTradingFee
+        * @description fetch the trading fees for a market
+        * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Trading%20Commission%20Rate
+        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/account-api.html#Query%20Trading%20Commission%20Rate
+        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Trade%20Commission%20Rate
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "symbol", getValue(market, "id") },
+        };
+        object response = null;
+        object commission = new Dictionary<string, object>() {};
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        if (isTrue(getValue(market, "spot")))
+        {
+            response = await this.spotV1PrivateGetUserCommissionRate(this.extend(request, parameters));
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "",
+            //         "debugMsg": "",
+            //         "data": {
+            //             "takerCommissionRate": 0.001,
+            //             "makerCommissionRate": 0.001
+            //         }
+            //     }
+            //
+            commission = data;
+        } else
+        {
+            if (isTrue(getValue(market, "inverse")))
+            {
+                response = await this.cswapV1PrivateGetUserCommissionRate(parameters);
+                //
+                //     {
+                //         "code": 0,
+                //         "msg": "",
+                //         "timestamp": 1721365261438,
+                //         "data": {
+                //             "takerCommissionRate": "0.0005",
+                //             "makerCommissionRate": "0.0002"
+                //         }
+                //     }
+                //
+                commission = data;
+            } else
+            {
+                response = await this.swapV2PrivateGetUserCommissionRate(parameters);
+                //
+                //     {
+                //         "code": 0,
+                //         "msg": "",
+                //         "data": {
+                //             "commission": {
+                //                 "takerCommissionRate": 0.0005,
+                //                 "makerCommissionRate": 0.0002
+                //             }
+                //         }
+                //     }
+                //
+                commission = this.safeDict(data, "commission", new Dictionary<string, object>() {});
+            }
+        }
+        return this.parseTradingFee(commission, market);
+    }
+
+    public virtual object parseTradingFee(object fee, object market = null)
+    {
+        //
+        //     {
+        //         "takerCommissionRate": 0.001,
+        //         "makerCommissionRate": 0.001
+        //     }
+        //
+        object symbol = ((bool) isTrue((!isEqual(market, null)))) ? getValue(market, "symbol") : null;
+        return new Dictionary<string, object>() {
+            { "info", fee },
+            { "symbol", symbol },
+            { "maker", this.safeNumber(fee, "makerCommissionRate") },
+            { "taker", this.safeNumber(fee, "takerCommissionRate") },
+            { "percentage", false },
+            { "tierBased", false },
         };
     }
 

@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.62'
+__version__ = '4.3.66'
 
 # -----------------------------------------------------------------------------
 
@@ -1013,14 +1013,14 @@ class Exchange(BaseExchange):
             await self.load_markets()
             market = self.market(symbol)
             symbol = market['symbol']
-            tickers = await self.fetch_ticker_ws(symbol, params)
+            tickers = await self.fetch_tickers_ws([symbol], params)
             ticker = self.safe_dict(tickers, symbol)
             if ticker is None:
-                raise NullResponse(self.id + ' fetchTickers() could not find a ticker for ' + symbol)
+                raise NullResponse(self.id + ' fetchTickerWs() could not find a ticker for ' + symbol)
             else:
                 return ticker
         else:
-            raise NotSupported(self.id + ' fetchTicker() is not supported yet')
+            raise NotSupported(self.id + ' fetchTickerWs() is not supported yet')
 
     async def watch_ticker(self, symbol: str, params={}):
         raise NotSupported(self.id + ' watchTicker() is not supported yet')
