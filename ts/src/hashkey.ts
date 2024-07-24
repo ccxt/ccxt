@@ -4,7 +4,7 @@
 import Exchange from './abstract/hashkey.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Account, Balances, Bool, Dict, Int, Market, OHLCV, OrderBook, Ticker, Trade } from './base/types.js';
+import type { Balances, Bool, Dict, Int, Market, OHLCV, OrderBook, Ticker, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
