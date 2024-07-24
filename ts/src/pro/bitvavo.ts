@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import bitvavoRest from '../bitvavo.js';
-import { AuthenticationError, ArgumentsRequired, ExchangeError, OperationFailed } from '../base/errors.js';
+import { AuthenticationError, ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict } from '../base/types.js';
@@ -1311,11 +1311,10 @@ export default class bitvavo extends bitvavoRest {
         const messageHash = this.buildMessageHash (action, message);
         try {
             this.handleErrors (code, error, client.url, undefined, undefined, error, message, undefined, undefined);
+            client.reject (message, messageHash);
         } catch (e) {
             client.reject (e, messageHash);
-            return;
         }
-        client.reject (message, messageHash);
     }
 
     handleMessage (client: Client, message) {

@@ -3793,7 +3793,7 @@ export default class binance extends binanceRest {
         }
         // reset connection if 5xx error
         if (code >= 500 && code < 600) {
-            client.reset (message); // `reset` also rejects pending promises
+            client.reset (message);
         }
     }
 
