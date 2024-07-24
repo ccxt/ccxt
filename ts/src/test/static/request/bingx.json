@@ -703,6 +703,15 @@
                   "1792480780099366912",
                   "LTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "Inverse swap cancel order",
+                "method": "cancelOrder",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/cancelOrder?orderId=1816002957423951872&symbol=SOL-USD&timestamp=1721803854831&signature=b0bcc0da4c0354baaa87558cb429c19d56852fd079d043f2ac015bab125add79",
+                "input": [
+                  "1816002957423951872",
+                  "SOL/USD:SOL"
+                ]
             }
         ],
         "cancelOrders": [
