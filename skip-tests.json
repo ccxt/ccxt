@@ -1347,7 +1347,7 @@
             "loadMarkets": {
                 "currencyIdAndCode": "messed https://app.travis-ci.com/github/ccxt/ccxt/builds/270314325"
             },
-            "orderBook": { 
+            "orderBook": {
                 "spread": "bid ask crossing, https://app.travis-ci.com/github/ccxt/ccxt/builds/270991459#L5901"
             }
         }
@@ -1722,6 +1722,13 @@
             },
             "watchOrderBookForSymbols": {
                 "spread": "same"
+            }
+        }
+    },
+    "hashkey": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "precision": "not provided"
             }
         }
     }
