@@ -35,6 +35,9 @@ export default class coinex extends coinexRest {
                 },
             },
             'options': {
+                'ws': {
+                    'gunzip': true,
+                },
                 'watchOHLCVWarning': true,
                 'timeframes': {
                     '1m': 60,
@@ -1081,7 +1084,8 @@ export default class coinex extends coinexRest {
         const url = this.urls['api']['ws'][type];
         const client = this.client (url);
         const time = this.milliseconds ();
-        const timestamp = this.numberToString (time);
+        const timestamp = time.toString ();
+        const payload = timestamp + this.secret;
         const isSpot = (type === 'spot');
         const spotMessageHash = 'authenticated:spot';
         const swapMessageHash = 'authenticated:swap';
@@ -1096,7 +1100,7 @@ export default class coinex extends coinexRest {
             'id': requestId,
             'future': spotMessageHash,
         };
-        const hmac = this.hmac (this.encode (this.secret), this.encode (timestamp), sha256, 'base64'); // 'hex'
+        const hmac = this.hash (this.encode (payload), sha256, 'hex');
         const request: Dict = {
             'id': requestId,
             'method': 'server.sign',
