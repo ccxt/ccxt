@@ -256,6 +256,18 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function cswap_v1_private_get_trade_allfillorders($params = array()) {
         return $this->request('trade/allFillOrders', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function cswap_v1_private_get_trade_openorders($params = array()) {
+        return $this->request('trade/openOrders', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function cswap_v1_private_get_trade_orderdetail($params = array()) {
+        return $this->request('trade/orderDetail', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function cswap_v1_private_get_trade_orderhistory($params = array()) {
+        return $this->request('trade/orderHistory', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function cswap_v1_private_get_trade_margintype($params = array()) {
+        return $this->request('trade/marginType', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function cswap_v1_private_get_user_commissionrate($params = array()) {
         return $this->request('user/commissionRate', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -274,8 +286,17 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function cswap_v1_private_post_trade_closeallpositions($params = array()) {
         return $this->request('trade/closeAllPositions', array('cswap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
+    public function cswap_v1_private_post_trade_margintype($params = array()) {
+        return $this->request('trade/marginType', array('cswap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function cswap_v1_private_post_trade_positionmargin($params = array()) {
+        return $this->request('trade/positionMargin', array('cswap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
     public function cswap_v1_private_delete_trade_allopenorders($params = array()) {
         return $this->request('trade/allOpenOrders', array('cswap', 'v1', 'private'), 'DELETE', $params, null, null, array("cost" => 2));
+    }
+    public function cswap_v1_private_delete_trade_cancelorder($params = array()) {
+        return $this->request('trade/cancelOrder', array('cswap', 'v1', 'private'), 'DELETE', $params, null, null, array("cost" => 2));
     }
     public function contract_v1_private_get_allposition($params = array()) {
         return $this->request('allPosition', array('contract', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
@@ -631,6 +652,18 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function cswapV1PrivateGetTradeAllFillOrders($params = array()) {
         return $this->request('trade/allFillOrders', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
+    public function cswapV1PrivateGetTradeOpenOrders($params = array()) {
+        return $this->request('trade/openOrders', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function cswapV1PrivateGetTradeOrderDetail($params = array()) {
+        return $this->request('trade/orderDetail', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function cswapV1PrivateGetTradeOrderHistory($params = array()) {
+        return $this->request('trade/orderHistory', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function cswapV1PrivateGetTradeMarginType($params = array()) {
+        return $this->request('trade/marginType', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
     public function cswapV1PrivateGetUserCommissionRate($params = array()) {
         return $this->request('user/commissionRate', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -649,8 +682,17 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function cswapV1PrivatePostTradeCloseAllPositions($params = array()) {
         return $this->request('trade/closeAllPositions', array('cswap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
+    public function cswapV1PrivatePostTradeMarginType($params = array()) {
+        return $this->request('trade/marginType', array('cswap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function cswapV1PrivatePostTradePositionMargin($params = array()) {
+        return $this->request('trade/positionMargin', array('cswap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
     public function cswapV1PrivateDeleteTradeAllOpenOrders($params = array()) {
         return $this->request('trade/allOpenOrders', array('cswap', 'v1', 'private'), 'DELETE', $params, null, null, array("cost" => 2));
+    }
+    public function cswapV1PrivateDeleteTradeCancelOrder($params = array()) {
+        return $this->request('trade/cancelOrder', array('cswap', 'v1', 'private'), 'DELETE', $params, null, null, array("cost" => 2));
     }
     public function contractV1PrivateGetAllPosition($params = array()) {
         return $this->request('allPosition', array('contract', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
