@@ -4,7 +4,7 @@
 import Exchange from './abstract/hashkey.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Bool, Dict, Int, Market, OHLCV, OrderBook, Ticker, Trade } from './base/types.js';
+import type { Balances, Bool, Currencies, Dict, Int, Market, OHLCV, OrderBook, Str, Ticker, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -62,7 +62,7 @@ export default class hashkey extends Exchange {
                 'fetchConvertQuote': false,
                 'fetchConvertTrade': false,
                 'fetchConvertTradeHistory': false,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': false,
@@ -268,7 +268,9 @@ export default class hashkey extends Exchange {
                 },
                 'networksById': {
                     'BTC': 'BTC',
+                    'Bitcoin': 'BTC',
                     'ETH': 'ERC20',
+                    'ERC20': 'ERC20',
                     'AvalancheC': 'AVAX',
                     'Solana': 'SOL',
                     'Cosmos': 'ATOM',
@@ -317,8 +319,15 @@ export default class hashkey extends Exchange {
          * @description retrieves data on all markets for the exchange
          * @see https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.symbol] the id of the market to fetch
          * @returns {object[]} an array of objects representing market data
          */
+        let symbol: Str = undefined;
+        const request: Dict = {};
+        [ symbol, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'symbol');
+        if (symbol !== undefined) {
+            request['symbol'] = symbol;
+        }
         const response = await this.publicGetApiV1ExchangeInfo (params);
         //
         //     {
@@ -472,7 +481,7 @@ export default class hashkey extends Exchange {
         //             }
         //         ],
         //         "coins": [
-        //                 {
+        //            {
         //                 "orgId": "9001",
         //                 "coinId": "BTC",
         //                 "coinName": "BTC",
@@ -657,13 +666,13 @@ export default class hashkey extends Exchange {
         let isSwap = false;
         let suffix = '';
         const parts = marketId.split ('-');
-        // if id is 'SOMETHING-PERPETUAL' namely market is swap
-        if (parts.length > 1) {
+        const secondPart = this.safeString (parts, 1);
+        if (secondPart === 'PERPETUAL') {
             marketType = 'swap';
             isSpot = false;
             isSwap = true;
             baseId = this.safeString (market, 'underlying');
-            suffix = ':' + settleId;
+            suffix += ':' + settleId;
         }
         const base = this.safeCurrencyCode (baseId);
         const symbol = base + '/' + quote + suffix;
@@ -685,6 +694,7 @@ export default class hashkey extends Exchange {
         const filters = this.indexBy (filtersList, 'filterType');
         const priceFilter = this.safeDict (filters, 'PRICE_FILTER', {});
         const amountFilter = this.safeDict (filters, 'LOT_SIZE', {});
+        const costFilter = this.safeDict (filters, 'MIN_NOTIONAL', {});
         return {
             'id': marketId,
             'symbol': symbol,
@@ -730,13 +740,116 @@ export default class hashkey extends Exchange {
                     'max': undefined,
                 },
                 'cost': {
-                    'min': this.safeNumber (market, 'min_notional'),
+                    'min': this.safeNumber (costFilter, 'min_notional'),
                     'max': undefined,
                 },
             },
             'created': undefined,
             'info': market,
         };
+    }
+
+    async fetchCurrencies (params = {}): Promise<Currencies> {
+        /**
+         * @method
+         * @name hashkey#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/exchangeinfo
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        const response = await this.publicGetApiV1ExchangeInfo (params);
+        const coins = this.safeList (response, 'coins');
+        //
+        //     {
+        //         ...
+        //         "coins": [
+        //             {
+        //                 "orgId": "9001",
+        //                 "coinId": "BTC",
+        //                 "coinName": "BTC",
+        //                 "coinFullName": "Bitcoin",
+        //                 "allowWithdraw": true,
+        //                 "allowDeposit": true,
+        //                 "tokenType": "CHAIN_TOKEN",
+        //                 "chainTypes": [
+        //                     {
+        //                         "chainType": "Bitcoin",
+        //                         "withdrawFee": "0",
+        //                         "minWithdrawQuantity": "0.002",
+        //                         "maxWithdrawQuantity": "0",
+        //                         "minDepositQuantity": "0.0005",
+        //                         "allowDeposit": true,
+        //                         "allowWithdraw": true
+        //                     }
+        //                 ]
+        //             }
+        //         ]
+        //     }
+        //
+        const result: Dict = {};
+        for (let i = 0; i < coins.length; i++) {
+            const currecy = coins[i];
+            const currencyId = this.safeString (currecy, 'coinId');
+            const code = this.safeCurrencyCode (currencyId);
+            const allowWithdraw = this.safeBool (currecy, 'allowWithdraw');
+            const allowDeposit = this.safeBool (currecy, 'allowDeposit');
+            const networks = this.safeList (currecy, 'chainTypes');
+            const networksById = this.safeDict (this.options, 'networksById');
+            const parsedNetworks: Dict = {};
+            for (let j = 0; j < networks.length; j++) {
+                const network = networks[j];
+                const networkId = this.safeString (network, 'chainType');
+                const networkName = this.safeString (networksById, networkId, networkId);
+                const maxWithdrawQuantity = this.omitZero (this.safeString (network, 'maxWithdrawQuantity')); // todo check
+                const networkDeposit = this.safeBool (network, 'allowDeposit');
+                const networkWithdraw = this.safeBool (network, 'allowWithdraw');
+                parsedNetworks[networkName] = {
+                    'id': networkId,
+                    'network': networkName,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (network, 'minWithdrawQuantity'),
+                            'max': this.parseNumber (maxWithdrawQuantity),
+                        },
+                        'deposit': {
+                            'min': this.safeNumber (network, 'minDepositQuantity'),
+                            'max': undefined,
+                        },
+                    },
+                    'active': networkDeposit && networkWithdraw,
+                    'deposit': networkDeposit,
+                    'withdraw': networkWithdraw,
+                    'fee': this.safeNumber (network, 'withdrawFee'),
+                    'precision': undefined,
+                    'info': network,
+                };
+            }
+            result[code] = {
+                'id': currencyId,
+                'code': code,
+                'precision': undefined,
+                'type': this.safeString (currecy, 'tokenType'),
+                'name': this.safeString (currecy, 'coinFullName'),
+                'active': allowWithdraw && allowDeposit,
+                'deposit': allowDeposit,
+                'withdraw': allowWithdraw,
+                'fee': undefined,
+                'limits': {
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'networks': parsedNetworks,
+                'info': currecy,
+            };
+        }
+        return result;
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
