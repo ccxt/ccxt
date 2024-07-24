@@ -3445,17 +3445,6 @@ export default class Exchange {
         return result;
     }
 
-    preciseDivReplacement (a: string, b: string) {
-        let value = Precise.stringDiv (a, b);
-        if (value === '0' && a !== undefined && a !== '0' && b !== undefined && b !== '0') {
-            const num1 = this.parseNumber (a);
-            const num2 = this.parseNumber (b);
-            const newValue = num1 / num2;
-            value = this.numberToString (newValue);
-        }
-        return value;
-    }
-
     safeTicker (ticker: Dict, market: Market = undefined): Ticker {
         let open = this.omitZero (this.safeString (ticker, 'open'));
         let close = this.omitZero (this.safeString (ticker, 'close'));
@@ -3467,7 +3456,7 @@ export default class Exchange {
         const baseVolume = this.safeString (ticker, 'baseVolume');
         const quoteVolume = this.safeString (ticker, 'quoteVolume');
         if (vwap === undefined) {
-            vwap = this.preciseDivReplacement (this.omitZero (quoteVolume), baseVolume);
+            vwap = this.omitZero (Precise.stringDiv (this.omitZero (quoteVolume), baseVolume));
         }
         if ((last !== undefined) && (close === undefined)) {
             close = last;
@@ -3476,20 +3465,23 @@ export default class Exchange {
         }
         if ((last !== undefined) && (open !== undefined)) {
             if (change === undefined) {
-                change = Precise.stringSub (last, open);
+                change = this.omitZero (Precise.stringSub (last, open));
             }
             if (average === undefined) {
-                average = this.preciseDivReplacement (Precise.stringAdd (last, open), '2');
+                const add = this.omitZero (Precise.stringAdd (last, open));
+                average = Precise.stringDiv (add, '2');
             }
         }
         if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && Precise.stringGt (open, '0')) {
-            percentage = Precise.stringMul (this.preciseDivReplacement (change, open), '100');
+            const div = this.omitZero (Precise.stringDiv (change, open));
+            percentage = Precise.stringMul (div, '100');
         }
         if ((change === undefined) && (percentage !== undefined) && (open !== undefined)) {
-            change = Precise.stringDiv (Precise.stringMul (percentage, open), '100');
+            const mul = this.omitZero (Precise.stringMul (percentage, open));
+            change = Precise.stringDiv (mul, '100');
         }
         if ((open === undefined) && (last !== undefined) && (change !== undefined)) {
-            open = Precise.stringSub (last, change);
+            open = this.omitZero (Precise.stringSub (last, change));
         }
         // timestamp and symbol operations don't belong in safeTicker
         // they should be done in the derived classes
