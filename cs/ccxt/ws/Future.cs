@@ -21,6 +21,10 @@ public partial class Exchange
         {
             if (!this.tcs.Task.IsCompleted)
             {
+                if (this.tcs.Task.Status == TaskStatus.RanToCompletion)
+                {
+                    return;
+                }
                 this.tcs.SetResult(data);
             }
             // this.tcs = new TaskCompletionSource<object>(); // reset
