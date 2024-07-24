@@ -3469,7 +3469,7 @@ export default class Exchange {
             }
             if (average === undefined) {
                 const add = this.omitZero (Precise.stringAdd (last, open));
-                average = Precise.stringDiv (add, '2');
+                average = this.omitZero (Precise.stringDiv (add, '2'));
             }
         }
         if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && Precise.stringGt (open, '0')) {
