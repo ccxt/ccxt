@@ -272,6 +272,7 @@ export default class hashkey extends Exchange {
                     'ETH': 'ERC20',
                     'ERC20': 'ERC20',
                     'AvalancheC': 'AVAX',
+                    'AVAX C-Chain': 'AVAX',
                     'Solana': 'SOL',
                     'Cosmos': 'ATOM',
                     'Arbitrum': 'ARB',
@@ -279,7 +280,14 @@ export default class hashkey extends Exchange {
                     'Optimism': 'OPTIMISM',
                     'Polkadot': 'DOT',
                     'LTC': 'LTC',
+                    'Litecoin': 'LTC',
                     'Dogecoin': 'DOGE',
+                    'Merlin Chain': 'Merlin Chain', // todo check
+                    'zkSync': 'zkSync', // todo check
+                    'TRC20': 'TRC20',
+                    'TON': 'TON', // todo check
+                    'BSC(BEP20)': 'BSC',
+                    'Klaytn': 'Klaytn', // todo check
                 },
             },
             'commonCurrencies': {},
@@ -328,7 +336,7 @@ export default class hashkey extends Exchange {
         if (symbol !== undefined) {
             request['symbol'] = symbol;
         }
-        const response = await this.publicGetApiV1ExchangeInfo (params);
+        const response = await this.publicGetApiV1ExchangeInfo (this.extend (request, params));
         //
         //     {
         //         "timezone": "UTC",
@@ -506,7 +514,11 @@ export default class hashkey extends Exchange {
         //
         const spotMarkets = this.safeList (response, 'symbols', []);
         const swapMarkets = this.safeList (response, 'contracts', []);
-        return this.parseMarkets (this.arrayConcat (spotMarkets, swapMarkets));
+        let markets = this.arrayConcat (spotMarkets, swapMarkets);
+        if (markets.length === 0) {
+            markets = [ response ]; // if user provides params.symbol the exchange returns a single object insted of list of objects
+        }
+        return this.parseMarkets (markets);
     }
 
     parseMarket (market: Dict): Market {
@@ -695,6 +707,7 @@ export default class hashkey extends Exchange {
         const priceFilter = this.safeDict (filters, 'PRICE_FILTER', {});
         const amountFilter = this.safeDict (filters, 'LOT_SIZE', {});
         const costFilter = this.safeDict (filters, 'MIN_NOTIONAL', {});
+        const minCostString = this.omitZero (this.safeString (costFilter, 'min_notional'));
         return {
             'id': marketId,
             'symbol': symbol,
@@ -740,7 +753,7 @@ export default class hashkey extends Exchange {
                     'max': undefined,
                 },
                 'cost': {
-                    'min': this.safeNumber (costFilter, 'min_notional'),
+                    'min': this.parseNumber (minCostString),
                     'max': undefined,
                 },
             },
@@ -829,7 +842,7 @@ export default class hashkey extends Exchange {
                 'id': currencyId,
                 'code': code,
                 'precision': undefined,
-                'type': this.safeString (currecy, 'tokenType'),
+                'type': this.parseCurrencyType (this.safeString (currecy, 'tokenType')),
                 'name': this.safeString (currecy, 'coinFullName'),
                 'active': allowWithdraw && allowDeposit,
                 'deposit': allowDeposit,
@@ -850,6 +863,16 @@ export default class hashkey extends Exchange {
             };
         }
         return result;
+    }
+
+    parseCurrencyType (type) {
+        const types = {
+            'CHAIN_TOKEN': 'crypto',
+            'ERC20_TOKEN': 'crypto',
+            'BSC_TOKEN': 'crypto',
+            'REAL_MONEY': 'fiat',
+        };
+        return this.safeString (types, type);
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
