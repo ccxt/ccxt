@@ -879,6 +879,14 @@
                         "type": "swap"
                     }
                 ]
+            },
+            {
+                "description": "Inverse swap fetch open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/openOrders?symbol=SOL-USD&timestamp=1721806459310&signature=d4d74676f855a257c4482aa92bc9d86772ce099c4eb59a011dd81937c5ea6ff6",
+                "input": [
+                  "SOL/USD:SOL"
+                ]
             }
         ],
         "fetchClosedOrders": [
