@@ -135,7 +135,7 @@ export default class paradex extends Exchange {
                 'www': 'https://www.paradex.trade/',
                 'doc': 'https://docs.api.testnet.paradex.trade/',
                 'fees': 'https://docs.paradex.trade/getting-started/trading-fees',
-                'referral': '',
+                'referral': 'https://app.paradex.trade/r/ccxt24',
             },
             'api': {
                 'public': {
