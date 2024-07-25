@@ -23,7 +23,7 @@ public partial class Exchange
         {
             lock (obj)
             {
-                if (if (!this.tcs.Task.IsCompleted && !this.tcs.Task.IsCanceled && !this.tcs.Task.IsFaulted))
+                if (!this.tcs.Task.IsCompleted && !this.tcs.Task.IsCanceled && !this.tcs.Task.IsFaulted)
                 {
                     if (this.tcs.Task.Status == TaskStatus.RanToCompletion)
                     {
