@@ -1871,7 +1871,7 @@ export default class Exchange {
                 'price': { 'min': undefined, 'max': undefined },
                 'cost': { 'min': undefined, 'max': undefined },
             },
-        } // return
+        };
     }
 
     safeBoolN (dictionaryOrList, keys: IndexType[], defaultValue: boolean = undefined): boolean | undefined {
