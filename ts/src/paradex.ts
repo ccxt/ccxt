@@ -400,7 +400,7 @@ export default class paradex extends Exchange {
                     'max': undefined,
                 },
                 'cost': {
-                    'min': undefined,
+                    'min': this.safeNumber (market, 'min_notional'),
                     'max': undefined,
                 },
             },
