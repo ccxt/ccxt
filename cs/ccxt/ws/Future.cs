@@ -40,7 +40,8 @@ public partial class Exchange
         {
             if (!this.tcs.Task.IsCompleted && !this.tcs.Task.IsCanceled && !this.tcs.Task.IsFaulted)
             {
-                this.tcs.SetException(new Exception(data.ToString()));
+                Exception exc = (data is Exception) ? data : new Exception(data.ToString());
+                this.tcs.SetException(exc);
             }
             // this.tcs = new TaskCompletionSource<object>(); // reset
             // this.task = this.tcs.Task;
