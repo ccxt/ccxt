@@ -29,13 +29,10 @@ export interface MinMax {
     max: Num;
 }
 
-export type hasItem = boolean | undefined | 'emulated';
-
 export interface FeeInterface {
     currency: Str;
     cost: Num;
     rate?: Num;
-    // type?: 'taker' | 'maker' | string;
 }
 
 export interface TradingFeeInterface {
