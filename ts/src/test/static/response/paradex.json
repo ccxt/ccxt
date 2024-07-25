@@ -104,7 +104,7 @@
                                 "max": null
                             },
                             "cost": {
-                                "min": null,
+                                "min": 500,
                                 "max": null
                             }
                         },
