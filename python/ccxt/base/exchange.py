@@ -160,16 +160,7 @@ class Exchange(object):
         },
     }
     ids = None
-    urls = {
-        'logo': None,
-        'api': None,
-        'test': None,
-        'www': None,
-        'doc': None,
-        'api_management': None,
-        'fees': None,
-        'referral': None,
-    }
+    urls = None
     api = None
     parseJsonResponse = True
 
@@ -223,20 +214,10 @@ class Exchange(object):
     markets_by_id = None
     currencies_by_id = None
 
-    precision = {
-        'amount': None,
-        'price': None,
-        'cost': None,
-        'base': None,
-        'quote': None,
-    }
-    exceptions = {}
+    precision = None
+    exceptions = None
     limits = {
-        'cost': {
-            'min': None,
-            'max': None,
-        },
-        'price': {
+        'leverage': {
             'min': None,
             'max': None,
         },
@@ -244,7 +225,11 @@ class Exchange(object):
             'min': None,
             'max': None,
         },
-        'leverage': {
+        'price': {
+            'min': None,
+            'max': None,
+        },
+        'cost': {
             'min': None,
             'max': None,
         },
@@ -277,7 +262,6 @@ class Exchange(object):
         '407': AuthenticationError,
         '511': AuthenticationError,
     }
-
     balance = None
     liquidations = None
     orderbooks = None
@@ -293,18 +277,12 @@ class Exchange(object):
     bidsasks = None
     base_currencies = None
     quote_currencies = None
-    currencies = {}
+    currencies = None
     options = None  # Python does not allow to define properties in run-time with setattr
     accounts = None
     positions = None
 
-    status = {
-        'status': 'ok',
-        'updated': None,
-        'eta': None,
-        'url': None,
-        'info': None,
-    }
+    status = None
 
     requiredCredentials = {
         'apiKey': True,
@@ -320,7 +298,7 @@ class Exchange(object):
     }
 
     # API method metainfo
-    has = { }
+    has = {}
     precisionMode = DECIMAL_PLACES
     paddingMode = NO_PADDING
     minFundingAddressLength = 1  # used in check_address
