@@ -1799,9 +1799,9 @@ class Transpiler {
     //-------------------------------------------------------------------------
 
     transpileCryptoTests () {
-        const jsFile = './ts/src/test/base/custom/test.cryptography.ts' // using ts version to avoid formatting issues
-        const pyFile = './python/ccxt/test/base/custom/test_cryptography.py'
-        const phpFile = './php/test/base/custom/test_cryptography.php'
+        const jsFile = './ts/src/test/base/test.cryptography.ts' // using ts version to avoid formatting issues
+        const pyFile = './python/ccxt/test/base/test_cryptography.py'
+        const phpFile = './php/test/base/test_cryptography.php'
 
         log.magenta ('Transpiling from', jsFile.yellow)
         let js = fs.readFileSync (jsFile).toString ()
