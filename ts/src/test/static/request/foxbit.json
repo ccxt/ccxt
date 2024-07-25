@@ -25,6 +25,25 @@
         "MANA/BRL"
       ]
     },
+    "fetchTickers": [
+      {
+        "description": "Fetch tickers with filters",
+        "method": "fetchTickers",
+        "url": "https://api.foxbit.com.br/rest/v3/markets/ticker/24hr",
+        "input": [
+          [
+            "BTC/BRL",
+            "ETH/BRL"
+          ]
+        ]
+      },
+      {
+        "description": "Fetch tickers without filters",
+        "method": "fetchTickers",
+        "url": "https://api.foxbit.com.br/rest/v3/markets/ticker/24hr",
+        "input": []
+      }
+    ],
     "fetchOrderBook": {
       "description": "Fill this with a description of the method call",
       "method": "fetchOrderBook",

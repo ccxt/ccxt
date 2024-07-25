@@ -4,6 +4,7 @@ import { Exchange as _Exchange } from '../base/Exchange'
 interface Exchange {
   v3PublicGetRestV3Currencies (params?: {}): Promise<implicitReturnType>;
   v3PublicGetRestV3Markets (params?: {}): Promise<implicitReturnType>;
+  v3PublicGetRestV3MarketsTicker24hr (params?: {}): Promise<implicitReturnType>;
   v3PublicGetRestV3MarketsMarketTicker24hr (params?: {}): Promise<implicitReturnType>;
   v3PublicGetRestV3MarketsMarketOrderbookDepthDepth (params?: {}): Promise<implicitReturnType>;
 }
