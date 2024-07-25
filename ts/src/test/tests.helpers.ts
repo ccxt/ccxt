@@ -173,7 +173,13 @@ function initExchange (exchangeId, args, isWs = false): Exchange {
 
 async function importTestFile (filePath) {
     // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-    return (await import (pathToFileURL (filePath + '.js') as any) as any)['default'];
+    const path = pathToFileURL (filePath + '.js') as any;
+    try {
+        const imported = await import (path);
+        return (imported as any)['default'];
+    } catch (error) {
+        console.error ('Error importing module:', error);
+    }
 }
 
 async function getTestFiles (properties, ws = false) {
@@ -208,9 +214,18 @@ async function getBaseTestFiles (ws = false) {
     const files = ioDirRead (path);
     const result = {};
     for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        tests[name] = await importTestFile (filePathWoExt);
+        const filename = files[i];
+        const filenameWoExt = filename.replace ('.' + ext, '');
+        const filePathWoExt = path + filenameWoExt;
+        if (ioFileExists (filePathWoExt + '.' + ext)) {
+            let testName = filenameWoExt.replace ('test.', '');
+            testName = filenameWoExt.replace ('test_', '');
+            if (![ 'custom', 'errors', 'languageSpecific' ].includes (testName)) {
+                tests[testName] = await importTestFile (filePathWoExt);
+            }
+        }
     }
+    tests['langaugeSpecific'] = await importTestFile (path + '/custom/test.languageSpecific');
     return result;
 }
 
