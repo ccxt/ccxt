@@ -178,7 +178,7 @@ export default class Exchange {
     api = undefined
     certified: boolean = false;
     pro: boolean = false;
-    countries: string[] = undefined;
+    countries: Str[] = undefined;
 
     // PROXY & USER-AGENTS (see "examples/proxy-usage" file for explanation)
     proxy: any; // maintained for backwards compatibility, no-one should use it from now on
@@ -274,25 +274,16 @@ export default class Exchange {
         api_management?: string;
         fees?: string;
         referral?: string;
-    } = {
-        'logo': undefined,
-        'api': undefined,
-        'test': undefined,
-        'www': undefined,
-        'doc': undefined,
-        'api_management': undefined,
-        'fees': undefined,
-        'referral': undefined,
     };
 
     requiresWeb3: boolean = false
     requiresEddsa: boolean = false
     precision: {
-        amount: number | undefined,
-        price: number | undefined,
-        cost: number | undefined,
-        base: number | undefined,
-        quote: number | undefined,
+        amount: Num,
+        price: Num,
+        cost?: Num,
+        base?: Num,
+        quote?: Num,
     } = undefined
 
     enableLastJsonResponse: boolean = true
@@ -312,23 +303,23 @@ export default class Exchange {
     has: Dictionary<boolean | 'emulated'>;
 
     status: {
-        status: string | undefined,
-        updated: number | undefined,
-        eta: number | undefined,
-        url: string | undefined,
+        status: Str,
+        updated: Num,
+        eta: Num,
+        url: Str,
         info: any,
     } = undefined;
 
     requiredCredentials: {
-        apiKey: boolean | undefined,
-        secret: boolean | undefined,
-        uid: boolean | undefined,
-        login: boolean | undefined,
-        password: boolean | undefined,
-        twofa: boolean | undefined, // 2-factor authentication (one-time password key)
-        privateKey: boolean | undefined, // a "0x"-prefixed hexstring private key for a wallet
-        walletAddress: boolean | undefined, // the wallet address "0x"-prefixed hexstring
-        token: boolean | undefined, // reserved for HTTP auth in some cases
+        apiKey: Bool,
+        secret: Bool,
+        uid: Bool,
+        login: Bool,
+        password: Bool,
+        twofa: Bool, // 2-factor authentication (one-time password key)
+        privateKey: Bool, // a "0x"-prefixed hexstring private key for a wallet
+        walletAddress: Bool, // the wallet address "0x"-prefixed hexstring
+        token: Bool, // reserved for HTTP auth in some cases
     };
     rateLimit: Num = undefined; // milliseconds
     tokenBucket = undefined
@@ -346,14 +337,14 @@ export default class Exchange {
 
     fees: {
         trading: {
-            tierBased: boolean | undefined,
-            percentage: boolean | undefined,
-            taker: number | undefined,
-            maker: number | undefined,
+            tierBased: Bool,
+            percentage: Bool,
+            taker: Num,
+            maker: Num,
         },
         funding: {
-            tierBased: boolean | undefined,
-            percentage: boolean | undefined,
+            tierBased: Bool,
+            percentage: Bool,
             withdraw: {},
             deposit: {},
         },
@@ -361,7 +352,7 @@ export default class Exchange {
     markets_by_id: Dictionary<any> = undefined;
     symbols: string[] = undefined;
     ids: string[] = undefined;
-    currencies: Dictionary<Currency> = {};
+    currencies: Currencies = {};
 
     baseCurrencies = undefined
     quoteCurrencies = undefined
