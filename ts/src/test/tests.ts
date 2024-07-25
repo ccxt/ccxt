@@ -38,6 +38,7 @@ import {
     initExchange,
     importTestFile,
     getTestFiles,
+    getBaseTestFiles,
     setFetchResponse,
     isNullValue,
     close,
@@ -95,6 +96,18 @@ class testMainClass extends baseMainTestClass {
         this.expandSettings (exchange);
         this.checkIfSpecificTestIsChosen (methodArgv);
         await this.startTest (exchange, symbolArgv);
+        exitScript (0); // needed to be explicitly finished for WS tests
+    }
+
+    async initBaseTests () {
+        this.parseCliArgs ();
+        this.testFiles = await getBaseTestFiles (this.wsTests);
+        assert (Object.keys (this.testFiles).length > 0, 'Test files were not loaded'); // ensure test files are found & filled
+        const keys = Object.keys (this.testFiles);
+        for (let i = 0; i < keys.length; i++) {
+            const methodName = keys[i];
+            await callMethod (this.testFiles, methodName, undefined, {}, []);
+        }
         exitScript (0); // needed to be explicitly finished for WS tests
     }
 

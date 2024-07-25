@@ -2,7 +2,6 @@
 
 import { getCliArgValue, argvExchange, argvSymbol, argvMethod, } from './tests.helpers.js';
 import testMainClass from './tests.js';
-import baseTestsInitRest from './base/tests.init.js';
 import baseTestsInitWs from '../pro/test/base/tests.init.js';
 
 
@@ -16,7 +15,7 @@ if (isBaseTests) {
     if (isWs) {
         baseTestsInitWs ();
     } else {
-        baseTestsInitRest ();
+        (new testMainClass ()).initBaseTests ();
     }
     if (!runAll) {
         process.exit (0);

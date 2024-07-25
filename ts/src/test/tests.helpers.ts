@@ -199,20 +199,19 @@ async function getTestFiles (properties, ws = false) {
             tests[name] = await importTestFile (filePathWoExt);
         }
     }
-    // base tests
-    const baseTestsPath = path + (ws ? '../pro/test/base/' : 'base/');
-    const baseTestFiles = ioDirRead (baseTestsPath);
-    for (let i = 0; i < baseTestFiles.length; i++) {
-        const file = baseTestFiles[i];
-        const filePathWoExt = path + '/base/errors/test.' + file;
-        if (ioFileExists (filePathWoExt + '.' + ext)) {
-            // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-            tests[name] = await importTestFile (filePathWoExt);
-        }
-        const content = ioFileRead (folder + file);
-        result[exchangeName] = content;
-    }
     return tests;
+}
+
+async function getBaseTestFiles (ws = false) {
+    const tests = {};
+    const path = ws ? DIR_NAME + '../pro/test/base/' : DIR_NAME + '/base/';
+    const files = ioDirRead (path);
+    const result = {};
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        tests[name] = await importTestFile (filePathWoExt);
+    }
+    return result;
 }
 
 function setFetchResponse (exchange: Exchange, mockResponse) {
@@ -263,6 +262,7 @@ export {
     initExchange,
     importTestFile,
     getTestFiles,
+    getBaseTestFiles,
     setFetchResponse,
     isNullValue,
     close,
