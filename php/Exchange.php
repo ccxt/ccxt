@@ -123,6 +123,13 @@ class Exchange {
     public $quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
 
     public $name = null;
+    public $status = array(
+        'status' => 'ok',
+        'updated' => null,
+        'eta' => null,
+        'url' => null,
+        'info' => null,
+    );
     public $countries = null;
     public $version = null;
     public $certified = false; // if certified by the CCXT dev team
@@ -193,14 +200,6 @@ class Exchange {
     public $accounts = array();
     public $accountsById = array();
 
-    public $status = array(
-        'status' => 'ok',
-        'updated' => null,
-        'eta' => null,
-        'url' => null,
-        'info' => null,
-    );
-
     public $limits = array(
         'cost' => array(
             'min' => null,
@@ -219,7 +218,6 @@ class Exchange {
             'max' => null,
         ),
     );
-
     public $httpExceptions = array(
         '422' => 'ExchangeError',
         '418' => 'DDoSProtection',
@@ -247,7 +245,6 @@ class Exchange {
         '407' => 'AuthenticationError',
         '511' => 'AuthenticationError',
     );
-
     public $verbose = false;
     public $apiKey = '';
     public $secret = '';
@@ -278,8 +275,8 @@ class Exchange {
         'login' => false,
         'password' => false,
         'twofa' => false, // 2-factor authentication (one-time password key)
-        'privateKey' => false, // a "0x"-prefixed hexstring private key for a wallet
-        'walletAddress' => false, // the wallet address "0x"-prefixed hexstring
+        'privateKey' => false, // "0x"-prefixed hexstring private key for a wallet
+        'walletAddress' => false, // "0x"-prefixed hexstring of wallet address
         'token' => false, // reserved for HTTP auth in some cases
     );
 
