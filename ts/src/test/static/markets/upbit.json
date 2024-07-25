@@ -1,0 +1,230 @@
+{
+    "BTC/KRW": {
+        "id": "KRW-BTC",
+        "symbol": "BTC/KRW",
+        "base": "BTC",
+        "quote": "KRW",
+        "baseId": "BTC",
+        "quoteId": "KRW",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.0005,
+        "maker": 0.0005,
+        "precision": {
+            "price": 1e-8,
+            "amount": 1e-8
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "info": {
+            "market": "KRW-BTC",
+            "korean_name": "비트코인",
+            "english_name": "Bitcoin"
+        }
+    },
+    "ETH/KRW": {
+        "id": "KRW-ETH",
+        "symbol": "ETH/KRW",
+        "base": "ETH",
+        "quote": "KRW",
+        "baseId": "ETH",
+        "quoteId": "KRW",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.0005,
+        "maker": 0.0005,
+        "precision": {
+            "price": 1e-8,
+            "amount": 1e-8
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "info": {
+            "market": "KRW-ETH",
+            "korean_name": "이더리움",
+            "english_name": "Ethereum"
+        }
+    },
+    "ETH/BTC": {
+        "id": "BTC-ETH",
+        "symbol": "ETH/BTC",
+        "base": "ETH",
+        "quote": "BTC",
+        "baseId": "ETH",
+        "quoteId": "BTC",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.0025,
+        "maker": 0.0025,
+        "precision": {
+            "price": 1e-8,
+            "amount": 1e-8
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "info": {
+            "market": "BTC-ETH",
+            "korean_name": "이더리움",
+            "english_name": "Ethereum"
+        }
+    },
+    "ETH/USDT": {
+        "id": "USDT-ETH",
+        "symbol": "ETH/USDT",
+        "base": "ETH",
+        "quote": "USDT",
+        "baseId": "ETH",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.0025,
+        "maker": 0.0025,
+        "precision": {
+            "price": 1e-8,
+            "amount": 1e-8
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "info": {
+            "market": "USDT-ETH",
+            "korean_name": "이더리움",
+            "english_name": "Ethereum"
+        }
+    },
+    "BTC/USDT": {
+        "id": "USDT-BTC",
+        "symbol": "BTC/USDT",
+        "base": "BTC",
+        "quote": "USDT",
+        "baseId": "BTC",
+        "quoteId": "USDT",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.0005,
+        "maker": 0.0005,
+        "precision": {
+            "price": 1e-8,
+            "amount": 1e-8
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "info": {
+            "market": "USDT-BTC",
+            "english_name": "Bitcoin"
+        }
+    },
+    "XRP/SGD": {
+        "id": "SGD-XRP",
+        "symbol": "XRP/SGD",
+        "base": "XRP",
+        "quote": "SGD",
+        "baseId": "XRP",
+        "quoteId": "SGD",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.0025,
+        "maker": 0.0025,
+        "precision": {
+            "price": 1e-8,
+            "amount": 1e-8
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "info": {
+            "market": "SGD-XRP",
+            "english_name": "Ripple"
+        }
+    },
+    "XRP/BTC": {
+        "id": "BTC-XRP",
+        "symbol": "XRP/BTC",
+        "base": "XRP",
+        "quote": "BTC",
+        "baseId": "XRP",
+        "quoteId": "BTC",
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": false,
+        "taker": 0.0025,
+        "maker": 0.0025,
+        "precision": {
+            "price": 1e-8,
+            "amount": 1e-8
+        },
+        "limits": {
+            "leverage": {},
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "info": {
+            "market": "BTC-XRP",
+            "english_name": "Ripple"
+        }
+    }
+}

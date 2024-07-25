@@ -1,0 +1,8 @@
+[tool.ruff]
+preview = true
+select = ["W", "F", "E"]
+ignore = ["F722","F841","F821","E402","E501","E902","E713","E741","E714", "E275","E721"]
+
+exclude = [
+"static_dependencies"
+]

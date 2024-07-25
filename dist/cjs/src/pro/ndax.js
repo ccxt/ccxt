@@ -41,8 +41,8 @@ class ndax extends ndax$1 {
          * @name ndax#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
-         * @param {object} [params] extra parameters specific to the ndax api endpoint
-         * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const omsId = this.safeInteger(this.options, 'omsId', 1);
         await this.loadMarkets();
@@ -108,8 +108,8 @@ class ndax extends ndax$1 {
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
-         * @param {object} [params] extra parameters specific to the ndax api endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         const omsId = this.safeInteger(this.options, 'omsId', 1);
         await this.loadMarkets();
@@ -190,7 +190,7 @@ class ndax extends ndax$1 {
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the ndax api endpoint
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         const omsId = this.safeInteger(this.options, 'omsId', 1);
@@ -223,10 +223,10 @@ class ndax extends ndax$1 {
     handleOHLCV(client, message) {
         //
         //     {
-        //         m: 1,
-        //         i: 1,
-        //         n: 'SubscribeTicker',
-        //         o: [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
+        //         "m": 1,
+        //         "i": 1,
+        //         "n": "SubscribeTicker",
+        //         "o": [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
         //     }
         //
         const payload = this.safeValue(message, 'o', []);
@@ -320,8 +320,8 @@ class ndax extends ndax$1 {
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
-         * @param {object} [params] extra parameters specific to the ndax api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-book-structure} indexed by market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         const omsId = this.safeInteger(this.options, 'omsId', 1);
         await this.loadMarkets();
@@ -361,10 +361,10 @@ class ndax extends ndax$1 {
     handleOrderBook(client, message) {
         //
         //     {
-        //         m: 3,
-        //         i: 2,
-        //         n: 'Level2UpdateEvent',
-        //         o: [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
+        //         "m": 3,
+        //         "i": 2,
+        //         "n": "Level2UpdateEvent",
+        //         "o": [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
         //     }
         //
         const payload = this.safeValue(message, 'o', []);
@@ -385,13 +385,13 @@ class ndax extends ndax$1 {
         const firstBidAsk = this.safeValue(payload, 0, []);
         const marketId = this.safeString(firstBidAsk, 7);
         if (marketId === undefined) {
-            return message;
+            return;
         }
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const orderbook = this.safeValue(this.orderbooks, symbol);
         if (orderbook === undefined) {
-            return message;
+            return;
         }
         let timestamp = undefined;
         let nonce = undefined;
@@ -440,10 +440,10 @@ class ndax extends ndax$1 {
     handleOrderBookSubscription(client, message, subscription) {
         //
         //     {
-        //         m: 1,
-        //         i: 1,
-        //         n: 'SubscribeLevel2',
-        //         o: [[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]
+        //         "m": 1,
+        //         "i": 1,
+        //         "n": "SubscribeLevel2",
+        //         "o": [[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]
         //     }
         //
         const payload = this.safeValue(message, 'o', []);
@@ -474,10 +474,10 @@ class ndax extends ndax$1 {
     handleSubscriptionStatus(client, message) {
         //
         //     {
-        //         m: 1,
-        //         i: 1,
-        //         n: 'SubscribeLevel2',
-        //         o: '[[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]'
+        //         "m": 1,
+        //         "i": 1,
+        //         "n": "SubscribeLevel2",
+        //         "o": "[[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]"
         //     }
         //
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
@@ -485,11 +485,8 @@ class ndax extends ndax$1 {
         const subscription = this.safeValue(subscriptionsById, id);
         if (subscription !== undefined) {
             const method = this.safeValue(subscription, 'method');
-            if (method === undefined) {
-                return message;
-            }
-            else {
-                return method.call(this, client, message, subscription);
+            if (method !== undefined) {
+                method.call(this, client, message, subscription);
             }
         }
     }
@@ -503,22 +500,22 @@ class ndax extends ndax$1 {
         //     }
         //
         //     {
-        //         m: 1,
-        //         i: 1,
-        //         n: 'SubscribeLevel2',
-        //         o: '[[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]'
+        //         "m": 1,
+        //         "i": 1,
+        //         "n": "SubscribeLevel2",
+        //         "o": "[[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]"
         //     }
         //
         //     {
-        //         m: 3,
-        //         i: 2,
-        //         n: 'Level2UpdateEvent',
-        //         o: '[[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]'
+        //         "m": 3,
+        //         "i": 2,
+        //         "n": "Level2UpdateEvent",
+        //         "o": "[[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]"
         //     }
         //
         const payload = this.safeString(message, 'o');
         if (payload === undefined) {
-            return message;
+            return;
         }
         message['o'] = JSON.parse(payload);
         const methods = {
@@ -533,11 +530,8 @@ class ndax extends ndax$1 {
         };
         const event = this.safeString(message, 'n');
         const method = this.safeValue(methods, event);
-        if (method === undefined) {
-            return message;
-        }
-        else {
-            return method.call(this, client, message);
+        if (method !== undefined) {
+            method.call(this, client, message);
         }
     }
 }

@@ -1,5 +1,7 @@
 Welcome to the ccxt wiki!
 
+> We recommend to visit our full documentation at https://docs.ccxt.com
+
 ## General Information
 
 - [Supported Exchanges](https://github.com/ccxt/ccxt/wiki/Exchange-Markets)
@@ -33,13 +35,14 @@ Welcome to the ccxt wiki!
     - [Unified API](https://github.com/ccxt/ccxt/wiki/Manual#unified-api)
       - [Overriding Params](https://github.com/ccxt/ccxt/wiki/Manual#overriding-unified-api-params)
       - [Pagination](https://github.com/ccxt/ccxt/wiki/Manual#pagination)
+      - [Automatic Pagination](https://github.com/ccxt/ccxt/wiki/Manual#automatic-pagination)
   - [Market Data](https://github.com/ccxt/ccxt/wiki/Manual#market-data)
     - [Order Book](https://github.com/ccxt/ccxt/wiki/Manual#order-book)
       - [Market Depth](https://github.com/ccxt/ccxt/wiki/Manual#market-depth)
     - [Price Tickers](https://github.com/ccxt/ccxt/wiki/Manual#price-tickers)
     - [OHLCV Candlestick Charts](https://github.com/ccxt/ccxt/wiki/Manual#ohlcv-candlestick-charts)
     - [Public Trades](https://github.com/ccxt/ccxt/wiki/Manual#trades-executions-transactions)
-  - [Trading](https://github.com/ccxt/ccxt/wiki/Manual#trading)
+  - [Private API](https://github.com/ccxt/ccxt/wiki/Manual#private-api)
     - [Authentication](https://github.com/ccxt/ccxt/wiki/Manual#authentication)
     - [API Keys Setup](https://github.com/ccxt/ccxt/wiki/Manual#api-keys-setup)
     - [Querying Account Balance](https://github.com/ccxt/ccxt/wiki/Manual#account-balance)
@@ -79,10 +82,11 @@ Welcome to the ccxt wiki!
 - [Error Handling](https://github.com/ccxt/ccxt/wiki/Manual#error-handling)
 - [Troubleshooting](https://github.com/ccxt/ccxt/wiki/Manual#troubleshooting)
 - [How To Submit An Issue](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-submit-an-issue)
+- [CCXT CLI: Command-Line Interface](https://github.com/ccxt/ccxt/wiki/CLI)
 
 ## Examples
 
-- [Usage Examples](https://github.com/ccxt/ccxt/tree/master/examples) (work in progress)
+- [Usage Examples](https://docs.ccxt.com/#/Examples)
 
 ## New Exchanges
 
@@ -91,4 +95,4 @@ Welcome to the ccxt wiki!
 
 ## API Reference
 
-- API Reference (under construction right now!)
+- [API Reference](https://docs.ccxt.com/#/spec)

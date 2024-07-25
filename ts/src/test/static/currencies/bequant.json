@@ -1,0 +1,708 @@
+{
+    "BTC": {
+        "info": {
+            "full_name": "Bitcoin",
+            "crypto": true,
+            "payin_enabled": true,
+            "payout_enabled": true,
+            "transfer_enabled": true,
+            "sign": "฿",
+            "account_top_order": "1",
+            "crypto_payment_id_name": "",
+            "crypto_explorer": "https://www.blockchain.com/btc/tx/{tx}",
+            "precision_transfer": "0.00000001",
+            "delisted": false,
+            "networks": [
+                {
+                    "code": "BTC",
+                    "network_name": "BTC",
+                    "network": "BTC",
+                    "protocol": "BTC",
+                    "default": true,
+                    "is_ens_available": false,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.00000001",
+                    "payout_fee": "0.000700000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "1",
+                    "low_processing_time": "30.214",
+                    "high_processing_time": "3632.819",
+                    "avg_processing_time": "1078.5871604938266",
+                    "is_multichain": false
+                }
+            ]
+        },
+        "code": "BTC",
+        "id": "BTC",
+        "precision": 1e-8,
+        "name": "Bitcoin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "BTC": {
+                "info": {
+                    "code": "BTC",
+                    "network_name": "BTC",
+                    "network": "BTC",
+                    "protocol": "BTC",
+                    "default": true,
+                    "is_ens_available": false,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.00000001",
+                    "payout_fee": "0.000700000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "1",
+                    "low_processing_time": "30.214",
+                    "high_processing_time": "3632.819",
+                    "avg_processing_time": "1078.5871604938266",
+                    "is_multichain": false
+                },
+                "id": "BTC",
+                "network": "BTC",
+                "fee": 0.0007,
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 1e-8,
+                "limits": {
+                    "withdraw": {}
+                }
+            }
+        },
+        "fee": 0.0007,
+        "limits": {
+            "amount": {}
+        }
+    },
+    "USDT": {
+        "info": {
+            "full_name": "Tether Omni",
+            "crypto": true,
+            "payin_enabled": true,
+            "payout_enabled": true,
+            "transfer_enabled": true,
+            "sign": "₮",
+            "account_top_order": "3",
+            "crypto_payment_id_name": "",
+            "crypto_explorer": "http://omniexplorer.info/lookuptx.aspx?txid={tx}",
+            "precision_transfer": "0.01",
+            "delisted": false,
+            "networks": [
+                {
+                    "code": "BTC",
+                    "network_name": "BTC",
+                    "network": "BTC",
+                    "protocol": "OMNI",
+                    "default": true,
+                    "is_ens_available": false,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.01",
+                    "payout_fee": "50.000000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "2",
+                    "low_processing_time": "5.706",
+                    "high_processing_time": "1689.427",
+                    "avg_processing_time": "138.65135714285714",
+                    "is_multichain": false
+                }
+            ]
+        },
+        "code": "USDT",
+        "id": "USDT",
+        "precision": 0.01,
+        "name": "Tether Omni",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "OMNI": {
+                "info": {
+                    "code": "BTC",
+                    "network_name": "BTC",
+                    "network": "BTC",
+                    "protocol": "OMNI",
+                    "default": true,
+                    "is_ens_available": false,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.01",
+                    "payout_fee": "50.000000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "2",
+                    "low_processing_time": "5.706",
+                    "high_processing_time": "1689.427",
+                    "avg_processing_time": "138.65135714285714",
+                    "is_multichain": false
+                },
+                "id": "OMNI",
+                "network": "OMNI",
+                "fee": 50,
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 0.01,
+                "limits": {
+                    "withdraw": {}
+                }
+            }
+        },
+        "fee": 50,
+        "limits": {
+            "amount": {}
+        }
+    },
+    "EUR": {
+        "info": {
+            "full_name": "Euro",
+            "crypto": false,
+            "payin_enabled": false,
+            "payout_enabled": false,
+            "transfer_enabled": true,
+            "sign": "E",
+            "crypto_payment_id_name": "",
+            "crypto_explorer": "",
+            "precision_transfer": "0.01",
+            "delisted": false,
+            "networks": [
+                {
+                    "code": "EURB",
+                    "network_name": "EURB",
+                    "network": "EURB",
+                    "protocol": "",
+                    "default": true,
+                    "is_ens_available": false,
+                    "payin_enabled": false,
+                    "payout_enabled": false,
+                    "precision_payout": "0.01",
+                    "payout_fee": "0.840000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "2",
+                    "is_multichain": false
+                }
+            ]
+        },
+        "code": "EUR",
+        "id": "EUR",
+        "precision": 0.01,
+        "name": "Euro",
+        "active": false,
+        "deposit": false,
+        "withdraw": false,
+        "networks": {
+            "EURB": {
+                "info": {
+                    "code": "EURB",
+                    "network_name": "EURB",
+                    "network": "EURB",
+                    "protocol": "",
+                    "default": true,
+                    "is_ens_available": false,
+                    "payin_enabled": false,
+                    "payout_enabled": false,
+                    "precision_payout": "0.01",
+                    "payout_fee": "0.840000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "2",
+                    "is_multichain": false
+                },
+                "id": "EURB",
+                "network": "EURB",
+                "fee": 0.84,
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "precision": 0.01,
+                "limits": {
+                    "withdraw": {}
+                }
+            }
+        },
+        "fee": 0.84,
+        "limits": {
+            "amount": {}
+        }
+    },
+    "USD": {
+        "info": {
+            "full_name": "US Dollar",
+            "crypto": false,
+            "payin_enabled": false,
+            "payout_enabled": false,
+            "transfer_enabled": true,
+            "sign": "$",
+            "crypto_payment_id_name": "",
+            "crypto_explorer": "",
+            "precision_transfer": "0.01",
+            "delisted": false,
+            "networks": [
+                {
+                    "code": "USDB",
+                    "network_name": "USDB",
+                    "network": "USDB",
+                    "protocol": "",
+                    "default": true,
+                    "is_ens_available": false,
+                    "payin_enabled": false,
+                    "payout_enabled": false,
+                    "precision_payout": "0.01",
+                    "payout_fee": "0.900000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "2",
+                    "is_multichain": false
+                }
+            ]
+        },
+        "code": "USD",
+        "id": "USD",
+        "precision": 0.01,
+        "name": "US Dollar",
+        "active": false,
+        "deposit": false,
+        "withdraw": false,
+        "networks": {
+            "USDB": {
+                "info": {
+                    "code": "USDB",
+                    "network_name": "USDB",
+                    "network": "USDB",
+                    "protocol": "",
+                    "default": true,
+                    "is_ens_available": false,
+                    "payin_enabled": false,
+                    "payout_enabled": false,
+                    "precision_payout": "0.01",
+                    "payout_fee": "0.900000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "2",
+                    "is_multichain": false
+                },
+                "id": "USDB",
+                "network": "USDB",
+                "fee": 0.9,
+                "active": false,
+                "deposit": false,
+                "withdraw": false,
+                "precision": 0.01,
+                "limits": {
+                    "withdraw": {}
+                }
+            }
+        },
+        "fee": 0.9,
+        "limits": {
+            "amount": {}
+        }
+    },
+    "LTC": {
+        "info": {
+            "full_name": "Litecoin",
+            "crypto": true,
+            "payin_enabled": true,
+            "payout_enabled": true,
+            "transfer_enabled": true,
+            "sign": "Ł",
+            "account_top_order": "14",
+            "crypto_payment_id_name": "",
+            "crypto_explorer": " http://live.blockcypher.com/ltc/tx/{tx}",
+            "precision_transfer": "0.00000001",
+            "delisted": false,
+            "networks": [
+                {
+                    "code": "LTC",
+                    "network_name": "LTC",
+                    "network": "LTC",
+                    "protocol": "LTC",
+                    "default": true,
+                    "is_ens_available": true,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.00000001",
+                    "payout_fee": "0.010000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "5",
+                    "low_processing_time": "11.13",
+                    "high_processing_time": "2058.896",
+                    "avg_processing_time": "278.47855",
+                    "is_multichain": false
+                }
+            ]
+        },
+        "code": "LTC",
+        "id": "LTC",
+        "precision": 1e-8,
+        "name": "Litecoin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "LTC": {
+                "info": {
+                    "code": "LTC",
+                    "network_name": "LTC",
+                    "network": "LTC",
+                    "protocol": "LTC",
+                    "default": true,
+                    "is_ens_available": true,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.00000001",
+                    "payout_fee": "0.010000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "5",
+                    "low_processing_time": "11.13",
+                    "high_processing_time": "2058.896",
+                    "avg_processing_time": "278.47855",
+                    "is_multichain": false
+                },
+                "id": "LTC",
+                "network": "LTC",
+                "fee": 0.01,
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 1e-8,
+                "limits": {
+                    "withdraw": {}
+                }
+            }
+        },
+        "fee": 0.01,
+        "limits": {
+            "amount": {}
+        }
+    },
+    "ETH": {
+        "info": {
+            "full_name": "Ethereum",
+            "crypto": true,
+            "payin_enabled": true,
+            "payout_enabled": true,
+            "transfer_enabled": true,
+            "sign": "E",
+            "account_top_order": "2",
+            "crypto_payment_id_name": "",
+            "crypto_explorer": "https://www.etherchain.org/tx/{tx}",
+            "precision_transfer": "0.000000000001",
+            "delisted": false,
+            "networks": [
+                {
+                    "code": "ETH",
+                    "network_name": "ETH",
+                    "network": "ETH",
+                    "protocol": "ETH",
+                    "default": true,
+                    "is_ens_available": true,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000000000000000001",
+                    "payout_fee": "0.002460000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "4",
+                    "low_processing_time": "13.145",
+                    "high_processing_time": "529.177",
+                    "avg_processing_time": "118.81709375000004",
+                    "is_multichain": false
+                }
+            ]
+        },
+        "code": "ETH",
+        "id": "ETH",
+        "precision": 1e-12,
+        "name": "Ethereum",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "ETH": {
+                "info": {
+                    "code": "ETH",
+                    "network_name": "ETH",
+                    "network": "ETH",
+                    "protocol": "ETH",
+                    "default": true,
+                    "is_ens_available": true,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000000000000000001",
+                    "payout_fee": "0.002460000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "4",
+                    "low_processing_time": "13.145",
+                    "high_processing_time": "529.177",
+                    "avg_processing_time": "118.81709375000004",
+                    "is_multichain": false
+                },
+                "id": "ETH",
+                "network": "ETH",
+                "fee": 0.00246,
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 1e-18,
+                "limits": {
+                    "withdraw": {}
+                }
+            }
+        },
+        "fee": 0.00246,
+        "limits": {
+            "amount": {}
+        }
+    },
+    "ADA": {
+        "info": {
+            "full_name": "Cardano",
+            "crypto": true,
+            "payin_enabled": true,
+            "payout_enabled": true,
+            "transfer_enabled": true,
+            "sign": "A",
+            "crypto_payment_id_name": "",
+            "crypto_explorer": "https://cardanoexplorer.com/tx/{tx}",
+            "precision_transfer": "0.000001",
+            "delisted": false,
+            "networks": [
+                {
+                    "code": "ADA",
+                    "network_name": "ADA",
+                    "network": "ADA",
+                    "protocol": "ADA",
+                    "default": true,
+                    "is_ens_available": true,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000001",
+                    "payout_fee": "19.600000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "30",
+                    "low_processing_time": "40.676",
+                    "high_processing_time": "4640.318",
+                    "avg_processing_time": "369.66745",
+                    "is_multichain": false
+                }
+            ]
+        },
+        "code": "ADA",
+        "id": "ADA",
+        "precision": 0.000001,
+        "name": "Cardano",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "ADA": {
+                "info": {
+                    "code": "ADA",
+                    "network_name": "ADA",
+                    "network": "ADA",
+                    "protocol": "ADA",
+                    "default": true,
+                    "is_ens_available": true,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000001",
+                    "payout_fee": "19.600000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "30",
+                    "low_processing_time": "40.676",
+                    "high_processing_time": "4640.318",
+                    "avg_processing_time": "369.66745",
+                    "is_multichain": false
+                },
+                "id": "ADA",
+                "network": "ADA",
+                "fee": 19.6,
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {}
+                }
+            }
+        },
+        "fee": 19.6,
+        "limits": {
+            "amount": {}
+        }
+    },
+    "XRP": {
+        "info": {
+            "full_name": "Ripple",
+            "crypto": true,
+            "payin_enabled": true,
+            "payout_enabled": true,
+            "transfer_enabled": true,
+            "sign": "R",
+            "account_top_order": "13",
+            "crypto_payment_id_name": "DestinationTag",
+            "crypto_explorer": "https://xrpcharts.ripple.com/#/transactions/{tx}",
+            "precision_transfer": "0.000001",
+            "delisted": false,
+            "networks": [
+                {
+                    "code": "XRP",
+                    "network_name": "XRP",
+                    "network": "XRP",
+                    "protocol": "",
+                    "default": true,
+                    "is_ens_available": false,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000001",
+                    "payout_fee": "1.390000000000",
+                    "payout_is_payment_id": true,
+                    "payin_payment_id": true,
+                    "payin_confirmations": "20",
+                    "low_processing_time": "2.445",
+                    "high_processing_time": "36.04",
+                    "avg_processing_time": "17.662900000000004",
+                    "is_multichain": false
+                }
+            ]
+        },
+        "code": "XRP",
+        "id": "XRP",
+        "precision": 0.000001,
+        "name": "Ripple",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "XRP": {
+                "info": {
+                    "code": "XRP",
+                    "network_name": "XRP",
+                    "network": "XRP",
+                    "protocol": "",
+                    "default": true,
+                    "is_ens_available": false,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000001",
+                    "payout_fee": "1.390000000000",
+                    "payout_is_payment_id": true,
+                    "payin_payment_id": true,
+                    "payin_confirmations": "20",
+                    "low_processing_time": "2.445",
+                    "high_processing_time": "36.04",
+                    "avg_processing_time": "17.662900000000004",
+                    "is_multichain": false
+                },
+                "id": "XRP",
+                "network": "XRP",
+                "fee": 1.39,
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {}
+                }
+            }
+        },
+        "fee": 1.39,
+        "limits": {
+            "amount": {}
+        }
+    },
+    "USDC": {
+        "info": {
+            "full_name": "USD Coin ERC20 Chain",
+            "crypto": true,
+            "payin_enabled": true,
+            "payout_enabled": true,
+            "transfer_enabled": true,
+            "sign": "U",
+            "crypto_payment_id_name": "",
+            "crypto_explorer": "https://etherscan.io/tx/{tx}",
+            "precision_transfer": "0.000001",
+            "delisted": false,
+            "networks": [
+                {
+                    "code": "ETH",
+                    "network_name": "ETH",
+                    "network": "ETH",
+                    "protocol": "ERC20",
+                    "default": true,
+                    "is_ens_available": true,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000001",
+                    "payout_fee": "10.000000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "4",
+                    "contract_address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                    "low_processing_time": "30.852",
+                    "high_processing_time": "999.163",
+                    "avg_processing_time": "383.9943505154639",
+                    "is_multichain": false
+                }
+            ]
+        },
+        "code": "USDC",
+        "id": "USDC",
+        "precision": 0.000001,
+        "name": "USD Coin ERC20 Chain",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "ERC20": {
+                "info": {
+                    "code": "ETH",
+                    "network_name": "ETH",
+                    "network": "ETH",
+                    "protocol": "ERC20",
+                    "default": true,
+                    "is_ens_available": true,
+                    "payin_enabled": true,
+                    "payout_enabled": true,
+                    "precision_payout": "0.000001",
+                    "payout_fee": "10.000000000000",
+                    "payout_is_payment_id": false,
+                    "payin_payment_id": false,
+                    "payin_confirmations": "4",
+                    "contract_address": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                    "low_processing_time": "30.852",
+                    "high_processing_time": "999.163",
+                    "avg_processing_time": "383.9943505154639",
+                    "is_multichain": false
+                },
+                "id": "ERC20",
+                "network": "ERC20",
+                "fee": 10,
+                "active": true,
+                "deposit": true,
+                "withdraw": true,
+                "precision": 0.000001,
+                "limits": {
+                    "withdraw": {}
+                }
+            }
+        },
+        "fee": 10,
+        "limits": {
+            "amount": {}
+        }
+    }
+}

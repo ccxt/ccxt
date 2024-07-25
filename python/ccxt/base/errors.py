@@ -10,10 +10,12 @@ error_hierarchy = {
             'ArgumentsRequired': {},
             'BadRequest': {
                 'BadSymbol': {},
-                'MarginModeAlreadySet': {},
             },
-            'BadResponse': {
-                'NullResponse': {},
+            'OperationRejected': {
+                'NoChange': {
+                    'MarginModeAlreadySet': {},
+                },
+                'MarketClosed': {},
             },
             'InsufficientFunds': {},
             'InvalidAddress': {
@@ -22,23 +24,31 @@ error_hierarchy = {
             'InvalidOrder': {
                 'OrderNotFound': {},
                 'OrderNotCached': {},
-                'CancelPending': {},
                 'OrderImmediatelyFillable': {},
                 'OrderNotFillable': {},
                 'DuplicateOrderId': {},
                 'ContractUnavailable': {},
             },
             'NotSupported': {},
+            'InvalidProxySettings': {},
+            'ExchangeClosedByUser': {},
         },
-        'NetworkError': {
-            'DDoSProtection': {
+        'OperationFailed': {
+            'NetworkError': {
+                'DDoSProtection': {},
                 'RateLimitExceeded': {},
+                'ExchangeNotAvailable': {
+                    'OnMaintenance': {},
+                },
+                'InvalidNonce': {
+                    'ChecksumError': {},
+                },
+                'RequestTimeout': {},
             },
-            'ExchangeNotAvailable': {
-                'OnMaintenance': {},
+            'BadResponse': {
+                'NullResponse': {},
             },
-            'InvalidNonce': {},
-            'RequestTimeout': {},
+            'CancelPending': {},
         },
     },
 }
@@ -80,15 +90,19 @@ class BadSymbol(BadRequest):
     pass
 
 
-class MarginModeAlreadySet(BadRequest):
+class OperationRejected(ExchangeError):
     pass
 
 
-class BadResponse(ExchangeError):
+class NoChange(OperationRejected):
     pass
 
 
-class NullResponse(BadResponse):
+class MarginModeAlreadySet(NoChange):
+    pass
+
+
+class MarketClosed(OperationRejected):
     pass
 
 
@@ -116,10 +130,6 @@ class OrderNotCached(InvalidOrder):
     pass
 
 
-class CancelPending(InvalidOrder):
-    pass
-
-
 class OrderImmediatelyFillable(InvalidOrder):
     pass
 
@@ -140,7 +150,19 @@ class NotSupported(ExchangeError):
     pass
 
 
-class NetworkError(BaseError):
+class InvalidProxySettings(ExchangeError):
+    pass
+
+
+class ExchangeClosedByUser(ExchangeError):
+    pass
+
+
+class OperationFailed(BaseError):
+    pass
+
+
+class NetworkError(OperationFailed):
     pass
 
 
@@ -148,7 +170,7 @@ class DDoSProtection(NetworkError):
     pass
 
 
-class RateLimitExceeded(DDoSProtection):
+class RateLimitExceeded(NetworkError):
     pass
 
 
@@ -164,7 +186,23 @@ class InvalidNonce(NetworkError):
     pass
 
 
+class ChecksumError(InvalidNonce):
+    pass
+
+
 class RequestTimeout(NetworkError):
+    pass
+
+
+class BadResponse(OperationFailed):
+    pass
+
+
+class NullResponse(BadResponse):
+    pass
+
+
+class CancelPending(OperationFailed):
     pass
 
 
@@ -179,26 +217,33 @@ __all__ = [
     'ArgumentsRequired',
     'BadRequest',
     'BadSymbol',
+    'OperationRejected',
+    'NoChange',
     'MarginModeAlreadySet',
-    'BadResponse',
-    'NullResponse',
+    'MarketClosed',
     'InsufficientFunds',
     'InvalidAddress',
     'AddressPending',
     'InvalidOrder',
     'OrderNotFound',
     'OrderNotCached',
-    'CancelPending',
     'OrderImmediatelyFillable',
     'OrderNotFillable',
     'DuplicateOrderId',
     'ContractUnavailable',
     'NotSupported',
+    'InvalidProxySettings',
+    'ExchangeClosedByUser',
+    'OperationFailed',
     'NetworkError',
     'DDoSProtection',
     'RateLimitExceeded',
     'ExchangeNotAvailable',
     'OnMaintenance',
     'InvalidNonce',
-    'RequestTimeout'
+    'ChecksumError',
+    'RequestTimeout',
+    'BadResponse',
+    'NullResponse',
+    'CancelPending'
 ]

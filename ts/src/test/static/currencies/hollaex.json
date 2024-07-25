@@ -1,0 +1,436 @@
+{
+    "BTC": {
+        "id": "btc",
+        "numericId": 2,
+        "code": "BTC",
+        "info": {
+            "id": "2",
+            "fullname": "Bitcoin",
+            "symbol": "btc",
+            "active": true,
+            "verified": true,
+            "allow_deposit": true,
+            "allow_withdrawal": true,
+            "withdrawal_fee": "0.0004",
+            "min": "0.00001",
+            "max": "1000",
+            "increment_unit": "0.000001",
+            "logo": "https://hollaex-resources.s3.ap-southeast-1.amazonaws.com/icons/btc.svg",
+            "code": "btc",
+            "is_public": true,
+            "meta": {
+                "color": "#fe9d00",
+                "website": "https://bitcoin.org",
+                "explorer": "https://blockstream.info"
+            },
+            "estimated_price": "36506.55975512137",
+            "description": "<p>Bitcoin is the first widely used decentralized digital currency. It uses cryptography for security and is based on a peer-to-peer network. It was created in 2009 by an unknown individual or group of individuals using the pseudonym \"Satoshi Nakamoto.\" Transactions with bitcoin are recorded on a public ledger called the &lsquo;blockchain&rsquo; which Satoshi first coined and popularized. Users can manage their bitcoin using a wallet that stores their private keys. Bitcoin can be used for a variety of purposes, including purchasing goods and services, trading, and investing.</p>\r\n<p><a href=\"https://www.blockchain.com/explorer?view=btc\" target=\"_blank\" rel=\"noopener\">View blockchain activity</a></p>",
+            "type": "blockchain",
+            "network": "btc",
+            "standard": null,
+            "issuer": "HollaEx",
+            "withdrawal_fees": {
+                "btc": {
+                    "value": "0.0003",
+                    "symbol": "btc"
+                }
+            },
+            "display_name": null,
+            "deposit_fees": null,
+            "is_risky": false,
+            "created_at": "2019-08-09T10:45:43.367Z",
+            "updated_at": "2023-11-14T10:25:03.970Z",
+            "created_by": "1",
+            "owner_id": "1"
+        },
+        "name": "Bitcoin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.0004,
+        "precision": 0.000001,
+        "limits": {
+            "amount": {
+                "min": 0.00001,
+                "max": 1000
+            },
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "USDT": {
+        "id": "usdt",
+        "numericId": 6,
+        "code": "USDT",
+        "info": {
+            "id": "6",
+            "fullname": "USD Tether",
+            "symbol": "usdt",
+            "active": true,
+            "verified": true,
+            "allow_deposit": true,
+            "allow_withdrawal": true,
+            "withdrawal_fee": "20",
+            "min": "1",
+            "max": "10000000",
+            "increment_unit": "0.0001",
+            "logo": "https://hollaex-resources.s3.ap-southeast-1.amazonaws.com/icons/usdt.svg",
+            "code": "usdt",
+            "is_public": true,
+            "meta": {
+                "color": "#27a17a",
+                "website": "https://tether.to",
+                "explorer": "https://blockchair.com/tether",
+                "decimal_points": "6"
+            },
+            "estimated_price": "1.0002587982534528",
+            "description": "<p>Tether (USDT) is a stablecoin pegged 1:1 to the US dollar. It is a digital currency that aims to maintain its value while allowing for fast and secure transfer of funds. It was the first stablecoin, and is the most widely used due stablecoin due to its stability and low volatility compared to other cryptocurrencies. It was launched in 2014 by Tether Limited.</p>",
+            "type": "blockchain",
+            "network": "eth,trx,bnb,matic",
+            "standard": "",
+            "issuer": "HollaEx",
+            "withdrawal_fees": {
+                "bnb": {
+                    "value": "0.3",
+                    "symbol": "usdt"
+                },
+                "eth": {
+                    "value": "12",
+                    "symbol": "usdt"
+                },
+                "trx": {
+                    "value": "2",
+                    "symbol": "usdt"
+                },
+                "matic": {
+                    "value": "0.3",
+                    "symbol": "usdt"
+                }
+            },
+            "display_name": null,
+            "deposit_fees": null,
+            "is_risky": false,
+            "created_at": "2019-08-09T10:45:43.367Z",
+            "updated_at": "2023-11-14T10:25:03.694Z",
+            "created_by": "168",
+            "owner_id": "1"
+        },
+        "name": "USD Tether",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 20,
+        "precision": 0.0001,
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 10000000
+            },
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "LTC": {
+        "id": "ltc",
+        "numericId": 228,
+        "code": "LTC",
+        "info": {
+            "id": "228",
+            "fullname": "Litecoin",
+            "symbol": "ltc",
+            "active": true,
+            "verified": true,
+            "allow_deposit": true,
+            "allow_withdrawal": true,
+            "withdrawal_fee": "0.01",
+            "min": "0.001",
+            "max": "100000",
+            "increment_unit": "0.00001",
+            "logo": "https://hollaex-resources.s3.ap-southeast-1.amazonaws.com/icons/ltc.svg",
+            "code": "ltc",
+            "is_public": true,
+            "meta": {
+                "color": "#345d9c",
+                "website": "https://litecoin.org",
+                "explorer": "https://blockchair.com/litecoin"
+            },
+            "estimated_price": "71.78838471015924",
+            "description": "<p>Litecoin (LTC) is a cryptocurrency that was created in 2011 by Charlie Lee, a former Google engineer. It was one of the earliest altcoins, and it is based on an open-source, global payment network that is not controlled by any central authority. Litecoin aims to provide faster and cheaper transactions compared to Bitcoin by using a different hashing algorithm, Scrypt, and having a shorter block time.</p>",
+            "type": "blockchain",
+            "network": "ltc",
+            "standard": null,
+            "issuer": "HollaEx",
+            "withdrawal_fees": {
+                "ltc": {
+                    "value": "0.001",
+                    "symbol": "ltc"
+                }
+            },
+            "display_name": null,
+            "deposit_fees": null,
+            "is_risky": false,
+            "created_at": "2021-03-25T13:09:40.338Z",
+            "updated_at": "2023-11-14T10:25:03.824Z",
+            "created_by": "1",
+            "owner_id": "1"
+        },
+        "name": "Litecoin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.01,
+        "precision": 0.00001,
+        "limits": {
+            "amount": {
+                "min": 0.001,
+                "max": 100000
+            },
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "ETH": {
+        "id": "eth",
+        "numericId": 3,
+        "code": "ETH",
+        "info": {
+            "id": "3",
+            "fullname": "Ethereum",
+            "symbol": "eth",
+            "active": true,
+            "verified": true,
+            "allow_deposit": true,
+            "allow_withdrawal": true,
+            "withdrawal_fee": "0.01",
+            "min": "0.0001",
+            "max": "10000",
+            "increment_unit": "0.00001",
+            "logo": "https://hollaex-resources.s3.ap-southeast-1.amazonaws.com/icons/eth.svg",
+            "code": "eth",
+            "is_public": true,
+            "meta": {
+                "color": "#637de7",
+                "website": "https://ethereum.org",
+                "explorer": "https://etherscan.io"
+            },
+            "estimated_price": "2049.165287848422",
+            "description": "<p>Ethereum is a smart contract decentralized application blockchain. It was developed by Vitalik Buterin and launched in 2015. Ethereum is based on a distributed computing platform and has its own programming language, which allows developers to build and deploy decentralized applications. Unlike bitcoin, which is primarily used as a digital currency, Ethereum is used to build and run applications on its blockchain. These applications can be used for a wide variety of purposes, such as tracking supply chain data, managing financial contracts, and enabling secure online voting.</p>\r\n<p><a href=\"https://etherscan.io/\" target=\"_blank\" rel=\"noopener\">View blockchain activity</a></p>",
+            "type": "blockchain",
+            "network": "eth",
+            "standard": null,
+            "issuer": "HollaEx",
+            "withdrawal_fees": {
+                "eth": {
+                    "value": "0.002",
+                    "symbol": "eth"
+                }
+            },
+            "display_name": null,
+            "deposit_fees": null,
+            "is_risky": false,
+            "created_at": "2019-08-09T10:45:43.367Z",
+            "updated_at": "2023-11-14T10:25:03.739Z",
+            "created_by": "1",
+            "owner_id": "1"
+        },
+        "name": "Ethereum",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.01,
+        "precision": 0.00001,
+        "limits": {
+            "amount": {
+                "min": 0.0001,
+                "max": 10000
+            },
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "ADA": {
+        "id": "ada",
+        "numericId": 185,
+        "code": "ADA",
+        "info": {
+            "id": "185",
+            "fullname": "Cardano",
+            "symbol": "ada",
+            "active": true,
+            "verified": true,
+            "allow_deposit": true,
+            "allow_withdrawal": true,
+            "withdrawal_fee": "1",
+            "min": "1",
+            "max": "1000000",
+            "increment_unit": "0.01",
+            "logo": "https://hollaex-resources.s3.ap-southeast-1.amazonaws.com/icons/ada.svg",
+            "code": "ada",
+            "is_public": true,
+            "meta": {
+                "color": "#0a37b2",
+                "website": "https://cardano.org",
+                "explorer": "https://cardanoscan.io"
+            },
+            "estimated_price": "0.36420780407135145",
+            "description": "<p>Cardano is an open-source, decentralized platform that provides a platform for smart contracts, enabling the development of decentralized applications (dapps). It was created by IOHK, a blockchain research and development company, and its native cryptocurrency is called ADA. Cardano uses a proof-of-stake consensus mechanism, called Ouroboros, which aims to provide a more energy-efficient alternative to traditional proof-of-work algorithms.</p>",
+            "type": "blockchain",
+            "network": "ada",
+            "standard": null,
+            "issuer": "HollaEx",
+            "withdrawal_fees": {
+                "ada": {
+                    "value": "1",
+                    "symbol": "ada"
+                }
+            },
+            "display_name": null,
+            "deposit_fees": null,
+            "is_risky": false,
+            "created_at": "2021-03-17T16:54:53.305Z",
+            "updated_at": "2023-11-14T10:25:03.838Z",
+            "created_by": "1",
+            "owner_id": "1"
+        },
+        "name": "Cardano",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 1,
+        "precision": 0.01,
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 1000000
+            },
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "XRP": {
+        "id": "xrp",
+        "numericId": 5,
+        "code": "XRP",
+        "info": {
+            "id": "5",
+            "fullname": "Ripple",
+            "symbol": "xrp",
+            "active": true,
+            "verified": true,
+            "allow_deposit": true,
+            "allow_withdrawal": true,
+            "withdrawal_fee": "0.01",
+            "min": "1",
+            "max": "10000000",
+            "increment_unit": "0.01",
+            "logo": "https://hollaex-resources.s3.ap-southeast-1.amazonaws.com/icons/xrp.svg",
+            "code": "xrp",
+            "is_public": true,
+            "meta": {
+                "color": "#414042",
+                "website": "https://ripple.com/xrp",
+                "explorer": "https://xrpscan.com"
+            },
+            "estimated_price": "0.6543662740955737",
+            "description": "<p>Ripple (XRP) is a digital currency designed for fast and secure global money transfers. It was created by the fintech company Ripple Labs in 2012, with the goal of enabling instant, cross-border payments with low transaction fees. XRP acts as a bridge currency in the Ripple network, helping to facilitate the transfer of other currencies and assets.</p>",
+            "type": "blockchain",
+            "network": "xrp",
+            "standard": null,
+            "issuer": "HollaEx",
+            "withdrawal_fees": {
+                "xrp": {
+                    "value": "0.01",
+                    "symbol": "xrp"
+                }
+            },
+            "display_name": null,
+            "deposit_fees": null,
+            "is_risky": false,
+            "created_at": "2019-08-09T10:45:43.367Z",
+            "updated_at": "2023-11-14T10:25:03.995Z",
+            "created_by": "1",
+            "owner_id": "1"
+        },
+        "name": "Ripple",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 0.01,
+        "precision": 0.01,
+        "limits": {
+            "amount": {
+                "min": 1,
+                "max": 10000000
+            },
+            "withdraw": {}
+        },
+        "networks": {}
+    },
+    "USDC": {
+        "id": "usdc",
+        "numericId": 421,
+        "code": "USDC",
+        "info": {
+            "id": "421",
+            "fullname": "USD Coin",
+            "symbol": "usdc",
+            "active": true,
+            "verified": true,
+            "allow_deposit": true,
+            "allow_withdrawal": true,
+            "withdrawal_fee": "1",
+            "min": "0.1",
+            "max": "10000000",
+            "increment_unit": "0.1",
+            "logo": "https://hollaex-resources.s3.ap-southeast-1.amazonaws.com/icons/usdc.svg",
+            "code": "usdc",
+            "is_public": true,
+            "meta": {
+                "color": "#2774ca",
+                "contract": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+                "decimal_points": "6"
+            },
+            "estimated_price": "1.0000667090311497",
+            "description": "<p>USD Coin (USDC) is a stablecoin controled by The Centre consortium, consisting of Circle and Coinbase. USDC is pegged 1:1 to the US dollar. USDC provides fast and secure transfers while maintaining its value, making it widely used in DeFi as a stable store of value and collateral for loans.</p>",
+            "type": "blockchain",
+            "network": "eth,trx,xlm",
+            "standard": "erc-20",
+            "issuer": "HollaEx",
+            "withdrawal_fees": {
+                "eth": {
+                    "value": "10",
+                    "symbol": "usdc"
+                },
+                "trx": {
+                    "value": "2",
+                    "symbol": "usdc"
+                },
+                "xlm": {
+                    "value": "1",
+                    "symbol": "usdc"
+                }
+            },
+            "display_name": null,
+            "deposit_fees": null,
+            "is_risky": false,
+            "created_at": "2021-04-04T19:01:04.774Z",
+            "updated_at": "2023-11-14T10:25:03.763Z",
+            "created_by": "1",
+            "owner_id": "1"
+        },
+        "name": "USD Coin",
+        "active": true,
+        "deposit": true,
+        "withdraw": true,
+        "fee": 1,
+        "precision": 0.1,
+        "limits": {
+            "amount": {
+                "min": 0.1,
+                "max": 10000000
+            },
+            "withdraw": {}
+        },
+        "networks": {}
+    }
+}

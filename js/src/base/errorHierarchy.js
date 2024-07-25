@@ -16,10 +16,12 @@ const errorHierarchy = {
             'ArgumentsRequired': {},
             'BadRequest': {
                 'BadSymbol': {},
-                'MarginModeAlreadySet': {},
             },
-            'BadResponse': {
-                'NullResponse': {},
+            'OperationRejected': {
+                'NoChange': {
+                    'MarginModeAlreadySet': {},
+                },
+                'MarketClosed': {},
             },
             'InsufficientFunds': {},
             'InvalidAddress': {
@@ -28,23 +30,31 @@ const errorHierarchy = {
             'InvalidOrder': {
                 'OrderNotFound': {},
                 'OrderNotCached': {},
-                'CancelPending': {},
                 'OrderImmediatelyFillable': {},
                 'OrderNotFillable': {},
                 'DuplicateOrderId': {},
                 'ContractUnavailable': {},
             },
             'NotSupported': {},
+            'InvalidProxySettings': {},
+            'ExchangeClosedByUser': {},
         },
-        'NetworkError': {
-            'DDoSProtection': {
+        'OperationFailed': {
+            'NetworkError': {
+                'DDoSProtection': {},
                 'RateLimitExceeded': {},
+                'ExchangeNotAvailable': {
+                    'OnMaintenance': {},
+                },
+                'InvalidNonce': {
+                    'ChecksumError': {},
+                },
+                'RequestTimeout': {},
             },
-            'ExchangeNotAvailable': {
-                'OnMaintenance': {},
+            'BadResponse': {
+                'NullResponse': {},
             },
-            'InvalidNonce': {},
-            'RequestTimeout': {},
+            'CancelPending': {},
         },
     },
 };

@@ -5,18 +5,18 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 import assert from 'assert';
-import testSharedMethods from './base/test.sharedMethods.js';
 import testPosition from './base/test.position.js';
+import testSharedMethods from '../../test/Exchange/base/test.sharedMethods.js';
 async function testFetchPositions(exchange, skippedProperties, symbol) {
     const method = 'fetchPositions';
     const now = exchange.milliseconds();
     // without symbol
     const positions = await exchange.fetchPositions();
-    assert(Array.isArray(positions), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json(positions));
+    testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, positions, symbol);
     for (let i = 0; i < positions.length; i++) {
         testPosition(exchange, skippedProperties, method, positions[i], undefined, now);
     }
-    testSharedMethods.assertTimestampOrder(exchange, method, undefined, positions);
+    // testSharedMethods.assertTimestampOrder (exchange, method, undefined, positions); // currently order of positions does not make sense
     // with symbol
     const positionsForSymbol = await exchange.fetchPositions([symbol]);
     assert(Array.isArray(positionsForSymbol), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json(positionsForSymbol));
@@ -25,6 +25,6 @@ async function testFetchPositions(exchange, skippedProperties, symbol) {
     for (let i = 0; i < positionsForSymbol.length; i++) {
         testPosition(exchange, skippedProperties, method, positionsForSymbol[i], symbol, now);
     }
-    testSharedMethods.assertTimestampOrder(exchange, method, symbol, positionsForSymbol);
+    // testSharedMethods.assertTimestampOrder (exchange, method, symbol, positionsForSymbol);
 }
 export default testFetchPositions;

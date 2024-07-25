@@ -3,6 +3,7 @@ from ccxt.base.types import Entry
 
 class ImplicitAPI:
     exchange_get_markets = exchangeGetMarkets = Entry('markets', 'exchange', 'GET', {'cost': 1})
+    exchangeprivate_get_candles = exchangePrivateGetCandles = Entry('candles', 'exchangePrivate', 'GET', {'cost': 1})
     public_get_orderbook = publicGetOrderbook = Entry('orderbook', 'public', 'GET', {'cost': 1})
     public_get_orderbook_top = publicGetOrderbookTop = Entry('orderbook_top', 'public', 'GET', {'cost': 1})
     public_get_ticker = publicGetTicker = Entry('ticker', 'public', 'GET', {'cost': 1})
@@ -30,5 +31,7 @@ class ImplicitAPI:
     private_post_withdrawals = privatePostWithdrawals = Entry('withdrawals', 'private', 'POST', {'cost': 1})
     private_post_send = privatePostSend = Entry('send', 'private', 'POST', {'cost': 1})
     private_post_oauth2_grant = privatePostOauth2Grant = Entry('oauth2/grant', 'private', 'POST', {'cost': 1})
+    private_post_beneficiaries = privatePostBeneficiaries = Entry('beneficiaries', 'private', 'POST', {'cost': 1})
     private_put_accounts_id_name = privatePutAccountsIdName = Entry('accounts/{id}/name', 'private', 'PUT', {'cost': 1})
     private_delete_withdrawals_id = privateDeleteWithdrawalsId = Entry('withdrawals/{id}', 'private', 'DELETE', {'cost': 1})
+    private_delete_beneficiaries_id = privateDeleteBeneficiariesId = Entry('beneficiaries/{id}', 'private', 'DELETE', {'cost': 1})

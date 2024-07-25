@@ -1,2 +1,3 @@
-declare function testFundingRateHistory(exchange: any, skippedProperties: any, method: any, entry: any, symbol: any): void;
+import { Exchange } from "../../../../ccxt";
+declare function testFundingRateHistory(exchange: Exchange, skippedProperties: object, method: string, entry: object, symbol: string): void;
 export default testFundingRateHistory;

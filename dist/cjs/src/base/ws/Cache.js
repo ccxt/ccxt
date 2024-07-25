@@ -20,6 +20,7 @@ class BaseCache extends Array {
 class ArrayCache extends BaseCache {
     constructor(maxSize = undefined) {
         super(maxSize);
+        this.hashmap = {};
         Object.defineProperty(this, 'nestedNewUpdatesBySymbol', {
             __proto__: null,
             value: false,
@@ -44,6 +45,12 @@ class ArrayCache extends BaseCache {
             __proto__: null,
             value: false,
             writable: true,
+        });
+        Object.defineProperty(this, 'hashmap', {
+            __proto__: null,
+            value: {},
+            writable: true,
+            enumerable: false,
         });
     }
     getLimit(symbol, limit) {
@@ -124,6 +131,7 @@ class ArrayCacheByTimestamp extends BaseCache {
         if (item[0] in this.hashmap) {
             const reference = this.hashmap[item[0]];
             if (reference !== item) {
+                // eslint-disable-next-line
                 for (const prop in item) {
                     reference[prop] = item[prop];
                 }
@@ -149,11 +157,11 @@ class ArrayCacheBySymbolById extends ArrayCache {
     constructor(maxSize = undefined) {
         super(maxSize);
         this.nestedNewUpdatesBySymbol = true;
-        Object.defineProperty(this, 'hashmap', {
-            __proto__: null,
-            value: {},
-            writable: true,
-        });
+        // Object.defineProperty (this, 'hashmap', {
+        //     __proto__: null, // make it invisible
+        //     value: {},
+        //     writable: true,
+        // })
     }
     append(item) {
         const byId = this.hashmap[item.symbol] = this.hashmap[item.symbol] || {};
@@ -198,7 +206,57 @@ class ArrayCacheBySymbolById extends ArrayCache {
         this.allNewUpdates = (this.allNewUpdates || 0) + (afterLength - beforeLength);
     }
 }
+class ArrayCacheBySymbolBySide extends ArrayCache {
+    constructor() {
+        super();
+        this.nestedNewUpdatesBySymbol = true;
+        Object.defineProperty(this, 'hashmap', {
+            __proto__: null,
+            value: {},
+            writable: true,
+        });
+    }
+    append(item) {
+        const bySide = this.hashmap[item.symbol] = this.hashmap[item.symbol] || {};
+        if (item.side in bySide) {
+            const reference = bySide[item.side];
+            if (reference !== item) {
+                for (const prop in item) {
+                    reference[prop] = item[prop];
+                }
+            }
+            item = reference;
+            const index = this.findIndex((x) => x.symbol === item.symbol && x.side === item.side);
+            // move the order to the end of the array
+            this.splice(index, 1);
+        }
+        else {
+            bySide[item.side] = item;
+        }
+        this.push(item);
+        if (this.clearAllUpdates) {
+            this.clearAllUpdates = false;
+            this.clearUpdatesBySymbol = {};
+            this.allNewUpdates = 0;
+            this.newUpdatesBySymbol = {};
+        }
+        if (this.newUpdatesBySymbol[item.symbol] === undefined) {
+            this.newUpdatesBySymbol[item.symbol] = new Set();
+        }
+        if (this.clearUpdatesBySymbol[item.symbol]) {
+            this.clearUpdatesBySymbol[item.symbol] = false;
+            this.newUpdatesBySymbol[item.symbol].clear();
+        }
+        // in case an exchange updates the same order id twice
+        const sideSet = this.newUpdatesBySymbol[item.symbol];
+        const beforeLength = sideSet.size;
+        sideSet.add(item.side);
+        const afterLength = sideSet.size;
+        this.allNewUpdates = (this.allNewUpdates || 0) + (afterLength - beforeLength);
+    }
+}
 
 exports.ArrayCache = ArrayCache;
 exports.ArrayCacheBySymbolById = ArrayCacheBySymbolById;
+exports.ArrayCacheBySymbolBySide = ArrayCacheBySymbolBySide;
 exports.ArrayCacheByTimestamp = ArrayCacheByTimestamp;
