@@ -1,0 +1,369 @@
+{
+    "exchange": "oxfun",
+    "options": {},
+    "methods": {
+        "fetchOrderBook": [
+            {
+                "description": "Fetch order book with a limit argument",
+                "method": "fetchOrderBook",
+                "input": [
+                    "BTC/USDT",
+                    2
+                ],
+                "httpResponse": {
+                    "t": "1721909189304",
+                    "b": [
+                    [
+                        "64125.3",
+                        "0.19557"
+                    ],
+                    [
+                        "64125.18",
+                        "0.00763"
+                    ]
+                    ],
+                    "a": [
+                    [
+                        "64125.78",
+                        "0.63327"
+                    ],
+                    [
+                        "64125.79",
+                        "0.02377"
+                    ]
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "bids": [
+                    [
+                        64125.3,
+                        0.19557
+                    ],
+                    [
+                        64125.18,
+                        0.00763
+                    ]
+                    ],
+                    "asks": [
+                    [
+                        64125.78,
+                        0.63327
+                    ],
+                    [
+                        64125.79,
+                        0.02377
+                    ]
+                    ],
+                    "timestamp": 1721909189304,
+                    "datetime": "2024-07-25T12:06:29.304Z",
+                    "nonce": null
+                }
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch trades with a limit argument and since argument",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    1721909422123,
+                    2
+                ],
+                "httpResponse": [
+                    {
+                        "t": "1721909538481",
+                        "p": "64293.18",
+                        "q": "0.00098",
+                        "ibm": true
+                    },
+                    {
+                        "t": "1721909538656",
+                        "p": "64293.19",
+                        "q": "0.00099",
+                        "ibm": false
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "timestamp": 1721909538481,
+                        "datetime": "2024-07-25T12:12:18.481Z",
+                        "symbol": "BTC/USDT",
+                        "side": null,
+                        "price": 64293.18,
+                        "amount": 0.00098,
+                        "cost": 63.0073164,
+                        "order": null,
+                        "takerOrMaker": null,
+                        "type": null,
+                        "fee": null,
+                        "info": {
+                            "t": "1721909538481",
+                            "p": "64293.18",
+                            "q": "0.00098",
+                            "ibm": true
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1721909538656,
+                        "datetime": "2024-07-25T12:12:18.656Z",
+                        "symbol": "BTC/USDT",
+                        "side": null,
+                        "price": 64293.19,
+                        "amount": 0.00099,
+                        "cost": 63.6502581,
+                        "order": null,
+                        "takerOrMaker": null,
+                        "type": null,
+                        "fee": null,
+                        "info": {
+                            "t": "1721909538656",
+                            "p": "64293.19",
+                            "q": "0.00099",
+                            "ibm": false
+                        },
+                        "fees": []
+                    }
+                ]
+            },
+            {
+                "description": "Fetch trades for swap with a limit argument and since argument",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1721909422123,
+                    2
+                ],
+                "httpResponse": [
+                    {
+                        "t": "1721909577238",
+                        "p": "64326.6",
+                        "q": "2",
+                        "ibm": false
+                    },
+                    {
+                        "t": "1721909577369",
+                        "p": "64326.5",
+                        "q": "2",
+                        "ibm": true
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "timestamp": 1721909577238,
+                        "datetime": "2024-07-25T12:12:57.238Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "side": null,
+                        "price": 64326.6,
+                        "amount": 2,
+                        "cost": 128.6532,
+                        "order": null,
+                        "takerOrMaker": null,
+                        "type": null,
+                        "fee": null,
+                        "info": {
+                            "t": "1721909577238",
+                            "p": "64326.6",
+                            "q": "2",
+                            "ibm": false
+                        },
+                        "fees": []
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1721909577369,
+                        "datetime": "2024-07-25T12:12:57.369Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "side": null,
+                        "price": 64326.5,
+                        "amount": 2,
+                        "cost": 128.653,
+                        "order": null,
+                        "takerOrMaker": null,
+                        "type": null,
+                        "fee": null,
+                        "info": {
+                            "t": "1721909577369",
+                            "p": "64326.5",
+                            "q": "2",
+                            "ibm": true
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Fetch OHLCV",
+                "method": "fetchOHLCV",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "3m",
+                    1721909580000,
+                    2
+                ],
+                "httpResponse": [
+                    [
+                        1721909700000,
+                        "64306.4",
+                        "64319",
+                        "64278.5",
+                        "64280.7",
+                        "1015",
+                        0,
+                        "65258.6407",
+                        598,
+                        "513",
+                        "32983.9999"
+                    ],
+                    [
+                        1721909880000,
+                        "64284.1",
+                        "64305",
+                        "64279.1",
+                        "64286.4",
+                        "501",
+                        0,
+                        "32208.3036",
+                        302,
+                        "254",
+                        "16329.5599"
+                    ]
+                ],
+                "parsedResponse": [
+                    [
+                        1721909700000,
+                        64306.4,
+                        64319,
+                        64278.5,
+                        64280.7,
+                        1015
+                    ],
+                    [
+                        1721909880000,
+                        64284.1,
+                        64305,
+                        64279.1,
+                        64286.4,
+                        501
+                    ]
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "t": "1721910147500",
+                        "s": "BTCUSDT",
+                        "c": "64249.99",
+                        "h": "67093",
+                        "l": "63801.27",
+                        "o": "66418.87",
+                        "b": "64249.99",
+                        "a": "64250",
+                        "v": "840.82448",
+                        "qv": "54553459.3478067"
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1721910147500,
+                    "datetime": "2024-07-25T12:22:27.500Z",
+                    "high": 67093,
+                    "low": 63801.27,
+                    "bid": 64249.99,
+                    "bidVolume": null,
+                    "ask": 64250,
+                    "askVolume": null,
+                    "vwap": 64880.91230146713,
+                    "open": 66418.87,
+                    "close": 64249.99,
+                    "last": 64249.99,
+                    "previousClose": null,
+                    "change": -2168.88,
+                    "percentage": -3.2654575424122694,
+                    "average": 65334.43,
+                    "baseVolume": 840.82448,
+                    "quoteVolume": 54553459.3478067,
+                    "info": {
+                        "t": "1721910147500",
+                        "s": "BTCUSDT",
+                        "c": "64249.99",
+                        "h": "67093",
+                        "l": "63801.27",
+                        "o": "66418.87",
+                        "b": "64249.99",
+                        "a": "64250",
+                        "v": "840.82448",
+                        "qv": "54553459.3478067"
+                    }
+                }
+            },
+            {
+                "description": "Fetch ticker for swap",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "httpResponse": [
+                    {
+                        "t": "1721910215199",
+                        "s": "BTCUSDT-PERPETUAL",
+                        "c": "64278.5",
+                        "h": "67105.8",
+                        "l": "63850",
+                        "o": "66392",
+                        "b": "64278.5",
+                        "a": "64278.6",
+                        "v": "800511",
+                        "qv": "52198570.8553"
+                    }
+                ],
+                "parsedResponse": {
+                    "symbol": "BTC/USDT:USDT",
+                    "timestamp": 1721910215199,
+                    "datetime": "2024-07-25T12:23:35.199Z",
+                    "high": 67105.8,
+                    "low": 63850,
+                    "bid": 64278.5,
+                    "bidVolume": null,
+                    "ask": 64278.6,
+                    "askVolume": null,
+                    "vwap": 65.20656287708726,
+                    "open": 66392,
+                    "close": 64278.5,
+                    "last": 64278.5,
+                    "previousClose": null,
+                    "change": -2113.5,
+                    "percentage": -3.183365465718761,
+                    "average": 65335.25,
+                    "baseVolume": 800511,
+                    "quoteVolume": 52198570.8553,
+                    "info": {
+                        "t": "1721910215199",
+                        "s": "BTCUSDT-PERPETUAL",
+                        "c": "64278.5",
+                        "h": "67105.8",
+                        "l": "63850",
+                        "o": "66392",
+                        "b": "64278.5",
+                        "a": "64278.6",
+                        "v": "800511",
+                        "qv": "52198570.8553"
+                    }
+                }
+            }
+        ]
+    }
+}
