@@ -22,7 +22,7 @@ async def test_watch_positions(exchange, skipped_properties, symbol):
     while now < ends:
         response = None
         try:
-            response = await exchange.watch_positions(symbol)
+            response = await exchange.watch_positions([symbol])
         except Exception as e:
             if not test_shared_methods.is_temporary_failure(e):
                 raise e

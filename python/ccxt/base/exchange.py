@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.65'
+__version__ = '4.3.67'
 
 # -----------------------------------------------------------------------------
 
@@ -1848,8 +1848,9 @@ class Exchange(object):
         value = self.safe_value_n(dictionaryOrList, keys, defaultValue)
         if value is None:
             return defaultValue
-        if isinstance(value, dict):
-            return value
+        if (isinstance(value, dict)):
+            if not isinstance(value, list):
+                return value
         return defaultValue
 
     def safe_dict(self, dictionary, key: IndexType, defaultValue: dict = None):
@@ -2225,7 +2226,7 @@ class Exchange(object):
     def parse_transfer(self, transfer: dict, currency: Currency = None):
         raise NotSupported(self.id + ' parseTransfer() is not supported yet')
 
-    def parse_account(self, account):
+    def parse_account(self, account: dict):
         raise NotSupported(self.id + ' parseAccount() is not supported yet')
 
     def parse_ledger_entry(self, item: dict, currency: Currency = None):
@@ -2462,7 +2463,7 @@ class Exchange(object):
             },
         }, currency)
 
-    def safe_market_structure(self, market=None):
+    def safe_market_structure(self, market: dict = None):
         cleanStructure = {
             'id': None,
             'lowercaseId': None,
@@ -2622,7 +2623,7 @@ class Exchange(object):
         superWithRestDescribe = self.deep_extend(extendedRestDescribe, wsBaseDescribe)
         return superWithRestDescribe
 
-    def safe_balance(self, balance: object):
+    def safe_balance(self, balance: dict):
         balances = self.omit(balance, ['info', 'timestamp', 'datetime', 'free', 'used', 'total'])
         codes = list(balances.keys())
         balance['free'] = {}
@@ -2656,7 +2657,7 @@ class Exchange(object):
             balance['debt'] = debtBalance
         return balance
 
-    def safe_order(self, order: object, market: Market = None):
+    def safe_order(self, order: dict, market: Market = None):
         # parses numbers
         # * it is important pass the trades rawTrades
         amount = self.omit_zero(self.safe_string(order, 'amount'))
@@ -2961,7 +2962,7 @@ class Exchange(object):
             'cost': self.parse_number(cost),
         }
 
-    def safe_liquidation(self, liquidation: object, market: Market = None):
+    def safe_liquidation(self, liquidation: dict, market: Market = None):
         contracts = self.safe_string(liquidation, 'contracts')
         contractSize = self.safe_string(market, 'contractSize')
         price = self.safe_string(liquidation, 'price')
@@ -2978,7 +2979,7 @@ class Exchange(object):
         liquidation['quoteValue'] = self.parse_number(quoteValue)
         return liquidation
 
-    def safe_trade(self, trade: object, market: Market = None):
+    def safe_trade(self, trade: dict, market: Market = None):
         amount = self.safe_string(trade, 'amount')
         price = self.safe_string(trade, 'price')
         cost = self.safe_string(trade, 'cost')
@@ -3120,7 +3121,7 @@ class Exchange(object):
             result = self.array_concat(result, reducedFeeValues)
         return result
 
-    def safe_ticker(self, ticker: object, market: Market = None):
+    def safe_ticker(self, ticker: dict, market: Market = None):
         open = self.omit_zero(self.safe_string(ticker, 'open'))
         close = self.omit_zero(self.safe_string(ticker, 'close'))
         last = self.omit_zero(self.safe_string(ticker, 'last'))
@@ -3553,7 +3554,7 @@ class Exchange(object):
                 self.options['limitsLoaded'] = self.milliseconds()
         return self.markets
 
-    def safe_position(self, position):
+    def safe_position(self, position: dict):
         # simplified version of: /pull/12765/
         unrealizedPnlString = self.safe_string(position, 'unrealisedPnl')
         initialMarginString = self.safe_string(position, 'initialMargin')
@@ -5721,7 +5722,7 @@ class Exchange(object):
             params = self.omit(params, ['until', 'till'])
         return [request, params]
 
-    def safe_open_interest(self, interest, market: Market = None):
+    def safe_open_interest(self, interest: dict, market: Market = None):
         symbol = self.safe_string(interest, 'symbol')
         if symbol is None:
             symbol = self.safe_string(market, 'symbol')

@@ -703,6 +703,15 @@
                   "1792480780099366912",
                   "LTC/USDT:USDT"
                 ]
+            },
+            {
+                "description": "Inverse swap cancel order",
+                "method": "cancelOrder",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/cancelOrder?orderId=1816002957423951872&symbol=SOL-USD&timestamp=1721803854831&signature=b0bcc0da4c0354baaa87558cb429c19d56852fd079d043f2ac015bab125add79",
+                "input": [
+                  "1816002957423951872",
+                  "SOL/USD:SOL"
+                ]
             }
         ],
         "cancelOrders": [
@@ -878,6 +887,14 @@
                     {
                         "type": "swap"
                     }
+                ]
+            },
+            {
+                "description": "Inverse swap fetch open orders",
+                "method": "fetchOpenOrders",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/openOrders?symbol=SOL-USD&timestamp=1721806459310&signature=d4d74676f855a257c4482aa92bc9d86772ce099c4eb59a011dd81937c5ea6ff6",
+                "input": [
+                  "SOL/USD:SOL"
                 ]
             }
         ],
@@ -1196,6 +1213,15 @@
                 "input": [
                     "1755603500760301568",
                     "LTC/USDT"
+                ]
+            },
+            {
+                "description": "Inverse swap fetch order",
+                "method": "fetchOrder",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/orderDetail?orderId=1816342420721254400&symbol=SOL-USD&timestamp=1721884780520&signature=4523f7d1eac99df0343592a6cb8ab185bf46c42ce63541c47b29b091bbc3c794",
+                "input": [
+                  "1816342420721254400",
+                  "SOL/USD:SOL"
                 ]
             }
         ],

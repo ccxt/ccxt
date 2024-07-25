@@ -1817,7 +1817,7 @@ class bitget extends \ccxt\async\bitget {
         }
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         return 'ping';
     }
 

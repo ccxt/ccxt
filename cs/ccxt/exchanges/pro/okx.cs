@@ -986,7 +986,7 @@ public partial class okx : ccxt.okx
         }
     }
 
-    public virtual object handleOrderBookMessage(WebSocketClient client, object message, object orderbook, object messageHash)
+    public virtual object handleOrderBookMessage(WebSocketClient client, object message, object orderbook, object messageHash, object market = null)
     {
         //
         //     {
@@ -1002,6 +1002,9 @@ public partial class okx : ccxt.okx
         //         ],
         //         "instId": "BTC-USDT",
         //         "ts": "1626537446491"
+        //         "checksum": -855196043,
+        //         "prevSeqId": 123456,
+        //         "seqId": 123457
         //     }
         //
         object asks = this.safeValue(message, "asks", new List<object>() {});
@@ -1011,10 +1014,13 @@ public partial class okx : ccxt.okx
         this.handleDeltas(storedAsks, asks);
         this.handleDeltas(storedBids, bids);
         object marketId = this.safeString(message, "instId");
-        object symbol = this.safeSymbol(marketId);
+        object symbol = this.safeSymbol(marketId, market);
         object checksum = this.handleOption("watchOrderBook", "checksum", true);
+        object seqId = this.safeInteger(message, "seqId");
         if (isTrue(checksum))
         {
+            object prevSeqId = this.safeInteger(message, "prevSeqId");
+            object nonce = getValue(orderbook, "nonce");
             object asksLength = getArrayLength(storedAsks);
             object bidsLength = getArrayLength(storedBids);
             object payloadArray = new List<object>() {};
@@ -1034,15 +1040,24 @@ public partial class okx : ccxt.okx
             object payload = String.Join(":", ((IList<object>)payloadArray).ToArray());
             object responseChecksum = this.safeInteger(message, "checksum");
             object localChecksum = this.crc32(payload, true);
+            object error = null;
+            if (isTrue(isTrue(!isEqual(prevSeqId, -1)) && isTrue(!isEqual(nonce, prevSeqId))))
+            {
+                error = new InvalidNonce(add(this.id, " watchOrderBook received invalid nonce"));
+            }
             if (isTrue(!isEqual(responseChecksum, localChecksum)))
             {
-                var error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));
+                error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));
+            }
+            if (isTrue(!isEqual(error, null)))
+            {
 
 
                 ((WebSocketClient)client).reject(error, messageHash);
             }
         }
         object timestamp = this.safeInteger(message, "ts");
+        ((IDictionary<string,object>)orderbook)["nonce"] = seqId;
         ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
         ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
         return orderbook;
@@ -1170,7 +1185,7 @@ public partial class okx : ccxt.okx
                 for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
                 {
                     object update = getValue(data, i);
-                    this.handleOrderBookMessage(client as WebSocketClient, update, orderbook, messageHash);
+                    this.handleOrderBookMessage(client as WebSocketClient, update, orderbook, messageHash, market);
                     callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
                 }
             }
@@ -1810,7 +1825,7 @@ public partial class okx : ccxt.okx
         await this.loadMarkets();
         await this.authenticate();
         object url = this.getUrl("private", "private");
-        object messageHash = ((object)this.nonce()).ToString();
+        object messageHash = ((object)this.milliseconds()).ToString();
         object op = null;
         var opparametersVariable = this.handleOptionAndParams(parameters, "createOrderWs", "op", "batch-orders");
         op = ((IList<object>)opparametersVariable)[0];
@@ -1890,7 +1905,7 @@ public partial class okx : ccxt.okx
         await this.loadMarkets();
         await this.authenticate();
         object url = this.getUrl("private", "private");
-        object messageHash = ((object)this.nonce()).ToString();
+        object messageHash = ((object)this.milliseconds()).ToString();
         object op = null;
         var opparametersVariable = this.handleOptionAndParams(parameters, "editOrderWs", "op", "amend-order");
         op = ((IList<object>)opparametersVariable)[0];
@@ -1925,7 +1940,7 @@ public partial class okx : ccxt.okx
         await this.loadMarkets();
         await this.authenticate();
         object url = this.getUrl("private", "private");
-        object messageHash = ((object)this.nonce()).ToString();
+        object messageHash = ((object)this.milliseconds()).ToString();
         object clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "clOrdId"});
         object arg = new Dictionary<string, object>() {
@@ -1971,7 +1986,7 @@ public partial class okx : ccxt.okx
         await this.loadMarkets();
         await this.authenticate();
         object url = this.getUrl("private", "private");
-        object messageHash = ((object)this.nonce()).ToString();
+        object messageHash = ((object)this.milliseconds()).ToString();
         object args = new List<object>() {};
         for (object i = 0; isLessThan(i, idsLength); postFixIncrement(ref i))
         {
@@ -2013,7 +2028,7 @@ public partial class okx : ccxt.okx
             throw new BadRequest ((string)add(this.id, "cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.")) ;
         }
         object url = this.getUrl("private", "private");
-        object messageHash = ((object)this.nonce()).ToString();
+        object messageHash = ((object)this.milliseconds()).ToString();
         object request = new Dictionary<string, object>() {
             { "id", messageHash },
             { "op", "mass-cancel" },

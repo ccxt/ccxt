@@ -1180,7 +1180,7 @@ class Exchange {
         return new OrderBook.CountedOrderBook(snapshot, depth);
     }
     handleMessage(client, message) { } // stub to override
-    // ping (client) {} // stub to override
+    // ping (client: Client) {} // stub to override
     ping(client) {
         return undefined;
     }
@@ -1588,8 +1588,10 @@ class Exchange {
         if (value === undefined) {
             return defaultValue;
         }
-        if (typeof value === 'object') {
-            return value;
+        if ((typeof value === 'object')) {
+            if (!Array.isArray(value)) {
+                return value;
+            }
         }
         return defaultValue;
     }

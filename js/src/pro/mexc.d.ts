@@ -37,7 +37,7 @@ export default class mexc extends mexcRest {
     handlePong(client: Client, message: any): any;
     handleSubscriptionStatus(client: Client, message: any): void;
     handleMessage(client: Client, message: any): void;
-    ping(client: any): {
+    ping(client: Client): {
         method: string;
     };
 }

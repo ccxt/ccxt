@@ -1810,7 +1810,7 @@ export default class bitget extends bitgetRest {
         }
     }
 
-    ping (client) {
+    ping (client: Client) {
         return 'ping';
     }
 

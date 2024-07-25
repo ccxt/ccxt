@@ -1279,7 +1279,7 @@ class poloniex extends \ccxt\async\poloniex {
         return $message;
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         return array(
             'event' => 'ping',
         );
