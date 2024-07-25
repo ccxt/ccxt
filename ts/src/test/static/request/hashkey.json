@@ -1,0 +1,154 @@
+{
+    "exchange": "hashkey",
+    "skipKeys": ["timestamp"],
+    "outputType": "json",
+    "methods": {
+        "fetchMarkets": [
+            {
+                "description": "Fetch all markets",
+                "method": "fetchMarkets",
+                "url": "https://api-glb.hashkey.com/api/v1/exchangeInfo",
+                "input": []
+            }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "Fetch all currencies",
+                "method": "fetchCurrencies",
+                "url": "https://api-glb.hashkey.com/api/v1/exchangeInfo",
+                "input": []
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "Fetch order book",
+                "method": "fetchOrderBook",
+                "url": "https://api-glb.hashkey.com/quote/v1/depth?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch order book with a limit argument",
+                "method": "fetchOrderBook",
+                "url": "https://api-glb.hashkey.com/quote/v1/depth?symbol=BTCUSDT&limit=2",
+                "input": [
+                    "BTC/USDT",
+                    2
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Spot fetch public trades",
+                "method": "fetchTrades",
+                "url": "https://api-glb.hashkey.com/quote/v1/trades?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch trades",
+                "method": "fetchTrades",
+                "url": "https://api-glb.hashkey.com/quote/v1/trades?symbol=BTCUSDT-PERPETUAL",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch trades with a since timestamp argument",
+                "method": "fetchTrades",
+                "url": "https://api-glb.hashkey.com/quote/v1/trades?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT",
+                    1721909422123
+                ]
+            },
+            {
+                "description": "Fetch trades with a limit argument",
+                "method": "fetchTrades",
+                "url": "https://api-glb.hashkey.com/quote/v1/trades?symbol=BTCUSDT&limit=2",
+                "input": [
+                    "BTC/USDT",
+                    1721909422123,
+                    2
+                ]
+            },
+            {
+                "description": "Fetch trades with a limit argument for swap",
+                "method": "fetchTrades",
+                "url": "https://api-glb.hashkey.com/quote/v1/trades?symbol=BTCUSDT-PERPETUAL&limit=2",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1721909422123,
+                    2
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Spot fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://api.ox.fun/v3/tickers?marketCode=ETH-USDT",
+                "input": [
+                    "ETH/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://api.ox.fun/v3/tickers?marketCode=ETH-USD-SWAP-LIN",
+                "input": [
+                    "ETH/USD:OX"
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "Spot fetch candles",
+                "method": "fetchOHLCV",
+                "url": "https://api-glb.hashkey.com/quote/v1/klines?symbol=BTCUSDT&interval=1m",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Swap fetch candles",
+                "method": "fetchOHLCV",
+                "url": "https://api-glb.hashkey.com/quote/v1/klines?symbol=BTCUSDT-PERPETUAL&interval=1m",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch candles with timeframe, since and limit arguments",
+                "method": "fetchOHLCV",
+                "url": "https://api-glb.hashkey.com/quote/v1/klines?symbol=BTCUSDT-PERPETUAL&interval=3m&startTime=1721909580000&limit=2",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "3m",
+                    1721909580000,
+                    2
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "Fetch ticker for spot",
+                "method": "fetchTicker",
+                "url": "https://api-glb.hashkey.com/quote/v1/ticker/24hr?symbol=BTCUSDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Fetch ticker for swap",
+                "method": "fetchTicker",
+                "url": "https://api-glb.hashkey.com/quote/v1/ticker/24hr?symbol=BTCUSDT-PERPETUAL",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            }
+        ]
+    }
+}
