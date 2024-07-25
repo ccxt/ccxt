@@ -2,7 +2,9 @@
     "exchange": "paradex",
     "skipKeys": [
         "start_at",
-        "end_at"
+        "end_at",
+        "signature",
+        "signature_timestamp"
     ],
     "outputType": "json",
     "options": {
@@ -142,11 +144,12 @@
         ],
         "cancelOrder": [
             {
-                "description": "cancelOrder",
+                "description": "cancel order",
                 "method": "cancelOrder",
-                "url": "https://api.testnet.paradex.trade/v1/system/config",
+                "url": "https://api.testnet.paradex.trade/v1/orders/1721905029980201703994490000?",
                 "input": [
-                    "1719212124880201703952790000"
+                  "1721905029980201703994490000",
+                  "SOL/USD:USDC"
                 ]
             }
         ],
@@ -154,9 +157,9 @@
             {
                 "description": "cancelAllOrders",
                 "method": "cancelAllOrders",
-                "url": "https://api.testnet.paradex.trade/v1/system/config",
+                "url": "https://api.testnet.paradex.trade/v1/orders?market=SOL-USD-PERP",
                 "input": [
-                    "BTC/USD:USDC"
+                  "SOL/USD:USDC"
                 ]
             }
         ],
@@ -164,10 +167,10 @@
             {
                 "description": "fetchOrder",
                 "method": "fetchOrder",
-                "url": "https://api.testnet.paradex.trade/v1/system/config",
+                "url": "https://api.testnet.paradex.trade/v1/orders/1721905029980201703994490000?",
                 "input": [
-                    "1718941725080201704028870000",
-                    "BTC/USD:USDC"
+                  "1721905029980201703994490000",
+                  "SOL/USD:USDC"
                 ]
             }
         ],
@@ -175,11 +178,9 @@
             {
                 "description": "fetchOrders",
                 "method": "fetchOrders",
-                "url": "https://api.testnet.paradex.trade/v1/system/config",
+                "url": "https://api.testnet.paradex.trade/v1/orders-history?market=BTC-USD-PERP",
                 "input": [
-                    "BTC/USD:USDC",
-                    null,
-                    1
+                  "BTC/USD:USDC"
                 ]
             }
         ],
@@ -187,11 +188,9 @@
             {
                 "description": "fetchOpenOrders",
                 "method": "fetchOpenOrders",
-                "url": "https://api.testnet.paradex.trade/v1/system/config",
+                "url": "https://api.testnet.paradex.trade/v1/orders?market=SOL-USD-PERP",
                 "input": [
-                    "BTC/USD:USDC",
-                    null,
-                    1
+                  "SOL/USD:USDC"
                 ]
             }
         ],
@@ -199,7 +198,7 @@
             {
                 "description": "fetchBalance",
                 "method": "fetchBalance",
-                "url": "https://api.testnet.paradex.trade/v1/system/config",
+                "url": "https://api.testnet.paradex.trade/v1/balance?",
                 "input": []
             }
         ],
@@ -207,9 +206,9 @@
             {
                 "description": "fetchMyTrades",
                 "method": "fetchMyTrades",
-                "url": "https://api.testnet.paradex.trade/v1/system/config",
+                "url": "https://api.testnet.paradex.trade/v1/fills?market=SOL-USD-PERP",
                 "input": [
-                    "BTC/USD:USDC"
+                  "SOL/USD:USDC"
                 ]
             }
         ],
@@ -217,9 +216,9 @@
             {
                 "description": "fetchPosition",
                 "method": "fetchPosition",
-                "url": "https://api.testnet.paradex.trade/v1/system/config",
+                "url": "https://api.testnet.paradex.trade/v1/positions?",
                 "input": [
-                    "BTC/USD:USDC"
+                  "SOL/USD:USDC"
                 ]
             }
         ],
@@ -227,42 +226,32 @@
             {
                 "description": "fetchPositions",
                 "method": "fetchPositions",
-                "url": "https://api.testnet.paradex.trade/v1/system/config",
-                "input": [
-                    [
-                        "BTC/USD:USDC"
-                    ]
-                ]
+                "url": "https://api.testnet.paradex.trade/v1/positions?",
+                "input": []
             }
         ],
         "fetchLiquidations": [
             {
                 "description": "fetchLiquidations",
                 "method": "fetchLiquidations",
-                "url": "https://api.testnet.paradex.trade/v1/system/config",
-                "input": [
-                    "BTC/USD:USDC"
-                ]
+                "url": "https://api.testnet.paradex.trade/v1/liquidations?from=1",
+                "input": []
             }
         ],
         "fetchDeposits": [
             {
                 "description": "fetchDeposits",
                 "method": "fetchDeposits",
-                "url": "https://api.testnet.paradex.trade/v1/system/config",
-                "input": [
-                    "USDC"
-                ]
+                "url": "https://api.testnet.paradex.trade/v1/transfers?",
+                "input": []
             }
         ],
         "fetchWithdrawals": [
             {
                 "description": "fetchWithdrawals",
                 "method": "fetchWithdrawals",
-                "url": "https://api.testnet.paradex.trade/v1/system/config",
-                "input": [
-                    "USDC"
-                ]
+                "url": "https://api.testnet.paradex.trade/v1/transfers?",
+                "input": []
             }
         ]
     }
