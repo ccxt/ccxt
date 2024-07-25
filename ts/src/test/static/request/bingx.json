@@ -1214,6 +1214,15 @@
                     "1755603500760301568",
                     "LTC/USDT"
                 ]
+            },
+            {
+                "description": "Inverse swap fetch order",
+                "method": "fetchOrder",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/orderDetail?orderId=1816342420721254400&symbol=SOL-USD&timestamp=1721884780520&signature=4523f7d1eac99df0343592a6cb8ab185bf46c42ce63541c47b29b091bbc3c794",
+                "input": [
+                  "1816342420721254400",
+                  "SOL/USD:SOL"
+                ]
             }
         ],
         "fetchPositionMode": [
