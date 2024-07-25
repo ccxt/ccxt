@@ -131,14 +131,6 @@
                     "BTC/USDT:USDT"
                 ]
             }
-        ],
-        "fetchBalance": [
-            {
-                "description": "Fetch balance",
-                "method": "fetchBalance",
-                "url": "https://api-glb.hashkey.com/api/v1/account?timestamp=1721913373782&signature=519761ef010067dd46a7326ac733c6cf17c4590a567acbd211a42b64b568483e",
-                "input": []
-            }
         ]
     }
 }
