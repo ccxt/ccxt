@@ -4,7 +4,7 @@
 import Exchange from './abstract/hashkey.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Bool, Currencies, Dict, Int, Market, OHLCV, OrderBook, Str, Ticker, Trade } from './base/types.js';
+import type { Balances, Bool, Currencies, Dict, LastPrice, LastPrices, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -218,6 +218,7 @@ export default class hashkey extends Exchange {
             },
             'fees': {
                 'trading': {
+                    // todo add swap fees
                     'tierBased': true,
                     'percentage': true,
                     'maker': this.parseNumber ('0.0012'),
@@ -298,7 +299,7 @@ export default class hashkey extends Exchange {
         });
     }
 
-    async fetchTime (params = {}) {
+    async fetchTime (params = {}): Promise<Int> {
         /**
          * @method
          * @name hashkey#fetchTime
@@ -1131,6 +1132,51 @@ export default class hashkey extends Exchange {
             'quoteVolume': this.safeString (ticker, 'qv'),
             'info': ticker,
         }, market);
+    }
+
+    async fetchLastPrices (symbols: Strings = undefined, params = {}): Promise<LastPrices> {
+        /**
+         * @method
+         * @name hashkey#fetchLastPrices
+         * @description fetches the last price for multiple markets
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-symbol-price-ticker
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the last prices
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.symbol] the id of the market to fetch last price for
+         * @returns {object} a dictionary of lastprices structures
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const request: Dict = {};
+        let symbol: Str = undefined;
+        [ symbol, params ] = this.handleOptionAndParams (params, 'fetchLastPrices', 'symbol');
+        if (symbol !== undefined) {
+            request['symbol'] = symbol;
+        }
+        const response = await this.publicGetQuoteV1TickerPrice (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "s": "BTCUSDT-PERPETUAL",
+        //             "p": "64871"
+        //         },
+        //         ...
+        //     ]
+        //
+        return this.parseLastPrices (response, symbols);
+    }
+
+    parseLastPrice (entry, market: Market = undefined): LastPrice {
+        const marketId = this.safeString (entry, 's'); // todo check fetchLastPrices() could return more markets than fetchMarkets()
+        market = this.safeMarket (marketId, market);
+        return {
+            'symbol': market['symbol'],
+            'timestamp': undefined,
+            'datetime': undefined,
+            'price': this.safeNumber (entry, 'p'),
+            'side': undefined,
+            'info': entry,
+        };
     }
 
     async fetchBalance (params = {}): Promise<Balances> {
