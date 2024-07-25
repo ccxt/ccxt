@@ -364,55 +364,6 @@
                     }
                 }
             }
-        ],
-        "fetchBalance": [
-            {
-                "description": "Fetch balance",
-                "method": "fetchBalance",
-                "input": [],
-                "httpResponse": {
-                    "balances": [
-                        {
-                            "asset": "USDT",
-                            "assetId": "USDT",
-                            "assetName": "USDT",
-                            "total": "40",
-                            "free": "40",
-                            "locked": "0"
-                        }
-                    ],
-                    "userId": "1732885739572845312"
-                },
-                "parsedResponse": {
-                    "info": {
-                        "balances": [
-                            {
-                                "asset": "USDT",
-                                "assetId": "USDT",
-                                "assetName": "USDT",
-                                "total": "40",
-                                "free": "40",
-                                "locked": "0"
-                            }
-                        ],
-                        "userId": "1732885739572845312"
-                    },
-                    "USDT": {
-                        "free": 40,
-                        "used": 0,
-                        "total": 40
-                    },
-                    "free": {
-                        "USDT": 40
-                    },
-                    "used": {
-                        "USDT": 0
-                    },
-                    "total": {
-                        "USDT": 40
-                    }
-                }
-            }
         ]
     }
 }
