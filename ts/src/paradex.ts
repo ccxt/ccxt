@@ -979,10 +979,10 @@ export default class paradex extends Exchange {
             ],
         };
         const msg = this.starknetEncodeStructuredData (domain, messageTypes, req, account['address']);
-        const signature = this.starknetSign (msg, account['pri']);
+        const signature = this.starknetSign (msg, account['privateKey']);
         params['signature'] = signature;
         params['account'] = account['address'];
-        params['public_key'] = account['pub'];
+        params['public_key'] = account['publicKey'];
         const response = await this.privatePostOnboarding (params);
         return response;
     }
@@ -1012,7 +1012,7 @@ export default class paradex extends Exchange {
             ],
         };
         const msg = this.starknetEncodeStructuredData (domain, messageTypes, req, account['address']);
-        const signature = this.starknetSign (msg, account['pri']);
+        const signature = this.starknetSign (msg, account['privateKey']);
         params['signature'] = signature;
         params['account'] = account['address'];
         params['timestamp'] = req['timestamp'];
@@ -1232,7 +1232,7 @@ export default class paradex extends Exchange {
             ],
         };
         const msg = this.starknetEncodeStructuredData (domain, messageTypes, orderReq, account['address']);
-        const signature = this.starknetSign (msg, account['pri']);
+        const signature = this.starknetSign (msg, account['privateKey']);
         request['signature'] = signature;
         request['signature_timestamp'] = orderReq['timestamp'];
         const response = await this.privatePostOrders (this.extend (request, params));

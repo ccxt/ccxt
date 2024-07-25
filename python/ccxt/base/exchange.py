@@ -1396,8 +1396,8 @@ class Exchange(object):
 
     @staticmethod
     def retrieve_stark_account (signature, accountClassHash, accountProxyClassHash):
-        privKey = get_private_key_from_eth_signature(signature)
-        publicKey = private_to_stark_key(privKey)
+        privateKey = get_private_key_from_eth_signature(signature)
+        publicKey = private_to_stark_key(privateKey)
         calldata = [
             int(accountClassHash, 16),
             get_selector_from_name("initialize"),
@@ -1412,8 +1412,8 @@ class Exchange(object):
             salt=publicKey,
         )
         return {
-            'pri': privKey,
-            'pub': publicKey,
+            'privateKey': privateKey,
+            'publicKey': publicKey,
             'address': hex(address)
         }
 

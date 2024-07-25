@@ -1778,28 +1778,28 @@ export default class Exchange {
     }
 
     retrieveStarkAccount (signature, accountClassHash, accountProxyClassHash) {
-        const pri = ethSigToPrivate (signature)
-        const pub = getStarkKey (pri)
+        const privateKey = ethSigToPrivate (signature);
+        const publicKey = getStarkKey (privateKey);
         const callData = Starknet.CallData.compile({
             implementation: accountClassHash,
             selector: Starknet.hash.getSelectorFromName('initialize'),
             calldata: Starknet.CallData.compile({
-              signer: pub,
+              signer: publicKey,
               guardian: '0',
             }),
         });
         
         const address = Starknet.hash.calculateContractAddressFromHash(
-            pub,
+            publicKey,
             accountProxyClassHash,
             callData,
             0,
         );
         return {
-            pri,
-            pub,
+            privateKey,
+            publicKey,
             address
-        }
+        };
     }
 
     starknetEncodeStructuredData (domain, messageTypes, messageData, address) {
