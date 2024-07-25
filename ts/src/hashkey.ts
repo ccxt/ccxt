@@ -251,7 +251,7 @@ export default class hashkey extends Exchange {
                 },
             },
             'options': {
-                'recvWindow': undefined,
+                'recvWindow': undefined, // default 5000
                 'sandboxMode': false,
                 'networks': {
                     'BTC': 'BTC',
@@ -286,7 +286,7 @@ export default class hashkey extends Exchange {
                     'zkSync': 'zkSync', // todo check
                     'TRC20': 'TRC20',
                     'TON': 'TON', // todo check
-                    'BSC(BEP20)': 'BSC',
+                    'BSC(BEP20)': 'BEP20',
                     'Klaytn': 'Klaytn', // todo check
                 },
             },
