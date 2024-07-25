@@ -1179,10 +1179,6 @@ class NewTranspiler {
 
         for (const testName of baseFunctionTests) {
             const tsFile = baseFolders.ts + testName + '.ts';
-            if (testName.includes ('tests.init.')) {
-                continue;
-            }
-                
             const csFileName = this.capitalize(testName.replace ('test.', ''));
             const csharpFile = `${outDir}/${csFileName}.cs`;
 

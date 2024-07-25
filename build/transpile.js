@@ -1984,9 +1984,6 @@ class Transpiler {
         for (const testName of baseFunctionTests) {
             const unCamelCasedFileName = this.uncamelcaseName(testName);
             const tsFile = baseFolders.ts + testName + '.ts';
-            if (testName.includes ('tests.init.')) {
-                continue;
-            }
             const test = {
                 base: true,
                 name: testName,
