@@ -85,24 +85,6 @@
                 ]
             }
         ],
-        "fetchTicker": [
-            {
-                "description": "Spot fetch ticker",
-                "method": "fetchTicker",
-                "url": "https://api.ox.fun/v3/tickers?marketCode=ETH-USDT",
-                "input": [
-                    "ETH/USDT"
-                ]
-            },
-            {
-                "description": "Swap fetch ticker",
-                "method": "fetchTicker",
-                "url": "https://api.ox.fun/v3/tickers?marketCode=ETH-USD-SWAP-LIN",
-                "input": [
-                    "ETH/USD:OX"
-                ]
-            }
-        ],
         "fetchOHLCV": [
             {
                 "description": "Spot fetch candles",
