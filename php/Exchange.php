@@ -1399,8 +1399,8 @@ class Exchange {
     }
 
     public function retrieve_stark_account($signature, $accountClassHash, $accountProxyClassHash) {
-        $privKey = Key::ethSigToPrivate($signature);
-        $publicKey = Key::getStarkKey($privKey);
+        $privateKey = Key::ethSigToPrivate($signature);
+        $publicKey = Key::getStarkKey($privateKey);
         $calldata = [
             $accountClassHash,
             Hash::getSelectorFromName("initialize"),
@@ -1415,8 +1415,8 @@ class Exchange {
             $publicKey,
         );
         return [
-            'pri' => $privKey,
-            'pub' => $publicKey,
+            'privateKey' => $privateKey,
+            'publicKey' => $publicKey,
             'address' => $address
         ];
     }
