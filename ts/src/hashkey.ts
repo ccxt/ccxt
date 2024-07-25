@@ -291,6 +291,7 @@ export default class hashkey extends Exchange {
             'exceptions': {
                 'exact': {
                     // {"code":-100012,"msg":"Parameter symbol [String] missing!"}
+                    // {"code":"0211","msg":"Order not found"}
                 },
                 'broad': {
                 },
@@ -1246,25 +1247,35 @@ export default class hashkey extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api];
-        let query = this.omit (params, this.extractParams (path));
-        const endpoint = this.implodeParams (path, params);
-        url = url + '/' + endpoint;
-        query = this.urlencode (query);
-        if (query.length !== 0) {
-            url += '?' + query;
-        }
+        let url = this.urls['api'][api] + '/' + path;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ();
-            let data = this.extend ({ 'recvWindow': this.options['recvWindow'], 'timestamp': timestamp }, params);
-            data = this.keysort (data);
-            const signature = this.hmac (this.encode (this.urlencode (data)), this.encode (this.secret), sha256);
-            url += '?' + this.urlencode (data);
-            url += '&' + 'signature=' + signature;
+            const additionalParams = {
+                'timestamp': timestamp,
+            };
+            const recvWindow = this.safeInteger (this.options, 'recvWindow');
+            if (recvWindow !== undefined) {
+                additionalParams['recvWindow'] = recvWindow;
+            }
+            const totalParams = this.extend (additionalParams, params);
+            const signature = this.hmac (this.encode (this.urlencode (totalParams)), this.encode (this.secret), sha256);
+            totalParams['signature'] = signature;
+            const totalParamsString = this.urlencode (totalParams);
+            if (method === 'GET') {
+                url += '?' + totalParamsString;
+            } else {
+                body = totalParamsString;
+            }
             headers = {
                 'X-HK-APIKEY': this.apiKey,
+                'Content-Type': 'application/x-www-form-urlencoded',
             };
+        } else {
+            const query = this.urlencode (params);
+            if (query.length !== 0) {
+                url += '?' + query;
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
