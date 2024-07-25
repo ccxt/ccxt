@@ -2842,8 +2842,7 @@ class bingx(Exchange, ImplicitAPI):
         #        "clientOrderID": ""
         #    }
         #
-        # inverse swap cancelAllOrders, cancelOrder
-        # inverse swap cancelAllOrders, cancelOrder, fetchOpenOrders
+        # inverse swap cancelAllOrders, cancelOrder, fetchOrder, fetchOpenOrders
         #
         #     {
         #         "symbol": "SOL-USD",
@@ -3400,11 +3399,12 @@ class bingx(Exchange, ImplicitAPI):
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
-        :see: https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Orders
-        :see: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20Order
+        :see: https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20details
+        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20details
+        :see: https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
@@ -3414,66 +3414,120 @@ class bingx(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'orderId': id,
         }
+        type = None
+        subType = None
         response = None
-        marketType, query = self.handle_market_type_and_params('fetchOrder', market, params)
-        if marketType == 'spot':
-            response = await self.spotV1PrivateGetTradeQuery(self.extend(request, query))
+        type, params = self.handle_market_type_and_params('fetchOrder', market, params)
+        subType, params = self.handle_sub_type_and_params('fetchOrder', market, params)
+        if type == 'spot':
+            response = await self.spotV1PrivateGetTradeQuery(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "data": {
+            #             "symbol": "XRP-USDT",
+            #             "orderId": 1514087361158316032,
+            #             "price": "0.5",
+            #             "origQty": "10",
+            #             "executedQty": "0",
+            #             "cummulativeQuoteQty": "0",
+            #             "status": "CANCELED",
+            #             "type": "LIMIT",
+            #             "side": "BUY",
+            #             "time": 1649821532000,
+            #             "updateTime": 1649821543000,
+            #             "origQuoteOrderQty": "0",
+            #             "fee": "0",
+            #             "feeAsset": "XRP"
+            #         }
+            #     }
+            #
         else:
-            response = await self.swapV2PrivateGetTradeOrder(self.extend(request, query))
-        #
-        # spot
-        #
-        #     {
-        #         "code": 0,
-        #         "msg": "",
-        #         "data": {
-        #             "symbol": "XRP-USDT",
-        #             "orderId": 1514087361158316032,
-        #             "price": "0.5",
-        #             "origQty": "10",
-        #             "executedQty": "0",
-        #             "cummulativeQuoteQty": "0",
-        #             "status": "CANCELED",
-        #             "type": "LIMIT",
-        #             "side": "BUY",
-        #             "time": 1649821532000,
-        #             "updateTime": 1649821543000,
-        #             "origQuoteOrderQty": "0",
-        #             "fee": "0",
-        #             "feeAsset": "XRP"
-        #         }
-        #     }
-        #
-        # swap
-        #
-        #      {
-        #          "code": 0,
-        #          "msg": "",
-        #          "data": {
-        #            "order": {
-        #              "symbol": "BTC-USDT",
-        #              "orderId": 1597597642269917184,
-        #              "side": "SELL",
-        #              "positionSide": "LONG",
-        #              "type": "TAKE_PROFIT_MARKET",
-        #              "origQty": "1.0000",
-        #              "price": "0.0",
-        #              "executedQty": "0.0000",
-        #              "avgPrice": "0.0",
-        #              "cumQuote": "",
-        #              "stopPrice": "16494.0",
-        #              "profit": "",
-        #              "commission": "",
-        #              "status": "FILLED",
-        #              "time": 1669731935000,
-        #              "updateTime": 1669752524000
-        #            }
-        #          }
-        #      }
-        #
-        data = self.safe_value(response, 'data')
-        first = self.safe_dict(data, 'order', data)
-        return self.parse_order(first, market)
+            if subType == 'inverse':
+                response = await self.cswapV1PrivateGetTradeOrderDetail(self.extend(request, params))
+                #
+                #     {
+                #         "code": 0,
+                #         "msg": "",
+                #         "data": {
+                #             "order": {
+                #                 "symbol": "SOL-USD",
+                #                 "orderId": "1816342420721254400",
+                #                 "side": "BUY",
+                #                 "positionSide": "Long",
+                #                 "type": "LIMIT",
+                #                 "quantity": 1,
+                #                 "origQty": "",
+                #                 "price": "150",
+                #                 "executedQty": "0",
+                #                 "avgPrice": "0.000",
+                #                 "cumQuote": "",
+                #                 "stopPrice": "",
+                #                 "profit": "0.0000",
+                #                 "commission": "0.0000",
+                #                 "status": "Pending",
+                #                 "time": 1721884753767,
+                #                 "updateTime": 1721884753786,
+                #                 "clientOrderId": "",
+                #                 "leverage": "",
+                #                 "takeProfit": {
+                #                     "type": "TAKE_PROFIT",
+                #                     "quantity": 0,
+                #                     "stopPrice": 0,
+                #                     "price": 0,
+                #                     "workingType": "MARK_PRICE",
+                #                     "stopGuaranteed": ""
+                #                 },
+                #                 "stopLoss": {
+                #                     "type": "STOP",
+                #                     "quantity": 0,
+                #                     "stopPrice": 0,
+                #                     "price": 0,
+                #                     "workingType": "MARK_PRICE",
+                #                     "stopGuaranteed": ""
+                #                 },
+                #                 "advanceAttr": 0,
+                #                 "positionID": 0,
+                #                 "takeProfitEntrustPrice": 0,
+                #                 "stopLossEntrustPrice": 0,
+                #                 "orderType": "",
+                #                 "workingType": "MARK_PRICE"
+                #             }
+                #         }
+                #     }
+                #
+            else:
+                response = await self.swapV2PrivateGetTradeOrder(self.extend(request, params))
+                #
+                #     {
+                #         "code": 0,
+                #         "msg": "",
+                #         "data": {
+                #             "order": {
+                #                 "symbol": "BTC-USDT",
+                #                 "orderId": 1597597642269917184,
+                #                 "side": "SELL",
+                #                 "positionSide": "LONG",
+                #                 "type": "TAKE_PROFIT_MARKET",
+                #                 "origQty": "1.0000",
+                #                 "price": "0.0",
+                #                 "executedQty": "0.0000",
+                #                 "avgPrice": "0.0",
+                #                 "cumQuote": "",
+                #                 "stopPrice": "16494.0",
+                #                 "profit": "",
+                #                 "commission": "",
+                #                 "status": "FILLED",
+                #                 "time": 1669731935000,
+                #                 "updateTime": 1669752524000
+                #             }
+                #         }
+                #     }
+                #
+        data = self.safe_dict(response, 'data', {})
+        order = self.safe_dict(data, 'order', data)
+        return self.parse_order(order, market)
 
     async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """

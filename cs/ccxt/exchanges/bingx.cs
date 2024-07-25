@@ -3021,8 +3021,7 @@ public partial class bingx : Exchange
         //        "clientOrderID": ""
         //    }
         //
-        // inverse swap cancelAllOrders, cancelOrder
-        // inverse swap cancelAllOrders, cancelOrder, fetchOpenOrders
+        // inverse swap cancelAllOrders, cancelOrder, fetchOrder, fetchOpenOrders
         //
         //     {
         //         "symbol": "SOL-USD",
@@ -3516,11 +3515,12 @@ public partial class bingx : Exchange
         * @method
         * @name bingx#fetchOrder
         * @description fetches information on an order made by the user
-        * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Orders
-        * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20Order
+        * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20details
+        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20details
+        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -3533,71 +3533,31 @@ public partial class bingx : Exchange
             { "symbol", getValue(market, "id") },
             { "orderId", id },
         };
+        object type = null;
+        object subType = null;
         object response = null;
-        var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
-        var marketType = ((IList<object>) marketTypequeryVariable)[0];
-        var query = ((IList<object>) marketTypequeryVariable)[1];
-        if (isTrue(isEqual(marketType, "spot")))
+        var typeparametersVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
+        type = ((IList<object>)typeparametersVariable)[0];
+        parameters = ((IList<object>)typeparametersVariable)[1];
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOrder", market, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        if (isTrue(isEqual(type, "spot")))
         {
-            response = await this.spotV1PrivateGetTradeQuery(this.extend(request, query));
+            response = await this.spotV1PrivateGetTradeQuery(this.extend(request, parameters));
         } else
         {
-            response = await this.swapV2PrivateGetTradeOrder(this.extend(request, query));
+            if (isTrue(isEqual(subType, "inverse")))
+            {
+                response = await this.cswapV1PrivateGetTradeOrderDetail(this.extend(request, parameters));
+            } else
+            {
+                response = await this.swapV2PrivateGetTradeOrder(this.extend(request, parameters));
+            }
         }
-        //
-        // spot
-        //
-        //     {
-        //         "code": 0,
-        //         "msg": "",
-        //         "data": {
-        //             "symbol": "XRP-USDT",
-        //             "orderId": 1514087361158316032,
-        //             "price": "0.5",
-        //             "origQty": "10",
-        //             "executedQty": "0",
-        //             "cummulativeQuoteQty": "0",
-        //             "status": "CANCELED",
-        //             "type": "LIMIT",
-        //             "side": "BUY",
-        //             "time": 1649821532000,
-        //             "updateTime": 1649821543000,
-        //             "origQuoteOrderQty": "0",
-        //             "fee": "0",
-        //             "feeAsset": "XRP"
-        //         }
-        //     }
-        //
-        // swap
-        //
-        //      {
-        //          "code": 0,
-        //          "msg": "",
-        //          "data": {
-        //            "order": {
-        //              "symbol": "BTC-USDT",
-        //              "orderId": 1597597642269917184,
-        //              "side": "SELL",
-        //              "positionSide": "LONG",
-        //              "type": "TAKE_PROFIT_MARKET",
-        //              "origQty": "1.0000",
-        //              "price": "0.0",
-        //              "executedQty": "0.0000",
-        //              "avgPrice": "0.0",
-        //              "cumQuote": "",
-        //              "stopPrice": "16494.0",
-        //              "profit": "",
-        //              "commission": "",
-        //              "status": "FILLED",
-        //              "time": 1669731935000,
-        //              "updateTime": 1669752524000
-        //            }
-        //          }
-        //      }
-        //
-        object data = this.safeValue(response, "data");
-        object first = this.safeDict(data, "order", data);
-        return this.parseOrder(first, market);
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object order = this.safeDict(data, "order", data);
+        return this.parseOrder(order, market);
     }
 
     public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)

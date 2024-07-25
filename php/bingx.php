@@ -2957,8 +2957,7 @@ class bingx extends Exchange {
         //        "clientOrderID" => ""
         //    }
         //
-        // inverse swap cancelAllOrders, cancelOrder
-        // inverse swap cancelAllOrders, cancelOrder, fetchOpenOrders
+        // inverse swap cancelAllOrders, cancelOrder, fetchOrder, fetchOpenOrders
         //
         //     {
         //         "symbol" => "SOL-USD",
@@ -3547,12 +3546,13 @@ class bingx extends Exchange {
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
         /**
-         * fetches information on an order made by the user
-         * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Orders
-         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20Order
-         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * fetches information on an $order made by the user
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20details
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20details
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order
+         * @param {string} $symbol unified $symbol of the $market the $order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
@@ -3563,67 +3563,122 @@ class bingx extends Exchange {
             'symbol' => $market['id'],
             'orderId' => $id,
         );
+        $type = null;
+        $subType = null;
         $response = null;
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
-        if ($marketType === 'spot') {
-            $response = $this->spotV1PrivateGetTradeQuery ($this->extend($request, $query));
+        list($type, $params) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchOrder', $market, $params);
+        if ($type === 'spot') {
+            $response = $this->spotV1PrivateGetTradeQuery ($this->extend($request, $params));
+            //
+            //     {
+            //         "code" => 0,
+            //         "msg" => "",
+            //         "data" => {
+            //             "symbol" => "XRP-USDT",
+            //             "orderId" => 1514087361158316032,
+            //             "price" => "0.5",
+            //             "origQty" => "10",
+            //             "executedQty" => "0",
+            //             "cummulativeQuoteQty" => "0",
+            //             "status" => "CANCELED",
+            //             "type" => "LIMIT",
+            //             "side" => "BUY",
+            //             "time" => 1649821532000,
+            //             "updateTime" => 1649821543000,
+            //             "origQuoteOrderQty" => "0",
+            //             "fee" => "0",
+            //             "feeAsset" => "XRP"
+            //         }
+            //     }
+            //
         } else {
-            $response = $this->swapV2PrivateGetTradeOrder ($this->extend($request, $query));
+            if ($subType === 'inverse') {
+                $response = $this->cswapV1PrivateGetTradeOrderDetail ($this->extend($request, $params));
+                //
+                //     {
+                //         "code" => 0,
+                //         "msg" => "",
+                //         "data" => {
+                //             "order" => {
+                //                 "symbol" => "SOL-USD",
+                //                 "orderId" => "1816342420721254400",
+                //                 "side" => "BUY",
+                //                 "positionSide" => "Long",
+                //                 "type" => "LIMIT",
+                //                 "quantity" => 1,
+                //                 "origQty" => "",
+                //                 "price" => "150",
+                //                 "executedQty" => "0",
+                //                 "avgPrice" => "0.000",
+                //                 "cumQuote" => "",
+                //                 "stopPrice" => "",
+                //                 "profit" => "0.0000",
+                //                 "commission" => "0.0000",
+                //                 "status" => "Pending",
+                //                 "time" => 1721884753767,
+                //                 "updateTime" => 1721884753786,
+                //                 "clientOrderId" => "",
+                //                 "leverage" => "",
+                //                 "takeProfit" => array(
+                //                     "type" => "TAKE_PROFIT",
+                //                     "quantity" => 0,
+                //                     "stopPrice" => 0,
+                //                     "price" => 0,
+                //                     "workingType" => "MARK_PRICE",
+                //                     "stopGuaranteed" => ""
+                //                 ),
+                //                 "stopLoss" => array(
+                //                     "type" => "STOP",
+                //                     "quantity" => 0,
+                //                     "stopPrice" => 0,
+                //                     "price" => 0,
+                //                     "workingType" => "MARK_PRICE",
+                //                     "stopGuaranteed" => ""
+                //                 ),
+                //                 "advanceAttr" => 0,
+                //                 "positionID" => 0,
+                //                 "takeProfitEntrustPrice" => 0,
+                //                 "stopLossEntrustPrice" => 0,
+                //                 "orderType" => "",
+                //                 "workingType" => "MARK_PRICE"
+                //             }
+                //         }
+                //     }
+                //
+            } else {
+                $response = $this->swapV2PrivateGetTradeOrder ($this->extend($request, $params));
+                //
+                //     {
+                //         "code" => 0,
+                //         "msg" => "",
+                //         "data" => {
+                //             "order" => {
+                //                 "symbol" => "BTC-USDT",
+                //                 "orderId" => 1597597642269917184,
+                //                 "side" => "SELL",
+                //                 "positionSide" => "LONG",
+                //                 "type" => "TAKE_PROFIT_MARKET",
+                //                 "origQty" => "1.0000",
+                //                 "price" => "0.0",
+                //                 "executedQty" => "0.0000",
+                //                 "avgPrice" => "0.0",
+                //                 "cumQuote" => "",
+                //                 "stopPrice" => "16494.0",
+                //                 "profit" => "",
+                //                 "commission" => "",
+                //                 "status" => "FILLED",
+                //                 "time" => 1669731935000,
+                //                 "updateTime" => 1669752524000
+                //             }
+                //         }
+                //     }
+                //
+            }
         }
-        //
-        // spot
-        //
-        //     {
-        //         "code" => 0,
-        //         "msg" => "",
-        //         "data" => {
-        //             "symbol" => "XRP-USDT",
-        //             "orderId" => 1514087361158316032,
-        //             "price" => "0.5",
-        //             "origQty" => "10",
-        //             "executedQty" => "0",
-        //             "cummulativeQuoteQty" => "0",
-        //             "status" => "CANCELED",
-        //             "type" => "LIMIT",
-        //             "side" => "BUY",
-        //             "time" => 1649821532000,
-        //             "updateTime" => 1649821543000,
-        //             "origQuoteOrderQty" => "0",
-        //             "fee" => "0",
-        //             "feeAsset" => "XRP"
-        //         }
-        //     }
-        //
-        // swap
-        //
-        //      {
-        //          "code" => 0,
-        //          "msg" => "",
-        //          "data" => {
-        //            "order" => {
-        //              "symbol" => "BTC-USDT",
-        //              "orderId" => 1597597642269917184,
-        //              "side" => "SELL",
-        //              "positionSide" => "LONG",
-        //              "type" => "TAKE_PROFIT_MARKET",
-        //              "origQty" => "1.0000",
-        //              "price" => "0.0",
-        //              "executedQty" => "0.0000",
-        //              "avgPrice" => "0.0",
-        //              "cumQuote" => "",
-        //              "stopPrice" => "16494.0",
-        //              "profit" => "",
-        //              "commission" => "",
-        //              "status" => "FILLED",
-        //              "time" => 1669731935000,
-        //              "updateTime" => 1669752524000
-        //            }
-        //          }
-        //      }
-        //
-        $data = $this->safe_value($response, 'data');
-        $first = $this->safe_dict($data, 'order', $data);
-        return $this->parse_order($first, $market);
+        $data = $this->safe_dict($response, 'data', array());
+        $order = $this->safe_dict($data, 'order', $data);
+        return $this->parse_order($order, $market);
     }
 
     public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
