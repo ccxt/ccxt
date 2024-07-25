@@ -2318,8 +2318,10 @@ class Exchange {
         if ($value === null) {
             return $defaultValue;
         }
-        if (gettype($value) === 'array') {
-            return $value;
+        if ((gettype($value) === 'array')) {
+            if (gettype($value) !== 'array' || array_keys($value) !== array_keys(array_keys($value))) {
+                return $value;
+            }
         }
         return $defaultValue;
     }
