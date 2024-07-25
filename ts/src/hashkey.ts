@@ -137,12 +137,8 @@ export default class hashkey extends Exchange {
                     'private': 'https://api-glb.sim.hashkeydev.com',
                 },
                 'www': 'https://global.hashkey.com/',
-                'doc': [
-                    'https://hashkeyglobal-apidoc.readme.io/',
-                ],
-                'fees': [
-                    'https://support.global.hashkey.com/hc/en-us/articles/13199900083612-HashKey-Global-Fee-Structure',
-                ],
+                'doc': 'https://hashkeyglobal-apidoc.readme.io/',
+                'fees': 'https://support.global.hashkey.com/hc/en-us/articles/13199900083612-HashKey-Global-Fee-Structure',
                 'referral': {
                 },
             },
@@ -251,7 +247,7 @@ export default class hashkey extends Exchange {
                 },
             },
             'options': {
-                'recvWindow': undefined, // default 5000
+                'recvWindow': undefined,
                 'sandboxMode': false,
                 'networks': {
                     'BTC': 'BTC',
@@ -286,7 +282,7 @@ export default class hashkey extends Exchange {
                     'zkSync': 'zkSync', // todo check
                     'TRC20': 'TRC20',
                     'TON': 'TON', // todo check
-                    'BSC(BEP20)': 'BEP20',
+                    'BSC(BEP20)': 'BSC',
                     'Klaytn': 'Klaytn', // todo check
                 },
             },
