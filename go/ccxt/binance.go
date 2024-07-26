@@ -2337,7 +2337,7 @@ func  (this *binance) CreateExpiredOptionMarket(symbol interface{}) interface{} 
     var optionParts interface{} = Split(symbol, "-")
     var symbolBase interface{} = Split(symbol, "/")
     var base interface{} = nil
-    if IsTrue(IsGreaterThan(GetIndexOf(symbol, "/"), OpNeg(IsTrue(1)))) {
+    if IsTrue(IsGreaterThan(GetIndexOf(symbol, "/"), OpNeg(1))) {
         base = this.SafeString(symbolBase, 0)
     } else {
         base = this.SafeString(optionParts, 0)
@@ -2434,7 +2434,7 @@ func  (this *binance) Market(symbol interface{}) interface{}  {
                 }
             }
             return GetValue(markets, 0)
-        } else if IsTrue(IsTrue((IsGreaterThan(GetIndexOf(symbol, "/"), OpNeg(IsTrue(1))))) && IsTrue((IsLessThan(GetIndexOf(symbol, ":"), 0)))) {
+        } else if IsTrue(IsTrue((IsGreaterThan(GetIndexOf(symbol, "/"), OpNeg(1)))) && IsTrue((IsLessThan(GetIndexOf(symbol, ":"), 0)))) {
             // support legacy symbols
             basequoteVariable := Split(symbol, "/");
             base := GetValue(basequoteVariable,0);
@@ -2444,7 +2444,7 @@ func  (this *binance) Market(symbol interface{}) interface{}  {
             if IsTrue(InOp(this.Markets, futuresSymbol)) {
                 return GetValue(this.Markets, futuresSymbol)
             }
-        } else if IsTrue(IsTrue((IsGreaterThan(GetIndexOf(symbol, "-C"), OpNeg(IsTrue(1))))) || IsTrue((IsGreaterThan(GetIndexOf(symbol, "-P"), OpNeg(IsTrue(1)))))) {
+        } else if IsTrue(IsTrue((IsGreaterThan(GetIndexOf(symbol, "-C"), OpNeg(1)))) || IsTrue((IsGreaterThan(GetIndexOf(symbol, "-P"), OpNeg(1))))) {
             return this.CreateExpiredOptionMarket(symbol)
         }
     }
@@ -2459,7 +2459,7 @@ func  (this *binance) SafeMarket(optionalArgs ...interface{}) interface{}  {
     _ = delimiter
     marketType := GetArg(optionalArgs, 3, nil)
     _ = marketType
-    var isOption interface{} = IsTrue((!IsEqual(marketId, nil))) && IsTrue((IsTrue((IsGreaterThan(GetIndexOf(marketId, "-C"), OpNeg(IsTrue(1))))) || IsTrue((IsGreaterThan(GetIndexOf(marketId, "-P"), OpNeg(IsTrue(1)))))))
+    var isOption interface{} = IsTrue((!IsEqual(marketId, nil))) && IsTrue((IsTrue((IsGreaterThan(GetIndexOf(marketId, "-C"), OpNeg(1)))) || IsTrue((IsGreaterThan(GetIndexOf(marketId, "-P"), OpNeg(1))))))
     if IsTrue(IsTrue(isOption) && !IsTrue((InOp(this.Markets_by_id, marketId)))) {
         // handle expired option contracts
         return this.CreateExpiredOptionMarket(marketId)
@@ -10399,7 +10399,7 @@ func  (this *binance) SetMarginMode(marginMode interface{}, optionalArgs ...inte
                     panic(e)
                 } else {
                     response = map[string]interface{} {
-                        "code": OpNeg(IsTrue(4046)),
+                        "code": OpNeg(4046),
                         "msg": "No need to change margin type.",
                     }
                 }
@@ -11031,7 +11031,7 @@ func  (this *binance) Sign(path interface{}, optionalArgs ...interface{}) interf
             // inject in implicit API calls
             var newClientOrderId interface{} = this.SafeString(params, "newClientOrderId")
             if IsTrue(IsEqual(newClientOrderId, nil)) {
-                var isSpotOrMargin interface{} =                 (IsTrue(IsGreaterThan(GetIndexOf(api, "sapi"), OpNeg(IsTrue(1)))) || IsTrue(IsEqual(api, "private")))
+                var isSpotOrMargin interface{} =                 (IsTrue(IsGreaterThan(GetIndexOf(api, "sapi"), OpNeg(1))) || IsTrue(IsEqual(api, "private")))
                 var marketType interface{} = Ternary(IsTrue(isSpotOrMargin), "spot", "future")
                 var defaultId interface{} = Ternary(IsTrue((!IsTrue(isSpotOrMargin))), "x-xcKtGhcu", "x-R4BD3S82")
                 var broker interface{} = this.SafeDict(this.Options, "broker", map[string]interface{} {})
@@ -11080,7 +11080,7 @@ func  (this *binance) Sign(path interface{}, optionalArgs ...interface{}) interf
             query = this.Urlencode(extendedParams)
         }
         var signature interface{} = nil
-        if IsTrue(IsGreaterThan(GetIndexOf(this.Secret, "PRIVATE KEY"), OpNeg(IsTrue(1)))) {
+        if IsTrue(IsGreaterThan(GetIndexOf(this.Secret, "PRIVATE KEY"), OpNeg(1))) {
             if IsTrue(IsGreaterThan(GetLength(this.Secret), 120)) {
                 signature = this.EncodeURIComponent(Rsa(query, this.Secret, sha256))
             } else {

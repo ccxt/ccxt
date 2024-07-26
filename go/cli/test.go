@@ -3,7 +3,6 @@ package main
 import (
 	"ccxt"
 	"fmt"
-	"os"
 )
 
 func main() {
@@ -15,8 +14,8 @@ func main() {
 	tr := ccxt.IsTrue(t)
 	fmt.Println(t, tr)
 	res := binance.LoadMarkets()
-	binance.ApiKey = os.Getenv("BINANCE_APIKEY")
-	binance.Secret = os.Getenv("BINANCE_SECRET")
+	binance.ApiKey = "z2aSOxQ9qPS0RIxS17ns2zN7UjMVoPF7jvTvpUJmnTlTZoj25GcnHdyPQXeQDJk9"
+	binance.Secret = "X1p9TkTnfbPTmYsbO3eJGI5I338XMmiFCF9AE3U5NxbS5dVZE6qZy8RqWXg1dcGF"
 	order := binance.CreateOrder("BTC/USDT", "limit", "buy", 0.01, 10000)
 	fmt.Println(order)
 	trades := binance.FetchTrades("BTC/USDT")

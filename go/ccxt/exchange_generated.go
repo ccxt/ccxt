@@ -129,7 +129,7 @@ func  (this *Exchange) HandleDelta(bookside interface{}, delta interface{})  {
 }
 func  (this *Exchange) GetCacheIndex(orderbook interface{}, deltas interface{}) interface{}  {
     // return the first index of the cache that can be applied to the orderbook or -1 if not possible
-    return OpNeg(IsTrue(1))
+    return OpNeg(1)
 }
 func  (this *Exchange) FindTimeframe(timeframe interface{}, optionalArgs ...interface{}) interface{}  {
     timeframes := GetArg(optionalArgs, 0, nil)
@@ -339,9 +339,9 @@ func  (this *Exchange) FilterByLimit(array interface{}, optionalArgs ...interfac
                 if IsTrue(IsGreaterThan(limit, arrayLength)) {
                     limit = arrayLength
                 }
-                array = Ternary(IsTrue(ascending), this.ArraySlice(array, 0, limit), this.ArraySlice(array, OpNeg(IsTrue(limit))))
+                array = Ternary(IsTrue(ascending), this.ArraySlice(array, 0, limit), this.ArraySlice(array, OpNeg(limit)))
             } else {
-                array = Ternary(IsTrue(ascending), this.ArraySlice(array, OpNeg(IsTrue(limit))), this.ArraySlice(array, 0, limit))
+                array = Ternary(IsTrue(ascending), this.ArraySlice(array, OpNeg(limit)), this.ArraySlice(array, 0, limit))
             }
         }
     }
@@ -370,7 +370,7 @@ func  (this *Exchange) FilterBySinceLimit(array interface{}, optionalArgs ...int
         }
     }
     if IsTrue(IsTrue(tail) && IsTrue(!IsEqual(limit, nil))) {
-        return this.ArraySlice(result, OpNeg(IsTrue(limit)))
+        return this.ArraySlice(result, OpNeg(limit))
     }
     // if the user provided a 'since' argument
     // we want to limit the result starting from the 'since'
@@ -408,7 +408,7 @@ func  (this *Exchange) FilterByValueSinceLimit(array interface{}, field interfac
         }
     }
     if IsTrue(IsTrue(tail) && IsTrue(!IsEqual(limit, nil))) {
-        return this.ArraySlice(result, OpNeg(IsTrue(limit)))
+        return this.ArraySlice(result, OpNeg(limit))
     }
     return this.FilterByLimit(result, limit, key, sinceIsDefined)
 }
@@ -2844,7 +2844,7 @@ func  (this *Exchange) BuildOHLCVC(trades interface{}, optionalArgs ...interface
         }
         var ohlcv_length interface{} =         GetArrayLength(ohlcvs)
         var candle interface{} = Subtract(ohlcv_length, 1)
-        if IsTrue(IsTrue((IsEqual(candle, OpNeg(IsTrue(1))))) || IsTrue((IsGreaterThanOrEqual(openingTime, this.Sum(GetValue(GetValue(ohlcvs, candle), i_timestamp), ms))))) {
+        if IsTrue(IsTrue((IsEqual(candle, OpNeg(1)))) || IsTrue((IsGreaterThanOrEqual(openingTime, this.Sum(GetValue(GetValue(ohlcvs, candle), i_timestamp), ms))))) {
             // moved to a new timeframe -> create a new candle from opening trade
             AppendToArray(&ohlcvs,[]interface{}{openingTime, GetValue(trade, "price"), GetValue(trade, "price"), GetValue(trade, "price"), GetValue(trade, "price"), GetValue(trade, "amount"), 1})
         } else {
