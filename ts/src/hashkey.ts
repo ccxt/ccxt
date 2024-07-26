@@ -2,9 +2,10 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/hashkey.js';
+import { NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Bool, Currencies, Currency, Dict, LastPrice, LastPrices, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Trade } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, Dict, LastPrice, LastPrices, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -63,7 +64,7 @@ export default class hashkey extends Exchange {
                 'fetchConvertTrade': false,
                 'fetchConvertTradeHistory': false,
                 'fetchCurrencies': true,
-                'fetchDepositAddress': false,
+                'fetchDepositAddress': true,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
@@ -150,7 +151,7 @@ export default class hashkey extends Exchange {
                         'quote/v1/trades': 1, // done
                         'quote/v1/klines': 1, // done
                         'quote/v1/ticker/24hr': 1, // done
-                        'quote/v1/ticker/price': 1,
+                        'quote/v1/ticker/price': 1, // done
                         'quote/v1/ticker/bookTicker': 1,
                         'quote/v1/depth/merged': 1,
                         'quote/v1/markPrice': 1,
@@ -178,7 +179,7 @@ export default class hashkey extends Exchange {
                         'api/v1/futures/commissionRate': 1,
                         'api/v1/futures/getBestOrders': 1,
                         'api/v1/account/vipInfo': 1,
-                        'api/v1/account': 1,
+                        'api/v1/account': 1, // done
                         'api/v1/account/trades': 1,
                         'api/v1/account/types': 1,
                         'api/v1/account/checkApiKey': 1,
@@ -189,7 +190,7 @@ export default class hashkey extends Exchange {
                         'api/v1/futures/subAccount/openOrders': 1,
                         'api/v1/futures/subAccount/historyOrders': 1,
                         'api/v1/futures/subAccount/userTrades': 1,
-                        'api/v1/account/deposit/address': 1,
+                        'api/v1/account/deposit/address': 1, // done
                         'api/v1/account/depositOrders': 1,
                         'api/v1/account/withdrawOrders': 1,
                     },
@@ -197,6 +198,7 @@ export default class hashkey extends Exchange {
                         'api/v1/userDataStream': 1,
                         'api/v1/spot/orderTest': 1,
                         'api/v1/spot/order': 1,
+                        'api/v1.1/spot/order': 1,
                         'api/v1/spot/batchOrders': 1,
                         'api/v1/futures/leverage': 1,
                         'api/v1/futures/order': 1,
@@ -1314,6 +1316,261 @@ export default class hashkey extends Exchange {
             'network': undefined,
             'info': depositAddress,
         };
+    }
+
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name hashkey#createOrder
+         * @description create a trade order
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/test-new-order
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/create-order
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/create-new-futures-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit' or 'LIMIT_MAKER' or 'STOP'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of you want to trade in units of the base currency
+         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+         * @param {boolean} [params.test] *spot only* whether to use the test endpoint or not, default is false
+         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+         * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
+         * @param {string} [params.clientOrderId] a unique id for the order
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['spot']) {
+            return await this.createSpotOrder (symbol, type, side, amount, price, params);
+        } else {
+            throw new NotSupported (this.id + ' createOrder() is not supported for ' + market['type'] + ' markets');
+        }
+    }
+
+    async createSpotOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name hashkey#createSpotOrder
+         * @description create a trade order on spot market
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/test-new-order
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/create-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit' or 'LIMIT_MAKER'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of you want to trade in units of the base currency
+         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
+         * @param {boolean} [params.test] whether to use the test endpoint or not, default is false
+         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+         * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
+         * @param {string} [params.clientOrderId] a unique id for the order
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const isMarketBuy = (type === 'market') && (side === 'buy');
+        const cost = this.safeString (params, 'cost');
+        if ((!isMarketBuy) && (cost !== undefined)) {
+            throw new NotSupported (this.id + ' createOrder() supports cost parameter for spot market buy orders only');
+        }
+        const request: Dict = this.createSpotOrderRequest (symbol, type, side, amount, price, params);
+        let response: NullableDict = undefined;
+        const test = this.safeBool (params, 'test');
+        if (test) {
+            params = this.omit (params, 'test');
+            response = await this.privatePostApiV1SpotOrderTest (request);
+        } else if (isMarketBuy && (cost === undefined)) {
+            response = await this.privatePostApiV11SpotOrder (request); // the endpoint for market buy orders by amount
+            //
+            //     {
+            //         "accountId": "1732885739589466112",
+            //         "symbol": "ETHUSDT",
+            //         "symbolName": "ETHUSDT",
+            //         "clientOrderId": "1722005792096557",
+            //         "orderId": "1738705036219839744",
+            //         "transactTime": "1722005792106",
+            //         "price": "0",
+            //         "origQty": "0.006",
+            //         "executedQty": "0.0059",
+            //         "status": "FILLED",
+            //         "timeInForce": "IOC",
+            //         "type": "MARKET",
+            //         "side": "BUY",
+            //         "reqAmount": "0",
+            //         "concentration": ""
+            //     }
+            //
+        } else {
+            response = await this.privatePostApiV1SpotOrder (request); // the endpoint for market buy orders by cost and other orders
+            //
+            // market buy
+            //     {
+            //         "accountId": "1732885739589466112",
+            //         "symbol": "ETHUSDT",
+            //         "symbolName": "ETHUSDT",
+            //         "clientOrderId": "1722004623170558",
+            //         "orderId": "1738695230608169984",
+            //         "transactTime": "1722004623186",
+            //         "price": "0",
+            //         "origQty": "0",
+            //         "executedQty": "0.0061",
+            //         "status": "FILLED",
+            //         "timeInForce": "IOC",
+            //         "type": "MARKET",
+            //         "side": "BUY",
+            //         "reqAmount": "20",
+            //         "concentration": ""
+            //     }
+            //
+            // market sell
+            //     {
+            //         "accountId": "1732885739589466112",
+            //         "symbol": "ETHUSDT",
+            //         "symbolName": "ETHUSDT",
+            //         "clientOrderId": "1722005654516362",
+            //         "orderId": "1738703882140316928",
+            //         "transactTime": "1722005654529",
+            //         "price": "0",
+            //         "origQty": "0.006",
+            //         "executedQty": "0.006",
+            //         "status": "FILLED",
+            //         "timeInForce": "IOC",
+            //         "type": "MARKET",
+            //         "side": "SELL",
+            //         "reqAmount": "0",
+            //         "concentration": ""
+            //     }
+            //
+            // limit
+            //     {
+            //         "accountId": "1732885739589466112",
+            //         "symbol": "ETHUSDT",
+            //         "symbolName": "ETHUSDT",
+            //         "clientOrderId": "1722006209978370",
+            //         "orderId": "1738708541676585728",
+            //         "transactTime": "1722006209989",
+            //         "price": "5000",
+            //         "origQty": "0.005",
+            //         "executedQty": "0",
+            //         "status": "NEW",
+            //         "timeInForce": "GTC",
+            //         "type": "LIMIT_MAKER",
+            //         "side": "SELL",
+            //         "reqAmount": "0",
+            //         "concentration": ""
+            //     }
+            //
+        }
+        return this.parseOrder (response, market);
+    }
+
+    createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Dict {
+        /**
+         * @method
+         * @ignore
+         * @name hashkey#createSpotOrderRequest
+         * @description helper function to build request
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit' or 'LIMIT_MAKER'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of you want to trade in units of the base currency
+         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
+         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+         * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
+         * @param {string} [params.clientOrderId] a unique id for the order
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        const market = this.market (symbol);
+        type = type.toUpperCase ();
+        const request: Dict = {
+            'symbol': market['id'],
+            'side': side.toUpperCase (),
+            'type': type,
+        };
+        if (amount !== undefined) {
+            request['quantity'] = this.amountToPrecision (symbol, amount);
+        }
+        const cost = this.safeString (params, 'cost');
+        if (cost !== undefined) {
+            params = this.omit (params, 'cost');
+            request['quantity'] = this.costToPrecision (symbol, cost);
+        }
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const isMarketOrder = type === 'MARKET';
+        let postOnly = false;
+        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, type === 'LIMIT_MAKER', params);
+        if (postOnly && (type === 'LIMIT')) {
+            request['type'] = 'LIMIT_MAKER';
+        }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            params['newClientOrderId'] = clientOrderId;
+        }
+        return this.extend (request, params);
+    }
+
+    parseOrder (order: Dict, market: Market = undefined): Order {
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (order, 'transactTime');
+        const status = this.safeString (order, 'status');
+        const type = this.safeString (order, 'type');
+        return this.safeOrder ({
+            'id': this.safeString (order, 'orderId'),
+            'clientOrderId': this.safeString (order, 'clientOrderId'),
+            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': undefined,
+            'status': this.parseOrderStatus (status),
+            'symbol': market['symbol'],
+            'type': this.parseOrderType (type),
+            'timeInForce': this.safeString (order, 'timeInForce'),
+            'side': this.safeStringLower (order, 'side'),
+            'price': this.omitZero (this.safeString (order, 'price')),
+            'average': undefined,
+            'amount': this.omitZero (this.safeString (order, 'origQty')),
+            'filled': this.safeString (order, 'executedQty'),
+            'remaining': undefined,
+            'stopPrice': undefined,
+            'triggerPrice': undefined,
+            'takeProfitPrice': undefined,
+            'stopLossPrice': undefined,
+            'cost': undefined,
+            'trades': undefined,
+            'fee': undefined,
+            'reduceOnly': undefined,
+            'postOnly': type === 'LIMIT_MAKER',
+            'info': order,
+        }, market);
+    }
+
+    parseOrderStatus (status) {
+        const statuses = {
+            'NEW': 'open',
+            'PARTIALLY_FILLED': 'open',
+            'PARTIALLY_CANCELED': 'canceled',
+            'FILLED': 'closed',
+            'CANCELED': 'canceled',
+            'PENDING_CANCEL': 'canceled',
+            'REJECTED': 'rejected',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseOrderType (type) {
+        const types = {
+            'MARKET': 'market',
+            'LIMIT': 'limit',
+            'LIMIT_MAKER': 'limit',
+        };
+        return this.safeString (types, type, type);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
