@@ -10,7 +10,7 @@ import (
 
 const (
 	// TRUNCATE           = 0
-	// ROUND              = 1
+	ROUND      = 1
 	ROUND_UP   = 2
 	ROUND_DOWN = 3
 	// DECIMAL_PLACES     = 2
@@ -105,33 +105,73 @@ func (this *Exchange) PrecisionFromString(str2 interface{}) int {
 }
 
 func (this *Exchange) DecimalToPrecision(value interface{}, roundingMode interface{}, numPrecisionDigits interface{}, args ...interface{}) string {
-	countingMode := GetArg(args, 1, nil)
-	paddingMode := GetArg(args, 2, nil)
+	countingMode := GetArg(args, 0, nil)
+	paddingMode := GetArg(args, 1, nil)
 	return this._decimalToPrecision(value, roundingMode, numPrecisionDigits, countingMode, paddingMode)
 }
 
-func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode interface{}, numPrecisionDigits2 interface{}, countingMode2 interface{}, paddingMode2 interface{}) string {
-	countingMode := countingMode2.(int)
-	paddingMode := paddingMode2.(int)
-	numPrecisionDigits := numPrecisionDigits2.(int)
-	if countingMode == TICK_SIZE {
-		// if numPrecisionDigitsStr, ok := strconv.Itoa(numPrecisionDigits); ok {
-		// 	numPrecisionDigits, _ = strconv.ParseFloat(numPrecisionDigitsStr, 64)
-		// }
-		if numPrecisionDigits <= 0 {
-			return ""
-		}
+func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode2, numPrecisionDigits2 interface{}, countmode2, paddingMode interface{}) string {
+	if countmode2 == nil {
+		countmode2 = DECIMAL_PLACES
 	}
+	if paddingMode == nil {
+		paddingMode = NO_PADDING
+	}
+	countMode := countmode2.(int)
+	roundingMode := roundingMode2.(int)
+	numPrecisionDigits := ToFloat64(numPrecisionDigits2)
+
+	if countMode == TICK_SIZE && numPrecisionDigits < 0 {
+		// return "", errors.New("TICK_SIZE can't be used with negative or zero numPrecisionDigits")
+		panic("TICK_SIZE can't be used with negative or zero numPrecisionDigits")
+	}
+
+	parsedX := x.(float64)
 	if numPrecisionDigits < 0 {
-		toNearest := math.Pow(10, float64(-numPrecisionDigits))
+		toNearest := math.Pow(10, math.Abs(numPrecisionDigits))
 		if roundingMode == ROUND {
-			return this.DecimalToPrecision(x.(float64)/toNearest*toNearest, roundingMode, 0, countingMode, paddingMode)
+			res := this._decimalToPrecision(parsedX/toNearest, roundingMode, 0, countmode2, paddingMode)
+			floatRes, _ := strconv.ParseFloat(res, 64)
+			return fmt.Sprintf("%f", toNearest*floatRes)
 		}
 		if roundingMode == TRUNCATE {
-			return fmt.Sprintf("%v", x.(float64)-math.Mod(x.(float64), toNearest))
+			return fmt.Sprintf("%f", parsedX-(parsedX-math.Mod(parsedX, toNearest)))
 		}
 	}
 
+	// Handle tick size
+	if countMode == TICK_SIZE {
+		precisionDigitsString := this._decimalToPrecision(numPrecisionDigits, ROUND, 22, DECIMAL_PLACES, NO_PADDING)
+		newNumPrecisionDigits := this.PrecisionFromString(precisionDigitsString)
+		missing := math.Mod(parsedX, numPrecisionDigits)
+		missingFloat, _ := strconv.ParseFloat(this._decimalToPrecision(missing, ROUND, 8, DECIMAL_PLACES, NO_PADDING), 64)
+		missing = missingFloat
+		fpError := missing / numPrecisionDigits
+		fpErrorStr := this._decimalToPrecision(fpError, ROUND, math.Max(float64(newNumPrecisionDigits), 8), DECIMAL_PLACES, NO_PADDING)
+		fpErrorResult := this.PrecisionFromString(fpErrorStr)
+		if fpErrorResult != 0 {
+			if roundingMode == ROUND {
+				if parsedX > 0 {
+					if missing >= numPrecisionDigits/2 {
+						parsedX = parsedX - missing + numPrecisionDigits
+					} else {
+						parsedX = parsedX - missing
+					}
+				} else {
+					if missing >= numPrecisionDigits/2 {
+						parsedX = parsedX - missing
+					} else {
+						parsedX = parsedX - missing - numPrecisionDigits
+					}
+				}
+			} else if roundingMode == TRUNCATE {
+				parsedX = parsedX - missing
+			}
+		}
+		return this._decimalToPrecision(parsedX, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode)
+	}
+
+	// Convert to a string (if needed), skip leading minus sign (if any)
 	str := this.NumberToString(x)
 	isNegative := str[0] == '-'
 	strStart := 0
@@ -139,68 +179,87 @@ func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode interface{
 		strStart = 1
 	}
 	strEnd := len(str)
-	var strDot int
-	// hasDot := false
-	for strDot = 0; strDot < strEnd; strDot++ {
-		if str[strDot] == '.' {
-			// hasDot = true
-			break
-		}
+
+	// Find the dot position in the source buffer
+	strDot := strings.Index(str, ".")
+	hasDot := strDot != -1
+
+	// Char code constants
+	MINUS := byte('-')
+	DOT := byte('.')
+	ZERO := byte('0')
+	ONE := byte('1')
+	FIVE := byte('5')
+	NINE := byte('9')
+
+	// For -123.4567 the `chars` array will hold 01234567 (leading zero is reserved for rounding cases when 099 → 100)
+	arraySize := strEnd - strStart
+	if !hasDot {
+		arraySize++
 	}
+	chars := make([]byte, arraySize)
+	chars[0] = ZERO
 
-	chars := make([]uint8, strEnd-strStart)
-	chars[0] = '0'
-
-	afterDot := len(chars)
-	digitsStart, digitsEnd := -1, -1
-	for i, j := 1, strStart; j < strEnd; j, i = j+1, i+1 {
-		c := str[j]
-		if c == '.' {
+	// Validate & copy digits, determine certain locations in the resulting buffer
+	afterDot := arraySize
+	digitsStart := -1
+	digitsEnd := -1
+	for i, j := 1, strStart; j < strEnd; i, j = i+1, j+1 {
+		value := str[j]
+		if value == DOT {
 			afterDot = i
 			i--
+		} else if value < ZERO || value > NINE {
+			panic("invalid number(contains an illegal character")
 		} else {
-			chars[i] = c
-			if c != '0' && digitsStart < 0 {
+			chars[i] = value
+			if value != ZERO && digitsStart < 0 {
 				digitsStart = i
 			}
 		}
 	}
+
 	if digitsStart < 0 {
 		digitsStart = 1
 	}
 
-	precisionStart := afterDot
-	if countingMode == SIGNIFICANT_DIGITS {
-		precisionStart = digitsStart
+	precisionStart := digitsStart
+	if countMode == DECIMAL_PLACES {
+		precisionStart = afterDot + 1
 	}
-	precisionEnd := precisionStart + numPrecisionDigits
+
+	precisionEnd := precisionStart + int(numPrecisionDigits)
+
+	// Reset the last significant digit index, as it will change during the rounding/truncation.
 	digitsEnd = -1
 
 	allZeros := true
 	signNeeded := isNegative
+
 	for i, memo := len(chars)-1, 0; i >= 0; i-- {
 		c := chars[i]
 		if i != 0 {
-			c += uint8(memo)
-			if i >= (precisionStart + numPrecisionDigits) {
-				ceil := (roundingMode == ROUND) && (c >= '5') && !(c == '5' && memo != 0)
+			c += byte(memo)
+			if i >= precisionStart+int(numPrecisionDigits) {
+				ceil := roundingMode == ROUND && c >= FIVE && !(c == FIVE && memo == 1)
 				if ceil {
-					c = '0'
+					c = ZERO
+					memo = 1
 				} else {
-					c = '0'
+					c = ZERO
 				}
 			}
-			if c > '9' {
-				c = '0'
+			if c > NINE {
+				c = ZERO
 				memo = 1
 			} else {
 				memo = 0
 			}
-		} else if memo != 0 {
-			c = '1'
+		} else if memo == 1 {
+			c = ONE
 		}
 		chars[i] = c
-		if c != '0' {
+		if c != ZERO {
 			allZeros = false
 			digitsStart = i
 			if digitsEnd < 0 {
@@ -209,52 +268,213 @@ func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode interface{
 		}
 	}
 
-	if countingMode == SIGNIFICANT_DIGITS {
+	if countMode == SIGNIFICANT_DIGITS {
 		precisionStart = digitsStart
-		precisionEnd = precisionStart + numPrecisionDigits
+		precisionEnd = precisionStart + int(numPrecisionDigits)
 	}
 	if allZeros {
 		signNeeded = false
 	}
 
-	readStart := afterDot - 1
-	if digitsStart < afterDot || !allZeros {
-		readStart = digitsStart
+	readStart := digitsStart
+	if (digitsStart >= afterDot) || allZeros {
+		readStart = afterDot - 1
 	}
-	readEnd := afterDot
-	if digitsEnd >= afterDot {
-		readEnd = digitsEnd
+	readEnd := digitsEnd
+	if digitsEnd < afterDot {
+		readEnd = afterDot
 	}
 
 	nSign := 0
 	if signNeeded {
 		nSign = 1
 	}
-	nBeforeDot := nSign + (afterDot - readStart)
-	nAfterDot := readEnd - afterDot
+	nBeforeDot := nSign + afterDot - readStart
+	nAfterDot := int(math.Max(float64(readEnd-afterDot), 0))
 	actualLength := readEnd - readStart
 	desiredLength := actualLength
-	if paddingMode != NO_PADDING {
+	if paddingMode.(int) != NO_PADDING {
 		desiredLength = precisionEnd - readStart
 	}
-	pad := desiredLength - actualLength
-	// padStart := nBeforeDot + 1 + nAfterDot
-	// padEnd := padStart + pad
+	pad := int(math.Max(float64(desiredLength-actualLength), 0))
+	padStart := nBeforeDot + 1 + nAfterDot
+	padEnd := padStart + pad
 	isInteger := nAfterDot+pad == 0
 
-	out := make([]uint8, nBeforeDot)
-	if !isInteger {
-		out = append(out, '.')
+	offsetInt := 0
+	if isInteger {
+		offsetInt = 0
+	} else {
+		offsetInt = 1
 	}
-	out = append(out, chars[readStart:readEnd]...)
-	for i := 0; i < pad; i++ {
-		out = append(out, '0')
-	}
+	outArray := make([]byte, nBeforeDot+(offsetInt)+nAfterDot+pad)
+
+	// ------------------------------------------------------------------------------------------ // ---------------------
 	if signNeeded {
-		return fmt.Sprintf("-%s", string(out))
+		outArray[0] = MINUS // -     minus sign
 	}
-	return string(out)
+	for i, j := nSign, readStart; i < nBeforeDot; i, j = i+1, j+1 {
+		outArray[i] = chars[j] // 123   before dot
+	}
+	if !isInteger {
+		outArray[nBeforeDot] = DOT // .     dot
+	}
+	for i, j := nBeforeDot+1, afterDot; i < padStart; i, j = i+1, j+1 {
+		outArray[i] = chars[j] // 456   after dot
+	}
+	for i := padStart; i < padEnd; i++ {
+		outArray[i] = ZERO // 000   padding
+	}
+
+	return string(outArray)
 }
+
+// func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode interface{}, numPrecisionDigits2 interface{}, countingMode2 interface{}, paddingMode2 interface{}) string {
+// 	countingMode := countingMode2.(int)
+// 	paddingMode := paddingMode2.(int)
+// 	numPrecisionDigits := numPrecisionDigits2
+// 	floatNumPrecisionDigits := numPrecisionDigits.(float64)
+// 	if countingMode == TICK_SIZE {
+// 		// if numPrecisionDigitsStr, ok := strconv.Itoa(numPrecisionDigits); ok {
+// 		// 	numPrecisionDigits, _ = strconv.ParseFloat(numPrecisionDigitsStr, 64)
+// 		// }
+// 		if numPrecisionDigits.(float64) <= 0 {
+// 			return ""
+// 		}
+// 	}
+// 	if floatNumPrecisionDigits < 0 {
+// 		toNearest := math.Pow(10, float64(-floatNumPrecisionDigits))
+// 		if roundingMode == ROUND {
+// 			return this.DecimalToPrecision(x.(float64)/toNearest*toNearest, roundingMode, 0, countingMode, paddingMode)
+// 		}
+// 		if roundingMode == TRUNCATE {
+// 			return fmt.Sprintf("%v", x.(float64)-math.Mod(x.(float64), toNearest))
+// 		}
+// 	}
+
+// 	str := this.NumberToString(x)
+// 	isNegative := str[0] == '-'
+// 	strStart := 0
+// 	if isNegative {
+// 		strStart = 1
+// 	}
+// 	strEnd := len(str)
+// 	var strDot int
+// 	// hasDot := false
+// 	for strDot = 0; strDot < strEnd; strDot++ {
+// 		if str[strDot] == '.' {
+// 			// hasDot = true
+// 			break
+// 		}
+// 	}
+
+// 	chars := make([]uint8, strEnd-strStart)
+// 	chars[0] = '0'
+
+// 	afterDot := len(chars)
+// 	digitsStart, digitsEnd := -1, -1
+// 	for i, j := 1, strStart; j < strEnd; j, i = j+1, i+1 {
+// 		c := str[j]
+// 		if c == '.' {
+// 			afterDot = i
+// 			i--
+// 		} else {
+// 			chars[i] = c
+// 			if c != '0' && digitsStart < 0 {
+// 				digitsStart = i
+// 			}
+// 		}
+// 	}
+// 	if digitsStart < 0 {
+// 		digitsStart = 1
+// 	}
+
+// 	precisionStart := afterDot
+// 	if countingMode == SIGNIFICANT_DIGITS {
+// 		precisionStart = digitsStart
+// 	}
+// 	precisionEnd := precisionStart + numPrecisionDigits
+// 	digitsEnd = -1
+
+// 	allZeros := true
+// 	signNeeded := isNegative
+// 	for i, memo := len(chars)-1, 0; i >= 0; i-- {
+// 		c := chars[i]
+// 		if i != 0 {
+// 			c += uint8(memo)
+// 			if i >= (precisionStart + numPrecisionDigits) {
+// 				ceil := (roundingMode == ROUND) && (c >= '5') && !(c == '5' && memo != 0)
+// 				if ceil {
+// 					c = '0'
+// 				} else {
+// 					c = '0'
+// 				}
+// 			}
+// 			if c > '9' {
+// 				c = '0'
+// 				memo = 1
+// 			} else {
+// 				memo = 0
+// 			}
+// 		} else if memo != 0 {
+// 			c = '1'
+// 		}
+// 		chars[i] = c
+// 		if c != '0' {
+// 			allZeros = false
+// 			digitsStart = i
+// 			if digitsEnd < 0 {
+// 				digitsEnd = i + 1
+// 			}
+// 		}
+// 	}
+
+// 	if countingMode == SIGNIFICANT_DIGITS {
+// 		precisionStart = digitsStart
+// 		precisionEnd = precisionStart + numPrecisionDigits
+// 	}
+// 	if allZeros {
+// 		signNeeded = false
+// 	}
+
+// 	readStart := afterDot - 1
+// 	if digitsStart < afterDot || !allZeros {
+// 		readStart = digitsStart
+// 	}
+// 	readEnd := afterDot
+// 	if digitsEnd >= afterDot {
+// 		readEnd = digitsEnd
+// 	}
+
+// 	nSign := 0
+// 	if signNeeded {
+// 		nSign = 1
+// 	}
+// 	nBeforeDot := nSign + (afterDot - readStart)
+// 	nAfterDot := readEnd - afterDot
+// 	actualLength := readEnd - readStart
+// 	desiredLength := actualLength
+// 	if paddingMode != NO_PADDING {
+// 		desiredLength = precisionEnd - readStart
+// 	}
+// 	pad := desiredLength - actualLength
+// 	// padStart := nBeforeDot + 1 + nAfterDot
+// 	// padEnd := padStart + pad
+// 	isInteger := nAfterDot+pad == 0
+
+// 	out := make([]uint8, nBeforeDot)
+// 	if !isInteger {
+// 		out = append(out, '.')
+// 	}
+// 	out = append(out, chars[readStart:readEnd]...)
+// 	for i := 0; i < pad; i++ {
+// 		out = append(out, '0')
+// 	}
+// 	if signNeeded {
+// 		return fmt.Sprintf("-%s", string(out))
+// 	}
+// 	return string(out)
+// }
 
 // func (this *Exchange) omitZero(stringNumber string) string {
 // 	if stringNumber == "" {

@@ -9,7 +9,7 @@ func  (this *Exchange) SafeBoolN(dictionaryOrList interface{}, keys interface{},
     * @description safely extract boolean value from dictionary or list
     * @returns {bool | undefined}
     */
-    defaultValue := GetArg(optionalArgs, 1, nil)
+    defaultValue := GetArg(optionalArgs, 0, nil)
     _ = defaultValue
     var value interface{} = this.SafeValueN(dictionaryOrList, keys, defaultValue)
     if IsTrue(IsBool(value)) {
@@ -24,7 +24,7 @@ func  (this *Exchange) SafeBool2(dictionary interface{}, key1 interface{}, key2 
     * @description safely extract boolean value from dictionary or list
     * @returns {bool | undefined}
     */
-    defaultValue := GetArg(optionalArgs, 2, nil)
+    defaultValue := GetArg(optionalArgs, 0, nil)
     _ = defaultValue
     return this.SafeBoolN(dictionary, []interface{}{key1, key2}, defaultValue)
 }
@@ -35,7 +35,7 @@ func  (this *Exchange) SafeBool(dictionary interface{}, key interface{}, optiona
     * @description safely extract boolean value from dictionary or list
     * @returns {bool | undefined}
     */
-    defaultValue := GetArg(optionalArgs, 1, nil)
+    defaultValue := GetArg(optionalArgs, 0, nil)
     _ = defaultValue
     return this.SafeBoolN(dictionary, []interface{}{key}, defaultValue)
 }
@@ -46,7 +46,7 @@ func  (this *Exchange) SafeDictN(dictionaryOrList interface{}, keys interface{},
     * @description safely extract a dictionary from dictionary or list
     * @returns {object | undefined}
     */
-    defaultValue := GetArg(optionalArgs, 1, nil)
+    defaultValue := GetArg(optionalArgs, 0, nil)
     _ = defaultValue
     var value interface{} = this.SafeValueN(dictionaryOrList, keys, defaultValue)
     if IsTrue(IsEqual(value, nil)) {
@@ -64,7 +64,7 @@ func  (this *Exchange) SafeDict(dictionary interface{}, key interface{}, optiona
     * @description safely extract a dictionary from dictionary or list
     * @returns {object | undefined}
     */
-    defaultValue := GetArg(optionalArgs, 1, nil)
+    defaultValue := GetArg(optionalArgs, 0, nil)
     _ = defaultValue
     return this.SafeDictN(dictionary, []interface{}{key}, defaultValue)
 }
@@ -75,7 +75,7 @@ func  (this *Exchange) SafeDict2(dictionary interface{}, key1 interface{}, key2 
     * @description safely extract a dictionary from dictionary or list
     * @returns {object | undefined}
     */
-    defaultValue := GetArg(optionalArgs, 2, nil)
+    defaultValue := GetArg(optionalArgs, 0, nil)
     _ = defaultValue
     return this.SafeDictN(dictionary, []interface{}{key1, key2}, defaultValue)
 }
@@ -86,7 +86,7 @@ func  (this *Exchange) SafeListN(dictionaryOrList interface{}, keys interface{},
     * @description safely extract an Array from dictionary or list
     * @returns {Array | undefined}
     */
-    defaultValue := GetArg(optionalArgs, 1, nil)
+    defaultValue := GetArg(optionalArgs, 0, nil)
     _ = defaultValue
     var value interface{} = this.SafeValueN(dictionaryOrList, keys, defaultValue)
     if IsTrue(IsEqual(value, nil)) {
@@ -104,7 +104,7 @@ func  (this *Exchange) SafeList2(dictionaryOrList interface{}, key1 interface{},
     * @description safely extract an Array from dictionary or list
     * @returns {Array | undefined}
     */
-    defaultValue := GetArg(optionalArgs, 2, nil)
+    defaultValue := GetArg(optionalArgs, 0, nil)
     _ = defaultValue
     return this.SafeListN(dictionaryOrList, []interface{}{key1, key2}, defaultValue)
 }
@@ -115,7 +115,7 @@ func  (this *Exchange) SafeList(dictionaryOrList interface{}, key interface{}, o
     * @description safely extract an Array from dictionary or list
     * @returns {Array | undefined}
     */
-    defaultValue := GetArg(optionalArgs, 1, nil)
+    defaultValue := GetArg(optionalArgs, 0, nil)
     _ = defaultValue
     return this.SafeListN(dictionaryOrList, []interface{}{key}, defaultValue)
 }
@@ -149,11 +149,11 @@ func  (this *Exchange) FindTimeframe(timeframe interface{}, optionalArgs ...inte
 func  (this *Exchange) CheckProxyUrlSettings(optionalArgs ...interface{}) interface{}  {
     url := GetArg(optionalArgs, 0, nil)
     _ = url
-    method := GetArg(optionalArgs, 0, nil)
+    method := GetArg(optionalArgs, 1, nil)
     _ = method
-    headers := GetArg(optionalArgs, 1, nil)
+    headers := GetArg(optionalArgs, 2, nil)
     _ = headers
-    body := GetArg(optionalArgs, 2, nil)
+    body := GetArg(optionalArgs, 3, nil)
     _ = body
     var usedProxies interface{} = []interface{}{}
     var proxyUrl interface{} = nil
@@ -192,11 +192,11 @@ func  (this *Exchange) CheckProxyUrlSettings(optionalArgs ...interface{}) interf
 func  (this *Exchange) CheckProxySettings(optionalArgs ...interface{}) interface{}  {
     url := GetArg(optionalArgs, 0, nil)
     _ = url
-    method := GetArg(optionalArgs, 0, nil)
+    method := GetArg(optionalArgs, 1, nil)
     _ = method
-    headers := GetArg(optionalArgs, 1, nil)
+    headers := GetArg(optionalArgs, 2, nil)
     _ = headers
-    body := GetArg(optionalArgs, 2, nil)
+    body := GetArg(optionalArgs, 3, nil)
     _ = body
     var usedProxies interface{} = []interface{}{}
     var httpProxy interface{} = nil
@@ -378,15 +378,15 @@ func  (this *Exchange) FilterBySinceLimit(array interface{}, optionalArgs ...int
     return this.FilterByLimit(result, limit, key, shouldFilterFromStart)
 }
 func  (this *Exchange) FilterByValueSinceLimit(array interface{}, field interface{}, optionalArgs ...interface{}) interface{}  {
-    value := GetArg(optionalArgs, 1, nil)
+    value := GetArg(optionalArgs, 0, nil)
     _ = value
-    since := GetArg(optionalArgs, 2, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 3, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    key := GetArg(optionalArgs, 4, "timestamp")
+    key := GetArg(optionalArgs, 3, "timestamp")
     _ = key
-    tail := GetArg(optionalArgs, 5, false)
+    tail := GetArg(optionalArgs, 4, false)
     _ = tail
     var valueIsDefined interface{} = this.ValueIsDefined(value)
     var sinceIsDefined interface{} = this.ValueIsDefined(since)
@@ -568,7 +568,7 @@ func  (this *Exchange) WatchOrderBookForSymbols(symbols interface{}, optionalArg
 func  (this *Exchange) FetchDepositAddresses(optionalArgs ...interface{}) interface{}  {
     codes := GetArg(optionalArgs, 0, nil)
     _ = codes
-    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchDepositAddresses() is not supported yet")))
 }
@@ -592,7 +592,7 @@ func  (this *Exchange) FetchMarginMode(symbol interface{}, optionalArgs ...inter
 func  (this *Exchange) FetchMarginModes(optionalArgs ...interface{}) interface{}  {
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchMarginModes () is not supported yet")))
 }
@@ -646,7 +646,7 @@ func  (this *Exchange) FetchTime(optionalArgs ...interface{}) interface{}  {
 func  (this *Exchange) FetchTradingLimits(optionalArgs ...interface{}) interface{}  {
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchTradingLimits() is not supported yet")))
 }
@@ -716,7 +716,7 @@ func  (this *Exchange) ParseMarketLeverageTiers(info interface{}, optionalArgs .
 func  (this *Exchange) FetchLeverageTiers(optionalArgs ...interface{}) interface{}  {
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchLeverageTiers() is not supported yet")))
 }
@@ -763,7 +763,7 @@ func  (this *Exchange) ParseWsOHLCV(ohlcv interface{}, optionalArgs ...interface
 func  (this *Exchange) FetchFundingRates(optionalArgs ...interface{}) interface{}  {
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchFundingRates() is not supported yet")))
 }
@@ -783,14 +783,14 @@ func  (this *Exchange) WatchFundingRatesForSymbols(symbols interface{}, optional
     return this.WatchFundingRates(symbols, params)
 }
 func  (this *Exchange) Transfer(code interface{}, amount interface{}, fromAccount interface{}, toAccount interface{}, optionalArgs ...interface{}) interface{}  {
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " transfer() is not supported yet")))
 }
 func  (this *Exchange) Withdraw(code interface{}, amount interface{}, address interface{}, optionalArgs ...interface{}) interface{}  {
-    tag := GetArg(optionalArgs, 2, nil)
+    tag := GetArg(optionalArgs, 0, nil)
     _ = tag
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " withdraw() is not supported yet")))
 }
@@ -819,7 +819,7 @@ func  (this *Exchange) FetchLeverage(symbol interface{}, optionalArgs ...interfa
 func  (this *Exchange) FetchLeverages(optionalArgs ...interface{}) interface{}  {
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchLeverages() is not supported yet")))
 }
@@ -831,30 +831,30 @@ func  (this *Exchange) SetPositionMode(hedged interface{}, optionalArgs ...inter
     panic(NotSupported(Add(this.Id, " setPositionMode() is not supported yet")))
 }
 func  (this *Exchange) AddMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " addMargin() is not supported yet")))
 }
 func  (this *Exchange) ReduceMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " reduceMargin() is not supported yet")))
 }
 func  (this *Exchange) SetMargin(symbol interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " setMargin() is not supported yet")))
 }
 func  (this *Exchange) FetchMarginAdjustmentHistory(optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    typeVar := GetArg(optionalArgs, 0, nil)
+    typeVar := GetArg(optionalArgs, 1, nil)
     _ = typeVar
-    since := GetArg(optionalArgs, 1, nil)
+    since := GetArg(optionalArgs, 2, nil)
     _ = since
-    limit := GetArg(optionalArgs, 2, nil)
+    limit := GetArg(optionalArgs, 3, nil)
     _ = limit
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 4, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchMarginAdjustmentHistory() is not supported yet")))
 }
@@ -921,7 +921,7 @@ func  (this *Exchange) IsRoundNumber(value interface{}) interface{}  {
     return IsEqual(res, 0)
 }
 func  (this *Exchange) SafeIntegerOmitZero(obj interface{}, key interface{}, optionalArgs ...interface{}) interface{}  {
-    defaultValue := GetArg(optionalArgs, 1, nil)
+    defaultValue := GetArg(optionalArgs, 0, nil)
     _ = defaultValue
     var timestamp interface{} = this.SafeInteger(obj, key, defaultValue)
     if IsTrue(IsTrue(IsEqual(timestamp, nil)) || IsTrue(IsEqual(timestamp, 0))) {
@@ -1581,9 +1581,9 @@ func  (this *Exchange) CalculateFee(symbol interface{}, typeVar interface{}, sid
     * @param {object} params
     * @returns {object} contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
     */
-    takerOrMaker := GetArg(optionalArgs, 4, "taker")
+    takerOrMaker := GetArg(optionalArgs, 0, "taker")
     _ = takerOrMaker
-    params := GetArg(optionalArgs, 5, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     if IsTrue(IsTrue(IsEqual(typeVar, "market")) && IsTrue(IsEqual(takerOrMaker, "maker"))) {
         panic(ArgumentsRequired(Add(this.Id, " calculateFee() - you have provided incompatible arguments - \"market\" type order can not be \"maker\". Change either the \"type\" or the \"takerOrMaker\" argument to calculate the fee.")))
@@ -1873,41 +1873,41 @@ func  (this *Exchange) SafeTicker(ticker interface{}, optionalArgs ...interface{
     })
 }
 func  (this *Exchange) FetchBorrowRate(code interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchBorrowRate is deprecated, please use fetchCrossBorrowRate or fetchIsolatedBorrowRate instead")))
 }
 func  (this *Exchange) RepayCrossMargin(code interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " repayCrossMargin is not support yet")))
 }
 func  (this *Exchange) RepayIsolatedMargin(symbol interface{}, code interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " repayIsolatedMargin is not support yet")))
 }
 func  (this *Exchange) BorrowCrossMargin(code interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " borrowCrossMargin is not support yet")))
 }
 func  (this *Exchange) BorrowIsolatedMargin(symbol interface{}, code interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " borrowIsolatedMargin is not support yet")))
 }
 func  (this *Exchange) BorrowMargin(code interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
-    symbol := GetArg(optionalArgs, 1, nil)
+    symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " borrowMargin is deprecated, please use borrowCrossMargin or borrowIsolatedMargin instead")))
 }
 func  (this *Exchange) RepayMargin(code interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
-    symbol := GetArg(optionalArgs, 1, nil)
+    symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " repayMargin is deprecated, please use repayCrossMargin or repayIsolatedMargin instead")))
 }
@@ -2019,9 +2019,9 @@ func  (this *Exchange) ConvertOHLCVToTradingView(ohlcvs interface{}, optionalArg
     return result
 }
 func  (this *Exchange) FetchWebEndpoint(method interface{}, endpointMethod interface{}, returnAsJson interface{}, optionalArgs ...interface{}) interface{}  {
-    startRegex := GetArg(optionalArgs, 2, nil)
+    startRegex := GetArg(optionalArgs, 0, nil)
     _ = startRegex
-    endRegex := GetArg(optionalArgs, 3, nil)
+    endRegex := GetArg(optionalArgs, 1, nil)
     _ = endRegex
     var errorMessage interface{} = ""
     var options interface{} = this.SafeValue(this.Options, method, map[string]interface{} {})
@@ -2134,13 +2134,13 @@ func  (this *Exchange) MarketsForSymbols(optionalArgs ...interface{}) interface{
 func  (this *Exchange) MarketSymbols(optionalArgs ...interface{}) interface{}  {
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    typeVar := GetArg(optionalArgs, 0, nil)
+    typeVar := GetArg(optionalArgs, 1, nil)
     _ = typeVar
-    allowEmpty := GetArg(optionalArgs, 1, true)
+    allowEmpty := GetArg(optionalArgs, 2, true)
     _ = allowEmpty
-    sameTypeOnly := GetArg(optionalArgs, 2, false)
+    sameTypeOnly := GetArg(optionalArgs, 3, false)
     _ = sameTypeOnly
-    sameSubTypeOnly := GetArg(optionalArgs, 3, false)
+    sameSubTypeOnly := GetArg(optionalArgs, 4, false)
     _ = sameSubTypeOnly
     if IsTrue(IsEqual(symbols, nil)) {
         if !IsTrue(allowEmpty) {
@@ -2315,7 +2315,7 @@ func  (this *Exchange) NetworkIdToCode(optionalArgs ...interface{}) interface{} 
     */
     networkId := GetArg(optionalArgs, 0, nil)
     _ = networkId
-    currencyCode := GetArg(optionalArgs, 0, nil)
+    currencyCode := GetArg(optionalArgs, 1, nil)
     _ = currencyCode
     if IsTrue(IsEqual(networkId, nil)) {
         return nil
@@ -2363,7 +2363,7 @@ func  (this *Exchange) SelectNetworkIdFromRawNetworks(currencyCode interface{}, 
 }
 func  (this *Exchange) SelectNetworkKeyFromNetworks(currencyCode interface{}, networkCode interface{}, indexedNetworkEntries interface{}, optionalArgs ...interface{}) interface{}  {
     // this method is used against raw & unparse network entries, which are just indexed by network id
-    isIndexedByUnifiedNetworkCode := GetArg(optionalArgs, 2, false)
+    isIndexedByUnifiedNetworkCode := GetArg(optionalArgs, 0, false)
     _ = isIndexedByUnifiedNetworkCode
     var chosenNetworkId interface{} = nil
     var availableNetworkIds interface{} = ObjectKeys(indexedNetworkEntries)
@@ -2393,23 +2393,23 @@ func  (this *Exchange) SelectNetworkKeyFromNetworks(currencyCode interface{}, ne
     return chosenNetworkId
 }
 func  (this *Exchange) SafeNumber2(dictionary interface{}, key1 interface{}, key2 interface{}, optionalArgs ...interface{}) interface{}  {
-    d := GetArg(optionalArgs, 2, nil)
+    d := GetArg(optionalArgs, 0, nil)
     _ = d
     var value interface{} = this.SafeString2(dictionary, key1, key2)
     return this.ParseNumber(value, d)
 }
 func  (this *Exchange) ParseOrderBook(orderbook interface{}, symbol interface{}, optionalArgs ...interface{}) interface{}  {
-    timestamp := GetArg(optionalArgs, 1, nil)
+    timestamp := GetArg(optionalArgs, 0, nil)
     _ = timestamp
-    bidsKey := GetArg(optionalArgs, 2, "bids")
+    bidsKey := GetArg(optionalArgs, 1, "bids")
     _ = bidsKey
-    asksKey := GetArg(optionalArgs, 3, "asks")
+    asksKey := GetArg(optionalArgs, 2, "asks")
     _ = asksKey
-    priceKey := GetArg(optionalArgs, 4, 0)
+    priceKey := GetArg(optionalArgs, 3, 0)
     _ = priceKey
-    amountKey := GetArg(optionalArgs, 5, 1)
+    amountKey := GetArg(optionalArgs, 4, 1)
     _ = amountKey
-    countOrIdKey := GetArg(optionalArgs, 6, 2)
+    countOrIdKey := GetArg(optionalArgs, 5, 2)
     _ = countOrIdKey
     var bids interface{} = this.ParseBidsAsks(this.SafeValue(orderbook, bidsKey, []interface{}{}), priceKey, amountKey, countOrIdKey)
     var asks interface{} = this.ParseBidsAsks(this.SafeValue(orderbook, asksKey, []interface{}{}), priceKey, amountKey, countOrIdKey)
@@ -2480,9 +2480,9 @@ func  (this *Exchange) ParseLeverageTiers(response interface{}, optionalArgs ...
 func  (this *Exchange) LoadTradingLimits(optionalArgs ...interface{}) interface{}  {
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    reload := GetArg(optionalArgs, 0, false)
+    reload := GetArg(optionalArgs, 1, false)
     _ = reload
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     if IsTrue(GetValue(this.Has, "fetchTradingLimits")) {
         if IsTrue(IsTrue(reload) || !IsTrue((InOp(this.Options, "limitsLoaded")))) {
@@ -2647,7 +2647,7 @@ func  (this *Exchange) Symbol(symbol interface{}) interface{}  {
     return this.SafeString(market, "symbol", symbol)
 }
 func  (this *Exchange) HandleParamString(params interface{}, paramName interface{}, optionalArgs ...interface{}) interface{}  {
-    defaultValue := GetArg(optionalArgs, 1, nil)
+    defaultValue := GetArg(optionalArgs, 0, nil)
     _ = defaultValue
     var value interface{} = this.SafeString(params, paramName, defaultValue)
     if IsTrue(!IsEqual(value, nil)) {
@@ -2656,7 +2656,7 @@ func  (this *Exchange) HandleParamString(params interface{}, paramName interface
     return []interface{}{value, params}
 }
 func  (this *Exchange) HandleParamString2(params interface{}, paramName1 interface{}, paramName2 interface{}, optionalArgs ...interface{}) interface{}  {
-    defaultValue := GetArg(optionalArgs, 2, nil)
+    defaultValue := GetArg(optionalArgs, 0, nil)
     _ = defaultValue
     var value interface{} = this.SafeString2(params, paramName1, paramName2, defaultValue)
     if IsTrue(!IsEqual(value, nil)) {
@@ -2665,7 +2665,7 @@ func  (this *Exchange) HandleParamString2(params interface{}, paramName1 interfa
     return []interface{}{value, params}
 }
 func  (this *Exchange) HandleParamInteger(params interface{}, paramName interface{}, optionalArgs ...interface{}) interface{}  {
-    defaultValue := GetArg(optionalArgs, 1, nil)
+    defaultValue := GetArg(optionalArgs, 0, nil)
     _ = defaultValue
     var value interface{} = this.SafeInteger(params, paramName, defaultValue)
     if IsTrue(!IsEqual(value, nil)) {
@@ -2674,7 +2674,7 @@ func  (this *Exchange) HandleParamInteger(params interface{}, paramName interfac
     return []interface{}{value, params}
 }
 func  (this *Exchange) HandleParamInteger2(params interface{}, paramName1 interface{}, paramName2 interface{}, optionalArgs ...interface{}) interface{}  {
-    defaultValue := GetArg(optionalArgs, 2, nil)
+    defaultValue := GetArg(optionalArgs, 0, nil)
     _ = defaultValue
     var value interface{} = this.SafeInteger2(params, paramName1, paramName2, defaultValue)
     if IsTrue(!IsEqual(value, nil)) {
@@ -2683,7 +2683,7 @@ func  (this *Exchange) HandleParamInteger2(params interface{}, paramName1 interf
     return []interface{}{value, params}
 }
 func  (this *Exchange) HandleParamBool(params interface{}, paramName interface{}, optionalArgs ...interface{}) interface{}  {
-    defaultValue := GetArg(optionalArgs, 1, nil)
+    defaultValue := GetArg(optionalArgs, 0, nil)
     _ = defaultValue
     var value interface{} = this.SafeBool(params, paramName, defaultValue)
     if IsTrue(!IsEqual(value, nil)) {
@@ -2692,7 +2692,7 @@ func  (this *Exchange) HandleParamBool(params interface{}, paramName interface{}
     return []interface{}{value, params}
 }
 func  (this *Exchange) HandleParamBool2(params interface{}, paramName1 interface{}, paramName2 interface{}, optionalArgs ...interface{}) interface{}  {
-    defaultValue := GetArg(optionalArgs, 2, nil)
+    defaultValue := GetArg(optionalArgs, 0, nil)
     _ = defaultValue
     var value interface{} = this.SafeBool2(params, paramName1, paramName2, defaultValue)
     if IsTrue(!IsEqual(value, nil)) {
@@ -2714,11 +2714,11 @@ func  (this *Exchange) GetListFromObjectValues(objects interface{}, key interfac
 func  (this *Exchange) GetSymbolsForMarketType(optionalArgs ...interface{}) interface{}  {
     marketType := GetArg(optionalArgs, 0, nil)
     _ = marketType
-    subType := GetArg(optionalArgs, 0, nil)
+    subType := GetArg(optionalArgs, 1, nil)
     _ = subType
-    symbolWithActiveStatus := GetArg(optionalArgs, 1, true)
+    symbolWithActiveStatus := GetArg(optionalArgs, 2, true)
     _ = symbolWithActiveStatus
-    symbolWithUnknownStatus := GetArg(optionalArgs, 2, true)
+    symbolWithUnknownStatus := GetArg(optionalArgs, 3, true)
     _ = symbolWithUnknownStatus
     var filteredMarkets interface{} = this.Markets
     if IsTrue(!IsEqual(marketType, nil)) {
@@ -2739,9 +2739,9 @@ func  (this *Exchange) GetSymbolsForMarketType(optionalArgs ...interface{}) inte
     return this.GetListFromObjectValues(filteredMarkets, "symbol")
 }
 func  (this *Exchange) FilterByArray(objects interface{}, key interface{}, optionalArgs ...interface{}) interface{}  {
-    values := GetArg(optionalArgs, 1, nil)
+    values := GetArg(optionalArgs, 0, nil)
     _ = values
-    indexed := GetArg(optionalArgs, 2, true)
+    indexed := GetArg(optionalArgs, 1, true)
     _ = indexed
     objects = this.ToArray(objects)
     // return all of them if no values were passed
@@ -2798,7 +2798,7 @@ func  (this *Exchange) Request(path interface{}, optionalArgs ...interface{}) in
 func  (this *Exchange) LoadAccounts(optionalArgs ...interface{}) interface{}  {
     reload := GetArg(optionalArgs, 0, false)
     _ = reload
-    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     if IsTrue(reload) {
         this.Accounts = this.FetchAccounts(params)
@@ -2871,42 +2871,42 @@ func  (this *Exchange) ParseTradingViewOHLCV(ohlcvs interface{}, optionalArgs ..
     return this.ParseOHLCVs(result, market, timeframe, since, limit)
 }
 func  (this *Exchange) EditLimitBuyOrder(id interface{}, symbol interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
-    price := GetArg(optionalArgs, 2, nil)
+    price := GetArg(optionalArgs, 0, nil)
     _ = price
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     return this.EditLimitOrder(id, symbol, "buy", amount, price, params)
 }
 func  (this *Exchange) EditLimitSellOrder(id interface{}, symbol interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
-    price := GetArg(optionalArgs, 2, nil)
+    price := GetArg(optionalArgs, 0, nil)
     _ = price
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     return this.EditLimitOrder(id, symbol, "sell", amount, price, params)
 }
 func  (this *Exchange) EditLimitOrder(id interface{}, symbol interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
-    price := GetArg(optionalArgs, 3, nil)
+    price := GetArg(optionalArgs, 0, nil)
     _ = price
-    params := GetArg(optionalArgs, 4, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     return this.callInternal("editOrder", id, symbol, "limit", side, amount, price, params)
 }
 func  (this *Exchange) EditOrder(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) interface{}  {
-    amount := GetArg(optionalArgs, 3, nil)
+    amount := GetArg(optionalArgs, 0, nil)
     _ = amount
-    price := GetArg(optionalArgs, 4, nil)
+    price := GetArg(optionalArgs, 1, nil)
     _ = price
-    params := GetArg(optionalArgs, 5, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     this.callInternal("cancelOrder", id, symbol)
     return this.callInternal("createOrder", symbol, typeVar, side, amount, price, params)
 }
 func  (this *Exchange) EditOrderWs(id interface{}, symbol interface{}, typeVar interface{}, side interface{}, optionalArgs ...interface{}) interface{}  {
-    amount := GetArg(optionalArgs, 3, nil)
+    amount := GetArg(optionalArgs, 0, nil)
     _ = amount
-    price := GetArg(optionalArgs, 4, nil)
+    price := GetArg(optionalArgs, 1, nil)
     _ = price
-    params := GetArg(optionalArgs, 5, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     this.CancelOrderWs(id, symbol)
     return this.CreateOrderWs(symbol, typeVar, side, amount, price, params)
@@ -2929,29 +2929,29 @@ func  (this *Exchange) FetchPositionWs(symbol interface{}, optionalArgs ...inter
 func  (this *Exchange) WatchPosition(optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " watchPosition() is not supported yet")))
 }
 func  (this *Exchange) WatchPositions(optionalArgs ...interface{}) interface{}  {
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    since := GetArg(optionalArgs, 0, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 1, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " watchPositions() is not supported yet")))
 }
 func  (this *Exchange) WatchPositionForSymbols(optionalArgs ...interface{}) interface{}  {
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    since := GetArg(optionalArgs, 0, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 1, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     return this.WatchPositions(symbols, since, limit, params)
 }
@@ -2968,52 +2968,52 @@ func  (this *Exchange) FetchPositionsForSymbolWs(symbol interface{}, optionalArg
 func  (this *Exchange) FetchPositions(optionalArgs ...interface{}) interface{}  {
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchPositions() is not supported yet")))
 }
 func  (this *Exchange) FetchPositionsWs(optionalArgs ...interface{}) interface{}  {
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchPositions() is not supported yet")))
 }
 func  (this *Exchange) FetchPositionsRisk(optionalArgs ...interface{}) interface{}  {
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchPositionsRisk() is not supported yet")))
 }
 func  (this *Exchange) FetchBidsAsks(optionalArgs ...interface{}) interface{}  {
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchBidsAsks() is not supported yet")))
 }
 func  (this *Exchange) FetchBorrowInterest(optionalArgs ...interface{}) interface{}  {
     code := GetArg(optionalArgs, 0, nil)
     _ = code
-    symbol := GetArg(optionalArgs, 0, nil)
+    symbol := GetArg(optionalArgs, 1, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 1, nil)
+    since := GetArg(optionalArgs, 2, nil)
     _ = since
-    limit := GetArg(optionalArgs, 2, nil)
+    limit := GetArg(optionalArgs, 3, nil)
     _ = limit
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 4, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchBorrowInterest() is not supported yet")))
 }
 func  (this *Exchange) FetchLedger(optionalArgs ...interface{}) interface{}  {
     code := GetArg(optionalArgs, 0, nil)
     _ = code
-    since := GetArg(optionalArgs, 0, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 1, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchLedger() is not supported yet")))
 }
@@ -3195,14 +3195,14 @@ func  (this *Exchange) FetchTransactionFee(code interface{}, optionalArgs ...int
 func  (this *Exchange) FetchTransactionFees(optionalArgs ...interface{}) interface{}  {
     codes := GetArg(optionalArgs, 0, nil)
     _ = codes
-    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchTransactionFees() is not supported yet")))
 }
 func  (this *Exchange) FetchDepositWithdrawFees(optionalArgs ...interface{}) interface{}  {
     codes := GetArg(optionalArgs, 0, nil)
     _ = codes
-    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchDepositWithdrawFees() is not supported yet")))
 }
@@ -3254,7 +3254,7 @@ func  (this *Exchange) FetchIsolatedBorrowRate(symbol interface{}, optionalArgs 
 }
 func  (this *Exchange) HandleOptionAndParams(params interface{}, methodName interface{}, optionName interface{}, optionalArgs ...interface{}) interface{}  {
     // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
-    defaultValue := GetArg(optionalArgs, 2, nil)
+    defaultValue := GetArg(optionalArgs, 0, nil)
     _ = defaultValue
     var defaultOptionName interface{} = Add("default", this.Capitalize(optionName)) // we also need to check the 'defaultXyzWhatever'
     // check if params contain the key
@@ -3282,7 +3282,7 @@ func  (this *Exchange) HandleOptionAndParams(params interface{}, methodName inte
     return []interface{}{value, params}
 }
 func  (this *Exchange) HandleOptionAndParams2(params interface{}, methodName1 interface{}, optionName1 interface{}, optionName2 interface{}, optionalArgs ...interface{}) interface{}  {
-    defaultValue := GetArg(optionalArgs, 3, nil)
+    defaultValue := GetArg(optionalArgs, 0, nil)
     _ = defaultValue
     var value interface{} = nil
     valueparamsVariable := this.HandleOptionAndParams(params, methodName1, optionName1, defaultValue);
@@ -3296,7 +3296,7 @@ func  (this *Exchange) HandleOptionAndParams2(params interface{}, methodName1 in
     return []interface{}{value2, params}
 }
 func  (this *Exchange) HandleOption(methodName interface{}, optionName interface{}, optionalArgs ...interface{}) interface{}  {
-    defaultValue := GetArg(optionalArgs, 1, nil)
+    defaultValue := GetArg(optionalArgs, 0, nil)
     _ = defaultValue
     var res interface{} = this.HandleOptionAndParams(map[string]interface{} {}, methodName, optionName, defaultValue)
     return this.SafeValue(res, 0)
@@ -3415,7 +3415,7 @@ func  (this *Exchange) HandleErrors(statusCode interface{}, statusText interface
     return nil
 }
 func  (this *Exchange) CalculateRateLimiterCost(api interface{}, method interface{}, path interface{}, params interface{}, optionalArgs ...interface{}) interface{}  {
-    config := GetArg(optionalArgs, 3, map[string]interface{} {})
+    config := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = config
     return this.SafeValue(config, "cost", 1)
 }
@@ -3463,37 +3463,37 @@ func  (this *Exchange) WatchTicker(symbol interface{}, optionalArgs ...interface
 func  (this *Exchange) FetchTickers(optionalArgs ...interface{}) interface{}  {
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchTickers() is not supported yet")))
 }
 func  (this *Exchange) FetchTickersWs(optionalArgs ...interface{}) interface{}  {
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchTickers() is not supported yet")))
 }
 func  (this *Exchange) FetchOrderBooks(optionalArgs ...interface{}) interface{}  {
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    limit := GetArg(optionalArgs, 0, nil)
+    limit := GetArg(optionalArgs, 1, nil)
     _ = limit
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchOrderBooks() is not supported yet")))
 }
 func  (this *Exchange) WatchBidsAsks(optionalArgs ...interface{}) interface{}  {
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " watchBidsAsks() is not supported yet")))
 }
 func  (this *Exchange) WatchTickers(optionalArgs ...interface{}) interface{}  {
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " watchTickers() is not supported yet")))
 }
@@ -3527,9 +3527,9 @@ func  (this *Exchange) FetchUnifiedOrder(order interface{}, optionalArgs ...inte
     return this.callInternal("fetchOrder", this.SafeString(order, "id"), this.SafeString(order, "symbol"), params)
 }
 func  (this *Exchange) CreateOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
-    price := GetArg(optionalArgs, 3, nil)
+    price := GetArg(optionalArgs, 0, nil)
     _ = price
-    params := GetArg(optionalArgs, 4, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " createOrder() is not supported yet")))
 }
@@ -3548,13 +3548,13 @@ func  (this *Exchange) CreateTrailingAmountOrder(symbol interface{}, typeVar int
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
     */
-    price := GetArg(optionalArgs, 3, nil)
+    price := GetArg(optionalArgs, 0, nil)
     _ = price
-    trailingAmount := GetArg(optionalArgs, 4, nil)
+    trailingAmount := GetArg(optionalArgs, 1, nil)
     _ = trailingAmount
-    trailingTriggerPrice := GetArg(optionalArgs, 5, nil)
+    trailingTriggerPrice := GetArg(optionalArgs, 2, nil)
     _ = trailingTriggerPrice
-    params := GetArg(optionalArgs, 6, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     if IsTrue(IsEqual(trailingAmount, nil)) {
         panic(ArgumentsRequired(Add(this.Id, " createTrailingAmountOrder() requires a trailingAmount argument")))
@@ -3583,13 +3583,13 @@ func  (this *Exchange) CreateTrailingAmountOrderWs(symbol interface{}, typeVar i
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
     */
-    price := GetArg(optionalArgs, 3, nil)
+    price := GetArg(optionalArgs, 0, nil)
     _ = price
-    trailingAmount := GetArg(optionalArgs, 4, nil)
+    trailingAmount := GetArg(optionalArgs, 1, nil)
     _ = trailingAmount
-    trailingTriggerPrice := GetArg(optionalArgs, 5, nil)
+    trailingTriggerPrice := GetArg(optionalArgs, 2, nil)
     _ = trailingTriggerPrice
-    params := GetArg(optionalArgs, 6, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     if IsTrue(IsEqual(trailingAmount, nil)) {
         panic(ArgumentsRequired(Add(this.Id, " createTrailingAmountOrderWs() requires a trailingAmount argument")))
@@ -3618,13 +3618,13 @@ func  (this *Exchange) CreateTrailingPercentOrder(symbol interface{}, typeVar in
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
     */
-    price := GetArg(optionalArgs, 3, nil)
+    price := GetArg(optionalArgs, 0, nil)
     _ = price
-    trailingPercent := GetArg(optionalArgs, 4, nil)
+    trailingPercent := GetArg(optionalArgs, 1, nil)
     _ = trailingPercent
-    trailingTriggerPrice := GetArg(optionalArgs, 5, nil)
+    trailingTriggerPrice := GetArg(optionalArgs, 2, nil)
     _ = trailingTriggerPrice
-    params := GetArg(optionalArgs, 6, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     if IsTrue(IsEqual(trailingPercent, nil)) {
         panic(ArgumentsRequired(Add(this.Id, " createTrailingPercentOrder() requires a trailingPercent argument")))
@@ -3653,13 +3653,13 @@ func  (this *Exchange) CreateTrailingPercentOrderWs(symbol interface{}, typeVar 
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
     */
-    price := GetArg(optionalArgs, 3, nil)
+    price := GetArg(optionalArgs, 0, nil)
     _ = price
-    trailingPercent := GetArg(optionalArgs, 4, nil)
+    trailingPercent := GetArg(optionalArgs, 1, nil)
     _ = trailingPercent
-    trailingTriggerPrice := GetArg(optionalArgs, 5, nil)
+    trailingTriggerPrice := GetArg(optionalArgs, 2, nil)
     _ = trailingTriggerPrice
-    params := GetArg(optionalArgs, 6, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     if IsTrue(IsEqual(trailingPercent, nil)) {
         panic(ArgumentsRequired(Add(this.Id, " createTrailingPercentOrderWs() requires a trailingPercent argument")))
@@ -3684,7 +3684,7 @@ func  (this *Exchange) CreateMarketOrderWithCost(symbol interface{}, side interf
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
     */
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     if IsTrue(IsTrue(GetValue(this.Has, "createMarketOrderWithCost")) || IsTrue((IsTrue(GetValue(this.Has, "createMarketBuyOrderWithCost")) && IsTrue(GetValue(this.Has, "createMarketSellOrderWithCost"))))) {
         return this.callInternal("createOrder", symbol, "market", side, cost, 1, params)
@@ -3701,7 +3701,7 @@ func  (this *Exchange) CreateMarketBuyOrderWithCost(symbol interface{}, cost int
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
     */
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     if IsTrue(IsTrue(GetValue(this.Options, "createMarketBuyOrderRequiresPrice")) || IsTrue(GetValue(this.Has, "createMarketBuyOrderWithCost"))) {
         return this.callInternal("createOrder", symbol, "market", "buy", cost, 1, params)
@@ -3718,7 +3718,7 @@ func  (this *Exchange) CreateMarketSellOrderWithCost(symbol interface{}, cost in
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
     */
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     if IsTrue(IsTrue(GetValue(this.Options, "createMarketSellOrderRequiresPrice")) || IsTrue(GetValue(this.Has, "createMarketSellOrderWithCost"))) {
         return this.callInternal("createOrder", symbol, "market", "sell", cost, 1, params)
@@ -3736,7 +3736,7 @@ func  (this *Exchange) CreateMarketOrderWithCostWs(symbol interface{}, side inte
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
     */
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     if IsTrue(IsTrue(GetValue(this.Has, "createMarketOrderWithCostWs")) || IsTrue((IsTrue(GetValue(this.Has, "createMarketBuyOrderWithCostWs")) && IsTrue(GetValue(this.Has, "createMarketSellOrderWithCostWs"))))) {
         return this.CreateOrderWs(symbol, "market", side, cost, 1, params)
@@ -3757,11 +3757,11 @@ func  (this *Exchange) CreateTriggerOrder(symbol interface{}, typeVar interface{
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
     */
-    price := GetArg(optionalArgs, 3, nil)
+    price := GetArg(optionalArgs, 0, nil)
     _ = price
-    triggerPrice := GetArg(optionalArgs, 4, nil)
+    triggerPrice := GetArg(optionalArgs, 1, nil)
     _ = triggerPrice
-    params := GetArg(optionalArgs, 5, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     if IsTrue(IsEqual(triggerPrice, nil)) {
         panic(ArgumentsRequired(Add(this.Id, " createTriggerOrder() requires a triggerPrice argument")))
@@ -3786,11 +3786,11 @@ func  (this *Exchange) CreateTriggerOrderWs(symbol interface{}, typeVar interfac
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
     */
-    price := GetArg(optionalArgs, 3, nil)
+    price := GetArg(optionalArgs, 0, nil)
     _ = price
-    triggerPrice := GetArg(optionalArgs, 4, nil)
+    triggerPrice := GetArg(optionalArgs, 1, nil)
     _ = triggerPrice
-    params := GetArg(optionalArgs, 5, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     if IsTrue(IsEqual(triggerPrice, nil)) {
         panic(ArgumentsRequired(Add(this.Id, " createTriggerOrderWs() requires a triggerPrice argument")))
@@ -3815,11 +3815,11 @@ func  (this *Exchange) CreateStopLossOrder(symbol interface{}, typeVar interface
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
     */
-    price := GetArg(optionalArgs, 3, nil)
+    price := GetArg(optionalArgs, 0, nil)
     _ = price
-    stopLossPrice := GetArg(optionalArgs, 4, nil)
+    stopLossPrice := GetArg(optionalArgs, 1, nil)
     _ = stopLossPrice
-    params := GetArg(optionalArgs, 5, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     if IsTrue(IsEqual(stopLossPrice, nil)) {
         panic(ArgumentsRequired(Add(this.Id, " createStopLossOrder() requires a stopLossPrice argument")))
@@ -3844,11 +3844,11 @@ func  (this *Exchange) CreateStopLossOrderWs(symbol interface{}, typeVar interfa
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
     */
-    price := GetArg(optionalArgs, 3, nil)
+    price := GetArg(optionalArgs, 0, nil)
     _ = price
-    stopLossPrice := GetArg(optionalArgs, 4, nil)
+    stopLossPrice := GetArg(optionalArgs, 1, nil)
     _ = stopLossPrice
-    params := GetArg(optionalArgs, 5, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     if IsTrue(IsEqual(stopLossPrice, nil)) {
         panic(ArgumentsRequired(Add(this.Id, " createStopLossOrderWs() requires a stopLossPrice argument")))
@@ -3873,11 +3873,11 @@ func  (this *Exchange) CreateTakeProfitOrder(symbol interface{}, typeVar interfa
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
     */
-    price := GetArg(optionalArgs, 3, nil)
+    price := GetArg(optionalArgs, 0, nil)
     _ = price
-    takeProfitPrice := GetArg(optionalArgs, 4, nil)
+    takeProfitPrice := GetArg(optionalArgs, 1, nil)
     _ = takeProfitPrice
-    params := GetArg(optionalArgs, 5, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     if IsTrue(IsEqual(takeProfitPrice, nil)) {
         panic(ArgumentsRequired(Add(this.Id, " createTakeProfitOrder() requires a takeProfitPrice argument")))
@@ -3902,11 +3902,11 @@ func  (this *Exchange) CreateTakeProfitOrderWs(symbol interface{}, typeVar inter
     * @param {object} [params] extra parameters specific to the exchange API endpoint
     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
     */
-    price := GetArg(optionalArgs, 3, nil)
+    price := GetArg(optionalArgs, 0, nil)
     _ = price
-    takeProfitPrice := GetArg(optionalArgs, 4, nil)
+    takeProfitPrice := GetArg(optionalArgs, 1, nil)
     _ = takeProfitPrice
-    params := GetArg(optionalArgs, 5, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     if IsTrue(IsEqual(takeProfitPrice, nil)) {
         panic(ArgumentsRequired(Add(this.Id, " createTakeProfitOrderWs() requires a takeProfitPrice argument")))
@@ -3940,13 +3940,13 @@ func  (this *Exchange) CreateOrderWithTakeProfitAndStopLoss(symbol interface{}, 
     * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
     */
-    price := GetArg(optionalArgs, 3, nil)
+    price := GetArg(optionalArgs, 0, nil)
     _ = price
-    takeProfit := GetArg(optionalArgs, 4, nil)
+    takeProfit := GetArg(optionalArgs, 1, nil)
     _ = takeProfit
-    stopLoss := GetArg(optionalArgs, 5, nil)
+    stopLoss := GetArg(optionalArgs, 2, nil)
     _ = stopLoss
-    params := GetArg(optionalArgs, 6, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     params = this.SetTakeProfitAndStopLossParams(symbol, typeVar, side, amount, price, takeProfit, stopLoss, params)
     if IsTrue(GetValue(this.Has, "createOrderWithTakeProfitAndStopLoss")) {
@@ -3955,13 +3955,13 @@ func  (this *Exchange) CreateOrderWithTakeProfitAndStopLoss(symbol interface{}, 
     panic(NotSupported(Add(this.Id, " createOrderWithTakeProfitAndStopLoss() is not supported yet")))
 }
 func  (this *Exchange) SetTakeProfitAndStopLossParams(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
-    price := GetArg(optionalArgs, 3, nil)
+    price := GetArg(optionalArgs, 0, nil)
     _ = price
-    takeProfit := GetArg(optionalArgs, 4, nil)
+    takeProfit := GetArg(optionalArgs, 1, nil)
     _ = takeProfit
-    stopLoss := GetArg(optionalArgs, 5, nil)
+    stopLoss := GetArg(optionalArgs, 2, nil)
     _ = stopLoss
-    params := GetArg(optionalArgs, 6, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     if IsTrue(IsTrue((IsEqual(takeProfit, nil))) && IsTrue((IsEqual(stopLoss, nil)))) {
         panic(ArgumentsRequired(Add(this.Id, " createOrderWithTakeProfitAndStopLoss() requires either a takeProfit or stopLoss argument")))
@@ -4034,13 +4034,13 @@ func  (this *Exchange) CreateOrderWithTakeProfitAndStopLossWs(symbol interface{}
     * @param {float} [params.stopLossAmount] *not available on all exchanges* the amount for a stop loss
     * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
     */
-    price := GetArg(optionalArgs, 3, nil)
+    price := GetArg(optionalArgs, 0, nil)
     _ = price
-    takeProfit := GetArg(optionalArgs, 4, nil)
+    takeProfit := GetArg(optionalArgs, 1, nil)
     _ = takeProfit
-    stopLoss := GetArg(optionalArgs, 5, nil)
+    stopLoss := GetArg(optionalArgs, 2, nil)
     _ = stopLoss
-    params := GetArg(optionalArgs, 6, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     params = this.SetTakeProfitAndStopLossParams(symbol, typeVar, side, amount, price, takeProfit, stopLoss, params)
     if IsTrue(GetValue(this.Has, "createOrderWithTakeProfitAndStopLossWs")) {
@@ -4054,9 +4054,9 @@ func  (this *Exchange) CreateOrders(orders interface{}, optionalArgs ...interfac
     panic(NotSupported(Add(this.Id, " createOrders() is not supported yet")))
 }
 func  (this *Exchange) CreateOrderWs(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
-    price := GetArg(optionalArgs, 3, nil)
+    price := GetArg(optionalArgs, 0, nil)
     _ = price
-    params := GetArg(optionalArgs, 4, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " createOrderWs() is not supported yet")))
 }
@@ -4084,7 +4084,7 @@ func  (this *Exchange) CancelOrdersWs(ids interface{}, optionalArgs ...interface
 func  (this *Exchange) CancelAllOrders(optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " cancelAllOrders() is not supported yet")))
 }
@@ -4101,7 +4101,7 @@ func  (this *Exchange) CancelOrdersForSymbols(orders interface{}, optionalArgs .
 func  (this *Exchange) CancelAllOrdersWs(optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " cancelAllOrdersWs() is not supported yet")))
 }
@@ -4113,11 +4113,11 @@ func  (this *Exchange) CancelUnifiedOrder(order interface{}, optionalArgs ...int
 func  (this *Exchange) FetchOrders(optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 0, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 1, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     if IsTrue(IsTrue(GetValue(this.Has, "fetchOpenOrders")) && IsTrue(GetValue(this.Has, "fetchClosedOrders"))) {
         panic(NotSupported(Add(this.Id, " fetchOrders() is not supported yet, consider using fetchOpenOrders() and fetchClosedOrders() instead")))
@@ -4127,11 +4127,11 @@ func  (this *Exchange) FetchOrders(optionalArgs ...interface{}) interface{}  {
 func  (this *Exchange) FetchOrdersWs(optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 0, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 1, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchOrdersWs() is not supported yet")))
 }
@@ -4149,22 +4149,22 @@ func  (this *Exchange) FetchOrderTrades(id interface{}, optionalArgs ...interfac
 func  (this *Exchange) WatchOrders(optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 0, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 1, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " watchOrders() is not supported yet")))
 }
 func  (this *Exchange) FetchOpenOrders(optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 0, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 1, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     if IsTrue(GetValue(this.Has, "fetchOrders")) {
         var orders interface{} = this.callInternal("fetchOrders", symbol, since, limit, params)
@@ -4175,11 +4175,11 @@ func  (this *Exchange) FetchOpenOrders(optionalArgs ...interface{}) interface{} 
 func  (this *Exchange) FetchOpenOrdersWs(optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 0, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 1, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     if IsTrue(GetValue(this.Has, "fetchOrdersWs")) {
         var orders interface{} = this.FetchOrdersWs(symbol, since, limit, params)
@@ -4190,11 +4190,11 @@ func  (this *Exchange) FetchOpenOrdersWs(optionalArgs ...interface{}) interface{
 func  (this *Exchange) FetchClosedOrders(optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 0, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 1, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     if IsTrue(GetValue(this.Has, "fetchOrders")) {
         var orders interface{} = this.callInternal("fetchOrders", symbol, since, limit, params)
@@ -4205,22 +4205,22 @@ func  (this *Exchange) FetchClosedOrders(optionalArgs ...interface{}) interface{
 func  (this *Exchange) FetchCanceledAndClosedOrders(optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 0, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 1, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchCanceledAndClosedOrders() is not supported yet")))
 }
 func  (this *Exchange) FetchClosedOrdersWs(optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 0, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 1, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     if IsTrue(GetValue(this.Has, "fetchOrdersWs")) {
         var orders interface{} = this.FetchOrdersWs(symbol, since, limit, params)
@@ -4231,22 +4231,22 @@ func  (this *Exchange) FetchClosedOrdersWs(optionalArgs ...interface{}) interfac
 func  (this *Exchange) FetchMyTrades(optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 0, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 1, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchMyTrades() is not supported yet")))
 }
 func  (this *Exchange) FetchMyLiquidations(optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 0, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 1, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchMyLiquidations() is not supported yet")))
 }
@@ -4262,22 +4262,22 @@ func  (this *Exchange) FetchLiquidations(symbol interface{}, optionalArgs ...int
 func  (this *Exchange) FetchMyTradesWs(optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 0, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 1, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchMyTradesWs() is not supported yet")))
 }
 func  (this *Exchange) WatchMyTrades(optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 0, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 1, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " watchMyTrades() is not supported yet")))
 }
@@ -4297,86 +4297,86 @@ func  (this *Exchange) FetchOption(symbol interface{}, optionalArgs ...interface
     panic(NotSupported(Add(this.Id, " fetchOption() is not supported yet")))
 }
 func  (this *Exchange) FetchConvertQuote(fromCode interface{}, toCode interface{}, optionalArgs ...interface{}) interface{}  {
-    amount := GetArg(optionalArgs, 1, nil)
+    amount := GetArg(optionalArgs, 0, nil)
     _ = amount
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchConvertQuote() is not supported yet")))
 }
 func  (this *Exchange) FetchDepositsWithdrawals(optionalArgs ...interface{}) interface{}  {
     code := GetArg(optionalArgs, 0, nil)
     _ = code
-    since := GetArg(optionalArgs, 0, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 1, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchDepositsWithdrawals() is not supported yet")))
 }
 func  (this *Exchange) FetchDeposits(optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 0, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 1, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchDeposits() is not supported yet")))
 }
 func  (this *Exchange) FetchWithdrawals(optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 0, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 1, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchWithdrawals() is not supported yet")))
 }
 func  (this *Exchange) FetchDepositsWs(optionalArgs ...interface{}) interface{}  {
     code := GetArg(optionalArgs, 0, nil)
     _ = code
-    since := GetArg(optionalArgs, 0, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 1, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchDepositsWs() is not supported yet")))
 }
 func  (this *Exchange) FetchWithdrawalsWs(optionalArgs ...interface{}) interface{}  {
     code := GetArg(optionalArgs, 0, nil)
     _ = code
-    since := GetArg(optionalArgs, 0, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 1, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchWithdrawalsWs() is not supported yet")))
 }
 func  (this *Exchange) FetchFundingRateHistory(optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 0, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 1, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchFundingRateHistory() is not supported yet")))
 }
 func  (this *Exchange) FetchFundingHistory(optionalArgs ...interface{}) interface{}  {
     symbol := GetArg(optionalArgs, 0, nil)
     _ = symbol
-    since := GetArg(optionalArgs, 0, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 1, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchFundingHistory() is not supported yet")))
 }
@@ -4494,66 +4494,66 @@ func  (this *Exchange) HandleWithdrawTagAndParams(tag interface{}, params interf
     return []interface{}{tag, params}
 }
 func  (this *Exchange) CreateLimitOrder(symbol interface{}, side interface{}, amount interface{}, price interface{}, optionalArgs ...interface{}) interface{}  {
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     return this.callInternal("createOrder", symbol, "limit", side, amount, price, params)
 }
 func  (this *Exchange) CreateLimitOrderWs(symbol interface{}, side interface{}, amount interface{}, price interface{}, optionalArgs ...interface{}) interface{}  {
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     return this.CreateOrderWs(symbol, "limit", side, amount, price, params)
 }
 func  (this *Exchange) CreateMarketOrder(symbol interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
-    price := GetArg(optionalArgs, 2, nil)
+    price := GetArg(optionalArgs, 0, nil)
     _ = price
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     return this.callInternal("createOrder", symbol, "market", side, amount, price, params)
 }
 func  (this *Exchange) CreateMarketOrderWs(symbol interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
-    price := GetArg(optionalArgs, 2, nil)
+    price := GetArg(optionalArgs, 0, nil)
     _ = price
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     return this.CreateOrderWs(symbol, "market", side, amount, price, params)
 }
 func  (this *Exchange) CreateLimitBuyOrder(symbol interface{}, amount interface{}, price interface{}, optionalArgs ...interface{}) interface{}  {
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     return this.callInternal("createOrder", symbol, "limit", "buy", amount, price, params)
 }
 func  (this *Exchange) CreateLimitBuyOrderWs(symbol interface{}, amount interface{}, price interface{}, optionalArgs ...interface{}) interface{}  {
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     return this.CreateOrderWs(symbol, "limit", "buy", amount, price, params)
 }
 func  (this *Exchange) CreateLimitSellOrder(symbol interface{}, amount interface{}, price interface{}, optionalArgs ...interface{}) interface{}  {
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     return this.callInternal("createOrder", symbol, "limit", "sell", amount, price, params)
 }
 func  (this *Exchange) CreateLimitSellOrderWs(symbol interface{}, amount interface{}, price interface{}, optionalArgs ...interface{}) interface{}  {
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     return this.CreateOrderWs(symbol, "limit", "sell", amount, price, params)
 }
 func  (this *Exchange) CreateMarketBuyOrder(symbol interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     return this.callInternal("createOrder", symbol, "market", "buy", amount, nil, params)
 }
 func  (this *Exchange) CreateMarketBuyOrderWs(symbol interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     return this.CreateOrderWs(symbol, "market", "buy", amount, nil, params)
 }
 func  (this *Exchange) CreateMarketSellOrder(symbol interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     return this.callInternal("createOrder", symbol, "market", "sell", amount, nil, params)
 }
 func  (this *Exchange) CreateMarketSellOrderWs(symbol interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     return this.CreateOrderWs(symbol, "market", "sell", amount, nil, params)
 }
@@ -4582,7 +4582,7 @@ func  (this *Exchange) FeeToPrecision(symbol interface{}, fee interface{}) inter
     return this.DecimalToPrecision(fee, ROUND, GetValue(GetValue(market, "precision"), "price"), this.PrecisionMode, this.PaddingMode)
 }
 func  (this *Exchange) CurrencyToPrecision(code interface{}, fee interface{}, optionalArgs ...interface{}) interface{}  {
-    networkCode := GetArg(optionalArgs, 1, nil)
+    networkCode := GetArg(optionalArgs, 0, nil)
     _ = networkCode
     var currency interface{} = GetValue(this.Currencies, code)
     var precision interface{} = this.SafeValue(currency, "precision")
@@ -4613,13 +4613,13 @@ func  (this *Exchange) IsSignificantPrecision() interface{}  {
     return IsEqual(this.PrecisionMode, SIGNIFICANT_DIGITS)
 }
 func  (this *Exchange) SafeNumber(obj interface{}, key interface{}, optionalArgs ...interface{}) interface{}  {
-    defaultNumber := GetArg(optionalArgs, 1, nil)
+    defaultNumber := GetArg(optionalArgs, 0, nil)
     _ = defaultNumber
     var value interface{} = this.SafeString(obj, key)
     return this.ParseNumber(value, defaultNumber)
 }
 func  (this *Exchange) SafeNumberN(obj interface{}, arr interface{}, optionalArgs ...interface{}) interface{}  {
-    defaultNumber := GetArg(optionalArgs, 1, nil)
+    defaultNumber := GetArg(optionalArgs, 0, nil)
     _ = defaultNumber
     var value interface{} = this.SafeStringN(obj, arr)
     return this.ParseNumber(value, defaultNumber)
@@ -4695,9 +4695,9 @@ func  (this *Exchange) FetchMarketLeverageTiers(symbol interface{}, optionalArgs
     }
 }
 func  (this *Exchange) CreatePostOnlyOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
-    price := GetArg(optionalArgs, 3, nil)
+    price := GetArg(optionalArgs, 0, nil)
     _ = price
-    params := GetArg(optionalArgs, 4, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     if !IsTrue(GetValue(this.Has, "createPostOnlyOrder")) {
         panic(NotSupported(Add(this.Id, "createPostOnlyOrder() is not supported yet")))
@@ -4708,9 +4708,9 @@ func  (this *Exchange) CreatePostOnlyOrder(symbol interface{}, typeVar interface
     return this.callInternal("createOrder", symbol, typeVar, side, amount, price, query)
 }
 func  (this *Exchange) CreatePostOnlyOrderWs(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
-    price := GetArg(optionalArgs, 3, nil)
+    price := GetArg(optionalArgs, 0, nil)
     _ = price
-    params := GetArg(optionalArgs, 4, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     if !IsTrue(GetValue(this.Has, "createPostOnlyOrderWs")) {
         panic(NotSupported(Add(this.Id, "createPostOnlyOrderWs() is not supported yet")))
@@ -4721,9 +4721,9 @@ func  (this *Exchange) CreatePostOnlyOrderWs(symbol interface{}, typeVar interfa
     return this.CreateOrderWs(symbol, typeVar, side, amount, price, query)
 }
 func  (this *Exchange) CreateReduceOnlyOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
-    price := GetArg(optionalArgs, 3, nil)
+    price := GetArg(optionalArgs, 0, nil)
     _ = price
-    params := GetArg(optionalArgs, 4, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     if !IsTrue(GetValue(this.Has, "createReduceOnlyOrder")) {
         panic(NotSupported(Add(this.Id, "createReduceOnlyOrder() is not supported yet")))
@@ -4734,9 +4734,9 @@ func  (this *Exchange) CreateReduceOnlyOrder(symbol interface{}, typeVar interfa
     return this.callInternal("createOrder", symbol, typeVar, side, amount, price, query)
 }
 func  (this *Exchange) CreateReduceOnlyOrderWs(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
-    price := GetArg(optionalArgs, 3, nil)
+    price := GetArg(optionalArgs, 0, nil)
     _ = price
-    params := GetArg(optionalArgs, 4, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     if !IsTrue(GetValue(this.Has, "createReduceOnlyOrderWs")) {
         panic(NotSupported(Add(this.Id, "createReduceOnlyOrderWs() is not supported yet")))
@@ -4747,11 +4747,11 @@ func  (this *Exchange) CreateReduceOnlyOrderWs(symbol interface{}, typeVar inter
     return this.CreateOrderWs(symbol, typeVar, side, amount, price, query)
 }
 func  (this *Exchange) CreateStopOrder(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
-    price := GetArg(optionalArgs, 3, nil)
+    price := GetArg(optionalArgs, 0, nil)
     _ = price
-    stopPrice := GetArg(optionalArgs, 4, nil)
+    stopPrice := GetArg(optionalArgs, 1, nil)
     _ = stopPrice
-    params := GetArg(optionalArgs, 5, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     if !IsTrue(GetValue(this.Has, "createStopOrder")) {
         panic(NotSupported(Add(this.Id, " createStopOrder() is not supported yet")))
@@ -4765,11 +4765,11 @@ func  (this *Exchange) CreateStopOrder(symbol interface{}, typeVar interface{}, 
     return this.callInternal("createOrder", symbol, typeVar, side, amount, price, query)
 }
 func  (this *Exchange) CreateStopOrderWs(symbol interface{}, typeVar interface{}, side interface{}, amount interface{}, optionalArgs ...interface{}) interface{}  {
-    price := GetArg(optionalArgs, 3, nil)
+    price := GetArg(optionalArgs, 0, nil)
     _ = price
-    stopPrice := GetArg(optionalArgs, 4, nil)
+    stopPrice := GetArg(optionalArgs, 1, nil)
     _ = stopPrice
-    params := GetArg(optionalArgs, 5, map[string]interface{} {})
+    params := GetArg(optionalArgs, 2, map[string]interface{} {})
     _ = params
     if !IsTrue(GetValue(this.Has, "createStopOrderWs")) {
         panic(NotSupported(Add(this.Id, " createStopOrderWs() is not supported yet")))
@@ -4783,7 +4783,7 @@ func  (this *Exchange) CreateStopOrderWs(symbol interface{}, typeVar interface{}
     return this.CreateOrderWs(symbol, typeVar, side, amount, price, query)
 }
 func  (this *Exchange) CreateStopLimitOrder(symbol interface{}, side interface{}, amount interface{}, price interface{}, stopPrice interface{}, optionalArgs ...interface{}) interface{}  {
-    params := GetArg(optionalArgs, 4, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     if !IsTrue(GetValue(this.Has, "createStopLimitOrder")) {
         panic(NotSupported(Add(this.Id, " createStopLimitOrder() is not supported yet")))
@@ -4794,7 +4794,7 @@ func  (this *Exchange) CreateStopLimitOrder(symbol interface{}, side interface{}
     return this.callInternal("createOrder", symbol, "limit", side, amount, price, query)
 }
 func  (this *Exchange) CreateStopLimitOrderWs(symbol interface{}, side interface{}, amount interface{}, price interface{}, stopPrice interface{}, optionalArgs ...interface{}) interface{}  {
-    params := GetArg(optionalArgs, 4, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     if !IsTrue(GetValue(this.Has, "createStopLimitOrderWs")) {
         panic(NotSupported(Add(this.Id, " createStopLimitOrderWs() is not supported yet")))
@@ -4805,7 +4805,7 @@ func  (this *Exchange) CreateStopLimitOrderWs(symbol interface{}, side interface
     return this.CreateOrderWs(symbol, "limit", side, amount, price, query)
 }
 func  (this *Exchange) CreateStopMarketOrder(symbol interface{}, side interface{}, amount interface{}, stopPrice interface{}, optionalArgs ...interface{}) interface{}  {
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     if !IsTrue(GetValue(this.Has, "createStopMarketOrder")) {
         panic(NotSupported(Add(this.Id, " createStopMarketOrder() is not supported yet")))
@@ -4816,7 +4816,7 @@ func  (this *Exchange) CreateStopMarketOrder(symbol interface{}, side interface{
     return this.callInternal("createOrder", symbol, "market", side, amount, nil, query)
 }
 func  (this *Exchange) CreateStopMarketOrderWs(symbol interface{}, side interface{}, amount interface{}, stopPrice interface{}, optionalArgs ...interface{}) interface{}  {
-    params := GetArg(optionalArgs, 3, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     if !IsTrue(GetValue(this.Has, "createStopMarketOrderWs")) {
         panic(NotSupported(Add(this.Id, " createStopMarketOrderWs() is not supported yet")))
@@ -5054,7 +5054,7 @@ func  (this *Exchange) IsPostOnly(isMarketOrder interface{}, exchangeSpecificPar
     * @param {object} [params] exchange specific params
     * @returns {boolean} true if a post only order, false otherwise
     */
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     var timeInForce interface{} = this.SafeStringUpper(params, "timeInForce")
     var postOnly interface{} = this.SafeBool2(params, "postOnly", "post_only", false)
@@ -5084,7 +5084,7 @@ func  (this *Exchange) HandlePostOnly(isMarketOrder interface{}, exchangeSpecifi
     * @param {object} [params] exchange specific params
     * @returns {Array}
     */
-    params := GetArg(optionalArgs, 1, map[string]interface{} {})
+    params := GetArg(optionalArgs, 0, map[string]interface{} {})
     _ = params
     var timeInForce interface{} = this.SafeStringUpper(params, "timeInForce")
     var postOnly interface{} = this.SafeBool(params, "postOnly", false)
@@ -5110,7 +5110,7 @@ func  (this *Exchange) HandlePostOnly(isMarketOrder interface{}, exchangeSpecifi
 func  (this *Exchange) FetchLastPrices(optionalArgs ...interface{}) interface{}  {
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    params := GetArg(optionalArgs, 0, map[string]interface{} {})
+    params := GetArg(optionalArgs, 1, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchLastPrices() is not supported yet")))
 }
@@ -5316,7 +5316,7 @@ func  (this *Exchange) CheckRequiredArgument(methodName interface{}, argument in
     * @param {string[]} options a list of options that the argument can be
     * @returns {undefined}
     */
-    options := GetArg(optionalArgs, 2, []interface{}{})
+    options := GetArg(optionalArgs, 0, []interface{}{})
     _ = options
     var optionsLength interface{} =     GetArrayLength(options)
     if IsTrue(IsTrue((IsEqual(argument, nil))) || IsTrue((IsTrue((IsGreaterThan(optionsLength, 0))) && IsTrue((!IsTrue((this.InArray(argument, options)))))))) {
@@ -5490,11 +5490,11 @@ func  (this *Exchange) FetchTransactions(optionalArgs ...interface{}) interface{
     */
     code := GetArg(optionalArgs, 0, nil)
     _ = code
-    since := GetArg(optionalArgs, 0, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 1, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     if IsTrue(GetValue(this.Has, "fetchDepositsWithdrawals")) {
         return this.FetchDepositsWithdrawals(code, since, limit, params)
@@ -5508,9 +5508,9 @@ func  (this *Exchange) FilterByArrayPositions(objects interface{}, key interface
     * @method
     * @description Typed wrapper for filterByArray that returns a list of positions
     */
-    values := GetArg(optionalArgs, 1, nil)
+    values := GetArg(optionalArgs, 0, nil)
     _ = values
-    indexed := GetArg(optionalArgs, 2, true)
+    indexed := GetArg(optionalArgs, 1, true)
     _ = indexed
     return this.FilterByArray(objects, key, values, indexed)
 }
@@ -5520,9 +5520,9 @@ func  (this *Exchange) FilterByArrayTickers(objects interface{}, key interface{}
     * @method
     * @description Typed wrapper for filterByArray that returns a dictionary of tickers
     */
-    values := GetArg(optionalArgs, 1, nil)
+    values := GetArg(optionalArgs, 0, nil)
     _ = values
-    indexed := GetArg(optionalArgs, 2, true)
+    indexed := GetArg(optionalArgs, 1, true)
     _ = indexed
     return this.FilterByArray(objects, key, values, indexed)
 }
@@ -5979,7 +5979,7 @@ func  (this *Exchange) RemoveRepeatedElementsFromArray(input interface{}) interf
     return input
 }
 func  (this *Exchange) HandleUntilOption(key interface{}, request interface{}, params interface{}, optionalArgs ...interface{}) interface{}  {
-    multiplier := GetArg(optionalArgs, 2, 1)
+    multiplier := GetArg(optionalArgs, 0, 1)
     _ = multiplier
     var until interface{} = this.SafeInteger2(params, "until", "till")
     if IsTrue(!IsEqual(until, nil)) {
@@ -6261,11 +6261,11 @@ func  (this *Exchange) FetchPositionHistory(symbol interface{}, optionalArgs ...
 func  (this *Exchange) FetchPositionsHistory(optionalArgs ...interface{}) interface{}  {
     symbols := GetArg(optionalArgs, 0, nil)
     _ = symbols
-    since := GetArg(optionalArgs, 0, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 1, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchPositionsHistory () is not supported yet")))
 }
@@ -6302,11 +6302,11 @@ func  (this *Exchange) FetchTransfer(id interface{}, optionalArgs ...interface{}
 func  (this *Exchange) FetchTransfers(optionalArgs ...interface{}) interface{}  {
     code := GetArg(optionalArgs, 0, nil)
     _ = code
-    since := GetArg(optionalArgs, 0, nil)
+    since := GetArg(optionalArgs, 1, nil)
     _ = since
-    limit := GetArg(optionalArgs, 1, nil)
+    limit := GetArg(optionalArgs, 2, nil)
     _ = limit
-    params := GetArg(optionalArgs, 2, map[string]interface{} {})
+    params := GetArg(optionalArgs, 3, map[string]interface{} {})
     _ = params
     panic(NotSupported(Add(this.Id, " fetchTransfers () is not supported yet")))
 }

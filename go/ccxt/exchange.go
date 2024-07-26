@@ -115,16 +115,16 @@ type Exchange struct {
 	PaddingMode int
 }
 
-var DECIMAL_PLACES int = 0
-var SIGNIFICANT_DIGITS int = 1
-var TICK_SIZE int = 2
+var DECIMAL_PLACES int = 2
+var SIGNIFICANT_DIGITS int = 3
+var TICK_SIZE int = 4
 
-var TRUNCATE int = 1
+var TRUNCATE int = 0
 
-var NO_PADDING = 0
-var PAD_WITH_ZERO int = 1
+var NO_PADDING = 5
+var PAD_WITH_ZERO int = 6
 
-var ROUND int = 0
+// var ROUND int = 0
 
 func (this *Exchange) Init(userConfig map[string]interface{}, exchangeConfig map[string]interface{}, itf interface{}) {
 	// this = &Exchange{}
@@ -141,9 +141,22 @@ func (this *Exchange) Init(userConfig map[string]interface{}, exchangeConfig map
 	fmt.Println(this.TransformedApi)
 }
 
-func (this *Exchange) LoadMarkets(params ...interface{}) {
+func (this *Exchange) LoadMarkets(params ...interface{}) interface{} {
 	// to do
-	// this.safeBool()
+	if this.Markets != nil && len(this.Markets) > 0 {
+		if this.Markets_by_id == nil && len(this.Markets) > 0 {
+			return this.SetMarkets(this.Markets, nil)
+		}
+		return this.Markets
+	}
+
+	var currencies interface{} = nil
+	if (this.Has["fetchCurrencies"] != nil) && this.Has["fetchCurrencies"].(bool) {
+		currencies = this.callInternal("fetchCurrencies")
+	}
+	markets := this.callInternal("fetchMarkets")
+	return this.SetMarkets(markets, currencies)
+
 }
 
 func (this *Exchange) Throttle(cost interface{}) {
@@ -519,7 +532,7 @@ func parseCost(costStr string) float64 {
 // }
 
 func (this *Exchange) callInternal(name2 string, args ...interface{}) interface{} {
-	name := strings.Title(strings.ToLower(name2))
+	name := Capitalize(name2)
 	baseType := reflect.TypeOf(this.Itf)
 
 	for i := 0; i < baseType.NumMethod(); i++ {
@@ -574,6 +587,16 @@ func (this *Exchange) callInternal(name2 string, args ...interface{}) interface{
 		}
 	}
 	return nil
+}
+
+func Capitalize(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	// Convert the first letter to uppercase
+	firstLetter := strings.ToUpper(string(s[0]))
+	// Combine the uppercase first letter with the rest of the string
+	return firstLetter + s[1:]
 }
 
 // func (this *Exchange) callInternal(name2 string, args ...interface{}) interface{} {

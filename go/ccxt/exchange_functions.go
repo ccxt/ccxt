@@ -24,6 +24,12 @@ func (this *Exchange) Keysort(parameters2 interface{}) map[string]interface{} {
 
 // omit removes specified keys from a map.
 func (this *Exchange) Omit(a interface{}, parameters ...interface{}) interface{} {
+	if len(parameters) == 1 {
+		// maybe we got []interface{} as the only variadic argument, handle it
+		if reflect.TypeOf(parameters[0]).Kind() == reflect.Slice {
+			return this.OmitN(a, parameters[0].([]interface{}))
+		}
+	}
 	keys := make([]interface{}, len(parameters))
 	for i, parameter := range parameters {
 		keys[i] = parameter
