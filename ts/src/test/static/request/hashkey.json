@@ -1,6 +1,6 @@
 {
     "exchange": "hashkey",
-    "skipKeys": ["timestamp"],
+    "skipKeys": ["timestamp", "signature"],
     "outputType": "json",
     "methods": {
         "fetchMarkets": [
@@ -130,6 +130,14 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            }
+        ],
+        "fetchBalance": [
+            {
+                "description": "Fetch balance",
+                "method": "fetchBalance",
+                "url": "https://api-glb.hashkey.com/api/v1/account?timestamp=1721996915813&signature=51ea76c19a9aaf6a471e3b75aa0a81f328d4233472447c75210bc3aace7db1eb",
+                "input": []
             }
         ]
     }
