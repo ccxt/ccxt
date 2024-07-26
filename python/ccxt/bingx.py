@@ -62,6 +62,7 @@ class bingx(Exchange, ImplicitAPI):
                 'createTrailingPercentOrder': True,
                 'createTriggerOrder': True,
                 'fetchBalance': True,
+                'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
@@ -2841,7 +2842,7 @@ class bingx(Exchange, ImplicitAPI):
         #        "clientOrderID": ""
         #    }
         #
-        # inverse swap cancelAllOrders, cancelOrder, fetchOrder, fetchOpenOrders
+        # inverse swap cancelAllOrders, cancelOrder, fetchOrder, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         #
         #     {
         #         "symbol": "SOL-USD",
@@ -2899,7 +2900,7 @@ class bingx(Exchange, ImplicitAPI):
         side = self.safe_string_lower_2(order, 'side', 'S')
         timestamp = self.safe_integer_n(order, ['time', 'transactTime', 'E'])
         lastTradeTimestamp = self.safe_integer_2(order, 'updateTime', 'T')
-        statusId = self.safe_string_2(order, 'status', 'X')
+        statusId = self.safe_string_upper_2(order, 'status', 'X')
         feeCurrencyCode = self.safe_string_2(order, 'feeAsset', 'N')
         feeCost = self.safe_string_n(order, ['fee', 'commission', 'n'])
         if (feeCurrencyCode is None):
@@ -3762,8 +3763,47 @@ class bingx(Exchange, ImplicitAPI):
     def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         fetches information on multiple closed orders made by the user
-        :see: https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Order%20History
-        :see: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#User's%20Force%20Orders
+        :see: https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20history
+        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history
+        :see: https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders
+        :see: https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
+        :param str symbol: unified market symbol of the closed orders
+        :param int [since]: timestamp in ms of the earliest order
+        :param int [limit]: the max number of closed orders to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch orders for
+        :param boolean [params.standard]: whether to fetch standard contract orders
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        orders = self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
+        return self.filter_by(orders, 'status', 'closed')
+
+    def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetches information on multiple canceled orders made by the user
+        :see: https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20history
+        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history
+        :see: https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders
+        :see: https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
+        :param str symbol: unified market symbol of the canceled orders
+        :param int [since]: timestamp in ms of the earliest order
+        :param int [limit]: the max number of canceled orders to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch orders for
+        :param boolean [params.standard]: whether to fetch standard contract orders
+        :returns dict: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.load_markets()
+        orders = self.fetch_canceled_and_closed_orders(symbol, since, limit, params)
+        return self.filter_by(orders, 'status', 'canceled')
+
+    def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :see: https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20history
+        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history
+        :see: https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders
         :see: https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
         :param str [symbol]: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
@@ -3780,72 +3820,128 @@ class bingx(Exchange, ImplicitAPI):
         request: dict = {
             'symbol': market['id'],
         }
-        response = None
+        type = None
+        subType = None
         standard = None
+        response = None
+        type, params = self.handle_market_type_and_params('fetchClosedOrders', market, params)
+        subType, params = self.handle_sub_type_and_params('fetchClosedOrders', market, params)
         standard, params = self.handle_option_and_params(params, 'fetchClosedOrders', 'standard', False)
-        marketType, query = self.handle_market_type_and_params('fetchClosedOrders', market, params)
         if standard:
-            response = self.contractV1PrivateGetAllOrders(self.extend(request, query))
-        elif marketType == 'spot':
-            response = self.spotV1PrivateGetTradeHistoryOrders(self.extend(request, query))
+            response = self.contractV1PrivateGetAllOrders(self.extend(request, params))
+        elif type == 'spot':
+            response = self.spotV1PrivateGetTradeHistoryOrders(self.extend(request, params))
+            #
+            #    {
+            #        "code": 0,
+            #        "msg": "",
+            #        "data": {
+            #            "orders": [
+            #                {
+            #                    "symbol": "XRP-USDT",
+            #                    "orderId": 1514073325788200960,
+            #                    "price": "0.5",
+            #                    "origQty": "20",
+            #                    "executedQty": "0",
+            #                    "cummulativeQuoteQty": "0",
+            #                    "status": "PENDING",
+            #                    "type": "LIMIT",
+            #                    "side": "BUY",
+            #                    "time": 1649818185647,
+            #                    "updateTime": 1649818185647,
+            #                    "origQuoteOrderQty": "0"
+            #                }
+            #            ]
+            #        }
+            #    }
+            #
         else:
-            response = self.swapV2PrivateGetTradeAllOrders(self.extend(request, query))
-        #
-        #  spot
-        #
-        #    {
-        #        "code": 0,
-        #        "msg": "",
-        #        "data": {
-        #            "orders": [
-        #                {
-        #                    "symbol": "XRP-USDT",
-        #                    "orderId": 1514073325788200960,
-        #                    "price": "0.5",
-        #                    "origQty": "20",
-        #                    "executedQty": "0",
-        #                    "cummulativeQuoteQty": "0",
-        #                    "status": "PENDING",
-        #                    "type": "LIMIT",
-        #                    "side": "BUY",
-        #                    "time": 1649818185647,
-        #                    "updateTime": 1649818185647,
-        #                    "origQuoteOrderQty": "0"
-        #                }
-        #            ]
-        #        }
-        #    }
-        #
-        # swap
-        #
-        #    {
-        #        "code": 0,
-        #        "msg": "",
-        #        "data": {
-        #          "orders": [
-        #            {
-        #              "symbol": "LINK-USDT",
-        #              "orderId": 1585839271162413056,
-        #              "side": "BUY",
-        #              "positionSide": "LONG",
-        #              "type": "TRIGGER_MARKET",
-        #              "origQty": "5.0",
-        #              "price": "9",
-        #              "executedQty": "0.0",
-        #              "avgPrice": "0",
-        #              "cumQuote": "0",
-        #              "stopPrice": "5",
-        #              "profit": "0.0000",
-        #              "commission": "0.000000",
-        #              "status": "CANCELLED",
-        #              "time": 1667631605000,
-        #              "updateTime": 1667631605000
-        #            },
-        #          ]
-        #        }
-        #    }
-        #
-        data = self.safe_value(response, 'data', [])
+            if subType == 'inverse':
+                response = self.cswapV1PrivateGetTradeOrderHistory(self.extend(request, params))
+                #
+                #     {
+                #         "code": 0,
+                #         "msg": "",
+                #         "data": {
+                #             "orders": [
+                #                 {
+                #                     "symbol": "SOL-USD",
+                #                     "orderId": "1816002957423951872",
+                #                     "side": "BUY",
+                #                     "positionSide": "LONG",
+                #                     "type": "LIMIT",
+                #                     "quantity": 1,
+                #                     "origQty": "10.00000000",
+                #                     "price": "150.000",
+                #                     "executedQty": "0.00000000",
+                #                     "avgPrice": "0.000",
+                #                     "cumQuote": "",
+                #                     "stopPrice": "0.000",
+                #                     "profit": "0.0000",
+                #                     "commission": "0.000000",
+                #                     "status": "Filled",
+                #                     "time": 1721803819000,
+                #                     "updateTime": 1721803856000,
+                #                     "clientOrderId": "",
+                #                     "leverage": "",
+                #                     "takeProfit": {
+                #                         "type": "",
+                #                         "quantity": 0,
+                #                         "stopPrice": 0,
+                #                         "price": 0,
+                #                         "workingType": "",
+                #                         "stopGuaranteed": ""
+                #                     },
+                #                     "stopLoss": {
+                #                         "type": "",
+                #                         "quantity": 0,
+                #                         "stopPrice": 0,
+                #                         "price": 0,
+                #                         "workingType": "",
+                #                         "stopGuaranteed": ""
+                #                     },
+                #                     "advanceAttr": 0,
+                #                     "positionID": 0,
+                #                     "takeProfitEntrustPrice": 0,
+                #                     "stopLossEntrustPrice": 0,
+                #                     "orderType": "",
+                #                     "workingType": "MARK_PRICE"
+                #                 },
+                #             ]
+                #         }
+                #     }
+                #
+            else:
+                response = self.swapV2PrivateGetTradeAllOrders(self.extend(request, params))
+                #
+                #     {
+                #         "code": 0,
+                #         "msg": "",
+                #         "data": {
+                #             "orders": [
+                #                 {
+                #                     "symbol": "LINK-USDT",
+                #                     "orderId": 1585839271162413056,
+                #                     "side": "BUY",
+                #                     "positionSide": "LONG",
+                #                     "type": "TRIGGER_MARKET",
+                #                     "origQty": "5.0",
+                #                     "price": "9",
+                #                     "executedQty": "0.0",
+                #                     "avgPrice": "0",
+                #                     "cumQuote": "0",
+                #                     "stopPrice": "5",
+                #                     "profit": "0.0000",
+                #                     "commission": "0.000000",
+                #                     "status": "CANCELLED",
+                #                     "time": 1667631605000,
+                #                     "updateTime": 1667631605000
+                #                 },
+                #             ]
+                #         }
+                #     }
+                #
+        data = self.safe_dict(response, 'data', {})
         orders = self.safe_list(data, 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
@@ -4248,7 +4344,8 @@ class bingx(Exchange, ImplicitAPI):
     def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
         """
         set margin mode to 'cross' or 'isolated'
-        :see: https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Switch%20Margin%20Mode
+        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Change%20Margin%20Type
+        :see: https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Set%20Margin%20Type
         :param str marginMode: 'cross' or 'isolated'
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -4269,7 +4366,12 @@ class bingx(Exchange, ImplicitAPI):
             'symbol': market['id'],
             'marginType': marginMode,
         }
-        return self.swapV2PrivatePostTradeMarginType(self.extend(request, params))
+        subType = None
+        subType, params = self.handle_sub_type_and_params('setMarginMode', market, params)
+        if subType == 'inverse':
+            return self.cswapV1PrivatePostTradeMarginType(self.extend(request, params))
+        else:
+            return self.swapV2PrivatePostTradeMarginType(self.extend(request, params))
 
     def add_margin(self, symbol: str, amount: float, params={}) -> MarginModification:
         request: dict = {
@@ -5161,7 +5263,8 @@ class bingx(Exchange, ImplicitAPI):
     def fetch_margin_mode(self, symbol: str, params={}) -> MarginMode:
         """
         fetches the margin mode of the trading pair
-        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Margin%20Mode
+        :see: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Margin%20Type
+        :see: https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Margin%20Type
         :param str symbol: unified symbol of the market to fetch the margin mode for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `margin mode structure <https://docs.ccxt.com/#/?id=margin-mode-structure>`
@@ -5171,25 +5274,43 @@ class bingx(Exchange, ImplicitAPI):
         request: dict = {
             'symbol': market['id'],
         }
-        response = self.swapV2PrivateGetTradeMarginType(self.extend(request, params))
-        #
-        #     {
-        #         "code": 0,
-        #         "msg": "",
-        #         "data": {
-        #             "marginType": "CROSSED"
-        #         }
-        #     }
-        #
+        subType = None
+        response = None
+        subType, params = self.handle_sub_type_and_params('fetchMarginMode', market, params)
+        if subType == 'inverse':
+            response = self.cswapV1PrivateGetTradeMarginType(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "timestamp": 1721966069132,
+            #         "data": {
+            #             "symbol": "SOL-USD",
+            #             "marginType": "CROSSED"
+            #         }
+            #     }
+            #
+        else:
+            response = self.swapV2PrivateGetTradeMarginType(self.extend(request, params))
+            #
+            #     {
+            #         "code": 0,
+            #         "msg": "",
+            #         "data": {
+            #             "marginType": "CROSSED"
+            #         }
+            #     }
+            #
         data = self.safe_dict(response, 'data', {})
         return self.parse_margin_mode(data, market)
 
     def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
+        marketId = self.safe_string(marginMode, 'symbol')
         marginType = self.safe_string_lower(marginMode, 'marginType')
         marginType = 'cross' if (marginType == 'crossed') else marginType
         return {
             'info': marginMode,
-            'symbol': market['symbol'],
+            'symbol': self.safe_symbol(marketId, market, '-', 'swap'),
             'marginMode': marginType,
         }
 
