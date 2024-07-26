@@ -10204,6 +10204,34 @@ export default class binance extends Exchange {
                 response = await this.papiGetUmPositionRisk (this.extend (request, params));
             } else {
                 response = await this.fapiPrivateV3GetPositionRisk (this.extend (request, params));
+                //
+                // oneway & hedge mode:
+                //
+                //    [
+                //        {
+                //            "symbol": "WLDUSDT",
+                //            "positionSide": "BOTH",
+                //            "positionAmt": "-715",
+                //            "entryPrice": "2.412716783217",
+                //            "markPrice": "2.35964598",
+                //            "unRealizedProfit": "37.94562200",
+                //            "liquidationPrice": "2.49448706",
+                //            "marginAsset": "USDT",
+                //            "isolatedMargin": "0", // in isolated mode, here will be a value
+                //            "isolatedWallet": "0", // in isolated mode, here will be a value
+                //            "breakEvenPrice": "2.411647790797",
+                //            "notional": "-1687.14687570",
+                //            "initialMargin": "84.35734378",
+                //            "maintMargin": "10.12288125",
+                //            "positionInitialMargin": "84.35734378",
+                //            "openOrderInitialMargin": "0",
+                //            "adl": "4",
+                //            "bidNotional": "0",
+                //            "askNotional": "0",
+                //            "updateTime": "1721988778721"
+                //        }
+                //    ]
+                //
             }
         } else if (this.isInverse (type, subType)) {
             if (isPortfolioMargin) {
@@ -10220,18 +10248,18 @@ export default class binance extends Exchange {
         //
         //     [
         //         {
+        //             "symbol": "BTCUSDT",
+        //             "positionSide": "BOTH",
+        //             "positionAmt": "0.000",
         //             "entryPrice": "0.00000",
+        //             "markPrice": "6679.50671178",
+        //             "unRealizedProfit": "0.00000000",
+        //             "liquidationPrice": "0",
+        //             "isolatedMargin": "0.00000000",
         //             "marginType": "isolated",
         //             "isAutoAddMargin": "false",
-        //             "isolatedMargin": "0.00000000",
         //             "leverage": "10",
-        //             "liquidationPrice": "0",
-        //             "markPrice": "6679.50671178",
         //             "maxNotionalValue": "20000000",
-        //             "positionAmt": "0.000",
-        //             "symbol": "BTCUSDT",
-        //             "unRealizedProfit": "0.00000000",
-        //             "positionSide": "BOTH",
         //             "updateTime": 0
         //        }
         //     ]
@@ -10248,27 +10276,13 @@ export default class binance extends Exchange {
         //             "liquidationPrice": "5930.78",
         //             "markPrice": "6679.50671178",
         //             "maxNotionalValue": "20000000",
-        //             "positionAmt": "20.000",
+        //             "positionSide": "LONG",
+        //             "positionAmt": "20.000", // negative value for 'SHORT'
         //             "symbol": "BTCUSDT",
         //             "unRealizedProfit": "2316.83423560"
-        //             "positionSide": "LONG",
         //             "updateTime": 1625474304765
         //         },
-        //         {
-        //             "entryPrice": "0.00000",
-        //             "marginType": "isolated",
-        //             "isAutoAddMargin": "false",
-        //             "isolatedMargin": "5413.95799991",
-        //             "leverage": "10",
-        //             "liquidationPrice": "7189.95",
-        //             "markPrice": "6679.50671178",
-        //             "maxNotionalValue": "20000000",
-        //             "positionAmt": "-10.000",
-        //             "symbol": "BTCUSDT",
-        //             "unRealizedProfit": "-1156.46711780",
-        //             "positionSide": "SHORT",
-        //             "updateTime": 0
-        //         }
+        //         .. second dict is similar, but with `positionSide: SHORT`
         //     ]
         //
         // inverse portfolio margin:
