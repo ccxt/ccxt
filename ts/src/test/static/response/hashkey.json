@@ -413,6 +413,77 @@
                     }
                 }
             }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "Fetch deposit address for USDT with default network",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT"
+                ],
+                "httpResponse": {
+                    "canDeposit": true,
+                    "address": "0x61AAd7F763e2C7fF1CC996918740F67f9dC8BF4e",
+                    "addressExt": "",
+                    "minQuantity": "1",
+                    "needAddressTag": false,
+                    "requiredConfirmTimes": "64",
+                    "canWithdrawConfirmTimes": "64",
+                    "coinType": "ERC20_TOKEN"
+                },
+                "parsedResponse": {
+                    "currency": "USDT",
+                    "address": "0x61AAd7F763e2C7fF1CC996918740F67f9dC8BF4e",
+                    "tag": null,
+                    "network": "ERC20",
+                    "info": {
+                        "canDeposit": true,
+                        "address": "0x61AAd7F763e2C7fF1CC996918740F67f9dC8BF4e",
+                        "addressExt": "",
+                        "minQuantity": "1",
+                        "needAddressTag": false,
+                        "requiredConfirmTimes": "64",
+                        "canWithdrawConfirmTimes": "64",
+                        "coinType": "ERC20_TOKEN"
+                    }
+                }
+            },
+            {
+                "description": "Fetch deposit address for USD with network arbitrum",
+                "method": "fetchDepositAddress",
+                "input": [
+                    "USDT",
+                    {
+                        "network": "ARB"
+                    }
+                ],
+                "httpResponse": {
+                    "canDeposit": true,
+                    "address": "0xC38268b45F651EA74a5C0cB7531AA79EF20e138f",
+                    "addressExt": "",
+                    "minQuantity": "1",
+                    "needAddressTag": false,
+                    "requiredConfirmTimes": "64",
+                    "canWithdrawConfirmTimes": "64",
+                    "coinType": "ERC20_TOKEN"
+                },
+                "parsedResponse": {
+                    "currency": "USDT",
+                    "address": "0xC38268b45F651EA74a5C0cB7531AA79EF20e138f",
+                    "tag": null,
+                    "network": "ARB",
+                    "info": {
+                        "canDeposit": true,
+                        "address": "0xC38268b45F651EA74a5C0cB7531AA79EF20e138f",
+                        "addressExt": "",
+                        "minQuantity": "1",
+                        "needAddressTag": false,
+                        "requiredConfirmTimes": "64",
+                        "canWithdrawConfirmTimes": "64",
+                        "coinType": "ERC20_TOKEN"
+                    }
+                }
+            }
         ]
     }
 }
