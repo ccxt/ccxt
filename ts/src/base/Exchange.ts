@@ -1849,7 +1849,7 @@ export default class Exchange {
                 '407': AuthenticationError,
                 '511': AuthenticationError,
             },
-            'commonCurrencies': { // gets extended/overwritten in subclasses
+            'commonCurrencies': {
                 'XBT': 'BTC',
                 'BCC': 'BCH',
                 'BCHSV': 'BSV',
