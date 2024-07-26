@@ -5509,7 +5509,8 @@ export default class bingx extends Exchange {
          * @method
          * @name bingx#fetchMarginMode
          * @description fetches the margin mode of the trading pair
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Margin%20Mode
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Margin%20Type
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Margin%20Type
          * @param {string} symbol unified symbol of the market to fetch the margin mode for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
@@ -5519,26 +5520,45 @@ export default class bingx extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const response = await this.swapV2PrivateGetTradeMarginType (this.extend (request, params));
-        //
-        //     {
-        //         "code": 0,
-        //         "msg": "",
-        //         "data": {
-        //             "marginType": "CROSSED"
-        //         }
-        //     }
-        //
+        let subType = undefined;
+        let response = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchMarginMode', market, params);
+        if (subType === 'inverse') {
+            response = await this.cswapV1PrivateGetTradeMarginType (this.extend (request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "",
+            //         "timestamp": 1721966069132,
+            //         "data": {
+            //             "symbol": "SOL-USD",
+            //             "marginType": "CROSSED"
+            //         }
+            //     }
+            //
+        } else {
+            response = await this.swapV2PrivateGetTradeMarginType (this.extend (request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "msg": "",
+            //         "data": {
+            //             "marginType": "CROSSED"
+            //         }
+            //     }
+            //
+        }
         const data = this.safeDict (response, 'data', {});
         return this.parseMarginMode (data, market);
     }
 
     parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
+        const marketId = this.safeString (marginMode, 'symbol');
         let marginType = this.safeStringLower (marginMode, 'marginType');
         marginType = (marginType === 'crossed') ? 'cross' : marginType;
         return {
             'info': marginMode,
-            'symbol': market['symbol'],
+            'symbol': this.safeSymbol (marketId, market, '-', 'swap'),
             'marginMode': marginType,
         } as MarginMode;
     }
