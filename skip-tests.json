@@ -1270,7 +1270,7 @@
                 "baseVolume": "https://app.travis-ci.com/github/ccxt/ccxt/builds/267900037#L6610",
                 "spread":"https://app.travis-ci.com/github/ccxt/ccxt/builds/269273148#L3916",
                 "vwap": "https://app.travis-ci.com/github/ccxt/ccxt/builds/271520319#L5664",
-                "average": "undefined for long precisions",
+                "average": "undefined for huge precisions"
             },
             "fetchAccounts": {
                 "type": "type is not provided"
