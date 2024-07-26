@@ -1291,11 +1291,19 @@
         ],
         "fetchMarginMode": [
             {
-                "description": "Swap fetch the margin mode",
+                "description": "Linear swap fetch the margin mode",
                 "method": "fetchMarginMode",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/marginType?symbol=BTC-USDT&timestamp=1709612311793&signature=a327894546ea7337cc55fa527bc183bba415213c48f0b9dafdc27bb6c38d8df9",
                 "input": [
                     "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Inverse swap fetch the margin mode",
+                "method": "fetchMarginMode",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/marginType?symbol=SOL-USD&timestamp=1721966067969&signature=72cd480f000e3d2eabd520ba5e5778f58dc2508ff9720cbc8fc1c3870f6a968b",
+                "input": [
+                  "SOL/USD:SOL"
                 ]
             }
         ],
