@@ -1237,12 +1237,21 @@
         ],
         "setMarginMode": [
             {
-                "description": "Swap set the margin mode",
+                "description": "Linear swap set the margin mode",
                 "method": "setMarginMode",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/marginType?marginType=ISOLATED&symbol=BTC-USDT&timestamp=1709612405970&signature=ad4ff86204ba2cb9963a64e13a858215a2a1e31d2f10616ce5b0bbf64558800d",
                 "input": [
                     "isolated",
                     "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Inverse swap set the margin mode",
+                "method": "setMarginMode",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/marginType?marginType=CROSSED&symbol=SOL-USD&timestamp=1721977131380&signature=ab360e84bb56b27440fe1ca0835e07d936eaa75b4bdf57feb6771de45865e2bc",        
+                "input": [
+                  "cross",
+                  "SOL/USD:SOL"
                 ]
             }
         ],
