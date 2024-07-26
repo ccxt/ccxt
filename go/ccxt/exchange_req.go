@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	urlLib "net/url"
+	"strings"
 	"time"
 )
 
@@ -27,6 +29,13 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 	if !ok {
 		panic("headers must be a map[string]interface{}")
 	}
+
+	if this.Verbose {
+		fmt.Println("Headers:", headersMap)
+		fmt.Printf("Request: %s %s\n", methodStr, urlStr)
+		fmt.Printf("Body: %v\n", body)
+	}
+
 	headersStrMap := make(map[string]string)
 	for k, v := range headersMap {
 		headersStrMap[k] = fmt.Sprintf("%v", v)
@@ -37,26 +46,64 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 	}
 
 	// Marshal the body to JSON if not nil
-	var requestBody []byte
+	// var requestBody []byte
+	// var err error
+	// if body != nil {
+	// 	requestBody, err = json.Marshal(body)
+	// 	if err != nil {
+	// 		panic(fmt.Sprintf("failed to marshal body: %v", err))
+	// 	}
+	// }
+
+	var req *http.Request
 	var err error
+
 	if body != nil {
-		requestBody, err = json.Marshal(body)
+		switch v := body.(type) {
+		case string:
+			// If the body is a string, use URL encoding
+			data := urlLib.Values{}
+			parsedData, err := urlLib.ParseQuery(v)
+			if err != nil {
+				panic(fmt.Sprintf("error parsing query string: %w", v))
+			}
+			for key, values := range parsedData {
+				for _, value := range values {
+					data.Set(key, value)
+				}
+			}
+			req, err = http.NewRequest(methodStr, urlStr, strings.NewReader(data.Encode()))
+			if err != nil {
+				panic(fmt.Sprintf("error creating request"))
+			}
+		default:
+			requestBody, err := json.Marshal(body)
+			if err != nil {
+				panic(fmt.Sprintf("error marshalling JSON"))
+			}
+			req, err = http.NewRequest(methodStr, urlStr, bytes.NewBuffer(requestBody))
+			if err != nil {
+				panic(fmt.Sprintf("error creating request"))
+			}
+		}
+	} else {
+		req, err = http.NewRequest(methodStr, urlStr, nil)
 		if err != nil {
-			panic(fmt.Sprintf("failed to marshal body: %v", err))
+			panic(fmt.Sprintf("error creating request"))
 		}
 	}
-
 	// Create the HTTP request
-	req, err := http.NewRequest(methodStr, urlStr, bytes.NewBuffer(requestBody))
-	if err != nil {
-		panic(fmt.Sprintf("failed to create request: %v", err))
-	}
+	// req, err := http.NewRequest(methodStr, urlStr, bytes.NewBuffer(requestBody))
+	// if err != nil {
+	// 	panic(fmt.Sprintf("failed to create request: %v", err))
+	// }
 
 	// Set headers
 	for key, value := range headersStrMap {
 		req.Header.Set(key, value)
 	}
 
+	// strings.NewReader()
 	// Send the request
 	resp, err := client.Do(req)
 	if err != nil {

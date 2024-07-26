@@ -22,9 +22,13 @@ func ConvertToDictionaryOfStringObject(potentialDictionary interface{}) (map[str
 }
 
 // SafeValueN retrieves a value from a nested structure
-func SafeValueN(obj interface{}, keys []interface{}, defaultValue interface{}) interface{} {
+func SafeValueN(obj interface{}, keys []interface{}, defaultValue ...interface{}) interface{} {
+	var defVal interface{} = nil
+	if len(defaultValue) > 0 {
+		defVal = defaultValue[0]
+	}
 	if obj == nil {
-		return defaultValue
+		return defVal
 	}
 
 	// Convert array to slice if needed
@@ -59,7 +63,7 @@ func SafeValueN(obj interface{}, keys []interface{}, defaultValue interface{}) i
 		}
 	}
 
-	return defaultValue
+	return defVal
 }
 
 // SafeStringN retrieves a string value from a nested structure
@@ -321,7 +325,7 @@ func (this *Exchange) SafeValue(obj interface{}, key interface{}, defaultValue .
 }
 
 func (this *Exchange) SafeValue2(obj interface{}, key interface{}, key2 interface{}, defaultValue ...interface{}) interface{} {
-	return SafeValueN(obj, []interface{}{key, key2}, defaultValue)
+	return SafeValueN(obj, []interface{}{key, key2}, defaultValue...)
 }
 
 func (this *Exchange) SafeValueN(obj interface{}, keys interface{}, defaultValue ...interface{}) interface{} {

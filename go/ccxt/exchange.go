@@ -138,7 +138,7 @@ func (this *Exchange) Init(userConfig map[string]interface{}, exchangeConfig map
 
 	this.transformApiNew(this.Api)
 
-	fmt.Println(this.TransformedApi)
+	// fmt.Println(this.TransformedApi)
 }
 
 func (this *Exchange) LoadMarkets(params ...interface{}) interface{} {
