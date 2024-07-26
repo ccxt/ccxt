@@ -19,6 +19,15 @@ class Throttler {
         this.queue = [];
         this.running = false;
     }
+    
+    clear () {
+        this.running = false;
+        for (let i = 0; i < this.queue.length; i++) {
+            const { rejecter } = this.queue[i];
+            rejecter (new Error ('clearing throttle queued messages'));
+        }
+        this.queue = [];
+    }
 
     async loop () {
         let lastTimestamp = now ();
@@ -46,14 +55,16 @@ class Throttler {
 
     throttle (cost = undefined) {
         let resolver;
+        let rejecter;
         const promise = new Promise ((resolve, reject) => {
             resolver = resolve;
+            rejecter = reject;
         });
         if (this.queue.length > this.config['maxCapacity']) {
             throw new Error ('throttle queue is over maxCapacity (' + this.config['maxCapacity'].toString () + '), see https://github.com/ccxt/ccxt/issues/11645#issuecomment-1195695526');
         }
         cost = (cost === undefined) ? this.config['cost'] : cost;
-        this.queue.push ({ resolver, cost });
+        this.queue.push ({ resolver, cost, rejecter });
         if (!this.running) {
             this.running = true;
             this.loop ();

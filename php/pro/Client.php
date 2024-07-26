@@ -2,6 +2,7 @@
 
 namespace ccxt\pro;
 
+use ccxt\async\Throttler;
 use Ratchet\Client\Connector;
 use React;
 use React\EventLoop\Loop;
@@ -52,8 +53,6 @@ class Client {
     public $verbose = false; // verbose output
     public $gunzip = false;
     public $inflate = false;
-    public $throttler = null;
-    public $throttle = null;
     public $connection = null;
     public $connected; // connection-related Future
     public $isConnected = false;
@@ -61,6 +60,9 @@ class Client {
     public $log = null;
     public $heartbeat = null;
     public $cost = 1;
+    public Throttler $messages_throttler;
+    public Throttler $connections_throttler;
+    public $rateLimits;
 
     // ratchet/pawl/reactphp stuff
     public $connector = null;
@@ -223,21 +225,10 @@ class Client {
         })();
     }
 
-    public function connect($backoff_delay = 0) {
+    public function connect() {
         if (!$this->connection) {
             $this->connection = true;
-            if ($backoff_delay) {
-                if ($this->verbose) {
-                    echo date('c'), ' backoff delay ', $backoff_delay, " seconds\n";
-                }
-                $callback = array($this, 'create_connection');
-                Loop::addTimer(((float)$backoff_delay) / 1000, $callback);
-            } else {
-                if ($this->verbose) {
-                    echo date('c'), ' no backoff delay', "\n";
-                }
-                $this->create_connection();
-            }
+            $this->create_connection();
         }
         return $this->connected;
     }
@@ -254,6 +245,8 @@ class Client {
 
     public function close() {
         $this->connection->close();
+        $this->connections_throttler->clear();
+        $this->messages_throttler->clear();
     }
 
     public function on_pong($message) {

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from asyncio import sleep, ensure_future, wait_for, TimeoutError
+from asyncio import ensure_future, wait_for, TimeoutError
 from .functions import milliseconds, iso8601, deep_extend
 from ccxt import NetworkError, RequestTimeout, NotSupported
 from ccxt.async_support.base.ws.future import Future
@@ -35,7 +35,8 @@ class Client(object):
     verbose = False  # verbose output
     gunzip = False
     inflate = False
-    throttle = None
+    connections_throttler = None
+    messages_throttler = None
     connecting = False
     asyncio_loop = None
     ping_looper = None
@@ -127,10 +128,7 @@ class Client(object):
                     self.log(iso8601(milliseconds()), 'receive_loop', 'Exception', error)
                 self.reset(error)
 
-    async def open(self, session, backoff_delay=0):
-        # exponential backoff for consequent connections if necessary
-        if backoff_delay:
-            await sleep(backoff_delay)
+    async def open(self, session):
         if self.verbose:
             self.log(iso8601(milliseconds()), 'connecting to', self.url, 'with timeout', self.connectionTimeout, 'ms')
         self.connectionStarted = milliseconds()
@@ -160,10 +158,10 @@ class Client(object):
                 self.log(iso8601(milliseconds()), 'NetworkError', error)
             self.on_error(error)
 
-    def connect(self, session, backoff_delay=0):
+    def connect(self, session):
         if not self.connection and not self.connecting:
             self.connecting = True
-            ensure_future(self.open(session, backoff_delay), loop=self.asyncio_loop)
+            ensure_future(self.open(session), loop=self.asyncio_loop)
         return self.connected
 
     def on_error(self, error):

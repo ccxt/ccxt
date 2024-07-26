@@ -2277,6 +2277,38 @@ class Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function calculate_ws_token_bucket($wsOptions, $url, $tokenKey = 'connections') {
+        $rateLimits = $this->safe_value($wsOptions, 'rateLimits');
+        $specificRateLimit = $this->safe_value($rateLimits, $tokenKey);
+        $rateLimit = $this->safe_number($specificRateLimit, 'rateLimit');
+        if ($rateLimits === null || $rateLimit === null) {
+            return $this->tokenBucket; // default to the rest bucket
+        }
+        $cost = 1;
+        $rateLimitsKeys = is_array($rateLimits) ? array_keys($rateLimits) : array();
+        for ($i = 0; $i < count($rateLimitsKeys); $i++) {
+            $rateLimitKey = $rateLimitsKeys[$i];
+            if (str_starts_with($url, $rateLimitKey)) {
+                $value = $this->safe_value($rateLimits, $rateLimitKey);
+                $urlCost = $this->safe_integer($value, $tokenKey);
+                if ($urlCost !== null) {
+                    $cost = $urlCost;
+                    break;
+                }
+            }
+        }
+        $refillRate = ($rateLimit !== null) ? (1 / $rateLimit) : PHP_INT_MAX;
+        $tokenBucket = $this->safe_value($rateLimits, 'tokenBucket', array());
+        $config = array_merge(array(
+            'delay' => 0.001,
+            'capacity' => 1,
+            'cost' => $cost,
+            'maxCapacity' => 1000,
+            'refillRate' => $refillRate,
+        ), $tokenBucket);
+        return $config;
+    }
+
     public function safe_bool_n($dictionaryOrList, array $keys, ?bool $defaultValue = null) {
         /**
          * @ignore

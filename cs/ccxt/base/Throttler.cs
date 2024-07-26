@@ -7,7 +7,7 @@ public class Throttler
 {
 
     private dict config = new dict();
-    private Queue<(Task, double)> queue = new Queue<(Task, double)>();
+    private Queue<(Task, double)> queue = new Queue<(Task, double)>(); // Does this need to be a ConcurrentQueue?
 
     private bool running = false;
 
@@ -25,6 +25,13 @@ public class Throttler
         this.config = extend(this.config, config);
 
     }
+
+    public void clear()
+    {
+        this.queue.Clear();
+        this.running = false;
+    }
+
 
     private async Task loop()
     {
