@@ -908,11 +908,19 @@
                 ]
             },
             {
-                "description": "Swap closed orders",
+                "description": "Linear swap fetch closed orders",
                 "method": "fetchClosedOrders",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/allOrders?symbol=LTC-USDT&timestamp=1699458294851&signature=d1622ab21a981576341cb05abaece32622e00a0b296c69e937e792c157e3e687",
                 "input": [
                     "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Inverse swap fetch closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/orderHistory?symbol=SOL-USD&timestamp=1721961756401&signature=e9cfa075457e0a4e8346e2dd32fa082cfb631ecaf87ca7ff414a1fe1096c5a8c",
+                "input": [
+                  "SOL/USD:SOL"
                 ]
             }
         ],
