@@ -908,11 +908,45 @@
                 ]
             },
             {
-                "description": "Swap closed orders",
+                "description": "Linear swap fetch closed orders",
                 "method": "fetchClosedOrders",
                 "url": "https://open-api.bingx.com/openApi/swap/v2/trade/allOrders?symbol=LTC-USDT&timestamp=1699458294851&signature=d1622ab21a981576341cb05abaece32622e00a0b296c69e937e792c157e3e687",
                 "input": [
                     "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Inverse swap fetch closed orders",
+                "method": "fetchClosedOrders",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/orderHistory?symbol=SOL-USD&timestamp=1721961756401&signature=e9cfa075457e0a4e8346e2dd32fa082cfb631ecaf87ca7ff414a1fe1096c5a8c",
+                "input": [
+                  "SOL/USD:SOL"
+                ]
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "Spot fetch canceled orders",
+                "method": "fetchCanceledOrders",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/trade/historyOrders?symbol=BTC-USDT&timestamp=1721962412294&signature=ef116f0066be1352ec1f8f02c63de0201c902090c12243f0653b2bff86101a58",
+                "input": [
+                  "BTC/USDT"
+                ]
+            },
+            {
+                "description": "Linear swap fetch canceled orders",
+                "method": "fetchCanceledOrders",
+                "url": "https://open-api.bingx.com/openApi/swap/v2/trade/allOrders?symbol=BTC-USDT&timestamp=1721962374236&signature=39820f50817c13794281f718696a45d3f2726be8f0393f49c8ad07ccc1aa5801",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Inverse swap fetch canceled orders",
+                "method": "fetchCanceledOrders",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/orderHistory?symbol=SOL-USD&timestamp=1721962310068&signature=d29e60b0b0da7bd115a42881b27bc9e3cbe865734802badb1df6d12875ac89c8",
+                "input": [
+                  "SOL/USD:SOL"
                 ]
             }
         ],
