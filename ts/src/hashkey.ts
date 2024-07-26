@@ -4,7 +4,7 @@
 import Exchange from './abstract/hashkey.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Bool, Currencies, Dict, LastPrice, LastPrices, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Trade } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, Dict, LastPrice, LastPrices, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -262,6 +262,7 @@ export default class hashkey extends Exchange {
                     'OPTIMISM': 'Optimism',
                     'ARB': 'Arbitrum',
                     'DOGE': 'Dogecoin',
+                    'TRC20': 'TRC20',
                 },
                 'networksById': {
                     'BTC': 'BTC',
@@ -286,6 +287,7 @@ export default class hashkey extends Exchange {
                     'BSC(BEP20)': 'BSC',
                     'Klaytn': 'Klaytn', // todo check
                 },
+                'defaultNetwork': 'ERC20',
             },
             'commonCurrencies': {},
             'exceptions': {
@@ -1244,6 +1246,74 @@ export default class hashkey extends Exchange {
             result[code] = account;
         }
         return this.safeBalance (result);
+    }
+
+    async fetchDepositAddress (code: string, params = {}) {
+        /**
+         * @method
+         * @name hashkey#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-deposit-address
+         * @param {string} code unified currency code (default is 'USDT')
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.network] network for fetch deposit address (default is 'ETH')
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request: Dict = {
+            'coin': currency['id'],
+        };
+        let networkCode: Str = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode === undefined) {
+            networkCode = this.defaultNetworkCode (code);
+        }
+        request['chainType'] = this.networkCodeToId (networkCode, code);
+        const response = await this.privateGetApiV1AccountDepositAddress (this.extend (request, params));
+        //
+        //     {
+        //         "canDeposit": true,
+        //         "address": "0x61AAd7F763e2C7fF1CC996918740F67f9dC8BF4e",
+        //         "addressExt": "",
+        //         "minQuantity": "1",
+        //         "needAddressTag": false,
+        //         "requiredConfirmTimes": 64,
+        //         "canWithdrawConfirmTimes": 64,
+        //         "coinType": "ERC20_TOKEN"
+        //     }
+        //
+        const depositAddress = this.parseDepositAddress (response, currency);
+        depositAddress['network'] = networkCode;
+        return depositAddress;
+    }
+
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+        //
+        //     {
+        //         "canDeposit": true,
+        //         "address": "0x61AAd7F763e2C7fF1CC996918740F67f9dC8BF4e",
+        //         "addressExt": "",
+        //         "minQuantity": "1",
+        //         "needAddressTag": false,
+        //         "requiredConfirmTimes": 64,
+        //         "canWithdrawConfirmTimes": 64,
+        //         "coinType": "ERC20_TOKEN"
+        //     }
+        //
+        const address = this.safeString (depositAddress, 'address');
+        this.checkAddress (address);
+        let tag = this.safeString (depositAddress, 'addressExt');
+        if (tag === '') {
+            tag = undefined;
+        }
+        return {
+            'currency': currency['code'],
+            'address': address,
+            'tag': tag,
+            'network': undefined,
+            'info': depositAddress,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
