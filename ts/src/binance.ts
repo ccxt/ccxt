@@ -899,9 +899,9 @@ export default class binance extends Exchange {
                 },
                 'fapiPrivateV3': {
                     'get': {
-                        'account': 5,
-                        'balance': 5,
-                        'positionRisk': 5,
+                        'account': 1,
+                        'balance': 1,
+                        'positionRisk': 1,
                     },
                 },
                 'eapiPublic': {
