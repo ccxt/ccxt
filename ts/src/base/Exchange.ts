@@ -3466,7 +3466,7 @@ export default class Exchange {
         if ((last !== undefined) && (open !== undefined)) {
             if (change === undefined) {
                 change = Precise.stringSub (last, open);
-                if (last !== open){
+                if (last !== open) {
                     change = this.omitZero (change);
                 }
             }
