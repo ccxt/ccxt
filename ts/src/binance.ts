@@ -191,8 +191,10 @@ export default class binance extends Exchange {
                     'dapiPrivateV2': 'https://testnet.binancefuture.com/dapi/v2',
                     'fapiPublic': 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPublicV2': 'https://testnet.binancefuture.com/fapi/v2',
+                    'fapiPublicV3': 'https://testnet.binancefuture.com/fapi/v3',
                     'fapiPrivate': 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivateV2': 'https://testnet.binancefuture.com/fapi/v2',
+                    'fapiPrivateV3': 'https://testnet.binancefuture.com/fapi/v3',
                     'public': 'https://testnet.binance.vision/api/v3',
                     'private': 'https://testnet.binance.vision/api/v3',
                     'v1': 'https://testnet.binance.vision/api/v1',
@@ -210,9 +212,11 @@ export default class binance extends Exchange {
                     'dapiData': 'https://dapi.binance.com/futures/data',
                     'fapiPublic': 'https://fapi.binance.com/fapi/v1',
                     'fapiPublicV2': 'https://fapi.binance.com/fapi/v2',
+                    'fapiPublicV3': 'https://fapi.binance.com/fapi/v3',
                     'fapiPrivate': 'https://fapi.binance.com/fapi/v1',
-                    'fapiData': 'https://fapi.binance.com/futures/data',
                     'fapiPrivateV2': 'https://fapi.binance.com/fapi/v2',
+                    'fapiPrivateV3': 'https://fapi.binance.com/fapi/v3',
+                    'fapiData': 'https://fapi.binance.com/futures/data',
                     'public': 'https://api.binance.com/api/v3',
                     'private': 'https://api.binance.com/api/v3',
                     'v1': 'https://api.binance.com/api/v1',
@@ -848,6 +852,8 @@ export default class binance extends Exchange {
                         'trade/asyn': 1000,
                         'trade/asyn/id': 10,
                         'feeBurn': 1,
+                        'symbolConfig': 5,
+                        'accountConfig': 5,
                     },
                     'post': {
                         'batchOrders': 5,
@@ -886,6 +892,16 @@ export default class binance extends Exchange {
                         'account': 1,
                         'balance': 1,
                         'positionRisk': 1,
+                    },
+                },
+                'fapiPublicV3': {
+                    'get': {},
+                },
+                'fapiPrivateV3': {
+                    'get': {
+                        'account': 5,
+                        'balance': 5,
+                        'positionRisk': 5,
                     },
                 },
                 'eapiPublic': {
@@ -10132,7 +10148,7 @@ export default class binance extends Exchange {
             if (isPortfolioMargin) {
                 response = await this.papiGetUmAccount (params);
             } else {
-                response = await this.fapiPrivateV2GetAccount (params);
+                response = await this.fapiPrivateV3GetAccount (params);
             }
         } else if (this.isInverse (type, subType)) {
             if (isPortfolioMargin) {
@@ -10187,7 +10203,7 @@ export default class binance extends Exchange {
             if (isPortfolioMargin) {
                 response = await this.papiGetUmPositionRisk (this.extend (request, params));
             } else {
-                response = await this.fapiPrivateV2GetPositionRisk (this.extend (request, params));
+                response = await this.fapiPrivateV3GetPositionRisk (this.extend (request, params));
             }
         } else if (this.isInverse (type, subType)) {
             if (isPortfolioMargin) {
@@ -11019,7 +11035,7 @@ export default class binance extends Exchange {
             } else {
                 throw new AuthenticationError (this.id + ' userDataStream endpoint requires `apiKey` credential');
             }
-        } else if ((api === 'private') || (api === 'eapiPrivate') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV2') || (api === 'sapiV3') || (api === 'sapiV4') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2') || (api === 'papi' && path !== 'ping')) {
+        } else if ((api === 'private') || (api === 'eapiPrivate') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV2') || (api === 'sapiV3') || (api === 'sapiV4') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2') || (api === 'fapiPrivateV3') || (api === 'papi' && path !== 'ping')) {
             this.checkRequiredCredentials ();
             if (method === 'POST' && ((path === 'order') || (path === 'sor/order'))) {
                 // inject in implicit API calls
