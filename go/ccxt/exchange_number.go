@@ -126,7 +126,7 @@ func (this *Exchange) _decimalToPrecision(x interface{}, roundingMode2, numPreci
 		panic("TICK_SIZE can't be used with negative or zero numPrecisionDigits")
 	}
 
-	parsedX := x.(float64)
+	parsedX := ToFloat64(x)
 	if numPrecisionDigits < 0 {
 		toNearest := math.Pow(10, math.Abs(numPrecisionDigits))
 		if roundingMode == ROUND {

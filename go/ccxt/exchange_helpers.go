@@ -84,6 +84,26 @@ func GetValue(collection interface{}, key interface{}) interface{} {
 	}
 	reflectValue := reflect.ValueOf(collection)
 
+	if reflectValue.Kind() == reflect.Ptr {
+		reflectValue = reflectValue.Elem()
+	}
+	if reflectValue.Kind() == reflect.Struct {
+		stringKey := key.(string)
+		stringKeyCapitalized := Capitalize(stringKey)
+		field := reflectValue.FieldByName(stringKey)
+
+		fieldCapitalized := reflectValue.FieldByName(stringKeyCapitalized)
+		if fieldCapitalized.IsValid() {
+			return fieldCapitalized.Interface()
+		}
+
+		if field.IsValid() {
+			return field.Interface()
+		}
+
+		return nil
+	}
+
 	switch reflectValue.Kind() {
 	case reflect.Slice, reflect.Array:
 		// Handle slice or array: key should be an integer index.
