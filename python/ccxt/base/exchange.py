@@ -3456,7 +3456,7 @@ class Exchange(object):
             defaultNetworkCode = defaultNetworks[currencyCode]
         else:
             # otherwise, try to use the global-scope 'defaultNetwork' value(even if that network is not supported by currency, it doesn't make any problem, self will be just used "at first" if currency supports self network at all)
-            defaultNetwork = self.safe_dict(self.options, 'defaultNetwork')
+            defaultNetwork = self.safe_string(self.options, 'defaultNetwork')
             if defaultNetwork is not None:
                 defaultNetworkCode = defaultNetwork
         return defaultNetworkCode

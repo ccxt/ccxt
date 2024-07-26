@@ -2519,7 +2519,7 @@ public partial class Exchange
         } else
         {
             // otherwise, try to use the global-scope 'defaultNetwork' value (even if that network is not supported by currency, it doesn't make any problem, this will be just used "at first" if currency supports this network at all)
-            object defaultNetwork = this.safeDict(this.options, "defaultNetwork");
+            object defaultNetwork = this.safeString(this.options, "defaultNetwork");
             if (isTrue(!isEqual(defaultNetwork, null)))
             {
                 defaultNetworkCode = defaultNetwork;
