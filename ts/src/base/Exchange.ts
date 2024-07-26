@@ -3465,11 +3465,14 @@ export default class Exchange {
         }
         if ((last !== undefined) && (open !== undefined)) {
             if (change === undefined) {
-                change = this.omitZero (Precise.stringSub (last, open));
+                change = Precise.stringSub (last, open);
+                if (last !== open){
+                    change = this.omitZero (change);
+                }
             }
             if (average === undefined) {
                 const add = this.omitZero (Precise.stringAdd (last, open));
-                average = this.omitZero (Precise.stringDiv (add, '2'));
+                average = Precise.stringDiv (add, '2');
             }
         }
         if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && Precise.stringGt (open, '0')) {
