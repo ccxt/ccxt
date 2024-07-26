@@ -4516,7 +4516,8 @@ export default class bingx extends Exchange {
          * @method
          * @name bingx#setMarginMode
          * @description set margin mode to 'cross' or 'isolated'
-         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Switch%20Margin%20Mode
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Change%20Margin%20Type
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Set%20Margin%20Type
          * @param {string} marginMode 'cross' or 'isolated'
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4541,7 +4542,13 @@ export default class bingx extends Exchange {
             'symbol': market['id'],
             'marginType': marginMode,
         };
-        return await this.swapV2PrivatePostTradeMarginType (this.extend (request, params));
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('setMarginMode', market, params);
+        if (subType === 'inverse') {
+            return await this.cswapV1PrivatePostTradeMarginType (this.extend (request, params));
+        } else {
+            return await this.swapV2PrivatePostTradeMarginType (this.extend (request, params));
+        }
     }
 
     async addMargin (symbol: string, amount: number, params = {}): Promise<MarginModification> {
