@@ -9544,8 +9544,36 @@ export default class binance extends Exchange {
         //
         // usdm
         //
+        //  v3
+        //
+        //        {
+        //            "symbol": "WLDUSDT",
+        //            "positionSide": "BOTH",
+        //            "positionAmt": "-715",
+        //            "entryPrice": "2.412716783217",
+        //            "markPrice": "2.35964598",
+        //            "unRealizedProfit": "37.94562200",
+        //            "liquidationPrice": "2.49448706",
+        //            "isolatedMargin": "0", // in isolated mode, here will be a value
+        //            "isolatedWallet": "0", // in isolated mode, here will be a value
+        //            "marginAsset": "USDT",
+        //            "breakEvenPrice": "2.411647790797",
+        //            "notional": "-1687.14687570",
+        //            "initialMargin": "84.35734378",
+        //            "maintMargin": "10.12288125",
+        //            "positionInitialMargin": "84.35734378",
+        //            "openOrderInitialMargin": "0",
+        //            "adl": "4",
+        //            "bidNotional": "0",
+        //            "askNotional": "0",
+        //            "updateTime": "1721988778721"
+        //        }
+        //
+        //  v2
+        //
         //     {
         //       "symbol": "BTCUSDT",
+        //       "positionSide": "BOTH",
         //       "positionAmt": "0.001",
         //       "entryPrice": "43578.07000",
         //       "markPrice": "43532.30000000",
@@ -9556,7 +9584,6 @@ export default class binance extends Exchange {
         //       "marginType": "isolated",
         //       "isolatedMargin": "21.77841506",
         //       "isAutoAddMargin": "false",
-        //       "positionSide": "BOTH",
         //       "notional": "43.53230000",
         //       "isolatedWallet": "21.82418506",
         //       "updateTime": "1621358023886"
@@ -9618,6 +9645,9 @@ export default class binance extends Exchange {
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market, undefined, 'contract');
         const symbol = this.safeString (market, 'symbol');
+        const isV3 = ('adl' in position);
+        const isolatedMarginString = this.safeString (position, 'isolatedMargin');
+        const marginAsset = this.safeString (position, 'marginAsset');
         const leverageBrackets = this.safeDict (this.options, 'leverageBrackets', {});
         const leverageBracket = this.safeList (leverageBrackets, symbol, []);
         const notionalString = this.safeString2 (position, 'notional', 'notionalValue');
@@ -9640,7 +9670,10 @@ export default class binance extends Exchange {
         const liquidationPriceString = this.omitZero (this.safeString (position, 'liquidationPrice'));
         const liquidationPrice = this.parseNumber (liquidationPriceString);
         let collateralString = undefined;
-        const marginMode = this.safeString (position, 'marginType');
+        let marginMode = this.safeString (position, 'marginType');
+        if (marginMode === undefined && isolatedMarginString) {
+            marginMode = Precise.stringEq (isolatedMarginString, '0') ? 'cross' : 'isolated';
+        }
         let side = undefined;
         if (Precise.stringGt (notionalString, '0')) {
             side = 'long';
@@ -9705,7 +9738,11 @@ export default class binance extends Exchange {
             timestamp = undefined;
         }
         const maintenanceMarginPercentage = this.parseNumber (maintenanceMarginPercentageString);
-        const maintenanceMarginString = Precise.stringMul (maintenanceMarginPercentageString, notionalStringAbs);
+        let maintenanceMarginString = Precise.stringMul (maintenanceMarginPercentageString, notionalStringAbs);
+        if (maintenanceMarginString === undefined) {
+            // for a while, this new value was a backup to the existing calculations, but in future we might prioritize this
+            maintenanceMarginString = this.safeString (position, 'maintMargin');
+        }
         const maintenanceMargin = this.parseNumber (maintenanceMarginString);
         let initialMarginPercentageString = Precise.stringDiv ('1', leverageString, 8);
         const rational = this.isRoundNumber (1000 % leverage);
