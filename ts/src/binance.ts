@@ -9645,9 +9645,7 @@ export default class binance extends Exchange {
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market, undefined, 'contract');
         const symbol = this.safeString (market, 'symbol');
-        const isV3 = ('adl' in position);
         const isolatedMarginString = this.safeString (position, 'isolatedMargin');
-        const marginAsset = this.safeString (position, 'marginAsset');
         const leverageBrackets = this.safeDict (this.options, 'leverageBrackets', {});
         const leverageBracket = this.safeList (leverageBrackets, symbol, []);
         const notionalString = this.safeString2 (position, 'notional', 'notionalValue');
@@ -10135,9 +10133,16 @@ export default class binance extends Exchange {
          * @param {string} [method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
-        const defaultValue = this.safeString (this.options, 'fetchPositions', 'positionRisk');
         let defaultMethod = undefined;
-        [ defaultMethod, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method', defaultValue);
+        [ defaultMethod, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method');
+        if (defaultMethod === undefined) {
+            const option = this.safeValue (this.options, 'fetchPositions');
+            if (typeof option === 'string') {
+                defaultMethod = option;
+            } else {
+                defaultMethod = 'positionRisk';
+            }
+        }
         if (defaultMethod === 'positionRisk') {
             return await this.fetchPositionsRisk (symbols, params);
         } else if (defaultMethod === 'account') {
