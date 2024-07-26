@@ -1557,7 +1557,7 @@
             {
                 "description": "fetch default positions",
                 "method": "fetchPositions",
-                "url": "https://testnet.binancefuture.com/fapi/v2/positionRisk?timestamp=1699381878017&recvWindow=10000&signature=f654a95fde9ee5ee6004b1ded1adb3671333ac84eeab7f3b11c27b12848a28c2",
+                "url": "https://testnet.binancefuture.com/fapi/v3/positionRisk?timestamp=1699381878017&recvWindow=10000&signature=f654a95fde9ee5ee6004b1ded1adb3671333ac84eeab7f3b11c27b12848a28c2",
                 "input": []
             },
             {
@@ -2403,7 +2403,7 @@
             {
                 "description": "Fetch Positions Risk - linear",
                 "method": "fetchPositionsRisk",
-                "url": "https://fapi.binance.com/fapi/v2/positionRisk?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
+                "url": "https://fapi.binance.com/fapi/v3/positionRisk?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
                 "input": [
                     null,
                     {
