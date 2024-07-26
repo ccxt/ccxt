@@ -139,6 +139,27 @@
                 "url": "https://api-glb.hashkey.com/api/v1/account?timestamp=1721996915813&signature=51ea76c19a9aaf6a471e3b75aa0a81f328d4233472447c75210bc3aace7db1eb",
                 "input": []
             }
+        ],
+        "fetchDepositAddress": [
+            {
+                "description": "Fetch deposit address for USDT with default network",
+                "method": "fetchDepositAddress",
+                "url": "https://api-glb.hashkey.com/api/v1/account/deposit/address?timestamp=1721997123699&coin=USDT&chainType=ETH&signature=38058a1fcfa1283535d96d88a7fc19b1f5c113cb0e31595cec7c9f34921a7602",
+                "input": [
+                  "USDT"
+                ]
+            },
+            {
+                "description": "Fetch deposit address for USD with network arbitrum",
+                "method": "fetchDepositAddress",
+                "url": "https://api-glb.hashkey.com/api/v1/account/deposit/address?timestamp=1721997228074&coin=USDT&chainType=Arbitrum&signature=b33150365094a3e65bae2214e578f5dce109a82c7e2e12c343f1630f92d1868f",
+                "input": [
+                  "USDT",
+                    {
+                        "network": "ARB"
+                    }
+                ]
+            }
         ]
     }
 }
