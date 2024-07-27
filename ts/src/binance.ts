@@ -9313,8 +9313,8 @@ export default class binance extends Exchange {
         //        "positionSide": "BOTH",
         //        "positionAmt": "-849",
         //        "unrealizedProfit": "11.17920750",
-        //        "isolatedMargin": "0",
         //        "notional": "-1992.46079250",
+        //        "isolatedMargin": "0",
         //        "isolatedWallet": "0",
         //        "initialMargin": "99.62303962",
         //        "maintMargin": "11.95476475",
@@ -9416,7 +9416,7 @@ export default class binance extends Exchange {
         const notional = this.parseNumber (notionalStringAbs);
         let contractsString = this.safeString (position, 'positionAmt');
         let contractsStringAbs = Precise.stringAbs (contractsString);
-        if (contractsString === undefined && leverageString !== undefined) {
+        if (contractsString === undefined) {
             const entryNotional = Precise.stringMul (Precise.stringMul (leverageString, initialMarginString), entryPriceString);
             const contractSizeNew = this.safeString (market, 'contractSize');
             contractsString = Precise.stringDiv (entryNotional, contractSizeNew);
@@ -9569,21 +9569,21 @@ export default class binance extends Exchange {
         //     notional: "11.97800000",
         //     isolatedWallet: "0",
         //     updateTime: "1722062678998",
-        //     initialMargin: "2.39560000",         // in v3
-        //     maintMargin: "0.07186800",           // in v3
-        //     positionInitialMargin: "2.39560000", // in v3
-        //     openOrderInitialMargin: "0",         // in v3
-        //     adl: "2",                            // in v3
-        //     bidNotional: "0",                    // in v3
-        //     askNotional: "0",                    // in v3
-        //     marginAsset: "USDT",                 // in v3
-        //     leverage: "5",                       // in v2
-        //     maxNotionalValue: "6000000",         // in v2
-        //     marginType: "cross",                 // in v2
-        //     isAutoAddMargin: "false",            // in v2
-        //     isolated: false,                     // in v2
-        //     adlQuantile: "2",                    // in v2
-        //  }
+        //     initialMargin: "2.39560000",         // not in v2
+        //     maintMargin: "0.07186800",           // not in v2
+        //     positionInitialMargin: "2.39560000", // not in v2
+        //     openOrderInitialMargin: "0",         // not in v2
+        //     adl: "2",                            // not in v2
+        //     bidNotional: "0",                    // not in v2
+        //     askNotional: "0",                    // not in v2
+        //     marginAsset: "USDT",                 // not in v2
+        //     // the below fields are only in v2
+        //     leverage: "5",
+        //     maxNotionalValue: "6000000",
+        //     marginType: "cross",
+        //     isAutoAddMargin: "false",
+        //     isolated: false,
+        //     adlQuantile: "2",
         //
         // coinm
         //
@@ -10248,8 +10248,8 @@ export default class binance extends Exchange {
                 //                "positionAmt": "-849",
                 //                "unrealizedProfit": "11.17920750",
                 //                "isolatedMargin": "0",
-                //                "notional": "-1992.46079250",
                 //                "isolatedWallet": "0",
+                //                "notional": "-1992.46079250",
                 //                "initialMargin": "99.62303962",
                 //                "maintMargin": "11.95476475",
                 //                "updateTime": "1721995760449"
@@ -10321,13 +10321,8 @@ export default class binance extends Exchange {
             if (isPortfolioMargin) {
                 response = await this.papiGetUmPositionRisk (this.extend (request, params));
             } else {
-                let useV3 = undefined;
-                [ useV3, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'useV3', true);
-                if (useV3) {
-                    response = await this.fapiPrivateV3GetPositionRisk (this.extend (request, params));
-                } else {
-                    response = await this.fapiPrivateV2GetPositionRisk (this.extend (request, params));
-                }
+                response = await this.fapiPrivateV3GetPositionRisk (this.extend (request, params));
+                //
                 // [
                 //  {
                 //     symbol: "WLDUSDT",
@@ -10342,22 +10337,15 @@ export default class binance extends Exchange {
                 //     notional: "11.97800000",
                 //     isolatedWallet: "0",
                 //     updateTime: "1722062678998",
-                //     initialMargin: "2.39560000",         // in v3
-                //     maintMargin: "0.07186800",           // in v3
-                //     positionInitialMargin: "2.39560000", // in v3
-                //     openOrderInitialMargin: "0",         // in v3
-                //     adl: "2",                            // in v3
-                //     bidNotional: "0",                    // in v3
-                //     askNotional: "0",                    // in v3
-                //     marginAsset: "USDT",                 // in v3
-                //     leverage: "5",                       // in v2
-                //     maxNotionalValue: "6000000",         // in v2
-                //     marginType: "cross",                 // in v2
-                //     isAutoAddMargin: "false",            // in v2
-                //     isolated: false,                     // in v2
-                //     adlQuantile: "2",                    // in v2
+                //     initialMargin: "2.39560000",         // added in v3
+                //     maintMargin: "0.07186800",           // added in v3
+                //     positionInitialMargin: "2.39560000", // added in v3
+                //     openOrderInitialMargin: "0",         // added in v3
+                //     adl: "2",                            // added in v3
+                //     bidNotional: "0",                    // added in v3
+                //     askNotional: "0",                    // added in v3
+                //     marginAsset: "USDT",                 // added in v3
                 //  },
-                //  ...
                 // ]
                 //
             }
