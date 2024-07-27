@@ -1721,6 +1721,47 @@ export default class hashkey extends Exchange {
         return this.extend (request, params);
     }
 
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<{}> {
+        /**
+         * @method
+         * @name hashkey#cancelOrder
+         * @description cancels an open order
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/cancel-order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.clientOrderId] a unique id for the order that can be used as an alternative for the id
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const request: Dict = {};
+        if (id !== undefined) {
+            request['orderId'] = id;
+        } else {
+            const clientOrderId = this.safeString (params, 'clientOrderId');
+            params = this.omit (params, 'clientOrderId');
+            request['clientOrderId'] = clientOrderId;
+        }
+        const response = await this.privateDeleteApiV1SpotOrder (this.extend (request, params));
+        //
+        //     {
+        //         "accountId": "1732885739589466112",
+        //         "symbol": "ETHUSDT",
+        //         "clientOrderId": "1722006209978370",
+        //         "orderId": "1738708541676585728",
+        //         "transactTime": "1722006209989",
+        //         "price": "5000",
+        //         "origQty": "0.005",
+        //         "executedQty": "0",
+        //         "status": "NEW",
+        //         "timeInForce": "GTC",
+        //         "type": "LIMIT_MAKER",
+        //         "side": "SELL"
+        //     }
+        //
+        return this.parseOrder (response);
+    }
+
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         /**
          * @method
@@ -1728,7 +1769,7 @@ export default class hashkey extends Exchange {
          * @description fetches information on an order made by the user
          * @see https://hashkeyglobal-apidoc.readme.io/reference/query-order
          * @param {string} id the order id
-         * @param {string} symbol unified symbol of the market the order was made in - not used by hashkey
+         * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.clientOrderId] a unique id for the order that can be used as an alternative for the id
          * @param {string} [params.accountId] account id to fetch the order from
@@ -1831,6 +1872,21 @@ export default class hashkey extends Exchange {
         //         "sumFeeAmount": "0"
         //     }
         //
+        // cancelOrder
+        //     {
+        //         "accountId": "1732885739589466112",
+        //         "symbol": "ETHUSDT",
+        //         "clientOrderId": "1722006209978370",
+        //         "orderId": "1738708541676585728",
+        //         "transactTime": "1722006209989",
+        //         "price": "5000",
+        //         "origQty": "0.005",
+        //         "executedQty": "0",
+        //         "status": "NEW",
+        //         "timeInForce": "GTC",
+        //         "type": "LIMIT_MAKER",
+        //         "side": "SELL"
+        //     }
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger2 (order, 'transactTime', 'time');
