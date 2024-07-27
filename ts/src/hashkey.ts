@@ -1370,10 +1370,7 @@ export default class hashkey extends Exchange {
         //         }
         //     ]
         //
-        for (let i = 0; i < response.length; i++) {
-            response[i]['type'] = 'deposit';
-        }
-        return this.parseTransactions (response, currency, since, limit);
+        return this.parseTransactions (response, currency, since, limit, { 'type': 'deposit' });
     }
 
     async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
@@ -1429,22 +1426,7 @@ export default class hashkey extends Exchange {
         //         }
         //     ]
         //
-        for (let i = 0; i < response.length; i++) {
-            response[i]['type'] = 'deposit';
-        }
-        return this.parseTransactions (response, currency, since, limit); // todo check after making a withdrawal
-    }
-
-    parseTransactions (transactions, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
-        let result = [];
-        for (let i = 0; i < transactions.length; i++) {
-            transactions[i] = this.extend (transactions[i], params);
-            const transaction = this.parseTransaction (transactions[i], currency);
-            result.push (transaction);
-        }
-        result = this.sortBy (result, 'timestamp');
-        const code = (currency !== undefined) ? currency['code'] : undefined;
-        return this.filterByCurrencySinceLimit (result, code, since, limit);
+        return this.parseTransactions (response, currency, since, limit, { 'type': 'withdrawal' }); // todo check after making a withdrawal
     }
 
     parseTransaction (transaction, currency: Currency = undefined): Transaction {
@@ -1452,7 +1434,7 @@ export default class hashkey extends Exchange {
         //  fetchDeposits
         //     {
         //         "time": "1721641082163",
-        //         "coin": "TRXUSDT",
+        //         "coin": "TRXUSDT", // todo how to parse it?
         //         "coinName": "TRXUSDT",
         //         "address": "TBA6CypYJizwA9XdC7Ubgc5F1bxrQ7SqPt",
         //         "quantity": "86.00000000000000000000",
@@ -1481,15 +1463,8 @@ export default class hashkey extends Exchange {
         //     }
         //
         const id = this.safeString (transaction, 'id');
-        const type = this.safeString (transaction, 'type');
-        transaction = this.omit (transaction, 'type');
         const address = this.safeString (transaction, 'address');
-        let status: Str = undefined;
-        if (type === 'deposit') {
-            status = this.parseDepositStatus (this.safeString (transaction, 'status'));
-        } else if (type === 'withdrawal') {
-            status = this.parseWithdrawalStatus (this.safeString (transaction, 'status'));
-        }
+        const status = this.safeString (transaction, 'status'); // todo check for withdrawals
         const txid = this.safeString (transaction, 'txId');
         const coin = this.safeString (transaction, 'coin');
         const code = this.safeCurrencyCode (coin, currency);
@@ -1516,10 +1491,10 @@ export default class hashkey extends Exchange {
             'tag': undefined,
             'tagTo': undefined,
             'tagFrom': undefined,
-            'type': type,
+            'type': undefined,
             'amount': amount,
             'currency': code,
-            'status': status,
+            'status': this.parseTransactionStatus (status),
             'updated': undefined,
             'internal': undefined,
             'comment': undefined,
@@ -1527,15 +1502,18 @@ export default class hashkey extends Exchange {
         };
     }
 
-    parseDepositStatus (status) {
+    parseTransactionStatus (status) {
         const statuses: Dict = {
-            'successful': 'ok',
-        };
-        return this.safeString (statuses, status, status);
-    }
-
-    parseWithdrawalStatus (status) {
-        const statuses: Dict = {
+            '1': 'pending',
+            '2': 'pending',
+            '3': 'failed',
+            '4': 'ok',
+            '5': 'pending', // todo refund status
+            '6': 'ok', // todo refund status
+            '7': 'failed', // todo refund status
+            '8': 'cancelled',
+            '9': 'failed',
+            '10': 'failed',
             'successful': 'ok',
         };
         return this.safeString (statuses, status, status);
