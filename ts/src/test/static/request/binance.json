@@ -861,7 +861,7 @@
             {
                 "description": "Swap fetchBalance",
                 "method": "fetchBalance",
-                "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1699385163596&recvWindow=10000&signature=f8a952f41e186866660fa44ef11e22e69fd54145638964c6e79034e2fa83eb58",
+                "url": "https://testnet.binancefuture.com/fapi/v3/account?timestamp=1699385163596&recvWindow=10000&signature=f8a952f41e186866660fa44ef11e22e69fd54145638964c6e79034e2fa83eb58",
                 "input": [
                     {
                         "type": "swap"
@@ -1574,7 +1574,7 @@
             {
                 "description": "fetch account positions",
                 "method": "fetchPositions",
-                "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1706118171133&recvWindow=10000&signature=6c1048179b4cfc725c45991f61b13da9321ba96f5149ac359ca956a4e8dd33ea",
+                "url": "https://testnet.binancefuture.com/fapi/v3/account?timestamp=1706118171133&recvWindow=10000&signature=6c1048179b4cfc725c45991f61b13da9321ba96f5149ac359ca956a4e8dd33ea",
                 "input": [
                     null,
                     {
@@ -2455,7 +2455,7 @@
             {
                 "description": "Fetch Account Positions - linear",
                 "method": "fetchAccountPositions",
-                "url": "https://fapi.binance.com/fapi/v2/account?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
+                "url": "https://fapi.binance.com/fapi/v3/account?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
                 "input": [
                     null,
                     {
@@ -2501,7 +2501,7 @@
             {
                 "description": "account positions with filterClosed option",
                 "method": "fetchAccountPositions",
-                "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1711968805532&filterClosed=true&recvWindow=10000&signature=d70e7146e12dff30106d51e77574cda0b75aa353c505746b1a78a5c086a7ac19",
+                "url": "https://testnet.binancefuture.com/fapi/v3/account?timestamp=1711968805532&filterClosed=true&recvWindow=10000&signature=d70e7146e12dff30106d51e77574cda0b75aa353c505746b1a78a5c086a7ac19",
                 "input": [
                   null,
                   {
