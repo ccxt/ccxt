@@ -1376,6 +1376,65 @@ export default class hashkey extends Exchange {
         return this.parseTransactions (response, currency, since, limit);
     }
 
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        /**
+         * @method
+         * @name hashkey#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/withdrawal-records
+         * @param {string} code unified currency code of the currency transferred
+         * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
+         * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let currency: Currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coin'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since; // startTime and endTime must be within 7 days of each other
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+            params = this.omit (params, 'until');
+        }
+        const response = await this.privateGetApiV1AccountWithdrawOrders (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "time": "1719499716079",
+        //             "id": "W594298131448512512",
+        //             "coin": "USDT",
+        //             "coinId": "USDT",
+        //             "coinName": "USDT",
+        //             "address": "0xA9648A0f44956AFA90A16F5Fe470d34C85fb983B",
+        //             "quantity": "1.00000000",
+        //             "arriveQuantity": "1.00000000",
+        //             "txId": "0x4fc00f8d053bcd24cd052130e051e4587c4f5c19efb73ddc6c8da77cb0040e93",
+        //             "addressUrl": "0xA9648A0f44956AFA90A16F5Fe470d34C85fb983B",
+        //             "feeCoinId": "USDT",
+        //             "feeCoinName": "USDT",
+        //             "fee": "0.00100000",
+        //             "remark": "",
+        //             "platform": "Binance"
+        //         }
+        //     ]
+        //
+        for (let i = 0; i < response.length; i++) {
+            response[i]['type'] = 'deposit';
+        }
+        return this.parseTransactions (response, currency, since, limit); // todo check after making a withdrawal
+    }
+
     parseTransactions (transactions, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
         let result = [];
         for (let i = 0; i < transactions.length; i++) {
@@ -1402,6 +1461,26 @@ export default class hashkey extends Exchange {
         //         "txId": "0970c14da4d7412295fa7b21c03a08da319e746a0d59ef14462a74183d118da4"
         //     }
         //
+        // fetchWithdrawals
+        //     {
+        //         "time": "1719499716079",
+        //         "id": "W594298131448512512",
+        //         "coin": "USDT",
+        //         "coinId": "USDT",
+        //         "coinName": "USDT",
+        //         "address": "0xA9648A0f44956AFA90A16F5Fe470d34C85fb983B",
+        //         "quantity": "1.00000000",
+        //         "arriveQuantity": "1.00000000",
+        //         "txId": "0x4fc00f8d053bcd24cd052130e051e4587c4f5c19efb73ddc6c8da77cb0040e93",
+        //         "addressUrl": "0xA9648A0f44956AFA90A16F5Fe470d34C85fb983B",
+        //         "feeCoinId": "USDT",
+        //         "feeCoinName": "USDT",
+        //         "fee": "0.00100000",
+        //         "remark": "",
+        //         "platform": "Binance"
+        //     }
+        //
+        const id = this.safeString (transaction, 'id');
         const type = this.safeString (transaction, 'type');
         transaction = this.omit (transaction, 'type');
         const address = this.safeString (transaction, 'address');
@@ -1409,16 +1488,24 @@ export default class hashkey extends Exchange {
         if (type === 'deposit') {
             status = this.parseDepositStatus (this.safeString (transaction, 'status'));
         } else if (type === 'withdrawal') {
-            status = undefined;
+            status = this.parseWithdrawalStatus (this.safeString (transaction, 'status'));
         }
         const txid = this.safeString (transaction, 'txId');
         const coin = this.safeString (transaction, 'coin');
         const code = this.safeCurrencyCode (coin, currency);
         const timestamp = this.safeInteger (transaction, 'time');
         const amount = this.safeNumber (transaction, 'quantity');
+        const feeCost = this.safeNumber (transaction, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            };
+        }
         return {
             'info': transaction,
-            'id': undefined,
+            'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1436,22 +1523,26 @@ export default class hashkey extends Exchange {
             'updated': undefined,
             'internal': undefined,
             'comment': undefined,
-            'fee': undefined,
+            'fee': fee,
         };
     }
 
     parseDepositStatus (status) {
         const statuses: Dict = {
-            '1': 'pending',
-            '2': 'pending',
-            '3': 'failed',
-            '4': 'ok',
-            '5': 'pending', // todo refund status
-            '6': 'ok', // todo refund status
-            '7': 'failed', // todo refund status
-            '8': 'cancelled',
-            '9': 'failed',
-            '10': 'failed',
+            'successful': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    parseWithdrawalStatus (status) {
+        const statuses: Dict = {
+            'COMPLETED': 'ok',
+            'PROCESSING': 'pending',
+            'IN SWEEPING': 'pending',
+            'PENDING': 'pending',
+            'ON HOLD': 'pending',
+            'CANCELED': 'canceled',
+            'FAILED': 'failed',
         };
         return this.safeString (statuses, status, status);
     }
