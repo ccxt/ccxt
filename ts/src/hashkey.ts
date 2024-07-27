@@ -102,7 +102,7 @@ export default class hashkey extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactions': 'emulated',
                 'fetchTransfers': false,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'sandbox': false,
                 'setLeverage': false,
@@ -192,13 +192,13 @@ export default class hashkey extends Exchange {
                         'api/v1/futures/subAccount/userTrades': 1,
                         'api/v1/account/deposit/address': 1, // done
                         'api/v1/account/depositOrders': 1, // done
-                        'api/v1/account/withdrawOrders': 1,
+                        'api/v1/account/withdrawOrders': 1, // done
                     },
                     'post': {
                         'api/v1/userDataStream': 1,
                         'api/v1/spot/orderTest': 1,
-                        'api/v1/spot/order': 1,
-                        'api/v1.1/spot/order': 1,
+                        'api/v1/spot/order': 1, // done
+                        'api/v1.1/spot/order': 1, // done
                         'api/v1/spot/batchOrders': 1,
                         'api/v1/futures/leverage': 1,
                         'api/v1/futures/order': 1,
