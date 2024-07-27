@@ -43,7 +43,7 @@ export default class hashkey extends Exchange {
                 'createMarketOrder': false,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
-                'createOrder': false,
+                'createOrder': true,
                 'createOrderWithTakeProfitAndStopLoss': false,
                 'createReduceOnlyOrder': false,
                 'createStopLimitOrder': false,
@@ -199,7 +199,7 @@ export default class hashkey extends Exchange {
                         'api/v1/spot/orderTest': 1,
                         'api/v1/spot/order': 1, // done
                         'api/v1.1/spot/order': 1, // done
-                        'api/v1/spot/batchOrders': 1,
+                        'api/v1/spot/batchOrders': 5,
                         'api/v1/futures/leverage': 1,
                         'api/v1/futures/order': 1,
                         'api/v1/futures/position/trading-stop': 1,
