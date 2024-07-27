@@ -1536,13 +1536,7 @@ export default class hashkey extends Exchange {
 
     parseWithdrawalStatus (status) {
         const statuses: Dict = {
-            'COMPLETED': 'ok',
-            'PROCESSING': 'pending',
-            'IN SWEEPING': 'pending',
-            'PENDING': 'pending',
-            'ON HOLD': 'pending',
-            'CANCELED': 'canceled',
-            'FAILED': 'failed',
+            'successful': 'ok',
         };
         return this.safeString (statuses, status, status);
     }
@@ -1605,7 +1599,7 @@ export default class hashkey extends Exchange {
             throw new NotSupported (this.id + ' createOrder() supports cost parameter for spot market buy orders only');
         }
         const request: Dict = this.createSpotOrderRequest (symbol, type, side, amount, price, params);
-        let response: NullableDict = undefined;
+        let response: Dict = {};
         const test = this.safeBool (params, 'test');
         if (test) {
             params = this.omit (params, 'test');
