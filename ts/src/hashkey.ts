@@ -334,7 +334,7 @@ export default class hashkey extends Exchange {
          */
         let symbol: Str = undefined;
         const request: Dict = {};
-        [ symbol, params ] = this.handleOption ('fetchMarkets', 'symbol');
+        [ symbol, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'symbol');
         if (symbol !== undefined) {
             request['symbol'] = symbol;
         }
@@ -1154,7 +1154,7 @@ export default class hashkey extends Exchange {
         symbols = this.marketSymbols (symbols);
         const request: Dict = {};
         let symbol: Str = undefined;
-        [ symbol, params ] = this.handleOption ('fetchLastPrices', 'symbol');
+        [ symbol, params ] = this.handleOptionAndParams (params, 'fetchLastPrices', 'symbol');
         if (symbol !== undefined) {
             request['symbol'] = symbol;
         }
@@ -1197,7 +1197,7 @@ export default class hashkey extends Exchange {
         await this.loadMarkets ();
         const request: Dict = {};
         let accountId: Str = undefined;
-        [ accountId, params ] = this.handleOption ('fetchBalance', 'accountId');
+        [ accountId, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'accountId');
         if (accountId !== undefined) {
             request['accountId'] = accountId;
         }
@@ -1356,7 +1356,7 @@ export default class hashkey extends Exchange {
             params = this.omit (params, 'until');
         }
         let fromId: Str = undefined;
-        [ fromId, params ] = this.handleOption ('fetchDeposits', 'fromId');
+        [ fromId, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'fromId');
         if (fromId !== undefined) {
             request['fromId'] = fromId;
         }
@@ -1744,7 +1744,7 @@ export default class hashkey extends Exchange {
             request['origClientOrderId'] = clientOrderId;
         }
         let accountId: Str = undefined;
-        [ accountId, params ] = this.handleOption ('fetchOrder', 'accountId');
+        [ accountId, params ] = this.handleOptionAndParams (params, 'fetchOrder', 'accountId');
         if (accountId !== undefined) {
             request['accountId'] = accountId;
         }
