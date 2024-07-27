@@ -5,7 +5,7 @@ import Exchange from './abstract/hashkey.js';
 import { NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Bool, Currencies, Currency, Dict, LastPrice, LastPrices, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction, int } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, Dict, LastPrice, LastPrices, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -65,7 +65,7 @@ export default class hashkey extends Exchange {
                 'fetchConvertTradeHistory': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
-                'fetchDeposits': false,
+                'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -191,7 +191,7 @@ export default class hashkey extends Exchange {
                         'api/v1/futures/subAccount/historyOrders': 1,
                         'api/v1/futures/subAccount/userTrades': 1,
                         'api/v1/account/deposit/address': 1, // done
-                        'api/v1/account/depositOrders': 1,
+                        'api/v1/account/depositOrders': 1, // done
                         'api/v1/account/withdrawOrders': 1,
                     },
                     'post': {
