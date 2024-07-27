@@ -1,19 +1,24 @@
+
 // ---------------------------------------------------------------------------
+
 import Exchange from './abstract/hashkey.js';
 import { NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import type { Balances, Bool, Currencies, Currency, Dict, LastPrice, LastPrices, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction, int } from './base/types.js';
+
 // ---------------------------------------------------------------------------
+
 /**
  * @class hashkey
  * @augments Exchange
  */
 export default class hashkey extends Exchange {
-    describe() {
-        return this.deepExtend(super.describe(), {
+    describe () {
+        return this.deepExtend (super.describe (), {
             'id': 'hashkey',
             'name': 'HashKey Global',
-            'countries': ['BM'],
+            'countries': [ 'BM' ], // Bermuda
             'rateLimit': 100,
             'version': 'v1',
             'certified': true,
@@ -135,17 +140,18 @@ export default class hashkey extends Exchange {
                 'www': 'https://global.hashkey.com/',
                 'doc': 'https://hashkeyglobal-apidoc.readme.io/',
                 'fees': 'https://support.global.hashkey.com/hc/en-us/articles/13199900083612-HashKey-Global-Fee-Structure',
-                'referral': {},
+                'referral': {
+                },
             },
             'api': {
                 'public': {
                     'get': {
-                        'api/v1/exchangeInfo': 5,
-                        'quote/v1/depth': 1,
-                        'quote/v1/trades': 1,
-                        'quote/v1/klines': 1,
-                        'quote/v1/ticker/24hr': 1,
-                        'quote/v1/ticker/price': 1,
+                        'api/v1/exchangeInfo': 5, // done
+                        'quote/v1/depth': 1, // done
+                        'quote/v1/trades': 1, // done
+                        'quote/v1/klines': 1, // done
+                        'quote/v1/ticker/24hr': 1, // done
+                        'quote/v1/ticker/price': 1, // done
                         'quote/v1/ticker/bookTicker': 1,
                         'quote/v1/depth/merged': 1,
                         'quote/v1/markPrice': 1,
@@ -173,7 +179,7 @@ export default class hashkey extends Exchange {
                         'api/v1/futures/commissionRate': 1,
                         'api/v1/futures/getBestOrders': 1,
                         'api/v1/account/vipInfo': 1,
-                        'api/v1/account': 1,
+                        'api/v1/account': 1, // done
                         'api/v1/account/trades': 1,
                         'api/v1/account/types': 1,
                         'api/v1/account/checkApiKey': 1,
@@ -184,7 +190,7 @@ export default class hashkey extends Exchange {
                         'api/v1/futures/subAccount/openOrders': 1,
                         'api/v1/futures/subAccount/historyOrders': 1,
                         'api/v1/futures/subAccount/userTrades': 1,
-                        'api/v1/account/deposit/address': 1,
+                        'api/v1/account/deposit/address': 1, // done
                         'api/v1/account/depositOrders': 1,
                         'api/v1/account/withdrawOrders': 1,
                     },
@@ -217,28 +223,28 @@ export default class hashkey extends Exchange {
                     // todo add swap fees
                     'tierBased': true,
                     'percentage': true,
-                    'maker': this.parseNumber('0.0012'),
-                    'taker': this.parseNumber('0.0012'),
+                    'maker': this.parseNumber ('0.0012'),
+                    'taker': this.parseNumber ('0.0012'),
                     'tiers': {
                         'taker': [
-                            [this.parseNumber('0'), this.parseNumber('0.0012')],
-                            [this.parseNumber('1000000'), this.parseNumber('0.00090')],
-                            [this.parseNumber('5000000'), this.parseNumber('0.00085')],
-                            [this.parseNumber('10000000'), this.parseNumber('0.00075')],
-                            [this.parseNumber('50000000'), this.parseNumber('0.00065')],
-                            [this.parseNumber('200000000'), this.parseNumber('0.00045')],
-                            [this.parseNumber('400000000'), this.parseNumber('0.00040')],
-                            [this.parseNumber('800000000'), this.parseNumber('0.00035')],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0012') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.00090') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.00085') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.00075') ],
+                            [ this.parseNumber ('50000000'), this.parseNumber ('0.00065') ],
+                            [ this.parseNumber ('200000000'), this.parseNumber ('0.00045') ],
+                            [ this.parseNumber ('400000000'), this.parseNumber ('0.00040') ],
+                            [ this.parseNumber ('800000000'), this.parseNumber ('0.00035') ],
                         ],
                         'maker': [
-                            [this.parseNumber('0'), this.parseNumber('0.0012')],
-                            [this.parseNumber('1000000'), this.parseNumber('0.00080')],
-                            [this.parseNumber('5000000'), this.parseNumber('0.00070')],
-                            [this.parseNumber('10000000'), this.parseNumber('0.00060')],
-                            [this.parseNumber('50000000'), this.parseNumber('0.00040')],
-                            [this.parseNumber('200000000'), this.parseNumber('0.00030')],
-                            [this.parseNumber('400000000'), this.parseNumber('0.00010')],
-                            [this.parseNumber('800000000'), this.parseNumber('0.00')],
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0012') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.00080') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.00070') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.00060') ],
+                            [ this.parseNumber ('50000000'), this.parseNumber ('0.00040') ],
+                            [ this.parseNumber ('200000000'), this.parseNumber ('0.00030') ],
+                            [ this.parseNumber ('400000000'), this.parseNumber ('0.00010') ],
+                            [ this.parseNumber ('800000000'), this.parseNumber ('0.00') ],
                         ],
                     },
                 },
@@ -276,10 +282,10 @@ export default class hashkey extends Exchange {
                     'LTC': 'LTC',
                     'Litecoin': 'LTC',
                     'Dogecoin': 'DOGE',
-                    'Merlin Chain': 'Merlin Chain',
-                    'zkSync': 'zkSync',
+                    'Merlin Chain': 'Merlin Chain', // todo check
+                    'zkSync': 'zkSync', // todo check
                     'TRC20': 'TRC20',
-                    'TON': 'TON',
+                    'TON': 'TON', // todo check
                     'BSC(BEP20)': 'BSC',
                     'Klaytn': 'Klaytn', // todo check
                 },
@@ -288,15 +294,17 @@ export default class hashkey extends Exchange {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
-                // {"code":-100012,"msg":"Parameter symbol [String] missing!"}
-                // {"code":"0211","msg":"Order not found"}
+                    // {"code":-100012,"msg":"Parameter symbol [String] missing!"}
+                    // {"code":"0211","msg":"Order not found"}
                 },
-                'broad': {},
+                'broad': {
+                },
             },
             'precisionMode': TICK_SIZE,
         });
     }
-    async fetchTime(params = {}) {
+
+    async fetchTime (params = {}): Promise<Int> {
         /**
          * @method
          * @name hashkey#fetchTime
@@ -305,15 +313,16 @@ export default class hashkey extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.publicGetApiV1Time(params);
+        const response = await this.publicGetApiV1Time (params);
         //
         //     {
         //         "serverTime": 1721661553214
         //     }
         //
-        return this.safeInteger(response, 'serverTime');
+        return this.safeInteger (response, 'serverTime');
     }
-    async fetchMarkets(params = {}) {
+
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name hashkey#fetchMarkets
@@ -323,13 +332,13 @@ export default class hashkey extends Exchange {
          * @param {string} [params.symbol] the id of the market to fetch
          * @returns {object[]} an array of objects representing market data
          */
-        let symbol = undefined;
-        const request = {};
-        [symbol, params] = this.handleOptionAndParams(params, 'fetchMarkets', 'symbol');
+        let symbol: Str = undefined;
+        const request: Dict = {};
+        [ symbol, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'symbol');
         if (symbol !== undefined) {
             request['symbol'] = symbol;
         }
-        const response = await this.publicGetApiV1ExchangeInfo(this.extend(request, params));
+        const response = await this.publicGetApiV1ExchangeInfo (this.extend (request, params));
         //
         //     {
         //         "timezone": "UTC",
@@ -505,15 +514,16 @@ export default class hashkey extends Exchange {
         //         ]
         //     }
         //
-        const spotMarkets = this.safeList(response, 'symbols', []);
-        const swapMarkets = this.safeList(response, 'contracts', []);
-        let markets = this.arrayConcat(spotMarkets, swapMarkets);
-        if (this.isEmpty(markets)) {
-            markets = [response]; // if user provides params.symbol the exchange returns a single object insted of list of objects
+        const spotMarkets = this.safeList (response, 'symbols', []);
+        const swapMarkets = this.safeList (response, 'contracts', []);
+        let markets = this.arrayConcat (spotMarkets, swapMarkets);
+        if (this.isEmpty (markets)) {
+            markets = [ response ]; // if user provides params.symbol the exchange returns a single object insted of list of objects
         }
-        return this.parseMarkets(markets);
+        return this.parseMarkets (markets);
     }
-    parseMarket(market) {
+
+    parseMarket (market: Dict): Market {
         // spot
         //     {
         //         "symbol": "BTCUSDT",
@@ -659,48 +669,47 @@ export default class hashkey extends Exchange {
         //         ]
         //     }
         //
-        const marketId = this.safeString(market, 'symbol');
-        const quoteId = this.safeString(market, 'quoteAsset');
-        const quote = this.safeCurrencyCode(quoteId);
-        const settleId = this.safeString(market, 'marginToken');
-        const settle = this.safeCurrencyCode(settleId);
-        let baseId = this.safeString(market, 'baseAsset');
-        let marketType = 'spot';
+        const marketId = this.safeString (market, 'symbol');
+        const quoteId = this.safeString (market, 'quoteAsset');
+        const quote = this.safeCurrencyCode (quoteId);
+        const settleId = this.safeString (market, 'marginToken');
+        const settle = this.safeCurrencyCode (settleId);
+        let baseId = this.safeString (market, 'baseAsset');
+        let marketType = 'spot' as any;
         let isSpot = true;
         let isSwap = false;
         let suffix = '';
-        const parts = marketId.split('-');
-        const secondPart = this.safeString(parts, 1);
+        const parts = marketId.split ('-');
+        const secondPart = this.safeString (parts, 1);
         if (secondPart === 'PERPETUAL') {
             marketType = 'swap';
             isSpot = false;
             isSwap = true;
-            baseId = this.safeString(market, 'underlying');
+            baseId = this.safeString (market, 'underlying');
             suffix += ':' + settleId;
         }
-        const base = this.safeCurrencyCode(baseId);
+        const base = this.safeCurrencyCode (baseId);
         const symbol = base + '/' + quote + suffix;
-        const status = this.safeString(market, 'status');
+        const status = this.safeString (market, 'status');
         const active = status === 'TRADING';
-        let isLinear = undefined;
+        let isLinear: Bool = undefined;
         let subType = undefined;
-        const isInverse = this.safeBool(market, 'inverse');
+        const isInverse = this.safeBool (market, 'inverse');
         if (isInverse !== undefined) {
             if (isInverse) {
                 isLinear = false;
                 subType = 'inverse';
-            }
-            else {
+            } else {
                 isLinear = true;
                 subType = 'linear';
             }
         }
-        const filtersList = this.safeList(market, 'filters', []);
-        const filters = this.indexBy(filtersList, 'filterType');
-        const priceFilter = this.safeDict(filters, 'PRICE_FILTER', {});
-        const amountFilter = this.safeDict(filters, 'LOT_SIZE', {});
-        const costFilter = this.safeDict(filters, 'MIN_NOTIONAL', {});
-        const minCostString = this.omitZero(this.safeString(costFilter, 'min_notional'));
+        const filtersList = this.safeList (market, 'filters', []);
+        const filters = this.indexBy (filtersList, 'filterType');
+        const priceFilter = this.safeDict (filters, 'PRICE_FILTER', {});
+        const amountFilter = this.safeDict (filters, 'LOT_SIZE', {});
+        const costFilter = this.safeDict (filters, 'MIN_NOTIONAL', {});
+        const minCostString = this.omitZero (this.safeString (costFilter, 'min_notional'));
         return {
             'id': marketId,
             'symbol': symbol,
@@ -712,14 +721,14 @@ export default class hashkey extends Exchange {
             'type': marketType,
             'subType': subType,
             'spot': isSpot,
-            'margin': this.safeBool(market, 'allowMargin'),
+            'margin': this.safeBool (market, 'allowMargin'),
             'swap': isSwap,
             'future': false,
             'option': false,
             'contract': isSwap,
             'settle': settle,
             'settleId': settleId,
-            'contractSize': this.safeNumber(market, 'contractMultiplier'),
+            'contractSize': this.safeNumber (market, 'contractMultiplier'), // todo check
             'linear': isLinear,
             'inverse': isInverse,
             'taker': this.fees['trading']['taker'],
@@ -729,24 +738,24 @@ export default class hashkey extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.safeNumber(amountFilter, 'stepSize'),
-                'price': this.safeNumber(priceFilter, 'tickSize'),
+                'amount': this.safeNumber (amountFilter, 'stepSize'),
+                'price': this.safeNumber (priceFilter, 'tickSize'),
             },
             'limits': {
                 'amount': {
-                    'min': this.safeNumber(amountFilter, 'minQty'),
-                    'max': this.safeNumber(amountFilter, 'maxQty'),
+                    'min': this.safeNumber (amountFilter, 'minQty'),
+                    'max': this.safeNumber (amountFilter, 'maxQty'),
                 },
                 'price': {
-                    'min': this.safeNumber(priceFilter, 'minPrice'),
-                    'max': this.safeNumber(priceFilter, 'maxPrice'),
+                    'min': this.safeNumber (priceFilter, 'minPrice'),
+                    'max': this.safeNumber (priceFilter, 'maxPrice'),
                 },
                 'leverage': {
                     'min': undefined,
                     'max': undefined,
                 },
                 'cost': {
-                    'min': this.parseNumber(minCostString),
+                    'min': this.parseNumber (minCostString),
                     'max': undefined,
                 },
             },
@@ -754,7 +763,8 @@ export default class hashkey extends Exchange {
             'info': market,
         };
     }
-    async fetchCurrencies(params = {}) {
+
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name hashkey#fetchCurrencies
@@ -763,8 +773,8 @@ export default class hashkey extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.publicGetApiV1ExchangeInfo(params);
-        const coins = this.safeList(response, 'coins');
+        const response = await this.publicGetApiV1ExchangeInfo (params);
+        const coins = this.safeList (response, 'coins');
         //
         //     {
         //         ...
@@ -792,40 +802,40 @@ export default class hashkey extends Exchange {
         //         ]
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < coins.length; i++) {
             const currecy = coins[i];
-            const currencyId = this.safeString(currecy, 'coinId');
-            const code = this.safeCurrencyCode(currencyId);
-            const allowWithdraw = this.safeBool(currecy, 'allowWithdraw');
-            const allowDeposit = this.safeBool(currecy, 'allowDeposit');
-            const networks = this.safeList(currecy, 'chainTypes');
-            const networksById = this.safeDict(this.options, 'networksById');
-            const parsedNetworks = {};
+            const currencyId = this.safeString (currecy, 'coinId');
+            const code = this.safeCurrencyCode (currencyId);
+            const allowWithdraw = this.safeBool (currecy, 'allowWithdraw');
+            const allowDeposit = this.safeBool (currecy, 'allowDeposit');
+            const networks = this.safeList (currecy, 'chainTypes');
+            const networksById = this.safeDict (this.options, 'networksById');
+            const parsedNetworks: Dict = {};
             for (let j = 0; j < networks.length; j++) {
                 const network = networks[j];
-                const networkId = this.safeString(network, 'chainType');
-                const networkName = this.safeString(networksById, networkId, networkId);
-                const maxWithdrawQuantity = this.omitZero(this.safeString(network, 'maxWithdrawQuantity')); // todo check
-                const networkDeposit = this.safeBool(network, 'allowDeposit');
-                const networkWithdraw = this.safeBool(network, 'allowWithdraw');
+                const networkId = this.safeString (network, 'chainType');
+                const networkName = this.safeString (networksById, networkId, networkId);
+                const maxWithdrawQuantity = this.omitZero (this.safeString (network, 'maxWithdrawQuantity')); // todo check
+                const networkDeposit = this.safeBool (network, 'allowDeposit');
+                const networkWithdraw = this.safeBool (network, 'allowWithdraw');
                 parsedNetworks[networkName] = {
                     'id': networkId,
                     'network': networkName,
                     'limits': {
                         'withdraw': {
-                            'min': this.safeNumber(network, 'minWithdrawQuantity'),
-                            'max': this.parseNumber(maxWithdrawQuantity),
+                            'min': this.safeNumber (network, 'minWithdrawQuantity'),
+                            'max': this.parseNumber (maxWithdrawQuantity),
                         },
                         'deposit': {
-                            'min': this.safeNumber(network, 'minDepositQuantity'),
+                            'min': this.safeNumber (network, 'minDepositQuantity'),
                             'max': undefined,
                         },
                     },
                     'active': networkDeposit && networkWithdraw,
                     'deposit': networkDeposit,
                     'withdraw': networkWithdraw,
-                    'fee': this.safeNumber(network, 'withdrawFee'),
+                    'fee': this.safeNumber (network, 'withdrawFee'),
                     'precision': undefined,
                     'info': network,
                 };
@@ -834,8 +844,8 @@ export default class hashkey extends Exchange {
                 'id': currencyId,
                 'code': code,
                 'precision': undefined,
-                'type': this.parseCurrencyType(this.safeString(currecy, 'tokenType')),
-                'name': this.safeString(currecy, 'coinFullName'),
+                'type': this.parseCurrencyType (this.safeString (currecy, 'tokenType')),
+                'name': this.safeString (currecy, 'coinFullName'),
                 'active': allowWithdraw && allowDeposit,
                 'deposit': allowDeposit,
                 'withdraw': allowWithdraw,
@@ -856,16 +866,18 @@ export default class hashkey extends Exchange {
         }
         return result;
     }
-    parseCurrencyType(type) {
+
+    parseCurrencyType (type) {
         const types = {
             'CHAIN_TOKEN': 'crypto',
             'ERC20_TOKEN': 'crypto',
             'BSC_TOKEN': 'crypto',
             'REAL_MONEY': 'fiat',
         };
-        return this.safeString(types, type);
+        return this.safeString (types, type);
     }
-    async fetchOrderBook(symbol, limit = undefined, params = {}) {
+
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name hashkey#fetchOrderBook
@@ -876,15 +888,15 @@ export default class hashkey extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetQuoteV1Depth(this.extend(request, params));
+        const response = await this.publicGetQuoteV1Depth (this.extend (request, params));
         //
         //     {
         //         "t": 1721681436393,
@@ -900,10 +912,11 @@ export default class hashkey extends Exchange {
         //         ]
         //     }
         //
-        const timestamp = this.safeInteger(response, 't');
-        return this.parseOrderBook(response, symbol, timestamp, 'b', 'a');
+        const timestamp = this.safeInteger (response, 't');
+        return this.parseOrderBook (response, symbol, timestamp, 'b', 'a');
     }
-    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name hashkey#fetchTrades
@@ -915,15 +928,15 @@ export default class hashkey extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetQuoteV1Trades(this.extend(request, params));
+        const response = await this.publicGetQuoteV1Trades (this.extend (request, params));
         //
         //     [
         //         {
@@ -935,9 +948,10 @@ export default class hashkey extends Exchange {
         //         ...
         //     ]
         //
-        return this.parseTrades(response, market, since, limit);
+        return this.parseTrades (response, market, since, limit);
     }
-    parseTrade(trade, market = undefined) {
+
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades
         //
@@ -948,14 +962,14 @@ export default class hashkey extends Exchange {
         //         "ibm": true
         //     }
         //
-        const timestamp = this.safeInteger(trade, 't');
-        const symbol = this.safeString(market, 'symbol');
-        const price = this.safeString(trade, 'p');
-        const amount = this.safeString(trade, 'q');
-        return this.safeTrade({
+        const timestamp = this.safeInteger (trade, 't');
+        const symbol = this.safeString (market, 'symbol');
+        const price = this.safeString (trade, 'p');
+        const amount = this.safeString (trade, 'q');
+        return this.safeTrade ({
             'id': undefined,
             'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'side': undefined,
             'price': price,
@@ -968,7 +982,8 @@ export default class hashkey extends Exchange {
             'info': trade,
         }, market);
     }
-    async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name hashkey#fetchOHLCV
@@ -982,10 +997,10 @@ export default class hashkey extends Exchange {
          * @param {int} [params.until] timestamp in ms of the latest candle to fetch
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        timeframe = this.safeString(this.timeframes, timeframe, timeframe);
-        const request = {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        timeframe = this.safeString (this.timeframes, timeframe, timeframe);
+        const request: Dict = {
             'symbol': market['id'],
             'interval': timeframe,
         };
@@ -995,12 +1010,12 @@ export default class hashkey extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger(params, 'until');
+        const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
-            params = this.omit(params, 'until');
+            params = this.omit (params, 'until');
         }
-        const response = await this.publicGetQuoteV1Klines(this.extend(request, params));
+        const response = await this.publicGetQuoteV1Klines (this.extend (request, params));
         //
         //     [
         //         [
@@ -1017,9 +1032,10 @@ export default class hashkey extends Exchange {
         //         ...
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
-    parseOHLCV(ohlcv, market = undefined) {
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         //
         //     [
         //         1721684280000,
@@ -1034,15 +1050,16 @@ export default class hashkey extends Exchange {
         //     ]
         //
         return [
-            this.safeInteger(ohlcv, 0),
-            this.safeNumber(ohlcv, 1),
-            this.safeNumber(ohlcv, 2),
-            this.safeNumber(ohlcv, 3),
-            this.safeNumber(ohlcv, 4),
-            this.safeNumber(ohlcv, 5),
+            this.safeInteger (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
         ];
     }
-    async fetchTicker(symbol, params = {}) {
+
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name hashkey#fetchTicker
@@ -1052,12 +1069,12 @@ export default class hashkey extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetQuoteV1Ticker24hr(this.extend(request, params));
+        const response = await this.publicGetQuoteV1Ticker24hr (this.extend (request, params));
         //
         //     [
         //         {
@@ -1074,10 +1091,11 @@ export default class hashkey extends Exchange {
         //         }
         //     ]
         //
-        const ticker = this.safeDict(response, 0, {});
-        return this.parseTicker(ticker, market);
+        const ticker = this.safeDict (response, 0, {});
+        return this.parseTicker (ticker, market);
     }
-    parseTicker(ticker, market = undefined) {
+
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         //     {
         //         "t": 1721685896846,
@@ -1092,35 +1110,36 @@ export default class hashkey extends Exchange {
         //         "qv": "108827258.7761"
         //     }
         //
-        const timestamp = this.safeInteger(ticker, 't');
-        const marketId = this.safeString(ticker, 's');
-        market = this.safeMarket(marketId, market);
+        const timestamp = this.safeInteger (ticker, 't');
+        const marketId = this.safeString (ticker, 's');
+        market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const last = this.safeString(ticker, 'c');
-        return this.safeTicker({
+        const last = this.safeString (ticker, 'c');
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-            'high': this.safeString(ticker, 'h'),
-            'low': this.safeString(ticker, 'l'),
-            'bid': this.safeString(ticker, 'b'),
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'h'),
+            'low': this.safeString (ticker, 'l'),
+            'bid': this.safeString (ticker, 'b'),
             'bidVolume': undefined,
-            'ask': this.safeString(ticker, 'a'),
+            'ask': this.safeString (ticker, 'a'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': this.safeString(ticker, 'o'),
+            'open': this.safeString (ticker, 'o'),
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeString(ticker, 'v'),
-            'quoteVolume': this.safeString(ticker, 'qv'),
+            'baseVolume': this.safeString (ticker, 'v'),
+            'quoteVolume': this.safeString (ticker, 'qv'),
             'info': ticker,
         }, market);
     }
-    async fetchLastPrices(symbols = undefined, params = {}) {
+
+    async fetchLastPrices (symbols: Strings = undefined, params = {}): Promise<LastPrices> {
         /**
          * @method
          * @name hashkey#fetchLastPrices
@@ -1131,15 +1150,15 @@ export default class hashkey extends Exchange {
          * @param {string} [params.symbol] the id of the market to fetch last price for
          * @returns {object} a dictionary of lastprices structures
          */
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
-        const request = {};
-        let symbol = undefined;
-        [symbol, params] = this.handleOptionAndParams(params, 'fetchLastPrices', 'symbol');
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const request: Dict = {};
+        let symbol: Str = undefined;
+        [ symbol, params ] = this.handleOptionAndParams (params, 'fetchLastPrices', 'symbol');
         if (symbol !== undefined) {
             request['symbol'] = symbol;
         }
-        const response = await this.publicGetQuoteV1TickerPrice(this.extend(request, params));
+        const response = await this.publicGetQuoteV1TickerPrice (this.extend (request, params));
         //
         //     [
         //         {
@@ -1149,21 +1168,23 @@ export default class hashkey extends Exchange {
         //         ...
         //     ]
         //
-        return this.parseLastPrices(response, symbols);
+        return this.parseLastPrices (response, symbols);
     }
-    parseLastPrice(entry, market = undefined) {
-        const marketId = this.safeString(entry, 's'); // todo check fetchLastPrices() could return more markets than fetchMarkets()
-        market = this.safeMarket(marketId, market);
+
+    parseLastPrice (entry, market: Market = undefined): LastPrice {
+        const marketId = this.safeString (entry, 's'); // todo check fetchLastPrices() could return more markets than fetchMarkets()
+        market = this.safeMarket (marketId, market);
         return {
             'symbol': market['symbol'],
             'timestamp': undefined,
             'datetime': undefined,
-            'price': this.safeNumber(entry, 'p'),
+            'price': this.safeNumber (entry, 'p'),
             'side': undefined,
             'info': entry,
         };
     }
-    async fetchBalance(params = {}) {
+
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name hashkey#fetchBalance
@@ -1174,8 +1195,8 @@ export default class hashkey extends Exchange {
          * @param {string} [params.timestamp] timestamp
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
-        await this.loadMarkets();
-        const response = await this.privateGetApiV1Account(params);
+        await this.loadMarkets ();
+        const response = await this.privateGetApiV1Account (params);
         //
         //     {
         //         "balances": [
@@ -1192,9 +1213,10 @@ export default class hashkey extends Exchange {
         //         "userId": "1732885739572845312"
         //     }
         //
-        return this.parseBalance(response);
+        return this.parseBalance (response);
     }
-    parseBalance(balance) {
+
+    parseBalance (balance): Balances {
         //
         //     {
         //         "balances": [
@@ -1211,23 +1233,24 @@ export default class hashkey extends Exchange {
         //         "userId": "1732885739572845312"
         //     }
         //
-        const result = {
+        const result: Dict = {
             'info': balance,
         };
-        const balances = this.safeList(balance, 'balances', []);
+        const balances = this.safeList (balance, 'balances', []);
         for (let i = 0; i < balances.length; i++) {
             const balanceEntry = balances[i];
-            const currencyId = this.safeString(balanceEntry, 'asset');
-            const code = this.safeCurrencyCode(currencyId);
-            const account = this.account();
-            account['total'] = this.safeString(balanceEntry, 'total');
-            account['free'] = this.safeString(balanceEntry, 'free');
-            account['used'] = this.safeString(balanceEntry, 'locked');
+            const currencyId = this.safeString (balanceEntry, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeString (balanceEntry, 'total');
+            account['free'] = this.safeString (balanceEntry, 'free');
+            account['used'] = this.safeString (balanceEntry, 'locked');
             result[code] = account;
         }
-        return this.safeBalance(result);
+        return this.safeBalance (result);
     }
-    async fetchDepositAddress(code, params = {}) {
+
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name hashkey#fetchDepositAddress
@@ -1238,18 +1261,18 @@ export default class hashkey extends Exchange {
          * @param {string} [params.network] network for fetch deposit address (default is 'ETH')
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
-        await this.loadMarkets();
-        const currency = this.currency(code);
-        const request = {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request: Dict = {
             'coin': currency['id'],
         };
-        let networkCode = undefined;
-        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        let networkCode: Str = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
-            networkCode = this.defaultNetworkCode(code);
+            networkCode = this.defaultNetworkCode (code);
         }
-        request['chainType'] = this.networkCodeToId(networkCode, code);
-        const response = await this.privateGetApiV1AccountDepositAddress(this.extend(request, params));
+        request['chainType'] = this.networkCodeToId (networkCode, code);
+        const response = await this.privateGetApiV1AccountDepositAddress (this.extend (request, params));
         //
         //     {
         //         "canDeposit": true,
@@ -1262,11 +1285,12 @@ export default class hashkey extends Exchange {
         //         "coinType": "ERC20_TOKEN"
         //     }
         //
-        const depositAddress = this.parseDepositAddress(response, currency);
+        const depositAddress = this.parseDepositAddress (response, currency);
         depositAddress['network'] = networkCode;
         return depositAddress;
     }
-    parseDepositAddress(depositAddress, currency = undefined) {
+
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         //
         //     {
         //         "canDeposit": true,
@@ -1279,9 +1303,9 @@ export default class hashkey extends Exchange {
         //         "coinType": "ERC20_TOKEN"
         //     }
         //
-        const address = this.safeString(depositAddress, 'address');
-        this.checkAddress(address);
-        let tag = this.safeString(depositAddress, 'addressExt');
+        const address = this.safeString (depositAddress, 'address');
+        this.checkAddress (address);
+        let tag = this.safeString (depositAddress, 'addressExt');
         if (tag === '') {
             tag = undefined;
         }
@@ -1293,7 +1317,8 @@ export default class hashkey extends Exchange {
             'info': depositAddress,
         };
     }
-    async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
+
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name hashkey#fetchDeposits
@@ -1307,11 +1332,11 @@ export default class hashkey extends Exchange {
          * @param {int} [params.fromId] starting ID (To be released)
          * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
-        await this.loadMarkets();
-        const request = {};
-        let currency = undefined;
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let currency: Currency = undefined;
         if (code !== undefined) {
-            currency = this.currency(code); // todo format is chain_coin, such as ETH_USDT for USDT coin issued on Ethereum
+            currency = this.currency (code); // todo format is chain_coin, such as ETH_USDT for USDT coin issued on Ethereum
             request['coin'] = currency['id'];
         }
         if (since !== undefined) {
@@ -1320,17 +1345,17 @@ export default class hashkey extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger(params, 'until');
+        const until = this.safeInteger (params, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
-            params = this.omit(params, 'until');
+            params = this.omit (params, 'until');
         }
-        let fromId = undefined;
-        [fromId, params] = this.handleOptionAndParams(params, 'fetchDeposits', 'fromId');
+        let fromId: Str = undefined;
+        [ fromId, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'fromId');
         if (fromId !== undefined) {
             request['fromId'] = fromId;
         }
-        const response = await this.privateGetApiV1AccountDepositOrders(this.extend(request, params));
+        const response = await this.privateGetApiV1AccountDepositOrders (this.extend (request, params));
         //
         //     [
         //         {
@@ -1348,20 +1373,22 @@ export default class hashkey extends Exchange {
         for (let i = 0; i < response.length; i++) {
             response[i]['type'] = 'deposit';
         }
-        return this.parseTransactions(response, currency, since, limit);
+        return this.parseTransactions (response, currency, since, limit);
     }
-    parseTransactions(transactions, currency = undefined, since = undefined, limit = undefined, params = {}) {
+
+    parseTransactions (transactions, currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Transaction[] {
         let result = [];
         for (let i = 0; i < transactions.length; i++) {
-            transactions[i] = this.extend(transactions[i], params);
-            const transaction = this.parseTransaction(transactions[i], currency);
-            result.push(transaction);
+            transactions[i] = this.extend (transactions[i], params);
+            const transaction = this.parseTransaction (transactions[i], currency);
+            result.push (transaction);
         }
-        result = this.sortBy(result, 'timestamp');
+        result = this.sortBy (result, 'timestamp');
         const code = (currency !== undefined) ? currency['code'] : undefined;
-        return this.filterByCurrencySinceLimit(result, code, since, limit);
+        return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
-    parseTransaction(transaction, currency = undefined) {
+
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         //  fetchDeposits
         //     {
@@ -1375,27 +1402,26 @@ export default class hashkey extends Exchange {
         //         "txId": "0970c14da4d7412295fa7b21c03a08da319e746a0d59ef14462a74183d118da4"
         //     }
         //
-        const type = this.safeString(transaction, 'type');
-        transaction = this.omit(transaction, 'type');
-        const address = this.safeString(transaction, 'address');
-        let status = undefined;
+        const type = this.safeString (transaction, 'type');
+        transaction = this.omit (transaction, 'type');
+        const address = this.safeString (transaction, 'address');
+        let status: Str = undefined;
         if (type === 'deposit') {
-            status = this.parseDepositStatus(this.safeString(transaction, 'status'));
-        }
-        else if (type === 'withdrawal') {
+            status = this.parseDepositStatus (this.safeString (transaction, 'status'));
+        } else if (type === 'withdrawal') {
             status = undefined;
         }
-        const txid = this.safeString(transaction, 'txId');
-        const coin = this.safeString(transaction, 'coin');
-        const code = this.safeCurrencyCode(coin, currency);
-        const timestamp = this.safeInteger(transaction, 'time');
-        const amount = this.safeNumber(transaction, 'quantity');
+        const txid = this.safeString (transaction, 'txId');
+        const coin = this.safeString (transaction, 'coin');
+        const code = this.safeCurrencyCode (coin, currency);
+        const timestamp = this.safeInteger (transaction, 'time');
+        const amount = this.safeNumber (transaction, 'quantity');
         return {
             'info': transaction,
             'id': undefined,
             'txid': txid,
             'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'datetime': this.iso8601 (timestamp),
             'network': undefined,
             'address': address,
             'addressTo': undefined,
@@ -1413,22 +1439,24 @@ export default class hashkey extends Exchange {
             'fee': undefined,
         };
     }
-    parseDepositStatus(status) {
-        const statuses = {
+
+    parseDepositStatus (status) {
+        const statuses: Dict = {
             '1': 'pending',
             '2': 'pending',
             '3': 'failed',
             '4': 'ok',
-            '5': 'pending',
-            '6': 'ok',
-            '7': 'failed',
+            '5': 'pending', // todo refund status
+            '6': 'ok', // todo refund status
+            '7': 'failed', // todo refund status
             '8': 'cancelled',
             '9': 'failed',
             '10': 'failed',
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString (statuses, status, status);
     }
-    async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
+
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name hashkey#createOrder
@@ -1449,16 +1477,16 @@ export default class hashkey extends Exchange {
          * @param {string} [params.clientOrderId] a unique id for the order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets();
-        const market = this.market(symbol);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
         if (market['spot']) {
-            return await this.createSpotOrder(symbol, type, side, amount, price, params);
-        }
-        else {
-            throw new NotSupported(this.id + ' createOrder() is not supported for ' + market['type'] + ' markets');
+            return await this.createSpotOrder (symbol, type, side, amount, price, params);
+        } else {
+            throw new NotSupported (this.id + ' createOrder() is not supported for ' + market['type'] + ' markets');
         }
     }
-    async createSpotOrder(symbol, type, side, amount, price = undefined, params = {}) {
+
+    async createSpotOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
          * @name hashkey#createSpotOrder
@@ -1478,22 +1506,21 @@ export default class hashkey extends Exchange {
          * @param {string} [params.clientOrderId] a unique id for the order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets();
-        const market = this.market(symbol);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
         const isMarketBuy = (type === 'market') && (side === 'buy');
-        const cost = this.safeString(params, 'cost');
+        const cost = this.safeString (params, 'cost');
         if ((!isMarketBuy) && (cost !== undefined)) {
-            throw new NotSupported(this.id + ' createOrder() supports cost parameter for spot market buy orders only');
+            throw new NotSupported (this.id + ' createOrder() supports cost parameter for spot market buy orders only');
         }
-        const request = this.createSpotOrderRequest(symbol, type, side, amount, price, params);
-        let response = undefined;
-        const test = this.safeBool(params, 'test');
+        const request: Dict = this.createSpotOrderRequest (symbol, type, side, amount, price, params);
+        let response: NullableDict = undefined;
+        const test = this.safeBool (params, 'test');
         if (test) {
-            params = this.omit(params, 'test');
-            response = await this.privatePostApiV1SpotOrderTest(request);
-        }
-        else if (isMarketBuy && (cost === undefined)) {
-            response = await this.privatePostApiV11SpotOrder(request); // the endpoint for market buy orders by amount
+            params = this.omit (params, 'test');
+            response = await this.privatePostApiV1SpotOrderTest (request);
+        } else if (isMarketBuy && (cost === undefined)) {
+            response = await this.privatePostApiV11SpotOrder (request); // the endpoint for market buy orders by amount
             //
             //     {
             //         "accountId": "1732885739589466112",
@@ -1513,9 +1540,8 @@ export default class hashkey extends Exchange {
             //         "concentration": ""
             //     }
             //
-        }
-        else {
-            response = await this.privatePostApiV1SpotOrder(request); // the endpoint for market buy orders by cost and other orders
+        } else {
+            response = await this.privatePostApiV1SpotOrder (request); // the endpoint for market buy orders by cost and other orders
             //
             // market buy
             //     {
@@ -1575,9 +1601,10 @@ export default class hashkey extends Exchange {
             //     }
             //
         }
-        return this.parseOrder(response, market);
+        return this.parseOrder (response, market);
     }
-    createSpotOrderRequest(symbol, type, side, amount, price = undefined, params = {}) {
+
+    createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Dict {
         /**
          * @method
          * @ignore
@@ -1595,58 +1622,59 @@ export default class hashkey extends Exchange {
          * @param {string} [params.clientOrderId] a unique id for the order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const market = this.market(symbol);
-        type = type.toUpperCase();
-        const request = {
+        const market = this.market (symbol);
+        type = type.toUpperCase ();
+        const request: Dict = {
             'symbol': market['id'],
-            'side': side.toUpperCase(),
+            'side': side.toUpperCase (),
             'type': type,
         };
         if (amount !== undefined) {
-            request['quantity'] = this.amountToPrecision(symbol, amount);
+            request['quantity'] = this.amountToPrecision (symbol, amount);
         }
-        const cost = this.safeString(params, 'cost');
+        const cost = this.safeString (params, 'cost');
         if (cost !== undefined) {
-            params = this.omit(params, 'cost');
-            request['quantity'] = this.costToPrecision(symbol, cost);
+            params = this.omit (params, 'cost');
+            request['quantity'] = this.costToPrecision (symbol, cost);
         }
         if (price !== undefined) {
-            request['price'] = this.priceToPrecision(symbol, price);
+            request['price'] = this.priceToPrecision (symbol, price);
         }
         const isMarketOrder = type === 'MARKET';
         let postOnly = false;
-        [postOnly, params] = this.handlePostOnly(isMarketOrder, type === 'LIMIT_MAKER', params);
+        [ postOnly, params ] = this.handlePostOnly (isMarketOrder, type === 'LIMIT_MAKER', params);
         if (postOnly && (type === 'LIMIT')) {
             request['type'] = 'LIMIT_MAKER';
         }
-        const clientOrderId = this.safeString(params, 'clientOrderId');
+        const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             params['newClientOrderId'] = clientOrderId;
         }
-        return this.extend(request, params);
+        return this.extend (request, params);
     }
-    parseOrder(order, market = undefined) {
-        const marketId = this.safeString(order, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const timestamp = this.safeInteger(order, 'transactTime');
-        const status = this.safeString(order, 'status');
-        const type = this.safeString(order, 'type');
-        return this.safeOrder({
-            'id': this.safeString(order, 'orderId'),
-            'clientOrderId': this.safeString(order, 'clientOrderId'),
-            'datetime': this.iso8601(timestamp),
+
+    parseOrder (order: Dict, market: Market = undefined): Order {
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (order, 'transactTime');
+        const status = this.safeString (order, 'status');
+        const type = this.safeString (order, 'type');
+        return this.safeOrder ({
+            'id': this.safeString (order, 'orderId'),
+            'clientOrderId': this.safeString (order, 'clientOrderId'),
+            'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': undefined,
-            'status': this.parseOrderStatus(status),
+            'status': this.parseOrderStatus (status),
             'symbol': market['symbol'],
-            'type': this.parseOrderType(type),
-            'timeInForce': this.safeString(order, 'timeInForce'),
-            'side': this.safeStringLower(order, 'side'),
-            'price': this.omitZero(this.safeString(order, 'price')),
+            'type': this.parseOrderType (type),
+            'timeInForce': this.safeString (order, 'timeInForce'),
+            'side': this.safeStringLower (order, 'side'),
+            'price': this.omitZero (this.safeString (order, 'price')),
             'average': undefined,
-            'amount': this.omitZero(this.safeString(order, 'origQty')),
-            'filled': this.safeString(order, 'executedQty'),
+            'amount': this.omitZero (this.safeString (order, 'origQty')),
+            'filled': this.safeString (order, 'executedQty'),
             'remaining': undefined,
             'stopPrice': undefined,
             'triggerPrice': undefined,
@@ -1660,7 +1688,8 @@ export default class hashkey extends Exchange {
             'info': order,
         }, market);
     }
-    parseOrderStatus(status) {
+
+    parseOrderStatus (status) {
         const statuses = {
             'NEW': 'open',
             'PARTIALLY_FILLED': 'open',
@@ -1670,45 +1699,45 @@ export default class hashkey extends Exchange {
             'PENDING_CANCEL': 'canceled',
             'REJECTED': 'rejected',
         };
-        return this.safeString(statuses, status, status);
+        return this.safeString (statuses, status, status);
     }
-    parseOrderType(type) {
+
+    parseOrderType (type) {
         const types = {
             'MARKET': 'market',
             'LIMIT': 'limit',
             'LIMIT_MAKER': 'limit',
         };
-        return this.safeString(types, type, type);
+        return this.safeString (types, type, type);
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + path;
         if (api === 'private') {
-            this.checkRequiredCredentials();
-            const timestamp = this.milliseconds();
+            this.checkRequiredCredentials ();
+            const timestamp = this.milliseconds ();
             const additionalParams = {
                 'timestamp': timestamp,
             };
-            const recvWindow = this.safeInteger(this.options, 'recvWindow');
+            const recvWindow = this.safeInteger (this.options, 'recvWindow');
             if (recvWindow !== undefined) {
                 additionalParams['recvWindow'] = recvWindow;
             }
-            const totalParams = this.extend(additionalParams, params);
-            const signature = this.hmac(this.encode(this.urlencode(totalParams)), this.encode(this.secret), sha256);
+            const totalParams = this.extend (additionalParams, params);
+            const signature = this.hmac (this.encode (this.urlencode (totalParams)), this.encode (this.secret), sha256);
             totalParams['signature'] = signature;
-            const totalParamsString = this.urlencode(totalParams);
+            const totalParamsString = this.urlencode (totalParams);
             if (method === 'GET') {
                 url += '?' + totalParamsString;
-            }
-            else {
+            } else {
                 body = totalParamsString;
             }
             headers = {
                 'X-HK-APIKEY': this.apiKey,
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
-        }
-        else {
-            const query = this.urlencode(params);
+        } else {
+            const query = this.urlencode (params);
             if (query.length !== 0) {
                 url += '?' + query;
             }
