@@ -2,7 +2,7 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/hashkey.js';
-import { NotSupported } from './base/errors.js';
+import { ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Balances, Bool, Currencies, Currency, Dict, LastPrice, LastPrices, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction } from './base/types.js';
@@ -34,7 +34,7 @@ export default class hashkey extends Exchange {
                 'addMargin': false,
                 'cancelAllOrders': false,
                 'cancelAllOrdersAfter': false,
-                'cancelOrder': false,
+                'cancelOrder': true,
                 'cancelWithdraw': false,
                 'closePosition': false,
                 'createConvertTrade': false,
@@ -209,7 +209,7 @@ export default class hashkey extends Exchange {
                         'api/v1/account/withdraw': 1,
                     },
                     'delete': {
-                        'api/v1/spot/order': 1,
+                        'api/v1/spot/order': 1, // done
                         'api/v1/spot/openOrders': 1,
                         'api/v1/spot/cancelOrderByIds': 1,
                         'api/v1/futures/order': 1,
@@ -296,6 +296,8 @@ export default class hashkey extends Exchange {
                 'exact': {
                     // {"code":-100012,"msg":"Parameter symbol [String] missing!"}
                     // {"code":"0211","msg":"Order not found"}
+                    // {"code":"-1141","msg":"Duplicate order"} duplicated clientOrderId
+                    // {"code":"0001","msg":"Required field symbol missing or invalid"}
                 },
                 'broad': {
                 },
@@ -1721,7 +1723,7 @@ export default class hashkey extends Exchange {
         return this.extend (request, params);
     }
 
-    async cancelOrder (id: string, symbol: Str = undefined, params = {}): Promise<{}> {
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name hashkey#cancelOrder
@@ -1820,6 +1822,73 @@ export default class hashkey extends Exchange {
         //     }
         //
         return this.parseOrder (response);
+    }
+
+    async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name hashkey#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-current-open-orders
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve - default 500, maximum 1000
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.orderId] the id of the order to fetch
+         * @param {string} [params.side] 'buy' or 'sell' - the side of the orders to fetch
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        await this.loadMarkets ();
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let orderId: Str = undefined;
+        [ orderId, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'orderId');
+        if (orderId !== undefined) {
+            request['orderId'] = orderId;
+        }
+        let side: Str = undefined;
+        [ side, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'side');
+        if (side !== undefined) {
+            request['side'] = side.toUpperCase ();
+        }
+        const response = await this.privateGetApiV1SpotOpenOrders (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "accountId": "1732885739589466112",
+        //             "exchangeId": "301",
+        //             "symbol": "ETHUSDT",
+        //             "symbolName": "ETHUSDT",
+        //             "clientOrderId": "1",
+        //             "orderId": "1739491435386897152",
+        //             "price": "2000",
+        //             "origQty": "0.001",
+        //             "executedQty": "0",
+        //             "cummulativeQuoteQty": "0",
+        //             "cumulativeQuoteQty": "0",
+        //             "avgPrice": "0",
+        //             "status": "NEW",
+        //             "timeInForce": "GTC",
+        //             "type": "LIMIT",
+        //             "side": "BUY",
+        //             "stopPrice": "0.0",
+        //             "icebergQty": "0.0",
+        //             "time": "1722099538193",
+        //             "updateTime": "1722099538197",
+        //             "isWorking": true,
+        //             "reqAmount": "0"
+        //         }
+        //     ]
+        //
+        return this.parseOrders (response, market, since, limit);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
