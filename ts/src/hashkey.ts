@@ -83,7 +83,7 @@ export default class hashkey extends Exchange {
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': false,
-                'fetchOrder': false,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': false,
@@ -162,7 +162,7 @@ export default class hashkey extends Exchange {
                 },
                 'private': {
                     'get': {
-                        'api/v1/spot/order': 1,
+                        'api/v1/spot/order': 1, // done
                         'api/v1/spot/openOrders': 1,
                         'api/v1/spot/tradeOrders': 1,
                         'api/v1/futures/leverage': 1,
@@ -334,7 +334,7 @@ export default class hashkey extends Exchange {
          */
         let symbol: Str = undefined;
         const request: Dict = {};
-        [ symbol, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'symbol');
+        [ symbol, params ] = this.handleOption ('fetchMarkets', 'symbol');
         if (symbol !== undefined) {
             request['symbol'] = symbol;
         }
@@ -1154,7 +1154,7 @@ export default class hashkey extends Exchange {
         symbols = this.marketSymbols (symbols);
         const request: Dict = {};
         let symbol: Str = undefined;
-        [ symbol, params ] = this.handleOptionAndParams (params, 'fetchLastPrices', 'symbol');
+        [ symbol, params ] = this.handleOption ('fetchLastPrices', 'symbol');
         if (symbol !== undefined) {
             request['symbol'] = symbol;
         }
@@ -1192,11 +1192,16 @@ export default class hashkey extends Exchange {
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-account-information
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.accountId] account ID, for Master Key only
-         * @param {string} [params.timestamp] timestamp
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privateGetApiV1Account (params);
+        const request: Dict = {};
+        let accountId: Str = undefined;
+        [ accountId, params ] = this.handleOption ('fetchBalance', 'accountId');
+        if (accountId !== undefined) {
+            request['accountId'] = accountId;
+        }
+        const response = await this.privateGetApiV1Account (this.extend (request, params));
         //
         //     {
         //         "balances": [
@@ -1351,7 +1356,7 @@ export default class hashkey extends Exchange {
             params = this.omit (params, 'until');
         }
         let fromId: Str = undefined;
-        [ fromId, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'fromId');
+        [ fromId, params ] = this.handleOption ('fetchDeposits', 'fromId');
         if (fromId !== undefined) {
             request['fromId'] = fromId;
         }
@@ -1739,7 +1744,7 @@ export default class hashkey extends Exchange {
             request['origClientOrderId'] = clientOrderId;
         }
         let accountId: Str = undefined;
-        [ accountId, params ] = this.handleOptionAndParams (params, 'fetchOrder', 'accountId');
+        [ accountId, params ] = this.handleOption ('fetchOrder', 'accountId');
         if (accountId !== undefined) {
             request['accountId'] = accountId;
         }
