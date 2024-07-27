@@ -2464,6 +2464,18 @@
                 ]
             },
             {
+                "description": "Fetch Account Positions - linear",
+                "method": "fetchAccountPositions",
+                "url": "https://fapi.binance.com/fapi/v2/account?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
+                "input": [
+                    null,
+                    {
+                        "subType": "linear",
+                        "useV3": false
+                    }
+                ]
+            },
+            {
                 "description": "Fetch Account Positions - inverse",
                 "method": "fetchAccountPositions",
                 "url": "https://dapi.binance.com/dapi/v1/account?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
