@@ -1716,36 +1716,158 @@ export default class hashkey extends Exchange {
         return this.extend (request, params);
     }
 
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name hashkey#fetchOrder
+         * @description fetches information on an order made by the user
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/query-order
+         * @param {string} id the order id
+         * @param {string} symbol unified symbol of the market the order was made in - not used by hashkey
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.clientOrderId] a unique id for the order that can be used as an alternative for the id
+         * @param {string} [params.accountId] account id to fetch the order from
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const request: Dict = {};
+        if (id !== undefined) {
+            request['orderId'] = id;
+        } else {
+            const clientOrderId = this.safeString (params, 'clientOrderId');
+            params = this.omit (params, 'clientOrderId');
+            request['origClientOrderId'] = clientOrderId;
+        }
+        let accountId: Str = undefined;
+        [ accountId, params ] = this.handleOptionAndParams (params, 'fetchOrder', 'accountId');
+        if (accountId !== undefined) {
+            request['accountId'] = accountId;
+        }
+        const response = await this.privateGetApiV1SpotOrder (this.extend (request, params));
+        //
+        //     {
+        //         "accountId": "1732885739589466112",
+        //         "exchangeId": "301",
+        //         "symbol": "ETHUSDT",
+        //         "symbolName": "ETHUSDT",
+        //         "clientOrderId": "1722004623170558",
+        //         "orderId": "1738695230608169984",
+        //         "price": "0",
+        //         "origQty": "0",
+        //         "executedQty": "0.0061",
+        //         "cummulativeQuoteQty": "19.736489",
+        //         "cumulativeQuoteQty": "19.736489",
+        //         "avgPrice": "3235.49",
+        //         "status": "FILLED",
+        //         "timeInForce": "IOC",
+        //         "type": "MARKET",
+        //         "side": "BUY",
+        //         "stopPrice": "0.0",
+        //         "icebergQty": "0.0",
+        //         "time": "1722004623186",
+        //         "updateTime": "1722004623406",
+        //         "isWorking": true,
+        //         "reqAmount": "20",
+        //         "feeCoin": "",
+        //         "feeAmount": "0",
+        //         "sumFeeAmount": "0"
+        //     }
+        //
+        return this.parseOrder (response);
+    }
+
     parseOrder (order: Dict, market: Market = undefined): Order {
+        //
+        // createOrder
+        //     {
+        //         "accountId": "1732885739589466112",
+        //         "symbol": "ETHUSDT",
+        //         "symbolName": "ETHUSDT",
+        //         "clientOrderId": "1722004623170558",
+        //         "orderId": "1738695230608169984",
+        //         "transactTime": "1722004623186",
+        //         "price": "0",
+        //         "origQty": "0",
+        //         "executedQty": "0.0061",
+        //         "status": "FILLED",
+        //         "timeInForce": "IOC",
+        //         "type": "MARKET",
+        //         "side": "BUY",
+        //         "reqAmount": "20",
+        //         "concentration": ""
+        //     }
+        //
+        // fetchOrder
+        //     {
+        //         "accountId": "1732885739589466112",
+        //         "exchangeId": "301",
+        //         "symbol": "ETHUSDT",
+        //         "symbolName": "ETHUSDT",
+        //         "clientOrderId": "1722004623170558",
+        //         "orderId": "1738695230608169984",
+        //         "price": "0",
+        //         "origQty": "0",
+        //         "executedQty": "0.0061",
+        //         "cummulativeQuoteQty": "19.736489",
+        //         "cumulativeQuoteQty": "19.736489",
+        //         "avgPrice": "3235.49",
+        //         "status": "FILLED",
+        //         "timeInForce": "IOC",
+        //         "type": "MARKET",
+        //         "side": "BUY",
+        //         "stopPrice": "0.0",
+        //         "icebergQty": "0.0",
+        //         "time": "1722004623186",
+        //         "updateTime": "1722004623406",
+        //         "isWorking": true,
+        //         "reqAmount": "20",
+        //         "feeCoin": "",
+        //         "feeAmount": "0",
+        //         "sumFeeAmount": "0"
+        //     }
+        //
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
-        const timestamp = this.safeInteger (order, 'transactTime');
+        const timestamp = this.safeInteger2 (order, 'transactTime', 'time');
         const status = this.safeString (order, 'status');
         const type = this.safeString (order, 'type');
+        let price = this.omitZero (this.safeString (order, 'price'));
+        const average = this.omitZero (this.safeString (order, 'avgPrice'));
+        if (price === undefined) {
+            price = average;
+        }
+        let feeCurrncyId = this.safeString (order, 'feeCoin');
+        if (feeCurrncyId === '') {
+            feeCurrncyId = undefined;
+        }
+        const triggerPrice = this.omitZero (this.safeString (order, 'stopPrice'));
         return this.safeOrder ({
             'id': this.safeString (order, 'orderId'),
             'clientOrderId': this.safeString (order, 'clientOrderId'),
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
-            'lastUpdateTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeInteger (order, 'updateTime'),
             'status': this.parseOrderStatus (status),
             'symbol': market['symbol'],
             'type': this.parseOrderType (type),
             'timeInForce': this.safeString (order, 'timeInForce'),
             'side': this.safeStringLower (order, 'side'),
-            'price': this.omitZero (this.safeString (order, 'price')),
-            'average': undefined,
+            'price': price,
+            'average': average,
             'amount': this.omitZero (this.safeString (order, 'origQty')),
             'filled': this.safeString (order, 'executedQty'),
             'remaining': undefined,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
+            'stopPrice': triggerPrice,
+            'triggerPrice': triggerPrice,
             'takeProfitPrice': undefined,
             'stopLossPrice': undefined,
-            'cost': undefined,
+            'cost': this.omitZero (this.safeString2 (order, 'cumulativeQuoteQty', 'cummulativeQuoteQty')),
             'trades': undefined,
-            'fee': undefined,
+            'fee': {
+                'currency': this.safeCurrencyCode (feeCurrncyId), // todo check - orders return empty field
+                'amount': this.omitZero (this.safeString (order, 'feeAmount')), // todo check - orders return 0
+            },
             'reduceOnly': undefined,
             'postOnly': type === 'LIMIT_MAKER',
             'info': order,
