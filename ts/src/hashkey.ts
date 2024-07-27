@@ -56,8 +56,9 @@ export default class hashkey extends Exchange {
                 'createTriggerOrder': false,
                 'fetchAccounts': true,
                 'fetchBalance': true,
-                'fetchCanceledOrders': false,
-                'fetchClosedOrder': false,
+                'fetchCanceledAndClosedOrders': true,
+                'fetchCanceledOrders': true,
+                'fetchClosedOrder': true,
                 'fetchClosedOrders': false,
                 'fetchConvertCurrencies': false,
                 'fetchConvertQuote': false,
@@ -82,7 +83,7 @@ export default class hashkey extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
-                'fetchOpenOrders': false,
+                'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
@@ -163,8 +164,8 @@ export default class hashkey extends Exchange {
                 'private': {
                     'get': {
                         'api/v1/spot/order': 1, // done
-                        'api/v1/spot/openOrders': 1,
-                        'api/v1/spot/tradeOrders': 1,
+                        'api/v1/spot/openOrders': 1, // done
+                        'api/v1/spot/tradeOrders': 5, // done
                         'api/v1/futures/leverage': 1,
                         'api/v1/futures/order': 1,
                         'api/v1/futures/openOrders': 1,
@@ -1844,7 +1845,7 @@ export default class hashkey extends Exchange {
         const market = this.market (symbol);
         await this.loadMarkets ();
         const request: Dict = {
-            'symbol': market['id'],
+            'symbol': market['id'], // todo: report - symbol is mandatory for hashkey
         };
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1889,6 +1890,124 @@ export default class hashkey extends Exchange {
         //     ]
         //
         return this.parseOrders (response, market, since, limit);
+    }
+
+    async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name hashkey#fetchCanceledAndClosedOrders
+         * @description fetches information on multiple canceled and closed orders made by the user
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-all-orders
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve - default 500, maximum 1000
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for - only supports the last 90 days timeframe
+         * @param {string} [params.orderId] the id of the order to fetch
+         * @param {string} [params.side] 'buy' or 'sell' - the side of the orders to fetch
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id']; // todo: report - symbol is not mandatory for hashkey
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // todo could return wrong limit if it is called from fetchCanceledOrders or fetchClosedOrders
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        let callerMethodName = 'fetchCanceledAndClosedOrders';
+        [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', callerMethodName);
+        let until: Int = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, callerMethodName, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        let orderId: Str = undefined;
+        [ orderId, params ] = this.handleOptionAndParams (params, callerMethodName, 'orderId');
+        if (orderId !== undefined) {
+            request['orderId'] = orderId;
+        }
+        let side: Str = undefined;
+        [ side, params ] = this.handleOptionAndParams (params, callerMethodName, 'side');
+        if (side !== undefined) {
+            request['side'] = side.toUpperCase ();
+        }
+        const response = await this.privateGetApiV1SpotTradeOrders (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "accountId": "1732885739589466112",
+        //             "exchangeId": "301",
+        //             "symbol": "ETHUSDT",
+        //             "symbolName": "ETHUSDT",
+        //             "clientOrderId": "1722082982086472",
+        //             "orderId": "1739352552762301440",
+        //             "price": "0",
+        //             "origQty": "0.001",
+        //             "executedQty": "0.001",
+        //             "cummulativeQuoteQty": "3.28996",
+        //             "cumulativeQuoteQty": "3.28996",
+        //             "avgPrice": "3289.96",
+        //             "status": "FILLED",
+        //             "timeInForce": "IOC",
+        //             "type": "MARKET",
+        //             "side": "BUY",
+        //             "stopPrice": "0.0",
+        //             "icebergQty": "0.0",
+        //             "time": "1722082982093",
+        //             "updateTime": "1722082982097",
+        //             "isWorking": true,
+        //             "reqAmount": "0"
+        //         },
+        //         ...
+        //     ]
+        //
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name hashkey#fetchCanceledOrders
+         * @description fetches information on multiple canceled orders made by the user
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-all-orders
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve - default 500, maximum 1000
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for - only supports the last 90 days timeframe
+         * @param {string} [params.orderId] the id of the order to fetch
+         * @param {string} [params.side] 'buy' or 'sell' - the side of the orders to fetch
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const orders = await this.fetchCanceledAndClosedOrders (symbol, since, limit, this.extend ({ 'callerMethodName': 'fetchCanceledOrders' }, params));
+        return this.filterBy (orders, 'status', 'canceled') as Order[];
+    }
+
+    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name hashkey#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-all-orders
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve - default 500, maximum 1000
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for - only supports the last 90 days timeframe
+         * @param {string} [params.orderId] the id of the order to fetch
+         * @param {string} [params.side] 'buy' or 'sell' - the side of the orders to fetch
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const orders = await this.fetchCanceledAndClosedOrders (symbol, since, limit, this.extend ({ 'callerMethodName': 'fetchClosedOrders' }, params));
+        return this.filterBy (orders, 'status', 'closed') as Order[];
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
