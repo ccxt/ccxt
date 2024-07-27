@@ -9659,8 +9659,6 @@ export default class binance extends Exchange {
         const contracts = this.parseNumber (contractsAbs);
         const unrealizedPnlString = this.safeString (position, 'unRealizedProfit');
         const unrealizedPnl = this.parseNumber (unrealizedPnlString);
-        const leverageString = this.safeString (position, 'leverage');
-        const leverage = parseInt (leverageString);
         const liquidationPriceString = this.omitZero (this.safeString (position, 'liquidationPrice'));
         const liquidationPrice = this.parseNumber (liquidationPriceString);
         let collateralString = undefined;
@@ -9738,13 +9736,23 @@ export default class binance extends Exchange {
             maintenanceMarginString = this.safeString (position, 'maintMargin');
         }
         const maintenanceMargin = this.parseNumber (maintenanceMarginString);
-        let initialMarginPercentageString = Precise.stringDiv ('1', leverageString, 8);
-        const rational = this.isRoundNumber (1000 % leverage);
-        if (!rational) {
-            initialMarginPercentageString = Precise.stringAdd (initialMarginPercentageString, '1e-8');
+        let initialMarginString = undefined;
+        let initialMarginPercentageString = undefined;
+        const leverageString = this.safeString (position, 'leverage');
+        if (leverageString !== undefined) {
+            const leverage = parseInt (leverageString);
+            const rational = this.isRoundNumber (1000 % leverage);
+            initialMarginPercentageString = Precise.stringDiv ('1', leverageString, 8);
+            if (!rational) {
+                initialMarginPercentageString = Precise.stringAdd (initialMarginPercentageString, '1e-8');
+            }
+            const unrounded = Precise.stringMul (notionalStringAbs, initialMarginPercentageString);
+            initialMarginString = Precise.stringDiv (unrounded, '1', 8);
+        } else {
+            initialMarginString = this.safeString (position, 'initialMargin');
+            const unrounded = Precise.stringMul (initialMarginString, '1');
+            initialMarginPercentageString = Precise.stringDiv (unrounded, notionalStringAbs, 8);
         }
-        const initialMarginString = Precise.stringDiv (Precise.stringMul (notionalStringAbs, initialMarginPercentageString), '1', 8);
-        const initialMargin = this.parseNumber (initialMarginString);
         let marginRatio = undefined;
         let percentage = undefined;
         if (!Precise.stringEquals (collateralString, '0')) {
@@ -9767,7 +9775,7 @@ export default class binance extends Exchange {
             'markPrice': markPrice,
             'entryPrice': entryPrice,
             'timestamp': timestamp,
-            'initialMargin': initialMargin,
+            'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (initialMarginPercentageString),
             'maintenanceMargin': maintenanceMargin,
             'maintenanceMarginPercentage': maintenanceMarginPercentage,
