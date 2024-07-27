@@ -55,6 +55,7 @@ interface Exchange {
     privatePostApiV1UserDataStream (params?: {}): Promise<implicitReturnType>;
     privatePostApiV1SpotOrderTest (params?: {}): Promise<implicitReturnType>;
     privatePostApiV1SpotOrder (params?: {}): Promise<implicitReturnType>;
+    privatePostApiV11SpotOrder (params?: {}): Promise<implicitReturnType>;
     privatePostApiV1SpotBatchOrders (params?: {}): Promise<implicitReturnType>;
     privatePostApiV1FuturesLeverage (params?: {}): Promise<implicitReturnType>;
     privatePostApiV1FuturesOrder (params?: {}): Promise<implicitReturnType>;
