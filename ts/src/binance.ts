@@ -9556,50 +9556,34 @@ export default class binance extends Exchange {
         //
         // usdm
         //
-        //  v3
-        //
-        //      {
-        //          "symbol": "WLDUSDT",
-        //          "positionSide": "BOTH",
-        //          "positionAmt": "-715",
-        //          "entryPrice": "2.412716783217",
-        //          "markPrice": "2.35964598",
-        //          "unRealizedProfit": "37.94562200",
-        //          "liquidationPrice": "2.49448706",
-        //          "isolatedMargin": "0", // in isolated mode, here will be a value
-        //          "isolatedWallet": "0", // in isolated mode, here will be a value
-        //          "marginAsset": "USDT",
-        //          "breakEvenPrice": "2.411647790797",
-        //          "notional": "-1687.14687570",
-        //          "initialMargin": "84.35734378",
-        //          "maintMargin": "10.12288125",
-        //          "positionInitialMargin": "84.35734378",
-        //          "openOrderInitialMargin": "0",
-        //          "adl": "4",
-        //          "bidNotional": "0",
-        //          "askNotional": "0",
-        //          "updateTime": "1721988778721"
-        //      }
-        //
-        //  v2
-        //
-        //     {
-        //       "symbol": "BTCUSDT",
-        //       "positionSide": "BOTH",
-        //       "positionAmt": "0.001",
-        //       "entryPrice": "43578.07000",
-        //       "markPrice": "43532.30000000",
-        //       "unRealizedProfit": "-0.04577000",
-        //       "liquidationPrice": "21841.24993976",
-        //       "leverage": "2",
-        //       "maxNotionalValue": "300000000",
-        //       "marginType": "isolated",
-        //       "isolatedMargin": "21.77841506",
-        //       "isAutoAddMargin": "false",
-        //       "notional": "43.53230000",
-        //       "isolatedWallet": "21.82418506",
-        //       "updateTime": "1621358023886"
-        //     }
+        //  {
+        //     symbol: "WLDUSDT",
+        //     positionSide: "BOTH",
+        //     positionAmt: "5",
+        //     entryPrice: "2.3483",
+        //     breakEvenPrice: "2.349356735",
+        //     markPrice: "2.39560000",
+        //     unRealizedProfit: "0.23650000",
+        //     liquidationPrice: "0",
+        //     isolatedMargin: "0",
+        //     notional: "11.97800000",
+        //     isolatedWallet: "0",
+        //     updateTime: "1722062678998",
+        //     initialMargin: "2.39560000",         // in v3
+        //     maintMargin: "0.07186800",           // in v3
+        //     positionInitialMargin: "2.39560000", // in v3
+        //     openOrderInitialMargin: "0",         // in v3
+        //     adl: "2",                            // in v3
+        //     bidNotional: "0",                    // in v3
+        //     askNotional: "0",                    // in v3
+        //     marginAsset: "USDT",                 // in v3
+        //     leverage: "5",                       // in v2
+        //     maxNotionalValue: "6000000",         // in v2
+        //     marginType: "cross",                 // in v2
+        //     isAutoAddMargin: "false",            // in v2
+        //     isolated: false,                     // in v2
+        //     adlQuantile: "2",                    // in v2
+        //  }
         //
         // coinm
         //
@@ -10203,80 +10187,78 @@ export default class binance extends Exchange {
                 response = await this.papiGetUmAccount (params);
             } else {
                 let useV3 = undefined;
-                [ useV3, params ] = this.handleOptionAndParams (params, 'fetchAccountPositions', 'useV3', false);
+                [ useV3, params ] = this.handleOptionAndParams (params, 'fetchAccountPositions', 'useV3', true);
                 if (useV3) {
                     response = await this.fapiPrivateV3GetAccount (params);
-                    //
-                    //    {
-                    //        "totalInitialMargin": "99.62112386",
-                    //        "totalMaintMargin": "11.95453485",
-                    //        "totalWalletBalance": "99.84331553",
-                    //        "totalUnrealizedProfit": "11.17675690",
-                    //        "totalMarginBalance": "111.02007243",
-                    //        "totalPositionInitialMargin": "99.62112386",
-                    //        "totalOpenOrderInitialMargin": "0.00000000",
-                    //        "totalCrossWalletBalance": "99.84331553",
-                    //        "totalCrossUnPnl": "11.17675690",
-                    //        "availableBalance": "11.39894857",
-                    //        "maxWithdrawAmount": "11.39894857",
-                    //        "feeTier": "0",      // in v2
-                    //        "canTrade": true,    // in v2
-                    //        "canDeposit": true,  // in v2
-                    //        "canWithdraw": true, // in v2
-                    //        "feeBurn": true,     // in v2
-                    //        "tradeGroupId": "-1",// in v2
-                    //        "updateTime": "0",   // in v2
-                    //        "multiAssetsMargin": true // in v2
-                    //        "assets": [
-                    //            {
-                    //                "asset": "USDT",
-                    //                "walletBalance": "72.72317863",
-                    //                "unrealizedProfit": "11.17920750",
-                    //                "marginBalance": "83.90238613",
-                    //                "maintMargin": "11.95476475",
-                    //                "initialMargin": "99.62303962",
-                    //                "positionInitialMargin": "99.62303962",
-                    //                "openOrderInitialMargin": "0.00000000",
-                    //                "crossWalletBalance": "72.72317863",
-                    //                "crossUnPnl": "11.17920750",
-                    //                "availableBalance": "11.39916777",
-                    //                "maxWithdrawAmount": "11.39916777",
-                    //                "updateTime": "1721995605338",
-                    //                "marginAvailable": true // in v2
-                    //            },
-                    //            ... and some few supported settle currencies: USDC, BTC, ETH, BNB ..
-                    //        ],
-                    //        "positions": [
-                    //            {
-                    //                "symbol": "WLDUSDT",
-                    //                "positionSide": "BOTH",
-                    //                "positionAmt": "-849",
-                    //                "unrealizedProfit": "11.17920750",
-                    //                "isolatedMargin": "0",
-                    //                "notional": "-1992.46079250",
-                    //                "isolatedWallet": "0",
-                    //                "initialMargin": "99.62303962",
-                    //                "maintMargin": "11.95476475",
-                    //                "updateTime": "1721995760449"
-                    //                "leverage": "50",                        // in v2
-                    //                "entryPrice": "2.34",                    // in v2
-                    //                "positionInitialMargin": "118.82116614", // in v2
-                    //                "openOrderInitialMargin": "0",           // in v2
-                    //                "isolated": false,                       // in v2
-                    //                "breakEvenPrice": "2.3395788",           // in v2
-                    //                "maxNotional": "25000",                  // in v2
-                    //                "bidNotional": "0",                      // in v2
-                    //                "askNotional": "0"                       // in v2
-                    //            },
-                    //            ...
-                    //        ]
-                    //    }
-                    //
                 } else {
                     response = await this.fapiPrivateV2GetAccount (params);
-                    //
-                    //    {
                 }
+                //
+                //    {
+                //        "totalInitialMargin": "99.62112386",
+                //        "totalMaintMargin": "11.95453485",
+                //        "totalWalletBalance": "99.84331553",
+                //        "totalUnrealizedProfit": "11.17675690",
+                //        "totalMarginBalance": "111.02007243",
+                //        "totalPositionInitialMargin": "99.62112386",
+                //        "totalOpenOrderInitialMargin": "0.00000000",
+                //        "totalCrossWalletBalance": "99.84331553",
+                //        "totalCrossUnPnl": "11.17675690",
+                //        "availableBalance": "11.39894857",
+                //        "maxWithdrawAmount": "11.39894857",
+                //        "feeTier": "0",      // in v2
+                //        "canTrade": true,    // in v2
+                //        "canDeposit": true,  // in v2
+                //        "canWithdraw": true, // in v2
+                //        "feeBurn": true,     // in v2
+                //        "tradeGroupId": "-1",// in v2
+                //        "updateTime": "0",   // in v2
+                //        "multiAssetsMargin": true // in v2
+                //        "assets": [
+                //            {
+                //                "asset": "USDT",
+                //                "walletBalance": "72.72317863",
+                //                "unrealizedProfit": "11.17920750",
+                //                "marginBalance": "83.90238613",
+                //                "maintMargin": "11.95476475",
+                //                "initialMargin": "99.62303962",
+                //                "positionInitialMargin": "99.62303962",
+                //                "openOrderInitialMargin": "0.00000000",
+                //                "crossWalletBalance": "72.72317863",
+                //                "crossUnPnl": "11.17920750",
+                //                "availableBalance": "11.39916777",
+                //                "maxWithdrawAmount": "11.39916777",
+                //                "updateTime": "1721995605338",
+                //                "marginAvailable": true // in v2
+                //            },
+                //            ... and some few supported settle currencies: USDC, BTC, ETH, BNB ..
+                //        ],
+                //        "positions": [
+                //            {
+                //                "symbol": "WLDUSDT",
+                //                "positionSide": "BOTH",
+                //                "positionAmt": "-849",
+                //                "unrealizedProfit": "11.17920750",
+                //                "isolatedMargin": "0",
+                //                "notional": "-1992.46079250",
+                //                "isolatedWallet": "0",
+                //                "initialMargin": "99.62303962",
+                //                "maintMargin": "11.95476475",
+                //                "updateTime": "1721995760449"
+                //                "leverage": "50",                        // in v2
+                //                "entryPrice": "2.34",                    // in v2
+                //                "positionInitialMargin": "118.82116614", // in v2
+                //                "openOrderInitialMargin": "0",           // in v2
+                //                "isolated": false,                       // in v2
+                //                "breakEvenPrice": "2.3395788",           // in v2
+                //                "maxNotional": "25000",                  // in v2
+                //                "bidNotional": "0",                      // in v2
+                //                "askNotional": "0"                       // in v2
+                //            },
+                //            ...
+                //        ]
+                //    }
+                //
             }
         } else if (this.isInverse (type, subType)) {
             if (isPortfolioMargin) {
@@ -10331,34 +10313,44 @@ export default class binance extends Exchange {
             if (isPortfolioMargin) {
                 response = await this.papiGetUmPositionRisk (this.extend (request, params));
             } else {
-                response = await this.fapiPrivateV3GetPositionRisk (this.extend (request, params));
-                //
-                // oneway & hedge mode:
-                //
-                //    [
-                //        {
-                //            "symbol": "WLDUSDT",
-                //            "positionSide": "BOTH",
-                //            "positionAmt": "-715",
-                //            "entryPrice": "2.412716783217",
-                //            "markPrice": "2.35964598",
-                //            "unRealizedProfit": "37.94562200",
-                //            "liquidationPrice": "2.49448706",
-                //            "marginAsset": "USDT",
-                //            "isolatedMargin": "0", // in isolated mode, here will be a value
-                //            "isolatedWallet": "0", // in isolated mode, here will be a value
-                //            "breakEvenPrice": "2.411647790797",
-                //            "notional": "-1687.14687570",
-                //            "initialMargin": "84.35734378",
-                //            "maintMargin": "10.12288125",
-                //            "positionInitialMargin": "84.35734378",
-                //            "openOrderInitialMargin": "0",
-                //            "adl": "4",
-                //            "bidNotional": "0",
-                //            "askNotional": "0",
-                //            "updateTime": "1721988778721"
-                //        }
-                //    ]
+                let useV3 = undefined;
+                [ useV3, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'useV3', true);
+                if (useV3) {
+                    response = await this.fapiPrivateV3GetPositionRisk (this.extend (request, params));
+                } else {
+                    response = await this.fapiPrivateV2GetPositionRisk (this.extend (request, params));
+                }
+                // [
+                //  {
+                //     symbol: "WLDUSDT",
+                //     positionSide: "BOTH",
+                //     positionAmt: "5",
+                //     entryPrice: "2.3483",
+                //     breakEvenPrice: "2.349356735",
+                //     markPrice: "2.39560000",
+                //     unRealizedProfit: "0.23650000",
+                //     liquidationPrice: "0",
+                //     isolatedMargin: "0",
+                //     notional: "11.97800000",
+                //     isolatedWallet: "0",
+                //     updateTime: "1722062678998",
+                //     initialMargin: "2.39560000",         // in v3
+                //     maintMargin: "0.07186800",           // in v3
+                //     positionInitialMargin: "2.39560000", // in v3
+                //     openOrderInitialMargin: "0",         // in v3
+                //     adl: "2",                            // in v3
+                //     bidNotional: "0",                    // in v3
+                //     askNotional: "0",                    // in v3
+                //     marginAsset: "USDT",                 // in v3
+                //     leverage: "5",                       // in v2
+                //     maxNotionalValue: "6000000",         // in v2
+                //     marginType: "cross",                 // in v2
+                //     isAutoAddMargin: "false",            // in v2
+                //     isolated: false,                     // in v2
+                //     adlQuantile: "2",                    // in v2
+                //  },
+                //  ...
+                // ]
                 //
             }
         } else if (this.isInverse (type, subType)) {
@@ -10454,10 +10446,9 @@ export default class binance extends Exchange {
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const rawPosition = response[i];
-            const entryPrice = this.safeString (rawPosition, 'entryPrice');
-            if ((entryPrice !== '0') && (entryPrice !== '0.0') && (entryPrice !== '0.00000000')) {
-                const parsed = this.parsePositionRisk (response[i]);
-                result.push (parsed);
+            const entryPriceString = this.safeString (rawPosition, 'entryPrice');
+            if (Precise.stringGt (entryPriceString, '0')) {
+                result.push (this.parsePositionRisk (response[i]));
             }
         }
         symbols = this.marketSymbols (symbols);
