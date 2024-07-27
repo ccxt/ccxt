@@ -5,7 +5,7 @@ import Exchange from './abstract/hashkey.js';
 import { NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Bool, Currencies, Currency, Dict, LastPrice, LastPrices, Int, Market, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, Dict, LastPrice, LastPrices, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1585,7 +1585,7 @@ export default class hashkey extends Exchange {
          * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.cost] *market buy only* the quote quantity that can be used as an alternative for the amount
-         * @param {boolean} [params.test] whether to use the test endpoint or not, default is false
+         * @param {bool} [params.test] whether to use the test endpoint or not, default is false
          * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
          * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
          * @param {string} [params.clientOrderId] a unique id for the order
