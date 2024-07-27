@@ -3418,7 +3418,7 @@ export default class binance extends Exchange {
             response = await this.papiGetBalance (this.extend (request, query));
         } else if (this.isLinear (type, subType)) {
             type = 'linear';
-            response = await this.fapiPrivateV2GetAccount (this.extend (request, query));
+            response = await this.fapiPrivateV3GetAccount (this.extend (request, query));
         } else if (this.isInverse (type, subType)) {
             type = 'inverse';
             response = await this.dapiPrivateGetAccount (this.extend (request, query));
