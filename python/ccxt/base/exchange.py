@@ -109,6 +109,7 @@ class Exchange(object):
     """Base exchange class"""
     id = None
     name = None
+    countries = None
     version = None
     certified = False  # if certified by the CCXT dev team
     pro = False  # if it is integrated with CCXT Pro for WebSocket support
@@ -133,12 +134,18 @@ class Exchange(object):
     markets = None
     symbols = None
     codes = None
-    timeframes = None
+    timeframes = {}
+
     fees = {
         'trading': {
-            'percentage': True,  # subclasses should rarely have to redefine this
+            'tierBased': None,
+            'percentage': None,
+            'taker': None,
+            'maker': None,
         },
         'funding': {
+            'tierBased': None,
+            'percentage': None,
             'withdraw': {},
             'deposit': {},
         },
@@ -206,6 +213,7 @@ class Exchange(object):
     twofa = None
     markets_by_id = None
     currencies_by_id = None
+
     precision = None
     exceptions = None
     limits = {
@@ -226,6 +234,7 @@ class Exchange(object):
             'max': None,
         },
     }
+
     httpExceptions = {
         '422': ExchangeError,
         '418': DDoSProtection,
@@ -273,6 +282,8 @@ class Exchange(object):
     accounts = None
     positions = None
 
+    status = None
+
     requiredCredentials = {
         'apiKey': True,
         'secret': True,
@@ -287,117 +298,7 @@ class Exchange(object):
     }
 
     # API method metainfo
-    has = {
-        'publicAPI': True,
-        'privateAPI': True,
-        'CORS': None,
-        'spot': None,
-        'margin': None,
-        'swap': None,
-        'future': None,
-        'option': None,
-        'addMargin': None,
-        'cancelAllOrders': None,
-        'cancelOrder': True,
-        'cancelOrders': None,
-        'createDepositAddress': None,
-        'createLimitOrder': True,
-        'createMarketOrder': True,
-        'createOrder': True,
-        'createPostOnlyOrder': None,
-        'createReduceOnlyOrder': None,
-        'createStopOrder': None,
-        'createStopLimitOrder': None,
-        'createStopMarketOrder': None,
-        'editOrder': 'emulated',
-        'fetchAccounts': None,
-        'fetchBalance': True,
-        'fetchBidsAsks': None,
-        'fetchBorrowInterest': None,
-        'fetchBorrowRate': None,
-        'fetchBorrowRateHistory': None,
-        'fetchBorrowRatesPerSymbol': None,
-        'fetchBorrowRates': None,
-        'fetchCanceledOrders': None,
-        'fetchClosedOrder': None,
-        'fetchClosedOrders': None,
-        'fetchClosedOrdersWs': None,
-        'fetchConvertCurrencies': None,
-        'fetchConvertQuote': None,
-        'fetchConvertTrade': None,
-        'fetchConvertTradeHistory': None,
-        'fetchCrossBorrowRate': None,
-        'fetchCrossBorrowRates': None,
-        'fetchCurrencies': 'emulated',
-        'fetchCurrenciesWs': 'emulated',
-        'fetchDeposit': None,
-        'fetchDepositAddress': None,
-        'fetchDepositAddresses': None,
-        'fetchDepositAddressesByNetwork': None,
-        'fetchDeposits': None,
-        'fetchFundingHistory': None,
-        'fetchFundingRate': None,
-        'fetchFundingRateHistory': None,
-        'fetchFundingRates': None,
-        'fetchIndexOHLCV': None,
-        'fetchLastPrices': None,
-        'fetchL2OrderBook': True,
-        'fetchLedger': None,
-        'fetchLedgerEntry': None,
-        'fetchLeverageTiers': None,
-        'fetchMarketLeverageTiers': None,
-        'fetchMarkets': True,
-        'fetchMarkOHLCV': None,
-        'fetchMyTrades': None,
-        'fetchOHLCV': None,
-        'fetchOpenOrder': None,
-        'fetchOpenOrders': None,
-        'fetchOrder': None,
-        'fetchOrderBook': True,
-        'fetchOrderBooks': None,
-        'fetchOrders': None,
-        'fetchOrderTrades': None,
-        'fetchPermissions': None,
-        'fetchPosition': None,
-        'fetchPositions': None,
-        'fetchPositionsRisk': None,
-        'fetchPremiumIndexOHLCV': None,
-        'fetchStatus': None,
-        'fetchTicker': True,
-        'fetchTickers': None,
-        'fetchTime': None,
-        'fetchTrades': True,
-        'fetchTradingFee': None,
-        'fetchTradingFees': None,
-        'fetchTradingLimits': None,
-        'fetchTransactions': None,
-        'fetchTransfers': None,
-        'fetchWithdrawal': None,
-        'fetchWithdrawals': None,
-        'reduceMargin': None,
-        'setLeverage': None,
-        'setMargin': None,
-        'setMarginMode': None,
-        'setPositionMode': None,
-        'signIn': None,
-        'transfer': None,
-        'withdraw': None,
-        'watchOrderBook': None,
-        'watchOrders': None,
-        'watchMyTrades': None,
-        'watchTickers': None,
-        'watchTicker': None,
-        'watchTrades': None,
-        'watchTradesForSymbols': None,
-        'watchOrderBookForSymbols': None,
-        'watchOHLCVForSymbols': None,
-        'watchBalance': None,
-        'watchLiquidations': None,
-        'watchLiquidationsForSymbols': None,
-        'watchMyLiquidations': None,
-        'watchMyLiquidationsForSymbols': None,
-        'watchOHLCV': None,
-    }
+    has = {}
     precisionMode = DECIMAL_PLACES
     paddingMode = NO_PADDING
     minFundingAddressLength = 1  # used in check_address
@@ -525,9 +426,6 @@ class Exchange(object):
 
     def __str__(self):
         return self.name
-
-    def describe(self):
-        return {}
 
     def throttle(self, cost=None):
         now = float(self.milliseconds())

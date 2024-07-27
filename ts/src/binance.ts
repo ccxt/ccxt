@@ -3122,7 +3122,7 @@ export default class binance extends Exchange {
             linear = settle === quote;
             inverse = settle === base;
             const feesType = linear ? 'linear' : 'inverse';
-            fees = this.safeDict (this.fees, feesType, {});
+            fees = this.safeDict (this.fees, feesType, {}) as any;
         }
         let active = (status === 'TRADING');
         if (spot) {

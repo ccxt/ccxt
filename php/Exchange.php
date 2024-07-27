@@ -123,7 +123,13 @@ class Exchange {
     public $quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
 
     public $name = null;
-    public $status = null;
+    public $status = array(
+        'status' => 'ok',
+        'updated' => null,
+        'eta' => null,
+        'url' => null,
+        'info' => null,
+    );
     public $countries = null;
     public $version = null;
     public $certified = false; // if certified by the CCXT dev team
@@ -133,7 +139,16 @@ class Exchange {
 
     public $debug = false;
 
-    public $urls = array();
+    public $urls = array(
+        'logo'=> null,
+        'api'=> null,
+        'test'=> null,
+        'www'=> null,
+        'doc'=> null,
+        'api_management'=> null,
+        'fees'=> null,
+        'referral'=> null,
+    );
     public $api = array();
     public $comment = null;
 
@@ -150,8 +165,28 @@ class Exchange {
 
     public $tickers = array();
     public $bidsasks = array();
-    public $fees = array('trading' => array(), 'funding' => array());
-    public $precision = array();
+    public $fees = array(
+        'trading'=> array(
+            'tierBased'=> null,
+            'percentage'=> null,
+            'taker'=> null,
+            'maker'=> null,
+        ),
+        'funding'=> array(
+            'tierBased'=> null,
+            'percentage'=> null,
+            'withdraw'=> array(),
+            'deposit'=> array(),
+        ),
+    );
+
+    public $precision = array(
+        'amount'=> null,
+        'price'=> null,
+        'cost'=> null,
+        'base'=> null,
+        'quote'=> null,
+    );
     public $liquidations = array();
     public $orders = null;
     public $triggerOrders = null;
@@ -164,6 +199,7 @@ class Exchange {
     public $exceptions = array();
     public $accounts = array();
     public $accountsById = array();
+
     public $limits = array(
         'cost' => array(
             'min' => null,
@@ -229,7 +265,7 @@ class Exchange {
     // whether fees should be summed by currency code
     public $reduceFees = true;
 
-    public $timeframes = null;
+    public $timeframes = array();
 
     public $requiredCredentials = array(
         'apiKey' => true,
@@ -239,106 +275,13 @@ class Exchange {
         'login' => false,
         'password' => false,
         'twofa' => false, // 2-factor authentication (one-time password key)
-        'privateKey' => false,
-        'walletAddress' => false,
+        'privateKey' => false, // "0x"-prefixed hexstring private key for a wallet
+        'walletAddress' => false, // "0x"-prefixed hexstring of wallet address
         'token' => false, // reserved for HTTP auth in some cases
     );
 
     // API methods metainfo
-    public $has = array(
-        'publicAPI' => true,
-        'privateAPI' => true,
-        'CORS' => null,
-        'spot' => null,
-        'margin' => null,
-        'swap' => null,
-        'future' => null,
-        'option' => null,
-        'addMargin' => null,
-        'cancelAllOrders' => null,
-        'cancelOrder' => true,
-        'cancelOrders' => null,
-        'createDepositAddress' => null,
-        'createLimitOrder' => true,
-        'createMarketOrder' => true,
-        'createOrder' => true,
-        'createPostOnlyOrder' => null,
-        'createReduceOnlyOrder' => null,
-        'createStopOrder' => null,
-        'editOrder' => 'emulated',
-        'fetchAccounts' => null,
-        'fetchBalance' => true,
-        'fetchBidsAsks' => null,
-        'fetchBorrowInterest' => null,
-        'fetchBorrowRate' => null,
-        'fetchBorrowRateHistory' => null,
-        'fetchBorrowRatesPerSymbol' => null,
-        'fetchBorrowRates' => null,
-        'fetchCanceledOrders' => null,
-        'fetchClosedOrder' => null,
-        'fetchClosedOrders' => null,
-        'fetchClosedOrdersWs' => null,
-        'fetchConvertCurrencies' => null,
-        'fetchConvertQuote' => null,
-        'fetchConvertTrade' => null,
-        'fetchConvertTradeHistory' => null,
-        'fetchCrossBorrowRate' => null,
-        'fetchCrossBorrowRates' => null,
-        'fetchCurrencies' => 'emulated',
-        'fetchCurrenciesWs' => 'emulated',
-        'fetchDeposit' => null,
-        'fetchDepositAddress' => null,
-        'fetchDepositAddresses' => null,
-        'fetchDepositAddressesByNetwork' => null,
-        'fetchDeposits' => null,
-        'fetchFundingHistory' => null,
-        'fetchFundingRate' => null,
-        'fetchFundingRateHistory' => null,
-        'fetchFundingRates' => null,
-        'fetchIndexOHLCV' => null,
-        'fetchL2OrderBook' => true,
-        'fetchLastPrices' => null,
-        'fetchLedger' => null,
-        'fetchLedgerEntry' => null,
-        'fetchLeverageTiers' => null,
-        'fetchMarketLeverageTiers' => null,
-        'fetchMarkets' => true,
-        'fetchMarkOHLCV' => null,
-        'fetchMyTrades' => null,
-        'fetchOHLCV' => null,
-        'fetchOpenOrder' => null,
-        'fetchOpenOrders' => null,
-        'fetchOrder' => null,
-        'fetchOrderBook' => true,
-        'fetchOrderBooks' => null,
-        'fetchOrders' => null,
-        'fetchOrderTrades' => null,
-        'fetchPermissions' => null,
-        'fetchPosition' => null,
-        'fetchPositions' => null,
-        'fetchPositionsRisk' => null,
-        'fetchPremiumIndexOHLCV' => null,
-        'fetchStatus' => null,
-        'fetchTicker' => true,
-        'fetchTickers' => null,
-        'fetchTime' => null,
-        'fetchTrades' => true,
-        'fetchTradingFee' => null,
-        'fetchTradingFees' => null,
-        'fetchTradingLimits' => null,
-        'fetchTransactions' => null,
-        'fetchTransfers' => null,
-        'fetchWithdrawal' => null,
-        'fetchWithdrawals' => null,
-        'reduceMargin' => null,
-        'setLeverage' => null,
-        'setMargin' => null,
-        'setMarginMode' => null,
-        'setPositionMode' => null,
-        'signIn' => null,
-        'transfer' => null,
-        'withdraw' => null,
-    );
+    public $has = array();
 
     public $precisionMode = DECIMAL_PLACES;
     public $paddingMode = NO_PADDING;
@@ -1165,10 +1108,6 @@ class Exchange {
         }
 
         return $address;
-    }
-
-    public function describe() {
-        return array();
     }
 
     public function __construct($options = array()) {
