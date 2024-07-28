@@ -5,7 +5,7 @@ import Exchange from './abstract/hashkey.js';
 import { ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Bool, Currencies, Currency, Dict, LastPrice, LastPrices, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction, NullableList } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, Dict, LastPrice, LastPrices, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -32,9 +32,10 @@ export default class hashkey extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'cancelAllOrders': false,
+                'cancelAllOrders': true,
                 'cancelAllOrdersAfter': false,
                 'cancelOrder': true,
+                'cancelOrders': true,
                 'cancelWithdraw': false,
                 'closePosition': false,
                 'createConvertTrade': false,
@@ -211,8 +212,8 @@ export default class hashkey extends Exchange {
                     },
                     'delete': {
                         'api/v1/spot/order': 1, // done
-                        'api/v1/spot/openOrders': 1,
-                        'api/v1/spot/cancelOrderByIds': 1,
+                        'api/v1/spot/openOrders': 5, // done
+                        'api/v1/spot/cancelOrderByIds': 5, // done
                         'api/v1/futures/order': 1,
                         'api/v1/futures/batchOrders': 1,
                         'api/v1/futures/cancelOrderByIds': 1,
@@ -1790,6 +1791,30 @@ export default class hashkey extends Exchange {
         //     {"success":true}
         //
         return await this.privateDeleteApiV1SpotOpenOrders (this.extend (request, params));
+    }
+
+    async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name hashkey#cancelOrders
+         * @description cancel multiple orders
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/cancel-multiple-orders
+         * @param {string[]} ids order ids
+         * @param {string} [symbol] unified market symbol (not used by hashkey)
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        let orders = '';
+        for (let i = 0; i < ids.length; i++) {
+            orders += ids[i] + ','; // todo comma is url encoded
+        }
+        orders = orders.slice (0, -1);
+        request['ids'] = orders;
+        //
+        //     {"code":"0000","result":[]}
+        //
+        return await this.privateDeleteApiV1SpotCancelOrderByIds (this.extend (request));
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
