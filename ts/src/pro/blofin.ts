@@ -437,7 +437,8 @@ export default class blofin extends blofinRest {
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
          */
         params['callerMethodName'] = 'watchOrders';
-        return await this.watchOrdersForSymbols ([ symbol ], since, limit, params);
+        const symbolsArray = (symbol !== undefined) ? [ symbol ] : [];
+        return await this.watchOrdersForSymbols (symbolsArray, since, limit, params);
     }
 
     async watchOrdersForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -486,6 +487,7 @@ export default class blofin extends blofinRest {
             const messageHash = channelName + ':' + symbol;
             this.orders[symbol] = order;
             client.resolve (this.orders[symbol], messageHash);
+            client.resolve (this.orders[symbol], channelName);
         }
     }
 
@@ -549,8 +551,12 @@ export default class blofin extends blofinRest {
         // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
         const isOHLCV = (channelName === 'candle');
         let symbols = isOHLCV ? this.getListFromObjectValues (symbolsArray, 0) : symbolsArray;
-        symbols = this.marketSymbols (symbols, undefined, false, true);
-        const firstMarket = this.market (symbols[0]);
+        symbols = this.marketSymbols (symbols, undefined, true, true);
+        let firstMarket = undefined;
+        const firstSymbol = this.safeString (symbols, 0);
+        if (firstSymbol !== undefined) {
+            firstMarket = this.market (firstSymbol);
+        }
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams (callerMethodName, firstMarket, params);
         if (marketType !== 'swap') {
@@ -558,24 +564,30 @@ export default class blofin extends blofinRest {
         }
         let rawSubscriptions = [];
         const messageHashes = [];
-        for (let i = 0; i < symbolsArray.length; i++) {
-            const current = symbolsArray[i];
-            let market = undefined;
-            let channel = channelName;
-            if (isOHLCV) {
-                market = this.market (current[0]);
-                const tf = current[1];
-                const interval = this.safeString (this.timeframes, tf, tf);
-                channel += interval;
-            } else {
-                market = this.market (current);
+        const symbolsLength = symbolsArray.length;
+        if (symbolsLength > 0) {
+            for (let i = 0; i < symbolsArray.length; i++) {
+                const current = symbolsArray[i];
+                let market = undefined;
+                let channel = channelName;
+                if (isOHLCV) {
+                    market = this.market (current[0]);
+                    const tf = current[1];
+                    const interval = this.safeString (this.timeframes, tf, tf);
+                    channel += interval;
+                } else {
+                    market = this.market (current);
+                }
+                const topic = {
+                    'channel': channel,
+                    'instId': market['id'],
+                };
+                rawSubscriptions.push (topic);
+                messageHashes.push (channel + ':' + market['symbol']);
             }
-            const topic = {
-                'channel': channel,
-                'instId': market['id'],
-            };
-            rawSubscriptions.push (topic);
-            messageHashes.push (channel + ':' + market['symbol']);
+        } else {
+            rawSubscriptions.push ({ 'channel': channelName });
+            messageHashes.push (channelName);
         }
         // private channel are difference, they only need plural channel name for multiple symbols
         if (this.inArray (channelName, [ 'orders', 'positions' ])) {
