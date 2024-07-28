@@ -10154,7 +10154,7 @@ export default class binance extends Exchange {
         } else if (defaultMethod === 'option') {
             return await this.fetchOptionPositions (symbols, params);
         } else {
-            throw new NotSupported (this.id + '.options["fetchPositions"]/params["method"] = "' + defaultMethod + '" is invalid, please choose between "account", "positionRisk" and "option"');
+            throw new NotSupported (this.id + '.options["fetchPositions"]["method"] or params["method"] = "' + defaultMethod + '" is invalid, please choose between "account", "positionRisk" and "option"');
         }
     }
 
