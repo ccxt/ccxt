@@ -5,7 +5,7 @@ import Exchange from './abstract/hashkey.js';
 import { ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Bool, Currencies, Currency, Dict, LastPrice, LastPrices, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction } from './base/types.js';
+import type { Balances, Bool, Currencies, Currency, Dict, LastPrice, LastPrices, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction, NullableList } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1763,6 +1763,33 @@ export default class hashkey extends Exchange {
         //     }
         //
         return this.parseOrder (response);
+    }
+
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name hashkey#cancelAllOrders
+         * @description cancel all open orders
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/cancel-all-open-orders
+         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.side] 'buy' or 'sell'
+         * @returns {object} response from exchange
+         */
+        const request: Dict = {};
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        let side: Str = undefined;
+        [ side, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'side');
+        if (side !== undefined) {
+            request['side'] = side;
+        }
+        //
+        //     {"success":true}
+        //
+        return await this.privateDeleteApiV1SpotOpenOrders (this.extend (request, params));
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
