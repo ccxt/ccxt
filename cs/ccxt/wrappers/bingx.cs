@@ -1242,8 +1242,9 @@ public partial class bingx
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20History"/>  <br/>
-    /// See <see href="https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20historical%20transaction%20orders"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20transaction%20details"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20orders"/>  <br/>
+    /// See <see href="https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order%20Trade%20Detail"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>

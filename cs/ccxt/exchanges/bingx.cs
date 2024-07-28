@@ -1165,7 +1165,27 @@ public partial class bingx : Exchange
         //        "s": "BTC-USDT"
         //    }
         //
-        object time = this.safeIntegerN(trade, new List<object>() {"time", "filledTm", "T"});
+        // inverse swap fetchMyTrades
+        //
+        //     {
+        //         "orderId": "1817441228670648320",
+        //         "symbol": "SOL-USD",
+        //         "type": "MARKET",
+        //         "side": "BUY",
+        //         "positionSide": "LONG",
+        //         "tradeId": "97244554",
+        //         "volume": "2",
+        //         "tradePrice": "182.652",
+        //         "amount": "20.00000000",
+        //         "realizedPnl": "0.00000000",
+        //         "commission": "-0.00005475",
+        //         "currency": "SOL",
+        //         "buyer": true,
+        //         "maker": false,
+        //         "tradeTime": 1722146730000
+        //     }
+        //
+        object time = this.safeIntegerN(trade, new List<object>() {"time", "filledTm", "T", "tradeTime"});
         object datetimeId = this.safeString(trade, "filledTm");
         if (isTrue(!isEqual(datetimeId, null)))
         {
@@ -1180,8 +1200,8 @@ public partial class bingx : Exchange
         object currencyId = this.safeStringN(trade, new List<object>() {"currency", "N", "commissionAsset"});
         object currencyCode = this.safeCurrencyCode(currencyId);
         object m = this.safeBool(trade, "m");
-        object marketId = this.safeString(trade, "s");
-        object isBuyerMaker = this.safeBool2(trade, "buyerMaker", "isBuyerMaker");
+        object marketId = this.safeString2(trade, "s", "symbol");
+        object isBuyerMaker = this.safeBoolN(trade, new List<object>() {"buyerMaker", "isBuyerMaker", "maker"});
         object takeOrMaker = null;
         if (isTrue(isTrue((!isEqual(isBuyerMaker, null))) || isTrue((!isEqual(m, null)))))
         {
@@ -1224,7 +1244,7 @@ public partial class bingx : Exchange
             { "type", this.safeStringLower(trade, "o") },
             { "side", this.parseOrderSide(side) },
             { "takerOrMaker", takeOrMaker },
-            { "price", this.safeString2(trade, "price", "p") },
+            { "price", this.safeStringN(trade, new List<object>() {"price", "p", "tradePrice"}) },
             { "amount", amount },
             { "cost", cost },
             { "fee", new Dictionary<string, object>() {
@@ -4647,14 +4667,16 @@ public partial class bingx : Exchange
         * @method
         * @name bingx#fetchMyTrades
         * @description fetch all trades made by the user
-        * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20History
-        * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20historical%20transaction%20orders
+        * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20transaction%20details
+        * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20orders
+        * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order%20Trade%20Detail
         * @param {string} [symbol] unified market symbol
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trades structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] timestamp in ms for the ending date filter, default is undefined
         * @param {string} params.trandingUnit COIN (directly represent assets such as BTC and ETH) or CONT (represents the number of contract sheets)
+        * @param {string} params.orderId the order id required for inverse swap
         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -4664,43 +4686,58 @@ public partial class bingx : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        object now = this.milliseconds();
-        object response = null;
-        object request = new Dictionary<string, object>() {
-            { "symbol", getValue(market, "id") },
-        };
-        if (isTrue(!isEqual(since, null)))
-        {
-            object startTimeReq = ((bool) isTrue(getValue(market, "spot"))) ? "startTime" : "startTs";
-            ((IDictionary<string,object>)request)[(string)startTimeReq] = since;
-        } else if (isTrue(getValue(market, "swap")))
-        {
-            ((IDictionary<string,object>)request)["startTs"] = subtract(now, 7776000000); // 90 days
-        }
-        object until = this.safeInteger(parameters, "until");
-        parameters = this.omit(parameters, "until");
-        if (isTrue(!isEqual(until, null)))
-        {
-            object endTimeReq = ((bool) isTrue(getValue(market, "spot"))) ? "endTime" : "endTs";
-            ((IDictionary<string,object>)request)[(string)endTimeReq] = until;
-        } else if (isTrue(getValue(market, "swap")))
-        {
-            ((IDictionary<string,object>)request)["endTs"] = now;
-        }
+        object request = new Dictionary<string, object>() {};
         object fills = null;
-        if (isTrue(getValue(market, "spot")))
+        object response = null;
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchMyTrades", market, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        if (isTrue(isEqual(subType, "inverse")))
         {
-            response = await this.spotV1PrivateGetTradeMyTrades(this.extend(request, parameters));
-            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            fills = this.safeList(data, "fills", new List<object>() {});
+            object orderId = this.safeString(parameters, "orderId");
+            if (isTrue(isEqual(orderId, null)))
+            {
+                throw new ArgumentsRequired ((string)add(this.id, " fetchMyTrades() requires an orderId argument for inverse swap trades")) ;
+            }
+            response = await this.cswapV1PrivateGetTradeAllFillOrders(this.extend(request, parameters));
+            fills = this.safeList(response, "data", new List<object>() {});
         } else
         {
-            object tradingUnit = this.safeStringUpper(parameters, "tradingUnit", "CONT");
-            parameters = this.omit(parameters, "tradingUnit");
-            ((IDictionary<string,object>)request)["tradingUnit"] = tradingUnit;
-            response = await this.swapV2PrivateGetTradeAllFillOrders(this.extend(request, parameters));
-            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            fills = this.safeList(data, "fill_orders", new List<object>() {});
+            ((IDictionary<string,object>)request)["symbol"] = getValue(market, "id");
+            object now = this.milliseconds();
+            if (isTrue(!isEqual(since, null)))
+            {
+                object startTimeReq = ((bool) isTrue(getValue(market, "spot"))) ? "startTime" : "startTs";
+                ((IDictionary<string,object>)request)[(string)startTimeReq] = since;
+            } else if (isTrue(getValue(market, "swap")))
+            {
+                ((IDictionary<string,object>)request)["startTs"] = subtract(now, 7776000000); // 90 days
+            }
+            object until = this.safeInteger(parameters, "until");
+            parameters = this.omit(parameters, "until");
+            if (isTrue(!isEqual(until, null)))
+            {
+                object endTimeReq = ((bool) isTrue(getValue(market, "spot"))) ? "endTime" : "endTs";
+                ((IDictionary<string,object>)request)[(string)endTimeReq] = until;
+            } else if (isTrue(getValue(market, "swap")))
+            {
+                ((IDictionary<string,object>)request)["endTs"] = now;
+            }
+            if (isTrue(getValue(market, "spot")))
+            {
+                response = await this.spotV1PrivateGetTradeMyTrades(this.extend(request, parameters));
+                object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+                fills = this.safeList(data, "fills", new List<object>() {});
+            } else
+            {
+                object tradingUnit = this.safeStringUpper(parameters, "tradingUnit", "CONT");
+                parameters = this.omit(parameters, "tradingUnit");
+                ((IDictionary<string,object>)request)["tradingUnit"] = tradingUnit;
+                response = await this.swapV2PrivateGetTradeAllFillOrders(this.extend(request, parameters));
+                object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+                fills = this.safeList(data, "fill_orders", new List<object>() {});
+            }
         }
         return this.parseTrades(fills, market, since, limit, parameters);
     }

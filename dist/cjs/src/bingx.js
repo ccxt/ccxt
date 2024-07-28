@@ -1132,7 +1132,27 @@ class bingx extends bingx$1 {
         //        "s": "BTC-USDT"
         //    }
         //
-        let time = this.safeIntegerN(trade, ['time', 'filledTm', 'T']);
+        // inverse swap fetchMyTrades
+        //
+        //     {
+        //         "orderId": "1817441228670648320",
+        //         "symbol": "SOL-USD",
+        //         "type": "MARKET",
+        //         "side": "BUY",
+        //         "positionSide": "LONG",
+        //         "tradeId": "97244554",
+        //         "volume": "2",
+        //         "tradePrice": "182.652",
+        //         "amount": "20.00000000",
+        //         "realizedPnl": "0.00000000",
+        //         "commission": "-0.00005475",
+        //         "currency": "SOL",
+        //         "buyer": true,
+        //         "maker": false,
+        //         "tradeTime": 1722146730000
+        //     }
+        //
+        let time = this.safeIntegerN(trade, ['time', 'filledTm', 'T', 'tradeTime']);
         const datetimeId = this.safeString(trade, 'filledTm');
         if (datetimeId !== undefined) {
             time = this.parse8601(datetimeId);
@@ -1145,8 +1165,8 @@ class bingx extends bingx$1 {
         const currencyId = this.safeStringN(trade, ['currency', 'N', 'commissionAsset']);
         const currencyCode = this.safeCurrencyCode(currencyId);
         const m = this.safeBool(trade, 'm');
-        const marketId = this.safeString(trade, 's');
-        const isBuyerMaker = this.safeBool2(trade, 'buyerMaker', 'isBuyerMaker');
+        const marketId = this.safeString2(trade, 's', 'symbol');
+        const isBuyerMaker = this.safeBoolN(trade, ['buyerMaker', 'isBuyerMaker', 'maker']);
         let takeOrMaker = undefined;
         if ((isBuyerMaker !== undefined) || (m !== undefined)) {
             takeOrMaker = (isBuyerMaker || m) ? 'maker' : 'taker';
@@ -1183,7 +1203,7 @@ class bingx extends bingx$1 {
             'type': this.safeStringLower(trade, 'o'),
             'side': this.parseOrderSide(side),
             'takerOrMaker': takeOrMaker,
-            'price': this.safeString2(trade, 'price', 'p'),
+            'price': this.safeStringN(trade, ['price', 'p', 'tradePrice']),
             'amount': amount,
             'cost': cost,
             'fee': {
@@ -4896,14 +4916,16 @@ class bingx extends bingx$1 {
          * @method
          * @name bingx#fetchMyTrades
          * @description fetch all trades made by the user
-         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20History
-         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20historical%20transaction%20orders
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20transaction%20details
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20orders
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order%20Trade%20Detail
          * @param {string} [symbol] unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms for the ending date filter, default is undefined
          * @param {string} params.trandingUnit COIN (directly represent assets such as BTC and ETH) or CONT (represents the number of contract sheets)
+         * @param {string} params.orderId the order id required for inverse swap
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         if (symbol === undefined) {
@@ -4911,84 +4933,121 @@ class bingx extends bingx$1 {
         }
         await this.loadMarkets();
         const market = this.market(symbol);
-        const now = this.milliseconds();
-        let response = undefined;
-        const request = {
-            'symbol': market['id'],
-        };
-        if (since !== undefined) {
-            const startTimeReq = market['spot'] ? 'startTime' : 'startTs';
-            request[startTimeReq] = since;
-        }
-        else if (market['swap']) {
-            request['startTs'] = now - 7776000000; // 90 days
-        }
-        const until = this.safeInteger(params, 'until');
-        params = this.omit(params, 'until');
-        if (until !== undefined) {
-            const endTimeReq = market['spot'] ? 'endTime' : 'endTs';
-            request[endTimeReq] = until;
-        }
-        else if (market['swap']) {
-            request['endTs'] = now;
-        }
+        const request = {};
         let fills = undefined;
-        if (market['spot']) {
-            response = await this.spotV1PrivateGetTradeMyTrades(this.extend(request, params));
-            const data = this.safeDict(response, 'data', {});
-            fills = this.safeList(data, 'fills', []);
+        let response = undefined;
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchMyTrades', market, params);
+        if (subType === 'inverse') {
+            const orderId = this.safeString(params, 'orderId');
+            if (orderId === undefined) {
+                throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires an orderId argument for inverse swap trades');
+            }
+            response = await this.cswapV1PrivateGetTradeAllFillOrders(this.extend(request, params));
+            fills = this.safeList(response, 'data', []);
             //
             //     {
             //         "code": 0,
             //         "msg": "",
-            //         "debugMsg": "",
-            //         "data": {
-            //             "fills": [
-            //                 {
-            //                     "symbol": "LTC-USDT",
-            //                     "id": 36237072,
-            //                     "orderId": 1674069326895775744,
-            //                     "price": "85.891",
-            //                     "qty": "0.0582",
-            //                     "quoteQty": "4.9988562000000005",
-            //                     "commission": -0.00005820000000000001,
-            //                     "commissionAsset": "LTC",
-            //                     "time": 1687964205000,
-            //                     "isBuyer": true,
-            //                     "isMaker": false
-            //                 }
-            //             ]
-            //         }
+            //         "timestamp": 1722147756019,
+            //         "data": [
+            //             {
+            //                 "orderId": "1817441228670648320",
+            //                 "symbol": "SOL-USD",
+            //                 "type": "MARKET",
+            //                 "side": "BUY",
+            //                 "positionSide": "LONG",
+            //                 "tradeId": "97244554",
+            //                 "volume": "2",
+            //                 "tradePrice": "182.652",
+            //                 "amount": "20.00000000",
+            //                 "realizedPnl": "0.00000000",
+            //                 "commission": "-0.00005475",
+            //                 "currency": "SOL",
+            //                 "buyer": true,
+            //                 "maker": false,
+            //                 "tradeTime": 1722146730000
+            //             }
+            //         ]
             //     }
             //
         }
         else {
-            const tradingUnit = this.safeStringUpper(params, 'tradingUnit', 'CONT');
-            params = this.omit(params, 'tradingUnit');
-            request['tradingUnit'] = tradingUnit;
-            response = await this.swapV2PrivateGetTradeAllFillOrders(this.extend(request, params));
-            const data = this.safeDict(response, 'data', {});
-            fills = this.safeList(data, 'fill_orders', []);
-            //
-            //    {
-            //       "code": "0",
-            //       "msg": '',
-            //       "data": { fill_orders: [
-            //          {
-            //              "volume": "0.1",
-            //              "price": "106.75",
-            //              "amount": "10.6750",
-            //              "commission": "-0.0053",
-            //              "currency": "USDT",
-            //              "orderId": "1676213270274379776",
-            //              "liquidatedPrice": "0.00",
-            //              "liquidatedMarginRatio": "0.00",
-            //              "filledTime": "2023-07-04T20:56:01.000+0800"
-            //          }
-            //        ]
-            //      }
-            //    }
-            //
+            request['symbol'] = market['id'];
+            const now = this.milliseconds();
+            if (since !== undefined) {
+                const startTimeReq = market['spot'] ? 'startTime' : 'startTs';
+                request[startTimeReq] = since;
+            }
+            else if (market['swap']) {
+                request['startTs'] = now - 7776000000; // 90 days
+            }
+            const until = this.safeInteger(params, 'until');
+            params = this.omit(params, 'until');
+            if (until !== undefined) {
+                const endTimeReq = market['spot'] ? 'endTime' : 'endTs';
+                request[endTimeReq] = until;
+            }
+            else if (market['swap']) {
+                request['endTs'] = now;
+            }
+            if (market['spot']) {
+                response = await this.spotV1PrivateGetTradeMyTrades(this.extend(request, params));
+                const data = this.safeDict(response, 'data', {});
+                fills = this.safeList(data, 'fills', []);
+                //
+                //     {
+                //         "code": 0,
+                //         "msg": "",
+                //         "debugMsg": "",
+                //         "data": {
+                //             "fills": [
+                //                 {
+                //                     "symbol": "LTC-USDT",
+                //                     "id": 36237072,
+                //                     "orderId": 1674069326895775744,
+                //                     "price": "85.891",
+                //                     "qty": "0.0582",
+                //                     "quoteQty": "4.9988562000000005",
+                //                     "commission": -0.00005820000000000001,
+                //                     "commissionAsset": "LTC",
+                //                     "time": 1687964205000,
+                //                     "isBuyer": true,
+                //                     "isMaker": false
+                //                 }
+                //             ]
+                //         }
+                //     }
+                //
+            }
+            else {
+                const tradingUnit = this.safeStringUpper(params, 'tradingUnit', 'CONT');
+                params = this.omit(params, 'tradingUnit');
+                request['tradingUnit'] = tradingUnit;
+                response = await this.swapV2PrivateGetTradeAllFillOrders(this.extend(request, params));
+                const data = this.safeDict(response, 'data', {});
+                fills = this.safeList(data, 'fill_orders', []);
+                //
+                //    {
+                //       "code": "0",
+                //       "msg": '',
+                //       "data": { fill_orders: [
+                //          {
+                //              "volume": "0.1",
+                //              "price": "106.75",
+                //              "amount": "10.6750",
+                //              "commission": "-0.0053",
+                //              "currency": "USDT",
+                //              "orderId": "1676213270274379776",
+                //              "liquidatedPrice": "0.00",
+                //              "liquidatedMarginRatio": "0.00",
+                //              "filledTime": "2023-07-04T20:56:01.000+0800"
+                //          }
+                //        ]
+                //      }
+                //    }
+                //
+            }
         }
         return this.parseTrades(fills, market, since, limit, params);
     }
