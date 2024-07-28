@@ -1807,7 +1807,7 @@ export default class hashkey extends Exchange {
         const request = {};
         let orders = '';
         for (let i = 0; i < ids.length; i++) {
-            orders += ids[i] + ','; // todo comma is url encoded
+            orders += this.safeString (ids, i) + ','; // todo comma is url encoded
         }
         orders = orders.slice (0, -1);
         request['ids'] = orders;
