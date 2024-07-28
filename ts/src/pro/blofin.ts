@@ -455,13 +455,13 @@ export default class blofin extends blofinRest {
          */
         await this.authenticate ();
         await this.loadMarkets ();
-        const order = await this.watchMultipleWrapper (false, 'orders', 'watchOrdersForSymbols', symbols, params);
+        const orders = await this.watchMultipleWrapper (false, 'orders', 'watchOrdersForSymbols', symbols, params);
         if (this.newUpdates) {
-            const orders = [];
-            orders.push (order);
-            return orders;
+            const first = this.safeValue (orders, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = orders.getLimit (tradeSymbol, limit);
         }
-        return this.filterBySinceLimit (this.orders, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
     handleOrders (client: Client, message) {
@@ -478,6 +478,7 @@ export default class blofin extends blofinRest {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
         }
+        const orders = this.orders;
         const arg = this.safeDict (message, 'arg');
         const channelName = this.safeString (arg, 'channel');
         const data = this.safeList (message, 'data');
@@ -485,9 +486,9 @@ export default class blofin extends blofinRest {
             const order = this.parseWsOrder (data[i]);
             const symbol = order['symbol'];
             const messageHash = channelName + ':' + symbol;
-            this.orders[symbol] = order;
-            client.resolve (this.orders[symbol], messageHash);
-            client.resolve (this.orders[symbol], channelName);
+            orders.append (order);
+            client.resolve (orders, messageHash);
+            client.resolve (orders, channelName);
         }
     }
 
