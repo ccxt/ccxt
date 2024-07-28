@@ -1133,6 +1133,19 @@
                     "LTC/USDT:USDT",
                     1687964205000
                 ]
+            },
+            {
+                "description": "Inverse swap fetch my trades with an orderId parameter",
+                "method": "fetchMyTrades",
+                "url": "https://open-api.bingx.com/openApi/cswap/v1/trade/allFillOrders?orderId=1817441228670648320&timestamp=1722148745974&signature=a926e3297d82ba03838a706b1b8827677065edab600277afe7256e3e43d83d05",
+                "input": [
+                  "SOL/USD:SOL",
+                  null,
+                  null,
+                  {
+                    "orderId": "1817441228670648320"
+                  }
+                ]
             }
         ],
         "fetchMarkOHLCV": [
