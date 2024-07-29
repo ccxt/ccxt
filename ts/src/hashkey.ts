@@ -183,7 +183,7 @@ export default class hashkey extends Exchange {
                         'api/v1/account/vipInfo': 1,
                         'api/v1/account': 1, // done
                         'api/v1/account/trades': 1,
-                        'api/v1/account/types': 1,
+                        'api/v1/account/type': 1,
                         'api/v1/account/checkApiKey': 1,
                         'api/v1/account/balanceFlow': 1,
                         'api/v1/spot/subAccount/openOrders': 1,
@@ -1812,8 +1812,8 @@ export default class hashkey extends Exchange {
         orders = orders.slice (0, -1);
         request['ids'] = orders;
         //
-        //     {"code":"0000","result":[]}
         //
+        //     {"code":"0000","result":[]}
         return await this.privateDeleteApiV1SpotCancelOrderByIds (this.extend (request));
     }
 
@@ -2210,9 +2210,9 @@ export default class hashkey extends Exchange {
                 additionalParams['recvWindow'] = recvWindow;
             }
             const totalParams = this.extend (additionalParams, params);
-            const signature = this.hmac (this.encode (this.urlencode (totalParams)), this.encode (this.secret), sha256);
+            const signature = this.hmac (this.encode (this.customUrlencode (totalParams)), this.encode (this.secret), sha256);
             totalParams['signature'] = signature;
-            const totalParamsString = this.urlencode (totalParams);
+            const totalParamsString = this.customUrlencode (totalParams);
             if (method === 'GET') {
                 url += '?' + totalParamsString;
             } else {
@@ -2229,5 +2229,11 @@ export default class hashkey extends Exchange {
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    customUrlencode (params: Dict = {}): Str {
+        let result = this.urlencode (params);
+        result = result.replace ('%2C', ',');
+        return result;
     }
 }
