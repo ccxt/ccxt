@@ -6,7 +6,7 @@ import { AuthenticationError, ExchangeNotAvailable, OnMaintenance, AccountSuspen
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE, TRUNCATE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, TransferEntries, OrderRequest, int } from './base/types.js';
+import type { Int, OrderSide, Balances, OrderType, OHLCV, Order, Str, Trade, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, TransferEntry, Num, TradingFeeInterface, Currencies, IsolatedBorrowRates, IsolatedBorrowRate, Dict, OrderRequest, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -202,6 +202,7 @@ export default class bitmart extends Exchange {
                         'contract/private/get-open-orders': 1.2,
                         'contract/private/current-plan-order': 1.2,
                         'contract/private/trades': 10,
+                        'contract/private/position-risk': 10,
                     },
                     'post': {
                         // sub-account endpoints
@@ -4083,7 +4084,7 @@ export default class bitmart extends Exchange {
         };
     }
 
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntries> {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         /**
          * @method
          * @name bitmart#fetchTransfers

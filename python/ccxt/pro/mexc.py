@@ -582,7 +582,7 @@ class mexc(ccxt.async_support.mexc):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         messageHash = 'myTrades'
@@ -1118,5 +1118,5 @@ class mexc(ccxt.async_support.mexc):
             method = methods[channel]
             method(client, message)
 
-    def ping(self, client):
+    def ping(self, client: Client):
         return {'method': 'ping'}

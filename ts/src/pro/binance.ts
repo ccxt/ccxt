@@ -3,7 +3,7 @@
 
 import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
-import { InvalidNonce, ArgumentsRequired, BadRequest, NotSupported } from '../base/errors.js';
+import { ChecksumError, ArgumentsRequired, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances, Num, Dict, Liquidation } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -27,7 +27,7 @@ export default class binance extends binanceRest {
                 'watchBidsAsks': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
-                'watchOHLCVForSymbols': false,
+                'watchOHLCVForSymbols': true,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
@@ -130,6 +130,7 @@ export default class binance extends binanceRest {
                 },
                 'watchOrderBook': {
                     'maxRetries': 3,
+                    'checksum': true,
                 },
                 'watchBalance': {
                     'fetchBalanceSnapshot': false, // or true
@@ -622,9 +623,9 @@ export default class binance extends binanceRest {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            const messageHash = market['lowercaseId'] + '@' + name;
-            messageHashes.push (messageHash);
-            const symbolHash = messageHash + '@' + watchOrderBookRate + 'ms';
+            messageHashes.push ('orderbook::' + symbol);
+            const subscriptionHash = market['lowercaseId'] + '@' + name;
+            const symbolHash = subscriptionHash + '@' + watchOrderBookRate + 'ms';
             subParams.push (symbolHash);
         }
         const messageHashesLength = messageHashes.length;
@@ -644,8 +645,7 @@ export default class binance extends binanceRest {
             'type': type,
             'params': params,
         };
-        const message = this.extend (request, params);
-        const orderbook = await this.watchMultiple (url, messageHashes, message, messageHashes, subscription);
+        const orderbook = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscription);
         return orderbook.limit ();
     }
 
@@ -726,10 +726,8 @@ export default class binance extends binanceRest {
     }
 
     async fetchOrderBookSnapshot (client, message, subscription) {
-        const name = this.safeString (subscription, 'name');
         const symbol = this.safeString (subscription, 'symbol');
-        const market = this.market (symbol);
-        const messageHash = market['lowercaseId'] + '@' + name;
+        const messageHash = 'orderbook::' + symbol;
         try {
             const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
             const type = this.safeValue (subscription, 'type');
@@ -829,8 +827,7 @@ export default class binance extends binanceRest {
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
-        const name = 'depth';
-        const messageHash = market['lowercaseId'] + '@' + name;
+        const messageHash = 'orderbook::' + symbol;
         if (!(symbol in this.orderbooks)) {
             //
             // https://github.com/ccxt/ccxt/issues/6672
@@ -871,10 +868,10 @@ export default class binance extends binanceRest {
                                 client.resolve (orderbook, messageHash);
                             }
                         } else {
-                            const checksum = this.safeBool (this.options, 'checksum', true);
+                            const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
                             if (checksum) {
                                 // todo: client.reject from handleOrderBookMessage properly
-                                throw new InvalidNonce (this.id + ' handleOrderBook received an out-of-order nonce');
+                                throw new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
                             }
                         }
                     }
@@ -890,10 +887,10 @@ export default class binance extends binanceRest {
                                 client.resolve (orderbook, messageHash);
                             }
                         } else {
-                            const checksum = this.safeBool (this.options, 'checksum', true);
+                            const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
                             if (checksum) {
                                 // todo: client.reject from handleOrderBookMessage properly
-                                throw new InvalidNonce (this.id + ' handleOrderBook received an out-of-order nonce');
+                                throw new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
                             }
                         }
                     }
@@ -970,12 +967,14 @@ export default class binance extends binanceRest {
         if (firstMarket['contract']) {
             type = firstMarket['linear'] ? 'future' : 'delivery';
         }
+        const messageHashes = [];
         const subParams = [];
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market (symbol);
-            const currentMessageHash = market['lowercaseId'] + '@' + name;
-            subParams.push (currentMessageHash);
+            messageHashes.push ('trade::' + symbol);
+            const rawHash = market['lowercaseId'] + '@' + name;
+            subParams.push (rawHash);
         }
         const query = this.omit (params, 'type');
         const subParamsLength = subParams.length;
@@ -989,7 +988,7 @@ export default class binance extends binanceRest {
         const subscribe: Dict = {
             'id': requestId,
         };
-        const trades = await this.watchMultiple (url, subParams, this.extend (request, query), subParams, subscribe);
+        const trades = await this.watchMultiple (url, messageHashes, this.extend (request, query), messageHashes, subscribe);
         if (this.newUpdates) {
             const first = this.safeValue (trades, 0);
             const tradeSymbol = this.safeString (first, 'symbol');
@@ -1183,9 +1182,7 @@ export default class binance extends binanceRest {
         const marketId = this.safeString (message, 's');
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
-        const lowerCaseId = this.safeStringLower (message, 's');
-        const event = this.safeString (message, 'e');
-        const messageHash = lowerCaseId + '@' + event;
+        const messageHash = 'trade::' + symbol;
         const trade = this.parseWsTrade (message, market);
         let tradesArray = this.safeValue (this.trades, symbol);
         if (tradesArray === undefined) {
@@ -1209,40 +1206,64 @@ export default class binance extends binanceRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
+        params['callerMethodName'] = 'watchOHLCV';
+        const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
+        return result[symbol][timeframe];
+    }
+
+    async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#watchOHLCVForSymbols
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        let marketId = market['lowercaseId'];
-        const interval = this.safeString (this.timeframes, timeframe, timeframe);
-        const options = this.safeValue (this.options, 'watchOHLCV', {});
-        const nameOption = this.safeString (options, 'name', 'kline');
-        const name = this.safeString (params, 'name', nameOption);
-        if (name === 'indexPriceKline') {
-            marketId = marketId.replace ('_perp', '');
-            // weird behavior for index price kline we can't use the perp suffix
+        let klineType = undefined;
+        [ klineType, params ] = this.handleParamString2 (params, 'channel', 'name', 'kline');
+        const symbols = this.getListFromObjectValues (symbolsAndTimeframes, 0);
+        const marketSymbols = this.marketSymbols (symbols, undefined, false, false, true);
+        const firstMarket = this.market (marketSymbols[0]);
+        let type = firstMarket['type'];
+        if (firstMarket['contract']) {
+            type = firstMarket['linear'] ? 'future' : 'delivery';
         }
-        params = this.omit (params, 'name');
-        const messageHash = marketId + '@' + name + '_' + interval;
-        let type = market['type'];
-        if (market['contract']) {
-            type = market['linear'] ? 'future' : 'delivery';
+        const rawHashes = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const symAndTf = symbolsAndTimeframes[i];
+            const symbolString = symAndTf[0];
+            const timeframeString = symAndTf[1];
+            const interval = this.safeString (this.timeframes, timeframeString, timeframeString);
+            const market = this.market (symbolString);
+            let marketId = market['lowercaseId'];
+            if (klineType === 'indexPriceKline') {
+                // weird behavior for index price kline we can't use the perp suffix
+                marketId = marketId.replace ('_perp', '');
+            }
+            rawHashes.push (marketId + '@' + klineType + '_' + interval);
+            messageHashes.push ('ohlcv::' + symbolString + '::' + timeframeString);
         }
-        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, 'multipleOHLCV');
         const requestId = this.requestId (url);
-        const request: Dict = {
+        const request = {
             'method': 'SUBSCRIBE',
-            'params': [
-                messageHash,
-            ],
+            'params': rawHashes,
             'id': requestId,
         };
-        const subscribe: Dict = {
+        const subscribe = {
             'id': requestId,
         };
-        const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscribe);
+        const [ symbol, timeframe, candles ] = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscribe);
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limit = candles.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        const filtered = this.filterBySinceLimit (candles, since, limit, 0, true);
+        return this.createOHLCVObject (symbol, timeframe, filtered);
     }
 
     handleOHLCV (client: Client, message) {
@@ -1284,11 +1305,9 @@ export default class binance extends binanceRest {
             // indexPriceKline doesn't have the _PERP suffix
             marketId = this.safeString (message, 'ps');
         }
-        const lowercaseMarketId = marketId.toLowerCase ();
         const interval = this.safeString (kline, 'i');
         // use a reverse lookup in a static map instead
-        const timeframe = this.findTimeframe (interval);
-        const messageHash = lowercaseMarketId + '@' + event + '_' + interval;
+        const unifiedTimeframe = this.findTimeframe (interval);
         const parsed = [
             this.safeInteger (kline, 't'),
             this.safeFloat (kline, 'o'),
@@ -1300,15 +1319,17 @@ export default class binance extends binanceRest {
         const isSpot = ((client.url.indexOf ('/stream') > -1) || (client.url.indexOf ('/testnet.binance') > -1));
         const marketType = (isSpot) ? 'spot' : 'contract';
         const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
+        const messageHash = 'ohlcv::' + symbol + '::' + unifiedTimeframe;
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        let stored = this.safeValue (this.ohlcvs[symbol], unifiedTimeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
+            this.ohlcvs[symbol][unifiedTimeframe] = stored;
         }
         stored.append (parsed);
-        client.resolve (stored, messageHash);
+        const resolveData = [ symbol, unifiedTimeframe, stored ];
+        client.resolve (resolveData, messageHash);
     }
 
     async fetchTickerWs (symbol: string, params = {}): Promise<Ticker> {
@@ -3584,7 +3605,7 @@ export default class binance extends binanceRest {
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.portfolioMargin] set to true if you would like to watch trades in a portfolio margin account
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         let type = undefined;

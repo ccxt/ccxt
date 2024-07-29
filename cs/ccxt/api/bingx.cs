@@ -381,6 +381,121 @@ public partial class bingx : Exchange
         return await this.callAsync ("swapV3PublicGetQuoteKlines",parameters);
     }
 
+    public async Task<object> cswapV1PublicGetMarketContracts (object parameters = null)
+    {
+        return await this.callAsync ("cswapV1PublicGetMarketContracts",parameters);
+    }
+
+    public async Task<object> cswapV1PublicGetMarketPremiumIndex (object parameters = null)
+    {
+        return await this.callAsync ("cswapV1PublicGetMarketPremiumIndex",parameters);
+    }
+
+    public async Task<object> cswapV1PublicGetMarketOpenInterest (object parameters = null)
+    {
+        return await this.callAsync ("cswapV1PublicGetMarketOpenInterest",parameters);
+    }
+
+    public async Task<object> cswapV1PublicGetMarketKlines (object parameters = null)
+    {
+        return await this.callAsync ("cswapV1PublicGetMarketKlines",parameters);
+    }
+
+    public async Task<object> cswapV1PublicGetMarketDepth (object parameters = null)
+    {
+        return await this.callAsync ("cswapV1PublicGetMarketDepth",parameters);
+    }
+
+    public async Task<object> cswapV1PublicGetMarketTicker (object parameters = null)
+    {
+        return await this.callAsync ("cswapV1PublicGetMarketTicker",parameters);
+    }
+
+    public async Task<object> cswapV1PrivateGetTradeLeverage (object parameters = null)
+    {
+        return await this.callAsync ("cswapV1PrivateGetTradeLeverage",parameters);
+    }
+
+    public async Task<object> cswapV1PrivateGetTradeForceOrders (object parameters = null)
+    {
+        return await this.callAsync ("cswapV1PrivateGetTradeForceOrders",parameters);
+    }
+
+    public async Task<object> cswapV1PrivateGetTradeAllFillOrders (object parameters = null)
+    {
+        return await this.callAsync ("cswapV1PrivateGetTradeAllFillOrders",parameters);
+    }
+
+    public async Task<object> cswapV1PrivateGetTradeOpenOrders (object parameters = null)
+    {
+        return await this.callAsync ("cswapV1PrivateGetTradeOpenOrders",parameters);
+    }
+
+    public async Task<object> cswapV1PrivateGetTradeOrderDetail (object parameters = null)
+    {
+        return await this.callAsync ("cswapV1PrivateGetTradeOrderDetail",parameters);
+    }
+
+    public async Task<object> cswapV1PrivateGetTradeOrderHistory (object parameters = null)
+    {
+        return await this.callAsync ("cswapV1PrivateGetTradeOrderHistory",parameters);
+    }
+
+    public async Task<object> cswapV1PrivateGetTradeMarginType (object parameters = null)
+    {
+        return await this.callAsync ("cswapV1PrivateGetTradeMarginType",parameters);
+    }
+
+    public async Task<object> cswapV1PrivateGetUserCommissionRate (object parameters = null)
+    {
+        return await this.callAsync ("cswapV1PrivateGetUserCommissionRate",parameters);
+    }
+
+    public async Task<object> cswapV1PrivateGetUserPositions (object parameters = null)
+    {
+        return await this.callAsync ("cswapV1PrivateGetUserPositions",parameters);
+    }
+
+    public async Task<object> cswapV1PrivateGetUserBalance (object parameters = null)
+    {
+        return await this.callAsync ("cswapV1PrivateGetUserBalance",parameters);
+    }
+
+    public async Task<object> cswapV1PrivatePostTradeOrder (object parameters = null)
+    {
+        return await this.callAsync ("cswapV1PrivatePostTradeOrder",parameters);
+    }
+
+    public async Task<object> cswapV1PrivatePostTradeLeverage (object parameters = null)
+    {
+        return await this.callAsync ("cswapV1PrivatePostTradeLeverage",parameters);
+    }
+
+    public async Task<object> cswapV1PrivatePostTradeCloseAllPositions (object parameters = null)
+    {
+        return await this.callAsync ("cswapV1PrivatePostTradeCloseAllPositions",parameters);
+    }
+
+    public async Task<object> cswapV1PrivatePostTradeMarginType (object parameters = null)
+    {
+        return await this.callAsync ("cswapV1PrivatePostTradeMarginType",parameters);
+    }
+
+    public async Task<object> cswapV1PrivatePostTradePositionMargin (object parameters = null)
+    {
+        return await this.callAsync ("cswapV1PrivatePostTradePositionMargin",parameters);
+    }
+
+    public async Task<object> cswapV1PrivateDeleteTradeAllOpenOrders (object parameters = null)
+    {
+        return await this.callAsync ("cswapV1PrivateDeleteTradeAllOpenOrders",parameters);
+    }
+
+    public async Task<object> cswapV1PrivateDeleteTradeCancelOrder (object parameters = null)
+    {
+        return await this.callAsync ("cswapV1PrivateDeleteTradeCancelOrder",parameters);
+    }
+
     public async Task<object> contractV1PrivateGetAllPosition (object parameters = null)
     {
         return await this.callAsync ("contractV1PrivateGetAllPosition",parameters);

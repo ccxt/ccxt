@@ -404,7 +404,7 @@ public partial class woo : ccxt.woo
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trade structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -728,9 +728,10 @@ public partial class woo : ccxt.woo
             { "cost", this.safeString(order, "totalFee") },
             { "currency", this.safeString(order, "feeAsset") },
         };
+        object priceString = this.safeString(order, "price");
         object price = this.safeNumber(order, "price");
         object avgPrice = this.safeNumber(order, "avgPrice");
-        if (isTrue(isTrue((isEqual(price, 0))) && isTrue((!isEqual(avgPrice, null)))))
+        if (isTrue(isTrue(Precise.stringEq(priceString, "0")) && isTrue((!isEqual(avgPrice, null)))))
         {
             price = avgPrice;
         }

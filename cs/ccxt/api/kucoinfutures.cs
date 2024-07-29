@@ -91,6 +91,11 @@ public partial class kucoinfutures : kucoin
         return await this.callAsync ("publicGetMarkPriceSymbolCurrent",parameters);
     }
 
+    public async Task<object> publicGetMarkPriceAllSymbols (object parameters = null)
+    {
+        return await this.callAsync ("publicGetMarkPriceAllSymbols",parameters);
+    }
+
     public async Task<object> publicGetMarginConfig (object parameters = null)
     {
         return await this.callAsync ("publicGetMarginConfig",parameters);
@@ -434,6 +439,11 @@ public partial class kucoinfutures : kucoin
     public async Task<object> privateGetBrokerApiRebaseDownload (object parameters = null)
     {
         return await this.callAsync ("privateGetBrokerApiRebaseDownload",parameters);
+    }
+
+    public async Task<object> privateGetAffiliateInviterStatistics (object parameters = null)
+    {
+        return await this.callAsync ("privateGetAffiliateInviterStatistics",parameters);
     }
 
     public async Task<object> privatePostSubUserCreated (object parameters = null)

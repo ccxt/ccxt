@@ -8,9 +8,11 @@
 import assert from 'assert';
 import { 
 // errors
-AuthenticationError, NotSupported, ProxyError, ExchangeNotAvailable, OperationFailed, OnMaintenance, 
+AuthenticationError, NotSupported, InvalidProxySettings, ExchangeNotAvailable, OperationFailed, OnMaintenance, 
 // shared
-getCliArgValue, baseMainTestClass, dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, exceptionMessage, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFiles, setFetchResponse, isNullValue, close, } from './tests.helpers.js';
+getCliArgValue, 
+//
+baseMainTestClass, dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, exceptionMessage, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFilesSync, getTestFiles, setFetchResponse, isNullValue, close, } from './tests.helpers.js';
 class testMainClass extends baseMainTestClass {
     parseCliArgs() {
         this.responseTests = getCliArgValue('--responseTests');
@@ -83,7 +85,12 @@ class testMainClass extends baseMainTestClass {
     async importFiles(exchange) {
         const properties = Object.keys(exchange.has);
         properties.push('loadMarkets');
-        this.testFiles = await getTestFiles(properties, this.wsTests);
+        if (this.isSynchronous) {
+            this.testFiles = getTestFilesSync(properties, this.wsTests);
+        }
+        else {
+            this.testFiles = await getTestFiles(properties, this.wsTests);
+        }
     }
     loadCredentialsFromEnv(exchange) {
         const exchangeId = exchange.id;
@@ -232,7 +239,12 @@ class testMainClass extends baseMainTestClass {
             const argsStringified = '(' + exchange.json(args) + ')'; // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
             dump(this.addPadding('[INFO] TESTING', 25), this.exchangeHint(exchange), methodName, argsStringified);
         }
-        await callMethod(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
+        if (this.isSynchronous) {
+            callMethodSync(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
+        }
+        else {
+            await callMethod(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
+        }
         if (this.info) {
             dump(this.addPadding('[INFO] TESTING DONE', 25), this.exchangeHint(exchange), methodName);
         }
@@ -788,7 +800,7 @@ class testMainClass extends baseMainTestClass {
         if (exception !== undefined) {
             const errorMessage = '[TEST_FAILURE] Failed ' + proxyTestName + ' : ' + exceptionMessage(exception);
             // temporary comment the below, because c# transpilation failure
-            // throw new ExchangeError (errorMessage.toString ());
+            // throw new Exchange Error (errorMessage.toString ());
             dump('[TEST_WARNING]' + errorMessage.toString());
         }
     }
@@ -804,7 +816,9 @@ class testMainClass extends baseMainTestClass {
         try {
             const result = await this.loadExchange(exchange);
             if (!result) {
-                await close(exchange);
+                if (!this.isSynchronous) {
+                    await close(exchange);
+                }
                 return;
             }
             // if (exchange.id === 'binance') {
@@ -812,10 +826,14 @@ class testMainClass extends baseMainTestClass {
             //     // await this.testProxies (exchange);
             // }
             await this.testExchange(exchange, symbol);
-            await close(exchange);
+            if (!this.isSynchronous) {
+                await close(exchange);
+            }
         }
         catch (e) {
-            await close(exchange);
+            if (!this.isSynchronous) {
+                await close(exchange);
+            }
             throw e;
         }
     }
@@ -1076,7 +1094,7 @@ class testMainClass extends baseMainTestClass {
         }
         return newInput;
     }
-    async testMethodStatically(exchange, method, data, type, skipKeys) {
+    async testRequestStatically(exchange, method, data, type, skipKeys) {
         let output = undefined;
         let requestUrl = undefined;
         try {
@@ -1088,7 +1106,7 @@ class testMainClass extends baseMainTestClass {
             }
         }
         catch (e) {
-            if (!(e instanceof ProxyError)) {
+            if (!(e instanceof InvalidProxySettings)) {
                 // if it's not a BadRequest, it means our request was not created succesfully
                 // so we might have an error in the request creation
                 throw e;
@@ -1120,7 +1138,7 @@ class testMainClass extends baseMainTestClass {
             }
         }
         catch (e) {
-            this.requestTestsFailed = true;
+            this.responseTestsFailed = true;
             const errorMessage = '[' + this.lang + '][STATIC_RESPONSE_TEST_FAILURE]' + '[' + this.exchangeHint(exchange) + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString();
             dump('[TEST_FAILURE]' + errorMessage);
         }
@@ -1181,7 +1199,7 @@ class testMainClass extends baseMainTestClass {
                 }
                 const type = exchange.safeString(exchangeData, 'outputType');
                 const skipKeys = exchange.safeValue(exchangeData, 'skipKeys', []);
-                await this.testMethodStatically(exchange, method, result, type, skipKeys);
+                await this.testRequestStatically(exchange, method, result, type, skipKeys);
                 // reset options
                 // exchange.options = exchange.deepExtend (oldExchangeOptions, {});
                 exchange.extendExchangeOptions(exchange.deepExtend(oldExchangeOptions, {}));
@@ -1385,7 +1403,9 @@ class testMainClass extends baseMainTestClass {
         assert(clientOrderIdSwap.startsWith(swapIdString), 'binance - swap clientOrderId: ' + clientOrderIdSwap + ' does not start with swapId' + swapIdString);
         const clientOrderIdInverse = swapInverseOrderRequest['newClientOrderId'];
         assert(clientOrderIdInverse.startsWith(swapIdString), 'binance - swap clientOrderIdInverse: ' + clientOrderIdInverse + ' does not start with swapId' + swapIdString);
-        await close(exchange);
+        if (!this.isSynchronous) {
+            await close(exchange);
+        }
         return true;
     }
     async testOkx() {
@@ -1414,7 +1434,9 @@ class testMainClass extends baseMainTestClass {
         assert(clientOrderIdSwap.startsWith(idString), 'okx - swap clientOrderId: ' + clientOrderIdSwap + ' does not start with id: ' + idString);
         const swapTag = swapOrderRequest[0]['tag'];
         assert(swapTag === id, 'okx - id: ' + id + ' different from swap tag: ' + swapTag);
-        await close(exchange);
+        if (!this.isSynchronous) {
+            await close(exchange);
+        }
         return true;
     }
     async testCryptocom() {
@@ -1430,7 +1452,9 @@ class testMainClass extends baseMainTestClass {
         }
         const brokerId = request['params']['broker_id'];
         assert(brokerId === id, 'cryptocom - id: ' + id + ' different from  broker_id: ' + brokerId);
-        await close(exchange);
+        if (!this.isSynchronous) {
+            await close(exchange);
+        }
         return true;
     }
     async testBybit() {
@@ -1446,7 +1470,9 @@ class testMainClass extends baseMainTestClass {
             reqHeaders = exchange.last_request_headers;
         }
         assert(reqHeaders['Referer'] === id, 'bybit - id: ' + id + ' not in headers.');
-        await close(exchange);
+        if (!this.isSynchronous) {
+            await close(exchange);
+        }
         return true;
     }
     async testKucoin() {
@@ -1465,7 +1491,9 @@ class testMainClass extends baseMainTestClass {
         }
         const id = 'ccxt';
         assert(reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers.');
-        await close(exchange);
+        if (!this.isSynchronous) {
+            await close(exchange);
+        }
         return true;
     }
     async testKucoinfutures() {
@@ -1483,7 +1511,9 @@ class testMainClass extends baseMainTestClass {
             reqHeaders = exchange.last_request_headers;
         }
         assert(reqHeaders['KC-API-PARTNER'] === id, 'kucoinfutures - id: ' + id + ' not in headers.');
-        await close(exchange);
+        if (!this.isSynchronous) {
+            await close(exchange);
+        }
         return true;
     }
     async testBitget() {
@@ -1498,7 +1528,9 @@ class testMainClass extends baseMainTestClass {
             reqHeaders = exchange.last_request_headers;
         }
         assert(reqHeaders['X-CHANNEL-API-CODE'] === id, 'bitget - id: ' + id + ' not in headers.');
-        await close(exchange);
+        if (!this.isSynchronous) {
+            await close(exchange);
+        }
         return true;
     }
     async testMexc() {
@@ -1514,7 +1546,9 @@ class testMainClass extends baseMainTestClass {
             reqHeaders = exchange.last_request_headers;
         }
         assert(reqHeaders['source'] === id, 'mexc - id: ' + id + ' not in headers.');
-        await close(exchange);
+        if (!this.isSynchronous) {
+            await close(exchange);
+        }
         return true;
     }
     async testHtx() {
@@ -1550,7 +1584,9 @@ class testMainClass extends baseMainTestClass {
         assert(clientOrderIdSwap.startsWith(idString), 'htx - swap channel_code ' + clientOrderIdSwap + ' does not start with id: ' + idString);
         const clientOrderIdInverse = swapInverseOrderRequest['channel_code'];
         assert(clientOrderIdInverse.startsWith(idString), 'htx - swap inverse channel_code ' + clientOrderIdInverse + ' does not start with id: ' + idString);
-        await close(exchange);
+        if (!this.isSynchronous) {
+            await close(exchange);
+        }
         return true;
     }
     async testWoo() {
@@ -1577,7 +1613,9 @@ class testMainClass extends baseMainTestClass {
         }
         const clientOrderIdStop = stopOrderRequest['brokerId'];
         assert(clientOrderIdStop.startsWith(idString), 'woo - brokerId: ' + clientOrderIdStop + ' does not start with id: ' + idString);
-        await close(exchange);
+        if (!this.isSynchronous) {
+            await close(exchange);
+        }
         return true;
     }
     async testBitmart() {
@@ -1593,7 +1631,9 @@ class testMainClass extends baseMainTestClass {
             reqHeaders = exchange.last_request_headers;
         }
         assert(reqHeaders['X-BM-BROKER-ID'] === id, 'bitmart - id: ' + id + ' not in headers');
-        await close(exchange);
+        if (!this.isSynchronous) {
+            await close(exchange);
+        }
         return true;
     }
     async testCoinex() {
@@ -1610,7 +1650,9 @@ class testMainClass extends baseMainTestClass {
         const clientOrderId = spotOrderRequest['client_id'];
         const idString = id.toString();
         assert(clientOrderId.startsWith(idString), 'coinex - clientOrderId: ' + clientOrderId + ' does not start with id: ' + idString);
-        await close(exchange);
+        if (!this.isSynchronous) {
+            await close(exchange);
+        }
         return true;
     }
     async testBingx() {
@@ -1626,7 +1668,9 @@ class testMainClass extends baseMainTestClass {
             reqHeaders = exchange.last_request_headers;
         }
         assert(reqHeaders['X-SOURCE-KEY'] === id, 'bingx - id: ' + id + ' not in headers.');
-        await close(exchange);
+        if (!this.isSynchronous) {
+            await close(exchange);
+        }
     }
     async testPhemex() {
         const exchange = this.initOfflineExchange('phemex');
@@ -1641,7 +1685,9 @@ class testMainClass extends baseMainTestClass {
         const clientOrderId = request['clOrdID'];
         const idString = id.toString();
         assert(clientOrderId.startsWith(idString), 'phemex - clOrdID: ' + clientOrderId + ' does not start with id: ' + idString);
-        await close(exchange);
+        if (!this.isSynchronous) {
+            await close(exchange);
+        }
     }
     async testBlofin() {
         const exchange = this.initOfflineExchange('blofin');
@@ -1656,7 +1702,9 @@ class testMainClass extends baseMainTestClass {
         const brokerId = request['brokerId'];
         const idString = id.toString();
         assert(brokerId.startsWith(idString), 'blofin - brokerId: ' + brokerId + ' does not start with id: ' + idString);
-        await close(exchange);
+        if (!this.isSynchronous) {
+            await close(exchange);
+        }
     }
     async testHyperliquid() {
         const exchange = this.initOfflineExchange('hyperliquid');
@@ -1670,7 +1718,9 @@ class testMainClass extends baseMainTestClass {
         }
         const brokerId = (request['action']['brokerCode']).toString();
         assert(brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
-        await close(exchange);
+        if (!this.isSynchronous) {
+            await close(exchange);
+        }
     }
     async testCoinbaseinternational() {
         const exchange = this.initOfflineExchange('coinbaseinternational');
@@ -1686,7 +1736,9 @@ class testMainClass extends baseMainTestClass {
         }
         const clientOrderId = request['client_order_id'];
         assert(clientOrderId.startsWith(id.toString()), 'clientOrderId does not start with id');
-        await close(exchange);
+        if (!this.isSynchronous) {
+            await close(exchange);
+        }
         return true;
     }
     async testCoinbaseAdvanced() {
@@ -1702,7 +1754,9 @@ class testMainClass extends baseMainTestClass {
         }
         const clientOrderId = request['client_order_id'];
         assert(clientOrderId.startsWith(id.toString()), 'clientOrderId does not start with id');
-        await close(exchange);
+        if (!this.isSynchronous) {
+            await close(exchange);
+        }
         return true;
     }
     async testWoofiPro() {
@@ -1719,7 +1773,9 @@ class testMainClass extends baseMainTestClass {
         }
         const brokerId = request['order_tag'];
         assert(brokerId === id, 'woofipro - id: ' + id + ' different from  broker_id: ' + brokerId);
-        await close(exchange);
+        if (!this.isSynchronous) {
+            await close(exchange);
+        }
         return true;
     }
     async testOxfun() {
@@ -1761,7 +1817,9 @@ class testMainClass extends baseMainTestClass {
         }
         const swapMedia = swapOrderRequest['clientMedia'];
         assert(swapMedia === id, 'xt - id: ' + id + ' different from swap tag: ' + swapMedia);
-        await close(exchange);
+        if (!this.isSynchronous) {
+            await close(exchange);
+        }
         return true;
     }
     async testVertex() {
@@ -1781,7 +1839,9 @@ class testMainClass extends baseMainTestClass {
         const order = request['place_order'];
         const brokerId = order['id'];
         assert(brokerId === id, 'vertex - id: ' + id.toString() + ' different from  broker_id: ' + brokerId.toString());
-        await close(exchange);
+        if (!this.isSynchronous) {
+            await close(exchange);
+        }
         return true;
     }
 }

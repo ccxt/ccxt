@@ -4,7 +4,7 @@
 import Exchange from './abstract/binance.js';
 import { ExchangeError, ArgumentsRequired, OperationFailed, OperationRejected, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet, MarketClosed } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, TransferEntries, LeverageTier, LeverageTiers, int } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, Balances, OrderType, Trade, OHLCV, Order, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Market, Greeks, Strings, Currency, MarketInterface, MarginMode, MarginModes, Leverage, Leverages, Num, Option, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRates, IsolatedBorrowRate, Dict, LeverageTier, LeverageTiers, int } from './base/types.js';
 import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
@@ -815,7 +815,7 @@ export default class binance extends Exchange {
                         'forceOrders': { 'cost': 20, 'noSymbol': 50 },
                         'allOrders': 5,
                         'openOrder': 1,
-                        'openOrders': 1,
+                        'openOrders': { 'cost': 1, 'noSymbol': 40 },
                         'order': 1,
                         'account': 5,
                         'balance': 5,
@@ -1007,18 +1007,18 @@ export default class binance extends Exchange {
                         'ping': 1,
                         'um/order': 1, // 1
                         'um/openOrder': 1, // 1
-                        'um/openOrders': 1, // 1
+                        'um/openOrders': { 'cost': 1, 'noSymbol': 40 },
                         'um/allOrders': 5, // 5
                         'cm/order': 1, // 1
                         'cm/openOrder': 1, // 1
-                        'cm/openOrders': 1, // 1
+                        'cm/openOrders': { 'cost': 1, 'noSymbol': 40 },
                         'cm/allOrders': 20, // 20
                         'um/conditional/openOrder': 1,
-                        'um/conditional/openOrders': 40,
+                        'um/conditional/openOrders': { 'cost': 1, 'noSymbol': 40 },
                         'um/conditional/orderHistory': 1,
                         'um/conditional/allOrders': 40,
                         'cm/conditional/openOrder': 1,
-                        'cm/conditional/openOrders': 40,
+                        'cm/conditional/openOrders': { 'cost': 1, 'noSymbol': 40 },
                         'cm/conditional/orderHistory': 1,
                         'cm/conditional/allOrders': 40,
                         'margin/order': 5,
@@ -1545,7 +1545,7 @@ export default class binance extends Exchange {
                         '-3042': BadRequest, // {"code":-3042,"msg":"PriceIndex not available for this margin pair."}
                         '-3043': PermissionDenied, // {"code":-3043,"msg":"Transferring in not allowed."}
                         '-3044': OperationFailed, // {"code":-3044,"msg":"System busy."}
-                        '-3045': OperationFailed, // {"code":-3045,"msg":"The system doesn't have enough asset now."}
+                        '-3045': OperationRejected, // {"code":-3045,"msg":"The system doesn't have enough asset now."}
                         '-3999': PermissionDenied, // {"code":-3999,"msg":"This function is only available for invited users."}
                         //
                         //        4xxx (different from contract markets)
@@ -1564,7 +1564,7 @@ export default class binance extends Exchange {
                         '-4011': BadRequest, // {"code":-4011 ,"msg":"White list mail is invalid."}
                         '-4012': PermissionDenied, // {"code":-4012 ,"msg":"White list is not opened."}
                         '-4013': AuthenticationError, // {"code":-4013 ,"msg":"2FA is not opened."}
-                        '-4014': OperationFailed, // {"code":-4014 ,"msg":"Withdraw is not allowed within 2 min login."}
+                        '-4014': OperationRejected, // {"code":-4014 ,"msg":"Withdraw is not allowed within 2 min login."}
                         '-4015': PermissionDenied, // {"code":-4015 ,"msg":"Withdraw is limited."}
                         '-4016': PermissionDenied, // {"code":-4016 ,"msg":"Within 24 hours after password modification, withdrawal is prohibited."}
                         '-4017': PermissionDenied, // {"code":-4017 ,"msg":"Within 24 hours after the release of 2FA, withdrawal is prohibited."}
@@ -1573,7 +1573,7 @@ export default class binance extends Exchange {
                         '-4020': ExchangeError, // override commons
                         '-4021': BadRequest, // {"code":-4021,"msg":"Asset withdrawal must be an %s multiple of %s."}
                         '-4022': BadRequest, // {"code":-4022,"msg":"Not less than the minimum pick-up quantity %s."}
-                        '-4023': OperationFailed, // {"code":-4023,"msg":"Within 24 hours, the withdrawal exceeds the maximum amount."}
+                        '-4023': OperationRejected, // {"code":-4023,"msg":"Within 24 hours, the withdrawal exceeds the maximum amount."}
                         '-4024': InsufficientFunds, // {"code":-4024,"msg":"You don't have this asset."}
                         '-4025': InsufficientFunds, // {"code":-4025,"msg":"The number of hold asset is less than zero."}
                         '-4026': InsufficientFunds, // {"code":-4026,"msg":"You have insufficient balance."}
@@ -1582,7 +1582,7 @@ export default class binance extends Exchange {
                         '-4029': BadRequest, // {"code":-4029,"msg":"The withdrawal record does not exist."}
                         '-4030': BadResponse, // {"code":-4030,"msg":"Confirmation of successful asset withdrawal. [TODO] possible bug in docs"}
                         '-4031': OperationFailed, // {"code":-4031,"msg":"Cancellation failed."}
-                        '-4032': OperationFailed, // {"code":-4032,"msg":"Withdraw verification exception."}
+                        '-4032': OperationRejected, // {"code":-4032,"msg":"Withdraw verification exception."}
                         '-4033': BadRequest, // {"code":-4033,"msg":"Illegal address."}
                         '-4034': OperationRejected, // {"code":-4034,"msg":"The address is suspected of fake."}
                         '-4035': PermissionDenied, // {"code":-4035,"msg":"This address is not on the whitelist. Please join and try again."}
@@ -1705,7 +1705,7 @@ export default class binance extends Exchange {
                         '-5003': InsufficientFunds, // You don't have this asset.
                         '-5004': OperationRejected, // The residual balances of %s have exceeded 0.001BTC, Please re-choose.
                         '-5005': OperationRejected, // The residual balances of %s is too low, Please re-choose.
-                        '-5006': OperationFailed, // Only transfer once in 24 hours.
+                        '-5006': OperationRejected, // Only transfer once in 24 hours.
                         '-5007': BadRequest, // Quantity must be greater than zero.
                         '-5008': OperationRejected, // Insufficient amount of returnable assets.
                         '-5009': BadSymbol, // Product does not exist.
@@ -1723,8 +1723,8 @@ export default class binance extends Exchange {
                         '-6004': BadRequest, // Product not in purchase status
                         '-6005': BadRequest, // Smaller than min purchase limit
                         '-6006': BadRequest, // Redeem amount error
-                        '-6007': OperationFailed, // Not in redeem time
-                        '-6008': OperationFailed, // Product not in redeem status
+                        '-6007': OperationRejected, // Not in redeem time
+                        '-6008': OperationRejected, // Product not in redeem status
                         '-6009': RateLimitExceeded, // Request frequency too high
                         '-6011': OperationRejected, // Exceeding the maximum num allowed to purchase per user
                         '-6012': InsufficientFunds, // Balance not enough
@@ -3122,7 +3122,7 @@ export default class binance extends Exchange {
             linear = settle === quote;
             inverse = settle === base;
             const feesType = linear ? 'linear' : 'inverse';
-            fees = this.safeDict (this.fees, feesType, {});
+            fees = this.safeDict (this.fees, feesType, {}) as any;
         }
         let active = (status === 'TRADING');
         if (spot) {
@@ -6480,10 +6480,7 @@ export default class binance extends Exchange {
             const marketType = ('type' in market) ? market['type'] : defaultType;
             type = this.safeString (params, 'type', marketType);
         } else if (this.options['warnOnFetchOpenOrdersWithoutSymbol']) {
-            const symbols = this.symbols;
-            const numSymbols = symbols.length;
-            const fetchOpenOrdersRateLimit = this.parseToInt (numSymbols / 2);
-            throw new ExchangeError (this.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol is rate-limited to one call per ' + fetchOpenOrdersRateLimit.toString () + ' seconds. Do not call this method frequently to avoid ban. Set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
+            throw new ExchangeError (this.id + ' fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge this warning, set ' + this.id + '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
         } else {
             const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
             type = this.safeString (params, 'type', defaultType);
@@ -6978,25 +6975,67 @@ export default class binance extends Exchange {
         let response = undefined;
         if (market['option']) {
             response = await this.eapiPrivateDeleteAllOpenOrders (this.extend (request, params));
+            //
+            //    {
+            //        "code": 0,
+            //        "msg": "success"
+            //    }
+            //
         } else if (market['linear']) {
             if (isPortfolioMargin) {
                 if (isConditional) {
                     response = await this.papiDeleteUmConditionalAllOpenOrders (this.extend (request, params));
+                    //
+                    //    {
+                    //        "code": "200",
+                    //        "msg": "The operation of cancel all conditional open order is done."
+                    //    }
+                    //
                 } else {
                     response = await this.papiDeleteUmAllOpenOrders (this.extend (request, params));
+                    //
+                    //    {
+                    //        "code": 200,
+                    //        "msg": "The operation of cancel all open order is done."
+                    //    }
+                    //
                 }
             } else {
                 response = await this.fapiPrivateDeleteAllOpenOrders (this.extend (request, params));
+                //
+                //    {
+                //        "code": 200,
+                //        "msg": "The operation of cancel all open order is done."
+                //    }
+                //
             }
         } else if (market['inverse']) {
             if (isPortfolioMargin) {
                 if (isConditional) {
                     response = await this.papiDeleteCmConditionalAllOpenOrders (this.extend (request, params));
+                    //
+                    //    {
+                    //        "code": "200",
+                    //        "msg": "The operation of cancel all conditional open order is done."
+                    //    }
+                    //
                 } else {
                     response = await this.papiDeleteCmAllOpenOrders (this.extend (request, params));
+                    //
+                    //    {
+                    //        "code": 200,
+                    //        "msg": "The operation of cancel all open order is done."
+                    //    }
+                    //
                 }
             } else {
                 response = await this.dapiPrivateDeleteAllOpenOrders (this.extend (request, params));
+                //
+                //    {
+                //        "code": 200,
+                //        "msg": "The operation of cancel all open order is done."
+                //    }
+                //
             }
         } else if ((type === 'margin') || (marginMode !== undefined) || isPortfolioMargin) {
             if (isPortfolioMargin) {
@@ -7006,14 +7045,61 @@ export default class binance extends Exchange {
                     request['isIsolated'] = true;
                 }
                 response = await this.sapiDeleteMarginOpenOrders (this.extend (request, params));
+                //
+                //    [
+                //        {
+                //          "symbol": "BTCUSDT",
+                //          "isIsolated": true,       // if isolated margin
+                //          "origClientOrderId": "E6APeyTJvkMvLMYMqu1KQ4",
+                //          "orderId": 11,
+                //          "orderListId": -1,
+                //          "clientOrderId": "pXLV6Hz6mprAcVYpVMTGgx",
+                //          "price": "0.089853",
+                //          "origQty": "0.178622",
+                //          "executedQty": "0.000000",
+                //          "cummulativeQuoteQty": "0.000000",
+                //          "status": "CANCELED",
+                //          "timeInForce": "GTC",
+                //          "type": "LIMIT",
+                //          "side": "BUY",
+                //          "selfTradePreventionMode": "NONE"
+                //        },
+                //        ...
+                //    ]
+                //
             }
         } else {
             response = await this.privateDeleteOpenOrders (this.extend (request, params));
+            //
+            //    [
+            //        {
+            //            "symbol": "ADAUSDT",
+            //            "origClientOrderId": "x-R4BD3S82662cde7a90114475b86e21",
+            //            "orderId": 3935107,
+            //            "orderListId": -1,
+            //            "clientOrderId": "bqM2w1oTlugfRAjnTIFBE8",
+            //            "transactTime": 1720589016657,
+            //            "price": "0.35000000",
+            //            "origQty": "30.00000000",
+            //            "executedQty": "0.00000000",
+            //            "cummulativeQuoteQty": "0.00000000",
+            //            "status": "CANCELED",
+            //            "timeInForce": "GTC",
+            //            "type": "LIMIT",
+            //            "side": "BUY",
+            //            "selfTradePreventionMode": "EXPIRE_MAKER"
+            //        }
+            //    ]
+            //
         }
         if (Array.isArray (response)) {
             return this.parseOrders (response, market);
         } else {
-            return response;
+            return [
+                this.safeOrder ({
+                    'info': response,
+                }),
+            ];
         }
     }
 
@@ -8153,7 +8239,7 @@ export default class binance extends Exchange {
         return this.parseTransfer (response, currency);
     }
 
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntries> {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         /**
          * @method
          * @name binance#fetchTransfers
@@ -9554,37 +9640,42 @@ export default class binance extends Exchange {
         if (marginMode === 'cross') {
             // calculate collateral
             const precision = this.safeDict (market, 'precision', {});
-            if (linear) {
-                // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
-                let onePlusMaintenanceMarginPercentageString = undefined;
-                let entryPriceSignString = entryPriceString;
-                if (side === 'short') {
-                    onePlusMaintenanceMarginPercentageString = Precise.stringAdd ('1', maintenanceMarginPercentageString);
-                    entryPriceSignString = Precise.stringMul ('-1', entryPriceSignString);
+            const basePrecisionValue = this.safeString (precision, 'base');
+            const quotePrecisionValue = this.safeString2 (precision, 'quote', 'price');
+            const precisionIsUndefined = (basePrecisionValue === undefined) && (quotePrecisionValue === undefined);
+            if (!precisionIsUndefined) {
+                if (linear) {
+                    // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
+                    let onePlusMaintenanceMarginPercentageString = undefined;
+                    let entryPriceSignString = entryPriceString;
+                    if (side === 'short') {
+                        onePlusMaintenanceMarginPercentageString = Precise.stringAdd ('1', maintenanceMarginPercentageString);
+                        entryPriceSignString = Precise.stringMul ('-1', entryPriceSignString);
+                    } else {
+                        onePlusMaintenanceMarginPercentageString = Precise.stringAdd ('-1', maintenanceMarginPercentageString);
+                    }
+                    const inner = Precise.stringMul (liquidationPriceString, onePlusMaintenanceMarginPercentageString);
+                    const leftSide = Precise.stringAdd (inner, entryPriceSignString);
+                    const quotePrecision = this.precisionFromString (this.safeString2 (precision, 'quote', 'price'));
+                    if (quotePrecision !== undefined) {
+                        collateralString = Precise.stringDiv (Precise.stringMul (leftSide, contractsAbs), '1', quotePrecision);
+                    }
                 } else {
-                    onePlusMaintenanceMarginPercentageString = Precise.stringAdd ('-1', maintenanceMarginPercentageString);
-                }
-                const inner = Precise.stringMul (liquidationPriceString, onePlusMaintenanceMarginPercentageString);
-                const leftSide = Precise.stringAdd (inner, entryPriceSignString);
-                const quotePrecision = this.precisionFromString (this.safeString2 (precision, 'quote', 'price'));
-                if (quotePrecision !== undefined) {
-                    collateralString = Precise.stringDiv (Precise.stringMul (leftSide, contractsAbs), '1', quotePrecision);
-                }
-            } else {
-                // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
-                let onePlusMaintenanceMarginPercentageString = undefined;
-                let entryPriceSignString = entryPriceString;
-                if (side === 'short') {
-                    onePlusMaintenanceMarginPercentageString = Precise.stringSub ('1', maintenanceMarginPercentageString);
-                } else {
-                    onePlusMaintenanceMarginPercentageString = Precise.stringSub ('-1', maintenanceMarginPercentageString);
-                    entryPriceSignString = Precise.stringMul ('-1', entryPriceSignString);
-                }
-                const leftSide = Precise.stringMul (contractsAbs, contractSizeString);
-                const rightSide = Precise.stringSub (Precise.stringDiv ('1', entryPriceSignString), Precise.stringDiv (onePlusMaintenanceMarginPercentageString, liquidationPriceString));
-                const basePrecision = this.precisionFromString (this.safeString (precision, 'base'));
-                if (basePrecision !== undefined) {
-                    collateralString = Precise.stringDiv (Precise.stringMul (leftSide, rightSide), '1', basePrecision);
+                    // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
+                    let onePlusMaintenanceMarginPercentageString = undefined;
+                    let entryPriceSignString = entryPriceString;
+                    if (side === 'short') {
+                        onePlusMaintenanceMarginPercentageString = Precise.stringSub ('1', maintenanceMarginPercentageString);
+                    } else {
+                        onePlusMaintenanceMarginPercentageString = Precise.stringSub ('-1', maintenanceMarginPercentageString);
+                        entryPriceSignString = Precise.stringMul ('-1', entryPriceSignString);
+                    }
+                    const leftSide = Precise.stringMul (contractsAbs, contractSizeString);
+                    const rightSide = Precise.stringSub (Precise.stringDiv ('1', entryPriceSignString), Precise.stringDiv (onePlusMaintenanceMarginPercentageString, liquidationPriceString));
+                    const basePrecision = this.precisionFromString (this.safeString (precision, 'base'));
+                    if (basePrecision !== undefined) {
+                        collateralString = Precise.stringDiv (Precise.stringMul (leftSide, rightSide), '1', basePrecision);
+                    }
                 }
             }
         } else {
@@ -10204,9 +10295,10 @@ export default class binance extends Exchange {
         //
         const result = [];
         for (let i = 0; i < response.length; i++) {
-            const parsed = this.parsePositionRisk (response[i]);
-            const entryPrice = this.safeString (parsed, 'entryPrice');
+            const rawPosition = response[i];
+            const entryPrice = this.safeString (rawPosition, 'entryPrice');
             if ((entryPrice !== '0') && (entryPrice !== '0.0') && (entryPrice !== '0.00000000')) {
+                const parsed = this.parsePositionRisk (response[i]);
                 result.push (parsed);
             }
         }
@@ -11914,6 +12006,9 @@ export default class binance extends Exchange {
         const request: Dict = {};
         if (market['option']) {
             request['underlyingAsset'] = market['baseId'];
+            if (market['expiry'] === undefined) {
+                throw new NotSupported (this.id + ' fetchOpenInterest does not support ' + symbol);
+            }
             request['expiration'] = this.yymmdd (market['expiry']);
         } else {
             request['symbol'] = market['id'];
@@ -11957,6 +12052,7 @@ export default class binance extends Exchange {
         //     ]
         //
         if (market['option']) {
+            symbol = market['symbol'];
             const result = this.parseOpenInterests (response, market);
             for (let i = 0; i < result.length; i++) {
                 const item = result[i];

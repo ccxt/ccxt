@@ -1995,7 +1995,11 @@ class delta extends Exchange {
         //         "success":true
         //     }
         //
-        return $response;
+        return array(
+            $this->safe_order(array(
+                'info' => $response,
+            )),
+        );
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {

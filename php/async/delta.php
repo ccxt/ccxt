@@ -2035,7 +2035,11 @@ class delta extends Exchange {
             //         "success":true
             //     }
             //
-            return $response;
+            return array(
+                $this->safe_order(array(
+                    'info' => $response,
+                )),
+            );
         }) ();
     }
 

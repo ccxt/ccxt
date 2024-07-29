@@ -1540,7 +1540,25 @@ class bigone(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        return response
+        data = self.safe_dict(response, 'data', {})
+        cancelled = self.safe_list(data, 'cancelled', [])
+        failed = self.safe_list(data, 'failed', [])
+        result = []
+        for i in range(0, len(cancelled)):
+            orderId = cancelled[i]
+            result.append(self.safe_order({
+                'info': orderId,
+                'id': orderId,
+                'status': 'canceled',
+            }))
+        for i in range(0, len(failed)):
+            orderId = failed[i]
+            result.append(self.safe_order({
+                'info': orderId,
+                'id': orderId,
+                'status': 'failed',
+            }))
+        return result
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         """

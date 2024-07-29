@@ -90,8 +90,9 @@ export default class htx extends Exchange {
     createOrder(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
     createOrders(orders: OrderRequest[], params?: {}): Promise<Order[]>;
     cancelOrder(id: string, symbol?: Str, params?: {}): Promise<any>;
-    cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<any>;
-    cancelAllOrders(symbol?: Str, params?: {}): Promise<any>;
+    cancelOrders(ids: any, symbol?: Str, params?: {}): Promise<any[]>;
+    parseCancelOrders(orders: any): any[];
+    cancelAllOrders(symbol?: Str, params?: {}): Promise<any[]>;
     cancelAllOrdersAfter(timeout: Int, params?: {}): Promise<any>;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
         currency: string;

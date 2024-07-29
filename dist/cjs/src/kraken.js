@@ -80,6 +80,7 @@ class kraken extends kraken$1 {
                 'fetchOrderTrades': 'emulated',
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -637,6 +638,32 @@ class kraken extends kraken$1 {
         }
         return result;
     }
+    async fetchStatus(params = {}) {
+        /**
+         * @method
+         * @name kraken#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @see https://docs.kraken.com/api/docs/rest-api/get-system-status/
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+         */
+        const response = await this.publicGetSystemStatus(params);
+        //
+        // {
+        //     error: [],
+        //     result: { status: 'online', timestamp: '2024-07-22T16:34:44Z' }
+        // }
+        //
+        const result = this.safeDict(response, 'result');
+        const statusRaw = this.safeString(result, 'status');
+        return {
+            'status': (statusRaw === 'online') ? 'ok' : 'maintenance',
+            'updated': undefined,
+            'eta': undefined,
+            'url': undefined,
+            'info': response,
+        };
+    }
     async fetchCurrencies(params = {}) {
         /**
          * @method
@@ -1049,7 +1076,7 @@ class kraken extends kraken$1 {
         else {
             direction = 'in';
         }
-        const timestamp = this.safeTimestamp(item, 'time');
+        const timestamp = this.safeIntegerProduct(item, 'time', 1000);
         return {
             'info': item,
             'id': id,

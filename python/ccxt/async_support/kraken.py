@@ -19,13 +19,13 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import CancelPending
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import CancelPending
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -98,6 +98,7 @@ class kraken(Exchange, ImplicitAPI):
                 'fetchOrderTrades': 'emulated',
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -645,6 +646,30 @@ class kraken(Exchange, ImplicitAPI):
             result.append(self.extend(defaults, markets[i]))
         return result
 
+    async def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :see: https://docs.kraken.com/api/docs/rest-api/get-system-status/
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
+        """
+        response = await self.publicGetSystemStatus(params)
+        #
+        # {
+        #     error: [],
+        #     result: {status: 'online', timestamp: '2024-07-22T16:34:44Z'}
+        # }
+        #
+        result = self.safe_dict(response, 'result')
+        statusRaw = self.safe_string(result, 'status')
+        return {
+            'status': 'ok' if (statusRaw == 'online') else 'maintenance',
+            'updated': None,
+            'eta': None,
+            'url': None,
+            'info': response,
+        }
+
     async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
@@ -1030,7 +1055,7 @@ class kraken(Exchange, ImplicitAPI):
             amount = Precise.string_abs(amount)
         else:
             direction = 'in'
-        timestamp = self.safe_timestamp(item, 'time')
+        timestamp = self.safe_integer_product(item, 'time', 1000)
         return {
             'info': item,
             'id': id,

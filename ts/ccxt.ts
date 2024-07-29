@@ -33,14 +33,14 @@ import { Exchange }  from './src/base/Exchange.js'
 import { Precise }   from './src/base/Precise.js'
 import * as functions from './src/base/functions.js'
 import * as errors   from './src/base/errors.js'
-import type { Int, int, Str, Strings, Num, Bool, IndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, OHLCV, OHLCVC, implicitReturnType, Market, Currency, Dictionary, MinMax, FeeInterface, TradingFeeInterface, MarketInterface, Trade, Order, OrderBook, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, WithdrawalResponse, DepositAddressResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarginMode, Greeks, Conversion, Option, LastPrice, Leverage, MarginModification, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, TransferEntries, LeverageTiers } from './src/base/types.js'
-import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, ProxyError, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout}  from './src/base/errors.js'
+import type { Int, int, Str, Strings, Num, Bool, IndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, OHLCV, OHLCVC, implicitReturnType, Market, Currency, Dictionary, MinMax, FeeInterface, TradingFeeInterface, MarketInterface, Trade, Order, OrderBook, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, WithdrawalResponse, DepositAddressResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarginMode, Greeks, Conversion, Option, LastPrice, Leverage, MarginModification, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, LeverageTiers } from './src/base/types.js'
+import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending}  from './src/base/errors.js'
 
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.3.55';
+const version = '4.3.68';
 
 (Exchange as any).ccxtVersion = version
 
@@ -224,6 +224,7 @@ import wazirxPro from  './src/pro/wazirx.js'
 import whitebitPro from  './src/pro/whitebit.js'
 import wooPro from  './src/pro/woo.js'
 import woofiproPro from  './src/pro/woofipro.js'
+import xtPro from  './src/pro/xt.js'
 
 const exchanges = {
     'ace':                    ace,
@@ -404,6 +405,7 @@ const pro = {
     'whitebit':               whitebitPro,
     'woo':                    wooPro,
     'woofipro':               woofiproPro,
+    'xt':                     xtPro,
 }
 
 for (const exchange in pro) {
@@ -442,21 +444,18 @@ export {
     NoChange,
     MarginModeAlreadySet,
     MarketClosed,
-    BadResponse,
-    NullResponse,
     InsufficientFunds,
     InvalidAddress,
     AddressPending,
     InvalidOrder,
     OrderNotFound,
     OrderNotCached,
-    CancelPending,
     OrderImmediatelyFillable,
     OrderNotFillable,
     DuplicateOrderId,
     ContractUnavailable,
     NotSupported,
-    ProxyError,
+    InvalidProxySettings,
     ExchangeClosedByUser,
     OperationFailed,
     NetworkError,
@@ -465,7 +464,11 @@ export {
     ExchangeNotAvailable,
     OnMaintenance,
     InvalidNonce,
+    ChecksumError,
     RequestTimeout,
+    BadResponse,
+    NullResponse,
+    CancelPending,
     Int,
     int,
     Str,
@@ -539,7 +542,6 @@ export {
     OptionChain,
     IsolatedBorrowRates,
     CrossBorrowRates,
-    TransferEntries,
     LeverageTiers,
     ace,
     alpaca,

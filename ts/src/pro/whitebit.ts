@@ -491,7 +491,7 @@ export default class whitebit extends whitebitRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrders() requires a symbol argument');
@@ -940,7 +940,7 @@ export default class whitebit extends whitebitRest {
         return message;
     }
 
-    ping (client) {
+    ping (client: Client) {
         return {
             'id': 0,
             'method': 'ping',

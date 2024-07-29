@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, NotSupported, OnMaintenance, Argum
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, TransferEntries, LeverageTier, int } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderRequest, FundingHistory, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Liquidation, TransferEntry, Leverage, MarginMode, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CrossBorrowRate, IsolatedBorrowRate, Dict, LeverageTier, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -4946,6 +4946,22 @@ export default class bitget extends Exchange {
                 } else {
                     response = await this.privateMarginPostMarginV1IsolatedOrderBatchCancelOrder (this.extend (request, params));
                 }
+                //
+                //     {
+                //         "code": "00000",
+                //         "msg": "success",
+                //         "requestTime": 1700717155622,
+                //         "data": {
+                //             "resultList": [
+                //                 {
+                //                     "orderId": "1111453253721796609",
+                //                     "clientOid": "2ae7fc8a4ff949b6b60d770ca3950e2d"
+                //                 },
+                //             ],
+                //             "failure": []
+                //         }
+                //     }
+                //
             } else {
                 if (stop) {
                     const stopRequest: Dict = {
@@ -4955,6 +4971,27 @@ export default class bitget extends Exchange {
                 } else {
                     response = await this.privateSpotPostV2SpotTradeCancelSymbolOrder (this.extend (request, params));
                 }
+                //
+                //     {
+                //         "code": "00000",
+                //         "msg": "success",
+                //         "requestTime": 1700716953996,
+                //         "data": {
+                //             "symbol": "BTCUSDT"
+                //         }
+                //     }
+                //
+                const timestamp = this.safeInteger (response, 'requestTime');
+                const responseData = this.safeDict (response, 'data');
+                const marketId = this.safeString (responseData, 'symbol');
+                return [
+                    this.safeOrder ({
+                        'info': response,
+                        'symbol': this.safeSymbol (marketId, undefined, undefined, 'spot'),
+                        'timestamp': timestamp,
+                        'datetime': this.iso8601 (timestamp),
+                    }),
+                ];
             }
         } else {
             let productType = undefined;
@@ -4965,54 +5002,26 @@ export default class bitget extends Exchange {
             } else {
                 response = await this.privateMixPostV2MixOrderBatchCancelOrders (this.extend (request, params));
             }
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": "1680008815965",
+            //         "data": {
+            //             "successList": [
+            //                 {
+            //                     "orderId": "1024598257429823488",
+            //                     "clientOid": "876493ce-c287-4bfc-9f4a-8b1905881313"
+            //                 },
+            //             ],
+            //             "failureList": []
+            //         }
+            //     }
         }
-        //
-        // spot
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700716953996,
-        //         "data": {
-        //             "symbol": "BTCUSDT"
-        //         }
-        //     }
-        //
-        // swap
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": "1680008815965",
-        //         "data": {
-        //             "successList": [
-        //                 {
-        //                     "orderId": "1024598257429823488",
-        //                     "clientOid": "876493ce-c287-4bfc-9f4a-8b1905881313"
-        //                 },
-        //             ],
-        //             "failureList": []
-        //         }
-        //     }
-        //
-        // spot margin
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700717155622,
-        //         "data": {
-        //             "resultList": [
-        //                 {
-        //                     "orderId": "1111453253721796609",
-        //                     "clientOid": "2ae7fc8a4ff949b6b60d770ca3950e2d"
-        //                 },
-        //             ],
-        //             "failure": []
-        //         }
-        //     }
-        //
-        return response;
+        const data = this.safeDict (response, 'data');
+        const resultList = this.safeList2 (data, 'resultList', 'successList');
+        const failureList = this.safeList2 (data, 'failure', 'failureList');
+        const responseList = this.arrayConcat (resultList, failureList);
+        return this.parseOrders (responseList);
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -5124,8 +5133,10 @@ export default class bitget extends Exchange {
             response = JSON.parse (response);
         }
         const data = this.safeDict (response, 'data');
-        if ((data !== undefined) && !Array.isArray (data)) {
-            return this.parseOrder (data, market);
+        if ((data !== undefined)) {
+            if (!Array.isArray (data)) {
+                return this.parseOrder (data, market);
+            }
         }
         const dataList = this.safeList (response, 'data', []);
         const first = this.safeDict (dataList, 0, {});
@@ -7251,7 +7262,7 @@ export default class bitget extends Exchange {
         }, market);
     }
 
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntries> {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         /**
          * @method
          * @name bitget#fetchTransfers

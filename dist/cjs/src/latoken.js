@@ -1416,7 +1416,11 @@ class latoken extends latoken$1 {
         //         "status":"SUCCESS"
         //     }
         //
-        return response;
+        return [
+            this.safeOrder({
+                'info': response,
+            }),
+        ];
     }
     async fetchTransactions(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**

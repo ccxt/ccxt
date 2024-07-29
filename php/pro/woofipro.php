@@ -391,7 +391,7 @@ class woofipro extends \ccxt\async\woofipro {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -746,9 +746,10 @@ class woofipro extends \ccxt\async\woofipro {
             'cost' => $this->safe_string($order, 'totalFee'),
             'currency' => $this->safe_string($order, 'feeAsset'),
         );
+        $priceString = $this->safe_string($order, 'price');
         $price = $this->safe_number($order, 'price');
         $avgPrice = $this->safe_number($order, 'avgPrice');
-        if (($price === 0) && ($avgPrice !== null)) {
+        if (Precise::string_eq($priceString, '0') && ($avgPrice !== null)) {
             $price = $avgPrice;
         }
         $amount = $this->safe_string($order, 'quantity');

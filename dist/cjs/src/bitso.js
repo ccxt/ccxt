@@ -97,7 +97,10 @@ class bitso extends bitso$1 {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87295554-11f98280-c50e-11ea-80d6-15b3bafa8cbf.jpg',
                 'api': {
-                    'rest': 'https://api.bitso.com',
+                    'rest': 'https://bitso.com/api',
+                },
+                'test': {
+                    'rest': 'https://stage.bitso.com/api',
                 },
                 'www': 'https://bitso.com',
                 'doc': 'https://bitso.com/api_info',

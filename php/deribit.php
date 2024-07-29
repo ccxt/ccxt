@@ -2093,7 +2093,21 @@ class deribit extends Exchange {
             $request['instrument_name'] = $market['id'];
             $response = $this->privateGetCancelAllByInstrument ($this->extend($request, $params));
         }
-        return $response;
+        //
+        //    {
+        //        jsonrpc => '2.0',
+        //        result => '1',
+        //        usIn => '1720508354127369',
+        //        usOut => '1720508354133603',
+        //        usDiff => '6234',
+        //        testnet => true
+        //    }
+        //
+        return array(
+            $this->safe_order(array(
+                'info' => $response,
+            )),
+        );
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {

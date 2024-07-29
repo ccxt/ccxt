@@ -89,11 +89,11 @@ class hyperliquid extends Exchange {
                 'fetchPositions' => true,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
-                'fetchTicker' => false,
-                'fetchTickers' => false,
+                'fetchTicker' => 'emulated',
+                'fetchTickers' => true,
                 'fetchTime' => false,
                 'fetchTrades' => true,
-                'fetchTradingFee' => false,
+                'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
@@ -245,8 +245,16 @@ class hyperliquid extends Exchange {
                 'withdraw' => null,
                 'networks' => null,
                 'fee' => null,
-                // 'fees' => fees,
-                'limits' => null,
+                'limits' => array(
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
             );
         }
         return $result;
@@ -312,12 +320,12 @@ class hyperliquid extends Exchange {
         //
         //
         $meta = $this->safe_dict($response, 0, array());
-        $meta = $this->safe_list($meta, 'universe', array());
+        $universe = $this->safe_list($meta, 'universe', array());
         $assetCtxs = $this->safe_dict($response, 1, array());
         $result = array();
-        for ($i = 0; $i < count($meta); $i++) {
+        for ($i = 0; $i < count($universe); $i++) {
             $data = $this->extend(
-                $this->safe_dict($meta, $i, array()),
+                $this->safe_dict($universe, $i, array()),
                 $this->safe_dict($assetCtxs, $i, array())
             );
             $data['baseId'] = $i;
@@ -433,11 +441,13 @@ class hyperliquid extends Exchange {
         //
         // $response differs depending on the environment (mainnet vs sandbox)
         $first = $this->safe_dict($response, 0, array());
+        $second = $this->safe_list($response, 1, array());
         $meta = $this->safe_list_2($first, 'universe', 'spot_infos', array());
         $tokens = $this->safe_list_2($first, 'tokens', 'token_infos', array());
         $markets = array();
         for ($i = 0; $i < count($meta); $i++) {
             $market = $this->safe_dict($meta, $i, array());
+            $extraData = $this->safe_dict($second, $i, array());
             $marketName = $this->safe_string($market, 'name');
             // if (mb_strpos($marketName, '/') === false) {
             //     // there are some weird spot $markets in testnet, eg @2
@@ -514,7 +524,7 @@ class hyperliquid extends Exchange {
                     ),
                 ),
                 'created' => null,
-                'info' => $market,
+                'info' => $this->extend($extraData, $market),
             ));
         }
         return $markets;
@@ -591,7 +601,7 @@ class hyperliquid extends Exchange {
             'limits' => array(
                 'leverage' => array(
                     'min' => null,
-                    'max' => null,
+                    'max' => $this->safe_integer($market, 'maxLeverage'),
                 ),
                 'amount' => array(
                     'min' => null,
@@ -742,6 +752,60 @@ class hyperliquid extends Exchange {
         return $this->parse_order_book($result, $market['symbol'], $timestamp, 'bids', 'asks', 'px', 'sz');
     }
 
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+        /**
+         * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+         * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
+        // at this stage, to get tickers data, we use fetchMarkets endpoints
+        $response = $this->fetch_markets($params);
+        // same $response "fetchMarkets"
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $market = $response[$i];
+            $info = $market['info'];
+            $ticker = $this->parse_ticker($info, $market);
+            $symbol = $this->safe_string($ticker, 'symbol');
+            $result[$symbol] = $ticker;
+        }
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
+    }
+
+    public function parse_ticker(array $ticker, ?array $market = null): array {
+        //
+        //     array(
+        //         "prevDayPx" => "3400.5",
+        //         "dayNtlVlm" => "511297257.47936022",
+        //         "markPx" => "3464.7",
+        //         "midPx" => "3465.05",
+        //         "oraclePx" => "3460.1", // only in swap
+        //         "openInterest" => "64638.1108", // only in swap
+        //         "premium" => "0.00141614", // only in swap
+        //         "funding" => "0.00008727", // only in swap
+        //         "impactPxs" => array( "3465.0", "3465.1" ), // only in swap
+        //         "coin" => "PURR", // only in spot
+        //         "circulatingSupply" => "998949190.03400207", // only in spot
+        //     ),
+        //
+        $bidAsk = $this->safe_list($ticker, 'impactPxs');
+        return $this->safe_ticker(array(
+            'symbol' => $market['symbol'],
+            'timestamp' => null,
+            'datetime' => null,
+            'previousClose' => $this->safe_number($ticker, 'prevDayPx'),
+            'close' => $this->safe_number($ticker, 'midPx'),
+            'bid' => $this->safe_number($bidAsk, 0),
+            'ask' => $this->safe_number($bidAsk, 1),
+            'quoteVolume' => $this->safe_number($ticker, 'dayNtlVlm'),
+            'info' => $ticker,
+        ), $market);
+    }
+
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -759,9 +823,6 @@ class hyperliquid extends Exchange {
         $until = $this->safe_integer($params, 'until', $this->milliseconds());
         if ($since === null) {
             $since = 0;
-        }
-        if ($limit === null) {
-            $limit = 500;
         }
         $params = $this->omit($params, array( 'until' ));
         $request = array(
@@ -1310,7 +1371,7 @@ class hyperliquid extends Exchange {
          * cancel multiple $orders for multiple symbols
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-$order-s
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-$order-s-by-cloid
-         * @param {CancellationRequest[]} $orders each $order should contain the parameters required by cancelOrder namely $id and $symbol
+         * @param {CancellationRequest[]} $orders each $order should contain the parameters required by cancelOrder namely $id and $symbol, example [array("id" => "a", "symbol" => "BTC/USDT"), array("id" => "b", "symbol" => "ETH/USDT")]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->vaultAddress] the vault address
          * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structures~
@@ -2495,6 +2556,112 @@ class hyperliquid extends Exchange {
             'comment' => null,
             'internal' => null,
             'fee' => null,
+        );
+    }
+
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
+        /**
+         * fetch the trading fees for a $market
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
+         */
+        $this->load_markets();
+        $userAddress = null;
+        list($userAddress, $params) = $this->handle_public_address('fetchTradingFee', $params);
+        $market = $this->market($symbol);
+        $request = array(
+            'type' => 'userFees',
+            'user' => $userAddress,
+        );
+        $response = $this->publicPostInfo ($this->extend($request, $params));
+        //
+        //     {
+        //         "dailyUserVlm" => array(
+        //             {
+        //                 "date" => "2024-07-08",
+        //                 "userCross" => "0.0",
+        //                 "userAdd" => "0.0",
+        //                 "exchange" => "90597185.23639999"
+        //             }
+        //         ),
+        //         "feeSchedule" => {
+        //             "cross" => "0.00035",
+        //             "add" => "0.0001",
+        //             "tiers" => {
+        //                 "vip" => array(
+        //                     array(
+        //                         "ntlCutoff" => "5000000.0",
+        //                         "cross" => "0.0003",
+        //                         "add" => "0.00005"
+        //                     }
+        //                 ),
+        //                 "mm" => array(
+        //                     array(
+        //                         "makerFractionCutoff" => "0.005",
+        //                         "add" => "-0.00001"
+        //                     }
+        //                 )
+        //             ),
+        //             "referralDiscount" => "0.04"
+        //         ),
+        //         "userCrossRate" => "0.00035",
+        //         "userAddRate" => "0.0001",
+        //         "activeReferralDiscount" => "0.0"
+        //     }
+        //
+        $data = array(
+            'userCrossRate' => $this->safe_string($response, 'userCrossRate'),
+            'userAddRate' => $this->safe_string($response, 'userAddRate'),
+        );
+        return $this->parse_trading_fee($data, $market);
+    }
+
+    public function parse_trading_fee(array $fee, ?array $market = null): array {
+        //
+        //     {
+        //         "dailyUserVlm" => array(
+        //             {
+        //                 "date" => "2024-07-08",
+        //                 "userCross" => "0.0",
+        //                 "userAdd" => "0.0",
+        //                 "exchange" => "90597185.23639999"
+        //             }
+        //         ),
+        //         "feeSchedule" => {
+        //             "cross" => "0.00035",
+        //             "add" => "0.0001",
+        //             "tiers" => {
+        //                 "vip" => array(
+        //                     array(
+        //                         "ntlCutoff" => "5000000.0",
+        //                         "cross" => "0.0003",
+        //                         "add" => "0.00005"
+        //                     }
+        //                 ),
+        //                 "mm" => array(
+        //                     array(
+        //                         "makerFractionCutoff" => "0.005",
+        //                         "add" => "-0.00001"
+        //                     }
+        //                 )
+        //             ),
+        //             "referralDiscount" => "0.04"
+        //         ),
+        //         "userCrossRate" => "0.00035",
+        //         "userAddRate" => "0.0001",
+        //         "activeReferralDiscount" => "0.0"
+        //     }
+        //
+        $symbol = $this->safe_symbol(null, $market);
+        return array(
+            'info' => $fee,
+            'symbol' => $symbol,
+            'maker' => $this->safe_number($fee, 'userAddRate'),
+            'taker' => $this->safe_number($fee, 'userCrossRate'),
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 

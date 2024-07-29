@@ -46,6 +46,7 @@ class okx extends okx$1 {
             },
             'options': {
                 'watchOrderBook': {
+                    'checksum': true,
                     //
                     // bbo-tbt
                     // 1. Newly added channel that sends tick-by-tick Level 1 data
@@ -93,7 +94,6 @@ class okx extends okx$1 {
                 'ws': {
                 // 'inflate': true,
                 },
-                'checksum': true,
             },
             'streaming': {
                 // okex does not support built-in ws protocol-level ping-pong
@@ -894,7 +894,7 @@ class okx extends okx$1 {
             this.handleDelta(bookside, deltas[i]);
         }
     }
-    handleOrderBookMessage(client, message, orderbook, messageHash) {
+    handleOrderBookMessage(client, message, orderbook, messageHash, market = undefined) {
         //
         //     {
         //         "asks": [
@@ -909,6 +909,9 @@ class okx extends okx$1 {
         //         ],
         //         "instId": "BTC-USDT",
         //         "ts": "1626537446491"
+        //         "checksum": -855196043,
+        //         "prevSeqId": 123456,
+        //         "seqId": 123457
         //     }
         //
         const asks = this.safeValue(message, 'asks', []);
@@ -918,9 +921,12 @@ class okx extends okx$1 {
         this.handleDeltas(storedAsks, asks);
         this.handleDeltas(storedBids, bids);
         const marketId = this.safeString(message, 'instId');
-        const symbol = this.safeSymbol(marketId);
-        const checksum = this.safeBool(this.options, 'checksum', true);
+        const symbol = this.safeSymbol(marketId, market);
+        const checksum = this.handleOption('watchOrderBook', 'checksum', true);
+        const seqId = this.safeInteger(message, 'seqId');
         if (checksum) {
+            const prevSeqId = this.safeInteger(message, 'prevSeqId');
+            const nonce = orderbook['nonce'];
             const asksLength = storedAsks.length;
             const bidsLength = storedBids.length;
             const payloadArray = [];
@@ -937,14 +943,21 @@ class okx extends okx$1 {
             const payload = payloadArray.join(':');
             const responseChecksum = this.safeInteger(message, 'checksum');
             const localChecksum = this.crc32(payload, true);
+            let error = undefined;
+            if (prevSeqId !== -1 && nonce !== prevSeqId) {
+                error = new errors.InvalidNonce(this.id + ' watchOrderBook received invalid nonce');
+            }
             if (responseChecksum !== localChecksum) {
-                const error = new errors.InvalidNonce(this.id + ' invalid checksum');
+                error = new errors.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
+            }
+            if (error !== undefined) {
                 delete client.subscriptions[messageHash];
                 delete this.orderbooks[symbol];
                 client.reject(error, messageHash);
             }
         }
         const timestamp = this.safeInteger(message, 'ts');
+        orderbook['nonce'] = seqId;
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601(timestamp);
         return orderbook;
@@ -1066,7 +1079,7 @@ class okx extends okx$1 {
                 const orderbook = this.orderbooks[symbol];
                 for (let i = 0; i < data.length; i++) {
                     const update = data[i];
-                    this.handleOrderBookMessage(client, update, orderbook, messageHash);
+                    this.handleOrderBookMessage(client, update, orderbook, messageHash, market);
                     client.resolve(orderbook, messageHash);
                 }
             }
@@ -1223,7 +1236,7 @@ class okx extends okx$1 {
          * @param {bool} [params.stop] true if fetching trigger or conditional trades
          * @param {string} [params.type] 'spot', 'swap', 'future', 'option', 'ANY', 'SPOT', 'MARGIN', 'SWAP', 'FUTURES' or 'OPTION'
          * @param {string} [params.marginMode] 'cross' or 'isolated', for automatically setting the type to spot margin
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         // By default, receive order updates from any instrument type
         let type = undefined;
@@ -1637,7 +1650,7 @@ class okx extends okx$1 {
         await this.loadMarkets();
         await this.authenticate();
         const url = this.getUrl('private', 'private');
-        const messageHash = this.nonce().toString();
+        const messageHash = this.milliseconds().toString();
         let op = undefined;
         [op, params] = this.handleOptionAndParams(params, 'createOrderWs', 'op', 'batch-orders');
         const args = this.createOrderRequest(symbol, type, side, amount, price, params);
@@ -1682,7 +1695,7 @@ class okx extends okx$1 {
         if (this.isEmpty(args)) {
             const method = this.safeString(message, 'op');
             const stringMsg = this.json(message);
-            this.handleErrors(undefined, undefined, client.url, method, undefined, stringMsg, stringMsg, undefined, undefined);
+            this.handleErrors(undefined, undefined, client.url, method, undefined, stringMsg, message, undefined, undefined);
         }
         const orders = this.parseOrders(args, undefined, undefined, undefined);
         const first = this.safeDict(orders, 0, {});
@@ -1707,7 +1720,7 @@ class okx extends okx$1 {
         await this.loadMarkets();
         await this.authenticate();
         const url = this.getUrl('private', 'private');
-        const messageHash = this.nonce().toString();
+        const messageHash = this.milliseconds().toString();
         let op = undefined;
         [op, params] = this.handleOptionAndParams(params, 'editOrderWs', 'op', 'amend-order');
         const args = this.editOrderRequest(id, symbol, type, side, amount, price, params);
@@ -1736,7 +1749,7 @@ class okx extends okx$1 {
         await this.loadMarkets();
         await this.authenticate();
         const url = this.getUrl('private', 'private');
-        const messageHash = this.nonce().toString();
+        const messageHash = this.milliseconds().toString();
         const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
         params = this.omit(params, ['clientOrderId', 'clOrdId']);
         const arg = {
@@ -1776,7 +1789,7 @@ class okx extends okx$1 {
         await this.loadMarkets();
         await this.authenticate();
         const url = this.getUrl('private', 'private');
-        const messageHash = this.nonce().toString();
+        const messageHash = this.milliseconds().toString();
         const args = [];
         for (let i = 0; i < idsLength; i++) {
             const arg = {
@@ -1812,7 +1825,7 @@ class okx extends okx$1 {
             throw new errors.BadRequest(this.id + 'cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.');
         }
         const url = this.getUrl('private', 'private');
-        const messageHash = this.nonce().toString();
+        const messageHash = this.milliseconds().toString();
         const request = {
             'id': messageHash,
             'op': 'mass-cancel',
@@ -1857,8 +1870,8 @@ class okx extends okx$1 {
         future.resolve(true);
     }
     ping(client) {
-        // okex does not support built-in ws protocol-level ping-pong
-        // instead it requires custom text-based ping-pong
+        // OKX does not support the built-in WebSocket protocol-level ping-pong.
+        // Instead, it requires a custom text-based ping-pong mechanism.
         return 'ping';
     }
     handlePong(client, message) {

@@ -26,7 +26,7 @@ process.on ('unhandledRejection', (e: any) => {
 const AuthenticationError = ccxt.AuthenticationError;
 const NotSupported = ccxt.NotSupported;
 const ExchangeError = ccxt.ExchangeError;
-const ProxyError = ccxt.ProxyError;
+const InvalidProxySettings = ccxt.InvalidProxySettings;
 const ExchangeNotAvailable = ccxt.ExchangeNotAvailable;
 const OperationFailed = ccxt.OperationFailed;
 const OnMaintenance = ccxt.OnMaintenance;
@@ -43,18 +43,23 @@ function selectArgv (argsArray, needle) {
     return foundArray.length ? foundArray[0] : undefined;
 }
 
-const argvExchange = filterArgvs (argv, '--', false)[0];
+const argvs_filtered = filterArgvs (argv, '--', false);
+const argvExchange = argvs_filtered[0];
 const argvSymbol   = selectArgv (argv, '/');
 const argvMethod   = selectArgv (argv, '()');
 // #################################################### //
 
 
 // non-transpiled part, but shared names among langs
+const fileParts = import.meta.url.split ('.');
+const ext = fileParts[fileParts.length - 1];
+
 function getCliArgValue (arg) {
     return process.argv.includes (arg) || false;
 }
 
 const proxyTestFileName = 'proxies';
+
 class baseMainTestClass {
     lang = 'JS';
     isSynchronous = false;
@@ -83,14 +88,10 @@ class baseMainTestClass {
     onlySpecificTests = [];
     envVars = process.env;
     proxyTestFileName = proxyTestFileName;
-    ext = import.meta.url.split ('.')[1];
+    ext = ext;
 }
-// const rootDir = DIR_NAME + '/../../../';
-// const rootDirForSkips = DIR_NAME + '/../../../';
-// const envVars = process.env;
+
 const LOG_CHARS_LENGTH = 10000;
-const parts = import.meta.url.split ('.');
-const ext = parts[parts.length - 1];
 
 function dump (...args) {
     console.log (...args);
@@ -125,6 +126,11 @@ function ioFileRead (path, decode = true) {
 function ioDirRead (path) {
     const files = fs.readdirSync (path);
     return files;
+}
+
+async function callMethodSync (testFiles, methodName, exchange, skippedProperties: object, args) {
+    // empty in js
+    return {};
 }
 
 async function callMethod (testFiles, methodName, exchange, skippedProperties: object, args) {
@@ -175,6 +181,11 @@ async function importTestFile (filePath) {
     return (await import (pathToFileURL (filePath + '.js') as any) as any)['default'];
 }
 
+function getTestFilesSync (properties, ws = false) {
+    // empty in js
+    return {};
+}
+
 async function getTestFiles (properties, ws = false) {
     const path = ws ? DIR_NAME + '../pro/test/' : DIR_NAME;
     // exchange tests
@@ -216,29 +227,27 @@ async function close (exchange: Exchange) {
 
 
 export {
-    DIR_NAME,
     // errors
     AuthenticationError,
     NotSupported,
     ExchangeError,
-    ProxyError,
+    InvalidProxySettings,
     ExchangeNotAvailable,
     OperationFailed,
     OnMaintenance,
     // shared
     getCliArgValue,
     //
-    proxyTestFileName,
     baseMainTestClass,
     dump,
     jsonParse,
     jsonStringify,
     convertAscii,
-    getTestName,
     ioFileExists,
     ioFileRead,
     ioDirRead,
     callMethod,
+    callMethodSync,
     callExchangeMethodDynamically,
     callExchangeMethodDynamicallySync,
     callOverridenMethod,
@@ -247,8 +256,8 @@ export {
     getExchangeProp,
     setExchangeProp,
     initExchange,
-    importTestFile,
     getTestFiles,
+    getTestFilesSync,
     setFetchResponse,
     isNullValue,
     close,

@@ -55,6 +55,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     public function public_get_mark_price_symbol_current($params = array()) {
         return $this->request('mark-price/{symbol}/current', 'public', 'GET', $params, null, null, array("cost" => 3));
     }
+    public function public_get_mark_price_all_symbols($params = array()) {
+        return $this->request('mark-price/all-symbols', 'public', 'GET', $params, null, null, array("cost" => 3));
+    }
     public function public_get_margin_config($params = array()) {
         return $this->request('margin/config', 'public', 'GET', $params, null, null, array("cost" => 25));
     }
@@ -261,6 +264,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     }
     public function private_get_broker_api_rebase_download($params = array()) {
         return $this->request('broker/api/rebase/download', 'private', 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function private_get_affiliate_inviter_statistics($params = array()) {
+        return $this->request('affiliate/inviter/statistics', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function private_post_sub_user_created($params = array()) {
         return $this->request('sub/user/created', 'private', 'POST', $params, null, null, array("cost" => 22.5));
@@ -751,6 +757,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     public function publicGetMarkPriceSymbolCurrent($params = array()) {
         return $this->request('mark-price/{symbol}/current', 'public', 'GET', $params, null, null, array("cost" => 3));
     }
+    public function publicGetMarkPriceAllSymbols($params = array()) {
+        return $this->request('mark-price/all-symbols', 'public', 'GET', $params, null, null, array("cost" => 3));
+    }
     public function publicGetMarginConfig($params = array()) {
         return $this->request('margin/config', 'public', 'GET', $params, null, null, array("cost" => 25));
     }
@@ -957,6 +966,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     }
     public function privateGetBrokerApiRebaseDownload($params = array()) {
         return $this->request('broker/api/rebase/download', 'private', 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function privateGetAffiliateInviterStatistics($params = array()) {
+        return $this->request('affiliate/inviter/statistics', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     public function privatePostSubUserCreated($params = array()) {
         return $this->request('sub/user/created', 'private', 'POST', $params, null, null, array("cost" => 22.5));

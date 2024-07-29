@@ -558,7 +558,7 @@ class yobit(Exchange, ImplicitAPI):
             ids = self.ids
         else:
             ids = self.market_ids(symbols)
-        idsLength = len(ids)
+        idsLength: number = len(ids)
         idsString = '-'.join(ids)
         maxLength = self.safe_integer(self.options, 'maxUrlLength', 2048)
         # max URL length is 2048 symbols, including http schema, hostname, tld, etc...

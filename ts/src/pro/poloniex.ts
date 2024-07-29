@@ -1271,7 +1271,7 @@ export default class poloniex extends poloniexRest {
         return message;
     }
 
-    ping (client) {
+    ping (client: Client) {
         return {
             'event': 'ping',
         };

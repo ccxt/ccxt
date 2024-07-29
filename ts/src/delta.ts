@@ -2032,7 +2032,11 @@ export default class delta extends Exchange {
         //         "success":true
         //     }
         //
-        return response;
+        return [
+            this.safeOrder ({
+                'info': response,
+            }),
+        ];
     }
 
     async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {

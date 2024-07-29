@@ -20,8 +20,7 @@ Current feature list:
 
 
 ## Sponsored Promotion
-
-[![Trade derivatives in June with BitMEX](https://github.com/ccxt/ccxt/assets/1294454/94c3d456-fdf5-4d62-8178-a42e3999e29e)](https://www.bitmex.com/app/register/NZTR1q)
+[![bingx-campaign](https://github.com/user-attachments/assets/374fd5de-7d70-4281-85aa-d827afeb7270)](https://bingx.com/en/act/contestNew/7947320527/)
 
 ## See Also
 
@@ -159,7 +158,7 @@ The CCXT library currently supports the following 101 cryptocurrency exchange ma
 | [![whitebit](https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg)](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)                        | whitebit              | [WhiteBit](https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963)                        | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://github.com/whitebit-exchange/api-docs)                                      | cex  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![woo](https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg)](https://x.woo.org/register?ref=YWOWC96B)                                                       | woo                   | [WOO X](https://x.woo.org/register?ref=YWOWC96B)                                                      | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://docs.woo.org/)                                                              | cex  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![woofipro](https://github.com/ccxt/ccxt/assets/43336371/b1e7b348-a0fc-4605-8b7f-91176958fd69)](https://dex.woo.org/en/trade?ref=CCXT)                                                                       | woofipro              | [WOOFI PRO](https://dex.woo.org/en/trade?ref=CCXT)                                                    | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://orderly.network/docs/build-on-evm/building-on-evm)                          | dex  | [![CCXT Certified](https://img.shields.io/badge/CCXT-Certified-green.svg)](https://github.com/ccxt/ccxt/wiki/Certification) | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
-| [![xt](https://user-images.githubusercontent.com/14319357/232636712-466df2fc-560a-4ca4-aab2-b1d954a58e24.jpg)](https://www.xt.com/en/accounts/register?ref=9PTM9VW)                                           | xt                    | [XT](https://www.xt.com/en/accounts/register?ref=9PTM9VW)                                             | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://doc.xt.com/)                                                                | cex  |                                                                                                                             |                                                                              |
+| [![xt](https://user-images.githubusercontent.com/14319357/232636712-466df2fc-560a-4ca4-aab2-b1d954a58e24.jpg)](https://www.xt.com/en/accounts/register?ref=9PTM9VW)                                           | xt                    | [XT](https://www.xt.com/en/accounts/register?ref=9PTM9VW)                                             | [![API Version 4](https://img.shields.io/badge/4-lightgray)](https://doc.xt.com/)                                                                | cex  |                                                                                                                             | [![CCXT Pro](https://img.shields.io/badge/CCXT-Pro-black)](https://ccxt.pro) |
 | [![yobit](https://user-images.githubusercontent.com/1294454/27766910-cdcbfdae-5eea-11e7-9859-03fea873272d.jpg)](https://www.yobit.net)                                                                        | yobit                 | [YoBit](https://www.yobit.net)                                                                        | [![API Version 3](https://img.shields.io/badge/3-lightgray)](https://www.yobit.net/en/api/)                                                      | cex  |                                                                                                                             |                                                                              |
 | [![zaif](https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg)](https://zaif.jp)                                                                               | zaif                  | [Zaif](https://zaif.jp)                                                                               | [![API Version 1](https://img.shields.io/badge/1-lightgray)](https://techbureau-api-document.readthedocs.io/ja/latest/index.html)                | cex  |                                                                                                                             |                                                                              |
 | [![zonda](https://user-images.githubusercontent.com/1294454/159202310-a0e38007-5e7c-4ba9-a32f-c8263a0291fe.jpg)](https://auth.zondaglobal.com/ref/jHlbB4mIkdS1)                                               | zonda                 | [Zonda](https://auth.zondaglobal.com/ref/jHlbB4mIkdS1)                                                | [![API Version *](https://img.shields.io/badge/*-lightgray)](https://docs.zondacrypto.exchange/)                                                 | cex  |                                                                                                                             |                                                                              |
@@ -220,13 +219,13 @@ console.log(version, Object.keys(exchanges));
 
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
-* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.3.55/dist/ccxt.browser.min.js
-* unpkg: https://unpkg.com/ccxt@4.3.55/dist/ccxt.browser.min.js
+* jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@4.3.68/dist/ccxt.browser.min.js
+* unpkg: https://unpkg.com/ccxt@4.3.68/dist/ccxt.browser.min.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 ```HTML
-<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.3.55/dist/ccxt.browser.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@4.3.68/dist/ccxt.browser.min.js"></script>
 ```
 
 Creates a global `ccxt` object:
