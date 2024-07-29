@@ -766,7 +766,7 @@ export default class paradex extends Exchange {
         const timestamp = this.safeInteger (trade, 'created_at');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'size');
-        const side = this.safeString (trade, 'side');
+        const side = this.safeStringLower (trade, 'side');
         const liability = this.safeStringLower (trade, 'liquidity', 'taker');
         const isTaker = liability === 'taker';
         const takerOrMaker = (isTaker) ? 'taker' : 'maker';
