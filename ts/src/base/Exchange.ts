@@ -106,7 +106,6 @@ import type {
     TradingFeeInterface,
     TradingFees,
     Transaction,
-    TransferEntries,
     TransferEntry,
 } from './types.js';
 // ----------------------------------------------------------------------------
@@ -4186,7 +4185,7 @@ export default class Exchange {
         return this.filterByCurrencySinceLimit (result, code, since, limit);
     }
 
-    parseTransfers (transfers: any[], currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): TransferEntries {
+    parseTransfers (transfers: any[], currency: Currency = undefined, since: Int = undefined, limit: Int = undefined, params = {}): TransferEntry[] {
         transfers = this.toArray (transfers);
         let result = [];
         for (let i = 0; i < transfers.length; i++) {
@@ -7131,7 +7130,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchTransfer () is not supported yet');
     }
 
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntries> {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         /**
          * @method
          * @name exchange#fetchTransfer
