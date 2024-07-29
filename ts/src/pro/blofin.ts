@@ -565,7 +565,7 @@ export default class blofin extends blofinRest {
         }
         let rawSubscriptions = [];
         const messageHashes = [];
-        const symbolsLength = symbolsArray.length;
+        const symbolsLength = (symbolsArray !== undefined) ? symbolsArray.length : 0;
         if (symbolsLength > 0) {
             for (let i = 0; i < symbolsArray.length; i++) {
                 const current = symbolsArray[i];
