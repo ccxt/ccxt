@@ -5,7 +5,7 @@ import Exchange from './abstract/hashkey.js';
 import { ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Bool, Currencies, Currency, Dict, LastPrice, LastPrices, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Dict, LastPrice, LastPrices, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -183,7 +183,7 @@ export default class hashkey extends Exchange {
                         'api/v1/account/vipInfo': 1,
                         'api/v1/account': 1, // done
                         'api/v1/account/trades': 1,
-                        'api/v1/account/type': 1,
+                        'api/v1/account/type': 5, // done
                         'api/v1/account/checkApiKey': 1,
                         'api/v1/account/balanceFlow': 1,
                         'api/v1/spot/subAccount/openOrders': 1,
@@ -1526,6 +1526,50 @@ export default class hashkey extends Exchange {
             'successful': 'ok',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    async fetchAccounts (params = {}): Promise<Account[]> {
+        /**
+         * @method
+         * @name hashkey#fetchAccounts
+         * @description fetch subaccounts associated with a profile
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/query-sub-account
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
+         */
+        await this.loadMarkets ();
+        const response = await this.privateGetApiV1AccountType (params);
+        //
+        //     [
+        //         {
+        //             "accountId": "1732885739589466112",
+        //             "accountLabel": "Main Trading Account",
+        //             "accountType": 1,
+        //             "accountIndex": 0
+        //         },
+        //         ...
+        //     ]
+        //
+        return this.parseAccounts (response, params);
+    }
+
+    parseAccount (account) {
+        return {
+            'id': this.safeString (account, 'accountId'),
+            'type': this.parseAccountType (this.safeString (account, 'accountType')),
+            'code': undefined,
+            'info': account,
+        };
+    }
+
+    parseAccountType (type) {
+        const types: Dict = {
+            '1': 'spot',
+            '3': 'swap',
+            '5': 'custody',
+            '6': 'fiat',
+        };
+        return this.safeString (types, type, type);
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
