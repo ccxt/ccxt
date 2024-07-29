@@ -302,7 +302,7 @@ public partial class testMainClass : BaseTest
         return e.Message;
     }
 
-    public string getRootException(Exception exc)
+    public Exception getRootException(Exception exc)
     {
         if (exc is System.AggregateException)
         {
