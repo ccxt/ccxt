@@ -125,7 +125,7 @@ export default class paradex extends Exchange {
             },
             'hostname': 'paradex.trade',
             'urls': {
-                'logo': 'https://x.com/tradeparadex/photo',
+                'logo': 'https://github.com/user-attachments/assets/5dadc09a-74ba-466a-a8f2-3f55c7e4654a',
                 'api': {
                     'v1': 'https://api.prod.{hostname}/v1',
                 },
