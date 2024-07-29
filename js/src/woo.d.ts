@@ -1,5 +1,5 @@
 import Exchange from './abstract/woo.js';
-import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, TransferEntries, int, FundingHistory } from './base/types.js';
+import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory } from './base/types.js';
 /**
  * @class woo
  * @augments Exchange
@@ -87,7 +87,7 @@ export default class woo extends Exchange {
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionStatus(status: Str): string;
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
-    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntries>;
+    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
     parseTransfer(transfer: Dict, currency?: Currency): TransferEntry;
     parseTransferStatus(status: Str): Str;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;

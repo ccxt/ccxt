@@ -820,7 +820,6 @@ class Transpiler {
             'TradingFees': /-> TradingFees:/,
             'Transaction': /-> (?:List\[)?Transaction/,
             'TransferEntry': /-> TransferEntry:/,
-            'TransferEntries': /-> TransferEntries:/,
         }
         const matches = []
         let match

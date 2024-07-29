@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.okx import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import Account, Balances, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, Greeks, Int, Leverage, LeverageTier, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, TransferEntries
+from ccxt.base.types import Account, Balances, Conversion, CrossBorrowRate, CrossBorrowRates, Currencies, Currency, Greeks, Int, Leverage, LeverageTier, MarginModification, Market, MarketInterface, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from typing import Any
 from ccxt.base.errors import ExchangeError
@@ -5524,7 +5524,7 @@ class okx(Exchange, ImplicitAPI):
         transfer = self.safe_dict(data, 0)
         return self.parse_transfer(transfer)
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
         :see: https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-bills-details-last-3-months
