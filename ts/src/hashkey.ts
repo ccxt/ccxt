@@ -5,7 +5,7 @@ import Exchange from './abstract/hashkey.js';
 import { ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Account, Balances, Bool, Currencies, Currency, Dict, LastPrice, LastPrices, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction, int } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Dict, LastPrice, LastPrices, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction, TransferEntry } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -110,7 +110,7 @@ export default class hashkey extends Exchange {
                 'setLeverage': false,
                 'setMargin': false,
                 'setPositionMode': false,
-                'transfer': false,
+                'transfer': true,
                 'withdraw': false,
             },
             'timeframes': {
@@ -206,7 +206,7 @@ export default class hashkey extends Exchange {
                         'api/v1/futures/order': 1,
                         'api/v1/futures/position/trading-stop': 1,
                         'api/v1/futures/batchOrders': 1,
-                        'api/v1/account/assetTransfer': 1,
+                        'api/v1/account/assetTransfer': 1, // done
                         'api/v1/account/authAddress': 1,
                         'api/v1/account/withdraw': 1,
                     },
@@ -1650,6 +1650,74 @@ export default class hashkey extends Exchange {
             '9': 'failed',
             '10': 'failed',
             'successful': 'ok',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    async transfer (code: string, amount: number, fromAccount: string, toAccount:string, params = {}): Promise<TransferEntry> {
+        /**
+         * @method
+         * @name hashkey#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/new-account-transfer
+         * @param {string} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {string} fromAccount account id to transfer from
+         * @param {string} toAccount account id to transfer to
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.clientOrderId] a unique id for the transfer
+         * @param {string} [params.remark] a note for the transfer
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request: Dict = {
+            'coin': currency['id'],
+            'quantity': this.currencyToPrecision (code, amount),
+            'fromAccountId': fromAccount,
+            'toAccountId': toAccount,
+        };
+        let clientOrderId: Str = undefined;
+        [ clientOrderId, params ] = this.handleOptionAndParams (params, 'transfer', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientOrderId'] = clientOrderId;
+        }
+        let remark: Str = undefined;
+        [ remark, params ] = this.handleOptionAndParams (params, 'transfer', 'remark');
+        if (remark !== undefined) {
+            request['remark'] = remark;
+        }
+        const response = await this.privatePostApiV1AccountAssetTransfer (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "timestamp": 1722260230773,
+        //         "clientOrderId": "",
+        //         "orderId": "1740839420695806720"
+        //     }
+        //
+        return this.parseTransfer (response, currency);
+    }
+
+    parseTransfer (transfer, currency: Currency = undefined) {
+        const timestamp = this.safeInteger (transfer, 'timestamp');
+        const currencyId = this.safeString (currency, 'id');
+        return {
+            'id': this.safeString (transfer, 'orderId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': undefined,
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': this.parseTransferStatus (this.safeString (transfer, 'success')),
+            'info': transfer,
+        };
+    }
+
+    parseTransferStatus (status) {
+        const statuses: Dict = {
+            'true': 'ok',
         };
         return this.safeString (statuses, status, status);
     }
