@@ -218,7 +218,7 @@ def exception_message(exc):
     return message
 
 # stub for c#
-def getRootException(exc):
+def get_root_exception(exc):
     return exc
 
 def exit_script(code=0):
