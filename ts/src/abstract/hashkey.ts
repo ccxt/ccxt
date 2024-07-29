@@ -40,7 +40,7 @@ interface Exchange {
     privateGetApiV1AccountVipInfo (params?: {}): Promise<implicitReturnType>;
     privateGetApiV1Account (params?: {}): Promise<implicitReturnType>;
     privateGetApiV1AccountTrades (params?: {}): Promise<implicitReturnType>;
-    privateGetApiV1AccountTypes (params?: {}): Promise<implicitReturnType>;
+    privateGetApiV1AccountType (params?: {}): Promise<implicitReturnType>;
     privateGetApiV1AccountCheckApiKey (params?: {}): Promise<implicitReturnType>;
     privateGetApiV1AccountBalanceFlow (params?: {}): Promise<implicitReturnType>;
     privateGetApiV1SpotSubAccountOpenOrders (params?: {}): Promise<implicitReturnType>;
