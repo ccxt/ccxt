@@ -251,7 +251,9 @@ export default class paradex extends paradexRest {
         }
         const newTickers = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
         if (this.newUpdates) {
-            return newTickers;
+            const result: Dict = {};
+            result[newTickers['symbol']] = newTickers;
+            return result;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
