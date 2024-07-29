@@ -5,7 +5,7 @@ import Exchange from './abstract/hashkey.js';
 import { ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Account, Balances, Bool, Currencies, Currency, Dict, LastPrice, LastPrices, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction, TransferEntry } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -71,7 +71,7 @@ export default class hashkey extends Exchange {
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': true,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': false,
@@ -158,6 +158,11 @@ export default class hashkey extends Exchange {
                         'quote/v1/depth/merged': 1,
                         'quote/v1/markPrice': 1,
                         'quote/v1/index': 1,
+                        'api/v1/futures/fundingRate': 1, // done
+                        'api/v1/futures/historyFundingRate': 1, // done
+                        'api/v1/futures/riskLimit': 1,
+                        'api/v1/futures/commissionRate': 1,
+                        'api/v1/futures/getBestOrders': 1,
                         'api/v1/ping': 1,
                         'api/v1/time': 5, // done
                     },
@@ -175,11 +180,6 @@ export default class hashkey extends Exchange {
                         'api/v1/futures/historyOrders': 1,
                         'api/v1/futures/balance': 1,
                         'api/v1/futures/liquidationAssignStatus': 1,
-                        'api/v1/futures/fundingRate': 1, // done
-                        'api/v1/futures/historyFundingRate': 1,
-                        'api/v1/futures/riskLimit': 1,
-                        'api/v1/futures/commissionRate': 1,
-                        'api/v1/futures/getBestOrders': 1,
                         'api/v1/account/vipInfo': 1,
                         'api/v1/account': 1, // done
                         'api/v1/account/trades': 5, // done
@@ -301,6 +301,7 @@ export default class hashkey extends Exchange {
                     // {"code":"-1141","msg":"Duplicate order"} duplicated clientOrderId
                     // {"code":"0001","msg":"Required field symbol missing or invalid"}
                     // {"code":-100010,"msg":"Invalid Symbols!"}
+                    // {"code":"-1004","msg":"Bad request"}
                 },
                 'broad': {
                 },
@@ -1109,6 +1110,7 @@ export default class hashkey extends Exchange {
             'cost': undefined,
             'takerOrMaker': takerOrMaker,
             'type': undefined,
+            'order': undefined,
             'fee': fee,
             'info': trade,
         }, market);
@@ -2439,10 +2441,9 @@ export default class hashkey extends Exchange {
     async fetchFundingRates (symbols: Strings = undefined, params = {}) {
         /**
          * @method
-         * @name binance#fetchFundingRates
+         * @name hashkey#fetchFundingRates
          * @description fetch the funding rate for multiple markets
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
-         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-and-Mark-Price
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.symbol] the market id to fetch funding rate for
@@ -2451,13 +2452,15 @@ export default class hashkey extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         let market: Market = undefined;
-        const request: Dict = {};
+        const request: Dict = {
+            'timestamp': this.milliseconds (), // todo the exchange accepts any integer
+        };
         if ((symbols !== undefined) && (symbols.length < 2)) { // the exchange could return info about all markets or for one symbol
             const symbol = symbols[0];
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const response = await this.privateGetApiV1FuturesFundingRate (this.extend (request, params));
+        const response = await this.publicGetApiV1FuturesFundingRate (this.extend (request, params));
         //
         //     [
         //         { "symbol": "BTCUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000" },
@@ -2500,6 +2503,70 @@ export default class hashkey extends Exchange {
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
         };
+    }
+
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name hashkey#fetchFundingRateHistory
+         * @description fetches historical funding rate prices
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-history-funding-rate
+         * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure} to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.fromId] the id of the entry to start from
+         * @param {int} [params.endId] the id of the entry to end with
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+         */
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let fromId: Int = undefined;
+        [ fromId, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'fromId');
+        if (fromId !== undefined) {
+            request['fromId'] = fromId;
+        }
+        let endId: Int = undefined;
+        [ endId, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'endId');
+        if (endId !== undefined) {
+            request['endId'] = endId;
+        }
+        // todo timestamp is not mandatory
+        const response = await this.publicGetApiV1FuturesHistoryFundingRate (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id": "10698",
+        //             "symbol": "ETHUSDT-PERPETUAL",
+        //             "settleTime": "1722268800000",
+        //             "settleRate": "0.0001"
+        //         },
+        //         ...
+        //     ]
+        //
+        const rates = [];
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const timestamp = this.safeInteger (entry, 'settleTime');
+            rates.push ({
+                'info': entry,
+                'symbol': this.safeSymbol (this.safeString (entry, 'symbol'), market, undefined, 'swap'),
+                'fundingRate': this.safeNumber (entry, 'settleRate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySinceLimit (sorted, since, limit) as FundingRateHistory[];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
