@@ -565,10 +565,13 @@ export default class blofin extends blofinRest {
         }
         let rawSubscriptions = [];
         const messageHashes = [];
-        const symbolsLength = (symbolsArray !== undefined) ? symbolsArray.length : 0;
+        if (symbols === undefined) {
+            symbols = [];
+        }
+        const symbolsLength = symbols.length;
         if (symbolsLength > 0) {
-            for (let i = 0; i < symbolsArray.length; i++) {
-                const current = symbolsArray[i];
+            for (let i = 0; i < symbols.length; i++) {
+                const current = symbols[i];
                 let market = undefined;
                 let channel = channelName;
                 if (isOHLCV) {
