@@ -235,7 +235,7 @@
                 "description": "fetchLiquidations",
                 "method": "fetchLiquidations",
                 "url": "https://api.testnet.paradex.trade/v1/liquidations?from=1",
-                "input": []
+                "input": ["SOL/USD:USDC"]
             }
         ],
         "fetchDeposits": [

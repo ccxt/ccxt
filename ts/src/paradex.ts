@@ -1759,6 +1759,7 @@ export default class paradex extends Exchange {
         } else {
             request['from'] = 1;
         }
+        const market = this.market (symbol);
         [ request, params ] = this.handleUntilOption ('to', request, params);
         const response = await this.privateGetLiquidations (this.extend (request, params));
         //
@@ -1772,7 +1773,7 @@ export default class paradex extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'results', []);
-        return this.parseLiquidations (data, undefined, since, limit);
+        return this.parseLiquidations (data, market, since, limit);
     }
 
     parseLiquidation (liquidation, market: Market = undefined) {
