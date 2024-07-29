@@ -1652,7 +1652,7 @@ export default class Exchange {
             'alias': false, // whether this exchange is an alias to another exchange
             'api': undefined,
             'certified': false, // if certified by the CCXT dev team
-            'commonCurrencies': { // gets extended/overwritten in subclasses
+            'commonCurrencies': {
                 'BCC': 'BCH',
                 'BCHSV': 'BSV',
                 'XBT': 'BTC',
@@ -1950,8 +1950,8 @@ export default class Exchange {
                 'updated': undefined,
                 'url': undefined,
             },
-            'timeout': this.timeout, // milliseconds = seconds * 1000
             'timeframes': undefined, // redefine if the exchange has.fetchOHLCV
+            'timeout': this.timeout, // milliseconds = seconds * 1000
             'urls': {
                 'api': undefined,
                 'doc': undefined,
@@ -1960,7 +1960,7 @@ export default class Exchange {
                 'www': undefined,
             },
         };
-    };
+    }
 
     safeBoolN (dictionaryOrList, keys: IndexType[], defaultValue: boolean = undefined): boolean | undefined {
         /**
