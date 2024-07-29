@@ -160,9 +160,6 @@ export default class hashkey extends Exchange {
                         'quote/v1/index': 1,
                         'api/v1/futures/fundingRate': 1, // done
                         'api/v1/futures/historyFundingRate': 1, // done
-                        'api/v1/futures/riskLimit': 1,
-                        'api/v1/futures/commissionRate': 1,
-                        'api/v1/futures/getBestOrders': 1,
                         'api/v1/ping': 1,
                         'api/v1/time': 5, // done
                     },
@@ -180,6 +177,9 @@ export default class hashkey extends Exchange {
                         'api/v1/futures/historyOrders': 1,
                         'api/v1/futures/balance': 1,
                         'api/v1/futures/liquidationAssignStatus': 1,
+                        'api/v1/futures/riskLimit': 1,
+                        'api/v1/futures/commissionRate': 1,
+                        'api/v1/futures/getBestOrder': 1,
                         'api/v1/account/vipInfo': 1,
                         'api/v1/account': 1, // done
                         'api/v1/account/trades': 5, // done
@@ -302,6 +302,7 @@ export default class hashkey extends Exchange {
                     // {"code":"0001","msg":"Required field symbol missing or invalid"}
                     // {"code":-100010,"msg":"Invalid Symbols!"}
                     // {"code":"-1004","msg":"Bad request"}
+                    // {"code":"-1002","msg":"Unauthorized operation"}
                 },
                 'broad': {
                 },
