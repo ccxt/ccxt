@@ -3603,3 +3603,12 @@ class Exchange(object):
         if should_omit:
             params = self.omit(params, ['stop', 'type'])
         return params, isStop or order_type == 'stop'
+
+    def parse_funding_rate_histories(self, response, market=None, since=None, limit=None):
+        rates = []
+        for i in range(0, len(response)):
+            entry = response[i]
+            rates.append(self.parse_funding_rate_history(entry, market))
+        sorted = self.sort_by(rates, 'timestamp')
+        symbol = None if (market is None) else market['symbol']
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)

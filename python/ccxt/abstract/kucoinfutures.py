@@ -164,3 +164,4 @@ class ImplicitAPI:
     futuresprivate_delete_orders = futuresPrivateDeleteOrders = Entry('orders', 'futuresPrivate', 'DELETE', {'cost': 4.44})
     futuresprivate_delete_stoporders = futuresPrivateDeleteStopOrders = Entry('stopOrders', 'futuresPrivate', 'DELETE', {'cost': 1})
     webfront_get_contract_symbol_funding_rates = webFrontGetContractSymbolFundingRates = Entry('contract/{symbol}/funding-rates', 'webFront', 'GET', {'cost': 1})
+    futurespublic_get_contract_funding_rates = futuresPublicGetContractFundingRates = Entry('contract/funding-rates', 'futuresPublic', 'GET', {'cost': 7.5})
