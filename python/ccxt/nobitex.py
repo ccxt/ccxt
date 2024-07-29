@@ -146,26 +146,27 @@ class nobitex(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(marketKeys)):
             symbol = marketKeys[i]
+            if markets[symbol]['isClosed']:
+                continue
             markets[symbol]['symbol'] = symbol
             market = self.parse_market(markets[symbol])
             result.append(market)
         return result
 
     def parse_market(self, market) -> Market:
-        #        {
-        # symbol: btc-usdt
+        #        btc-rls: {
         # isClosed: False,
-        # bestSell: "39659550020",
-        # bestBuy: "39650000000",
-        # volumeSrc: "11.6924501388",
-        # volumeDst: "464510376461.05263193275",
-        # latest: "39659550020",
-        # mark: "39817678220",
-        # dayLow: "38539978000",
-        # dayHigh: "40809999990",
-        # dayOpen: "38553149810",
-        # dayClose: "39659550020",
-        # dayChange: "2.87"
+        # bestSell: "38820000000",
+        # bestBuy: "38819999960",
+        # volumeSrc: "4.429488914925",
+        # volumeDst: "171731356314.98355049425",
+        # latest: "38819999960",
+        # mark: "38883424370",
+        # dayLow: "38380000000",
+        # dayHigh: "39100000000",
+        # dayOpen: "38800000000",
+        # dayClose: "38819999960",
+        # dayChange: "0.05"
         # },
         symbol = self.safe_string_upper(market, 'symbol')
         id = symbol.replace('-', '')
@@ -245,6 +246,8 @@ class nobitex(Exchange, ImplicitAPI):
         result = []
         for i in range(0, len(marketKeys)):
             symbol = marketKeys[i]
+            if markets[symbol]['isClosed']:
+                continue
             markets[symbol]['symbol'] = symbol
             ticker = self.parse_ticker(markets[symbol])
             symbol = ticker['symbol']
