@@ -517,7 +517,6 @@ Currencies = Dict[Str, CurrencyInterface]
 TradingFees = Dict[Str, TradingFeeInterface]
 IsolatedBorrowRates = Dict[Str, IsolatedBorrowRate]
 CrossBorrowRates = Dict[Str, CrossBorrowRate]
-TransferEntries = List[TransferEntry]
 LeverageTiers = Dict[Str, List[LeverageTier]]
 
 Market = Optional[MarketInterface]
