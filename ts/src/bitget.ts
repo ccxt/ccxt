@@ -5133,8 +5133,10 @@ export default class bitget extends Exchange {
             response = JSON.parse (response);
         }
         const data = this.safeDict (response, 'data');
-        if ((data !== undefined) && !Array.isArray (data)) {
-            return this.parseOrder (data, market);
+        if ((data !== undefined)) {
+            if (!Array.isArray (data)) {
+                return this.parseOrder (data, market);
+            }
         }
         const dataList = this.safeList (response, 'data', []);
         const first = this.safeDict (dataList, 0, {});
