@@ -5,7 +5,7 @@ import Exchange from './abstract/hashkey.js';
 import { ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Account, Balances, Bool, Currencies, Currency, Dict, LastPrice, LastPrices, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Dict, LastPrice, LastPrices, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction, int } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -80,7 +80,7 @@ export default class hashkey extends Exchange {
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
@@ -182,7 +182,7 @@ export default class hashkey extends Exchange {
                         'api/v1/futures/getBestOrders': 1,
                         'api/v1/account/vipInfo': 1,
                         'api/v1/account': 1, // done
-                        'api/v1/account/trades': 1,
+                        'api/v1/account/trades': 5, // done
                         'api/v1/account/type': 5, // done
                         'api/v1/account/checkApiKey': 1,
                         'api/v1/account/balanceFlow': 1,
@@ -955,6 +955,94 @@ export default class hashkey extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name hashkey#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-account-trade-list
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum amount of trades to fetch (default 200, max 500)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch trades for, only supports the last 30 days timeframe
+         * @param {string} [params.clientOrderId] filter trades by orderId
+         * @param {int} [params.fromId] srarting trade id
+         * @param {int} [params.toId] ending trade id
+         * @param {int} [params.accountId] filter trades by account id
+         * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
+         */
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+            params = this.omit (params, 'until');
+        }
+        let clientOrderId: Str = undefined;
+        [ clientOrderId, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientOrderId'] = clientOrderId;
+        }
+        let fromId: Int = undefined;
+        [ fromId, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'fromId');
+        if (fromId !== undefined) {
+            request['fromId'] = clientOrderId;
+        }
+        let toId: Int = undefined;
+        [ toId, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'toId');
+        if (toId !== undefined) {
+            request['toId'] = clientOrderId;
+        }
+        let accountId: Int = undefined;
+        [ accountId, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'accountId');
+        if (accountId !== undefined) {
+            request['accountId'] = clientOrderId;
+        }
+        const response = await this.privateGetApiV1AccountTrades (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id": "1739352552862964736",
+        //             "clientOrderId": "1722082982086472",
+        //             "ticketId": "1739352552795029504",
+        //             "symbol": "ETHUSDT",
+        //             "symbolName": "ETHUSDT",
+        //             "orderId": "1739352552762301440",
+        //             "matchOrderId": "0",
+        //             "price": "3289.96",
+        //             "qty": "0.001",
+        //             "commission": "0.0000012",
+        //             "commissionAsset": "ETH",
+        //             "time": "1722082982097",
+        //             "isBuyer": true,
+        //             "isMaker": false,
+        //             "fee": {
+        //                 "feeCoinId": "ETH",
+        //                 "feeCoinName": "ETH",
+        //                 "fee": "0.0000012"
+        //             },
+        //             "feeCoinId": "ETH",
+        //             "feeAmount": "0.0000012",
+        //             "makerRebate": "0"
+        //         },
+        //         ...
+        //     ]
+        //
+        return this.parseTrades (response, market, since, limit);
+    }
+
     parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades
@@ -966,23 +1054,61 @@ export default class hashkey extends Exchange {
         //         "ibm": true
         //     }
         //
-        const timestamp = this.safeInteger (trade, 't');
+        // fetchMyTrades
+        //
+        //     {
+        //         "id": "1739352552862964736",
+        //         "clientOrderId": "1722082982086472",
+        //         "ticketId": "1739352552795029504",
+        //         "symbol": "ETHUSDT",
+        //         "symbolName": "ETHUSDT",
+        //         "orderId": "1739352552762301440",
+        //         "matchOrderId": "0",
+        //         "price": "3289.96",
+        //         "qty": "0.001",
+        //         "commission": "0.0000012",
+        //         "commissionAsset": "ETH",
+        //         "time": "1722082982097",
+        //         "isBuyer": true,
+        //         "isMaker": false,
+        //         "fee": {
+        //             "feeCoinId": "ETH",
+        //             "feeCoinName": "ETH",
+        //             "fee": "0.0000012"
+        //         },
+        //         "feeCoinId": "ETH",
+        //         "feeAmount": "0.0000012",
+        //         "makerRebate": "0"
+        //     }
+        //
+        const id = this.safeString (trade, 'id');
+        const timestamp = this.safeInteger2 (trade, 't', 'time');
         const symbol = this.safeString (market, 'symbol');
-        const price = this.safeString (trade, 'p');
-        const amount = this.safeString (trade, 'q');
+        const price = this.safeString2 (trade, 'p', 'price');
+        const amount = this.safeString2 (trade, 'q', 'qty');
+        let side = undefined;
+        const isBuyer = this.safeBool (trade, 'isBuyer');
+        side = isBuyer ? 'buy' : 'sell';
+        let takerOrMaker = undefined;
+        const isMaker = this.safeBool (trade, 'isMaker');
+        takerOrMaker = isMaker ? 'maker' : 'taker';
+        const feeInfo = this.safeDict (trade, 'fee', {});
+        const fee = {
+            'cost': this.safeString (feeInfo, 'fee'),
+            'currency': this.safeCurrencyCode (this.safeString (feeInfo, 'feeCoinId')),
+        };
         return this.safeTrade ({
-            'id': undefined,
+            'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
-            'side': undefined,
+            'side': side,
             'price': price,
             'amount': amount,
             'cost': undefined,
-            'order': undefined,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'type': undefined,
-            'fee': undefined,
+            'fee': fee,
             'info': trade,
         }, market);
     }
