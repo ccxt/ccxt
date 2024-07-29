@@ -11,13 +11,13 @@ class Helper
 {
     public static Dictionary<string, object> GetInfo(object data2)
     {
-        var data = (Dictionary<string, object>)data2;
+        var data = (IDictionary<string, object>)data2;
         if (data.ContainsKey("info"))
         {
             var info = data["info"];
             if (info is IDictionary<string, object>)
             {
-                return (Dictionary<string, object>)info;
+                return new Dictionary<string, object>(data);
             }
             else if (info is IList<object>)
             {

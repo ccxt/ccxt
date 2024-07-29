@@ -3092,7 +3092,7 @@ public partial class binance : Exchange
             linear = isEqual(settle, quote);
             inverse = isEqual(settle, bs);
             object feesType = ((bool) isTrue(linear)) ? "linear" : "inverse";
-            fees = this.safeDict(this.fees, feesType, new Dictionary<string, object>() {});
+            fees = ((object)this.safeDict(this.fees, feesType, new Dictionary<string, object>() {}));
         }
         object active = (isEqual(status, "TRADING"));
         if (isTrue(spot))

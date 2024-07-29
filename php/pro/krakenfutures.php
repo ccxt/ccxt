@@ -82,17 +82,17 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             $url = $this->urls['api']['ws'];
             $messageHash = 'challenge';
             $client = $this->client($url);
-            $future = $this->safe_value($client->subscriptions, $messageHash);
-            if ($future === null) {
+            $future = $client->future ($messageHash);
+            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+            if ($authenticated === null) {
                 $request = array(
                     'event' => 'challenge',
                     'api_key' => $this->apiKey,
                 );
                 $message = $this->extend($request, $params);
-                $future = Async\await($this->watch($url, $messageHash, $message, $messageHash));
-                $client->subscriptions[$messageHash] = $future;
+                $this->watch($url, $messageHash, $message, $messageHash);
             }
-            return $future;
+            return Async\await($future);
         }) ();
     }
 
@@ -1607,7 +1607,8 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             $signature = $this->hmac($hashedChallenge, $base64Secret, 'sha512', 'base64');
             $this->options['challenge'] = $challenge;
             $this->options['signedChallenge'] = $signature;
-            $client->resolve ($message, $messageHash);
+            $future = $this->safe_value($client->futures, $messageHash);
+            $future->resolve (true);
         } else {
             $error = new AuthenticationError ($this->id . ' ' . $this->json($message));
             $client->reject ($error, $messageHash);

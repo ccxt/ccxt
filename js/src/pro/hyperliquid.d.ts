@@ -19,7 +19,7 @@ export default class hyperliquid extends hyperliquidRest {
     handleOrder(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): boolean;
     handleMessage(client: Client, message: any): void;
-    ping(client: any): {
+    ping(client: Client): {
         method: string;
     };
     handlePong(client: Client, message: any): any;

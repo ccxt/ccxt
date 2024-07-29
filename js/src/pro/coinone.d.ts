@@ -14,7 +14,7 @@ export default class coinone extends coinoneRest {
     parseWsTrade(trade: Dict, market?: Market): Trade;
     handleErrorMessage(client: Client, message: any): boolean;
     handleMessage(client: Client, message: any): void;
-    ping(client: any): {
+    ping(client: Client): {
         request_type: string;
     };
     handlePong(client: Client, message: any): any;

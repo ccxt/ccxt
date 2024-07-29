@@ -1523,7 +1523,7 @@ class zonda extends Exchange {
         }) ();
     }
 
-    public function is_fiat(string $currency) {
+    public function is_fiat(string $currency): bool {
         $fiatCurrencies = array(
             'USD' => true,
             'EUR' => true,

@@ -407,7 +407,7 @@ class coinone extends \ccxt\async\coinone {
         }
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         return array(
             'request_type' => 'PING',
         );

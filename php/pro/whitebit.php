@@ -951,7 +951,7 @@ class whitebit extends \ccxt\async\whitebit {
         return $message;
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         return array(
             'id' => 0,
             'method' => 'ping',

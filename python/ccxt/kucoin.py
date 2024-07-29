@@ -1513,20 +1513,26 @@ class kucoin(Exchange, ImplicitAPI):
             },
             'networks': {},
         }
-        isWithdrawEnabled = self.safe_bool(fee, 'isWithdrawEnabled')
+        isWithdrawEnabled = self.safe_bool(fee, 'isWithdrawEnabled', True)
+        minFee = None
         if isWithdrawEnabled:
-            result['withdraw']['fee'] = self.safe_number_2(fee, 'withdrawalMinFee', 'withdrawMinFee')
             result['withdraw']['percentage'] = False
-            networkId = self.safe_string(fee, 'chain')
-            if networkId:
+            chains = self.safe_list(fee, 'chains', [])
+            for i in range(0, len(chains)):
+                chain = chains[i]
+                networkId = self.safe_string(chain, 'chainId')
                 networkCode = self.network_id_to_code(networkId, self.safe_string(currency, 'code'))
+                withdrawFee = self.safe_string(chain, 'withdrawalMinFee')
+                if minFee is None or (Precise.string_lt(withdrawFee, minFee)):
+                    minFee = withdrawFee
                 result['networks'][networkCode] = {
-                    'withdraw': result['withdraw'],
+                    'withdraw': self.parse_number(withdrawFee),
                     'deposit': {
                         'fee': None,
                         'percentage': None,
                     },
                 }
+            result['withdraw']['fee'] = self.parse_number(minFee)
         return result
 
     def is_futures_method(self, methodName, params):
