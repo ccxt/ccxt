@@ -847,10 +847,6 @@ export default class hyperliquid extends Exchange {
         if (since === undefined) {
             since = 0;
         }
-        if (limit === undefined) {
-            // Only the most recent 5000 candles are available
-            limit = 5000;
-        }
         params = this.omit (params, [ 'until' ]);
         const request: Dict = {
             'type': 'candleSnapshot',
