@@ -70,9 +70,9 @@ export default class hashkey extends Exchange {
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': false,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': false,
-                'fetchFundingRates': false,
+                'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': false,
                 'fetchLeverage': false,
@@ -175,7 +175,7 @@ export default class hashkey extends Exchange {
                         'api/v1/futures/historyOrders': 1,
                         'api/v1/futures/balance': 1,
                         'api/v1/futures/liquidationAssignStatus': 1,
-                        'api/v1/futures/fundingRate': 1,
+                        'api/v1/futures/fundingRate': 1, // done
                         'api/v1/futures/historyFundingRate': 1,
                         'api/v1/futures/riskLimit': 1,
                         'api/v1/futures/commissionRate': 1,
@@ -300,6 +300,7 @@ export default class hashkey extends Exchange {
                     // {"code":"0211","msg":"Order not found"}
                     // {"code":"-1141","msg":"Duplicate order"} duplicated clientOrderId
                     // {"code":"0001","msg":"Required field symbol missing or invalid"}
+                    // {"code":-100010,"msg":"Invalid Symbols!"}
                 },
                 'broad': {
                 },
@@ -2433,6 +2434,72 @@ export default class hashkey extends Exchange {
             'LIMIT_MAKER': 'limit',
         };
         return this.safeString (types, type, type);
+    }
+
+    async fetchFundingRates (symbols: Strings = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchFundingRates
+         * @description fetch the funding rate for multiple markets
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price
+         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-and-Mark-Price
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.symbol] the market id to fetch funding rate for
+         * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        let market: Market = undefined;
+        const request: Dict = {};
+        if ((symbols !== undefined) && (symbols.length < 2)) { // the exchange could return info about all markets or for one symbol
+            const symbol = symbols[0];
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.privateGetApiV1FuturesFundingRate (this.extend (request, params));
+        //
+        //     [
+        //         { "symbol": "BTCUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000" },
+        //         { "symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000" }
+        //     ]
+        //
+        const fundingRates = this.parseFundingRates (response);
+        return this.filterByArray (fundingRates, 'symbol', symbols);
+    }
+
+    parseFundingRate (contract, market: Market = undefined) {
+        //
+        // fetchFundingRates
+        //     {
+        //         "symbol": "ETHUSDT-PERPETUAL",
+        //         "rate": "0.0001",
+        //         "nextSettleTime": "1722297600000"
+        //     }
+        //
+        const marketId = this.safeString (contract, 'symbol');
+        market = this.safeMarket (marketId, market, undefined, 'swap');
+        const fundingRate = this.safeNumber (contract, 'rate');
+        const fundingTimestamp = this.safeInteger (contract, 'nextSettleTime');
+        return {
+            'info': contract,
+            'symbol': market['symbol'],
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': fundingRate,
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': fundingTimestamp,
+            'nextFundingDatetime': this.iso8601 (fundingTimestamp),
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
