@@ -56,7 +56,7 @@ class currencycom(ccxt.async_support.currencycom):
             },
         })
 
-    def ping(self, client):
+    def ping(self, client: Client):
         # custom ping-pong
         requestId = str(self.request_id())
         return {

@@ -10,6 +10,7 @@ from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
+from ccxt.base.precise import Precise
 
 
 class onetrading(ccxt.async_support.onetrading):
@@ -934,9 +935,9 @@ class onetrading(ccxt.async_support.onetrading):
             previousOrderArray = self.filter_by_array(self.orders, 'id', orderId, False)
             previousOrder = self.safe_value(previousOrderArray, 0, {})
             symbol = previousOrder['symbol']
-            filled = self.safe_number(update, 'filled_amount')
+            filled = self.safe_string(update, 'filled_amount')
             status = self.parse_ws_order_status(updateType)
-            if updateType == 'ORDER_CLOSED' and filled == 0:
+            if updateType == 'ORDER_CLOSED' and Precise.string_eq(filled, '0'):
                 status = 'canceled'
             orderObject: dict = {
                 'id': orderId,

@@ -351,6 +351,19 @@ public partial class Exchange
             }
         }
 
+        private void TryHandleMessage (string message)
+        {
+            object deserializedMessages = message;
+            try
+            {
+                deserializedMessages = JsonHelper.Deserialize(message);
+            }
+            catch (Exception e)
+            {
+            }
+            this.handleMessage(this, deserializedMessages);
+        }
+    
         private async Task Receiving(ClientWebSocket webSocket)
         {
             var buffer = new byte[1000000]; // check best size later
@@ -373,22 +386,11 @@ public partial class Exchange
                     {
                         // var message = Encoding.UTF8.GetString(buffer, 0, result.Count);
                         var message = Encoding.UTF8.GetString(memory.ToArray(), 0, (int)memory.Length);
-                        object deserializedMessages = message;
-
                         if (this.verbose)
                         {
                             Console.WriteLine($"On message: {message}");
                         }
-                        try
-                        {
-                            deserializedMessages = JsonHelper.Deserialize(message);
-                            this.handleMessage(this, deserializedMessages);
-                        }
-                        catch (Exception e)
-                        {
-                            // Console.WriteLine(e);
-                            this.handleMessage(this, message);
-                        }
+                        this.TryHandleMessage(message);
                     }
                     else if (result.MessageType == WebSocketMessageType.Binary)
                     {
@@ -409,15 +411,7 @@ public partial class Exchange
                             {
                                 Console.WriteLine($"On binary message {decompressedString}");
                             }
-                            try
-                            {
-                                var deserializedJson = JsonHelper.Deserialize(decompressedString);
-                                this.handleMessage(this, deserializedJson);
-                            }
-                            catch (Exception e)
-                            {
-                                this.handleMessage(this, decompressedString);
-                            }
+                            this.TryHandleMessage(decompressedString);
                         }
                         // string json = System.Text.Encoding.UTF8.GetString(buffer, 0, result.Count);
                     }

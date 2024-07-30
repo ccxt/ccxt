@@ -829,7 +829,7 @@ export default class xt extends Exchange {
                 'name': this.safeString (entry, 'fullName'),
                 'active': active,
                 'fee': this.parseNumber (minWithdrawFeeString),
-                'precision': undefined,
+                'precision': minPrecision,
                 'deposit': deposit,
                 'withdraw': withdraw,
                 'networks': networks,
@@ -3474,7 +3474,7 @@ export default class xt extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchLedger (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name xt#fetchLedger
@@ -3646,7 +3646,7 @@ export default class xt extends Exchange {
         };
     }
 
-    async fetchDeposits (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name xt#fetchDeposits
@@ -3703,7 +3703,7 @@ export default class xt extends Exchange {
         return this.parseTransactions (deposits, currency, since, limit, params);
     }
 
-    async fetchWithdrawals (code: string = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name xt#fetchWithdrawals
@@ -4762,7 +4762,7 @@ export default class xt extends Exchange {
                 if (isUndefinedBody) {
                     if (urlencoded) {
                         url += '?' + urlencoded;
-                        payloadString += '#' + method + '#' + payload + '#' + urlencoded;
+                        payloadString += '#' + method + '#' + payload + '#' + this.rawencode (this.keysort (query));
                     } else {
                         payloadString += '#' + method + '#' + payload;
                     }

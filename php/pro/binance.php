@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
-use ccxt\InvalidNonce;
+use ccxt\ChecksumError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -28,7 +28,7 @@ class binance extends \ccxt\async\binance {
                 'watchBidsAsks' => true,
                 'watchMyTrades' => true,
                 'watchOHLCV' => true,
-                'watchOHLCVForSymbols' => false,
+                'watchOHLCVForSymbols' => true,
                 'watchOrderBook' => true,
                 'watchOrderBookForSymbols' => true,
                 'watchOrders' => true,
@@ -131,6 +131,7 @@ class binance extends \ccxt\async\binance {
                 ),
                 'watchOrderBook' => array(
                     'maxRetries' => 3,
+                    'checksum' => true,
                 ),
                 'watchBalance' => array(
                     'fetchBalanceSnapshot' => false, // or true
@@ -723,10 +724,8 @@ class binance extends \ccxt\async\binance {
 
     public function fetch_order_book_snapshot($client, $message, $subscription) {
         return Async\async(function () use ($client, $message, $subscription) {
-            $name = $this->safe_string($subscription, 'name');
             $symbol = $this->safe_string($subscription, 'symbol');
-            $market = $this->market($symbol);
-            $messageHash = $market['lowercaseId'] . '@' . $name;
+            $messageHash = 'orderbook::' . $symbol;
             try {
                 $defaultLimit = $this->safe_integer($this->options, 'watchOrderBookLimit', 1000);
                 $type = $this->safe_value($subscription, 'type');
@@ -868,10 +867,10 @@ class binance extends \ccxt\async\binance {
                                 $client->resolve ($orderbook, $messageHash);
                             }
                         } else {
-                            $checksum = $this->safe_bool($this->options, 'checksum', true);
+                            $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
                             if ($checksum) {
                                 // todo => $client->reject from handleOrderBookMessage properly
-                                throw new InvalidNonce($this->id . ' handleOrderBook received an out-of-order nonce');
+                                throw new ChecksumError($this->id . ' ' . $this->orderbook_checksum_message($symbol));
                             }
                         }
                     }
@@ -887,10 +886,10 @@ class binance extends \ccxt\async\binance {
                                 $client->resolve ($orderbook, $messageHash);
                             }
                         } else {
-                            $checksum = $this->safe_bool($this->options, 'checksum', true);
+                            $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
                             if ($checksum) {
                                 // todo => $client->reject from handleOrderBookMessage properly
-                                throw new InvalidNonce($this->id . ' handleOrderBook received an out-of-order nonce');
+                                throw new ChecksumError($this->id . ' ' . $this->orderbook_checksum_message($symbol));
                             }
                         }
                     }
@@ -1197,48 +1196,72 @@ class binance extends \ccxt\async\binance {
     public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
-             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+             * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
+            $params['callerMethodName'] = 'watchOHLCV';
+            $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
+            return $result[$symbol][$timeframe];
+        }) ();
+    }
+
+    public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbolsAndTimeframes, $since, $limit, $params) {
+            /**
+             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified $symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+             * @param {int} [$since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [$limit] the maximum amount of $candles to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+             */
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $marketId = $market['lowercaseId'];
-            $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-            $options = $this->safe_value($this->options, 'watchOHLCV', array());
-            $nameOption = $this->safe_string($options, 'name', 'kline');
-            $name = $this->safe_string($params, 'name', $nameOption);
-            if ($name === 'indexPriceKline') {
-                $marketId = str_replace('_perp', '', $marketId);
-                // weird behavior for index price kline we can't use the perp suffix
+            $klineType = null;
+            list($klineType, $params) = $this->handle_param_string_2($params, 'channel', 'name', 'kline');
+            $symbols = $this->get_list_from_object_values($symbolsAndTimeframes, 0);
+            $marketSymbols = $this->market_symbols($symbols, null, false, false, true);
+            $firstMarket = $this->market($marketSymbols[0]);
+            $type = $firstMarket['type'];
+            if ($firstMarket['contract']) {
+                $type = $firstMarket['linear'] ? 'future' : 'delivery';
             }
-            $params = $this->omit($params, 'name');
-            $messageHash = $marketId . '@' . $name . '_' . $interval;
-            $type = $market['type'];
-            if ($market['contract']) {
-                $type = $market['linear'] ? 'future' : 'delivery';
+            $rawHashes = array();
+            $messageHashes = array();
+            for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
+                $symAndTf = $symbolsAndTimeframes[$i];
+                $symbolString = $symAndTf[0];
+                $timeframeString = $symAndTf[1];
+                $interval = $this->safe_string($this->timeframes, $timeframeString, $timeframeString);
+                $market = $this->market($symbolString);
+                $marketId = $market['lowercaseId'];
+                if ($klineType === 'indexPriceKline') {
+                    // weird behavior for index price kline we can't use the perp suffix
+                    $marketId = str_replace('_perp', '', $marketId);
+                }
+                $rawHashes[] = $marketId . '@' . $klineType . '_' . $interval;
+                $messageHashes[] = 'ohlcv::' . $symbolString . '::' . $timeframeString;
             }
-            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, $messageHash);
+            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, 'multipleOHLCV');
             $requestId = $this->request_id($url);
             $request = array(
                 'method' => 'SUBSCRIBE',
-                'params' => array(
-                    $messageHash,
-                ),
+                'params' => $rawHashes,
                 'id' => $requestId,
             );
             $subscribe = array(
                 'id' => $requestId,
             );
-            $ohlcv = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash, $subscribe));
+            list($symbol, $timeframe, $candles) = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes, $subscribe));
             if ($this->newUpdates) {
-                $limit = $ohlcv->getLimit ($symbol, $limit);
+                $limit = $candles->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+            $filtered = $this->filter_by_since_limit($candles, $since, $limit, 0, true);
+            return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
         }) ();
     }
 
@@ -1281,11 +1304,9 @@ class binance extends \ccxt\async\binance {
             // indexPriceKline doesn't have the _PERP suffix
             $marketId = $this->safe_string($message, 'ps');
         }
-        $lowercaseMarketId = strtolower($marketId);
         $interval = $this->safe_string($kline, 'i');
         // use a reverse lookup in a static map instead
-        $timeframe = $this->find_timeframe($interval);
-        $messageHash = $lowercaseMarketId . '@' . $event . '_' . $interval;
+        $unifiedTimeframe = $this->find_timeframe($interval);
         $parsed = array(
             $this->safe_integer($kline, 't'),
             $this->safe_float($kline, 'o'),
@@ -1297,15 +1318,17 @@ class binance extends \ccxt\async\binance {
         $isSpot = ((mb_strpos($client->url, '/stream') > -1) || (mb_strpos($client->url, '/testnet.binance') > -1));
         $marketType = ($isSpot) ? 'spot' : 'contract';
         $symbol = $this->safe_symbol($marketId, null, null, $marketType);
+        $messageHash = 'ohlcv::' . $symbol . '::' . $unifiedTimeframe;
         $this->ohlcvs[$symbol] = $this->safe_value($this->ohlcvs, $symbol, array());
-        $stored = $this->safe_value($this->ohlcvs[$symbol], $timeframe);
+        $stored = $this->safe_value($this->ohlcvs[$symbol], $unifiedTimeframe);
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'OHLCVLimit', 1000);
             $stored = new ArrayCacheByTimestamp ($limit);
-            $this->ohlcvs[$symbol][$timeframe] = $stored;
+            $this->ohlcvs[$symbol][$unifiedTimeframe] = $stored;
         }
         $stored->append ($parsed);
-        $client->resolve ($stored, $messageHash);
+        $resolveData = array( $symbol, $unifiedTimeframe, $stored );
+        $client->resolve ($resolveData, $messageHash);
     }
 
     public function fetch_ticker_ws(string $symbol, $params = array ()): PromiseInterface {
@@ -3590,7 +3613,7 @@ class binance extends \ccxt\async\binance {
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->portfolioMargin] set to true if you would like to watch $trades in a portfolio margin account
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $type = null;

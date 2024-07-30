@@ -191,7 +191,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.3.59';
+const version = '4.3.69';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -392,6 +392,7 @@ exports.BadResponse = errors.BadResponse;
 exports.BadSymbol = errors.BadSymbol;
 exports.BaseError = errors.BaseError;
 exports.CancelPending = errors.CancelPending;
+exports.ChecksumError = errors.ChecksumError;
 exports.ContractUnavailable = errors.ContractUnavailable;
 exports.DDoSProtection = errors.DDoSProtection;
 exports.DuplicateOrderId = errors.DuplicateOrderId;

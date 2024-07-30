@@ -259,7 +259,11 @@ class xt extends \ccxt\async\xt {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $name = 'kline@' . $market['id'] . ',' . $timeframe;
-            return Async\await($this->subscribe($name, 'public', 'watchOHLCV', $market, null, $params));
+            $ohlcv = Async\await($this->subscribe($name, 'public', 'watchOHLCV', $market, null, $params));
+            if ($this->newUpdates) {
+                $limit = $ohlcv->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
         }) ();
     }
 

@@ -1523,7 +1523,7 @@ export default class zonda extends Exchange {
         return this.parseOrder (response);
     }
 
-    isFiat (currency) {
+    isFiat (currency: string): boolean {
         const fiatCurrencies: Dict = {
             'USD': true,
             'EUR': true,

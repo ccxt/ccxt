@@ -1096,6 +1096,7 @@ class alpaca extends alpaca$1 {
         let url = this.implodeHostname(this.urls['api'][api[0]]);
         headers = (headers !== undefined) ? headers : {};
         if (api[1] === 'private') {
+            this.checkRequiredCredentials();
             headers['APCA-API-KEY-ID'] = this.apiKey;
             headers['APCA-API-SECRET-KEY'] = this.secret;
         }

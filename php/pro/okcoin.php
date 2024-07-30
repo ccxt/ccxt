@@ -640,7 +640,7 @@ class okcoin extends \ccxt\async\okcoin {
         return $message;
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         // okex does not support built-in ws protocol-level ping-pong
         // instead it requires custom text-based ping-pong
         return 'ping';

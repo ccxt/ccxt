@@ -1101,7 +1101,7 @@ public partial class cex : ccxt.cex
         //     }
         //
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
-        object incrementalId = this.safeNumber(data, "id");
+        object incrementalId = this.safeInteger(data, "id");
         object pair = this.safeString(data, "pair", "");
         object symbol = this.pairToSymbol(pair);
         object storedOrderBook = this.safeValue(this.orderbooks, symbol);

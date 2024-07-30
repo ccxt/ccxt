@@ -218,7 +218,7 @@ export default class tradeogre extends Exchange {
                 'inverse': undefined,
                 'contractSize': undefined,
                 'taker': this.fees['trading']['taker'],
-                'maker': this.fees['trading']['taker'],
+                'maker': this.fees['trading']['maker'],
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,

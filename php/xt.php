@@ -824,7 +824,7 @@ class xt extends Exchange {
                 'name' => $this->safe_string($entry, 'fullName'),
                 'active' => $active,
                 'fee' => $this->parse_number($minWithdrawFeeString),
-                'precision' => null,
+                'precision' => $minPrecision,
                 'deposit' => $deposit,
                 'withdraw' => $withdraw,
                 'networks' => $networks,
@@ -4687,7 +4687,7 @@ class xt extends Exchange {
                 if ($isUndefinedBody) {
                     if ($urlencoded) {
                         $url .= '?' . $urlencoded;
-                        $payloadString .= '#' . $method . '#' . $payload . '#' . $urlencoded;
+                        $payloadString .= '#' . $method . '#' . $payload . '#' . $this->rawencode($this->keysort($query));
                     } else {
                         $payloadString .= '#' . $method . '#' . $payload;
                     }

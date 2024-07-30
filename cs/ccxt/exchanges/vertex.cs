@@ -400,7 +400,16 @@ public partial class vertex : Exchange
                 { "withdraw", this.safeBool(data, "can_withdraw") },
                 { "networks", null },
                 { "fee", null },
-                { "limits", null },
+                { "limits", new Dictionary<string, object>() {
+                    { "amount", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                    { "withdraw", new Dictionary<string, object>() {
+                        { "min", null },
+                        { "max", null },
+                    } },
+                } },
             };
         }
         return result;

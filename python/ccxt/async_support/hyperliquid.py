@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.hyperliquid import ImplicitAPI
 import asyncio
-from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Str, Strings, Trade, TradingFeeInterface, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -102,8 +102,8 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'fetchPositions': True,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
-                'fetchTicker': False,
-                'fetchTickers': False,
+                'fetchTicker': 'emulated',
+                'fetchTickers': True,
                 'fetchTime': False,
                 'fetchTrades': True,
                 'fetchTradingFee': True,
@@ -256,8 +256,16 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'withdraw': None,
                 'networks': None,
                 'fee': None,
-                # 'fees': fees,
-                'limits': None,
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
             }
         return result
 
@@ -320,12 +328,12 @@ class hyperliquid(Exchange, ImplicitAPI):
         #
         #
         meta = self.safe_dict(response, 0, {})
-        meta = self.safe_list(meta, 'universe', [])
+        universe = self.safe_list(meta, 'universe', [])
         assetCtxs = self.safe_dict(response, 1, {})
         result = []
-        for i in range(0, len(meta)):
+        for i in range(0, len(universe)):
             data = self.extend(
-                self.safe_dict(meta, i, {}),
+                self.safe_dict(universe, i, {}),
                 self.safe_dict(assetCtxs, i, {})
             )
             data['baseId'] = i
@@ -439,11 +447,13 @@ class hyperliquid(Exchange, ImplicitAPI):
         #
         # response differs depending on the environment(mainnet vs sandbox)
         first = self.safe_dict(response, 0, {})
+        second = self.safe_list(response, 1, [])
         meta = self.safe_list_2(first, 'universe', 'spot_infos', [])
         tokens = self.safe_list_2(first, 'tokens', 'token_infos', [])
         markets = []
         for i in range(0, len(meta)):
             market = self.safe_dict(meta, i, {})
+            extraData = self.safe_dict(second, i, {})
             marketName = self.safe_string(market, 'name')
             # if marketName.find('/') < 0:
             #     # there are some weird spot markets in testnet, eg @2
@@ -520,7 +530,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                     },
                 },
                 'created': None,
-                'info': market,
+                'info': self.extend(extraData, market),
             }))
         return markets
 
@@ -739,6 +749,57 @@ class hyperliquid(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(response, 'time')
         return self.parse_order_book(result, market['symbol'], timestamp, 'bids', 'asks', 'px', 'sz')
 
+    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+        """
+        fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        :see: https://www.bitmex.com/api/explorer/#not /Instrument/Instrument_getActiveAndIndices
+        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        # at self stage, to get tickers data, we use fetchMarkets endpoints
+        response = await self.fetch_markets(params)
+        # same response "fetchMarkets"
+        result: dict = {}
+        for i in range(0, len(response)):
+            market = response[i]
+            info = market['info']
+            ticker = self.parse_ticker(info, market)
+            symbol = self.safe_string(ticker, 'symbol')
+            result[symbol] = ticker
+        return self.filter_by_array_tickers(result, 'symbol', symbols)
+
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
+        #
+        #     {
+        #         "prevDayPx": "3400.5",
+        #         "dayNtlVlm": "511297257.47936022",
+        #         "markPx": "3464.7",
+        #         "midPx": "3465.05",
+        #         "oraclePx": "3460.1",  # only in swap
+        #         "openInterest": "64638.1108",  # only in swap
+        #         "premium": "0.00141614",  # only in swap
+        #         "funding": "0.00008727",  # only in swap
+        #         "impactPxs": ["3465.0", "3465.1"],  # only in swap
+        #         "coin": "PURR",  # only in spot
+        #         "circulatingSupply": "998949190.03400207",  # only in spot
+        #     },
+        #
+        bidAsk = self.safe_list(ticker, 'impactPxs')
+        return self.safe_ticker({
+            'symbol': market['symbol'],
+            'timestamp': None,
+            'datetime': None,
+            'previousClose': self.safe_number(ticker, 'prevDayPx'),
+            'close': self.safe_number(ticker, 'midPx'),
+            'bid': self.safe_number(bidAsk, 0),
+            'ask': self.safe_number(bidAsk, 1),
+            'quoteVolume': self.safe_number(ticker, 'dayNtlVlm'),
+            'info': ticker,
+        }, market)
+
     async def fetch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -756,8 +817,6 @@ class hyperliquid(Exchange, ImplicitAPI):
         until = self.safe_integer(params, 'until', self.milliseconds())
         if since is None:
             since = 0
-        if limit is None:
-            limit = 500
         params = self.omit(params, ['until'])
         request: dict = {
             'type': 'candleSnapshot',
@@ -1261,7 +1320,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         cancel multiple orders for multiple symbols
         :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s
         :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-order-s-by-cloid
-        :param CancellationRequest[] orders: each order should contain the parameters required by cancelOrder namely id and symbol
+        :param CancellationRequest[] orders: each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.vaultAddress]: the vault address
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from tests_helpers import get_cli_arg_value, is_synchronous, argv, argvSymbol, argvMethod
+from tests_helpers import get_cli_arg_value, is_synchronous, argvExchange, argvSymbol, argvMethod
 
 try:
     import asyncio
@@ -29,7 +29,7 @@ if (isBaseTests):
 # ###### exchange tests #######
 if (is_synchronous):
     from tests_sync import testMainClass as testMainClassSync
-    testMainClassSync().init(argv.exchange, argvSymbol, argvMethod)
+    testMainClassSync().init(argvExchange, argvSymbol, argvMethod)
 else:
     from tests_async import testMainClass as testMainClassAsync
-    asyncio.run(testMainClassAsync().init(argv.exchange, argvSymbol, argvMethod))
+    asyncio.run(testMainClassAsync().init(argvExchange, argvSymbol, argvMethod))

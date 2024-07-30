@@ -6,6 +6,334 @@ public partial class Exchange
 {
 
 
+    public virtual object describe()
+    {
+        return new Dictionary<string, object>() {
+            { "id", null },
+            { "name", null },
+            { "countries", null },
+            { "enableRateLimit", true },
+            { "rateLimit", 2000 },
+            { "timeout", this.timeout },
+            { "certified", false },
+            { "pro", false },
+            { "alias", false },
+            { "dex", false },
+            { "has", new Dictionary<string, object>() {
+                { "publicAPI", true },
+                { "privateAPI", true },
+                { "CORS", null },
+                { "sandbox", null },
+                { "spot", null },
+                { "margin", null },
+                { "swap", null },
+                { "future", null },
+                { "option", null },
+                { "addMargin", null },
+                { "borrowCrossMargin", null },
+                { "borrowIsolatedMargin", null },
+                { "borrowMargin", null },
+                { "cancelAllOrders", null },
+                { "cancelAllOrdersWs", null },
+                { "cancelOrder", true },
+                { "cancelOrderWs", null },
+                { "cancelOrders", null },
+                { "cancelOrdersWs", null },
+                { "closeAllPositions", null },
+                { "closePosition", null },
+                { "createDepositAddress", null },
+                { "createLimitBuyOrder", null },
+                { "createLimitBuyOrderWs", null },
+                { "createLimitOrder", true },
+                { "createLimitOrderWs", null },
+                { "createLimitSellOrder", null },
+                { "createLimitSellOrderWs", null },
+                { "createMarketBuyOrder", null },
+                { "createMarketBuyOrderWs", null },
+                { "createMarketBuyOrderWithCost", null },
+                { "createMarketBuyOrderWithCostWs", null },
+                { "createMarketOrder", true },
+                { "createMarketOrderWs", true },
+                { "createMarketOrderWithCost", null },
+                { "createMarketOrderWithCostWs", null },
+                { "createMarketSellOrder", null },
+                { "createMarketSellOrderWs", null },
+                { "createMarketSellOrderWithCost", null },
+                { "createMarketSellOrderWithCostWs", null },
+                { "createOrder", true },
+                { "createOrderWs", null },
+                { "createOrders", null },
+                { "createOrderWithTakeProfitAndStopLoss", null },
+                { "createOrderWithTakeProfitAndStopLossWs", null },
+                { "createPostOnlyOrder", null },
+                { "createPostOnlyOrderWs", null },
+                { "createReduceOnlyOrder", null },
+                { "createReduceOnlyOrderWs", null },
+                { "createStopLimitOrder", null },
+                { "createStopLimitOrderWs", null },
+                { "createStopLossOrder", null },
+                { "createStopLossOrderWs", null },
+                { "createStopMarketOrder", null },
+                { "createStopMarketOrderWs", null },
+                { "createStopOrder", null },
+                { "createStopOrderWs", null },
+                { "createTakeProfitOrder", null },
+                { "createTakeProfitOrderWs", null },
+                { "createTrailingAmountOrder", null },
+                { "createTrailingAmountOrderWs", null },
+                { "createTrailingPercentOrder", null },
+                { "createTrailingPercentOrderWs", null },
+                { "createTriggerOrder", null },
+                { "createTriggerOrderWs", null },
+                { "deposit", null },
+                { "editOrder", "emulated" },
+                { "editOrderWs", null },
+                { "fetchAccounts", null },
+                { "fetchBalance", true },
+                { "fetchBalanceWs", null },
+                { "fetchBidsAsks", null },
+                { "fetchBorrowInterest", null },
+                { "fetchBorrowRate", null },
+                { "fetchBorrowRateHistories", null },
+                { "fetchBorrowRateHistory", null },
+                { "fetchBorrowRates", null },
+                { "fetchBorrowRatesPerSymbol", null },
+                { "fetchCanceledAndClosedOrders", null },
+                { "fetchCanceledOrders", null },
+                { "fetchClosedOrder", null },
+                { "fetchClosedOrders", null },
+                { "fetchClosedOrdersWs", null },
+                { "fetchConvertCurrencies", null },
+                { "fetchConvertQuote", null },
+                { "fetchConvertTrade", null },
+                { "fetchConvertTradeHistory", null },
+                { "fetchCrossBorrowRate", null },
+                { "fetchCrossBorrowRates", null },
+                { "fetchCurrencies", "emulated" },
+                { "fetchCurrenciesWs", "emulated" },
+                { "fetchDeposit", null },
+                { "fetchDepositAddress", null },
+                { "fetchDepositAddresses", null },
+                { "fetchDepositAddressesByNetwork", null },
+                { "fetchDeposits", null },
+                { "fetchDepositsWithdrawals", null },
+                { "fetchDepositsWs", null },
+                { "fetchDepositWithdrawFee", null },
+                { "fetchDepositWithdrawFees", null },
+                { "fetchFundingHistory", null },
+                { "fetchFundingRate", null },
+                { "fetchFundingRateHistory", null },
+                { "fetchFundingRates", null },
+                { "fetchGreeks", null },
+                { "fetchIndexOHLCV", null },
+                { "fetchIsolatedBorrowRate", null },
+                { "fetchIsolatedBorrowRates", null },
+                { "fetchMarginAdjustmentHistory", null },
+                { "fetchIsolatedPositions", null },
+                { "fetchL2OrderBook", true },
+                { "fetchL3OrderBook", null },
+                { "fetchLastPrices", null },
+                { "fetchLedger", null },
+                { "fetchLedgerEntry", null },
+                { "fetchLeverage", null },
+                { "fetchLeverages", null },
+                { "fetchLeverageTiers", null },
+                { "fetchLiquidations", null },
+                { "fetchMarginMode", null },
+                { "fetchMarginModes", null },
+                { "fetchMarketLeverageTiers", null },
+                { "fetchMarkets", true },
+                { "fetchMarketsWs", null },
+                { "fetchMarkOHLCV", null },
+                { "fetchMyLiquidations", null },
+                { "fetchMySettlementHistory", null },
+                { "fetchMyTrades", null },
+                { "fetchMyTradesWs", null },
+                { "fetchOHLCV", null },
+                { "fetchOHLCVWs", null },
+                { "fetchOpenInterest", null },
+                { "fetchOpenInterestHistory", null },
+                { "fetchOpenOrder", null },
+                { "fetchOpenOrders", null },
+                { "fetchOpenOrdersWs", null },
+                { "fetchOption", null },
+                { "fetchOptionChain", null },
+                { "fetchOrder", null },
+                { "fetchOrderBook", true },
+                { "fetchOrderBooks", null },
+                { "fetchOrderBookWs", null },
+                { "fetchOrders", null },
+                { "fetchOrdersByStatus", null },
+                { "fetchOrdersWs", null },
+                { "fetchOrderTrades", null },
+                { "fetchOrderWs", null },
+                { "fetchPermissions", null },
+                { "fetchPosition", null },
+                { "fetchPositionHistory", null },
+                { "fetchPositionsHistory", null },
+                { "fetchPositionWs", null },
+                { "fetchPositionMode", null },
+                { "fetchPositions", null },
+                { "fetchPositionsWs", null },
+                { "fetchPositionsForSymbol", null },
+                { "fetchPositionsForSymbolWs", null },
+                { "fetchPositionsRisk", null },
+                { "fetchPremiumIndexOHLCV", null },
+                { "fetchSettlementHistory", null },
+                { "fetchStatus", null },
+                { "fetchTicker", true },
+                { "fetchTickerWs", null },
+                { "fetchTickers", null },
+                { "fetchTickersWs", null },
+                { "fetchTime", null },
+                { "fetchTrades", true },
+                { "fetchTradesWs", null },
+                { "fetchTradingFee", null },
+                { "fetchTradingFees", null },
+                { "fetchTradingFeesWs", null },
+                { "fetchTradingLimits", null },
+                { "fetchTransactionFee", null },
+                { "fetchTransactionFees", null },
+                { "fetchTransactions", null },
+                { "fetchTransfer", null },
+                { "fetchTransfers", null },
+                { "fetchUnderlyingAssets", null },
+                { "fetchVolatilityHistory", null },
+                { "fetchWithdrawAddresses", null },
+                { "fetchWithdrawal", null },
+                { "fetchWithdrawals", null },
+                { "fetchWithdrawalsWs", null },
+                { "fetchWithdrawalWhitelist", null },
+                { "reduceMargin", null },
+                { "repayCrossMargin", null },
+                { "repayIsolatedMargin", null },
+                { "setLeverage", null },
+                { "setMargin", null },
+                { "setMarginMode", null },
+                { "setPositionMode", null },
+                { "signIn", null },
+                { "transfer", null },
+                { "watchBalance", null },
+                { "watchMyTrades", null },
+                { "watchOHLCV", null },
+                { "watchOHLCVForSymbols", null },
+                { "watchOrderBook", null },
+                { "watchOrderBookForSymbols", null },
+                { "watchOrders", null },
+                { "watchOrdersForSymbols", null },
+                { "watchPosition", null },
+                { "watchPositions", null },
+                { "watchStatus", null },
+                { "watchTicker", null },
+                { "watchTickers", null },
+                { "watchTrades", null },
+                { "watchTradesForSymbols", null },
+                { "watchLiquidations", null },
+                { "watchLiquidationsForSymbols", null },
+                { "watchMyLiquidations", null },
+                { "watchMyLiquidationsForSymbols", null },
+                { "withdraw", null },
+                { "ws", null },
+            } },
+            { "urls", new Dictionary<string, object>() {
+                { "logo", null },
+                { "api", null },
+                { "www", null },
+                { "doc", null },
+                { "fees", null },
+            } },
+            { "api", null },
+            { "requiredCredentials", new Dictionary<string, object>() {
+                { "apiKey", true },
+                { "secret", true },
+                { "uid", false },
+                { "accountId", false },
+                { "login", false },
+                { "password", false },
+                { "twofa", false },
+                { "privateKey", false },
+                { "walletAddress", false },
+                { "token", false },
+            } },
+            { "markets", null },
+            { "currencies", new Dictionary<string, object>() {} },
+            { "timeframes", null },
+            { "fees", new Dictionary<string, object>() {
+                { "trading", new Dictionary<string, object>() {
+                    { "tierBased", null },
+                    { "percentage", null },
+                    { "taker", null },
+                    { "maker", null },
+                } },
+                { "funding", new Dictionary<string, object>() {
+                    { "tierBased", null },
+                    { "percentage", null },
+                    { "withdraw", new Dictionary<string, object>() {} },
+                    { "deposit", new Dictionary<string, object>() {} },
+                } },
+            } },
+            { "status", new Dictionary<string, object>() {
+                { "status", "ok" },
+                { "updated", null },
+                { "eta", null },
+                { "url", null },
+            } },
+            { "exceptions", null },
+            { "httpExceptions", new Dictionary<string, object>() {
+                { "422", typeof(ExchangeError) },
+                { "418", typeof(DDoSProtection) },
+                { "429", typeof(RateLimitExceeded) },
+                { "404", typeof(ExchangeNotAvailable) },
+                { "409", typeof(ExchangeNotAvailable) },
+                { "410", typeof(ExchangeNotAvailable) },
+                { "451", typeof(ExchangeNotAvailable) },
+                { "500", typeof(ExchangeNotAvailable) },
+                { "501", typeof(ExchangeNotAvailable) },
+                { "502", typeof(ExchangeNotAvailable) },
+                { "520", typeof(ExchangeNotAvailable) },
+                { "521", typeof(ExchangeNotAvailable) },
+                { "522", typeof(ExchangeNotAvailable) },
+                { "525", typeof(ExchangeNotAvailable) },
+                { "526", typeof(ExchangeNotAvailable) },
+                { "400", typeof(ExchangeNotAvailable) },
+                { "403", typeof(ExchangeNotAvailable) },
+                { "405", typeof(ExchangeNotAvailable) },
+                { "503", typeof(ExchangeNotAvailable) },
+                { "530", typeof(ExchangeNotAvailable) },
+                { "408", typeof(RequestTimeout) },
+                { "504", typeof(RequestTimeout) },
+                { "401", typeof(AuthenticationError) },
+                { "407", typeof(AuthenticationError) },
+                { "511", typeof(AuthenticationError) },
+            } },
+            { "commonCurrencies", new Dictionary<string, object>() {
+                { "XBT", "BTC" },
+                { "BCC", "BCH" },
+                { "BCHSV", "BSV" },
+            } },
+            { "precisionMode", TICK_SIZE },
+            { "paddingMode", NO_PADDING },
+            { "limits", new Dictionary<string, object>() {
+                { "leverage", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "price", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "cost", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+        };
+    }
+
     public virtual object safeBoolN(object dictionaryOrList, object keys, object defaultValue = null)
     {
         /**
@@ -57,9 +385,12 @@ public partial class Exchange
         {
             return defaultValue;
         }
-        if (isTrue((value is IDictionary<string, object>)))
+        if (isTrue(((value is IDictionary<string, object>))))
         {
-            return value;
+            if (!isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            {
+                return value;
+            }
         }
         return defaultValue;
     }
@@ -952,6 +1283,11 @@ public partial class Exchange
     public virtual void afterConstruct()
     {
         this.createNetworksByIdObject();
+    }
+
+    public virtual object orderbookChecksumMessage(object symbol)
+    {
+        return add(add(symbol, " : "), "orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\"watchOrderBook\"][\"checksum\"] = false");
     }
 
     public virtual void createNetworksByIdObject()
@@ -2511,7 +2847,7 @@ public partial class Exchange
         } else
         {
             // otherwise, try to use the global-scope 'defaultNetwork' value (even if that network is not supported by currency, it doesn't make any problem, this will be just used "at first" if currency supports this network at all)
-            object defaultNetwork = this.safeDict(this.options, "defaultNetwork");
+            object defaultNetwork = this.safeString(this.options, "defaultNetwork");
             if (isTrue(!isEqual(defaultNetwork, null)))
             {
                 defaultNetworkCode = defaultNetwork;
@@ -3701,18 +4037,18 @@ public partial class Exchange
             await this.loadMarkets();
             object market = this.market(symbol);
             symbol = getValue(market, "symbol");
-            object tickers = await this.fetchTickerWs(symbol, parameters);
+            object tickers = await this.fetchTickersWs(new List<object>() {symbol}, parameters);
             object ticker = this.safeDict(tickers, symbol);
             if (isTrue(isEqual(ticker, null)))
             {
-                throw new NullResponse ((string)add(add(this.id, " fetchTickers() could not find a ticker for "), symbol)) ;
+                throw new NullResponse ((string)add(add(this.id, " fetchTickerWs() could not find a ticker for "), symbol)) ;
             } else
             {
                 return ticker;
             }
         } else
         {
-            throw new NotSupported ((string)add(this.id, " fetchTicker() is not supported yet")) ;
+            throw new NotSupported ((string)add(this.id, " fetchTickerWs() is not supported yet")) ;
         }
     }
 
@@ -6198,8 +6534,13 @@ public partial class Exchange
 
     public virtual object safeOpenInterest(object interest, object market = null)
     {
+        object symbol = this.safeString(interest, "symbol");
+        if (isTrue(isEqual(symbol, null)))
+        {
+            symbol = this.safeString(market, "symbol");
+        }
         return this.extend(interest, new Dictionary<string, object>() {
-            { "symbol", this.safeString(market, "symbol") },
+            { "symbol", symbol },
             { "baseVolume", this.safeNumber(interest, "baseVolume") },
             { "quoteVolume", this.safeNumber(interest, "quoteVolume") },
             { "openInterestAmount", this.safeNumber(interest, "openInterestAmount") },
