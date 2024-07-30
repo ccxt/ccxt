@@ -816,8 +816,6 @@ class hyperliquid(Exchange, ImplicitAPI):
         until = self.safe_integer(params, 'until', self.milliseconds())
         if since is None:
             since = 0
-        if limit is None:
-            limit = 500
         params = self.omit(params, ['until'])
         request: dict = {
             'type': 'candleSnapshot',

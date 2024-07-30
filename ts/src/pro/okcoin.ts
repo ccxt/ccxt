@@ -632,7 +632,7 @@ export default class okcoin extends okcoinRest {
         return message;
     }
 
-    ping (client) {
+    ping (client: Client) {
         // okex does not support built-in ws protocol-level ping-pong
         // instead it requires custom text-based ping-pong
         return 'ping';

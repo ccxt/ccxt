@@ -573,7 +573,7 @@ class okcoin(ccxt.async_support.okcoin):
         client.resolve(message, 'authenticated')
         return message
 
-    def ping(self, client):
+    def ping(self, client: Client):
         # okex does not support built-in ws protocol-level ping-pong
         # instead it requires custom text-based ping-pong
         return 'ping'

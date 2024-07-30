@@ -1222,7 +1222,7 @@ class mexc extends \ccxt\async\mexc {
         }
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         return array( 'method' => 'ping' );
     }
 }

@@ -10,6 +10,7 @@ use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
+use ccxt\InvalidNonce;
 use ccxt\ChecksumError;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -927,7 +928,7 @@ class okx extends \ccxt\async\okx {
         }
     }
 
-    public function handle_order_book_message(Client $client, $message, $orderbook, $messageHash) {
+    public function handle_order_book_message(Client $client, $message, $orderbook, $messageHash, $market = null) {
         //
         //     {
         //         "asks" => array(
@@ -942,6 +943,9 @@ class okx extends \ccxt\async\okx {
         //         ),
         //         "instId" => "BTC-USDT",
         //         "ts" => "1626537446491"
+        //         "checksum" => -855196043,
+        //         "prevSeqId" => 123456,
+        //         "seqId" => 123457
         //     }
         //
         $asks = $this->safe_value($message, 'asks', array());
@@ -951,9 +955,12 @@ class okx extends \ccxt\async\okx {
         $this->handle_deltas($storedAsks, $asks);
         $this->handle_deltas($storedBids, $bids);
         $marketId = $this->safe_string($message, 'instId');
-        $symbol = $this->safe_symbol($marketId);
+        $symbol = $this->safe_symbol($marketId, $market);
         $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
+        $seqId = $this->safe_integer($message, 'seqId');
         if ($checksum) {
+            $prevSeqId = $this->safe_integer($message, 'prevSeqId');
+            $nonce = $orderbook['nonce'];
             $asksLength = count($storedAsks);
             $bidsLength = count($storedBids);
             $payloadArray = array();
@@ -970,14 +977,21 @@ class okx extends \ccxt\async\okx {
             $payload = implode(':', $payloadArray);
             $responseChecksum = $this->safe_integer($message, 'checksum');
             $localChecksum = $this->crc32($payload, true);
+            $error = null;
+            if ($prevSeqId !== -1 && $nonce !== $prevSeqId) {
+                $error = new InvalidNonce ($this->id . ' watchOrderBook received invalid nonce');
+            }
             if ($responseChecksum !== $localChecksum) {
                 $error = new ChecksumError ($this->id . ' ' . $this->orderbook_checksum_message($symbol));
+            }
+            if ($error !== null) {
                 unset($client->subscriptions[$messageHash]);
                 unset($this->orderbooks[$symbol]);
                 $client->reject ($error, $messageHash);
             }
         }
         $timestamp = $this->safe_integer($message, 'ts');
+        $orderbook['nonce'] = $seqId;
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $this->iso8601($timestamp);
         return $orderbook;
@@ -1099,7 +1113,7 @@ class okx extends \ccxt\async\okx {
                 $orderbook = $this->orderbooks[$symbol];
                 for ($i = 0; $i < count($data); $i++) {
                     $update = $data[$i];
-                    $this->handle_order_book_message($client, $update, $orderbook, $messageHash);
+                    $this->handle_order_book_message($client, $update, $orderbook, $messageHash, $market);
                     $client->resolve ($orderbook, $messageHash);
                 }
             }
@@ -1681,7 +1695,7 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $url = $this->get_url('private', 'private');
-            $messageHash = (string) $this->nonce();
+            $messageHash = (string) $this->milliseconds();
             $op = null;
             list($op, $params) = $this->handle_option_and_params($params, 'createOrderWs', 'op', 'batch-orders');
             $args = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
@@ -1753,7 +1767,7 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $url = $this->get_url('private', 'private');
-            $messageHash = (string) $this->nonce();
+            $messageHash = (string) $this->milliseconds();
             $op = null;
             list($op, $params) = $this->handle_option_and_params($params, 'editOrderWs', 'op', 'amend-order');
             $args = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
@@ -1783,7 +1797,7 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $url = $this->get_url('private', 'private');
-            $messageHash = (string) $this->nonce();
+            $messageHash = (string) $this->milliseconds();
             $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
             $params = $this->omit($params, array( 'clientOrderId', 'clOrdId' ));
             $arg = array(
@@ -1823,7 +1837,7 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $url = $this->get_url('private', 'private');
-            $messageHash = (string) $this->nonce();
+            $messageHash = (string) $this->milliseconds();
             $args = array();
             for ($i = 0; $i < $idsLength; $i++) {
                 $arg = array(
@@ -1860,7 +1874,7 @@ class okx extends \ccxt\async\okx {
                 throw new BadRequest($this->id . 'cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.');
             }
             $url = $this->get_url('private', 'private');
-            $messageHash = (string) $this->nonce();
+            $messageHash = (string) $this->milliseconds();
             $request = array(
                 'id' => $messageHash,
                 'op' => 'mass-cancel',
@@ -1909,7 +1923,7 @@ class okx extends \ccxt\async\okx {
         $future->resolve (true);
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         // OKX does not support the built-in WebSocket protocol-level ping-pong.
         // Instead, it requires a custom text-based ping-pong mechanism.
         return 'ping';

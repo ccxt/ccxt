@@ -406,7 +406,7 @@ export default class coinone extends coinoneRest {
         }
     }
 
-    ping (client) {
+    ping (client: Client) {
         return {
             'request_type': 'PING',
         };

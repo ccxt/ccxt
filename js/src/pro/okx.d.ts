@@ -28,7 +28,7 @@ export default class okx extends okxRest {
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
-    handleOrderBookMessage(client: Client, message: any, orderbook: any, messageHash: any): any;
+    handleOrderBookMessage(client: Client, message: any, orderbook: any, messageHash: any, market?: any): any;
     handleOrderBook(client: Client, message: any): any;
     authenticate(params?: {}): Promise<any>;
     watchBalance(params?: {}): Promise<Balances>;
@@ -50,7 +50,7 @@ export default class okx extends okxRest {
     handleCancelAllOrders(client: Client, message: any): void;
     handleSubscriptionStatus(client: Client, message: any): any;
     handleAuthenticate(client: Client, message: any): void;
-    ping(client: any): string;
+    ping(client: Client): string;
     handlePong(client: Client, message: any): any;
     handleErrorMessage(client: Client, message: any): any;
     handleMessage(client: Client, message: any): void;

@@ -863,10 +863,6 @@ public partial class hyperliquid : Exchange
         {
             since = 0;
         }
-        if (isTrue(isEqual(limit, null)))
-        {
-            limit = 500;
-        }
         parameters = this.omit(parameters, new List<object>() {"until"});
         object request = new Dictionary<string, object>() {
             { "type", "candleSnapshot" },

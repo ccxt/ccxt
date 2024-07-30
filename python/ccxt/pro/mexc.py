@@ -1118,5 +1118,5 @@ class mexc(ccxt.async_support.mexc):
             method = methods[channel]
             method(client, message)
 
-    def ping(self, client):
+    def ping(self, client: Client):
         return {'method': 'ping'}

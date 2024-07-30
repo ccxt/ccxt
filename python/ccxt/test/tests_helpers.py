@@ -191,6 +191,10 @@ def io_dir_read(path):
     return os.listdir(path)
 
 
+def call_method_sync(test_files, methodName, exchange, skippedProperties, args):
+    methodNameToCall = 'test_' + convert_to_snake_case(methodName)
+    return getattr(test_files[methodName], methodNameToCall)(exchange, skippedProperties, *args)
+
 async def call_method(test_files, methodName, exchange, skippedProperties, args):
     methodNameToCall = 'test_' + convert_to_snake_case(methodName)
     return await getattr(test_files[methodName], methodNameToCall)(exchange, skippedProperties, *args)
@@ -240,7 +244,7 @@ def init_exchange(exchangeId, args, is_ws=False):
     return getattr(ccxt, exchangeId)(args)
 
 
-async def get_test_files(properties, ws=False):
+def get_test_files_sync(properties, ws=False):
     tests = {}
     finalPropList = properties + [proxyTestFileName]
     for i in range(0, len(finalPropList)):
@@ -258,6 +262,9 @@ async def get_test_files(properties, ws=False):
             imp = importlib.import_module(module_string)
             tests[methodName] = imp  # getattr(imp, finalName)
     return tests
+
+async def get_test_files(properties, ws=False):
+    return get_test_files_sync(properties, ws)
 
 async def close(exchange):
     if (not is_synchronous and hasattr(exchange, 'close')):
