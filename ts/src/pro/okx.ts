@@ -1939,6 +1939,11 @@ export default class okx extends okxRest {
                 throw new ExchangeError (feedback);
             }
         } catch (e) {
+            const id = this.safeString (message, 'id');
+            if (id !== undefined) {
+                client.reject (e, id);
+                return false;
+            }
             client.reject (e);
             return false;
         }
