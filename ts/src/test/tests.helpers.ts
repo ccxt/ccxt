@@ -216,7 +216,6 @@ async function getBaseTestFiles (ws = false) {
     const tests = {};
     const path = ws ? DIR_NAME + '../pro/test/base/' : DIR_NAME + '/base/';
     const files = ioDirRead (path);
-    const result = {};
     for (let i = 0; i < files.length; i++) {
         const filename = files[i];
         const filenameWoExt = filename.replace ('.' + ext, '');
@@ -230,7 +229,7 @@ async function getBaseTestFiles (ws = false) {
         }
     }
     tests['langaugeSpecific'] = await importTestFile (path + '/custom/test.languageSpecific');
-    return result;
+    return tests;
 }
 
 function setFetchResponse (exchange: Exchange, mockResponse) {
