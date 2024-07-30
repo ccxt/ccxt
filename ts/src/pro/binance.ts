@@ -1204,6 +1204,7 @@ export default class binance extends binanceRest {
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {object} [params.timezone] timezone number (positive or negative) so higher timeframe candle's open & close time will be aligned with that timezone
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         params['callerMethodName'] = 'watchOHLCV';
@@ -1234,7 +1235,7 @@ export default class binance extends binanceRest {
         }
         const isSpot = (type === 'spot');
         let timezone = undefined;
-        [ timezone, params ] = this.handleParamString2 (params, 'timezone', 'timeZone', undefined);
+        [ timezone, params ] = this.handleParamString (params, 'timezone', undefined);
         const isUtc8 = (timezone !== undefined) && ((timezone === '+08:00') || Precise.stringEq (timezone, '8'));
         const rawHashes = [];
         const messageHashes = [];
