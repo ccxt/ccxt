@@ -244,27 +244,46 @@ def init_exchange(exchangeId, args, is_ws=False):
     return getattr(ccxt, exchangeId)(args)
 
 
-def get_test_files_sync(properties, ws=False):
+def get_test_files_sync(properties, ws=False, is_base_tests=False):
     tests = {}
-    finalPropList = properties + [proxyTestFileName]
-    for i in range(0, len(finalPropList)):
-        methodName = finalPropList[i]
-        name_snake_case = convert_to_snake_case(methodName)
-        prefix = 'async' if not is_synchronous else 'sync'
-        dir_to_test = DIR_NAME + '/exchange/' + prefix + '/'
-        module_string = 'ccxt.test.exchange.' + prefix + '.test_' + name_snake_case
-        if (ws):
-            prefix = 'pro'
-            dir_to_test = DIR_NAME + '/../' + prefix + '/test/Exchange/'
-            module_string = 'ccxt.pro.test.Exchange.test_' + name_snake_case
-        filePathWithExt = dir_to_test + 'test_' + name_snake_case + '.py'
-        if (io_file_exists (filePathWithExt)):
-            imp = importlib.import_module(module_string)
-            tests[methodName] = imp  # getattr(imp, finalName)
+    if (is_base_tests):
+        namespace  = 'pro.' if ws else ''
+        path = DIR_NAME + '../pro/test/base/' if ws else DIR_NAME + '/base/'
+        files = io_dir_read(path)
+        for i in range(0, len(files)):
+            filename = files[i]
+            filenameWoExt = filename.replace('.' + ext, '')
+            filePathWoExt = path + filenameWoExt
+            if (io_file_exists(filePathWoExt + '.' + ext)):
+                testName = filenameWoExt.replace ('test_', '')
+                name_snake_case = convert_to_snake_case(testName)
+                if (testName not in [ 'custom', 'errors', 'language_specific' ]):
+                    module_string = 'ccxt.' + namespace + 'test.base.test_' + name_snake_case
+                    imp = importlib.import_module(module_string)
+                    tests[testName] = imp
+        module_string = 'ccxt.' + namespace + 'test.base.custom.test_language_specific'
+        imp = importlib.import_module(module_string)
+        tests['langaugeSpecific'] = imp
+    else:
+        finalPropList = properties + [proxyTestFileName]
+        for i in range(0, len(finalPropList)):
+            methodName = finalPropList[i]
+            name_snake_case = convert_to_snake_case(methodName)
+            prefix = 'async' if not is_synchronous else 'sync'
+            dir_to_test = DIR_NAME + '/exchange/' + prefix + '/'
+            module_string = 'ccxt.test.exchange.' + prefix + '.test_' + name_snake_case
+            if (ws):
+                prefix = 'pro'
+                dir_to_test = DIR_NAME + '/../' + prefix + '/test/Exchange/'
+                module_string = 'ccxt.pro.test.Exchange.test_' + name_snake_case
+            filePathWithExt = dir_to_test + 'test_' + name_snake_case + '.py'
+            if (io_file_exists (filePathWithExt)):
+                imp = importlib.import_module(module_string)
+                tests[methodName] = imp  # getattr(imp, finalName)
     return tests
 
-async def get_test_files(properties, ws=False):
-    return get_test_files_sync(properties, ws)
+async def get_test_files(properties, ws=False, is_base_tests=False):
+    return get_test_files_sync(properties, ws, is_base_tests)
 
 async def close(exchange):
     if (not is_synchronous and hasattr(exchange, 'close')):
