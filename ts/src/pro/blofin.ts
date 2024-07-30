@@ -258,6 +258,9 @@ export default class blofin extends blofinRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
+        if (symbols === undefined) {
+            throw new NotSupported (this.id + ' watchTickers() requires a list of symbols');
+        }
         const ticker = await this.watchMultipleWrapper (true, 'tickers', 'watchTickers', symbols, params);
         if (this.newUpdates) {
             const tickers = {};
