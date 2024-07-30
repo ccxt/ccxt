@@ -34,7 +34,6 @@ import {
     initExchange,
     getTestFilesSync,
     getTestFiles,
-    getBaseTestFiles,
     setFetchResponse,
     isNullValue,
     close,
@@ -97,7 +96,11 @@ class testMainClass extends baseMainTestClass {
 
     async initBaseTests () {
         this.parseCliArgs ();
-        this.testFiles = await getBaseTestFiles (this.wsTests);
+        if (this.isSynchronous) {
+            this.testFiles = getTestFilesSync (undefined, this.wsTests, true);
+        } else {
+            this.testFiles = await getTestFiles (undefined, this.wsTests, true);
+        }
         assert (Object.keys (this.testFiles).length > 0, 'Test files were not loaded'); // ensure test files are found & filled
         const keys = Object.keys (this.testFiles);
         for (let i = 0; i < keys.length; i++) {

@@ -181,54 +181,52 @@ async function importTestFile (filePath) {
     return (await import (pathToFileURL (filePath + '.js') as any) as any)['default'];
 }
 
-function getTestFilesSync (properties, ws = false) {
+function getTestFilesSync (properties, ws = false, isBaseTests = false) {
     // empty in js
     return {};
 }
 
-async function getTestFiles (properties, ws = false) {
-    const path = ws ? DIR_NAME + '../pro/test/' : DIR_NAME;
-    // exchange tests
+async function getTestFiles (properties, ws = false, isBaseTests = false) {
     const tests = {};
-    const finalPropList = properties.concat ([ proxyTestFileName ]);
-    for (let i = 0; i < finalPropList.length; i++) {
-        const name = finalPropList[i];
-        const filePathWoExt = path + 'Exchange/test.' + name;
-        if (ioFileExists (filePathWoExt + '.' + ext)) {
-            // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-            tests[name] = await importTestFile (filePathWoExt);
+    if (isBaseTests) {
+        const path = ws ? DIR_NAME + '../pro/test/base/' : DIR_NAME + '/base/';
+        const files = ioDirRead (path);
+        for (let i = 0; i < files.length; i++) {
+            const filename = files[i];
+            const filenameWoExt = filename.replace ('.' + ext, '');
+            const filePathWoExt = path + filenameWoExt;
+            if (ioFileExists (filePathWoExt + '.' + ext)) {
+                let testName = filenameWoExt.replace ('test.', '');
+                testName = filenameWoExt.replace ('test_', '');
+                if (![ 'custom', 'errors', 'languageSpecific' ].includes (testName)) {
+                    tests[testName] = await importTestFile (filePathWoExt);
+                }
+            }
         }
-    }
-    // errors tests
-    const errorHierarchyKeys = Object.keys (errorsHierarchy);
-    for (let i = 0; i < errorHierarchyKeys.length; i++) {
-        const name = errorHierarchyKeys[i];
-        const filePathWoExt = path + '/base/errors/test.' + name;
-        if (ioFileExists (filePathWoExt + '.' + ext)) {
-            // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-            tests[name] = await importTestFile (filePathWoExt);
+        tests['langaugeSpecific'] = await importTestFile (path + '/custom/test.languageSpecific');
+    } else {
+        const path = ws ? DIR_NAME + '../pro/test/' : DIR_NAME;
+        // exchange tests
+        const finalPropList = properties.concat ([ proxyTestFileName ]);
+        for (let i = 0; i < finalPropList.length; i++) {
+            const name = finalPropList[i];
+            const filePathWoExt = path + 'Exchange/test.' + name;
+            if (ioFileExists (filePathWoExt + '.' + ext)) {
+                // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
+                tests[name] = await importTestFile (filePathWoExt);
+            }
         }
-    }
-    return tests;
-}
-
-async function getBaseTestFiles (ws = false) {
-    const tests = {};
-    const path = ws ? DIR_NAME + '../pro/test/base/' : DIR_NAME + '/base/';
-    const files = ioDirRead (path);
-    for (let i = 0; i < files.length; i++) {
-        const filename = files[i];
-        const filenameWoExt = filename.replace ('.' + ext, '');
-        const filePathWoExt = path + filenameWoExt;
-        if (ioFileExists (filePathWoExt + '.' + ext)) {
-            let testName = filenameWoExt.replace ('test.', '');
-            testName = filenameWoExt.replace ('test_', '');
-            if (![ 'custom', 'errors', 'languageSpecific' ].includes (testName)) {
-                tests[testName] = await importTestFile (filePathWoExt);
+        // errors tests
+        const errorHierarchyKeys = Object.keys (errorsHierarchy);
+        for (let i = 0; i < errorHierarchyKeys.length; i++) {
+            const name = errorHierarchyKeys[i];
+            const filePathWoExt = path + '/base/errors/test.' + name;
+            if (ioFileExists (filePathWoExt + '.' + ext)) {
+                // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
+                tests[name] = await importTestFile (filePathWoExt);
             }
         }
     }
-    tests['langaugeSpecific'] = await importTestFile (path + '/custom/test.languageSpecific');
     return tests;
 }
 
@@ -278,7 +276,6 @@ export {
     initExchange,
     getTestFiles,
     getTestFilesSync,
-    getBaseTestFiles,
     setFetchResponse,
     isNullValue,
     close,
