@@ -157,7 +157,7 @@ export default class hashkey extends Exchange {
                         'quote/v1/ticker/24hr': 1, // done
                         'quote/v1/ticker/price': 1, // done
                         'quote/v1/ticker/bookTicker': 1, // not unified
-                        'quote/v1/depth/merged': 1, // todo ask about it
+                        'quote/v1/depth/merged': 1, // todo ask
                         'quote/v1/markPrice': 1, // not unified todo ask
                         'quote/v1/index': 1, // not unified todo ask
                         'api/v1/futures/fundingRate': 1, // done
@@ -177,9 +177,9 @@ export default class hashkey extends Exchange {
                         'api/v1/futures/userTrades': 1,
                         'api/v1/futures/positions': 1,
                         'api/v1/futures/historyOrders': 1,
-                        'api/v1/futures/balance': 1, // updateFetchBalance
+                        'api/v1/futures/balance': 1, // not unified
                         'api/v1/futures/liquidationAssignStatus': 1, // todo ask
-                        'api/v1/futures/riskLimit': 1,
+                        'api/v1/futures/riskLimit': 1, // not unified
                         'api/v1/futures/commissionRate': 1, // done
                         'api/v1/futures/getBestOrder': 1,
                         'api/v1/account/vipInfo': 5, // done
@@ -1348,8 +1348,9 @@ export default class hashkey extends Exchange {
          */
         await this.loadMarkets ();
         const request: Dict = {};
+        const methodName = 'fetchBalance';
         let accountId: Str = undefined;
-        [ accountId, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'accountId');
+        [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
         if (accountId !== undefined) {
             request['accountId'] = accountId;
         }
