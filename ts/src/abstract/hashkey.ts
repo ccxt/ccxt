@@ -19,6 +19,8 @@ interface Exchange {
     publicGetQuoteV1DepthMerged (params?: {}): Promise<implicitReturnType>;
     publicGetQuoteV1MarkPrice (params?: {}): Promise<implicitReturnType>;
     publicGetQuoteV1Index (params?: {}): Promise<implicitReturnType>;
+    publicGetApiV1FuturesFundingRate (params?: {}): Promise<implicitReturnType>;
+    publicGetApiV1FuturesHistoryFundingRate (params?: {}): Promise<implicitReturnType>;
     publicGetApiV1Ping (params?: {}): Promise<implicitReturnType>;
     publicGetApiV1Time (params?: {}): Promise<implicitReturnType>;
     privateGetApiV1SpotOrder (params?: {}): Promise<implicitReturnType>;
@@ -32,11 +34,9 @@ interface Exchange {
     privateGetApiV1FuturesHistoryOrders (params?: {}): Promise<implicitReturnType>;
     privateGetApiV1FuturesBalance (params?: {}): Promise<implicitReturnType>;
     privateGetApiV1FuturesLiquidationAssignStatus (params?: {}): Promise<implicitReturnType>;
-    privateGetApiV1FuturesFundingRate (params?: {}): Promise<implicitReturnType>;
-    privateGetApiV1FuturesHistoryFundingRate (params?: {}): Promise<implicitReturnType>;
     privateGetApiV1FuturesRiskLimit (params?: {}): Promise<implicitReturnType>;
     privateGetApiV1FuturesCommissionRate (params?: {}): Promise<implicitReturnType>;
-    privateGetApiV1FuturesGetBestOrders (params?: {}): Promise<implicitReturnType>;
+    privateGetApiV1FuturesGetBestOrder (params?: {}): Promise<implicitReturnType>;
     privateGetApiV1AccountVipInfo (params?: {}): Promise<implicitReturnType>;
     privateGetApiV1Account (params?: {}): Promise<implicitReturnType>;
     privateGetApiV1AccountTrades (params?: {}): Promise<implicitReturnType>;
