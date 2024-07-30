@@ -3,7 +3,7 @@ import ccxt from '../../../ccxt.js';
 import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
 
 
-function testCalculateFee (tickPrecision = true) {
+function testCalculateFeeWithPrecision (tickPrecision = true) {
 
     const exchange = new ccxt.Exchange ({
         'id': 'sampleexchange',
@@ -52,5 +52,11 @@ function testCalculateFee (tickPrecision = true) {
         });
     }
 }
+
+function testCalculateFee () {
+    testCalculateFeeWithPrecision (true);
+    testCalculateFeeWithPrecision (false);
+}
+
 
 export default testCalculateFee;
