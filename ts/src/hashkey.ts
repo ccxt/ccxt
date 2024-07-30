@@ -5,7 +5,7 @@ import Exchange from './abstract/hashkey.js';
 import { ArgumentsRequired, NotSupported } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -97,7 +97,7 @@ export default class hashkey extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
                 'fetchTicker': true,
-                'fetchTickers': false,
+                'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
@@ -1227,6 +1227,22 @@ export default class hashkey extends Exchange {
         //
         const ticker = this.safeDict (response, 0, {});
         return this.parseTicker (ticker, market);
+    }
+
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name hashkey#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-24hr-ticker-price-change
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.publicGetQuoteV1Ticker24hr (params);
+        return this.parseTickers (response, symbols);
     }
 
     parseTicker (ticker, market: Market = undefined): Ticker {
@@ -2472,7 +2488,12 @@ export default class hashkey extends Exchange {
             'timestamp': this.milliseconds (),
         };
         const response = await this.publicGetApiV1FuturesFundingRate (this.extend (request, params));
-        const rate = this.safeDict (response, 0);
+        //
+        //     [
+        //         { "symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000" }
+        //     ]
+        //
+        const rate = this.safeDict (response, 0, {});
         return this.parseFundingRate (rate, market);
     }
 
