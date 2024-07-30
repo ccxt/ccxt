@@ -2,7 +2,7 @@
 
 import coinbaseinternationalRest from '../coinbaseinternational.js';
 import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
-import { Ticker, Int, Trade, OrderBook, Market, Dict, Strings, FundingRate, FundingRates } from '../base/types.js';
+import { Ticker, Int, Trade, OrderBook, Market, Dict, Strings, FundingRate, FundingRates, Tickers } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache } from '../base/ws/Cache.js';
@@ -26,7 +26,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
                 'watchOrders': false,
                 'watchOrdersForSymbols': false,
                 'watchPositions': false,
-                'watchTickers': false,
+                'watchTickers': true,
                 'createOrderWs': false,
                 'editOrderWs': false,
                 'cancelOrderWs': false,
@@ -76,16 +76,20 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         this.checkRequiredCredentials ();
         let market = undefined;
         let messageHash = name;
-        let productIds = [];
+        let productIds = undefined;
         if (symbols === undefined) {
-            symbols = this.symbols;
+            symbols = this.getActiveSymbols ();
         }
         const symbolsLength = symbols.length;
+        const messageHashes = [];
         if (symbolsLength > 1) {
             const parsedSymbols = this.marketSymbols (symbols);
             const marketIds = this.marketIds (parsedSymbols);
             productIds = marketIds;
-            messageHash = messageHash + '::' + parsedSymbols.join (',');
+            for (let i = 0; i < parsedSymbols.length; i++) {
+                messageHashes.push (name + '::' + parsedSymbols[i]);
+            }
+            // messageHash = messageHash + '::' + parsedSymbols.join (',');
         } else if (symbolsLength === 1) {
             market = this.market (symbols[0]);
             messageHash = name + '::' + market['symbol'];
@@ -100,13 +104,19 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         const signature = this.hmac (this.encode (auth), this.base64ToBinary (this.secret), sha256, 'base64');
         const subscribe: Dict = {
             'type': 'SUBSCRIBE',
-            'product_ids': productIds,
+            // 'product_ids': productIds,
             'channels': [ name ],
             'time': timestamp,
             'key': this.apiKey,
             'passphrase': this.password,
             'signature': signature,
         };
+        if (productIds !== undefined) {
+            subscribe['product_ids'] = productIds;
+        }
+        if (symbolsLength > 1) {
+            return await this.watchMultiple (url, messageHashes, this.extend (subscribe, params), messageHashes);
+        }
         return await this.watch (url, messageHash, this.extend (subscribe, params), messageHash);
     }
 
@@ -198,12 +208,49 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
          * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#instruments-channel
          * @param {string} [symbol] unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.channel] the channel to watch, 'LEVEL1' or 'INSTRUMENTS', default is 'LEVEL1'
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         let channel = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchTicker', 'channel', 'LEVEL1');
         return await this.subscribe (channel, [ symbol ], params);
+    }
+
+    getActiveSymbols () {
+        const symbols = this.symbols;
+        const output = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.markets[symbol];
+            if (market['active']) {
+                output.push (symbol);
+            }
+        }
+        return output;
+    }
+
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name coinbaseinternational#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://docs.cloud.coinbase.com/intx/docs/websocket-channels#instruments-channel
+         * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.channel] the channel to watch, 'LEVEL1' or 'INSTRUMENTS', default is 'INSTLEVEL1UMENTS'
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        let channel = undefined;
+        [ channel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'LEVEL1');
+        const ticker = await this.subscribe (channel, symbols, params);
+        if (this.newUpdates) {
+            const result: Dict = {};
+            result[ticker['symbol']] = ticker;
+            return result;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
     handleInstrument (client: Client, message) {
@@ -264,6 +311,33 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         //        "channel":"INSTRUMENTS",
         //        "type":"SNAPSHOT"
         //    }
+        // instruments
+        //   {
+        //       sequence: 0,
+        //       instrument_type: 'PERP',
+        //       instrument_mode: 'standard',
+        //       base_asset_name: 'BTC',
+        //       quote_asset_name: 'USDC',
+        //       base_increment: '0.0001',
+        //       quote_increment: '0.1',
+        //       avg_daily_quantity: '502.8845',
+        //       avg_daily_volume: '3.1495242961566668E7',
+        //       total30_day_quantity: '15086.535',
+        //       total30_day_volume: '9.44857288847E8',
+        //       total24_hour_quantity: '5.0',
+        //       total24_hour_volume: '337016.5',
+        //       base_imf: '0.1',
+        //       min_quantity: '0.0001',
+        //       position_size_limit: '800',
+        //       funding_interval: '3600000000000',
+        //       trading_state: 'trading',
+        //       last_updated_time: '2024-07-30T15:00:00Z',
+        //       default_initial_margin: '0.2',
+        //       base_asset_multiplier: '1.0',
+        //       channel: 'INSTRUMENTS',
+        //       type: 'SNAPSHOT',
+        //       time: '2024-07-30T15:26:56.766Z',
+        //   }
         //
         const marketId = this.safeString (ticker, 'product_id');
         const datetime = this.safeString (ticker, 'time');
@@ -286,8 +360,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'total_24_hour_quantity'),
-            'quoteVolume': this.safeString (ticker, 'total_24_hour_volume'),
+            'baseVolume': this.safeString2 (ticker, 'total_24_hour_quantity', 'total24_hour_quantity'),
+            'quoteVolume': this.safeString2 (ticker, 'total_24_hour_volume', 'total24_hour_volume'),
         });
     }
 
