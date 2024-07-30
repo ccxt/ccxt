@@ -178,13 +178,7 @@ function initExchange (exchangeId, args, isWs = false): Exchange {
 
 async function importTestFile (filePath) {
     // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-    const path = pathToFileURL (filePath + '.js') as any;
-    try {
-        const imported = await import (path);
-        return (imported as any)['default'];
-    } catch (error) {
-        console.error ('Error importing module:', error);
-    }
+    return (await import (pathToFileURL (filePath + '.js') as any) as any)['default'];
 }
 
 function getTestFilesSync (properties, ws = false) {
