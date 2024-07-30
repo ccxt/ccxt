@@ -10,11 +10,14 @@ function testCalculateFee (tickPrecision = true) {
         'precisioinMode': tickPrecision ? 4 : 3, // 4 for ticksize, 3 for significant precision
     });
 
-    const price  = 100.00;
+    const price = 100.00;
     const amount = 10.00;
-    const taker  = 0.0025;
-    const maker  = 0.0010;
-    const fees   = { taker, maker };
+    const taker = 0.0025;
+    const maker = 0.0010;
+    const fees = {
+        'taker': taker,
+        'maker': maker,
+    };
     const market = {
         'id':     'foobar',
         'symbol': 'FOO/BAR',
