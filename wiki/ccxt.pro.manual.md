@@ -853,6 +853,7 @@ if ($exchange->has['watchOHLCV']) {
 ```
 <!-- tabs:end -->
 
+Some exchanges might support `timezone` parameter, like `params['timezone'] = '8'` (plus 8 hours from UTC) where candles (like `1D`, 12h`, etc) will be aligned not to UTC-0, but the provided timezone. You can check the exchange-specific parameters if the exchange supports it.
 
 ### watchOHLCVForSymbols
 
