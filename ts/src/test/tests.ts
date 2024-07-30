@@ -107,7 +107,6 @@ class testMainClass extends baseMainTestClass {
             const methodName = keys[i];
             await callMethod (this.testFiles, methodName, undefined, {}, []);
         }
-        exitScript (0); // needed to be explicitly finished for WS tests
     }
 
     checkIfSpecificTestIsChosen (methodArgv) {
