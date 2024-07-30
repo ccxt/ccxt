@@ -111,7 +111,7 @@ export default class hashkey extends Exchange {
                 'setMargin': false,
                 'setPositionMode': false,
                 'transfer': true,
-                'withdraw': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1m',
@@ -208,7 +208,7 @@ export default class hashkey extends Exchange {
                         'api/v1/futures/batchOrders': 1,
                         'api/v1/account/assetTransfer': 1, // done
                         'api/v1/account/authAddress': 1,
-                        'api/v1/account/withdraw': 1,
+                        'api/v1/account/withdraw': 1, // done
                     },
                     'delete': {
                         'api/v1/spot/order': 1, // done
@@ -1568,6 +1568,59 @@ export default class hashkey extends Exchange {
         return this.parseTransactions (response, currency, since, limit, { 'type': 'withdrawal' }); // todo check after making a withdrawal
     }
 
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name hashkey#withdraw
+         * @description make a withdrawal
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/withdraw
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string} tag
+         * @param {string} [params.network] network for withdraw
+         * @param {string} [params.clientOrderId] client order id
+         * @param {string} [params.platform] the platform to withdraw to (Binance, HashKey HK)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request: Dict = {
+            'coin': currency['id'],
+            'address': address,
+            'quantity': amount,
+        };
+        if (tag !== undefined) {
+            request['addressExt'] = tag;
+        }
+        let clientOrderId: Str = undefined;
+        [ clientOrderId, params ] = this.handleOptionAndParams (params, 'withdraw', 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['clientOrderId'] = clientOrderId;
+        }
+        let networkCode: Str = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            request['chainType'] = this.networkCodeToId (networkCode);
+        }
+        let platform: Str = undefined;
+        [ platform, params ] = this.handleOptionAndParams (params, 'withdraw', 'platform');
+        if (platform !== undefined) {
+            request['fromId'] = platform;
+        }
+        const response = await this.privatePostApiV1AccountWithdraw (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "id": "0",
+        //         "orderId": "W476435800487079936"
+        //     }
+        //
+        return this.parseTransaction (response, currency);
+    }
+
     parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         //  fetchDeposits
@@ -1601,7 +1654,7 @@ export default class hashkey extends Exchange {
         //         "platform": "Binance"
         //     }
         //
-        const id = this.safeString (transaction, 'id');
+        const id = this.safeString2 (transaction, 'id', 'orderId');
         const address = this.safeString (transaction, 'address');
         const status = this.safeString (transaction, 'status'); // todo check for withdrawals
         const txid = this.safeString (transaction, 'txId');
@@ -1654,6 +1707,7 @@ export default class hashkey extends Exchange {
             '9': 'failed',
             '10': 'failed',
             'successful': 'ok',
+            'success': 'ok',
         };
         return this.safeString (statuses, status, status);
     }
