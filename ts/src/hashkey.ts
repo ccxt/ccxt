@@ -175,8 +175,8 @@ export default class hashkey extends Exchange {
                         'api/v1/futures/userTrades': 1,
                         'api/v1/futures/positions': 1,
                         'api/v1/futures/historyOrders': 1,
-                        'api/v1/futures/balance': 1,
-                        'api/v1/futures/liquidationAssignStatus': 1,
+                        'api/v1/futures/balance': 1, // updateFetchBalance
+                        'api/v1/futures/liquidationAssignStatus': 1, // todo ask
                         'api/v1/futures/riskLimit': 1,
                         'api/v1/futures/commissionRate': 1, // todo is it fetchTradingFees
                         'api/v1/futures/getBestOrder': 1,
@@ -1561,7 +1561,7 @@ export default class hashkey extends Exchange {
         //             "feeCoinName": "USDT",
         //             "fee": "0.00100000",
         //             "remark": "",
-        //             "platform": "Binance"
+        //             "platform": "hashkey"
         //         }
         //     ]
         //
@@ -1580,7 +1580,7 @@ export default class hashkey extends Exchange {
          * @param {string} tag
          * @param {string} [params.network] network for withdraw
          * @param {string} [params.clientOrderId] client order id
-         * @param {string} [params.platform] the platform to withdraw to (Binance, HashKey HK)
+         * @param {string} [params.platform] the platform to withdraw to (hashkey, HashKey HK)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
@@ -1651,7 +1651,7 @@ export default class hashkey extends Exchange {
         //         "feeCoinName": "USDT",
         //         "fee": "0.00100000",
         //         "remark": "",
-        //         "platform": "Binance"
+        //         "platform": "hashkey"
         //     }
         //
         const id = this.safeString2 (transaction, 'id', 'orderId');
@@ -2455,6 +2455,27 @@ export default class hashkey extends Exchange {
         return this.safeString (types, type, type);
     }
 
+    async fetchFundingRate (symbol: string, params = {}) {
+        /**
+         * @method
+         * @name hashkey#fetchFundingRate
+         * @description fetch the current funding rate
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+            'timestamp': this.milliseconds (),
+        };
+        const response = await this.publicGetApiV1FuturesFundingRate (this.extend (request, params));
+        const rate = this.safeDict (response, 0);
+        return this.parseFundingRate (rate, market);
+    }
+
     async fetchFundingRates (symbols: Strings = undefined, params = {}) {
         /**
          * @method
@@ -2463,20 +2484,13 @@ export default class hashkey extends Exchange {
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-funding-rate
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.symbol] the market id to fetch funding rate for
          * @returns {object} a dictionary of [funding rates structures]{@link https://docs.ccxt.com/#/?id=funding-rates-structure}, indexe by market symbols
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        let market: Market = undefined;
         const request: Dict = {
             'timestamp': this.milliseconds (), // todo the exchange accepts any integer
         };
-        if ((symbols !== undefined) && (symbols.length < 2)) { // the exchange could return info about all markets or for one symbol
-            const symbol = symbols[0];
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-        }
         const response = await this.publicGetApiV1FuturesFundingRate (this.extend (request, params));
         //
         //     [
