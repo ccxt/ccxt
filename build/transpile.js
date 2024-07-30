@@ -2238,6 +2238,7 @@ class Transpiler {
             const imports = result[0].imports;
 
             const usesPrecise = imports.find(x => x.name.includes('Precise'));
+            const usesJson = pythonAsync.includes ('json.load') || pythonAsync.includes ('json.dump');
             const usesNumber = pythonAsync.indexOf ('numbers.') >= 0;
             const requiredSubTests  = imports.filter(x => x.name.includes('test')).map(x => x.name);
             const usesAsyncio = pythonAsync.indexOf ('asyncio.') >= 0;
@@ -2284,6 +2285,10 @@ class Transpiler {
             if (usesNumber) {
                 pythonHeaderSync.push ('import numbers  # noqa E402')
                 pythonHeaderAsync.push ('import numbers  # noqa E402')
+            }
+            if (usesJson) {
+                pythonHeaderSync.push ('import json  # noqa E402')
+                pythonHeaderAsync.push ('import json  # noqa E402')
             }
             if (usesPrecise) {
                 pythonHeaderAsync.push ('from ccxt.base.precise import Precise  # noqa E402')
