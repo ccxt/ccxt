@@ -154,10 +154,10 @@ export default class hashkey extends Exchange {
                         'quote/v1/klines': 1, // done
                         'quote/v1/ticker/24hr': 1, // done
                         'quote/v1/ticker/price': 1, // done
-                        'quote/v1/ticker/bookTicker': 1,
-                        'quote/v1/depth/merged': 1,
-                        'quote/v1/markPrice': 1,
-                        'quote/v1/index': 1,
+                        'quote/v1/ticker/bookTicker': 1, // not unified
+                        'quote/v1/depth/merged': 1, // todo ask about it
+                        'quote/v1/markPrice': 1, // not unified todo ask
+                        'quote/v1/index': 1, // not unified todo ask
                         'api/v1/futures/fundingRate': 1, // done
                         'api/v1/futures/historyFundingRate': 1, // done
                         'api/v1/ping': 1,
@@ -178,27 +178,27 @@ export default class hashkey extends Exchange {
                         'api/v1/futures/balance': 1,
                         'api/v1/futures/liquidationAssignStatus': 1,
                         'api/v1/futures/riskLimit': 1,
-                        'api/v1/futures/commissionRate': 1,
+                        'api/v1/futures/commissionRate': 1, // todo is it fetchTradingFees
                         'api/v1/futures/getBestOrder': 1,
-                        'api/v1/account/vipInfo': 1,
+                        'api/v1/account/vipInfo': 1, // fetchTradingFees
                         'api/v1/account': 1, // done
                         'api/v1/account/trades': 5, // done
                         'api/v1/account/type': 5, // done
-                        'api/v1/account/checkApiKey': 1,
-                        'api/v1/account/balanceFlow': 1,
-                        'api/v1/spot/subAccount/openOrders': 1,
-                        'api/v1/spot/subAccount/tradeOrders': 1,
-                        'api/v1/subAccount/trades': 1,
-                        'api/v1/futures/subAccount/openOrders': 1,
-                        'api/v1/futures/subAccount/historyOrders': 1,
-                        'api/v1/futures/subAccount/userTrades': 1,
+                        'api/v1/account/checkApiKey': 1, // not unified
+                        'api/v1/account/balanceFlow': 1, // fetchLedger
+                        'api/v1/spot/subAccount/openOrders': 1, // update fetchOpenOrders
+                        'api/v1/spot/subAccount/tradeOrders': 1, // update fetchCanceledAndClosedOrders
+                        'api/v1/subAccount/trades': 1, // update fetchTrades
+                        'api/v1/futures/subAccount/openOrders': 1, // update fetchOpenOrders
+                        'api/v1/futures/subAccount/historyOrders': 1, // update fetchCanceledAndClosedOrders
+                        'api/v1/futures/subAccount/userTrades': 1, // update fetchTrades
                         'api/v1/account/deposit/address': 1, // done
                         'api/v1/account/depositOrders': 1, // done
                         'api/v1/account/withdrawOrders': 1, // done
                     },
                     'post': {
                         'api/v1/userDataStream': 1,
-                        'api/v1/spot/orderTest': 1,
+                        'api/v1/spot/orderTest': 1, // done
                         'api/v1/spot/order': 1, // done
                         'api/v1.1/spot/order': 1, // done
                         'api/v1/spot/batchOrders': 5,
@@ -207,7 +207,7 @@ export default class hashkey extends Exchange {
                         'api/v1/futures/position/trading-stop': 1,
                         'api/v1/futures/batchOrders': 1,
                         'api/v1/account/assetTransfer': 1, // done
-                        'api/v1/account/authAddress': 1,
+                        'api/v1/account/authAddress': 1, // todo ask about it
                         'api/v1/account/withdraw': 1, // done
                     },
                     'delete': {
@@ -1111,7 +1111,7 @@ export default class hashkey extends Exchange {
             'cost': undefined,
             'takerOrMaker': takerOrMaker,
             'type': undefined,
-            'order': undefined,
+            'order': this.safeString (trade, 'orderId'),
             'fee': fee,
             'info': trade,
         }, market);
@@ -1818,8 +1818,8 @@ export default class hashkey extends Exchange {
         const types: Dict = {
             '1': 'spot',
             '3': 'swap',
-            '5': 'custody',
-            '6': 'fiat',
+            '5': 'custody', // todo check
+            '6': 'fiat', // todo check
         };
         return this.safeString (types, type, type);
     }
@@ -2073,11 +2073,14 @@ export default class hashkey extends Exchange {
          * @param {string} [params.side] 'buy' or 'sell'
          * @returns {object} response from exchange
          */
-        const request: Dict = {};
-        if (symbol !== undefined) {
-            const market = this.market (symbol);
-            request['symbol'] = market['id'];
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
         let side: Str = undefined;
         [ side, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'side');
         if (side !== undefined) {
@@ -2268,8 +2271,7 @@ export default class hashkey extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        let callerMethodName = 'fetchCanceledAndClosedOrders';
-        [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', callerMethodName);
+        const callerMethodName = 'fetchCanceledAndClosedOrders';
         let until: Int = undefined;
         [ until, params ] = this.handleOptionAndParams (params, callerMethodName, 'until');
         if (until !== undefined) {
@@ -2316,46 +2318,6 @@ export default class hashkey extends Exchange {
         //     ]
         //
         return this.parseOrders (response, market, since, limit);
-    }
-
-    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name hashkey#fetchCanceledOrders
-         * @description fetches information on multiple canceled orders made by the user
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-all-orders
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve - default 500, maximum 1000
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] the latest time in ms to fetch entries for - only supports the last 90 days timeframe
-         * @param {string} [params.orderId] the id of the order to fetch
-         * @param {string} [params.side] 'buy' or 'sell' - the side of the orders to fetch
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        await this.loadMarkets ();
-        const orders = await this.fetchCanceledAndClosedOrders (symbol, since, limit, this.extend ({ 'callerMethodName': 'fetchCanceledOrders' }, params));
-        return this.filterBy (orders, 'status', 'canceled') as Order[];
-    }
-
-    async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
-        /**
-         * @method
-         * @name hashkey#fetchClosedOrders
-         * @description fetches information on multiple closed orders made by the user
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-all-orders
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve - default 500, maximum 1000
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.until] the latest time in ms to fetch entries for - only supports the last 90 days timeframe
-         * @param {string} [params.orderId] the id of the order to fetch
-         * @param {string} [params.side] 'buy' or 'sell' - the side of the orders to fetch
-         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
-        await this.loadMarkets ();
-        const orders = await this.fetchCanceledAndClosedOrders (symbol, since, limit, this.extend ({ 'callerMethodName': 'fetchClosedOrders' }, params));
-        return this.filterBy (orders, 'status', 'closed') as Order[];
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
