@@ -47,7 +47,7 @@ function testDatetime () {
     assert (exchange.parseDate ('1986-04-26 00:00:00') === 514857600000);
     assert (exchange.parseDate ('1986-04-26T01:23:47.000Z') === 514862627000);
     assert (exchange.parseDate ('1986-13-13 00:00:00') === undefined);
-    // GMT formats 
+    // GMT formats
     try {
         assert (exchange.parseDate ('Mon, 29 Apr 2024 14:00:17 GMT') === 1714399217000);
         assert (exchange.parseDate ('Mon, 29 Apr 2024 14:09:17 GMT') === 1714399757000);
@@ -55,9 +55,10 @@ function testDatetime () {
         assert (exchange.parseDate ('Sun, 29 Dec 2024 02:11:10 GMT') === 1735438270000);
         assert (exchange.parseDate ('Sun, 08 Dec 2024 02:03:04 GMT') === 1733623384000);
     } catch (exc) {
+        // todo: the gmt methods bugs in php, until that, mute
         const message = exc.toString ();
-        // todo: bugs in php
-        if (!(message.indexOf ('datetime.php') > 0)) {
+        // transpiler trick
+        if (!(message + '').includes ('datetime.php')) {
             throw exc;
         }
     }
