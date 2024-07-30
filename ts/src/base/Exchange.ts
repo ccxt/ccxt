@@ -4650,7 +4650,7 @@ export default class Exchange {
         return rate;
     }
 
-    handleOptionAndParams (params: object, methodName: string, optionName: string, defaultValue = undefined) {
+    handleOptionAndParams (params: object, methodName: string, optionName: string, defaultValue: any = undefined) {
         // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
         const defaultOptionName = 'default' + this.capitalize (optionName); // we also need to check the 'defaultXyzWhatever'
         // check if params contain the key
@@ -6446,7 +6446,7 @@ export default class Exchange {
         return this.filterByArray (objects, key, values, indexed) as Position[];
     }
 
-    filterByArrayTickers (objects, key: IndexType, values = undefined, indexed = true): Dictionary<Ticker> {
+    filterByArrayTickers (objects, key: IndexType, values: Strings = undefined, indexed = true): Dictionary<Ticker> {
         /**
          * @ignore
          * @method
@@ -6680,7 +6680,7 @@ export default class Exchange {
         return this.filterBySinceLimit (sorted, since, limit, key);
     }
 
-    async fetchPaginatedCallIncremental (method: string, symbol: Str = undefined, since = undefined, limit = undefined, params = {}, pageKey = undefined, maxEntriesPerRequest = undefined): Promise<any> {
+    async fetchPaginatedCallIncremental (method: string, symbol: Str = undefined, since = undefined, limit = undefined, params = {}, pageKey = undefined, maxEntriesPerRequest: Num = undefined): Promise<any> {
         let maxCalls = undefined;
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
         let maxRetries = undefined;
@@ -6717,8 +6717,8 @@ export default class Exchange {
         return this.filterBySinceLimit (sorted, since, limit, key);
     }
 
-    sortCursorPaginatedResult (result) {
-        const first = this.safeValue (result, 0);
+    sortCursorPaginatedResult (result: Dict[]) {
+        const first = this.safeList (result, 0);
         if (first !== undefined) {
             if ('timestamp' in first) {
                 return this.sortBy (result, 'timestamp', true);
@@ -6730,7 +6730,7 @@ export default class Exchange {
         return result;
     }
 
-    removeRepeatedElementsFromArray (input) {
+    removeRepeatedElementsFromArray (input: Dict[]) {
         const uniqueResult = {};
         for (let i = 0; i < input.length; i++) {
             const entry = input[i];
@@ -6829,7 +6829,7 @@ export default class Exchange {
         return optionStructures;
     }
 
-    parseMarginModes (response: object[], symbols: string[] = undefined, symbolKey: Str = undefined, marketType: MarketType = undefined): MarginModes {
+    parseMarginModes (response: object[], symbols: Strings, symbolKey: Str = undefined, marketType: MarketType = undefined): MarginModes {
         const marginModeStructures = {};
         if (marketType === undefined) {
             marketType = 'swap'; // default to swap
@@ -6849,7 +6849,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseMarginMode () is not supported yet');
     }
 
-    parseLeverages (response: object[], symbols: string[] = undefined, symbolKey: Str = undefined, marketType: MarketType = undefined): Leverages {
+    parseLeverages (response: object[], symbols: Strings, symbolKey: Str = undefined, marketType: MarketType = undefined): Leverages {
         const leverageStructures = {};
         if (marketType === undefined) {
             marketType = 'swap'; // default to swap
