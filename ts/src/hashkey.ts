@@ -6,7 +6,7 @@ import { ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -77,6 +77,7 @@ export default class hashkey extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchLedger': false,
                 'fetchLeverage': false,
+                'fetchLeverageTiers': true,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
@@ -101,9 +102,9 @@ export default class hashkey extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFee': false,
-                'fetchTradingFees': false,
-                'fetchTransactions': 'emulated',
+                'fetchTradingFee': true, // emulated for spot markets
+                'fetchTradingFees': true, // for spot markets only
+                'fetchTransactions': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
@@ -179,9 +180,9 @@ export default class hashkey extends Exchange {
                         'api/v1/futures/balance': 1, // updateFetchBalance
                         'api/v1/futures/liquidationAssignStatus': 1, // todo ask
                         'api/v1/futures/riskLimit': 1,
-                        'api/v1/futures/commissionRate': 1, // todo is it fetchTradingFees
+                        'api/v1/futures/commissionRate': 1, // done
                         'api/v1/futures/getBestOrder': 1,
-                        'api/v1/account/vipInfo': 1, // fetchTradingFees
+                        'api/v1/account/vipInfo': 5, // done
                         'api/v1/account': 1, // done
                         'api/v1/account/trades': 5, // done
                         'api/v1/account/type': 5, // done
@@ -2736,6 +2737,117 @@ export default class hashkey extends Exchange {
             });
         }
         return tiers;
+    }
+
+    async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+        /**
+         * @method
+         * @name hashkey#fetchTradingFee
+         * @description fetch the trading fees for a market
+         * @see https://developers.binance.com/docs/wallet/asset/trade-fee // spot
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-commission-rate-request-weight // swap
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const methodName = 'fetchTradingFee';
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.fetchTradingFees (params);
+            return this.safeDict (response, symbol) as TradingFeeInterface;
+        } else if (market['swap']) {
+            response = await this.privateGetApiV1FuturesCommissionRate (this.extend ({ 'symbol': market['id'] }, params));
+            return this.parseTradingFee (response, market);
+            //
+            //     {
+            //         "openMakerFee": "0.00025",
+            //         "openTakerFee": "0.0006",
+            //         "closeMakerFee": "0.00025",
+            //         "closeTakerFee": "0.0006"
+            //     }
+            //
+        } else {
+            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + market['type'] + ' markets');
+        }
+    }
+
+    async fetchTradingFees (params = {}): Promise<TradingFees> {
+        /**
+         * @method
+         * @name binance#fetchTradingFees
+         * @description *for spot markets only* fetch the trading fees for multiple markets
+         * @see https://developers.binance.com/docs/wallet/asset/trade-fee
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const response = await this.privateGetApiV1AccountVipInfo (params);
+        //
+        //     {
+        //         "code": 0,
+        //         "vipLevel": "0",
+        //         "tradeVol30Day": "67",
+        //         "totalAssetBal": "0",
+        //         "data": [
+        //             {
+        //                 "symbol": "UXLINKUSDT",
+        //                 "productType": "Token-Token",
+        //                 "buyMakerFeeCurrency": "UXLINK",
+        //                 "buyTakerFeeCurrency": "UXLINK",
+        //                 "sellMakerFeeCurrency": "USDT",
+        //                 "sellTakerFeeCurrency": "USDT",
+        //                 "actualMakerRate": "0.0012",
+        //                 "actualTakerRate": "0.0012"
+        //             },
+        //             ...
+        //         ],
+        //         "updateTimestamp": "1722320137809"
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const result: Dict = {};
+        for (let i = 0; i < data.length; i++) {
+            const fee = this.safeDict (data, i, {});
+            const parsedFee = this.parseTradingFee (fee);
+            result[parsedFee['symbol']] = parsedFee;
+        }
+        return result;
+    }
+
+    parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
+        //
+        // spot
+        //     {
+        //         "symbol": "UXLINKUSDT",
+        //         "productType": "Token-Token",
+        //         "buyMakerFeeCurrency": "UXLINK",
+        //         "buyTakerFeeCurrency": "UXLINK",
+        //         "sellMakerFeeCurrency": "USDT",
+        //         "sellTakerFeeCurrency": "USDT",
+        //         "actualMakerRate": "0.0012",
+        //         "actualTakerRate": "0.0012"
+        //     }
+        //
+        // swap
+        //     {
+        //         "openMakerFee": "0.00025",
+        //         "openTakerFee": "0.0006",
+        //         "closeMakerFee": "0.00025",
+        //         "closeTakerFee": "0.0006"
+        //     }
+        //
+        const marketId = this.safeString (fee, 'symbol');
+        market = this.safeMarket (marketId, market);
+        return {
+            'info': fee,
+            'symbol': market['symbol'],
+            'maker': this.safeNumber2 (fee, 'openMakerFee', 'actualMakerRate'),
+            'taker': this.safeNumber2 (fee, 'openTakerFee', 'actualTakerRate'),
+            'percentage': true, // todo check
+            'tierBased': true, // todo check
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
