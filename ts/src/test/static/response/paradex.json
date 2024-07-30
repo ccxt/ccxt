@@ -561,7 +561,7 @@
                         "symbol": "BTC/USD:USDC",
                         "type": null,
                         "takerOrMaker": "taker",
-                        "side": "BUY",
+                        "side": "buy",
                         "price": 67643.2,
                         "amount": 0.026,
                         "cost": 1758.7232,
