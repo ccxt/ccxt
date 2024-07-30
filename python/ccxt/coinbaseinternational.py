@@ -74,7 +74,7 @@ class coinbaseinternational(Exchange, ImplicitAPI):
                 'fetchCrossBorrowRates': False,
                 'fetchCurrencies': True,
                 'fetchDeposits': True,
-                'fetchFundingHistory': False,
+                'fetchFundingHistory': True,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': True,
                 'fetchFundingRates': False,
@@ -431,6 +431,77 @@ class coinbaseinternational(Exchange, ImplicitAPI):
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
+        }
+
+    def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetch the history of funding payments paid and received on self account
+        :see: https://docs.cdp.coinbase.com/intx/reference/gettransfers
+        :param str [symbol]: unified market symbol
+        :param int [since]: the earliest time in ms to fetch funding history for
+        :param int [limit]: the maximum number of funding history structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding history structure <https://docs.ccxt.com/#/?id=funding-history-structure>`
+        """
+        self.load_markets()
+        request: dict = {
+            'type': 'FUNDING',
+        }
+        market: Market = None
+        if symbol is not None:
+            market = self.market(symbol)
+        portfolios = None
+        portfolios, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'portfolios')
+        if portfolios is not None:
+            request['portfolios'] = portfolios
+        if since is not None:
+            request['time_from'] = self.iso8601(since)
+        if limit is not None:
+            request['result_limit'] = limit
+        else:
+            request['result_limit'] = 100
+        response = self.v1PrivateGetTransfers(self.extend(request, params))
+        fundings = self.safe_list(response, 'results', [])
+        return self.parse_incomes(fundings, market, since, limit)
+
+    def parse_income(self, income, market: Market = None):
+        #
+        # {
+        #     "amount":"0.0008",
+        #     "asset":"USDC",
+        #     "created_at":"2024-02-22T16:00:00Z",
+        #     "from_portfolio":{
+        #        "id":"13yuk1fs-1-0",
+        #        "name":"Eng Test Portfolio - 2",
+        #        "uuid":"018712f2-5ff9-7de3-9010-xxxxxxxxx"
+        #     },
+        #     "instrument_id":"149264164756389888",
+        #     "instrument_symbol":"ETH-PERP",
+        #     "position_id":"1xy4v51m-1-2",
+        #     "status":"PROCESSED",
+        #     "to_portfolio":{
+        #        "name":"CB_FUND"
+        #     },
+        #     "transfer_type":"FUNDING",
+        #     "transfer_uuid":"a6b708df-2c44-32c5-bb98-xxxxxxxxxx",
+        #     "updated_at":"2024-02-22T16:00:00Z"
+        # }
+        #
+        marketId = self.safe_string(income, 'symbol')
+        market = self.safe_market(marketId, market, None, 'contract')
+        datetime = self.safe_integer(income, 'created_at')
+        timestamp = self.parse8601(datetime)
+        currencyId = self.safe_string(income, 'asset')
+        code = self.safe_currency_code(currencyId)
+        return {
+            'info': income,
+            'symbol': market['symbol'],
+            'code': code,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'id': self.safe_string(income, 'transfer_uuid'),
+            'amount': self.safe_number(income, 'amount'),
+            'rate': None,
         }
 
     def create_deposit_address(self, code: str, params={}):

@@ -36,6 +36,17 @@ export default class coinbaseinternational extends Exchange {
         previousFundingTimestamp: any;
         previousFundingDatetime: any;
     };
+    fetchFundingHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").FundingHistory[]>;
+    parseIncome(income: any, market?: Market): {
+        info: any;
+        symbol: string;
+        code: string;
+        timestamp: number;
+        datetime: string;
+        id: string;
+        amount: number;
+        rate: any;
+    };
     createDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
         tag: string;

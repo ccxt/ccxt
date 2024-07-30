@@ -62,7 +62,7 @@ class coinbaseinternational extends Exchange {
                 'fetchCrossBorrowRates' => false,
                 'fetchCurrencies' => true,
                 'fetchDeposits' => true,
-                'fetchFundingHistory' => false,
+                'fetchFundingHistory' => true,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => false,
@@ -436,6 +436,83 @@ class coinbaseinternational extends Exchange {
             'previousFundingRate' => null,
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
+        );
+    }
+
+    public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch the history of funding payments paid and received on this account
+         * @see https://docs.cdp.coinbase.com/intx/reference/gettransfers
+         * @param {string} [$symbol] unified $market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch funding history for
+         * @param {int} [$limit] the maximum number of funding history structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-history-structure funding history structure~
+         */
+        $this->load_markets();
+        $request = array(
+            'type' => 'FUNDING',
+        );
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $portfolios = null;
+        list($portfolios, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'portfolios');
+        if ($portfolios !== null) {
+            $request['portfolios'] = $portfolios;
+        }
+        if ($since !== null) {
+            $request['time_from'] = $this->iso8601($since);
+        }
+        if ($limit !== null) {
+            $request['result_limit'] = $limit;
+        } else {
+            $request['result_limit'] = 100;
+        }
+        $response = $this->v1PrivateGetTransfers ($this->extend($request, $params));
+        $fundings = $this->safe_list($response, 'results', array());
+        return $this->parse_incomes($fundings, $market, $since, $limit);
+    }
+
+    public function parse_income($income, ?array $market = null) {
+        //
+        // {
+        //     "amount":"0.0008",
+        //     "asset":"USDC",
+        //     "created_at":"2024-02-22T16:00:00Z",
+        //     "from_portfolio":array(
+        //        "id":"13yuk1fs-1-0",
+        //        "name":"Eng Test Portfolio - 2",
+        //        "uuid":"018712f2-5ff9-7de3-9010-xxxxxxxxx"
+        //     ),
+        //     "instrument_id":"149264164756389888",
+        //     "instrument_symbol":"ETH-PERP",
+        //     "position_id":"1xy4v51m-1-2",
+        //     "status":"PROCESSED",
+        //     "to_portfolio":array(
+        //        "name":"CB_FUND"
+        //     ),
+        //     "transfer_type":"FUNDING",
+        //     "transfer_uuid":"a6b708df-2c44-32c5-bb98-xxxxxxxxxx",
+        //     "updated_at":"2024-02-22T16:00:00Z"
+        // }
+        //
+        $marketId = $this->safe_string($income, 'symbol');
+        $market = $this->safe_market($marketId, $market, null, 'contract');
+        $datetime = $this->safe_integer($income, 'created_at');
+        $timestamp = $this->parse8601($datetime);
+        $currencyId = $this->safe_string($income, 'asset');
+        $code = $this->safe_currency_code($currencyId);
+        return array(
+            'info' => $income,
+            'symbol' => $market['symbol'],
+            'code' => $code,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'id' => $this->safe_string($income, 'transfer_uuid'),
+            'amount' => $this->safe_number($income, 'amount'),
+            'rate' => null,
         );
     }
 

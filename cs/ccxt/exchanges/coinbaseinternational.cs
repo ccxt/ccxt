@@ -58,7 +58,7 @@ public partial class coinbaseinternational : Exchange
                 { "fetchCrossBorrowRates", false },
                 { "fetchCurrencies", true },
                 { "fetchDeposits", true },
-                { "fetchFundingHistory", false },
+                { "fetchFundingHistory", true },
                 { "fetchFundingRate", false },
                 { "fetchFundingRateHistory", true },
                 { "fetchFundingRates", false },
@@ -407,6 +407,95 @@ public partial class coinbaseinternational : Exchange
             { "previousFundingRate", null },
             { "previousFundingTimestamp", null },
             { "previousFundingDatetime", null },
+        };
+    }
+
+    public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name coinbaseinternational#fetchFundingHistory
+        * @description fetch the history of funding payments paid and received on this account
+        * @see https://docs.cdp.coinbase.com/intx/reference/gettransfers
+        * @param {string} [symbol] unified market symbol
+        * @param {int} [since] the earliest time in ms to fetch funding history for
+        * @param {int} [limit] the maximum number of funding history structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object request = new Dictionary<string, object>() {
+            { "type", "FUNDING" },
+        };
+        object market = null;
+        if (isTrue(!isEqual(symbol, null)))
+        {
+            market = this.market(symbol);
+        }
+        object portfolios = null;
+        var portfoliosparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingHistory", "portfolios");
+        portfolios = ((IList<object>)portfoliosparametersVariable)[0];
+        parameters = ((IList<object>)portfoliosparametersVariable)[1];
+        if (isTrue(!isEqual(portfolios, null)))
+        {
+            ((IDictionary<string,object>)request)["portfolios"] = portfolios;
+        }
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["time_from"] = this.iso8601(since);
+        }
+        if (isTrue(!isEqual(limit, null)))
+        {
+            ((IDictionary<string,object>)request)["result_limit"] = limit;
+        } else
+        {
+            ((IDictionary<string,object>)request)["result_limit"] = 100;
+        }
+        object response = await this.v1PrivateGetTransfers(this.extend(request, parameters));
+        object fundings = this.safeList(response, "results", new List<object>() {});
+        return this.parseIncomes(fundings, market, since, limit);
+    }
+
+    public override object parseIncome(object income, object market = null)
+    {
+        //
+        // {
+        //     "amount":"0.0008",
+        //     "asset":"USDC",
+        //     "created_at":"2024-02-22T16:00:00Z",
+        //     "from_portfolio":{
+        //        "id":"13yuk1fs-1-0",
+        //        "name":"Eng Test Portfolio - 2",
+        //        "uuid":"018712f2-5ff9-7de3-9010-xxxxxxxxx"
+        //     },
+        //     "instrument_id":"149264164756389888",
+        //     "instrument_symbol":"ETH-PERP",
+        //     "position_id":"1xy4v51m-1-2",
+        //     "status":"PROCESSED",
+        //     "to_portfolio":{
+        //        "name":"CB_FUND"
+        //     },
+        //     "transfer_type":"FUNDING",
+        //     "transfer_uuid":"a6b708df-2c44-32c5-bb98-xxxxxxxxxx",
+        //     "updated_at":"2024-02-22T16:00:00Z"
+        // }
+        //
+        object marketId = this.safeString(income, "symbol");
+        market = this.safeMarket(marketId, market, null, "contract");
+        object datetime = this.safeInteger(income, "created_at");
+        object timestamp = this.parse8601(datetime);
+        object currencyId = this.safeString(income, "asset");
+        object code = this.safeCurrencyCode(currencyId);
+        return new Dictionary<string, object>() {
+            { "info", income },
+            { "symbol", getValue(market, "symbol") },
+            { "code", code },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "id", this.safeString(income, "transfer_uuid") },
+            { "amount", this.safeNumber(income, "amount") },
+            { "rate", null },
         };
     }
 

@@ -729,7 +729,7 @@ public partial class btcbox : Exchange
                 { "nonce", nonce },
             }, parameters);
             object request = this.urlencode(query);
-            object secret = this.hash(this.encode(this.secret), sha256);
+            object secret = this.hash(this.encode(this.secret), md5);
             ((IDictionary<string,object>)query)["signature"] = this.hmac(this.encode(request), this.encode(secret), sha256);
             body = this.urlencode(query);
             headers = new Dictionary<string, object>() {
