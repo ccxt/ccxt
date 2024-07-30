@@ -403,7 +403,7 @@ function deepEqual (a: any, b: any) {
 
 function assertDeepEqual (exchange: Exchange, skippedProperties: any, method: string, a: any, b: any) {
     const logText = logTemplate (exchange, method, {});
-    assert (deepEqual (a, b), 'two dicts does not match' + logText);
+    assert (deepEqual (a, b), 'two dicts does not match: ' + JSON.stringify (a) + ' != ' + JSON.stringify (b) + logText);
 }
 
 export default {

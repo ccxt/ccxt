@@ -13,6 +13,7 @@ function testExchangeConfigExtension () {
     };
     const markets = {
         'ETH/BTC': {
+            'symbol': 'ETH/BTC',
             'limits': {
                 'cost': cost,
             },
