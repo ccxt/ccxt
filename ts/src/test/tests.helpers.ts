@@ -128,6 +128,11 @@ function ioDirRead (path) {
     return files;
 }
 
+async function callMethodSync (testFiles, methodName, exchange, skippedProperties: object, args) {
+    // empty in js
+    return {};
+}
+
 async function callMethod (testFiles, methodName, exchange, skippedProperties: object, args) {
     // used for calling methods from test files
     return await testFiles[methodName] (exchange, skippedProperties, ...args);
@@ -180,6 +185,11 @@ async function importTestFile (filePath) {
     } catch (error) {
         console.error ('Error importing module:', error);
     }
+}
+
+function getTestFilesSync (properties, ws = false) {
+    // empty in js
+    return {};
 }
 
 async function getTestFiles (properties, ws = false) {
@@ -244,7 +254,6 @@ async function close (exchange: Exchange) {
 
 
 export {
-    DIR_NAME,
     // errors
     AuthenticationError,
     NotSupported,
@@ -256,17 +265,16 @@ export {
     // shared
     getCliArgValue,
     //
-    proxyTestFileName,
     baseMainTestClass,
     dump,
     jsonParse,
     jsonStringify,
     convertAscii,
-    getTestName,
     ioFileExists,
     ioFileRead,
     ioDirRead,
     callMethod,
+    callMethodSync,
     callExchangeMethodDynamically,
     callExchangeMethodDynamicallySync,
     callOverridenMethod,
@@ -275,8 +283,8 @@ export {
     getExchangeProp,
     setExchangeProp,
     initExchange,
-    importTestFile,
     getTestFiles,
+    getTestFilesSync,
     getBaseTestFiles,
     setFetchResponse,
     isNullValue,

@@ -824,9 +824,6 @@ class hyperliquid extends Exchange {
         if ($since === null) {
             $since = 0;
         }
-        if ($limit === null) {
-            $limit = 500;
-        }
         $params = $this->omit($params, array( 'until' ));
         $request = array(
             'type' => 'candleSnapshot',
