@@ -2,7 +2,7 @@
 import ccxt from '../../../ccxt.js';
 import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
 
-function testExtend () {
+function testDeepExtend () {
 
     const exchange = new ccxt.Exchange ({
         'id': 'sampleexchange',
@@ -42,9 +42,9 @@ function testExtend () {
         "other2": "y",
     };
 
-    // extend
-    const extended = exchange.extend (obj1, obj2);
-    testSharedMethods.assertDeepEqual (exchange, undefined, 'testExtend', extended, {
+    // deepExtend
+    const deepExtended = exchange.deepExtend (obj1, obj2);
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'testDeepExtend', deepExtended, {
         "a": 2,
         "b": [ 3, 4 ],
         "c": [ {
@@ -52,15 +52,12 @@ function testExtend () {
             "test3": 3,
         } ],
         "d": "not_undefined",
-        "e": undefined,
         "sub": {
             "a": 2,
             "b": [ 3, 4 ],
-            "c": [ {
-                "test1": 2,
-                "test3": 3,
-            } ],
+            "c": [ { "test1": 2, "test3": 3 } ],
             "d": "not_undefined",
+            "other1": "x",
             "other2": "y",
         },
         "other1": "x",
@@ -68,4 +65,4 @@ function testExtend () {
     });
 }
 
-export default testExtend;
+export default testDeepExtend;
