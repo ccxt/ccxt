@@ -1176,6 +1176,7 @@ class NewTranspiler {
         };
 
         let baseFunctionTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
+        baseFunctionTests = baseFunctionTests.filter (filename => filename !== 'test.cryptography');
 
         for (const testName of baseFunctionTests) {
             const tsFile = baseFolders.ts + testName + '.ts';
