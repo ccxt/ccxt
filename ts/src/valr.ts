@@ -24,7 +24,6 @@ import type {
     Trade,
     TradingFees,
     Transaction,
-    TransferEntries,
     TransferEntry,
 } from './base/types.js';
 import { Precise } from './base/Precise.js';
@@ -41,6 +40,7 @@ import {
     NullResponse,
     OrderNotFound,
 } from './base/errors.js';
+import { DECIMAL_PLACES } from './base/functions/number.js';
 
 // ---------------------------------------------------------------------------
 
@@ -385,6 +385,7 @@ export default class valr extends Exchange {
             'httpExceptions': {
                 '403': AuthenticationError,
             },
+            'precisionMode': DECIMAL_PLACES,
             'exceptions': {
                 'exact': {
                     '-1': OrderNotFound, // {"code":-1,"message":"Invalid Order. "}
@@ -2085,7 +2086,7 @@ export default class valr extends Exchange {
         };
     }
 
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntries> {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         /**
          * @method
          * @name exchange#fetchTransfer
