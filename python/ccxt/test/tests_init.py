@@ -7,7 +7,6 @@ try:
 except ImportError:
     asyncio = None
 
-from base.tests_init import base_tests_init  # noqa: F401
 from ccxt.pro.test.base.tests_init import test_base_init_ws  # noqa: F401
 
 
@@ -21,7 +20,13 @@ if (isBaseTests):
     if (isWs):
         test_base_init_ws()
     else:
-        base_tests_init()
+        if (is_synchronous):
+            from tests_sync import testMainClass as testMainClassSync
+            testMainClassSync().init_base_tests()
+        else:
+            from tests_async import testMainClass as testMainClassAsync
+            asyncio.run(testMainClassAsync().init_base_tests())
+
     print('base tests passed!')
     if not run_all:
         exit(0)
