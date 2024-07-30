@@ -1234,7 +1234,7 @@ export default class binance extends binanceRest {
         }
         let timezone = undefined;
         [ timezone, params ] = this.handleParamString2 (params, 'timezone', 'timeZone', undefined);
-        const isUtc8 = Precise.stringEq (timezone, '8') || (timezone === '+08:00');
+        const isUtc8 = (timezone !== undefined) && ((timezone === '+08:00') || Precise.stringEq (timezone, '8'));
         const rawHashes = [];
         const messageHashes = [];
         for (let i = 0; i < symbolsAndTimeframes.length; i++) {
