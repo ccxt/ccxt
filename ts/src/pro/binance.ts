@@ -1232,6 +1232,7 @@ export default class binance extends binanceRest {
         if (firstMarket['contract']) {
             type = firstMarket['linear'] ? 'future' : 'delivery';
         }
+        const isSpot = (type === 'spot');
         let timezone = undefined;
         [ timezone, params ] = this.handleParamString2 (params, 'timezone', 'timeZone', undefined);
         const isUtc8 = (timezone !== undefined) && ((timezone === '+08:00') || Precise.stringEq (timezone, '8'));
@@ -1248,7 +1249,7 @@ export default class binance extends binanceRest {
                 // weird behavior for index price kline we can't use the perp suffix
                 marketId = marketId.replace ('_perp', '');
             }
-            const utcSuffix = (isUtc8 && type === 'spot') ? '@+08:00' : '';
+            const utcSuffix = (isUtc8 && isSpot) ? '@+08:00' : '';
             rawHashes.push (marketId + '@' + klineType + '_' + interval + utcSuffix);
             messageHashes.push ('ohlcv::' + symbolString + '::' + timeframeString);
         }
