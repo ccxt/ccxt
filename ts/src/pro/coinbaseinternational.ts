@@ -2,10 +2,10 @@
 
 import coinbaseinternationalRest from '../coinbaseinternational.js';
 import { AuthenticationError, ExchangeError, NotSupported } from '../base/errors.js';
-import { Ticker, Int, Trade, OrderBook, Market, Dict, Strings, FundingRate, FundingRates, Tickers } from '../base/types.js';
+import { Ticker, Int, Trade, OrderBook, Market, Dict, Strings, FundingRate, FundingRates, Tickers, OHLCV } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import Client from '../base/ws/Client.js';
-import { ArrayCache } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -21,7 +21,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
                 'watchTicker': true,
                 'watchBalance': false,
                 'watchMyTrades': false,
-                'watchOHLCV': false,
+                'watchOHLCV': true,
                 'watchOHLCVForSymbols': false,
                 'watchOrders': false,
                 'watchOrdersForSymbols': false,
@@ -52,6 +52,14 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
                 'tradesLimit': 1000,
                 'ordersLimit': 1000,
                 'myTradesLimit': 1000,
+                'timeframes': {
+                    '1m': 'CANDLES_ONE_MINUTE',
+                    '5m': 'CANDLES_FIVE_MINUTES',
+                    '30m': 'CANDLES_THIRTY_MINUTES',
+                    '1h': 'CANDLES_ONE_HOUR',
+                    '2h': 'CANDLES_TWO_HOURS',
+                    '1d': 'CANDLES_ONE_DAY',
+                },
             },
             'exceptions': {
                 'exact': {
@@ -436,6 +444,70 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         });
     }
 
+    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        /**
+         * @method
+         * @name coinbaseinternational#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, close price, and the volume of a market
+         * @see https://docs.cdp.coinbase.com/intx/docs/websocket-channels#candles-channel
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const options = this.safeDict (this.options, 'timeframes', {});
+        const interval = this.safeString (options, timeframe, timeframe);
+        const ohlcv = await this.subscribe (interval, [ symbol ], params);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    handleOHLCV (client: Client, message) {
+        //
+        // {
+        //     "sequence": 0,
+        //     "product_id": "BTC-PERP",
+        //     "channel": "CANDLES_ONE_MINUTE",
+        //     "type": "SNAPSHOT",
+        //     "candles": [
+        //       {
+        //           "time": "2023-05-10T14:58:47.000Z",
+        //           "low": "28787.8",
+        //           "high": "28788.8",
+        //           "open": "28788.8",
+        //           "close": "28787.8",
+        //           "volume": "0.466"
+        //        },
+        //     ]
+        //  }
+        //
+        const messageHash = this.safeString (message, 'channel');
+        const marketId = this.safeString (message, 'product_id');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const timeframe = this.findTimeframe (messageHash);
+        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        if (this.safeValue (this.ohlcvs[symbol], timeframe) === undefined) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp (limit);
+        }
+        const stored = this.ohlcvs[symbol][timeframe];
+        const data = this.safeList (message, 'candles', []);
+        for (let i = 0; i < data.length; i++) {
+            const tick = data[i];
+            const parsed = this.parseOHLCV (tick, market);
+            stored.append (parsed);
+        }
+        client.resolve (stored, messageHash + '::' + symbol);
+    }
+
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
@@ -727,7 +799,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (this.handleErrorMessage (client, message)) {
             return;
         }
-        const channel = this.safeString (message, 'channel');
+        const channel = this.safeString (message, 'channel', '');
         const methods: Dict = {
             'SUBSCRIPTIONS': this.handleSubscriptionStatus,
             'INSTRUMENTS': this.handleInstrument,
@@ -741,6 +813,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         if (type === 'error') {
             const errorMessage = this.safeString (message, 'message');
             throw new ExchangeError (errorMessage);
+        }
+        if (channel.indexOf ('CANDLES') > -1) {
+            this.handleOHLCV (client, message);
         }
         const method = this.safeValue (methods, channel);
         if (method !== undefined) {

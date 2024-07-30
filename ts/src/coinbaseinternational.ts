@@ -426,7 +426,7 @@ export default class coinbaseinternational extends Exchange {
         //   }
         //
         return [
-            this.parse8601 (this.safeString (ohlcv, 'start')),
+            this.parse8601 (this.safeString2 (ohlcv, 'start', 'time')),
             this.safeNumber (ohlcv, 'open'),
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),
