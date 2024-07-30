@@ -862,7 +862,7 @@ export default class paradex extends Exchange {
         const symbol = market['symbol'];
         return this.safeOpenInterest ({
             'symbol': symbol,
-            'openInterestAmount': this.safeNumber (interest, 'open_interest'),
+            'openInterestAmount': this.safeString (interest, 'open_interest'),
             'openInterestValue': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1070,7 +1070,7 @@ export default class paradex extends Exchange {
         const side = this.safeStringLower (order, 'side');
         const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
         const remaining = this.omitZero (this.safeString (order, 'remaining_size'));
-        const stopPrice = this.safeNumber (order, 'trigger_price');
+        const stopPrice = this.safeString (order, 'trigger_price');
         const lastUpdateTimestamp = this.safeInteger (order, 'last_updated_at');
         return this.safeOrder ({
             'id': orderId,
@@ -1716,11 +1716,11 @@ export default class paradex extends Exchange {
             'info': position,
             'id': this.safeString (position, 'id'),
             'symbol': symbol,
-            'entryPrice': this.safeNumber (position, 'average_entry_price'),
+            'entryPrice': this.safeString (position, 'average_entry_price'),
             'markPrice': undefined,
             'notional': undefined,
-            'collateral': this.safeNumber (position, 'cost'),
-            'unrealizedPnl': this.safeNumber (position, 'unrealized_pnl'),
+            'collateral': this.safeString (position, 'cost'),
+            'unrealizedPnl': this.safeString (position, 'unrealized_pnl'),
             'side': side,
             'contracts': this.parseNumber (quantity),
             'contractSize': undefined,
