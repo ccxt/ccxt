@@ -103,6 +103,7 @@ class baseMainTestClass {
     public $request_tests_failed = false;
     public $response_tests_failed = false;
     public $id_tests = false;
+    public $base_tests = false;
     public $response_tests = false;
     public $request_tests = false;
     public $load_keys = false;

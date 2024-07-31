@@ -20,11 +20,8 @@ if ($isBaseTests) {
         require_once (__DIR__ . '/../pro/test/base/tests_init.php');
         \ccxt\pro\base_tests_init_ws();
     } else {
-        // test base things
-        require_once (__DIR__ . '/base/tests_init.php');
-        base_tests_init();
+        (new testMainClass ())->init();
     }
-    print('base tests passed!');
     if (!$isAllTest) {
         exit(0);
     }
