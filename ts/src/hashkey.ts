@@ -6,7 +6,7 @@ import { ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -94,7 +94,8 @@ export default class hashkey extends Exchange {
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,
-                'fetchPositions': false,
+                'fetchPositions': true,
+                'fetchPositionsForSymbol': true,
                 'fetchPositionsHistory': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
@@ -175,7 +176,7 @@ export default class hashkey extends Exchange {
                         'api/v1/futures/order': 1,
                         'api/v1/futures/openOrders': 1,
                         'api/v1/futures/userTrades': 1,
-                        'api/v1/futures/positions': 1,
+                        'api/v1/futures/positions': 1, // done
                         'api/v1/futures/historyOrders': 1,
                         'api/v1/futures/balance': 1, // update fetchBalance
                         'api/v1/futures/liquidationAssignStatus': 1, // todo ask
@@ -205,7 +206,7 @@ export default class hashkey extends Exchange {
                         'api/v1.1/spot/order': 1, // done
                         'api/v1/spot/batchOrders': 5, // todo implement
                         'api/v1/futures/leverage': 1,
-                        'api/v1/futures/order': 1,
+                        'api/v1/futures/order': 1, // done
                         'api/v1/futures/position/trading-stop': 1,
                         'api/v1/futures/batchOrders': 1,
                         'api/v1/account/assetTransfer': 1, // done
@@ -2598,6 +2599,7 @@ export default class hashkey extends Exchange {
             'CANCELED': 'canceled',
             'PENDING_CANCEL': 'canceled',
             'REJECTED': 'rejected',
+            'ORDER_NEW': 'open',
         };
         return this.safeString (statuses, status, status);
     }
@@ -2608,6 +2610,7 @@ export default class hashkey extends Exchange {
             'LIMIT': 'limit',
             'LIMIT_MAKER': 'limit',
             'MARKET_OF_BASE': 'market',
+            'STOP': 'limit', // stop orders from privatePostApiV1FuturesOrder are limit orders
         };
         return this.safeString (types, type, type);
     }
@@ -2760,6 +2763,116 @@ export default class hashkey extends Exchange {
         }
         const sorted = this.sortBy (rates, 'timestamp');
         return this.filterBySinceLimit (sorted, since, limit) as FundingRateHistory[];
+    }
+
+    async fetchPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @description fetch open positions for a market
+         * @name hashkey#fetchPositions
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-positions
+         * @description fetch all open positions
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.side] 'LONG' or 'SHORT' - the direction of the position (if not provided, positions for both sides will be returned)
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        const methodName = 'fetchPositions';
+        if ((symbols === undefined) || (symbols.length < 1)) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a symbol argument with one single market symbol');
+        } else if (symbols.length > 1) {
+            throw new NotSupported (this.id + ' ' + methodName + '() is supported for a symbol argument with one single market symbol only');
+        }
+        await this.loadMarkets ();
+        return await this.fetchPositionsForSymbol (symbols[0], this.extend ({ 'methodName': 'fetchPositions' }, params));
+    }
+
+    async fetchPositionsForSymbol (symbol: string, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @description fetch open positions for a single market
+         * @name hashkey#fetchPositionsForSymbol
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-positions
+         * @description fetch all open positions for specific symbol
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.side] 'LONG' or 'SHORT' - the direction of the position (if not provided, positions for both sides will be returned)
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let methodName = 'fetchPosition';
+        [ methodName, params ] = this.handleParamString (params, 'methodName', methodName);
+        if (!market['swap']) {
+            throw new NotSupported (this.id + ' ' + methodName + '() supports swap markets only');
+        }
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        let side: Str = undefined;
+        [ side, params ] = this.handleOptionAndParams (params, methodName, 'side');
+        if (side !== undefined) {
+            request['side'] = side.toUpperCase ();
+        }
+        const response = await this.privateGetApiV1FuturesPositions (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "symbol": "ETHUSDT-PERPETUAL",
+        //             "side": "LONG",
+        //             "avgPrice": "3327.52",
+        //             "position": "10",
+        //             "available": "0",
+        //             "leverage": "5",
+        //             "lastPrice": "3324.44",
+        //             "positionValue": "33.2752",
+        //             "liquidationPrice": "-953.83",
+        //             "margin": "6.9012",
+        //             "marginRate": "",
+        //             "unrealizedPnL": "-0.0288",
+        //             "profitRate": "-0.0041",
+        //             "realizedPnL": "-0.0199",
+        //             "minMargin": "0.2173"
+        //         }
+        //     ]
+        //
+        return this.parsePositions (response, [ symbol ]);
+    }
+
+    parsePosition (position: Dict, market: Market = undefined): Position {
+        const marketId = this.safeString (position, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        return this.safePosition ({
+            'symbol': symbol,
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'contracts': this.safeNumber (position, 'position'),
+            'contractSize': undefined,
+            'side': this.safeStringLower (position, 'side'),
+            'notional': this.safeNumber (position, 'positionValue'),
+            'leverage': this.safeInteger (position, 'leverage'),
+            'unrealizedPnl': this.safeNumber (position, 'unrealizedPnL'),
+            'realizedPnl': this.safeNumber (position, 'realizedPnL'),
+            'collateral': undefined,
+            'entryPrice': this.safeNumber (position, 'avgPrice'),
+            'markPrice': undefined,
+            'liquidationPrice': this.safeNumber (position, 'liquidationPrice'),
+            'marginMode': 'cross',
+            'hedged': true,
+            'maintenanceMargin': this.safeNumber (position, 'minMargin'),
+            'maintenanceMarginPercentage': undefined,
+            'initialMargin': this.safeNumber (position, 'margin'),
+            'initialMarginPercentage': undefined,
+            'marginRatio': undefined,
+            'lastUpdateTimestamp': undefined,
+            'lastPrice': this.safeNumber (position, 'lastPrice'),
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+            'percentage': undefined,
+            'info': position,
+        });
     }
 
     async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
