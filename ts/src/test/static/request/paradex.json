@@ -140,6 +140,39 @@
                   0.1
                 ],
                 "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"SELL\",\"type\":\"MARKET\",\"size\":\"0.1\",\"signature\":\"[\\\"1468894355587050285420949071350345737433437568442442138979146276284680442953\\\",\\\"2574741288777905528175391129576450744028621767206012283486121432563461556821\\\"]\",\"signature_timestamp\":1721829219000}"
+            },
+            {
+                "description": "trigger postOnly order",
+                "method": "createOrder",
+                "url": "https://api.testnet.paradex.trade/v1/orders",
+                "input": [
+                  "SOL/USD:USDC",
+                  "limit",
+                  "buy",
+                  5,
+                  60,
+                  {
+                    "triggerPrice": 60,
+                    "postOnly": true
+                  }
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"STOP_LIMIT\",\"size\":\"5\",\"instruction\":\"POST_ONLY\",\"price\":\"60\",\"trigger_price\":\"60\",\"signature\":\"[\\\"405019133243389523227124401986152572914421013989070242205295296137801865967\\\",\\\"1748135842845179971618758228738423761246707634334073467171466626514884721167\\\"]\",\"signature_timestamp\":1722426053000}"
+            },
+            {
+                "description": "stop market order",
+                "method": "createOrder",
+                "url": "https://api.testnet.paradex.trade/v1/orders",
+                "input": [
+                  "SOL/USD:USDC",
+                  "market",
+                  "buy",
+                  2,
+                  null,
+                  {
+                    "triggerPrice": 200
+                  }
+                ],
+                "output": "{\"market\":\"SOL-USD-PERP\",\"side\":\"BUY\",\"type\":\"STOP_MARKET\",\"size\":\"2\",\"trigger_price\":\"200\",\"signature\":\"[\\\"2276934189038552396241660827010472152888163052676591004314462080490853028883\\\",\\\"657585632622021821033179826259882399821230416216279066162195516051551718168\\\"]\",\"signature_timestamp\":1722426176000}"
             }
         ],
         "cancelOrder": [
