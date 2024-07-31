@@ -29,7 +29,7 @@ export default class woo extends wooRest {
                 'api': {
                     'ws': {
                         'public': 'wss://wss.woo.org/ws/stream',
-                        'private': 'wss://wss.woo.network/v2/ws/private/stream',
+                        'private': 'wss://wss.woo.org/v2/ws/private/stream',
                     },
                 },
                 'test': {
@@ -521,7 +521,7 @@ export default class woo extends wooRest {
     checkRequiredUid (error = true) {
         if (!this.uid) {
             if (error) {
-                throw new AuthenticationError (this.id + ' requires `uid` credential');
+                throw new AuthenticationError (this.id + ' requires `uid` credential (woox calls it `application_id`)');
             } else {
                 return false;
             }
