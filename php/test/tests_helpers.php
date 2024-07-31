@@ -287,31 +287,27 @@ function init_exchange ($exchangeId, $args, $is_ws = false) {
     return $newClass;
 }
 
-function get_test_files_sync ($properties, $ws = false) {
-    $func = function() use ($properties, $ws){
-        $tests = array();
-        $finalPropList = array_merge ($properties, [proxyTestFileName]);
-        for ($i = 0; $i < count($finalPropList); $i++) {
-            $methodName = $finalPropList[$i];
-            $name_snake_case = convert_to_snake_case($methodName);
-            $dir_to_test = $ws ? dirname(__DIR__) . '/pro/test/Exchange/' : __DIR__ . '/exchange/' . (is_synchronous ? 'sync' : 'async') .'/';
-            $test_method_name = 'test_'. $name_snake_case;
-            $test_file = $dir_to_test . $test_method_name . '.' . ext;
-            if (io_file_exists ($test_file)) {
-                include_once $test_file;
-                $tests[$methodName] = $test_method_name;
-            }
-        }
-        return $tests;
-    };
-    if (is_synchronous) {
-        return $func();
-    } else {
-        return Async\async ($func)();
+function get_test_files_sync ($properties = null, $ws = false, $is_base_tests = false) {
+    $tests = array();
+    if ($is_base_tests) {
+
     }
+    $finalPropList = array_merge ($properties, [proxyTestFileName]);
+    for ($i = 0; $i < count($finalPropList); $i++) {
+        $methodName = $finalPropList[$i];
+        $name_snake_case = convert_to_snake_case($methodName);
+        $dir_to_test = $ws ? dirname(__DIR__) . '/pro/test/Exchange/' : __DIR__ . '/exchange/' . (is_synchronous ? 'sync' : 'async') .'/';
+        $test_method_name = 'test_'. $name_snake_case;
+        $test_file = $dir_to_test . $test_method_name . '.' . ext;
+        if (io_file_exists ($test_file)) {
+            include_once $test_file;
+            $tests[$methodName] = $test_method_name;
+        }
+    }
+    return $tests;
 }
 
-function get_test_files ($properties, $ws = false) {
+function get_test_files ($properties = null, $ws = false, $is_base_tests = false) {
     return get_test_files_sync($properties, $ws);
 }
 

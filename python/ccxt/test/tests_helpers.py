@@ -269,22 +269,22 @@ def get_test_files_sync(properties, ws=False, is_base_tests=False):
         module_string = 'ccxt.' + namespace + 'test.base.custom.test_language_specific'
         imp = importlib.import_module(module_string)
         tests['languageSpecific'] = imp
-    else:
-        finalPropList = properties + [proxyTestFileName]
-        for i in range(0, len(finalPropList)):
-            methodName = finalPropList[i]
-            name_snake_case = convert_to_snake_case(methodName)
-            prefix = 'async' if not is_synchronous else 'sync'
-            dir_to_test = DIR_NAME + '/exchange/' + prefix + '/'
-            module_string = 'ccxt.test.exchange.' + prefix + '.test_' + name_snake_case
-            if (ws):
-                prefix = 'pro'
-                dir_to_test = DIR_NAME + '/../' + prefix + '/test/Exchange/'
-                module_string = 'ccxt.pro.test.Exchange.test_' + name_snake_case
-            filePathWithExt = dir_to_test + 'test_' + name_snake_case + '.py'
-            if (io_file_exists (filePathWithExt)):
-                imp = importlib.import_module(module_string)
-                tests[methodName] = imp  # getattr(imp, finalName)
+        return tests
+    finalPropList = properties + [proxyTestFileName]
+    for i in range(0, len(finalPropList)):
+        methodName = finalPropList[i]
+        name_snake_case = convert_to_snake_case(methodName)
+        prefix = 'async' if not is_synchronous else 'sync'
+        dir_to_test = DIR_NAME + '/exchange/' + prefix + '/'
+        module_string = 'ccxt.test.exchange.' + prefix + '.test_' + name_snake_case
+        if (ws):
+            prefix = 'pro'
+            dir_to_test = DIR_NAME + '/../' + prefix + '/test/Exchange/'
+            module_string = 'ccxt.pro.test.Exchange.test_' + name_snake_case
+        filePathWithExt = dir_to_test + 'test_' + name_snake_case + '.py'
+        if (io_file_exists (filePathWithExt)):
+            imp = importlib.import_module(module_string)
+            tests[methodName] = imp  # getattr(imp, finalName)
     return tests
 
 async def get_test_files(properties, ws=False, is_base_tests=False):

@@ -189,12 +189,12 @@ function getTestFilesSync (properties, ws = false, isBaseTests = false) {
 async function getTestFiles (properties, ws = false, isBaseTests = false) {
     const tests = {};
     if (isBaseTests) {
-        const path = ws ? DIR_NAME + '../pro/test/base/' : DIR_NAME + '/base/';
-        const files = ioDirRead (path);
+        const basePath = ws ? DIR_NAME + '../pro/test/base/' : DIR_NAME + '/base/';
+        const files = ioDirRead (basePath);
         for (let i = 0; i < files.length; i++) {
             const filename = files[i];
             const filenameWoExt = filename.replace ('.' + ext, '');
-            const filePathWoExt = path + filenameWoExt;
+            const filePathWoExt = basePath + filenameWoExt;
             if (ioFileExists (filePathWoExt + '.' + ext)) {
                 let testName = filenameWoExt.replace ('test.', '');
                 testName = filenameWoExt.replace ('test_', '');
@@ -203,28 +203,28 @@ async function getTestFiles (properties, ws = false, isBaseTests = false) {
                 }
             }
         }
-        tests['languageSpecific'] = await importTestFile (path + '/custom/test.languageSpecific');
-    } else {
-        const path = ws ? DIR_NAME + '../pro/test/' : DIR_NAME;
-        // exchange tests
-        const finalPropList = properties.concat ([ proxyTestFileName ]);
-        for (let i = 0; i < finalPropList.length; i++) {
-            const name = finalPropList[i];
-            const filePathWoExt = path + 'Exchange/test.' + name;
-            if (ioFileExists (filePathWoExt + '.' + ext)) {
-                // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-                tests[name] = await importTestFile (filePathWoExt);
-            }
+        tests['languageSpecific'] = await importTestFile (basePath + '/custom/test.languageSpecific');
+        return tests;
+    }
+    const path = ws ? DIR_NAME + '../pro/test/' : DIR_NAME;
+    // exchange tests
+    const finalPropList = properties.concat ([ proxyTestFileName ]);
+    for (let i = 0; i < finalPropList.length; i++) {
+        const name = finalPropList[i];
+        const filePathWoExt = path + 'Exchange/test.' + name;
+        if (ioFileExists (filePathWoExt + '.' + ext)) {
+            // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
+            tests[name] = await importTestFile (filePathWoExt);
         }
-        // errors tests
-        const errorHierarchyKeys = Object.keys (errorsHierarchy);
-        for (let i = 0; i < errorHierarchyKeys.length; i++) {
-            const name = errorHierarchyKeys[i];
-            const filePathWoExt = path + '/base/errors/test.' + name;
-            if (ioFileExists (filePathWoExt + '.' + ext)) {
-                // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-                tests[name] = await importTestFile (filePathWoExt);
-            }
+    }
+    // errors tests
+    const errorHierarchyKeys = Object.keys (errorsHierarchy);
+    for (let i = 0; i < errorHierarchyKeys.length; i++) {
+        const name = errorHierarchyKeys[i];
+        const filePathWoExt = path + '/base/errors/test.' + name;
+        if (ioFileExists (filePathWoExt + '.' + ext)) {
+            // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
+            tests[name] = await importTestFile (filePathWoExt);
         }
     }
     return tests;
