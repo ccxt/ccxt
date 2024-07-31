@@ -25,6 +25,7 @@ export default class paradex extends Exchange {
             'rateLimit': 50,
             'certified': false,
             'pro': true,
+            'dex': true,
             'has': {
                 'CORS': undefined,
                 'spot': false,
