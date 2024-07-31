@@ -12639,7 +12639,7 @@ export default class binance extends Exchange {
     async fetchMarginModes(symbols = undefined, params = {}) {
         /**
          * @method
-         * @name binance#fetchMarginMode
+         * @name binance#fetchMarginModes
          * @description fetches margin modes ("isolated" or "cross") that the market for the symbol in in, with symbol=undefined all markets for a subType (linear/inverse) are returned
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2

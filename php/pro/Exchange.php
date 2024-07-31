@@ -40,6 +40,7 @@ Exchange::$exchanges = array(
     'bitstamp',
     'bitvavo',
     'blockchaincom',
+    'blofin',
     'bybit',
     'cex',
     'coinbase',

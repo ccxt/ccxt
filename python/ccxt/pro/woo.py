@@ -34,7 +34,7 @@ class woo(ccxt.async_support.woo):
                 'api': {
                     'ws': {
                         'public': 'wss://wss.woo.org/ws/stream',
-                        'private': 'wss://wss.woo.network/v2/ws/private/stream',
+                        'private': 'wss://wss.woo.org/v2/ws/private/stream',
                     },
                 },
                 'test': {
@@ -79,7 +79,8 @@ class woo(ccxt.async_support.woo):
         return newValue
 
     async def watch_public(self, messageHash, message):
-        url = self.urls['api']['ws']['public'] + '/' + self.uid
+        urlUid = '/' + self.uid if (self.uid) else ''
+        url = self.urls['api']['ws']['public'] + urlUid
         requestId = self.request_id(url)
         subscribe: dict = {
             'id': requestId,
@@ -456,7 +457,7 @@ class woo(ccxt.async_support.woo):
         marketId = self.safe_string(trade, 'symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
-        price = self.safe_string(trade, 'executedPrice', 'price')
+        price = self.safe_string_2(trade, 'executedPrice', 'price')
         amount = self.safe_string_2(trade, 'executedQuantity', 'size')
         cost = Precise.string_mul(price, amount)
         side = self.safe_string_lower(trade, 'side')
@@ -492,7 +493,7 @@ class woo(ccxt.async_support.woo):
     def check_required_uid(self, error=True):
         if not self.uid:
             if error:
-                raise AuthenticationError(self.id + ' requires `uid` credential')
+                raise AuthenticationError(self.id + ' requires `uid` credential(woox calls it `application_id`)')
             else:
                 return False
         return True
