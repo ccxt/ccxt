@@ -1199,12 +1199,15 @@ export default class binance extends binanceRest {
          * @method
          * @name binance#watchOHLCV
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {object} [params.timezone] timezone number (positive or negative) so higher timeframe candle's open & close time will be aligned with that timezone
+         * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         params['callerMethodName'] = 'watchOHLCV';
@@ -1217,10 +1220,14 @@ export default class binance extends binanceRest {
          * @method
          * @name binance#watchOHLCVForSymbols
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+         * @see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
          * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
