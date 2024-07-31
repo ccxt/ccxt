@@ -186,7 +186,9 @@ function call_method_sync($testFiles, $methodName, $exchange, $skippedProperties
 }
 
 function call_method($testFiles, $methodName, $exchange, $skippedProperties, $args) {
-    return call_method_sync($testFiles, $methodName, $exchange, $skippedProperties, $args);
+    return \React\Async\async( function() use ($testFiles, $methodName, $exchange, $skippedProperties, $args){
+        return call_method_sync($testFiles, $methodName, $exchange, $skippedProperties, $args);
+    })();
 }
 
 function call_overriden_method($exchange, $methodName, $args) {
@@ -307,17 +309,16 @@ function get_test_files_sync ($properties = null, $ws = false, $is_base_tests = 
                 $filenameWoExt = str_replace('.' . ext, '', $filename);
                 $testName = str_replace('test_', '', $filenameWoExt);
                 $methodName = convert_to_camel_case($testName);
-                $filePathWoExt = $basePath . $filenameWoExt;
-                $filePathWithExt = $filePathWoExt . '.' . ext;
+                $filePathWithExt = $basePath . $filenameWoExt . '.' . ext;
                 if (io_file_exists ($filePathWithExt)) {
                     if (!in_array($testName, [ 'custom', 'errors', 'languageSpecific' ])) {
                         include_once $filePathWithExt;
-                        $tests[$methodName] = $testName;
+                        $tests[$methodName] = 'test_' . $testName;
                     }
                 }
             }
-            include_once $basePath . '/custom/test.languageSpecific';
-            $tests['languageSpecific'] = 'language_specific';
+            include_once $basePath . '/custom/test_language_specific.php';
+            $tests['languageSpecific'] = 'test_language_specific';
             return $tests;
         }
         $finalPropList = array_merge ($properties, [proxyTestFileName]);
