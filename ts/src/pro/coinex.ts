@@ -89,61 +89,66 @@ export default class coinex extends coinexRest {
         //
         //     {
         //         "method": "state.update",
-        //         "params": [{
-        //             "BTCUSDT": {
-        //                 "last": "31577.89",
-        //                 "open": "29318.36",
-        //                 "close": "31577.89",
-        //                 "high": "32222.19",
-        //                 "low": "29317.21",
-        //                 "volume": "630.43024965",
-        //                 "sell_total": "13.66143951",
-        //                 "buy_total": "2.76410939",
-        //                 "period": 86400,
-        //                 "deal": "19457487.84611409070000000000"
-        //             }
-        //         }]
+        //         "data": {
+        //             "state_list": [
+        //                 {
+        //                     "market": "LATUSDT",
+        //                     "last": "0.008157",
+        //                     "open": "0.008286",
+        //                     "close": "0.008157",
+        //                     "high": "0.008390",
+        //                     "low": "0.008106",
+        //                     "volume": "807714.49139758",
+        //                     "volume_sell": "286170.69645599",
+        //                     "volume_buy": "266161.23236408",
+        //                     "value": "6689.21644207",
+        //                     "period": 86400
+        //                 },
+        //             ]
+        //         },
+        //         "id": null
         //     }
         //
         //  swap
         //
         //     {
         //         "method": "state.update",
-        //         "params": [{
-        //             "BTCUSDT": {
-        //                 "period": 86400,
-        //                 "funding_time": 422,
-        //                 "position_amount": "285.6246",
-        //                 "funding_rate_last": "-0.00097933",
-        //                 "funding_rate_next": "0.00022519",
-        //                 "funding_rate_predict": "0.00075190",
-        //                 "insurance": "17474289.49925859030905338270",
-        //                 "last": "31570.08",
-        //                 "sign_price": "31568.09",
-        //                 "index_price": "31561.85000000",
-        //                 "open": "29296.11",
-        //                 "close": "31570.08",
-        //                 "high": "32463.40",
-        //                 "low": "29296.11",
-        //                 "volume": "8774.7318",
-        //                 "deal": "270675177.827928219109030017258398",
-        //                 "sell_total": "19.2230",
-        //                 "buy_total": "25.7814"
-        //             }
-        //         }]
+        //         "data": {
+        //             "state_list": [
+        //                 {
+        //                     "market": "ETHUSD_SIGNPRICE",
+        //                     "last": "1892.29",
+        //                     "open": "1884.62",
+        //                     "close": "1892.29",
+        //                     "high": "1894.09",
+        //                     "low": "1863.72",
+        //                     "volume": "0",
+        //                     "value": "0",
+        //                     "volume_sell": "0",
+        //                     "volume_buy": "0",
+        //                     "open_interest_size": "0",
+        //                     "insurance_fund_size": "0",
+        //                     "latest_funding_rate": "0",
+        //                     "next_funding_rate": "0",
+        //                     "latest_funding_time": 0,
+        //                     "next_funding_time": 0,
+        //                     "period": 86400
+        //                 },
+        //             ]
+        //         ],
+        //         "id": null
         //     }
         //
         const defaultType = this.safeString (this.options, 'defaultType');
-        const params = this.safeValue (message, 'params', []);
-        const rawTickers = this.safeValue (params, 0, {});
-        const keys = Object.keys (rawTickers);
+        const data = this.safeDict (message, 'data', {});
+        const rawTickers = this.safeList (data, 'state_list', []);
         const newTickers = [];
-        for (let i = 0; i < keys.length; i++) {
-            const marketId = keys[i];
-            const rawTicker = rawTickers[marketId];
+        for (let i = 0; i < rawTickers.length; i++) {
+            const entry = rawTickers[i];
+            const marketId = this.safeString (entry, 'market');
             const symbol = this.safeSymbol (marketId, undefined, undefined, defaultType);
             const market = this.safeMarket (marketId, undefined, undefined, defaultType);
-            const parsedTicker = this.parseWSTicker (rawTicker, market);
+            const parsedTicker = this.parseWSTicker (entry, market);
             this.tickers[symbol] = parsedTicker;
             newTickers.push (parsedTicker);
         }
@@ -168,52 +173,53 @@ export default class coinex extends coinexRest {
         //  spot
         //
         //     {
-        //         "last": "31577.89",
-        //         "open": "29318.36",
-        //         "close": "31577.89",
-        //         "high": "32222.19",
-        //         "low": "29317.21",
-        //         "volume": "630.43024965",
-        //         "sell_total": "13.66143951",
-        //         "buy_total": "2.76410939",
-        //         "period": 86400,
-        //         "deal": "19457487.84611409070000000000"
+        //         "market": "LATUSDT",
+        //         "last": "0.008157",
+        //         "open": "0.008286",
+        //         "close": "0.008157",
+        //         "high": "0.008390",
+        //         "low": "0.008106",
+        //         "volume": "807714.49139758",
+        //         "volume_sell": "286170.69645599",
+        //         "volume_buy": "266161.23236408",
+        //         "value": "6689.21644207",
+        //         "period": 86400
         //     }
         //
         //  swap
         //
         //     {
-        //         "period": 86400,
-        //         "funding_time": 422,
-        //         "position_amount": "285.6246",
-        //         "funding_rate_last": "-0.00097933",
-        //         "funding_rate_next": "0.00022519",
-        //         "funding_rate_predict": "0.00075190",
-        //         "insurance": "17474289.49925859030905338270",
-        //         "last": "31570.08",
-        //         "sign_price": "31568.09",
-        //         "index_price": "31561.85000000",
-        //         "open": "29296.11",
-        //         "close": "31570.08",
-        //         "high": "32463.40",
-        //         "low": "29296.11",
-        //         "volume": "8774.7318",
-        //         "deal": "270675177.827928219109030017258398",
-        //         "sell_total": "19.2230",
-        //         "buy_total": "25.7814"
+        //         "market": "ETHUSD_SIGNPRICE",
+        //         "last": "1892.29",
+        //         "open": "1884.62",
+        //         "close": "1892.29",
+        //         "high": "1894.09",
+        //         "low": "1863.72",
+        //         "volume": "0",
+        //         "value": "0",
+        //         "volume_sell": "0",
+        //         "volume_buy": "0",
+        //         "open_interest_size": "0",
+        //         "insurance_fund_size": "0",
+        //         "latest_funding_rate": "0",
+        //         "next_funding_rate": "0",
+        //         "latest_funding_time": 0,
+        //         "next_funding_time": 0,
+        //         "period": 86400
         //     }
         //
         const defaultType = this.safeString (this.options, 'defaultType');
+        const marketId = this.safeString (ticker, 'market');
         return this.safeTicker ({
-            'symbol': this.safeSymbol (undefined, market, undefined, defaultType),
+            'symbol': this.safeSymbol (marketId, market, undefined, defaultType),
             'timestamp': undefined,
             'datetime': undefined,
             'high': this.safeString (ticker, 'high'),
             'low': this.safeString (ticker, 'low'),
             'bid': undefined,
-            'bidVolume': this.safeString (ticker, 'buy_total'),
+            'bidVolume': this.safeString (ticker, 'volume_buy'),
             'ask': undefined,
-            'askVolume': this.safeString (ticker, 'sell_total'),
+            'askVolume': this.safeString (ticker, 'volume_sell'),
             'vwap': undefined,
             'open': this.safeString (ticker, 'open'),
             'close': this.safeString (ticker, 'close'),
@@ -223,7 +229,7 @@ export default class coinex extends coinexRest {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'volume'),
-            'quoteVolume': this.safeString (ticker, 'deal'),
+            'quoteVolume': this.safeString (ticker, 'value'),
             'info': ticker,
         }, market);
     }
@@ -1048,7 +1054,7 @@ export default class coinex extends coinexRest {
         const method = this.safeString (message, 'method');
         const handlers: Dict = {
             'state.update': this.handleTicker,
-            'asset.update': this.handleBalance,
+            'balance.update': this.handleBalance,
             'deals.update': this.handleTrades,
             'depth.update': this.handleOrderBook,
             'order.update': this.handleOrders,
