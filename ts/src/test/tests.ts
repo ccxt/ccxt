@@ -44,6 +44,7 @@ class testMainClass extends baseMainTestClass {
     parseCliArgs () {
         this.responseTests = getCliArgValue ('--responseTests');
         this.idTests = getCliArgValue ('--idTests');
+        this.baseTests = getCliArgValue ('--baseTests');
         this.requestTests = getCliArgValue ('--requestTests');
         this.info = getCliArgValue ('--info');
         this.verbose = getCliArgValue ('--verbose');
@@ -55,7 +56,7 @@ class testMainClass extends baseMainTestClass {
         this.wsTests = getCliArgValue ('--ws');
     }
 
-    async init (exchangeId, symbolArgv, methodArgv) {
+    async init (exchangeId = undefined, symbolArgv = undefined, methodArgv = undefined) {
         this.parseCliArgs ();
 
         if (this.requestTests && this.responseTests) {
@@ -73,6 +74,10 @@ class testMainClass extends baseMainTestClass {
         }
         if (this.idTests) {
             await this.runBrokerIdTests ();
+            return;
+        }
+        if (this.baseTests) {
+            await this.runBaseTests ();
             return;
         }
         dump (this.newLine + '' + this.newLine + '' + '[INFO] TESTING ', this.ext, { 'exchange': exchangeId, 'symbol': symbolArgv, 'method': methodArgv, 'isWs': this.wsTests }, this.newLine);
@@ -94,8 +99,7 @@ class testMainClass extends baseMainTestClass {
         exitScript (0); // needed to be explicitly finished for WS tests
     }
 
-    async initBaseTests () {
-        this.parseCliArgs ();
+    async runBaseTests () {
         if (this.isSynchronous) {
             this.testFiles = getTestFilesSync (undefined, this.wsTests, true);
         } else {

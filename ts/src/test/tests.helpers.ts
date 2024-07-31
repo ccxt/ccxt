@@ -82,6 +82,7 @@ class baseMainTestClass {
     checkedPublicTests = {};
     testFiles = {};
     publicTests = {};
+    baseTests = false;
     newLine = '\n';
     rootDir = DIR_NAME + '/../../../';
     rootDirForSkips = DIR_NAME + '/../../../';
