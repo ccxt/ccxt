@@ -1191,6 +1191,7 @@ class NewTranspiler {
                 [/object  = functions;/g, '' ], // tmp fix
                 [/assert/g, 'Assert'],
                 [ /\s*public\sobject\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
+                [ /testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual' ], // remove equals
 
             ]).trim ()
 
