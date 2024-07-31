@@ -483,7 +483,7 @@ export default class woo extends wooRest {
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const price = this.safeString (trade, 'executedPrice', 'price');
+        const price = this.safeString2 (trade, 'executedPrice', 'price');
         const amount = this.safeString2 (trade, 'executedQuantity', 'size');
         const cost = Precise.stringMul (price, amount);
         const side = this.safeStringLower (trade, 'side');
