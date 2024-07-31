@@ -2044,9 +2044,9 @@ class oxfun extends oxfun$1 {
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         /**
          * @method
-         * @name bitflex#withdraw
+         * @name oxfun#withdraw
          * @description make a withdrawal
-         * @see https://docs.bitflex.com/spot#withdraw
+         * @see https://docs.ox.fun/?json#post-v3-withdrawal
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to

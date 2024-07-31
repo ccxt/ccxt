@@ -1514,7 +1514,7 @@
         }
     },
 	"woo": {
-        "skipWs": "requires auth",
+        "//skipWs": "requires auth",
         "skipMethods":{
             "loadMarkets":{
                 "active": "undefined",

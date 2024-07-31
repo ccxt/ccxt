@@ -10,6 +10,7 @@ import { ExchangeError, InsufficientFunds, InvalidOrder, AuthenticationError, Pe
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import { md5 } from './static_dependencies/noble-hashes/md5.js';
 //  ---------------------------------------------------------------------------
 /**
  * @class btcbox
@@ -679,7 +680,7 @@ export default class btcbox extends Exchange {
                 'nonce': nonce,
             }, params);
             const request = this.urlencode(query);
-            const secret = this.hash(this.encode(this.secret), sha256);
+            const secret = this.hash(this.encode(this.secret), md5);
             query['signature'] = this.hmac(this.encode(request), this.encode(secret), sha256);
             body = this.urlencode(query);
             headers = {

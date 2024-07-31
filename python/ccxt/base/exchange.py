@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.68'
+__version__ = '4.3.69'
 
 # -----------------------------------------------------------------------------
 
@@ -2116,6 +2116,11 @@ class Exchange(object):
 
     def handle_delta(self, bookside, delta):
         raise NotSupported(self.id + ' handleDelta not supported yet')
+
+    def handle_deltas_with_keys(self, bookSide: Any, deltas, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
+        for i in range(0, len(deltas)):
+            bidAsk = self.parse_bid_ask(deltas[i], priceKey, amountKey, countOrIdKey)
+            bookSide.storeArray(bidAsk)
 
     def get_cache_index(self, orderbook, deltas):
         # return the first index of the cache that can be applied to the orderbook or -1 if not possible

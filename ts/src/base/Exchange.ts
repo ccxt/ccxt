@@ -1985,6 +1985,13 @@ export default class Exchange {
         throw new NotSupported (this.id + ' handleDelta not supported yet');
     }
 
+    handleDeltasWithKeys (bookSide: any, deltas, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2) {
+        for (let i = 0; i < deltas.length; i++) {
+            const bidAsk = this.parseBidAsk (deltas[i], priceKey, amountKey, countOrIdKey);
+            bookSide.storeArray (bidAsk);
+        }
+    }
+
     getCacheIndex (orderbook, deltas) {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         return -1;

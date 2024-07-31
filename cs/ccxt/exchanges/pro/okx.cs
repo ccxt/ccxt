@@ -2114,6 +2114,14 @@ public partial class okx : ccxt.okx
             }
         } catch(Exception e)
         {
+            // if the message contains an id, it means it is a response to a request
+            // so we only reject that promise, instead of deleting all futures, destroying the authentication future
+            object id = this.safeString(message, "id");
+            if (isTrue(!isEqual(id, null)))
+            {
+                ((WebSocketClient)client).reject(e, id);
+                return false;
+            }
             ((WebSocketClient)client).reject(e);
             return false;
         }
