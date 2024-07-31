@@ -268,7 +268,7 @@ def get_test_files_sync(properties, ws=False, is_base_tests=False):
                     tests[testName] = imp
         module_string = 'ccxt.' + namespace + 'test.base.custom.test_language_specific'
         imp = importlib.import_module(module_string)
-        tests['langaugeSpecific'] = imp
+        tests['languageSpecific'] = imp
     else:
         finalPropList = properties + [proxyTestFileName]
         for i in range(0, len(finalPropList)):

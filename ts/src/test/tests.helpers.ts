@@ -203,7 +203,7 @@ async function getTestFiles (properties, ws = false, isBaseTests = false) {
                 }
             }
         }
-        tests['langaugeSpecific'] = await importTestFile (path + '/custom/test.languageSpecific');
+        tests['languageSpecific'] = await importTestFile (path + '/custom/test.languageSpecific');
     } else {
         const path = ws ? DIR_NAME + '../pro/test/' : DIR_NAME;
         // exchange tests
