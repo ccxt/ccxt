@@ -1334,6 +1334,7 @@ export default class paradex extends Exchange {
          * @name paradex#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://docs.api.prod.paradex.trade/#get-order
+         * @see https://docs.api.prod.paradex.trade/#get-order-by-client-id
          * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1344,6 +1345,7 @@ export default class paradex extends Exchange {
         await this.loadMarkets ();
         const request: Dict = {};
         const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         let response = undefined;
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
