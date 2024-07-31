@@ -259,31 +259,54 @@ export default class coinex extends coinexRest {
 
     handleBalance (client: Client, message) {
         //
+        // spot
+        //
         //     {
-        //         "method": "asset.update",
-        //         "params": [
-        //             {
-        //                 "BTC": {
-        //                     "available": "250",
-        //                     "frozen": "10",
-        //                 }
-        //             }
-        //         ],
+        //         "method": "balance.update",
+        //         "data": {
+        //             "balance_list": [
+        //                 {
+        //                     "margin_market": "BTCUSDT",
+        //                     "ccy": "BTC",
+        //                     "available": "44.62207740",
+        //                     "frozen": "0.00000000",
+        //                     "updated_at": 1689152421692
+        //                 },
+        //             ]
+        //         },
         //         "id": null
         //     }
         //
-        const params = this.safeValue (message, 'params', []);
-        const first = this.safeValue (params, 0, {});
-        this.balance['info'] = first;
-        const currencies = Object.keys (first);
-        for (let i = 0; i < currencies.length; i++) {
-            const currencyId = currencies[i];
+        // swap
+        //
+        //     {
+        //         "method": "balance.update",
+        //         "data": {
+        //             "balance_list": [
+        //                 {
+        //                     "ccy": "USDT",
+        //                     "available": "97.92470982756335000001",
+        //                     "frozen": "0.00000000000000000000",
+        //                     "margin": "0.61442700000000000000",
+        //                     "transferrable": "97.92470982756335000001",
+        //                     "unrealized_pnl": "-0.00807000000000000000",
+        //                     "equity": "97.92470982756335000001"
+        //                 },
+        //             ]
+        //         },
+        //         "id": null
+        //     }
+        //
+        const data = this.safeDict (message, 'data', {});
+        const balances = this.safeList (data, 'balance_list', []);
+        for (let i = 0; i < balances.length; i++) {
+            const entry = balances[i];
+            this.balance['info'] = entry;
+            const currencyId = this.safeString (entry, 'ccy');
             const code = this.safeCurrencyCode (currencyId);
-            const available = this.safeString (first[currencyId], 'available');
-            const frozen = this.safeString (first[currencyId], 'frozen');
             const account = this.account ();
-            account['free'] = available;
-            account['used'] = frozen;
+            account['free'] = this.safeString (entry, 'available');
+            account['used'] = this.safeString (entry, 'frozen');
             this.balance[code] = account;
             this.balance = this.safeBalance (this.balance);
         }
