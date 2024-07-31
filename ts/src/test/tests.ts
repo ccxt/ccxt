@@ -107,11 +107,12 @@ class testMainClass extends baseMainTestClass {
         }
         assert (Object.keys (this.testFiles).length > 0, 'Test files were not loaded'); // ensure test files are found & filled
         const keys = Object.keys (this.testFiles);
-        for (let i = 0; i < keys.length; i++) {
+        const length = keys.length;
+        for (let i = 0; i < length; i++) {
             const methodName = keys[i];
             await callMethod (this.testFiles, methodName, undefined, undefined, []);
         }
-        dump (this.addPadding ('[INFO] Base tests completed', 25));
+        dump (this.addPadding ('[INFO] Base ' + length.toString () + ' tests completed', 25));
     }
 
     checkIfSpecificTestIsChosen (methodArgv) {
