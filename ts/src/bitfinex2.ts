@@ -3227,7 +3227,7 @@ export default class bitfinex2 extends Exchange {
         };
     }
 
-    parseFundingRateHistory (contract, market: Market = undefined) {
+    parseFundingRateHistory (info: Dict, market: Market = undefined): FundingRateHistory {
         //
         // [
         //     1691165494000,
@@ -3255,26 +3255,13 @@ export default class bitfinex2 extends Exchange {
         //     0.0025
         // ]
         //
-        const timestamp = this.safeInteger (contract, 0);
-        const nextFundingTimestamp = this.safeInteger (contract, 7);
+        const timestamp = this.safeInteger (info, 0);
         return {
-            'info': contract,
+            'info': info,
             'symbol': this.safeSymbol (undefined, market),
-            'markPrice': this.safeNumber (contract, 14),
-            'indexPrice': this.safeNumber (contract, 2),
-            'interestRate': undefined,
-            'estimatedSettlePrice': undefined,
+            'fundingRate': this.safeNumber (info, 11),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'fundingRate': this.safeNumber (contract, 11),
-            'fundingTimestamp': undefined,
-            'fundingDatetime': undefined,
-            'nextFundingRate': this.safeNumber (contract, 8),
-            'nextFundingTimestamp': nextFundingTimestamp,
-            'nextFundingDatetime': this.iso8601 (nextFundingTimestamp),
-            'previousFundingRate': undefined,
-            'previousFundingTimestamp': undefined,
-            'previousFundingDatetime': undefined,
         };
     }
 
