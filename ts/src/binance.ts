@@ -12488,6 +12488,7 @@ export default class binance extends Exchange {
          * @description fetches margin modes ("isolated" or "cross") that the market for the symbol in in, with symbol=undefined all markets for a subType (linear/inverse) are returned
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.subType] "linear" or "inverse"
@@ -12503,70 +12504,17 @@ export default class binance extends Exchange {
         [ subType, params ] = this.handleSubTypeAndParams ('fetchMarginMode', market, params);
         let response = undefined;
         if (subType === 'linear') {
-            response = await this.fapiPrivateV2GetAccount (params);
+            response = await this.fapiPrivateGetSymbolConfig (params);
             //
-            //    {
-            //        feeTier: '0',
-            //        canTrade: true,
-            //        canDeposit: true,
-            //        canWithdraw: true,
-            //        tradeGroupId: '-1',
-            //        updateTime: '0',
-            //        multiAssetsMargin: true,
-            //        totalInitialMargin: '438.31134352',
-            //        totalMaintMargin: '5.90847101',
-            //        totalWalletBalance: '4345.15626338',
-            //        totalUnrealizedProfit: '376.45220224',
-            //        totalMarginBalance: '4721.60846562',
-            //        totalPositionInitialMargin: '425.45252687',
-            //        totalOpenOrderInitialMargin: '12.85881664',
-            //        totalCrossWalletBalance: '4345.15626338',
-            //        totalCrossUnPnl: '376.45220224',
-            //        availableBalance: '4281.84764041',
-            //        maxWithdrawAmount: '4281.84764041',
-            //        assets: [
-            //            {
-            //                asset: 'ETH',
-            //                walletBalance: '0.00000000',
-            //                unrealizedProfit: '0.00000000',
-            //                marginBalance: '0.00000000',
-            //                maintMargin: '0.00000000',
-            //                initialMargin: '0.00000000',
-            //                positionInitialMargin: '0.00000000',
-            //                openOrderInitialMargin: '0.00000000',
-            //                maxWithdrawAmount: '0.00000000',
-            //                crossWalletBalance: '0.00000000',
-            //                crossUnPnl: '0.00000000',
-            //                availableBalance: '1.26075574',
-            //                marginAvailable: true,
-            //                updateTime: '0'
-            //            },
-            //        ...
-            //        ],
-            //        positions: [
-            //            {
-            //              symbol: 'SNTUSDT',
-            //              initialMargin: '0',
-            //              maintMargin: '0',
-            //              unrealizedProfit: '0.00000000',
-            //              positionInitialMargin: '0',
-            //              openOrderInitialMargin: '0',
-            //              leverage: '20',
-            //              isolated: false,
-            //              entryPrice: '0.0',
-            //              breakEvenPrice: '0.0',
-            //              maxNotional: '25000',
-            //              positionSide: 'BOTH',
-            //              positionAmt: '0',
-            //              notional: '0',
-            //              isolatedWallet: '0',
-            //              updateTime: '0',
-            //              bidNotional: '0',
-            //              askNotional: '0'
-            //            },
-            //            ...
-            //        ]
-            //    }
+            // [
+            //     {
+            //         "symbol": "BTCUSDT", 
+            //         "marginType": "CROSSED",
+            //         "isAutoAddMargin": "false",
+            //         "leverage": 21,
+            //         "maxNotionalValue": "1000000",
+            //     }
+            // ]
             //
         } else if (subType === 'inverse') {
             response = await this.dapiPrivateGetAccount (params);
@@ -12621,18 +12569,29 @@ export default class binance extends Exchange {
         } else {
             throw new BadRequest (this.id + ' fetchMarginModes () supports linear and inverse subTypes only');
         }
-        const assets = this.safeList (response, 'positions', []);
+        let assets = this.safeList (response, 'positions', []);
+        if (Array.isArray (response)) {
+            assets = response;
+        }
         return this.parseMarginModes (assets, symbols, 'symbol', 'swap');
     }
 
     parseMarginMode (marginMode: Dict, market = undefined): MarginMode {
         const marketId = this.safeString (marginMode, 'symbol');
         market = this.safeMarket (marketId, market);
-        const isIsolated = this.safeBool (marginMode, 'isolated');
+        const marginModeRaw = this.safeBool (marginMode, 'isolated');
+        let reMarginMode = undefined;
+        if (marginModeRaw !== undefined) {
+            reMarginMode = marginModeRaw ? 'isolated' : 'cross';
+        }
+        const marginTypeRaw = this.safeStringLower (marginMode, 'marginType');
+        if (marginTypeRaw !== undefined) {
+            reMarginMode = marginTypeRaw;
+        }
         return {
             'info': marginMode,
             'symbol': market['symbol'],
-            'marginMode': isIsolated ? 'isolated' : 'cross',
+            'marginMode': reMarginMode,
         };
     }
 
