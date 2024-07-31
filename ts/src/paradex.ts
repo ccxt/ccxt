@@ -3,9 +3,9 @@
 
 import { Precise } from '../ccxt.js';
 import Exchange from './abstract/paradex.js';
-import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest, ArgumentsRequired } from './base/errors.js';
+import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest, ArgumentsRequired, OperationRejected, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position } from './base/types.js';
+import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
@@ -206,6 +206,53 @@ export default class paradex extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    'VALIDATION_ERROR': AuthenticationError,
+                    'BINDING_ERROR': OperationRejected,
+                    'INTERNAL_ERROR': ExchangeError,
+                    'NOT_FOUND': BadRequest,
+                    'SERVICE_UNAVAILABLE': ExchangeError,
+                    'INVALID_REQUEST_PARAMETER': BadRequest,
+                    'ORDER_ID_NOT_FOUND': InvalidOrder,
+                    'ORDER_IS_CLOSED': InvalidOrder,
+                    'ORDER_IS_NOT_OPEN_YET': InvalidOrder,
+                    'CLIENT_ORDER_ID_NOT_FOUND': InvalidOrder,
+                    'DUPLICATED_CLIENT_ID': InvalidOrder,
+                    'INVALID_PRICE_PRECISION': OperationRejected,
+                    'INVALID_SYMBOL': OperationRejected,
+                    'INVALID_TOKEN': OperationRejected,
+                    'INVALID_ETHEREUM_ADDRESS': OperationRejected,
+                    'INVALID_ETHEREUM_SIGNATURE': OperationRejected,
+                    'INVALID_STARKNET_ADDRESS': OperationRejected,
+                    'INVALID_STARKNET_SIGNATURE': OperationRejected,
+                    'STARKNET_SIGNATURE_VERIFICATION_FAILED': AuthenticationError,
+                    'BAD_STARKNET_REQUEST': BadRequest,
+                    'ETHEREUM_SIGNER_MISMATCH': BadRequest,
+                    'ETHEREUM_HASH_MISMATCH': BadRequest,
+                    'NOT_ONBOARDED': BadRequest,
+                    'INVALID_TIMESTAMP': BadRequest,
+                    'INVALID_SIGNATURE_EXPIRATION': AuthenticationError,
+                    'ACCOUNT_NOT_FOUND': AuthenticationError,
+                    'INVALID_ORDER_SIGNATURE': AuthenticationError,
+                    'PUBLIC_KEY_INVALID': BadRequest,
+                    'UNAUTHORIZED_ETHEREUM_ADDRESS': BadRequest,
+                    'ETHEREUM_ADDRESS_ALREADY_ONBOARDED': BadRequest,
+                    'MARKET_NOT_FOUND': BadRequest,
+                    'ALLOWLIST_ENTRY_NOT_FOUND': BadRequest,
+                    'USERNAME_IN_USE': AuthenticationError,
+                    'GEO_IP_BLOCK': PermissionDenied,
+                    'ETHEREUM_ADDRESS_BLOCKED': PermissionDenied,
+                    'PROGRAM_NOT_FOUND': BadRequest,
+                    'INVALID_DASHBOARD': OperationRejected,
+                    'MARKET_NOT_OPEN': BadRequest,
+                    'INVALID_REFERRAL_CODE': OperationRejected,
+                    'PARENT_ADDRESS_ALREADY_ONBOARDED': BadRequest,
+                    'INVALID_PARENT_ACCOUNT': OperationRejected,
+                    'INVALID_VAULT_OPERATOR_CHAIN': OperationRejected,
+                    'VAULT_OPERATOR_ALREADY_ONBOARDED': OperationRejected,
+                    'VAULT_NAME_IN_USE': OperationRejected,
+                    'BATCH_SIZE_OUT_OF_RANGE': OperationRejected,
+                    'ISOLATED_MARKET_ACCOUNT_MISMATCH': OperationRejected,
+                    'POINTS_SUMMARY_NOT_FOUND': OperationRejected,
                     '-32700': BadRequest, // Parse error
                     '-32600': BadRequest, // Invalid request
                     '-32601': BadRequest, // Method not found
@@ -2041,5 +2088,26 @@ export default class paradex extends Exchange {
             // }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+        if (!response) {
+            return undefined; // fallback to default error handler
+        }
+        //
+        //     {
+        //         "data": null,
+        //         "error": "NOT_ONBOARDED",
+        //         "message": "User has never called /onboarding endpoint"
+        //     }
+        //
+        const errorCode = this.safeString (response, 'error');
+        if (errorCode !== undefined) {
+            const feedback = this.id + ' ' + body;
+            this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            throw new ExchangeError (feedback); // unknown message
+        }
+        return undefined;
     }
 }
