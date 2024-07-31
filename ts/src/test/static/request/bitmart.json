@@ -7,7 +7,7 @@
             {
                 "description": "Fetch spot ticker",
                 "method": "fetchTicker",
-                "url": "https://api-cloud.bitmart.com/spot/quotation/v3/ticker?symbol=BTC_USDT",
+                "url": "https://api-cloud-v2.bitmart.com/spot/quotation/v3/ticker?symbol=BTC_USDT",
                 "input": [
                     "BTC/USDT"
                 ]
@@ -15,7 +15,7 @@
             {
                 "description": "Fetch swap ticker",
                 "method": "fetchTicker",
-                "url": "https://api-cloud.bitmart.com/contract/v1/tickers?contract_symbol=BTCUSDT",
+                "url": "https://api-cloud-v2.bitmart.com/contract/v1/tickers?contract_symbol=BTCUSDT",
                 "input": [
                     "BTC/USDT:USDT"
                 ]
@@ -25,7 +25,7 @@
             {
                 "description": "Fetch spot tickers",
                 "method": "fetchTickers",
-                "url": "https://api-cloud.bitmart.com/spot/quotation/v3/tickers",
+                "url": "https://api-cloud-v2.bitmart.com/spot/quotation/v3/tickers",
                 "input": [
                     [
                         "BTC/USDT"
@@ -35,7 +35,7 @@
             {
                 "description": "Fetch swap tickers",
                 "method": "fetchTickers",
-                "url": "https://api-cloud.bitmart.com/contract/v1/tickers",
+                "url": "https://api-cloud-v2.bitmart.com/contract/v1/tickers",
                 "input": [
                     [
                         "BTC/USDT:USDT"
@@ -45,7 +45,7 @@
             {
                 "description": "spot tickers",
                 "method": "fetchTickers",
-                "url": "https://api-cloud.bitmart.com/spot/quotation/v3/tickers",
+                "url": "https://api-cloud-v2.bitmart.com/spot/quotation/v3/tickers",
                 "input": [
                     [
                         "BTC/USDT",
@@ -56,7 +56,7 @@
             {
                 "description": "swap tickers",
                 "method": "fetchTickers",
-                "url": "https://api-cloud.bitmart.com/contract/v1/tickers",
+                "url": "https://api-cloud-v2.bitmart.com/contract/v1/tickers",
                 "input": [
                     [
                         "BTC/USDT:USDT",
@@ -69,7 +69,7 @@
             {
                 "description": "Spot limit buy",
                 "method": "createOrder",
-                "url": "https://api-cloud.bitmart.com/spot/v2/submit_order",
+                "url": "https://api-cloud-v2.bitmart.com/spot/v2/submit_order",
                 "input": [
                     "LTC/USDT",
                     "limit",
@@ -82,7 +82,7 @@
             {
                 "description": "Spot market buy",
                 "method": "createOrder",
-                "url": "https://api-cloud.bitmart.com/spot/v2/submit_order",
+                "url": "https://api-cloud-v2.bitmart.com/spot/v2/submit_order",
                 "input": [
                     "LTC/USDT",
                     "market",
@@ -95,7 +95,7 @@
             {
                 "description": "Spot market sell",
                 "method": "createOrder",
-                "url": "https://api-cloud.bitmart.com/spot/v2/submit_order",
+                "url": "https://api-cloud-v2.bitmart.com/spot/v2/submit_order",
                 "input": [
                     "LTC/USDT",
                     "market",
@@ -107,7 +107,7 @@
             {
                 "description": "Spot limit buy with margin",
                 "method": "createOrder",
-                "url": "https://api-cloud.bitmart.com/spot/v1/margin/submit_order",
+                "url": "https://api-cloud-v2.bitmart.com/spot/v1/margin/submit_order",
                 "input": [
                     "LTC/USDT",
                     "limit",
@@ -123,7 +123,7 @@
             {
                 "description": "spot order with clientOrderId",
                 "method": "createOrder",
-                "url": "https://api-cloud.bitmart.com/spot/v2/submit_order",
+                "url": "https://api-cloud-v2.bitmart.com/spot/v2/submit_order",
                 "input": [
                   "ADA/USDT",
                   "market",
@@ -139,7 +139,7 @@
             {
                 "description": "Swap market buy",
                 "method": "createOrder",
-                "url": "https://api-cloud.bitmart.com/contract/private/submit-order",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/submit-order",
                 "input": [
                     "LTC/USDT:USDT",
                     "market",
@@ -151,7 +151,7 @@
             {
                 "description": "Swap limit sell order",
                 "method": "createOrder",
-                "url": "https://api-cloud.bitmart.com/contract/private/submit-order",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/submit-order",
                 "input": [
                     "LTC/USDT:USDT",
                     "limit",
@@ -164,7 +164,7 @@
             {
                 "description": "Swap market sell with reduceOnly (reducing long)",
                 "method": "createOrder",
-                "url": "https://api-cloud.bitmart.com/contract/private/submit-order",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/submit-order",
                 "input": [
                     "LTC/USDT:USDT",
                     "market",
@@ -180,7 +180,7 @@
             {
                 "description": "Swap limit buy with postOnly and clientOrderId",
                 "method": "createOrder",
-                "url": "https://api-cloud.bitmart.com/contract/private/submit-order",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/submit-order",
                 "input": [
                     "LTC/USDT:USDT",
                     "limit",
@@ -197,7 +197,7 @@
             {
                 "description": "Spot market buy order with createMarketBuyOrderRequiresPrice set to false",
                 "method": "createOrder",
-                "url": "https://api-cloud.bitmart.com/spot/v2/submit_order",
+                "url": "https://api-cloud-v2.bitmart.com/spot/v2/submit_order",
                 "input": [
                     "BTC/USDT",
                     "market",
@@ -213,7 +213,7 @@
             {
                 "description": "Swap trailing order",
                 "method": "createOrder",
-                "url": "https://api-cloud.bitmart.com/contract/private/submit-order",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/submit-order",
                 "input": [
                     "BTC/USDT:USDT",
                     "market",
@@ -233,7 +233,7 @@
             {
                 "description": "Swap stop limit buy order using the triggerPrice param (type 1)",
                 "method": "createOrder",
-                "url": "https://api-cloud.bitmart.com/contract/private/submit-plan-order",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/submit-plan-order",
                 "input": [
                     "BTC/USDT:USDT",
                     "limit",
@@ -251,7 +251,7 @@
             {
                 "description": "spot orders",
                 "method": "createOrders",
-                "url": "https://api-cloud.bitmart.com/spot/v4/batch_orders",
+                "url": "https://api-cloud-v2.bitmart.com/spot/v4/batch_orders",
                 "input": [
                   [
                     {
@@ -277,7 +277,7 @@
             {
                 "description": "Spot create market buy order with the quote amount as the cost",
                 "method": "createMarketBuyOrderWithCost",
-                "url": "https://api-cloud.bitmart.com/spot/v2/submit_order",
+                "url": "https://api-cloud-v2.bitmart.com/spot/v2/submit_order",
                 "input": [
                     "BTC/USDT",
                     5
@@ -289,7 +289,7 @@
             {
                 "description": "Spot private trades",
                 "method": "fetchMyTrades",
-                "url": "https://api-cloud.bitmart.com/spot/v4/query/trades",
+                "url": "https://api-cloud-v2.bitmart.com/spot/v4/query/trades",
                 "input": [
                     "LTC/USDT",
                     1699457638000,
@@ -300,7 +300,7 @@
             {
                 "description": "Swap private trades",
                 "method": "fetchMyTrades",
-                "url": "https://api-cloud.bitmart.com/contract/private/trades?symbol=LTCUSDT&start_time=1699457638000",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/trades?symbol=LTCUSDT&start_time=1699457638000",
                 "input": [
                     "LTC/USDT:USDT",
                     1699457638000,
@@ -312,7 +312,7 @@
             {
                 "description": "Spot open orders",
                 "method": "fetchOpenOrders",
-                "url": "https://api-cloud.bitmart.com/spot/v4/query/open-orders",
+                "url": "https://api-cloud-v2.bitmart.com/spot/v4/query/open-orders",
                 "input": [
                     "LTC/USDT"
                 ],
@@ -321,7 +321,7 @@
             {
                 "description": "Swap open orders",
                 "method": "fetchOpenOrders",
-                "url": "https://api-cloud.bitmart.com/contract/private/get-open-orders?symbol=LTCUSDT",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/get-open-orders?symbol=LTCUSDT",
                 "input": [
                     "LTC/USDT:USDT"
                 ]
@@ -329,7 +329,7 @@
             {
                 "description": "Swap open trailing orders",
                 "method": "fetchOpenOrders",
-                "url": "https://api-cloud.bitmart.com/contract/private/get-open-orders?symbol=BTCUSDT&type=trailing",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/get-open-orders?symbol=BTCUSDT&type=trailing",
                 "input": [
                     "BTC/USDT:USDT",
                     null,
@@ -342,7 +342,7 @@
             {
                 "description": "open trigger orders",
                 "method": "fetchOpenOrders",
-                "url": "https://api-cloud.bitmart.com/contract/private/current-plan-order?symbol=LTCUSDT",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/current-plan-order?symbol=LTCUSDT",
                 "input": [
                     "LTC/USDT:USDT",
                     null,
@@ -357,7 +357,7 @@
             {
                 "description": "Swap trailing order by id",
                 "method": "fetchOrder",
-                "url": "https://api-cloud.bitmart.com/contract/private/order?type=trailing&symbol=BTCUSDT&order_id=2312139250106560",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/order?type=trailing&symbol=BTCUSDT&order_id=2312139250106560",
                 "input": [
                     "2312139250106560",
                     "BTC/USDT:USDT",
@@ -371,7 +371,7 @@
             {
                 "description": "Spot closed orders",
                 "method": "fetchClosedOrders",
-                "url": "https://api-cloud.bitmart.com/spot/v4/query/history-orders",
+                "url": "https://api-cloud-v2.bitmart.com/spot/v4/query/history-orders",
                 "input": [
                     "LTC/USDT"
                 ],
@@ -380,7 +380,7 @@
             {
                 "description": "Fetch swap closed orders",
                 "method": "fetchClosedOrders",
-                "url": "https://api-cloud.bitmart.com/contract/private/order-history?symbol=LTCUSDT",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/order-history?symbol=LTCUSDT",
                 "input": [
                     "LTC/USDT:USDT",
                     null,
@@ -392,7 +392,7 @@
             {
                 "description": "Cancel swap order",
                 "method": "cancelOrder",
-                "url": "https://api-cloud.bitmart.com/contract/private/cancel-order",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/cancel-order",
                 "input": [
                     "231116362740328",
                     "LTC/USDT:USDT"
@@ -402,7 +402,7 @@
             {
                 "description": "Cancel spot order",
                 "method": "cancelOrder",
-                "url": "https://api-cloud.bitmart.com/spot/v3/cancel_order",
+                "url": "https://api-cloud-v2.bitmart.com/spot/v3/cancel_order",
                 "input": [
                     "200683008340521505",
                     "LTC/USDT"
@@ -412,7 +412,7 @@
             {
                 "description": "Swap cancel plan order",
                 "method": "cancelOrder",
-                "url": "https://api-cloud.bitmart.com/contract/private/cancel-plan-order",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/cancel-plan-order",
                 "input": [
                     "2312213461000000",
                     "BTC/USDT:USDT",
@@ -427,7 +427,7 @@
             {
                 "description": "spot orders",
                 "method": "cancelOrders",
-                "url": "https://api-cloud.bitmart.com/spot/v4/cancel_orders",
+                "url": "https://api-cloud-v2.bitmart.com/spot/v4/cancel_orders",
                 "input": [
                   [
                     "552971433421492224",
@@ -442,7 +442,7 @@
             {
                 "description": "Cancel swap orders",
                 "method": "cancelAllOrders",
-                "url": "https://api-cloud.bitmart.com/contract/private/cancel-orders",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/cancel-orders",
                 "input": [
                     "LTC/USDT:USDT"
                 ],
@@ -451,7 +451,7 @@
             {
                 "description": "Cancel spot orders",
                 "method": "cancelAllOrders",
-                "url": "https://api-cloud.bitmart.com/spot/v1/cancel_orders",
+                "url": "https://api-cloud-v2.bitmart.com/spot/v1/cancel_orders",
                 "input": [
                     "LTC/USDT"
                 ],
@@ -462,7 +462,7 @@
             {
                 "description": "Fetch spot Balance",
                 "method": "fetchBalance",
-                "url": "https://api-cloud.bitmart.com/spot/v1/wallet",
+                "url": "https://api-cloud-v2.bitmart.com/spot/v1/wallet",
                 "input": [
                     {
                         "type": "spot"
@@ -472,7 +472,7 @@
             {
                 "description": "Fetch swap Balance",
                 "method": "fetchBalance",
-                "url": "https://api-cloud.bitmart.com/contract/private/assets-detail",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/assets-detail",
                 "input": [
                     {
                         "type": "swap"
@@ -482,7 +482,7 @@
             {
                 "description": "Fetch accoun Balance",
                 "method": "fetchBalance",
-                "url": "https://api-cloud.bitmart.com/account/v1/wallet",
+                "url": "https://api-cloud-v2.bitmart.com/account/v1/wallet",
                 "input": [
                     {
                         "type": "account"
@@ -492,7 +492,7 @@
             {
                 "description": "Fetch margin Balance",
                 "method": "fetchBalance",
-                "url": "https://api-cloud.bitmart.com/spot/v1/margin/isolated/account",
+                "url": "https://api-cloud-v2.bitmart.com/spot/v1/margin/isolated/account",
                 "input": [
                     {
                         "type": "margin"
@@ -504,7 +504,7 @@
             {
                 "description": "Fetch linear position",
                 "method": "fetchPositions",
-                "url": "https://api-cloud.bitmart.com/contract/private/position?symbol=LTCUSDT",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/position?symbol=LTCUSDT",
                 "input": [
                     [
                         "LTC/USDT:USDT"
@@ -516,7 +516,7 @@
             {
                 "description": "Fetch deposits",
                 "method": "fetchDeposits",
-                "url": "https://api-cloud.bitmart.com/account/v2/deposit-withdraw/history?operation_type=deposit&offset=1&N=50",
+                "url": "https://api-cloud-v2.bitmart.com/account/v2/deposit-withdraw/history?operation_type=deposit&offset=1&N=50",
                 "input": []
             }
         ],
@@ -524,7 +524,7 @@
             {
                 "description": "Fetch withdrawals",
                 "method": "fetchWithdrawals",
-                "url": "https://api-cloud.bitmart.com/account/v2/deposit-withdraw/history?operation_type=withdraw&offset=1&N=50",
+                "url": "https://api-cloud-v2.bitmart.com/account/v2/deposit-withdraw/history?operation_type=withdraw&offset=1&N=50",
                 "input": []
             }
         ],
@@ -532,7 +532,7 @@
             {
                 "description": "transfer from spot to swap",
                 "method": "transfer",
-                "url": "https://api-cloud.bitmart.com/account/v1/transfer-contract",
+                "url": "https://api-cloud-v2.bitmart.com/account/v1/transfer-contract",
                 "input": [
                     "USDT",
                     1,
@@ -546,7 +546,7 @@
             {
                 "description": "fetch USDT transfers",
                 "method": "fetchTransfers",
-                "url": "https://api-cloud.bitmart.com/account/v1/transfer-contract-list",
+                "url": "https://api-cloud-v2.bitmart.com/account/v1/transfer-contract-list",
                 "input": [
                     "USDT"
                 ],
@@ -557,7 +557,7 @@
             {
                 "description": "fetch USDT deposit address",
                 "method": "fetchDepositAddress",
-                "url": "https://api-cloud.bitmart.com/account/v1/deposit/address?currency=USDT-ERC20",
+                "url": "https://api-cloud-v2.bitmart.com/account/v1/deposit/address?currency=USDT-ERC20",
                 "input": [
                     "USDT"
                 ]
@@ -567,7 +567,7 @@
             {
                 "description": "fetchTime",
                 "method": "fetchTime",
-                "url": "https://api-cloud.bitmart.com/system/time",
+                "url": "https://api-cloud-v2.bitmart.com/system/time",
                 "input": []
             }
         ],
@@ -575,7 +575,7 @@
             {
                 "description": "spot fetchTrades with a symbol and limit argument",
                 "method": "fetchTrades",
-                "url": "https://api-cloud.bitmart.com/spot/quotation/v3/trades?symbol=BTC_USDT&limit=3",
+                "url": "https://api-cloud-v2.bitmart.com/spot/quotation/v3/trades?symbol=BTC_USDT&limit=3",
                 "input": [
                     "BTC/USDT",
                     null,
@@ -587,7 +587,7 @@
             {
                 "description": "spot orderbook",
                 "method": "fetchOrderBook",
-                "url": "https://api-cloud.bitmart.com/spot/quotation/v3/books?symbol=BTC_USDT",
+                "url": "https://api-cloud-v2.bitmart.com/spot/quotation/v3/books?symbol=BTC_USDT",
                 "input": [
                     "BTC/USDT"
                 ]
@@ -595,7 +595,7 @@
             {
                 "description": "swap orderbook",
                 "method": "fetchOrderBook",
-                "url": "https://api-cloud.bitmart.com/contract/public/depth?symbol=BTCUSDT",
+                "url": "https://api-cloud-v2.bitmart.com/contract/public/depth?symbol=BTCUSDT",
                 "input": [
                     "BTC/USDT:USDT"
                 ]
@@ -605,7 +605,7 @@
             {
                 "description": "spot ohlcv",
                 "method": "fetchOHLCV",
-                "url": "https://api-cloud.bitmart.com/spot/quotation/v3/klines?symbol=BTC_USDT&step=1",
+                "url": "https://api-cloud-v2.bitmart.com/spot/quotation/v3/klines?symbol=BTC_USDT&step=1",
                 "input": [
                     "BTC/USDT"
                 ]
@@ -613,7 +613,7 @@
             {
                 "description": "swap ohlcv",
                 "method": "fetchOHLCV",
-                "url": "https://api-cloud.bitmart.com/contract/public/kline?symbol=BTCUSDT&step=1&start_time=1709920990&end_time=1709992990",
+                "url": "https://api-cloud-v2.bitmart.com/contract/public/kline?symbol=BTCUSDT&step=1&start_time=1709920990&end_time=1709992990",
                 "input": [
                     "BTC/USDT:USDT"
                 ]
@@ -623,7 +623,7 @@
             {
                 "description": "fundingRate",
                 "method": "fetchFundingRate",
-                "url": "https://api-cloud.bitmart.com/contract/public/funding-rate?symbol=BTCUSDT",
+                "url": "https://api-cloud-v2.bitmart.com/contract/public/funding-rate?symbol=BTCUSDT",
                 "input": [
                     "BTC/USDT:USDT"
                 ]

@@ -112,7 +112,7 @@ export default class bitmart extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg',
                 'api': {
-                    'rest': 'https://api-cloud.{hostname}', // bitmart.info for Hong Kong users
+                    'rest': 'https://api-cloud-v2.{hostname}', // bitmart.info for Hong Kong users
                 },
                 'www': 'https://www.bitmart.com/',
                 'doc': 'https://developer-pro.bitmart.com/',
