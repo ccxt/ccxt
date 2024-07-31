@@ -39,6 +39,7 @@ public partial class testMainClass : BaseTest
     public bool staticTests = false;
     public bool wsTests = false;
     public bool idTests = false;
+    public bool baseTests = false;
 
     public bool isSynchronous = false;
 
@@ -369,5 +370,11 @@ public partial class testMainClass : BaseTest
     public partial class SharedMethods
     {
         // stub, the actual content is generated inside Generated/Exchange
+
+        // this method is needed because of ast-transpiler
+        public object json(object a)
+        {
+            return Exchange.Json(a);
+        }        
     }
 }

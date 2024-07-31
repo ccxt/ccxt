@@ -58,7 +58,7 @@ function testDatetime () {
         // todo: the gmt methods bugs in php, until that, mute
         const message = exc.toString ();
         // transpiler trick
-        if (!(message + '').includes ('datetime.php')) {
+        if (!((message + '').toString ()).includes ('datetime.php')) {
             throw exc;
         }
     }
