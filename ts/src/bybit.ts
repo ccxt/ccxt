@@ -8388,7 +8388,7 @@ export default class bybit extends Exchange {
         return this.parseIncomes (fundings, market, since, limit);
     }
 
-    parseIncome (income, market: Market = undefined) {
+    parseIncome (income: Dict, market: Market = undefined): FundingHistory {
         //
         // {
         //     "symbol": "XMRUSDT",
@@ -8427,7 +8427,7 @@ export default class bybit extends Exchange {
         market = this.safeMarket (marketId, market, undefined, 'contract');
         let code = 'USDT';
         if (market['inverse']) {
-            code = market['quote'];
+            code = market['quote'] as string;
         }
         const timestamp = this.safeInteger (income, 'execTime');
         return {

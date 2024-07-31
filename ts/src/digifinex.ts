@@ -6,7 +6,7 @@ import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry, Num, MarginModification, TradingFeeInterface, Currencies, CrossBorrowRate, CrossBorrowRates, Dict, LeverageTier, LeverageTiers, int } from './base/types.js';
+import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry, Num, MarginModification, TradingFeeInterface, Currencies, CrossBorrowRate, CrossBorrowRates, Dict, LeverageTier, LeverageTiers, int, FundingHistory, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -4175,11 +4175,11 @@ export default class digifinex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         return this.parseIncomes (data, market, since, limit);
     }
 
-    parseIncome (income, market: Market = undefined) {
+    parseIncome (income: Dict, market: Market = undefined): FundingHistory {
         //
         //     {
         //         "instrument_id": "BTCUSDTPERP",
@@ -4199,6 +4199,7 @@ export default class digifinex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'id': undefined,
             'amount': this.safeNumber (income, 'amount'),
+            'rate': undefined,
         };
     }
 
