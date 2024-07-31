@@ -1257,7 +1257,9 @@ export default class binance extends binanceRest {
                 // weird behavior for index price kline we can't use the perp suffix
                 marketId = marketId.replace ('_perp', '');
             }
-            const utcSuffix = (isUtc8 && isSpot) ? '@+08:00' : '';
+            const shouldUseUTC8 = (isUtc8 && isSpot);
+            const suffix = '@+08:00';
+            const utcSuffix = shouldUseUTC8 ? suffix : '';
             rawHashes.push (marketId + '@' + klineType + '_' + interval + utcSuffix);
             messageHashes.push ('ohlcv::' + symbolString + '::' + timeframeString);
         }
