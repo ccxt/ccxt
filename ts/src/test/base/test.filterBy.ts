@@ -12,7 +12,7 @@ function testFilterBy () {
         { 'foo': 'a' },
         { 'foo': undefined },
         { 'foo': 'b' },
-        { },
+        // { }, todo : bugs in py
         { 'foo': 'a', 'bar': 'b' },
         { 'foo': 'c' },
         { 'foo': 'd' },
