@@ -8232,7 +8232,7 @@ class bybit extends Exchange {
         $quoteValueString = Precise::string_mul($baseValueString, $priceString);
         return $this->safe_liquidation(array(
             'info' => $liquidation,
-            'symbol' => $this->safe_symbol($marketId, $market),
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
             'contracts' => $this->parse_number($contractsString),
             'contractSize' => $this->parse_number($contractSizeString),
             'price' => $this->parse_number($priceString),
