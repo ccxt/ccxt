@@ -8859,6 +8859,7 @@ export default class binance extends Exchange {
          * @see https://developers.binance.com/docs/wallet/asset/trade-fee
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Config
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.subType] "linear" or "inverse"
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
@@ -8875,7 +8876,7 @@ export default class binance extends Exchange {
         if (isSpotOrMargin) {
             response = await this.sapiGetAssetTradeFee (params);
         } else if (isLinear) {
-            response = await this.fapiPrivateV2GetAccount (params);
+            response = await this.fapiPrivateGetAccountConfig (params);
         } else if (isInverse) {
             response = await this.dapiPrivateGetAccount (params);
         }
