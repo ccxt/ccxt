@@ -6,7 +6,7 @@ import { Precise } from './base/Precise.js';
 import { AccountNotEnabled, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InvalidOrder, InsufficientFunds, OrderNotFound, MarketClosed, NetworkError, NotSupported, OperationFailed, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Account, Balances, Bool, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderType, OrderSide, OrderRequest, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, FundingRateHistory } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderType, OrderSide, OrderRequest, Str, Strings, Ticker, Tickers, Trade, Transaction, TransferEntry, FundingRateHistory, FundingRate } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1045,7 +1045,7 @@ export default class oxfun extends Exchange {
         return this.filterByArray (result, 'symbol', symbols);
     }
 
-    parseFundingRate (fundingRate, market: Market = undefined) {
+    parseFundingRate (contract: Dict, market: Market = undefined): FundingRate {
         //
         //     {
         //         "marketCode": "OX-USD-SWAP-LIN",
@@ -1054,11 +1054,11 @@ export default class oxfun extends Exchange {
         //     },
         //
         //
-        const symbol = this.safeString (fundingRate, 'marketCode');
+        const symbol = this.safeString (contract, 'marketCode');
         market = this.market (symbol);
-        const estFundingRateTimestamp = this.safeInteger (fundingRate, 'fundingAt');
+        const estFundingRateTimestamp = this.safeInteger (contract, 'fundingAt');
         return {
-            'info': fundingRate,
+            'info': contract,
             'symbol': market['symbol'],
             'markPrice': undefined,
             'indexPrice': undefined,
@@ -1066,7 +1066,7 @@ export default class oxfun extends Exchange {
             'estimatedSettlePrice': undefined,
             'timestamp': estFundingRateTimestamp,
             'datetime': this.iso8601 (estFundingRateTimestamp),
-            'fundingRate': this.safeNumber (fundingRate, 'estFundingRate'),
+            'fundingRate': this.safeNumber (contract, 'estFundingRate'),
             'fundingTimestamp': undefined,
             'fundingDatetime': undefined,
             'nextFundingRate': undefined,

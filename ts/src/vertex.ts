@@ -8,7 +8,7 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Market, Ticker, Tickers, TradingFees, Balances, Int, OrderBook, OHLCV, Str, Order, OrderType, OrderSide, Trade, Strings, Dict, Num, Currencies } from './base/types.js';
+import type { Market, Ticker, Tickers, TradingFees, Balances, Int, OrderBook, OHLCV, Str, Order, OrderType, OrderSide, Trade, Strings, Dict, Num, Currencies, FundingRate } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1200,7 +1200,7 @@ export default class vertex extends Exchange {
         return this.parseOHLCVs (rows, market, timeframe, since, limit);
     }
 
-    parseFundingRate (ticker, market: Market = undefined) {
+    parseFundingRate (contract: Dict, market: Market = undefined): FundingRate {
         //
         // {
         //     "product_id": 4,
@@ -1229,16 +1229,16 @@ export default class vertex extends Exchange {
         //     }
         // }
         //
-        let fundingRate = this.safeNumber (ticker, 'funding_rate');
+        let fundingRate = this.safeNumber (contract, 'funding_rate');
         if (fundingRate === undefined) {
-            const fundingRateX18 = this.safeString (ticker, 'funding_rate_x18');
+            const fundingRateX18 = this.safeString (contract, 'funding_rate_x18');
             fundingRate = this.parseNumber (this.convertFromX18 (fundingRateX18));
         }
-        const fundingTimestamp = this.safeTimestamp2 (ticker, 'update_time', 'next_funding_rate_timestamp');
-        const markPrice = this.safeNumber (ticker, 'mark_price');
-        const indexPrice = this.safeNumber (ticker, 'index_price');
+        const fundingTimestamp = this.safeTimestamp2 (contract, 'update_time', 'next_funding_rate_timestamp');
+        const markPrice = this.safeNumber (contract, 'mark_price');
+        const indexPrice = this.safeNumber (contract, 'index_price');
         return {
-            'info': ticker,
+            'info': contract,
             'symbol': market['symbol'],
             'markPrice': markPrice,
             'indexPrice': indexPrice,
