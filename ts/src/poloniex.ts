@@ -346,6 +346,7 @@ export default class poloniex extends Exchange {
                     '21350': InvalidOrder, // Amount must be greater than 1 USDT
                     '21355': ExchangeError, // Interval between startTime and endTime in trade/order history has exceeded 7 day limit
                     '21356': BadRequest, // Order size would cause too much price movement. Reduce order size.
+                    '21721': InsufficientFunds,
                     '24101': BadSymbol, // Invalid symbol
                     '24102': InvalidOrder, // Invalid K-line type
                     '24103': InvalidOrder, // Invalid endTime
