@@ -8,16 +8,21 @@ function testExchangeConfig () {
         'max': 1000,
     };
     const precision = {
-        'price': 0.000001,
         'amount': 0.001,
+        'price': 0.000001,
+        'cost': undefined,
+        'base': undefined,
+        'quote': undefined,
     };
     const markets = {
         'ETH/BTC': {
+            'id': 'ETH_BTC',
             'symbol': 'ETH/BTC',
             'limits': {
                 'cost': cost,
             },
             'precision': precision,
+            'spot': true,
         },
     };
     const exchange = new ccxt.Exchange ({
