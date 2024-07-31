@@ -1210,14 +1210,7 @@ class poloniex extends \ccxt\async\poloniex {
         if ($type === 'auth') {
             $this->handle_authenticate($client, $message);
         } elseif ($type === null) {
-            $data = $this->safe_value($message, 'data');
-            $item = $this->safe_value($data, 0);
-            $orderId = $this->safe_string($item, 'orderId');
-            if ($orderId === '0') {
-                $this->handle_error_message($client, $item);
-            } else {
-                $this->handle_order_request($client, $message);
-            }
+            $this->handle_order_request($client, $message);
         } else {
             $data = $this->safe_value($message, 'data', array());
             $dataLength = count($data);
@@ -1245,12 +1238,43 @@ class poloniex extends \ccxt\async\poloniex {
         //       "event" => "error",
         //       "message" => "Platform in maintenance mode"
         //    }
+        //    {
+        //       "id":"1722386782048",
+        //       "data":array(
+        //          {
+        //             "orderId":0,
+        //             "clientOrderId":null,
+        //             "message":"available insufficient",
+        //             "code":21721
+        //          }
+        //       )
+        //    }
         //
+        $id = $this->safe_string($message, 'id');
         $event = $this->safe_string($message, 'event');
-        $orderId = $this->safe_string($message, 'orderId');
+        $data = $this->safe_list($message, 'data');
+        $first = $this->safe_dict($data, 0);
+        $orderId = $this->safe_string($first, 'orderId');
         if (($event === 'error') || ($orderId === '0')) {
-            $error = $this->safe_string($message, 'message');
-            throw new ExchangeError($this->id . ' $error => ' . $this->json($error));
+            try {
+                $error = $this->safe_string($first, 'message');
+                $code = $this->safe_string($first, 'code');
+                $feedback = $this->id . ' ' . $this->json($message);
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $feedback);
+                throw new ExchangeError($feedback);
+            } catch (Exception $e) {
+                if ($e instanceof AuthenticationError) {
+                    $messageHash = 'authenticated';
+                    $client->reject ($e, $messageHash);
+                    if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                        unset($client->subscriptions[$messageHash]);
+                    }
+                } else {
+                    $client->reject ($e, $id);
+                }
+                return true;
+            }
         }
         return false;
     }

@@ -2642,6 +2642,13 @@ class Exchange {
         throw new NotSupported($this->id . ' handleDelta not supported yet');
     }
 
+    public function handle_deltas_with_keys(mixed $bookSide, $deltas, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
+        for ($i = 0; $i < count($deltas); $i++) {
+            $bidAsk = $this->parse_bid_ask($deltas[$i], $priceKey, $amountKey, $countOrIdKey);
+            $bookSide->storeArray ($bidAsk);
+        }
+    }
+
     public function get_cache_index($orderbook, $deltas) {
         // return the first index of the cache that can be applied to the $orderbook or -1 if not possible
         return -1;

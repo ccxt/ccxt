@@ -348,6 +348,7 @@ class poloniex extends Exchange {
                     '21350' => '\\ccxt\\InvalidOrder', // Amount must be greater than 1 USDT
                     '21355' => '\\ccxt\\ExchangeError', // Interval between startTime and endTime in trade/order history has exceeded 7 day limit
                     '21356' => '\\ccxt\\BadRequest', // Order size would cause too much price movement. Reduce order size.
+                    '21721' => '\\ccxt\\InsufficientFunds',
                     '24101' => '\\ccxt\\BadSymbol', // Invalid symbol
                     '24102' => '\\ccxt\\InvalidOrder', // Invalid K-line type
                     '24103' => '\\ccxt\\InvalidOrder', // Invalid endTime

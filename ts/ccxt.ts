@@ -178,6 +178,7 @@ import bitruePro from  './src/pro/bitrue.js'
 import bitstampPro from  './src/pro/bitstamp.js'
 import bitvavoPro from  './src/pro/bitvavo.js'
 import blockchaincomPro from  './src/pro/blockchaincom.js'
+import blofinPro from  './src/pro/blofin.js'
 import bybitPro from  './src/pro/bybit.js'
 import cexPro from  './src/pro/cex.js'
 import coinbasePro from  './src/pro/coinbase.js'
@@ -359,6 +360,7 @@ const pro = {
     'bitstamp':               bitstampPro,
     'bitvavo':                bitvavoPro,
     'blockchaincom':          blockchaincomPro,
+    'blofin':                 blofinPro,
     'bybit':                  bybitPro,
     'cex':                    cexPro,
     'coinbase':               coinbasePro,

@@ -472,6 +472,18 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " handleDelta not supported yet")) ;
     }
 
+    public virtual void handleDeltasWithKeys(object bookSide, object deltas, object priceKey = null, object amountKey = null, object countOrIdKey = null)
+    {
+        priceKey ??= 0;
+        amountKey ??= 1;
+        countOrIdKey ??= 2;
+        for (object i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        {
+            object bidAsk = this.parseBidAsk(getValue(deltas, i), priceKey, amountKey, countOrIdKey);
+            (bookSide as ccxt.pro.IOrderBookSide).storeArray(bidAsk);
+        }
+    }
+
     public virtual object getCacheIndex(object orderbook, object deltas)
     {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
