@@ -10563,6 +10563,7 @@ export default class binance extends Exchange {
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Account-Detail
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Account-Detail
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
          * @param {string[]} [symbols] a list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.subType] "linear" or "inverse"
@@ -10581,7 +10582,7 @@ export default class binance extends Exchange {
             if (isPortfolioMargin) {
                 response = await this.papiGetUmAccount (params);
             } else {
-                response = await this.fapiPrivateV2GetAccount (params);
+                response = await this.fapiPrivateGetSymbolConfig (params);
             }
         } else if (this.isInverse (type, subType)) {
             if (isPortfolioMargin) {
@@ -10592,7 +10593,10 @@ export default class binance extends Exchange {
         } else {
             throw new NotSupported (this.id + ' fetchLeverages() supports linear and inverse contracts only');
         }
-        const leverages = this.safeList (response, 'positions', []);
+        let leverages = this.safeList (response, 'positions', []);
+        if (Array.isArray (response)) {
+            leverages = response;
+        }
         return this.parseLeverages (leverages, symbols, 'symbol');
     }
 
@@ -10602,6 +10606,10 @@ export default class binance extends Exchange {
         let marginMode = undefined;
         if (marginModeRaw !== undefined) {
             marginMode = marginModeRaw ? 'isolated' : 'cross';
+        }
+        const marginTypeRaw = this.safeStringLower (leverage, 'marginType');
+        if (marginTypeRaw !== undefined) {
+            marginMode = marginTypeRaw;
         }
         const side = this.safeStringLower (leverage, 'positionSide');
         let longLeverage = undefined;
