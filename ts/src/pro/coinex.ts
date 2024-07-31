@@ -322,24 +322,47 @@ export default class coinex extends coinexRest {
 
     handleTrades (client: Client, message) {
         //
+        // spot
+        //
         //     {
         //         "method": "deals.update",
-        //         "params": [
-        //             "BTCUSD",
-        //             [{
-        //                 "type": "sell",
-        //                 "time": 1496458040.059284,
-        //                 "price ": "46444.74",
-        //                 "id": 29433,
-        //                 "amount": "0.00120000"
-        //             }]
-        //         ],
+        //         "data": {
+        //             "market": "BTCUSDT",
+        //             "deal_list": [
+        //                 {
+        //                     "deal_id": 3514376759,
+        //                     "created_at": 1689152421692,
+        //                     "side": "buy",
+        //                     "price": "30718.42",
+        //                     "amount": "0.00000325"
+        //                 },
+        //             ]
+        //         },
         //         "id": null
         //     }
         //
-        const params = this.safeValue (message, 'params', []);
-        const marketId = this.safeString (params, 0);
-        const trades = this.safeValue (params, 1, []);
+        // swap
+        //
+        //     {
+        //         "method": "deals.update",
+        //         "data": {
+        //             "market": "BTCUSDT",
+        //             "deal_list": [
+        //                 {
+        //                     "deal_id": 3514376759,
+        //                     "created_at": 1689152421692,
+        //                     "side": "buy",
+        //                     "price": "30718.42",
+        //                     "amount": "0.00000325"
+        //                 },
+        //             ]
+        //         },
+        //         "id": null
+        //     }
+        //
+        const data = this.safeDict (message, 'data', {});
+        const trades = this.safeList (data, 'deal_list', []);
+        const marketId = this.safeString (data, 'market');
         const defaultType = this.safeString (this.options, 'defaultType');
         const market = this.safeMarket (marketId, undefined, undefined, defaultType);
         const symbol = market['symbol'];
@@ -361,25 +384,37 @@ export default class coinex extends coinexRest {
 
     parseWsTrade (trade, market = undefined) {
         //
+        // spot
+        //
         //     {
-        //         "type": "sell",
-        //         "time": 1496458040.059284,
-        //         "price ": "46444.74",
-        //         "id": 29433,
-        //         "amount": "0.00120000"
+        //         "deal_id": 3514376759,
+        //         "created_at": 1689152421692,
+        //         "side": "buy",
+        //         "price": "30718.42",
+        //         "amount": "0.00000325"
         //     }
         //
-        const timestamp = this.safeTimestamp (trade, 'time');
+        // swap
+        //
+        //     {
+        //         "deal_id": 3514376759,
+        //         "created_at": 1689152421692,
+        //         "side": "buy",
+        //         "price": "30718.42",
+        //         "amount": "0.00000325"
+        //     }
+        //
+        const timestamp = this.safeInteger (trade, 'created_at');
         const defaultType = this.safeString (this.options, 'defaultType');
         return this.safeTrade ({
-            'id': this.safeString (trade, 'id'),
+            'id': this.safeString (trade, 'deal_id'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': this.safeSymbol (undefined, market, undefined, defaultType),
             'order': undefined,
             'type': undefined,
-            'side': this.safeString (trade, 'type'),
+            'side': this.safeString (trade, 'side'),
             'takerOrMaker': undefined,
             'price': this.safeString (trade, 'price'),
             'amount': this.safeString (trade, 'amount'),
@@ -502,9 +537,9 @@ export default class coinex extends coinexRest {
         /**
          * @method
          * @name coinex#watchTrades
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket012_deal_subcribe
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket019_deal_subcribe
          * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.coinex.com/api/v2/spot/market/ws/market-deals
+         * @see https://docs.coinex.com/api/v2/futures/market/ws/market-deals
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -518,11 +553,11 @@ export default class coinex extends coinexRest {
         const url = this.urls['api']['ws'][type];
         const messageHash = 'trades:' + symbol;
         const subscriptionHash = 'trades';
-        const subscribedSymbols = this.safeValue (this.options, 'watchTradesSubscriptions', []);
+        const subscribedSymbols = this.safeList (this.options, 'watchTradesSubscriptions', []);
         subscribedSymbols.push (market['id']);
         const message: Dict = {
             'method': 'deals.subscribe',
-            'params': subscribedSymbols,
+            'params': { 'market_list': subscribedSymbols },
             'id': this.requestId (),
         };
         this.options['watchTradesSubscriptions'] = subscribedSymbols;
