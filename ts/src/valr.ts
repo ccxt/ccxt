@@ -947,20 +947,20 @@ export default class valr extends Exchange {
          * @param {string} id order id (order customer order id)
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.customerId] ID is for customerOrderId field and associate API call (default is false)
+         * @param {boolean} [params.clientOrderId] ID is for clientOrderId field and associate API call (default is false)
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         this.checkRequiredSymbolArgument ('fetchOrder', symbol);
         const marketId = this.marketId (symbol);
-        const useCustomerOrderId = this.safeBool (params, 'customerId', false);
+        const useClientOrderId = this.safeBool (params, 'clientOrderId', false);
         const request = {
             'id': id,
             'pair': marketId,
         };
         let response = undefined;
-        if (useCustomerOrderId) {
-            params = this.omit (params, 'customerId');
+        if (useClientOrderId) {
+            params = this.omit (params, 'clientOrderId');
             response = await this.privateGetOrdersPairCustomerorderidId (this.extend (request, params));
         } else {
             response = await this.privateGetOrdersPairOrderidId (this.extend (request, params));
@@ -1024,17 +1024,17 @@ export default class valr extends Exchange {
          * @see https://docs.valr.com/#112c551e-4ee3-46a3-8fcf-0db07d3f48f2
          * @param {string} [symbol] unified symbol of the market the order was made in - Note used
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.customerId] ID is for customerOrderId field and associate API call (default is false)
+         * @param {boolean} [params.clientOrderId] ID is for clientOrderId field and associate API call (default is false)
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const useCustomerOrderId = this.safeBool (params, 'customerId', false);
+        const useClientOrderId = this.safeBool (params, 'clientOrderId', false);
         const request = {
             'id': id,
         };
         let response = undefined;
-        if (useCustomerOrderId) {
-            params = this.omit (params, 'customerId');
+        if (useClientOrderId) {
+            params = this.omit (params, 'clientOrderId');
             response = await this.privateGetOrdersHistorySummaryCustomerorderidId (this.extend (request, params));
         } else {
             response = await this.privateGetOrdersHistorySummaryOrderidId (this.extend (request, params));
@@ -1146,7 +1146,7 @@ export default class valr extends Exchange {
          * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency. If included in market order, use quote amount
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {object} [params.postOnly] if true will place a limit order and fail if matched immidiately
-         * @param {object} [params.customerOrderId] an optional field which can be specified by clients to track this order using their own internal order management systems
+         * @param {object} [params.clientOrderId] an optional field which can be specified by clients to track this order using their own internal order management systems
          * @param {object} [params.allowMargin] Set to true for a margin / leverage trade
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} with only the id and symbol added
          */
@@ -1162,13 +1162,13 @@ export default class valr extends Exchange {
             'pair': marketId,
         };
         // Optional parameters
-        if (this.safeString (params, 'customerOrderId')) {
-            body['customerOrderId'] = this.safeString (params, 'customerOrderId');
+        if (this.safeString (params, 'clientOrderId')) {
+            body['customerOrderId'] = this.safeString (params, 'clientOrderId');
         }
         if (this.safeString (params, 'allowMargin')) {
             body['allowMargin'] = this.safeString (params, 'allowMargin');
         }
-        this.omit (params, [ 'allowMargin', 'customerOrderId' ]);
+        this.omit (params, [ 'allowMargin', 'clientOrderId' ]);
         if (type === 'market') {
             if (price) {
                 body['quoteAmount'] = amount;
@@ -1193,7 +1193,7 @@ export default class valr extends Exchange {
             'createdAt': this.iso8601 (timestamp),
             'orderId': this.safeString (response, 'id'),
             'currencyPair': marketId,
-            'customerOrderId': this.safeString (params, 'customerOrderId'),
+            'customerOrderId': this.safeString (params, 'clientOrderId'),
         });
     }
 
@@ -1218,7 +1218,7 @@ export default class valr extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.matchRetain] If true (default) keeps original order and if false, cancle original order
          * @param {boolean} [params.setTotal] If true (default), new amount will takes current fill quantity into account, otherwise it simply forces new amount to be set.
-         * @param {object} [params.customerOrderId] an optional field which can be specified by clients to track this order using their own internal order management systems
+         * @param {object} [params.clientOrderId] an optional field which can be specified by clients to track this order using their own internal order management systems
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} with only the id and symbol added
          */
         await this.loadMarkets ();
@@ -1238,14 +1238,17 @@ export default class valr extends Exchange {
             const amountMethod = (amountStrategy) ? 'newTotalQuantity' : 'newRemainingQuantity';
             orderFormat[amountMethod] = this.numberToString (amount);
         }
-        params = this.omit (params, [ 'matchRetain', 'setTotal' ]);
+        if (this.safeString (params, 'clientOrderId')) {
+            orderFormat['customerOrderId'] = this.safeString (params, 'clientOrderId');
+        }
+        params = this.omit (params, [ 'matchRetain', 'setTotal', 'clientOrderId' ]);
         const response = await this.privatePutOrdersModify (this.extend (orderFormat, params));
         return this.parseOrder ({
             'orderUpdatedAt': this.iso8601 (this.parseDate (this.safeString (this.last_response_headers, 'Date'))),
             'orderId': id,
             'transactionId': this.safeString (response, 'id'),
             'currencyPair': marketId,
-            'customerOrderId': this.safeString (params, 'customerOrderId'),
+            'customerOrderId': this.safeString (params, 'clientOrderId'),
         });
     }
 
@@ -1258,16 +1261,16 @@ export default class valr extends Exchange {
          * @param {string} id order id or customer order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.customerId] ID is for customerOrderId field and associate API call (default is false)
+         * @param {boolean} [params.clientOrderId] ID is for clientOrderId field and associate API call (default is false)
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} with only the id and symbol added
          */
         await this.loadMarkets ();
         this.checkRequiredSymbolArgument ('cancelOrder', symbol);
-        const useCustomerOrderId = this.safeBool (params, 'customerId', false);
+        const useClientOrderId = this.safeBool (params, 'clientOrderId', false);
         const marketId = this.marketId (symbol);
         const orderFormat = { 'pair': marketId };
-        if (useCustomerOrderId) {
-            params = this.omit (params, 'customerId');
+        if (useClientOrderId) {
+            params = this.omit (params, 'clientOrderId');
             orderFormat['customerOrderId'] = id;
         } else {
             orderFormat['orderId'] = id;
@@ -1275,8 +1278,8 @@ export default class valr extends Exchange {
         await this.privateDeleteOrdersOrder (this.extend (orderFormat, params));
         return this.parseOrder ({
             'orderUpdatedAt': this.iso8601 (this.parseDate (this.safeString (this.last_response_headers, 'Date'))),
-            'orderId': (!useCustomerOrderId) ? id : undefined,
-            'customerOrderId': (useCustomerOrderId) ? id : undefined,
+            'orderId': (!useClientOrderId) ? id : undefined,
+            'customerOrderId': (useClientOrderId) ? id : undefined,
             'currencyPair': marketId,
         });
     }
