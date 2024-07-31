@@ -145,6 +145,15 @@ function convert_to_snake_case($input) {
     return str_replace('o_h_l_c_v', 'ohlcv', $res);
 }
 
+function convert_to_camel_case($input) {
+    $words = explode('_', $input);
+    $camelCase = $words[0];
+    for ($i = 1; $i < count($words); $i++) {
+        $camelCase .= ucfirst($words[$i]);
+    }
+    return $camelCase;
+}
+
 function get_test_name($methodName) {
     return 'test_' . convert_to_snake_case($methodName);
 }
@@ -288,27 +297,52 @@ function init_exchange ($exchangeId, $args, $is_ws = false) {
 }
 
 function get_test_files_sync ($properties = null, $ws = false, $is_base_tests = false) {
-    $tests = array();
-    if ($is_base_tests) {
-
-    }
-    $finalPropList = array_merge ($properties, [proxyTestFileName]);
-    for ($i = 0; $i < count($finalPropList); $i++) {
-        $methodName = $finalPropList[$i];
-        $name_snake_case = convert_to_snake_case($methodName);
-        $dir_to_test = $ws ? dirname(__DIR__) . '/pro/test/Exchange/' : __DIR__ . '/exchange/' . (is_synchronous ? 'sync' : 'async') .'/';
-        $test_method_name = 'test_'. $name_snake_case;
-        $test_file = $dir_to_test . $test_method_name . '.' . ext;
-        if (io_file_exists ($test_file)) {
-            include_once $test_file;
-            $tests[$methodName] = $test_method_name;
+    $func = function() use ($properties, $ws, $is_base_tests){
+        $tests = array();
+        if ($is_base_tests) {
+            $basePath = $ws ? __DIR__ . '../pro/test/base/' : __DIR__ . '/base/';
+            $files = io_dir_read ($basePath);
+            for ($i = 0; $i < count($files); $i++) {
+                $filename = $files[$i];
+                $filenameWoExt = str_replace('.' . ext, '', $filename);
+                $testName = str_replace('test_', '', $filenameWoExt);
+                $methodName = convert_to_camel_case($testName);
+                $filePathWoExt = $basePath . $filenameWoExt;
+                $filePathWithExt = $filePathWoExt . '.' . ext;
+                if (io_file_exists ($filePathWithExt)) {
+                    if (!in_array($testName, [ 'custom', 'errors', 'languageSpecific' ])) {
+                        include_once $filePathWithExt;
+                        $tests[$methodName] = $testName;
+                    }
+                }
+            }
+            include_once $basePath . '/custom/test.languageSpecific';
+            $tests['languageSpecific'] = 'language_specific';
+            return $tests;
         }
+        $finalPropList = array_merge ($properties, [proxyTestFileName]);
+        for ($i = 0; $i < count($finalPropList); $i++) {
+            $methodName = $finalPropList[$i];
+            $name_snake_case = convert_to_snake_case($methodName);
+            $dir_to_test = $ws ? dirname(__DIR__) . '/pro/test/Exchange/' : __DIR__ . '/exchange/' . (is_synchronous ? 'sync' : 'async') .'/';
+            $test_method_name = 'test_'. $name_snake_case;
+            $test_file = $dir_to_test . $test_method_name . '.' . ext;
+            if (io_file_exists ($test_file)) {
+                include_once $test_file;
+                $tests[$methodName] = $test_method_name;
+            }
+        }
+        return $tests;
+    };
+    if (is_synchronous) {
+        return $func();
+    } else {
+        return Async\async ($func)();
     }
-    return $tests;
 }
 
 function get_test_files ($properties = null, $ws = false, $is_base_tests = false) {
-    return get_test_files_sync($properties, $ws);
+    return get_test_files_sync($properties, $ws, $is_base_tests);
 }
 
 function is_null_value($value) {
