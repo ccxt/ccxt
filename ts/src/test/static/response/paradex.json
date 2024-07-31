@@ -109,19 +109,19 @@
                         "settleId": "USDC",
                         "type": "swap",
                         "spot": false,
-                        "margin": true,
+                        "margin": null,
                         "swap": true,
                         "future": false,
                         "option": false,
                         "index": null,
                         "active": null,
                         "contract": true,
-                        "linear": null,
+                        "linear": true,
                         "inverse": null,
                         "subType": null,
                         "taker": 0.0003,
                         "maker": -0.00005,
-                        "contractSize": null,
+                        "contractSize": 1,
                         "expiry": null,
                         "expiryDatetime": null,
                         "strike": null,
@@ -671,6 +671,76 @@
                     "baseVolume": null,
                     "quoteVolume": null
                 }
+            }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetchDeposits",
+                "method": "fetchDeposits",
+                "input": [],
+                "httpResponse": {
+                  "next": null,
+                  "prev": null,
+                  "results": [
+                    {
+                      "id": "1721828326450201709187710000",
+                      "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
+                      "kind": "DEPOSIT",
+                      "status": "COMPLETED",
+                      "amount": "78.544",
+                      "token": "USDC",
+                      "created_at": "1721828356455",
+                      "last_updated_at": "1721828373926",
+                      "txn_hash": "0x66a736440f751c258d5bd89355a766b581518fab91c9w8e5d448502bcd8c3cc",
+                      "external_txn_hash": "0xa6a6d888e9be955d4ab7e63bbb5ea3b8e23da3cac5747fa63094f2e51f15812d",
+                      "socialized_loss_factor": "",
+                      "bridge": "RHINOFI",
+                      "external_chain": "ETHEREUM",
+                      "external_account": "0xc950889d14a3717f541ec136bc133d7a9e98c78f",
+                      "failure_reason": ""
+                    }
+                  ]
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "id": "1721828326450201709187710000",
+                      "account": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
+                      "kind": "DEPOSIT",
+                      "status": "COMPLETED",
+                      "amount": "78.544",
+                      "token": "USDC",
+                      "created_at": "1721828356455",
+                      "last_updated_at": "1721828373926",
+                      "txn_hash": "0x66a736440f751c258d5bd89355a766b581518fab91c9w8e5d448502bcd8c3cc",
+                      "external_txn_hash": "0xa6a6d888e9be955d4ab7e63bbb5ea3b8e23da3cac5747fa63094f2e51f15812d",
+                      "socialized_loss_factor": "",
+                      "bridge": "RHINOFI",
+                      "external_chain": "ETHEREUM",
+                      "external_account": "0xc950889d14a3717f541ec136bc133d7a9e98c78f",
+                      "failure_reason": ""
+                    },
+                    "id": "1721828326450201709187710000",
+                    "txid": "0x66a736440f751c258d5bd89355a766b581518fab91c9w8e5d448502bcd8c3cc",
+                    "timestamp": 1721828356455,
+                    "datetime": "2024-07-24T13:39:16.455Z",
+                    "network": null,
+                    "address": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
+                    "addressTo": "0x5d8d88a069d5f573a0bbd6f5b403788eabda82a941efdcfdab31402ec42d72e",
+                    "addressFrom": null,
+                    "tag": null,
+                    "tagTo": null,
+                    "tagFrom": null,
+                    "type": "deposit",
+                    "amount": 78.544,
+                    "currency": "USDC",
+                    "status": "ok",
+                    "updated": 1721828373926,
+                    "internal": null,
+                    "comment": null,
+                    "fee": null
+                  }
+                ]
             }
         ]
     }
