@@ -140,6 +140,7 @@ public class Tests
     }
 
     static void RunAutoTranspiledBaseTests(object testsInstance) {
+        var baseNames = testMainClass.GetBaseTestNames();
         MethodInfo[] methods = testsInstance.GetType()
                         .GetMethods(BindingFlags.Instance | BindingFlags.Public)
                         .Where(m => m.Name.StartsWith("testBase") && m.ReturnType == typeof(void))
@@ -151,6 +152,7 @@ public class Tests
             Helper.Green(" [C#] " + method.ToString() + " tests passed");
         }
     }
+
 
     static void WsCacheTests()
     {

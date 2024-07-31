@@ -77,16 +77,39 @@ public partial class testMainClass : BaseTest
 
     }
 
-    dict getTestFilesSync(object properties, bool ws = false)
-    {
-        return null; // empty in c#
+    public static List<string> GetBaseTestNames(){
+        // read files from tests\Generated\Base dir
+        var baseDir = Tests.ccxtBaseDir + "/cs/tests/Generated/Base";
+        var files = Directory.GetFiles(baseDir);
+        var baseNames = new List<string>();
+        foreach (var file in files)
+        {
+            var name = Path.GetFileNameWithoutExtension(file);
+            baseNames.Add(name);
+        }
+        return baseNames;
     }
 
-    async Task<dict> getTestFiles(object properties, bool ws = false)
+    dict getTestFilesSync(object properties, bool ws = false, bool isBaseTests = false)
     {
         // var hasDict = properties as dict;
         // var hasKeys = hasDict.Keys;
         var testFiles = new dict();
+        if (isBaseTests) 
+        {
+            var testNames = GetBaseTestNames();
+            foreach (var key in testNames)
+            {
+                var testFilePath = rootDir + "cs/tests/Generated/Base/test." + key + ".cs";
+                if (ioFileExists(testFilePath))
+                {
+                    var methodName = "test" + key.Substring(0, 1).ToUpper() + key.Substring(1);
+                    var testMethod = this.GetType().GetMethod(methodName);
+                    testFiles[key] = testMethod;
+                }
+            }
+            return testFiles;
+        }
         var hasKeys = properties as List<object>;
         foreach (var key2 in hasKeys)
         {
@@ -108,6 +131,11 @@ public partial class testMainClass : BaseTest
             }
         }
         return testFiles;
+    }
+
+    async Task<dict> getTestFiles(object properties, bool ws = false, bool isBaseTests = false)
+    {
+        return getTestFilesSync(properties, ws, isBaseTests);
     }
 
     public object jsonStringify(object a)
