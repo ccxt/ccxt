@@ -109,7 +109,10 @@ class testMainClass extends baseMainTestClass {
         const keys = Object.keys (this.testFiles);
         for (let i = 0; i < keys.length; i++) {
             const methodName = keys[i];
-            await callMethod (this.testFiles, methodName, undefined, {}, []);
+            await callMethod (this.testFiles, methodName, undefined, undefined, []);
+        }
+        if (this.info) {
+            dump (this.addPadding ('[INFO] Base tests completed', 25));
         }
     }
 

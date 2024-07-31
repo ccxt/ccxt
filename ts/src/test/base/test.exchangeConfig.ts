@@ -2,7 +2,7 @@
 import ccxt from '../../../ccxt.js';
 import testSharedMethods from '../Exchange/base/test.sharedMethods.js';
 
-function testExchangeConfigExtension () {
+function testExchangeConfig () {
     const cost = {
         'min': 0.001,
         'max': 1000,
@@ -37,4 +37,4 @@ function testExchangeConfigExtension () {
     testSharedMethods.assertDeepEqual (exchange, undefined, 'testExchangeConfigExtension', exchange.markets['ETH/BTC'], exchange2.markets['ETH/BTC']);
 }
 
-export default testExchangeConfigExtension;
+export default testExchangeConfig;

@@ -139,6 +139,7 @@ class baseMainTestClass():
     check_public_tests = {}
     test_files = {}
     public_tests = {}
+    base_tests = False
     new_line = '\n'
     root_dir = rootDir
     env_vars = envVars
@@ -197,7 +198,11 @@ def call_method_sync(test_files, methodName, exchange, skippedProperties, args):
 
 async def call_method(test_files, methodName, exchange, skippedProperties, args):
     methodNameToCall = 'test_' + convert_to_snake_case(methodName)
-    return await getattr(test_files[methodName], methodNameToCall)(exchange, skippedProperties, *args)
+    if (exchange is None):
+        # if base tests
+        return getattr(test_files[methodName], methodNameToCall)()
+    else:
+        return await getattr(test_files[methodName], methodNameToCall)(exchange, skippedProperties, *args)
 
 
 async def call_exchange_method_dynamically(exchange, methodName, args):

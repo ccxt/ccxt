@@ -130,8 +130,7 @@ function ioDirRead (path) {
 }
 
 async function callMethodSync (testFiles, methodName, exchange, skippedProperties: object, args) {
-    // empty in js
-    return {};
+    return testFiles[methodName] (exchange, skippedProperties, ...args);
 }
 
 async function callMethod (testFiles, methodName, exchange, skippedProperties: object, args) {
