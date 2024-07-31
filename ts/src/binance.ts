@@ -850,6 +850,8 @@ export default class binance extends Exchange {
                         'trade/asyn': 1000,
                         'trade/asyn/id': 10,
                         'feeBurn': 1,
+                        'symbolConfig': 1,
+                        'accountConfig': 1,
                     },
                     'post': {
                         'batchOrders': 5,
