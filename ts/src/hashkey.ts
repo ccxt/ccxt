@@ -163,7 +163,7 @@ export default class hashkey extends Exchange {
                         'api/v1/futures/fundingRate': 1, // done
                         'api/v1/futures/historyFundingRate': 1, // done
                         'api/v1/ping': 1,
-                        'api/v1/time': 5, // done
+                        'api/v1/time': 1, // done
                     },
                 },
                 'private': {
@@ -177,7 +177,7 @@ export default class hashkey extends Exchange {
                         'api/v1/futures/userTrades': 1,
                         'api/v1/futures/positions': 1,
                         'api/v1/futures/historyOrders': 1,
-                        'api/v1/futures/balance': 1, // not unified
+                        'api/v1/futures/balance': 1, // update fetchBalance
                         'api/v1/futures/liquidationAssignStatus': 1, // todo ask
                         'api/v1/futures/riskLimit': 1, // not unified
                         'api/v1/futures/commissionRate': 1, // done
@@ -187,7 +187,7 @@ export default class hashkey extends Exchange {
                         'api/v1/account/trades': 5, // done
                         'api/v1/account/type': 5, // done
                         'api/v1/account/checkApiKey': 1, // not unified
-                        'api/v1/account/balanceFlow': 1, // fetchLedger
+                        'api/v1/account/balanceFlow': 5, // fetchLedger
                         'api/v1/spot/subAccount/openOrders': 1, // update fetchOpenOrders
                         'api/v1/spot/subAccount/tradeOrders': 1, // update fetchCanceledAndClosedOrders
                         'api/v1/subAccount/trades': 1, // update fetchTrades
@@ -203,7 +203,7 @@ export default class hashkey extends Exchange {
                         'api/v1/spot/orderTest': 1, // done
                         'api/v1/spot/order': 1, // done
                         'api/v1.1/spot/order': 1, // done
-                        'api/v1/spot/batchOrders': 5,
+                        'api/v1/spot/batchOrders': 5, // todo implement
                         'api/v1/futures/leverage': 1,
                         'api/v1/futures/order': 1,
                         'api/v1/futures/position/trading-stop': 1,
@@ -719,6 +719,15 @@ export default class hashkey extends Exchange {
         const amountFilter = this.safeDict (filters, 'LOT_SIZE', {});
         const costFilter = this.safeDict (filters, 'MIN_NOTIONAL', {});
         const minCostString = this.omitZero (this.safeString (costFilter, 'min_notional'));
+        const contractSizeString = this.safeString (market, 'contractMultiplier');
+        let amountPrecisionString = this.safeString (amountFilter, 'stepSize');
+        let amountMinLimitString = this.safeString (amountFilter, 'minQty');
+        let amountMaxLimitString = this.safeString (amountFilter, 'maxQty');
+        if (isSwap) {
+            amountPrecisionString = Precise.stringDiv (amountPrecisionString, contractSizeString);
+            amountMinLimitString = Precise.stringDiv (amountMinLimitString, contractSizeString);
+            amountMaxLimitString = Precise.stringDiv (amountMaxLimitString, contractSizeString);
+        }
         return {
             'id': marketId,
             'symbol': symbol,
@@ -737,7 +746,7 @@ export default class hashkey extends Exchange {
             'contract': isSwap,
             'settle': settle,
             'settleId': settleId,
-            'contractSize': this.safeNumber (market, 'contractMultiplier'), // todo check
+            'contractSize': this.parseNumber (contractSizeString),
             'linear': isLinear,
             'inverse': isInverse,
             'taker': this.fees['trading']['taker'],
@@ -747,13 +756,13 @@ export default class hashkey extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.safeNumber (amountFilter, 'stepSize'),
+                'amount': this.parseNumber (amountPrecisionString),
                 'price': this.safeNumber (priceFilter, 'tickSize'),
             },
             'limits': {
                 'amount': {
-                    'min': this.safeNumber (amountFilter, 'minQty'),
-                    'max': this.safeNumber (amountFilter, 'maxQty'),
+                    'min': this.parseNumber (amountMinLimitString),
+                    'max': this.parseNumber (amountMaxLimitString),
                 },
                 'price': {
                     'min': this.safeNumber (priceFilter, 'minPrice'),
