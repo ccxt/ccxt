@@ -1968,7 +1968,7 @@ class oxfun(Exchange, ImplicitAPI):
     def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
-        :see: https://docs.bitflex.com/spot#withdraw
+        :see: https://docs.ox.fun/?json#post-v3-withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
