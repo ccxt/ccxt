@@ -299,7 +299,7 @@ export default class Exchange {
 
     id: string = 'Exchange';
 
-    markets: Dictionary<any> = undefined
+    markets?: Dictionary<any> = undefined
     has: Dictionary<boolean | 'emulated'>;
 
     status: {
@@ -379,7 +379,7 @@ export default class Exchange {
 
     marketsByAltname: Dictionary<any> = undefined
 
-    name:Str = undefined
+    name: Str = undefined
 
     lastRestRequestTimestamp:number;
 
@@ -6613,7 +6613,7 @@ export default class Exchange {
         return this.filterBySinceLimit (uniqueResults, since, limit, key);
     }
 
-    async fetchPaginatedCallCursor (method: string, symbol: Str = undefined, since = undefined, limit = undefined, params = {}, cursorReceived = undefined, cursorSent = undefined, cursorIncrement = undefined, maxEntriesPerRequest = undefined): Promise<any> {
+    async fetchPaginatedCallCursor (method: string, symbol: Str = undefined, since: Int = undefined, limit = undefined, params = {}, cursorReceived = undefined, cursorSent = undefined, cursorIncrement = undefined, maxEntriesPerRequest: Int = undefined): Promise<any> {
         let maxCalls = undefined;
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
         let maxRetries = undefined;
@@ -6673,7 +6673,7 @@ export default class Exchange {
         return this.filterBySinceLimit (sorted, since, limit, key);
     }
 
-    async fetchPaginatedCallIncremental (method: string, symbol: Str = undefined, since = undefined, limit = undefined, params = {}, pageKey = undefined, maxEntriesPerRequest: Num = undefined): Promise<any> {
+    async fetchPaginatedCallIncremental (method: string, symbol: Str = undefined, since = undefined, limit = undefined, params = {}, pageKey: IndexType = undefined, maxEntriesPerRequest: Num = undefined): Promise<any> {
         let maxCalls = undefined;
         [ maxCalls, params ] = this.handleOptionAndParams (params, method, 'paginationCalls', 10);
         let maxRetries = undefined;
@@ -6724,7 +6724,7 @@ export default class Exchange {
     }
 
     removeRepeatedElementsFromArray (input: Dict[]) {
-        const uniqueResult = {};
+        const uniqueResult: Dict = {};
         for (let i = 0; i < input.length; i++) {
             const entry = input[i];
             const id = this.safeString (entry, 'id');
@@ -6810,7 +6810,7 @@ export default class Exchange {
     }
 
     parseOptionChain (response: object[], currencyKey: Str = undefined, symbolKey: Str = undefined): OptionChain {
-        const optionStructures = {};
+        const optionStructures: Dict = {};
         for (let i = 0; i < response.length; i++) {
             const info = response[i];
             const currencyId = this.safeString (info, currencyKey);
@@ -6823,7 +6823,7 @@ export default class Exchange {
     }
 
     parseMarginModes (response: object[], symbols: Strings, symbolKey: Str = undefined, marketType: MarketType = undefined): MarginModes {
-        const marginModeStructures = {};
+        const marginModeStructures: Dict = {};
         if (marketType === undefined) {
             marketType = 'swap'; // default to swap
         }
@@ -6843,7 +6843,7 @@ export default class Exchange {
     }
 
     parseLeverages (response: object[], symbols: Strings, symbolKey: Str = undefined, marketType: MarketType = undefined): Leverages {
-        const leverageStructures = {};
+        const leverageStructures: Dict = {};
         if (marketType === undefined) {
             marketType = 'swap'; // default to swap
         }
@@ -7008,7 +7008,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseMarginModification() is not supported yet');
     }
 
-    parseMarginModifications (response: object[], symbols: Strings, symbolKey: Str = undefined, marketType: MarketType = undefined): MarginModification[] {
+    parseMarginModifications (response: object[], symbols: Strings = undefined, symbolKey: Str = undefined, marketType: MarketType = undefined): MarginModification[] {
         const marginModifications = [];
         for (let i = 0; i < response.length; i++) {
             const info = response[i];
