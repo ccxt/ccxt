@@ -44,7 +44,7 @@ function testCalculateFeeWithPrecision (tickPrecision = true) {
         const takerOrMaker = keys[i];
         const result = exchange.calculateFee (market['symbol'], 'limit', 'buy', amount, price, takerOrMaker, {});
 
-        testSharedMethods.deepEqual (result, {
+        testSharedMethods.assertDeepEqual (undefined, undefined, 'testCalcualteFee', result, {
             'type': takerOrMaker,
             'currency': 'BAR',
             'rate': fees[takerOrMaker],

@@ -5,7 +5,10 @@ import { OnMaintenance, OperationFailed } from '../../../base/errors.js';
 import { Str } from '../../../base/types';
 
 function logTemplate (exchange: Exchange, method: string, entry: object) {
-    return ' <<< ' + exchange.id + ' ' + method + ' ::: ' + exchange.json (entry) + ' >>> ';
+    const id = (exchange !== undefined) ? exchange.id : 'undefined';
+    const methodString = (method !== undefined) ? method : 'undefined';
+    const entryString = (exchange !== undefined) ? exchange.json (entry) : '';
+    return ' <<< ' + id + ' ' + methodString + ' ::: ' + entryString + ' >>> ';
 }
 
 function isTemporaryFailure (e: any) {

@@ -35,7 +35,7 @@ function testAggregate () {
         [ 789.10, 123.0 ],
     ]);
 
-    testSharedMethods.deepEqual (exchange.aggregate ([]), []);
+    testSharedMethods.assertDeepEqual (exchange, undefined, 'aggregate', exchange.aggregate ([]), []);
 }
 
 export default testAggregate;
