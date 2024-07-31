@@ -111,9 +111,7 @@ class testMainClass extends baseMainTestClass {
             const methodName = keys[i];
             await callMethod (this.testFiles, methodName, undefined, undefined, []);
         }
-        if (this.info) {
-            dump (this.addPadding ('[INFO] Base tests completed', 25));
-        }
+        dump (this.addPadding ('[INFO] Base tests completed', 25));
     }
 
     checkIfSpecificTestIsChosen (methodArgv) {
