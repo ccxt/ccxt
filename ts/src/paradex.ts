@@ -356,7 +356,9 @@ export default class paradex extends Exchange {
         const settle = this.safeCurrencyCode (settleId);
         const symbol = base + '/' + quote + ':' + settle;
         const expiry = this.safeInteger (market, 'expiry_at');
-        return {
+        const takerFee = this.parseNumber ('0.0003');
+        const makerFee = this.parseNumber ('-0.00005');
+        return this.safeMarketStructure ({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -375,8 +377,8 @@ export default class paradex extends Exchange {
             'contract': true,
             'linear': undefined,
             'inverse': undefined,
-            'taker': undefined,
-            'maker': undefined,
+            'taker': takerFee,
+            'maker': makerFee,
             'contractSize': undefined,
             'expiry': (expiry === 0) ? undefined : expiry,
             'expiryDatetime': (expiry === 0) ? undefined : this.iso8601 (expiry),
@@ -406,7 +408,7 @@ export default class paradex extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
 
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
