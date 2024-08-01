@@ -78,6 +78,7 @@ public partial class testMainClass : BaseTest
 
     }
 
+
     public static List<string> GetBaseTestNames(){
         // read files from tests\Generated\Base dir
         var baseDir = Tests.ccxtBaseDir + "/cs/tests/Generated/Base";
@@ -91,6 +92,10 @@ public partial class testMainClass : BaseTest
         return baseNames;
     }
 
+    string Capitalize(string input) {
+        return input[0].ToString().ToUpper() + input.Substring(1);
+    }
+
     dict getTestFilesSync(object properties, bool ws = false, bool isBaseTests = false)
     {
         // var hasDict = properties as dict;
@@ -101,13 +106,8 @@ public partial class testMainClass : BaseTest
             var testNames = GetBaseTestNames();
             foreach (var key in testNames)
             {
-                var testFilePath = rootDir + "cs/tests/Generated/Base/test." + key + ".cs";
-                if (ioFileExists(testFilePath))
-                {
-                    var methodName = "test" + key.Substring(0, 1).ToUpper() + key.Substring(1);
-                    var testMethod = this.GetType().GetMethod(methodName);
-                    testFiles[key] = testMethod;
-                }
+                var methodName = Capitalize(key.Replace ("test.", ""));
+                testFiles[key] = this.GetType().GetMethod("test" + methodName);
             }
             return testFiles;
         }
@@ -223,6 +223,7 @@ public partial class testMainClass : BaseTest
         var argsWithExchange = new List<object> { exchange };
         foreach (var arg in args)
         {
+            if (arg == null) continue;
             // emulate ... spread operator in c#
             if (arg.GetType() == typeof(List<object>))
             {
@@ -233,8 +234,17 @@ public partial class testMainClass : BaseTest
         }
         var testFiles = testFiles2 as dict;
         var method = testFiles[methodName as string] as MethodInfo;
-        var res = method.Invoke(exchange, argsWithExchange.ToArray());
-        await ((Task)res);
+        object res = null;
+        if (exchange != null)
+        {
+            res = method.Invoke(exchange, argsWithExchange.ToArray());
+            await ((Task)res);
+        } else
+        {
+            // if base tests
+            res = method.Invoke(this, new object[] { });
+            if (res != null) await ((Task)res);
+        }
         return null;
     }
 

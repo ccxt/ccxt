@@ -1081,7 +1081,7 @@ class NewTranspiler {
     transpileCryptoTestsToCSharp (outDir: string) {
 
         const jsFile = './ts/src/test/base/test.cryptography.ts';
-        const csharpFile = `${outDir}/Cryptography.cs`;
+        const csharpFile = `${outDir}/test.cryptography.cs`;
 
         log.magenta ('[csharp] Transpiling from', (jsFile as any).yellow)
 
@@ -1180,8 +1180,7 @@ class NewTranspiler {
 
         for (const testName of baseFunctionTests) {
             const tsFile = baseFolders.ts + testName + '.ts';
-            const csFileName = this.capitalize(testName.replace ('test.', ''));
-            const csharpFile = `${outDir}/${csFileName}.cs`;
+            const csharpFile = `${outDir}/${testName}.cs`;
 
             log.magenta ('Transpiling from', (tsFile as any).yellow)
 

@@ -115,8 +115,8 @@ public class Tests
             else 
             {
                 RestBaseTests();
+                return;
             }
-            Helper.Green(" [C#] base tests passed");
         }
 
         if (raceCondition)
@@ -134,10 +134,8 @@ public class Tests
     static void RestBaseTests()
     {
         tests.testCryptography();
-        Helper.Green(" [C#] Crypto tests passed");
-        // run auto-transpiled tests (all of them start by 'testBaseFunction')
         var testClass = new testMainClass();
-            testClass.init().Wait();
+        testClass.init().Wait();
     }
 
 
