@@ -1361,23 +1361,31 @@ public partial class kucoin : Exchange
             } },
             { "networks", new Dictionary<string, object>() {} },
         };
-        object isWithdrawEnabled = this.safeBool(fee, "isWithdrawEnabled");
+        object isWithdrawEnabled = this.safeBool(fee, "isWithdrawEnabled", true);
+        object minFee = null;
         if (isTrue(isWithdrawEnabled))
         {
-            ((IDictionary<string,object>)getValue(result, "withdraw"))["fee"] = this.safeNumber2(fee, "withdrawalMinFee", "withdrawMinFee");
             ((IDictionary<string,object>)getValue(result, "withdraw"))["percentage"] = false;
-            object networkId = this.safeString(fee, "chain");
-            if (isTrue(networkId))
+            object chains = this.safeList(fee, "chains", new List<object>() {});
+            for (object i = 0; isLessThan(i, getArrayLength(chains)); postFixIncrement(ref i))
             {
+                object chain = getValue(chains, i);
+                object networkId = this.safeString(chain, "chainId");
                 object networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
+                object withdrawFee = this.safeString(chain, "withdrawalMinFee");
+                if (isTrue(isTrue(isEqual(minFee, null)) || isTrue((Precise.stringLt(withdrawFee, minFee)))))
+                {
+                    minFee = withdrawFee;
+                }
                 ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
-                    { "withdraw", getValue(result, "withdraw") },
+                    { "withdraw", this.parseNumber(withdrawFee) },
                     { "deposit", new Dictionary<string, object>() {
                         { "fee", null },
                         { "percentage", null },
                     } },
                 };
             }
+            ((IDictionary<string,object>)getValue(result, "withdraw"))["fee"] = this.parseNumber(minFee);
         }
         return result;
     }

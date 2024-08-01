@@ -70,7 +70,7 @@ export default class oxfun extends Exchange {
         info: any;
     };
     transfer(code: string, amount: number, fromAccount: string, toAccount: string, params?: {}): Promise<TransferEntry>;
-    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<import("./base/types.js").TransferEntries>;
+    fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
     parseTransfer(transfer: any, currency?: Currency): {
         id: string;
         timestamp: number;

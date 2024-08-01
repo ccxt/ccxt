@@ -1530,21 +1530,28 @@ export default class kucoin extends Exchange {
             },
             'networks': {},
         };
-        const isWithdrawEnabled = this.safeBool (fee, 'isWithdrawEnabled');
+        const isWithdrawEnabled = this.safeBool (fee, 'isWithdrawEnabled', true);
+        let minFee = undefined;
         if (isWithdrawEnabled) {
-            result['withdraw']['fee'] = this.safeNumber2 (fee, 'withdrawalMinFee', 'withdrawMinFee');
             result['withdraw']['percentage'] = false;
-            const networkId = this.safeString (fee, 'chain');
-            if (networkId) {
+            const chains = this.safeList (fee, 'chains', []);
+            for (let i = 0; i < chains.length; i++) {
+                const chain = chains[i];
+                const networkId = this.safeString (chain, 'chainId');
                 const networkCode = this.networkIdToCode (networkId, this.safeString (currency, 'code'));
+                const withdrawFee = this.safeString (chain, 'withdrawalMinFee');
+                if (minFee === undefined || (Precise.stringLt (withdrawFee, minFee))) {
+                    minFee = withdrawFee;
+                }
                 result['networks'][networkCode] = {
-                    'withdraw': result['withdraw'],
+                    'withdraw': this.parseNumber (withdrawFee),
                     'deposit': {
                         'fee': undefined,
                         'percentage': undefined,
                     },
                 };
             }
+            result['withdraw']['fee'] = this.parseNumber (minFee);
         }
         return result;
     }

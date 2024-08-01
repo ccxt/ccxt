@@ -2657,11 +2657,13 @@ export default class woo extends Exchange {
         //
         const marketId = this.safeString(income, 'symbol');
         const symbol = this.safeSymbol(marketId, market);
-        const amount = this.safeNumber(income, 'funding_fee');
+        let amount = this.safeString(income, 'funding_fee');
         const code = this.safeCurrencyCode('USD');
         const id = this.safeString(income, 'id');
         const timestamp = this.safeTimestamp(income, 'updated_time');
         const rate = this.safeNumber(income, 'funding_rate');
+        const paymentType = this.safeString(income, 'payment_type');
+        amount = (paymentType === 'Pay') ? Precise.stringNeg(amount) : amount;
         return {
             'info': income,
             'symbol': symbol,
@@ -2669,7 +2671,7 @@ export default class woo extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'id': id,
-            'amount': amount,
+            'amount': this.parseNumber(amount),
             'rate': rate,
         };
     }
