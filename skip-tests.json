@@ -1725,6 +1725,14 @@
             }
         }
     },
+    "paradex": {
+        "skipMethods": {
+            "loadMarkets" : {
+                "active":"not provided",
+                "currencyIdAndCode": "broken currencies"
+	    }
+	}
+    },   
     "hashkey": {
         "skipMethods": {
             "fetchCurrencies": {
