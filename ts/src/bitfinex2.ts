@@ -3516,10 +3516,33 @@ export default class bitfinex2 extends Exchange {
         //         ],
         //     ]
         //
-        return this.parseLiquidations (response, market, since, limit);
+        return this.parseLiquidationLists (response, market, since, limit);
     }
 
-    parseLiquidation (liquidation: Dict, market: Market = undefined): Liquidation {
+    parseLiquidationLists (liquidations: any[][], market: Market = undefined, since: Int = undefined, limit: Int = undefined): Liquidation[] {
+        /**
+         * @ignore
+         * @method
+         * @name bitfinex2#parseLiquidationLists
+         * @description parses liquidation info from the exchange response
+         * @param {any[][]} liquidations each item describes an instance of a liquidation event
+         * @param {object} market ccxt market
+         * @param {int} [since] when defined, the response items are filtered to only include items after this timestamp
+         * @param {int} [limit] limits the number of items in the response
+         * @returns {object[]} an array of [liquidation structures]{@link https://docs.ccxt.com/#/?id=liquidation-structure}
+         */
+        const result = [];
+        for (let i = 0; i < liquidations.length; i++) {
+            const entry = liquidations[i];
+            const parsed = this.parseLiquidationList (entry, market);
+            result.push (parsed);
+        }
+        const sorted = this.sortBy (result, 'timestamp');
+        const symbol = this.safeString (market, 'symbol');
+        return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
+    }
+
+    parseLiquidationList (liquidation: any[], market: Market = undefined): Liquidation {
         //
         //     [
         //         [
