@@ -529,10 +529,12 @@ Modern async syntax allows you to combine and split the execution into parallel 
 The client will return a message each time a message is received and the watch function is being awaited.
 However it can happen that due to the users code or a possible race condition a message is received and at that moment the watch function is not being awaited and therefore there is no future to resolve. In this case the message is saved in a messageQueue of the websocket client to be returned next time the watch function is called.
 
-To stop this behavior you can switch off the message queue by setting the following options:
+To activate this behavior you can switch on the message queue by setting the following options:
 ```
-exchange.options['ws']['useMessageQueue'] = false
+exchange.options['ws']['useMessageQueue'] = true
 ```
+
+This can be usefull for watch functions with little traffic.
 
 ### Real-Time vs Throttling
 
