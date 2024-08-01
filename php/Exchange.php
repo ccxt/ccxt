@@ -33,13 +33,17 @@ namespace ccxt;
 use MessagePack\MessagePack;
 use kornrunner\Keccak;
 use Web3\Contracts\TypedDataEncoder;
+use StarkNet\Crypto\Curve;
+use StarkNet\Crypto\Key;
+use StarkNet\Hash;
+use StarkNet\TypedData;
 use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.3.68';
+$version = '4.3.71';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -58,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.3.68';
+    const VERSION = '4.3.71';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -419,6 +423,7 @@ class Exchange {
         'onetrading',
         'oxfun',
         'p2b',
+        'paradex',
         'paymium',
         'phemex',
         'poloniex',
@@ -1331,6 +1336,43 @@ class Exchange {
             hex2bin(str_replace('0x', '', $typedDataEncoder->hashDomain($domainData))),
             hex2bin(str_replace('0x', '', $typedDataEncoder->hashEIP712Message($messageTypes, $messageData)))
         );
+    }
+
+    public function retrieve_stark_account($signature, $accountClassHash, $accountProxyClassHash) {
+        $privateKey = Key::ethSigToPrivate($signature);
+        $publicKey = Key::getStarkKey($privateKey);
+        $calldata = [
+            $accountClassHash,
+            Hash::getSelectorFromName("initialize"),
+            2,
+            $publicKey,
+            0,
+        ];
+
+        $address = Hash::computeAddress(
+            $accountProxyClassHash,
+            $calldata,
+            $publicKey,
+        );
+        return [
+            'privateKey' => $privateKey,
+            'publicKey' => $publicKey,
+            'address' => $address
+        ];
+    }
+
+    public function starknet_encode_structured_data($domain, $messageTypes, $messageData, $address) {
+        if (count($messageTypes) > 1) {
+            throw new NotSupported ($this->id + 'starknetEncodeStructuredData only support single type');
+        }
+        $msgHash = TypedData::messageHash($domain, $messageTypes, $messageData, $address);
+        return $msgHash;
+    }
+
+    public function starknet_sign($hash, $pri) {
+        # // TODO: unify to ecdsa
+        $signature = Curve::sign ('0x' . $pri, $hash);
+        return $this->json($signature);
     }
 
     public function packb($data) {
@@ -2640,6 +2682,13 @@ class Exchange {
 
     public function handle_delta($bookside, $delta) {
         throw new NotSupported($this->id . ' handleDelta not supported yet');
+    }
+
+    public function handle_deltas_with_keys(mixed $bookSide, $deltas, int|string $priceKey = 0, int|string $amountKey = 1, int|string $countOrIdKey = 2) {
+        for ($i = 0; $i < count($deltas); $i++) {
+            $bidAsk = $this->parse_bid_ask($deltas[$i], $priceKey, $amountKey, $countOrIdKey);
+            $bookSide->storeArray ($bidAsk);
+        }
     }
 
     public function get_cache_index($orderbook, $deltas) {

@@ -1939,6 +1939,13 @@ export default class okx extends okxRest {
                 throw new ExchangeError (feedback);
             }
         } catch (e) {
+            // if the message contains an id, it means it is a response to a request
+            // so we only reject that promise, instead of deleting all futures, destroying the authentication future
+            const id = this.safeString (message, 'id');
+            if (id !== undefined) {
+                client.reject (e, id);
+                return false;
+            }
             client.reject (e);
             return false;
         }

@@ -2672,6 +2672,28 @@ public partial class binance
         var res = await this.fetchPositionMode(symbol, parameters);
         return ((Dictionary<string, object>)res);
     }
+    /// <summary>
+    /// fetches margin modes ("isolated" or "cross") that the market for the symbol in in, with symbol=undefined all markets for a subType (linear/inverse) are returned
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}.</returns>
     public async Task<MarginModes> FetchMarginModes(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarginModes(symbols, parameters);

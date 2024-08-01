@@ -2680,11 +2680,13 @@ class woo extends Exchange {
         //
         $marketId = $this->safe_string($income, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $amount = $this->safe_number($income, 'funding_fee');
+        $amount = $this->safe_string($income, 'funding_fee');
         $code = $this->safe_currency_code('USD');
         $id = $this->safe_string($income, 'id');
         $timestamp = $this->safe_timestamp($income, 'updated_time');
         $rate = $this->safe_number($income, 'funding_rate');
+        $paymentType = $this->safe_string($income, 'payment_type');
+        $amount = ($paymentType === 'Pay') ? Precise::string_neg($amount) : $amount;
         return array(
             'info' => $income,
             'symbol' => $symbol,
@@ -2692,7 +2694,7 @@ class woo extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'id' => $id,
-            'amount' => $amount,
+            'amount' => $this->parse_number($amount),
             'rate' => $rate,
         );
     }

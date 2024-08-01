@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/cryptocom.js';
 import { Precise } from './base/Precise.js';
-import { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled, OnMaintenance, InvalidOrder } from './base/errors.js';
+import { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled, OnMaintenance, InvalidOrder, RequestTimeout, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, Market, Num, Account, CancellationRequest, Dict, int } from './base/types.js';
@@ -387,7 +387,15 @@ export default class cryptocom extends Exchange {
                     '40006': BadRequest,
                     '40007': BadRequest,
                     '40101': AuthenticationError,
-                    '50001': BadRequest,
+                    '40102': InvalidNonce, // Nonce value differs by more than 60 seconds from server
+                    '40103': AuthenticationError, // IP address not whitelisted
+                    '40104': AuthenticationError, // Disallowed based on user tier
+                    '40107': BadRequest, // Session subscription limit has been exceeded
+                    '40401': OrderNotFound,
+                    '40801': RequestTimeout,
+                    '42901': RateLimitExceeded,
+                    '43005': InvalidOrder, // Rejected POST_ONLY create-order request (normally happened when exec_inst contains POST_ONLY but time_in_force is NOT GOOD_TILL_CANCEL)
+                    '50001': ExchangeError,
                     '9010001': OnMaintenance, // {"code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details."}
                 },
                 'broad': {},

@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '4.3.68'
+__version__ = '4.3.71'
 
 # ----------------------------------------------------------------------------
 
@@ -170,6 +170,7 @@ from ccxt.okx import okx                                              # noqa: F4
 from ccxt.onetrading import onetrading                                # noqa: F401
 from ccxt.oxfun import oxfun                                          # noqa: F401
 from ccxt.p2b import p2b                                              # noqa: F401
+from ccxt.paradex import paradex                                      # noqa: F401
 from ccxt.paymium import paymium                                      # noqa: F401
 from ccxt.phemex import phemex                                        # noqa: F401
 from ccxt.poloniex import poloniex                                    # noqa: F401
@@ -280,6 +281,7 @@ exchanges = [
     'onetrading',
     'oxfun',
     'p2b',
+    'paradex',
     'paymium',
     'phemex',
     'poloniex',

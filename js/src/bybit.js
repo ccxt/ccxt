@@ -8205,7 +8205,7 @@ export default class bybit extends Exchange {
         const quoteValueString = Precise.stringMul(baseValueString, priceString);
         return this.safeLiquidation({
             'info': liquidation,
-            'symbol': this.safeSymbol(marketId, market),
+            'symbol': this.safeSymbol(marketId, market, undefined, 'contract'),
             'contracts': this.parseNumber(contractsString),
             'contractSize': this.parseNumber(contractSizeString),
             'price': this.parseNumber(priceString),

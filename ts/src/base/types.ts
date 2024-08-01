@@ -48,16 +48,16 @@ export type Fee = FeeInterface | undefined
 
 export interface MarketInterface {
     active: Bool;
-    base: string;
-    baseId: string;
+    base: Str;
+    baseId: Str;
     contract: boolean;
     contractSize: Num;
     created: Int;
     expiry: Int;
     expiryDatetime: Str;
-    feeSide?: string | undefined;
+    feeSide?: Str;
     future: boolean;
-    id: string;
+    id: Str;
     info: any;
     inverse: Bool;
     limits: {
@@ -67,7 +67,7 @@ export interface MarketInterface {
         price?: MinMax,
     };
     linear: Bool;
-    lowercaseId?: string;
+    lowercaseId?: Str;
     maker?: Num;
     margin: boolean;
     marginMode?: {
@@ -77,15 +77,15 @@ export interface MarketInterface {
     numericId?: Num;
     option: boolean;
     optionType: Str;
-    percentage?: boolean | undefined;
+    percentage?: Bool;
     precision: {
         amount: Num
         cost?: Num
         price: Num
     };
     quanto?: boolean;
-    quote?: string;
-    quoteId: string;
+    quote: Str;
+    quoteId: Str;
     settle: Str;
     settleId: Str;
     spot: boolean;
@@ -94,9 +94,9 @@ export interface MarketInterface {
     swap: boolean;
     symbol: string;
     taker?: Num;
-    tierBased?: boolean | undefined;
+    tierBased?: Bool;
     type: MarketType;
-    uppercaseId?: string;
+    uppercaseId?: Str;
 }
 
 export interface Trade {
