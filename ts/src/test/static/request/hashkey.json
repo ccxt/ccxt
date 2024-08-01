@@ -152,49 +152,6 @@
                     }
                 ]
             }
-        ],
-        "createOrder": [
-            {
-                "description": "Creating a limit order for spot market",
-                "method": "createOrder",
-                "url": "https://api-glb.hashkey.com/api/v1/spot/order",
-                "input": [
-                    "ETH/USDT",
-                    "limit",
-                    "buy",
-                    0.001,
-                    2000
-                ],
-                "output": "timestamp=1722080824146&symbol=ETHUSDT&side=BUY&type=LIMIT&quantity=0.001&price=2000&signature=931d4b0067039a9fd14d8c8499695a33ff237f57d5b6a8e5bfecb23390c6bdfd"
-            },
-            {
-                "description": "Test order for spot market",
-                "method": "createOrder",
-                "url": "https://api-glb.hashkey.com/api/v1/spot/orderTest",
-                "input": [
-                    "ETH/USDT",
-                    "market",
-                    "buy",
-                    2,
-                    null,
-                    {
-                        "test": true
-                    }
-                ],
-                "output": "timestamp=1722081896670&symbol=ETHUSDT&side=BUY&type=MARKET&quantity=2&test=true&signature=54c873c348e75cc9e5bceaf1e7dce05670bc9706c4c6369a28860181168b60c0"
-            },
-            {
-                "description": "Market buy order with amount (not cost) for spot market",
-                "method": "createOrder",
-                "url": "https://api-glb.hashkey.com/api/v1.1/spot/order",
-                "input": [
-                    "ETH/USDT",
-                    "market",
-                    "buy",
-                    0.001
-                ],
-                "output": "timestamp=1722082981173&symbol=ETHUSDT&side=BUY&type=MARKET&quantity=0.001&signature=623d612ddd2faba5cfcafceb317921157579698c4eb305b27179c2616e870e49"
-              }
         ]
     }
 }
