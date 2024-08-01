@@ -58,7 +58,7 @@ export default class coinex extends coinexRest {
                 'watchOrderBook': {
                     'limits': [ 5, 10, 20, 50 ],
                     'defaultLimit': 50,
-                    'aggregations': [ '10', '1', '0', '0.1', '0.01' ],
+                    'aggregations': [ '1000', '100', '10', '1', '0', '0.1', '0.01', '0.001', '0.0001', '0.00001', '0.000001', '0.0000001', '0.00000001', '0.000000001', '0.0000000001', '0.00000000001' ],
                     'defaultAggregation': '0',
                 },
             },
@@ -570,9 +570,9 @@ export default class coinex extends coinexRest {
         /**
          * @method
          * @name coinex#watchOrderBook
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket017_depth_subscribe_multi
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket011_depth_subscribe_multi
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.coinex.com/api/v2/spot/market/ws/market-depth
+         * @see https://docs.coinex.com/api/v2/futures/market/ws/market-depth
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -586,16 +586,16 @@ export default class coinex extends coinexRest {
         const url = this.urls['api']['ws'][type];
         const name = 'orderbook';
         const messageHash = name + ':' + symbol;
-        const options = this.safeValue (this.options, 'watchOrderBook', {});
-        const limits = this.safeValue (options, 'limits', []);
+        const options = this.safeDict (this.options, 'watchOrderBook', {});
+        const limits = this.safeList (options, 'limits', []);
         if (limit === undefined) {
-            limit = this.safeValue (options, 'defaultLimit', 50);
+            limit = this.safeInteger (options, 'defaultLimit', 50);
         }
         if (!this.inArray (limit, limits)) {
             throw new NotSupported (this.id + ' watchOrderBook() limit must be one of ' + limits.join (', '));
         }
         const defaultAggregation = this.safeString (options, 'defaultAggregation', '0');
-        const aggregations = this.safeValue (options, 'aggregations', []);
+        const aggregations = this.safeList (options, 'aggregations', []);
         const aggregation = this.safeString (params, 'aggregation', defaultAggregation);
         if (!this.inArray (aggregation, aggregations)) {
             throw new NotSupported (this.id + ' watchOrderBook() aggregation must be one of ' + aggregations.join (', '));
@@ -604,9 +604,9 @@ export default class coinex extends coinexRest {
         const watchOrderBookSubscriptions = this.safeValue (this.options, 'watchOrderBookSubscriptions', {});
         watchOrderBookSubscriptions[symbol] = [ market['id'], limit, aggregation, true ];
         const subscribe: Dict = {
-            'method': 'depth.subscribe_multi',
+            'method': 'depth.subscribe',
+            'params': { 'market_list': Object.values (watchOrderBookSubscriptions) },
             'id': this.requestId (),
-            'params': Object.values (watchOrderBookSubscriptions),
         };
         this.options['watchOrderBookSubscriptions'] = watchOrderBookSubscriptions;
         const subscriptionHash = this.hash (this.encode (this.json (watchOrderBookSubscriptions)), sha256);
@@ -730,38 +730,42 @@ export default class coinex extends coinexRest {
         //
         //     {
         //         "method": "depth.update",
-        //         "params": [
-        //             false,
-        //             {
+        //         "data": {
+        //             "market": "BTCUSDT",
+        //             "is_full": true,
+        //             "depth": {
         //                 "asks": [
-        //                     ["46350.52", "1.07871851"],
-        //                     ...
+        //                     [
+        //                         "30740.00",
+        //                         "0.31763545"
+        //                     ],
         //                 ],
         //                 "bids": [
-        //                     ["46349.61", "0.04000000"],
-        //                     ...
+        //                     [
+        //                         "30736.00",
+        //                         "0.04857373"
+        //                     ],
         //                 ],
-        //                 "last": "46349.93",
-        //                 "time": 1639987469166,
-        //                 "checksum": 1533284725
-        //             },
-        //             "BTCUSDT"
-        //         ],
+        //                 "last": "30746.28",
+        //                 "updated_at": 1689152421692,
+        //                 "checksum": 2578768879
+        //             }
+        //         },
         //         "id": null
         //     }
         //
-        const isSwap = client.url.indexOf ('perpetual') >= 0;
-        const marketType = isSwap ? 'swap' : 'spot';
-        const params = this.safeValue (message, 'params', []);
-        const fullOrderBook = this.safeValue (params, 0);
-        let orderbook = this.safeValue (params, 1);
-        const marketId = this.safeString (params, 2);
-        const market = this.safeMarket (marketId, undefined, undefined, marketType);
+        const defaultType = this.safeString (this.options, 'defaultType');
+        const data = this.safeDict (message, 'data', {});
+        const depth = this.safeValue (data, 'depth', {});
+        const marketId = this.safeString (data, 'market');
+        const market = this.safeMarket (marketId, undefined, undefined, defaultType);
         const symbol = market['symbol'];
         const name = 'orderbook';
         const messageHash = name + ':' + symbol;
-        const timestamp = this.safeInteger (orderbook, 'time');
+        const timestamp = this.safeInteger (depth, 'updated_at');
         const currentOrderBook = this.safeValue (this.orderbooks, symbol);
+        const fullOrderBook = this.safeBool (data, 'is_full', false);
+        let orderbook = depth;
         if (fullOrderBook) {
             const snapshot = this.parseOrderBook (orderbook, symbol, timestamp);
             if (currentOrderBook === undefined) {
@@ -772,8 +776,8 @@ export default class coinex extends coinexRest {
                 orderbook.reset (snapshot);
             }
         } else {
-            const asks = this.safeValue (orderbook, 'asks', []);
-            const bids = this.safeValue (orderbook, 'bids', []);
+            const asks = this.safeList (depth, 'asks', []);
+            const bids = this.safeList (depth, 'bids', []);
             this.handleDeltas (currentOrderBook['asks'], asks);
             this.handleDeltas (currentOrderBook['bids'], bids);
             currentOrderBook['nonce'] = timestamp;
