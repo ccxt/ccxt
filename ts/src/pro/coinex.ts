@@ -1,7 +1,6 @@
 
 //  ---------------------------------------------------------------------------
 
-import { Precise } from '../base/Precise.js';
 import coinexRest from '../coinex.js';
 import { AuthenticationError, BadRequest, ExchangeNotAvailable, NotSupported, RequestTimeout, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
