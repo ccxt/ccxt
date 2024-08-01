@@ -101,6 +101,7 @@ var okx = require('./src/okx.js');
 var onetrading = require('./src/onetrading.js');
 var oxfun = require('./src/oxfun.js');
 var p2b = require('./src/p2b.js');
+var paradex = require('./src/paradex.js');
 var paymium = require('./src/paymium.js');
 var phemex = require('./src/phemex.js');
 var poloniex = require('./src/poloniex.js');
@@ -141,6 +142,7 @@ var bitrue$1 = require('./src/pro/bitrue.js');
 var bitstamp$1 = require('./src/pro/bitstamp.js');
 var bitvavo$1 = require('./src/pro/bitvavo.js');
 var blockchaincom$1 = require('./src/pro/blockchaincom.js');
+var blofin$1 = require('./src/pro/blofin.js');
 var bybit$1 = require('./src/pro/bybit.js');
 var cex$1 = require('./src/pro/cex.js');
 var coinbase$1 = require('./src/pro/coinbase.js');
@@ -177,6 +179,7 @@ var okx$1 = require('./src/pro/okx.js');
 var onetrading$1 = require('./src/pro/onetrading.js');
 var oxfun$1 = require('./src/pro/oxfun.js');
 var p2b$1 = require('./src/pro/p2b.js');
+var paradex$1 = require('./src/pro/paradex.js');
 var phemex$1 = require('./src/pro/phemex.js');
 var poloniex$1 = require('./src/pro/poloniex.js');
 var poloniexfutures$1 = require('./src/pro/poloniexfutures.js');
@@ -191,7 +194,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.3.69';
+const version = '4.3.71';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -283,6 +286,7 @@ const exchanges = {
     'onetrading': onetrading,
     'oxfun': oxfun,
     'p2b': p2b,
+    'paradex': paradex,
     'paymium': paymium,
     'phemex': phemex,
     'poloniex': poloniex,
@@ -325,6 +329,7 @@ const pro = {
     'bitstamp': bitstamp$1,
     'bitvavo': bitvavo$1,
     'blockchaincom': blockchaincom$1,
+    'blofin': blofin$1,
     'bybit': bybit$1,
     'cex': cex$1,
     'coinbase': coinbase$1,
@@ -361,6 +366,7 @@ const pro = {
     'onetrading': onetrading$1,
     'oxfun': oxfun$1,
     'p2b': p2b$1,
+    'paradex': paradex$1,
     'phemex': phemex$1,
     'poloniex': poloniex$1,
     'poloniexfutures': poloniexfutures$1,
@@ -510,6 +516,7 @@ exports.okx = okx;
 exports.onetrading = onetrading;
 exports.oxfun = oxfun;
 exports.p2b = p2b;
+exports.paradex = paradex;
 exports.paymium = paymium;
 exports.phemex = phemex;
 exports.poloniex = poloniex;

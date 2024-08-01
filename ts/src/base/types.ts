@@ -47,15 +47,15 @@ export interface TradingFeeInterface {
 export type Fee = FeeInterface | undefined
 
 export interface MarketInterface {
-    id: string;
+    id: Str;
     numericId?: Num;
-    uppercaseId?: string;
-    lowercaseId?: string;
+    uppercaseId?: Str;
+    lowercaseId?: Str;
     symbol: string;
-    base: string;
-    quote: string;
-    baseId: string;
-    quoteId: string;
+    base: Str;
+    quote: Str;
+    baseId: Str;
+    quoteId: Str;
     active: Bool;
     type: MarketType;
     subType?: SubType;
@@ -77,9 +77,9 @@ export interface MarketInterface {
     optionType: Str;
     taker?: Num
     maker?: Num
-    percentage?: boolean | undefined;
-    tierBased?: boolean | undefined;
-    feeSide?: string | undefined;
+    percentage?: Bool;
+    tierBased?: Bool;
+    feeSide?: Str;
     precision: {
         amount: Num
         price: Num

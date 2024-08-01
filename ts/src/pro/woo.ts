@@ -29,7 +29,7 @@ export default class woo extends wooRest {
                 'api': {
                     'ws': {
                         'public': 'wss://wss.woo.org/ws/stream',
-                        'private': 'wss://wss.woo.network/v2/ws/private/stream',
+                        'private': 'wss://wss.woo.org/v2/ws/private/stream',
                     },
                 },
                 'test': {
@@ -76,7 +76,8 @@ export default class woo extends wooRest {
     }
 
     async watchPublic (messageHash, message) {
-        const url = this.urls['api']['ws']['public'] + '/' + this.uid;
+        const urlUid = (this.uid) ? '/' + this.uid : '';
+        const url = this.urls['api']['ws']['public'] + urlUid;
         const requestId = this.requestId (url);
         const subscribe: Dict = {
             'id': requestId,
@@ -482,7 +483,7 @@ export default class woo extends wooRest {
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const price = this.safeString (trade, 'executedPrice', 'price');
+        const price = this.safeString2 (trade, 'executedPrice', 'price');
         const amount = this.safeString2 (trade, 'executedQuantity', 'size');
         const cost = Precise.stringMul (price, amount);
         const side = this.safeStringLower (trade, 'side');
@@ -521,7 +522,7 @@ export default class woo extends wooRest {
     checkRequiredUid (error = true) {
         if (!this.uid) {
             if (error) {
-                throw new AuthenticationError (this.id + ' requires `uid` credential');
+                throw new AuthenticationError (this.id + ' requires `uid` credential (woox calls it `application_id`)');
             } else {
                 return false;
             }

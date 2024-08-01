@@ -26,7 +26,7 @@ public partial class woo : ccxt.woo
                 { "api", new Dictionary<string, object>() {
                     { "ws", new Dictionary<string, object>() {
                         { "public", "wss://wss.woo.org/ws/stream" },
-                        { "private", "wss://wss.woo.network/v2/ws/private/stream" },
+                        { "private", "wss://wss.woo.org/v2/ws/private/stream" },
                     } },
                 } },
                 { "test", new Dictionary<string, object>() {
@@ -75,7 +75,8 @@ public partial class woo : ccxt.woo
 
     public async virtual Task<object> watchPublic(object messageHash, object message)
     {
-        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), "/"), this.uid);
+        object urlUid = ((bool) isTrue((this.uid))) ? add("/", this.uid) : "";
+        object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), urlUid);
         object requestId = this.requestId(url);
         object subscribe = new Dictionary<string, object>() {
             { "id", requestId },
@@ -503,7 +504,7 @@ public partial class woo : ccxt.woo
         object marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
-        object price = this.safeString(trade, "executedPrice", "price");
+        object price = this.safeString2(trade, "executedPrice", "price");
         object amount = this.safeString2(trade, "executedQuantity", "size");
         object cost = Precise.stringMul(price, amount);
         object side = this.safeStringLower(trade, "side");
@@ -548,7 +549,7 @@ public partial class woo : ccxt.woo
         {
             if (isTrue(error))
             {
-                throw new AuthenticationError ((string)add(this.id, " requires `uid` credential")) ;
+                throw new AuthenticationError ((string)add(this.id, " requires `uid` credential (woox calls it `application_id`)")) ;
             } else
             {
                 return false;
