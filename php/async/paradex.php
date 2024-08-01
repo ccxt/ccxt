@@ -126,7 +126,7 @@ class paradex extends Exchange {
             ),
             'hostname' => 'paradex.trade',
             'urls' => array(
-                'logo' => 'https://github.com/user-attachments/assets/5dadc09a-74ba-466a-a8f2-3f55c7e4654a',
+                'logo' => 'https://github.com/user-attachments/assets/84628770-784e-4ec4-a759-ec2fbb2244ea',
                 'api' => array(
                     'v1' => 'https://api.prod.{hostname}/v1',
                 ),
