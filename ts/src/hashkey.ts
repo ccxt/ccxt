@@ -6,7 +6,7 @@ import { ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, LedgerEntry, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -75,7 +75,7 @@ export default class hashkey extends Exchange {
                 'fetchFundingRateHistory': true,
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
-                'fetchLedger': false,
+                'fetchLedger': true,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': true,
                 'fetchMarginAdjustmentHistory': false,
@@ -188,7 +188,7 @@ export default class hashkey extends Exchange {
                         'api/v1/account/trades': 5, // done
                         'api/v1/account/type': 5, // done
                         'api/v1/account/checkApiKey': 1, // not unified
-                        'api/v1/account/balanceFlow': 5, // fetchLedger
+                        'api/v1/account/balanceFlow': 5, // done
                         'api/v1/spot/subAccount/openOrders': 1, // update fetchOpenOrders
                         'api/v1/spot/subAccount/tradeOrders': 1, // update fetchCanceledAndClosedOrders
                         'api/v1/subAccount/trades': 1, // update fetchTrades
@@ -1853,6 +1853,150 @@ export default class hashkey extends Exchange {
             '6': 'fiat', // todo check
         };
         return this.safeString (types, type, type);
+    }
+
+    encodeAccountType (type) {
+        const types = {
+            'spot': '1',
+            'swap': '3',
+            'custody': '5',
+        };
+        return this.safeInteger (types, type, type);
+    }
+
+    encodeFlowType (type) {
+        const types = {
+            'trade': '1',
+            'fee': '3',
+            'transfer': '51',
+            'deposit': '900',
+            'withdraw': '904',
+        };
+        return this.safeInteger (types, type, type);
+    }
+
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+        /**
+         * @method
+         * @name hashkey#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-account-transaction-list
+         * @param {string} code unified currency code, default is undefined (not used)
+         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int} [limit] max number of ledger entrys to return, default is undefined
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch entries for
+         * @param {int} [params.flowType] trade, fee, transfer, deposit, withdrawal
+         * @param {int} [params.accountType] spot, swap, custody
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+         */
+        const methodName = 'fetchLedger';
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {};
+        if (since === undefined) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a since argument to fetch the ledger');
+        }
+        request['startTime'] = since;
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until === undefined) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires an until argument to fetch the ledger');
+        }
+        request['endTime'] = until;
+        let flowType = undefined;
+        [ flowType, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'flowType');
+        if (flowType !== undefined) {
+            request['flowType'] = this.encodeFlowType (flowType);
+        }
+        let accountType = undefined;
+        [ accountType, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'accountType');
+        if (accountType !== undefined) {
+            request['accountType'] = this.encodeAccountType (accountType);
+        }
+        const response = await this.privateGetApiV1AccountBalanceFlow (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "id": "1740844413612065537",
+        //             "accountId": "1732885739589466112",
+        //             "coin": "USDT",
+        //             "coinId": "USDT",
+        //             "coinName": "USDT",
+        //             "flowTypeValue": 51,
+        //             "flowType": "USER_ACCOUNT_TRANSFER",
+        //             "flowName": "",
+        //             "change": "-1",
+        //             "total": "8.015680088",
+        //             "created": "1722260825765"
+        //         },
+        //         ...
+        //     ]
+        //
+        return this.parseLedger (response, currency, since, limit);
+    }
+
+    parseLedgerEntryType (type) {
+        const types: Dict = {
+            '1': 'trade', // transfer
+            '2': 'fee', // trade
+            '51': 'transfer',
+            '900': 'deposit',
+            '904': 'withdraw',
+        };
+        return this.safeString (types, type, type);
+    }
+
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
+        //
+        //     {
+        //         "id": "1740844413612065537",
+        //         "accountId": "1732885739589466112",
+        //         "coin": "USDT",
+        //         "coinId": "USDT",
+        //         "coinName": "USDT",
+        //         "flowTypeValue": 51,
+        //         "flowType": "USER_ACCOUNT_TRANSFER",
+        //         "flowName": "",
+        //         "change": "-1",
+        //         "total": "8.015680088",
+        //         "created": "1722260825765"
+        //     }
+        //
+        const id = this.safeString (item, 'id');
+        const account = this.safeString (item, 'accountId');
+        const timestamp = this.safeInteger (item, 'created');
+        const type = this.parseLedgerEntryType (this.safeString (item, 'flowTypeValue'));
+        const code = this.safeCurrencyCode (this.safeString (item, 'coin'), currency);
+        const amountString = this.safeString (item, 'change');
+        const amount = this.parseNumber (amountString);
+        let direction = 'in';
+        if (amountString.indexOf ('-') >= 0) {
+            direction = 'out';
+        }
+        const afterString = this.safeString (item, 'total');
+        const after = this.parseNumber (afterString);
+        const status = 'ok';
+        return {
+            'id': id,
+            'info': item,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'account': account,
+            'direction': direction,
+            'referenceId': undefined,
+            'referenceAccount': undefined,
+            'type': type,
+            'currency': code,
+            'symbol': undefined,
+            'amount': amount,
+            'before': undefined,
+            'after': after,
+            'status': status,
+            'fee': undefined,
+        };
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
