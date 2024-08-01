@@ -4,9 +4,9 @@
 import { Precise } from '../base/Precise.js';
 import coinexRest from '../coinex.js';
 import { AuthenticationError, BadRequest, ExchangeNotAvailable, NotSupported, RequestTimeout, ExchangeError } from '../base/errors.js';
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -23,8 +23,8 @@ export default class coinex extends coinexRest {
                 'watchMyTrades': false, // can query but can't subscribe
                 'watchOrders': true,
                 'watchOrderBook': true,
-                'watchOHLCV': true, // only for swap markets
-                'fetchOHLCVWs': true,
+                'watchOHLCV': false,
+                'fetchOHLCVWs': false,
             },
             'urls': {
                 'api': {
@@ -38,7 +38,6 @@ export default class coinex extends coinexRest {
                 'ws': {
                     'gunzip': true,
                 },
-                'watchOHLCVWarning': true,
                 'timeframes': {
                     '1m': 60,
                     '3m': 180,
@@ -423,66 +422,6 @@ export default class coinex extends coinexRest {
         }, market);
     }
 
-    handleOHLCV (client: Client, message) {
-        //
-        //  spot
-        //     {
-        //         "error": null,
-        //         "result": [
-        //           [
-        //             1673846940,
-        //             "21148.74",
-        //             "21148.38",
-        //             "21148.75",
-        //             "21138.66",
-        //             "1.57060173",
-        //             "33214.9138778914"
-        //           ],
-        //         ]
-        //         "id": 1,
-        //     }
-        //  swap
-        //     {
-        //         "method": "kline.update",
-        //         "params": [
-        //             [
-        //                 1654019640,   // timestamp
-        //                 "32061.99",   // open
-        //                 "32061.28",   // close
-        //                 "32061.99",   // high
-        //                 "32061.28",   // low
-        //                 "0.1285",     // amount base
-        //                 "4119.943736" // amount quote
-        //             ]
-        //         ],
-        //         "id": null
-        //     }
-        //
-        const candles = this.safeValue2 (message, 'params', 'result', []);
-        const messageHash = 'ohlcv';
-        const id = this.safeString (message, 'id');
-        const ohlcvs = this.parseOHLCVs (candles);
-        if (id !== undefined) {
-            // spot subscription response
-            client.resolve (ohlcvs, messageHash);
-            return;
-        }
-        const keys = Object.keys (this.ohlcvs);
-        const keysLength = keys.length;
-        if (keysLength === 0) {
-            this.ohlcvs['unknown'] = {};
-            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            const stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs['unknown']['unknown'] = stored;
-        }
-        const ohlcv = this.ohlcvs['unknown']['unknown'];
-        for (let i = 0; i < ohlcvs.length; i++) {
-            const candle = ohlcvs[i];
-            ohlcv.append (candle);
-        }
-        client.resolve (ohlcv, messageHash);
-    }
-
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
@@ -614,106 +553,6 @@ export default class coinex extends coinexRest {
         const request = this.deepExtend (subscribe, params);
         const orderbook = await this.watch (url, messageHash, request, subscriptionHash, request);
         return orderbook.limit ();
-    }
-
-    async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        /**
-         * @method
-         * @name coinex#watchOHLCV
-         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures002_websocket023_kline_subscribe
-         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        symbol = market['symbol'];
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchOHLCV', market, params);
-        if (type !== 'swap') {
-            throw new NotSupported (this.id + ' watchOHLCV() is only supported for swap markets. Try using fetchOHLCV () instead');
-        }
-        const url = this.urls['api']['ws'][type];
-        const messageHash = 'ohlcv';
-        const watchOHLCVWarning = this.safeBool (this.options, 'watchOHLCVWarning', true);
-        const client = this.safeValue (this.clients, url, {});
-        const clientSub = this.safeValue (client, 'subscriptions', {});
-        const existingSubscription = this.safeValue (clientSub, messageHash);
-        const subSymbol = this.safeString (existingSubscription, 'symbol');
-        const subTimeframe = this.safeString (existingSubscription, 'timeframe');
-        // due to nature of coinex response can only watch one symbol at a time
-        if (watchOHLCVWarning && existingSubscription !== undefined && (subSymbol !== symbol || subTimeframe !== timeframe)) {
-            throw new ExchangeError (this.id + ' watchOHLCV() can only watch one symbol and timeframe at a time. To supress this warning set watchOHLCVWarning to false in options');
-        }
-        const timeframes = this.safeValue (this.options, 'timeframes', {});
-        const subscribe: Dict = {
-            'method': 'kline.subscribe',
-            'id': this.requestId (),
-            'params': [
-                market['id'],
-                this.safeInteger (timeframes, timeframe),
-            ],
-        };
-        const subscription: Dict = {
-            'symbol': symbol,
-            'timeframe': timeframe,
-        };
-        const request = this.deepExtend (subscribe, params);
-        const ohlcvs = await this.watch (url, messageHash, request, messageHash, subscription);
-        if (this.newUpdates) {
-            limit = ohlcvs.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (ohlcvs, since, limit, 0);
-    }
-
-    async fetchOHLCVWs (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
-        /**
-         * @method
-         * @name coinex#fetchOHLCV
-         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot004_websocket005_kline_query
-         * @description query historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to query OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the exchange API endpoint
-         * @param {int|undefined} params.end the end time for spot markets, this.seconds () is set as default
-         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchOHLCV', market, params);
-        const url = this.urls['api']['ws'][type];
-        symbol = market['symbol'];
-        const messageHash = 'ohlcv';
-        const timeframes = this.safeValue (this.options, 'timeframes', {});
-        timeframe = this.safeString (timeframes, timeframe, timeframe);
-        if (since === undefined) {
-            since = 1640995200;  // January 1, 2022
-        }
-        const id = this.requestId ();
-        const subscribe: Dict = {
-            'method': 'kline.query',
-            'params': [
-                market['id'],
-                this.parseToInt (since / 1000),
-                this.safeInteger (params, 'end', this.seconds ()),
-                this.parseToInt (timeframe),
-            ],
-            'id': id,
-        };
-        const subscription: Dict = {
-            'id': id,
-            'future': messageHash,
-        };
-        const subscriptionHash = id;
-        const request = this.deepExtend (subscribe, query);
-        const ohlcvs = await this.watch (url, messageHash, request, subscriptionHash, subscription);
-        return this.filterBySinceLimit (ohlcvs, since, limit, 0);
     }
 
     handleDelta (bookside, delta) {
@@ -1098,7 +937,6 @@ export default class coinex extends coinexRest {
             'deals.update': this.handleTrades,
             'depth.update': this.handleOrderBook,
             'order.update': this.handleOrders,
-            'kline.update': this.handleOHLCV,
             'order.update_stop': this.handleOrders,
         };
         const handler = this.safeValue (handlers, method);
@@ -1135,10 +973,6 @@ export default class coinex extends coinexRest {
         const subscription = this.safeValue (client.subscriptions, id);
         if (subscription !== undefined) {
             const futureIndex = this.safeString (subscription, 'future');
-            if (futureIndex === 'ohlcv') {
-                this.handleOHLCV (client, message);
-                return;
-            }
             const future = this.safeValue (client.futures, futureIndex);
             if (future !== undefined) {
                 future.resolve (true);
