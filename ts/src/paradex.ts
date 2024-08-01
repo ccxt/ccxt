@@ -3,9 +3,9 @@
 
 import { Precise } from '../ccxt.js';
 import Exchange from './abstract/paradex.js';
-import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest, ArgumentsRequired } from './base/errors.js';
+import { ExchangeError, PermissionDenied, AuthenticationError, BadRequest, ArgumentsRequired, OperationRejected, InvalidOrder } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV } from './base/types.js';
+import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int } from './base/types.js';
 import { ecdsa } from './base/functions/crypto.js';
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
@@ -25,6 +25,7 @@ export default class paradex extends Exchange {
             'rateLimit': 50,
             'certified': false,
             'pro': true,
+            'dex': true,
             'has': {
                 'CORS': undefined,
                 'spot': false,
@@ -125,7 +126,7 @@ export default class paradex extends Exchange {
             },
             'hostname': 'paradex.trade',
             'urls': {
-                'logo': 'https://x.com/tradeparadex/photo',
+                'logo': 'https://github.com/user-attachments/assets/5dadc09a-74ba-466a-a8f2-3f55c7e4654a',
                 'api': {
                     'v1': 'https://api.prod.{hostname}/v1',
                 },
@@ -205,6 +206,53 @@ export default class paradex extends Exchange {
             },
             'exceptions': {
                 'exact': {
+                    'VALIDATION_ERROR': AuthenticationError,
+                    'BINDING_ERROR': OperationRejected,
+                    'INTERNAL_ERROR': ExchangeError,
+                    'NOT_FOUND': BadRequest,
+                    'SERVICE_UNAVAILABLE': ExchangeError,
+                    'INVALID_REQUEST_PARAMETER': BadRequest,
+                    'ORDER_ID_NOT_FOUND': InvalidOrder,
+                    'ORDER_IS_CLOSED': InvalidOrder,
+                    'ORDER_IS_NOT_OPEN_YET': InvalidOrder,
+                    'CLIENT_ORDER_ID_NOT_FOUND': InvalidOrder,
+                    'DUPLICATED_CLIENT_ID': InvalidOrder,
+                    'INVALID_PRICE_PRECISION': OperationRejected,
+                    'INVALID_SYMBOL': OperationRejected,
+                    'INVALID_TOKEN': OperationRejected,
+                    'INVALID_ETHEREUM_ADDRESS': OperationRejected,
+                    'INVALID_ETHEREUM_SIGNATURE': OperationRejected,
+                    'INVALID_STARKNET_ADDRESS': OperationRejected,
+                    'INVALID_STARKNET_SIGNATURE': OperationRejected,
+                    'STARKNET_SIGNATURE_VERIFICATION_FAILED': AuthenticationError,
+                    'BAD_STARKNET_REQUEST': BadRequest,
+                    'ETHEREUM_SIGNER_MISMATCH': BadRequest,
+                    'ETHEREUM_HASH_MISMATCH': BadRequest,
+                    'NOT_ONBOARDED': BadRequest,
+                    'INVALID_TIMESTAMP': BadRequest,
+                    'INVALID_SIGNATURE_EXPIRATION': AuthenticationError,
+                    'ACCOUNT_NOT_FOUND': AuthenticationError,
+                    'INVALID_ORDER_SIGNATURE': AuthenticationError,
+                    'PUBLIC_KEY_INVALID': BadRequest,
+                    'UNAUTHORIZED_ETHEREUM_ADDRESS': BadRequest,
+                    'ETHEREUM_ADDRESS_ALREADY_ONBOARDED': BadRequest,
+                    'MARKET_NOT_FOUND': BadRequest,
+                    'ALLOWLIST_ENTRY_NOT_FOUND': BadRequest,
+                    'USERNAME_IN_USE': AuthenticationError,
+                    'GEO_IP_BLOCK': PermissionDenied,
+                    'ETHEREUM_ADDRESS_BLOCKED': PermissionDenied,
+                    'PROGRAM_NOT_FOUND': BadRequest,
+                    'INVALID_DASHBOARD': OperationRejected,
+                    'MARKET_NOT_OPEN': BadRequest,
+                    'INVALID_REFERRAL_CODE': OperationRejected,
+                    'PARENT_ADDRESS_ALREADY_ONBOARDED': BadRequest,
+                    'INVALID_PARENT_ACCOUNT': OperationRejected,
+                    'INVALID_VAULT_OPERATOR_CHAIN': OperationRejected,
+                    'VAULT_OPERATOR_ALREADY_ONBOARDED': OperationRejected,
+                    'VAULT_NAME_IN_USE': OperationRejected,
+                    'BATCH_SIZE_OUT_OF_RANGE': OperationRejected,
+                    'ISOLATED_MARKET_ACCOUNT_MISMATCH': OperationRejected,
+                    'POINTS_SUMMARY_NOT_FOUND': OperationRejected,
                     '-32700': BadRequest, // Parse error
                     '-32600': BadRequest, // Invalid request
                     '-32601': BadRequest, // Method not found
@@ -356,7 +404,9 @@ export default class paradex extends Exchange {
         const settle = this.safeCurrencyCode (settleId);
         const symbol = base + '/' + quote + ':' + settle;
         const expiry = this.safeInteger (market, 'expiry_at');
-        return {
+        const takerFee = this.parseNumber ('0.0003');
+        const makerFee = this.parseNumber ('-0.00005');
+        return this.safeMarketStructure ({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -367,17 +417,17 @@ export default class paradex extends Exchange {
             'settleId': settleId,
             'type': 'swap',
             'spot': false,
-            'margin': true,
+            'margin': undefined,
             'swap': true,
             'future': false,
             'option': false,
             'active': this.safeBool (market, 'enableTrading'),
             'contract': true,
-            'linear': undefined,
+            'linear': true,
             'inverse': undefined,
-            'taker': undefined,
-            'maker': undefined,
-            'contractSize': undefined,
+            'taker': takerFee,
+            'maker': makerFee,
+            'contractSize': this.parseNumber ('1'),
             'expiry': (expiry === 0) ? undefined : expiry,
             'expiryDatetime': (expiry === 0) ? undefined : this.iso8601 (expiry),
             'strike': undefined,
@@ -400,13 +450,13 @@ export default class paradex extends Exchange {
                     'max': undefined,
                 },
                 'cost': {
-                    'min': undefined,
+                    'min': this.safeNumber (market, 'min_notional'),
                     'max': undefined,
                 },
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
 
     async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -766,7 +816,7 @@ export default class paradex extends Exchange {
         const timestamp = this.safeInteger (trade, 'created_at');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'size');
-        const side = this.safeString (trade, 'side');
+        const side = this.safeStringLower (trade, 'side');
         const liability = this.safeStringLower (trade, 'liquidity', 'taker');
         const isTaker = liability === 'taker';
         const takerOrMaker = (isTaker) ? 'taker' : 'maker';
@@ -862,7 +912,7 @@ export default class paradex extends Exchange {
         const symbol = market['symbol'];
         return this.safeOpenInterest ({
             'symbol': symbol,
-            'openInterestAmount': this.safeNumber (interest, 'open_interest'),
+            'openInterestAmount': this.safeString (interest, 'open_interest'),
             'openInterestValue': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1070,7 +1120,7 @@ export default class paradex extends Exchange {
         const side = this.safeStringLower (order, 'side');
         const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
         const remaining = this.omitZero (this.safeString (order, 'remaining_size'));
-        const stopPrice = this.safeNumber (order, 'trigger_price');
+        const stopPrice = this.safeString (order, 'trigger_price');
         const lastUpdateTimestamp = this.safeInteger (order, 'last_updated_at');
         return this.safeOrder ({
             'id': orderId,
@@ -1331,6 +1381,7 @@ export default class paradex extends Exchange {
          * @name paradex#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://docs.api.prod.paradex.trade/#get-order
+         * @see https://docs.api.prod.paradex.trade/#get-order-by-client-id
          * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1341,6 +1392,7 @@ export default class paradex extends Exchange {
         await this.loadMarkets ();
         const request: Dict = {};
         const clientOrderId = this.safeStringN (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
+        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'client_order_id' ]);
         let response = undefined;
         if (clientOrderId !== undefined) {
             request['client_id'] = clientOrderId;
@@ -1635,7 +1687,7 @@ export default class paradex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const positions = await this.fetchPositions ([ market['symbol'] ], params);
-        return positions[0];
+        return this.safeDict (positions, 0, {}) as Position;
     }
 
     async fetchPositions (symbols: Strings = undefined, params = {}) {
@@ -1716,11 +1768,11 @@ export default class paradex extends Exchange {
             'info': position,
             'id': this.safeString (position, 'id'),
             'symbol': symbol,
-            'entryPrice': this.safeNumber (position, 'average_entry_price'),
+            'entryPrice': this.safeString (position, 'average_entry_price'),
             'markPrice': undefined,
             'notional': undefined,
-            'collateral': this.safeNumber (position, 'cost'),
-            'unrealizedPnl': this.safeNumber (position, 'unrealized_pnl'),
+            'collateral': this.safeString (position, 'cost'),
+            'unrealizedPnl': this.safeString (position, 'unrealized_pnl'),
             'side': side,
             'contracts': this.parseNumber (quantity),
             'contractSize': undefined,
@@ -1759,6 +1811,7 @@ export default class paradex extends Exchange {
         } else {
             request['from'] = 1;
         }
+        const market = this.market (symbol);
         [ request, params ] = this.handleUntilOption ('to', request, params);
         const response = await this.privateGetLiquidations (this.extend (request, params));
         //
@@ -1772,7 +1825,7 @@ export default class paradex extends Exchange {
         //     }
         //
         const data = this.safeList (response, 'results', []);
-        return this.parseLiquidations (data, undefined, since, limit);
+        return this.parseLiquidations (data, market, since, limit);
     }
 
     parseLiquidation (liquidation, market: Market = undefined) {
@@ -2035,5 +2088,26 @@ export default class paradex extends Exchange {
             // }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+        if (!response) {
+            return undefined; // fallback to default error handler
+        }
+        //
+        //     {
+        //         "data": null,
+        //         "error": "NOT_ONBOARDED",
+        //         "message": "User has never called /onboarding endpoint"
+        //     }
+        //
+        const errorCode = this.safeString (response, 'error');
+        if (errorCode !== undefined) {
+            const feedback = this.id + ' ' + body;
+            this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            throw new ExchangeError (feedback); // unknown message
+        }
+        return undefined;
     }
 }
