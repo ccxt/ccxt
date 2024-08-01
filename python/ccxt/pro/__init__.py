@@ -70,6 +70,7 @@ from ccxt.pro.okx import okx                                              # noqa
 from ccxt.pro.onetrading import onetrading                                # noqa: F401
 from ccxt.pro.oxfun import oxfun                                          # noqa: F401
 from ccxt.pro.p2b import p2b                                              # noqa: F401
+from ccxt.pro.paradex import paradex                                      # noqa: F401
 from ccxt.pro.phemex import phemex                                        # noqa: F401
 from ccxt.pro.poloniex import poloniex                                    # noqa: F401
 from ccxt.pro.poloniexfutures import poloniexfutures                      # noqa: F401
@@ -141,6 +142,7 @@ exchanges = [
     'onetrading',
     'oxfun',
     'p2b',
+    'paradex',
     'phemex',
     'poloniex',
     'poloniexfutures',

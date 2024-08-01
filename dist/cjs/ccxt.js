@@ -101,6 +101,7 @@ var okx = require('./src/okx.js');
 var onetrading = require('./src/onetrading.js');
 var oxfun = require('./src/oxfun.js');
 var p2b = require('./src/p2b.js');
+var paradex = require('./src/paradex.js');
 var paymium = require('./src/paymium.js');
 var phemex = require('./src/phemex.js');
 var poloniex = require('./src/poloniex.js');
@@ -178,6 +179,7 @@ var okx$1 = require('./src/pro/okx.js');
 var onetrading$1 = require('./src/pro/onetrading.js');
 var oxfun$1 = require('./src/pro/oxfun.js');
 var p2b$1 = require('./src/pro/p2b.js');
+var paradex$1 = require('./src/pro/paradex.js');
 var phemex$1 = require('./src/pro/phemex.js');
 var poloniex$1 = require('./src/pro/poloniex.js');
 var poloniexfutures$1 = require('./src/pro/poloniexfutures.js');
@@ -284,6 +286,7 @@ const exchanges = {
     'onetrading': onetrading,
     'oxfun': oxfun,
     'p2b': p2b,
+    'paradex': paradex,
     'paymium': paymium,
     'phemex': phemex,
     'poloniex': poloniex,
@@ -363,6 +366,7 @@ const pro = {
     'onetrading': onetrading$1,
     'oxfun': oxfun$1,
     'p2b': p2b$1,
+    'paradex': paradex$1,
     'phemex': phemex$1,
     'poloniex': poloniex$1,
     'poloniexfutures': poloniexfutures$1,
@@ -512,6 +516,7 @@ exports.okx = okx;
 exports.onetrading = onetrading;
 exports.oxfun = oxfun;
 exports.p2b = p2b;
+exports.paradex = paradex;
 exports.paymium = paymium;
 exports.phemex = phemex;
 exports.poloniex = poloniex;
