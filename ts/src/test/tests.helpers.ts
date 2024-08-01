@@ -130,7 +130,7 @@ function ioDirRead (path) {
 }
 
 async function callMethodSync (testFiles, methodName, exchange, skippedProperties: object, args) {
-    return testFiles[methodName] (exchange, skippedProperties, ...args);
+    throw new Error ("This function shouldn't be called, only async functions apply here");
 }
 
 async function callMethod (testFiles, methodName, exchange, skippedProperties: object, args) {
