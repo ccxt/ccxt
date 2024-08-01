@@ -2471,7 +2471,7 @@
                     null,
                     {
                         "subType": "linear",
-                        "useV3": false
+                        "useV2": true
                     }
                 ]
             },
