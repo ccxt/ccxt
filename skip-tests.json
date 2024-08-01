@@ -1730,8 +1730,8 @@
             "loadMarkets" : {
                 "active":"not provided",
                 "currencyIdAndCode": "broken currencies"
-	    }
-	}
+	          }
+	      }
     },   
     "hashkey": {
         "skipMethods": {
