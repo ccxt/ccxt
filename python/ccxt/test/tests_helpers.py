@@ -256,7 +256,7 @@ def init_exchange(exchangeId, args, is_ws=False):
 def get_test_files_sync(properties, ws=False, is_base_tests=False):
     tests = {}
     if (is_base_tests):
-        namespace  = 'pro.' if ws else ''
+        namespace = 'pro.' if ws else ''
         path = DIR_NAME + '../pro/test/base/' if ws else DIR_NAME + '/base/'
         files = io_dir_read(path)
         for i in range(0, len(files)):
@@ -264,10 +264,10 @@ def get_test_files_sync(properties, ws=False, is_base_tests=False):
             filenameWoExt = filename.replace('.' + ext, '')
             filePathWoExt = path + filenameWoExt
             if (io_file_exists(filePathWoExt + '.' + ext)):
-                testName = filenameWoExt.replace ('test_', '')
+                testName = filenameWoExt.replace('test_', '')
                 testName = convert_to_camel_case(testName)
                 name_snake_case = convert_to_snake_case(testName)
-                if (testName not in [ 'custom', 'errors', 'language_specific' ]):
+                if (testName not in ['custom', 'errors', 'language_specific']):
                     module_string = 'ccxt.' + namespace + 'test.base.test_' + name_snake_case
                     imp = importlib.import_module(module_string)
                     tests[testName] = imp
