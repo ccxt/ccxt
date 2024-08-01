@@ -3,14 +3,6 @@
     "skipKeys": ["timestamp", "signature"],
     "outputType": "urlencoded",
     "methods": {
-        "fetchMarkets": [
-            {
-                "description": "Fetch all markets",
-                "method": "fetchMarkets",
-                "url": "https://api-glb.hashkey.com/api/v1/exchangeInfo",
-                "input": []
-            }
-        ],
         "fetchCurrencies": [
             {
                 "description": "Fetch all currencies",
