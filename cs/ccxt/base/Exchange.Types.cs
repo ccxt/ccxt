@@ -17,7 +17,7 @@ class Helper
             var info = data["info"];
             if (info is IDictionary<string, object>)
             {
-                return new Dictionary<string, object>(data);
+                return new Dictionary<string, object>(info as IDictionary<string, object>);
             }
             else if (info is IList<object>)
             {
