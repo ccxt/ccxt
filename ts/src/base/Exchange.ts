@@ -4622,6 +4622,10 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseBalance() is not supported yet');
     }
 
+    parseBalanceList (response: any[]): Balances {
+        throw new NotSupported (this.id + ' parseBalance() is not supported yet');
+    }
+
     async watchBalance (params = {}): Promise<Balances> {
         throw new NotSupported (this.id + ' watchBalance() is not supported yet');
     }

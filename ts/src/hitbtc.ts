@@ -996,7 +996,7 @@ export default class hitbtc extends Exchange {
         };
     }
 
-    parseBalance (response: Dict): Balances {
+    parseBalanceList (response: any[]): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -1047,7 +1047,7 @@ export default class hitbtc extends Exchange {
         //       ...
         //     ]
         //
-        return this.parseBalance (response);
+        return this.parseBalanceList (response);
     }
 
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {

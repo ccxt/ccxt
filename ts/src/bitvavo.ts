@@ -1000,7 +1000,7 @@ export default class bitvavo extends Exchange {
         return this.parseOHLCVs (response, market, timeframe, since, limit);
     }
 
-    parseBalance (response: Dict): Balances {
+    parseBalanceList (response: any[]): Balances {
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -1038,7 +1038,7 @@ export default class bitvavo extends Exchange {
         //         }
         //     ]
         //
-        return this.parseBalance (response);
+        return this.parseBalanceList (response);
     }
 
     async fetchDepositAddress (code: string, params = {}) {

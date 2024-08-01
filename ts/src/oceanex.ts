@@ -607,6 +607,22 @@ export default class oceanex extends Exchange {
     }
 
     parseBalance (response: Dict): Balances {
+        //
+        //    {
+        //        "code": 0,
+        //        "message": "Operation successful",
+        //        "data": {
+        //            "accounts": [
+        //                {
+        //                    "currency": "vet",
+        //                    "balance": "1967.031",
+        //                    "locked": "0.0"
+        //                },
+        //                ...
+        //            ]
+        //        }
+        //    }
+        //
         const data = this.safeValue (response, 'data');
         const balances = this.safeValue (data, 'accounts', []);
         const result: Dict = { 'info': response };
@@ -633,6 +649,22 @@ export default class oceanex extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privateGetMembersMe (params);
+        //
+        //    {
+        //        "code": 0,
+        //        "message": "Operation successful",
+        //        "data": {
+        //            "accounts": [
+        //                {
+        //                    "currency": "vet",
+        //                    "balance": "1967.031",
+        //                    "locked": "0.0"
+        //                },
+        //                ...
+        //            ]
+        //        }
+        //    }
+        //
         return this.parseBalance (response);
     }
 

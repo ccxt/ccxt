@@ -380,6 +380,21 @@ export default class coinone extends Exchange {
     }
 
     parseBalance (response: Dict): Balances {
+        //
+        //    {
+        //        "result": "success",
+        //        "error_code": "0",
+        //        "balances": [
+        //            {
+        //                "available": "998999692485",
+        //                "limit": "0",
+        //                "average_price": "100000000",
+        //                "currency": "BTC"
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
         const result: Dict = { 'info': response };
         const balances = this.omit (response, [
             'errorCode',
@@ -410,6 +425,21 @@ export default class coinone extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.v2PrivatePostAccountBalance (params);
+        //
+        //    {
+        //        "result": "success",
+        //        "error_code": "0",
+        //        "balances": [
+        //            {
+        //                "available": "998999692485",
+        //                "limit": "0",
+        //                "average_price": "100000000",
+        //                "currency": "BTC"
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
         return this.parseBalance (response);
     }
 

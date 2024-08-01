@@ -954,10 +954,10 @@ export default class coinmetro extends Exchange {
         await this.loadMarkets ();
         const response = await this.privateGetUsersWallets (params);
         const list = this.safeList (response, 'list', []);
-        return this.parseBalance (list);
+        return this.parseBalanceList (list);
     }
 
-    parseBalance (response: Dict): Balances {
+    parseBalanceList (response: any[]): Balances {
         //
         //     [
         //         {

@@ -459,6 +459,17 @@ export default class cex extends Exchange {
     }
 
     parseBalance (response: Dict): Balances {
+        //
+        //    {
+        //        "timestamp": "1513177918",
+        //        "username": "ud000000000",
+        //        "BTC": {
+        //            "available": "1.38000000",
+        //            "orders": "0.00000000"
+        //        },
+        //        ...
+        //    }
+        //
         const result: Dict = { 'info': response };
         const ommited = [ 'username', 'timestamp' ];
         const balances = this.omit (response, ommited);
@@ -487,6 +498,17 @@ export default class cex extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privatePostBalance (params);
+        //
+        //    {
+        //        "timestamp": "1513177918",
+        //        "username": "ud000000000",
+        //        "BTC": {
+        //            "available": "1.38000000",
+        //            "orders": "0.00000000"
+        //        },
+        //        ...
+        //    }
+        //
         return this.parseBalance (response);
     }
 

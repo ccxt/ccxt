@@ -640,7 +640,7 @@ export default class wazirx extends Exchange {
         }, market);
     }
 
-    parseBalance (response: Dict): Balances {
+    parseBalanceList (response: any[]): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -674,7 +674,7 @@ export default class wazirx extends Exchange {
         //       },
         // ]
         //
-        return this.parseBalance (response);
+        return this.parseBalanceList (response);
     }
 
     async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {

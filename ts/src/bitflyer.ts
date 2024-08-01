@@ -307,7 +307,7 @@ export default class bitflyer extends Exchange {
         return result;
     }
 
-    parseBalance (response: Dict): Balances {
+    parseBalanceList (response: any[]): Balances {
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -351,7 +351,7 @@ export default class bitflyer extends Exchange {
         //         }
         //     ]
         //
-        return this.parseBalance (response);
+        return this.parseBalanceList (response);
     }
 
     async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
