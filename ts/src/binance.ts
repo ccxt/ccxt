@@ -10173,6 +10173,7 @@ export default class binance extends Exchange {
          * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions in a portfolio margin account
          * @param {string} [params.subType] "linear" or "inverse"
          * @param {boolean} [params.filterClosed] set to true if you would like to filter out closed positions, default is false
+         * @param {boolean} [params.useV2] set to true if you want to use obsolete endpoint, where some more additional fields were provided
          * @returns {object} data on account positions
          */
         if (symbols !== undefined) {
@@ -10194,9 +10195,9 @@ export default class binance extends Exchange {
             if (isPortfolioMargin) {
                 response = await this.papiGetUmAccount (params);
             } else {
-                let useV3 = undefined;
-                [ useV3, params ] = this.handleOptionAndParams (params, 'fetchAccountPositions', 'useV3', true);
-                if (useV3) {
+                let useV2 = undefined;
+                [ useV2, params ] = this.handleOptionAndParams (params, 'fetchAccountPositions', 'useV2', false);
+                if (!useV2) {
                     response = await this.fapiPrivateV3GetAccount (params);
                 } else {
                     response = await this.fapiPrivateV2GetAccount (params);
