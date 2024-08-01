@@ -2,11 +2,11 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/hashkey.js';
-import { ArgumentsRequired, NotSupported } from './base/errors.js';
+import { ArgumentsRequired, BadRequest, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, LedgerEntry, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1875,7 +1875,7 @@ export default class hashkey extends Exchange {
         return this.safeInteger (types, type, type);
     }
 
-    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+    async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
          * @name hashkey#fetchLedger
@@ -2027,7 +2027,7 @@ export default class hashkey extends Exchange {
         } else if (market['swap']) {
             return await this.createSwapOrder (symbol, type, side, amount, price, params);
         } else {
-            throw new NotSupported (this.id + ' createOrder() is not supported for ' + market['type'] + ' markets');
+            throw new NotSupported (this.id + ' createOrder() is not supported for ' + market['type'] + ' type of markets');
         }
     }
 
@@ -2345,7 +2345,7 @@ export default class hashkey extends Exchange {
             request['side'] = side;
         }
         //
-        //     {"success":true}
+        //     { "success": true }
         //
         return await this.privateDeleteApiV1SpotOpenOrders (this.extend (request, params));
     }
@@ -2369,8 +2369,11 @@ export default class hashkey extends Exchange {
         orders = orders.slice (0, -1);
         request['ids'] = orders;
         //
+        //     {
+        //         "code": "0000",
+        //         "result": []
+        //     }
         //
-        //     {"code":"0000","result":[]}
         return await this.privateDeleteApiV1SpotCancelOrderByIds (this.extend (request));
     }
 
@@ -2384,53 +2387,102 @@ export default class hashkey extends Exchange {
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.clientOrderId] a unique id for the order that can be used as an alternative for the id
-         * @param {string} [params.accountId] account id to fetch the order from
+         * @param {string} [params.accountId] *spot markets only* account id to fetch the order from
+         * @param {string} [params.orderType] *swap markets only* 'LIMIT' or 'STOP' - the type of the order - is mandatory for swap markets
+         * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        const methodName = 'fetchOrder';
+        this.checkTypeParam (methodName, params);
         await this.loadMarkets ();
         const request: Dict = {};
+        let clientOrderId: Str = undefined;
+        [ clientOrderId, params ] = this.handleParamString (params, 'clientOrderId');
         if (id !== undefined) {
             request['orderId'] = id;
+        } else if (clientOrderId === undefined) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires an id argument or clientOrderId parameter');
+        }
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let marketType = 'spot';
+        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
+        let response = undefined;
+        if (marketType === 'spot') {
+            if (clientOrderId !== undefined) {
+                request['origClientOrderId'] = clientOrderId;
+            }
+            let accountId: Str = undefined;
+            [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
+            if (accountId !== undefined) {
+                request['accountId'] = accountId;
+            }
+            response = await this.privateGetApiV1SpotOrder (this.extend (request, params));
+            //
+            //     {
+            //         "accountId": "1732885739589466112",
+            //         "exchangeId": "301",
+            //         "symbol": "ETHUSDT",
+            //         "symbolName": "ETHUSDT",
+            //         "clientOrderId": "1722004623170558",
+            //         "orderId": "1738695230608169984",
+            //         "price": "0",
+            //         "origQty": "0",
+            //         "executedQty": "0.0061",
+            //         "cummulativeQuoteQty": "19.736489",
+            //         "cumulativeQuoteQty": "19.736489",
+            //         "avgPrice": "3235.49",
+            //         "status": "FILLED",
+            //         "timeInForce": "IOC",
+            //         "type": "MARKET",
+            //         "side": "BUY",
+            //         "stopPrice": "0.0",
+            //         "icebergQty": "0.0",
+            //         "time": "1722004623186",
+            //         "updateTime": "1722004623406",
+            //         "isWorking": true,
+            //         "reqAmount": "20",
+            //         "feeCoin": "",
+            //         "feeAmount": "0",
+            //         "sumFeeAmount": "0"
+            //     }
+            //
+        } else if (marketType === 'swap') {
+            if (clientOrderId !== undefined) {
+                request['clientOrderId'] = clientOrderId;
+            }
+            let orderType: Str = undefined;
+            [ orderType, params ] = this.handleOptionAndParams (params, methodName, 'orderType');
+            request['type'] = orderType;
+            response = await this.privateGetApiV1FuturesOrder (this.extend (request, params));
+            //
+            //     {
+            //         "time": "1722429951611",
+            //         "updateTime": "1722429951700",
+            //         "orderId": "1742263144028363776",
+            //         "clientOrderId": "1722429950315",
+            //         "symbol": "ETHUSDT-PERPETUAL",
+            //         "price": "3460.62",
+            //         "leverage": "5",
+            //         "origQty": "10",
+            //         "executedQty": "10",
+            //         "avgPrice": "3327.52",
+            //         "marginLocked": "0",
+            //         "type": "LIMIT",
+            //         "side": "BUY_OPEN",
+            //         "timeInForce": "IOC",
+            //         "status": "FILLED",
+            //         "priceType": "MARKET",
+            //         "isLiquidationOrder": false,
+            //         "indexPrice": "0",
+            //         "liquidationType": ""
+            //     }
+            //
         } else {
-            const clientOrderId = this.safeString (params, 'clientOrderId');
-            params = this.omit (params, 'clientOrderId');
-            request['origClientOrderId'] = clientOrderId;
+            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
-        let accountId: Str = undefined;
-        [ accountId, params ] = this.handleOptionAndParams (params, 'fetchOrder', 'accountId');
-        if (accountId !== undefined) {
-            request['accountId'] = accountId;
-        }
-        const response = await this.privateGetApiV1SpotOrder (this.extend (request, params));
-        //
-        //     {
-        //         "accountId": "1732885739589466112",
-        //         "exchangeId": "301",
-        //         "symbol": "ETHUSDT",
-        //         "symbolName": "ETHUSDT",
-        //         "clientOrderId": "1722004623170558",
-        //         "orderId": "1738695230608169984",
-        //         "price": "0",
-        //         "origQty": "0",
-        //         "executedQty": "0.0061",
-        //         "cummulativeQuoteQty": "19.736489",
-        //         "cumulativeQuoteQty": "19.736489",
-        //         "avgPrice": "3235.49",
-        //         "status": "FILLED",
-        //         "timeInForce": "IOC",
-        //         "type": "MARKET",
-        //         "side": "BUY",
-        //         "stopPrice": "0.0",
-        //         "icebergQty": "0.0",
-        //         "time": "1722004623186",
-        //         "updateTime": "1722004623406",
-        //         "isWorking": true,
-        //         "reqAmount": "20",
-        //         "feeCoin": "",
-        //         "feeAmount": "0",
-        //         "sumFeeAmount": "0"
-        //     }
-        //
         return this.parseOrder (response);
     }
 
@@ -2578,6 +2630,15 @@ export default class hashkey extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
+    checkTypeParam (methodName, params) {
+        // some hashkey endpoints has mandatory param 'type' for swap markets that defines the type of an order
+        // current method warns user if he provides the exchange specific value in type parameter
+        const paramsType = this.safeString (params, 'type');
+        if ((paramsType !== undefined) && (paramsType !== 'spot') && (paramsType !== 'swap')) {
+            throw new BadRequest (this.id + ' ' + methodName + ' () type parameter can not be "' + paramsType + '". It should define the type of the market ("spot" or "swap"). To define the type of an order use orderType parameter');
+        }
+    }
+
     parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder spot
@@ -2597,27 +2658,6 @@ export default class hashkey extends Exchange {
         //         "side": "BUY",
         //         "reqAmount": "20",
         //         "concentration": ""
-        //     }
-        //
-        // createOrder swap
-        //     {
-        //         "time": "1722429951611",
-        //         "updateTime": "1722429951648",
-        //         "orderId": "1742263144028363776",
-        //         "clientOrderId": "1722429950315",
-        //         "symbol": "ETHUSDT-PERPETUAL",
-        //         "price": "3460.62",
-        //         "leverage": "5",
-        //         "origQty": "10",
-        //         "executedQty": "10",
-        //         "avgPrice": "0",
-        //         "marginLocked": "6.9212",
-        //         "type": "LIMIT",
-        //         "side": "BUY_OPEN",
-        //         "timeInForce": "IOC",
-        //         "status": "FILLED",
-        //         "priceType": "MARKET",
-        //         "contractMultiplier": "0.00100000"
         //     }
         //
         // fetchOrder spot
@@ -2664,6 +2704,51 @@ export default class hashkey extends Exchange {
         //         "type": "LIMIT_MAKER",
         //         "side": "SELL"
         //     }
+        //
+        // createOrder swap
+        //     {
+        //         "time": "1722429951611",
+        //         "updateTime": "1722429951648",
+        //         "orderId": "1742263144028363776",
+        //         "clientOrderId": "1722429950315",
+        //         "symbol": "ETHUSDT-PERPETUAL",
+        //         "price": "3460.62",
+        //         "leverage": "5",
+        //         "origQty": "10",
+        //         "executedQty": "10",
+        //         "avgPrice": "0",
+        //         "marginLocked": "6.9212",
+        //         "type": "LIMIT",
+        //         "side": "BUY_OPEN",
+        //         "timeInForce": "IOC",
+        //         "status": "FILLED",
+        //         "priceType": "MARKET",
+        //         "contractMultiplier": "0.00100000"
+        //     }
+        //
+        // fetchOrder swap
+        //     {
+        //         "time": "1722429951611",
+        //         "updateTime": "1722429951700",
+        //         "orderId": "1742263144028363776",
+        //         "clientOrderId": "1722429950315",
+        //         "symbol": "ETHUSDT-PERPETUAL",
+        //         "price": "3460.62",
+        //         "leverage": "5",
+        //         "origQty": "10",
+        //         "executedQty": "10",
+        //         "avgPrice": "3327.52",
+        //         "marginLocked": "0",
+        //         "type": "LIMIT",
+        //         "side": "BUY_OPEN",
+        //         "timeInForce": "IOC",
+        //         "status": "FILLED",
+        //         "priceType": "MARKET",
+        //         "isLiquidationOrder": false,
+        //         "indexPrice": "0",
+        //         "liquidationType": ""
+        //     }
+        //
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger2 (order, 'transactTime', 'time');
@@ -3165,7 +3250,7 @@ export default class hashkey extends Exchange {
             //     }
             //
         } else {
-            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + market['type'] + ' markets');
+            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + market['type'] + ' type of markets');
         }
     }
 
