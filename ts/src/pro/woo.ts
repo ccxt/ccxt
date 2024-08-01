@@ -90,7 +90,7 @@ export default class woo extends wooRest {
         /**
          * @method
          * @name woo#watchOrderBook
-         * @see https://docs.woo.org/#orderbook
+         * @see https://docs.woo.org/#orderbookupdate
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return.
@@ -98,25 +98,37 @@ export default class woo extends wooRest {
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const name = 'orderbook';
+        const name = 'orderbookupdate';
         const market = this.market (symbol);
         const topic = market['id'] + '@' + name;
+        const urlUid = (this.uid) ? '/' + this.uid : '';
+        const url = this.urls['api']['ws']['public'] + urlUid;
+        const requestId = this.requestId (url);
         const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
+            'id': requestId,
         };
-        const message = this.extend (request, params);
-        const orderbook = await this.watchPublic (topic, message);
+        const subscription: Dict = {
+            'id': requestId.toString (),
+            'name': name,
+            'symbol': symbol,
+            'method': this.handleOrderBookSubscription,
+            'limit': limit,
+            'params': params,
+        };
+        const orderbook = await this.watch (url, topic, this.extend (request, params), topic, subscription);
         return orderbook.limit ();
     }
 
     handleOrderBook (client: Client, message) {
         //
         //     {
-        //         "topic": "PERP_BTC_USDT@orderbook",
-        //         "ts": 1650121915308,
+        //         "topic": "PERP_BTC_USDT@orderbookupdate",
+        //         "ts": 1722500373999,
         //         "data": {
         //             "symbol": "PERP_BTC_USDT",
+        //             "prevTs": 1722500373799,
         //             "bids": [
         //                 [
         //                     0.30891,
@@ -138,13 +150,90 @@ export default class woo extends wooRest {
         const symbol = market['symbol'];
         const topic = this.safeString (message, 'topic');
         if (!(symbol in this.orderbooks)) {
-            this.orderbooks[symbol] = this.orderBook ({});
+            return;
         }
         const orderbook = this.orderbooks[symbol];
+        const timestamp = this.safeInteger (orderbook, 'timestamp');
+        if (timestamp === undefined) {
+            orderbook.cache.push (message);
+        } else {
+            try {
+                const ts = this.safeInteger (message, 'ts');
+                if (ts > timestamp) {
+                    this.handleOrderBookMessage (client, message, orderbook);
+                    client.resolve (orderbook, topic);
+                }
+            } catch (e) {
+                delete this.orderbooks[symbol];
+                delete client.subscriptions[topic];
+                client.reject (e, topic);
+            }
+        }
+    }
+
+    handleOrderBookSubscription (client: Client, message, subscription) {
+        const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
+        const limit = this.safeInteger (subscription, 'limit', defaultLimit);
+        const symbol = this.safeString (subscription, 'symbol'); // watchOrderBook
+        if (symbol in this.orderbooks) {
+            delete this.orderbooks[symbol];
+        }
+        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+    }
+
+    async fetchOrderBookSnapshot (client, message, subscription) {
+        const symbol = this.safeString (subscription, 'symbol');
+        const messageHash = this.safeString (message, 'topic');
+        try {
+            const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
+            const limit = this.safeInteger (subscription, 'limit', defaultLimit);
+            const params = this.safeValue (subscription, 'params');
+            const snapshot = await this.fetchRestOrderBookSafe (symbol, limit, params);
+            if (this.safeValue (this.orderbooks, symbol) === undefined) {
+                // if the orderbook is dropped before the snapshot is received
+                return;
+            }
+            const orderbook = this.orderbooks[symbol];
+            orderbook.reset (snapshot);
+            const messages = orderbook.cache;
+            for (let i = 0; i < messages.length; i++) {
+                const messageItem = messages[i];
+                const ts = this.safeInteger (messageItem, 'ts');
+                if (ts < orderbook['timestamp']) {
+                    continue;
+                } else {
+                    this.handleOrderBookMessage (client, messageItem, orderbook);
+                }
+            }
+            this.orderbooks[symbol] = orderbook;
+            client.resolve (orderbook, messageHash);
+        } catch (e) {
+            delete client.subscriptions[messageHash];
+            client.reject (e, messageHash);
+        }
+    }
+
+    handleOrderBookMessage (client: Client, message, orderbook) {
+        const data = this.safeDict (message, 'data');
+        this.handleDeltas (orderbook['asks'], this.safeValue (data, 'asks', []));
+        this.handleDeltas (orderbook['bids'], this.safeValue (data, 'bids', []));
         const timestamp = this.safeInteger (message, 'ts');
-        const snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks');
-        orderbook.reset (snapshot);
-        client.resolve (orderbook, topic);
+        orderbook['timestamp'] = timestamp;
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        return orderbook;
+    }
+
+    handleDelta (bookside, delta) {
+        const price = this.safeFloat2 (delta, 'price', 0);
+        const amount = this.safeFloat2 (delta, 'quantity', 1);
+        bookside.store (price, amount);
+    }
+
+    handleDeltas (bookside, deltas) {
+        for (let i = 0; i < deltas.length; i++) {
+            this.handleDelta (bookside, deltas[i]);
+        }
     }
 
     async watchTicker (symbol: string, params = {}): Promise<Ticker> {
@@ -1088,7 +1177,7 @@ export default class woo extends wooRest {
             'ping': this.handlePing,
             'pong': this.handlePong,
             'subscribe': this.handleSubscribe,
-            'orderbook': this.handleOrderBook,
+            'orderbookupdate': this.handleOrderBook,
             'ticker': this.handleTicker,
             'tickers': this.handleTickers,
             'kline': this.handleOHLCV,
@@ -1158,6 +1247,13 @@ export default class woo extends wooRest {
         //         "ts": 1657117712212
         //     }
         //
+        const id = this.safeString (message, 'id');
+        const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+        const subscription = this.safeValue (subscriptionsById, id, {});
+        const method = this.safeValue (subscription, 'method');
+        if (method !== undefined) {
+            method.call (this, client, message, subscription);
+        }
         return message;
     }
 
