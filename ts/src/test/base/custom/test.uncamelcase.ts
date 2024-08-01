@@ -1,4 +1,4 @@
-
+// @ts-nocheck
 import assert, { strictEqual, deepEqual } from 'assert';
 import ccxt, { Exchange, functions } from '../../../../ccxt.js';
 

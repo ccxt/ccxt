@@ -1,4 +1,4 @@
-
+// @ts-nocheck
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
 
