@@ -603,9 +603,10 @@ export default class coinex extends coinexRest {
         params = this.omit (params, 'aggregation');
         const watchOrderBookSubscriptions = this.safeValue (this.options, 'watchOrderBookSubscriptions', {});
         watchOrderBookSubscriptions[symbol] = [ market['id'], limit, aggregation, true ];
+        const marketList = Object.values (watchOrderBookSubscriptions);
         const subscribe: Dict = {
             'method': 'depth.subscribe',
-            'params': { 'market_list': Object.values (watchOrderBookSubscriptions) },
+            'params': { 'market_list': marketList },
             'id': this.requestId (),
         };
         this.options['watchOrderBookSubscriptions'] = watchOrderBookSubscriptions;
