@@ -24,7 +24,7 @@ export default class bequant extends hitbtc {
                     'ws': {
                         'public': 'wss://api.bequant.io/api/3/ws/public',
                         'private': 'wss://api.bequant.io/api/3/ws/trading',
-                    }
+                    },
                 },
                 'www': 'https://bequant.io',
                 'doc': [
