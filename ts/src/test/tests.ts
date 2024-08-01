@@ -90,10 +90,6 @@ class testMainClass extends baseMainTestClass {
         if (exchange.alias) {
             exitScript (0);
         }
-        // todo: ws orderbook temporary checksum skip for c#
-        if (this.wsTests && this.ext === 'cs') {
-            exchange.options['watchOrderBook']['checksum'] = false;
-        }
         await this.importFiles (exchange);
         assert (Object.keys (this.testFiles).length > 0, 'Test files were not loaded'); // ensure test files are found & filled
         this.expandSettings (exchange);
