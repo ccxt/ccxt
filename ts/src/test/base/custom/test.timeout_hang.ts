@@ -1,5 +1,4 @@
 // run with `node test_timeout_hang`
-// TODO: integrate with CI tests somehow...
 
 import { timeout } from '../../../base/functions';
 
