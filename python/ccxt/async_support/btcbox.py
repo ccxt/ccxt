@@ -648,7 +648,7 @@ class btcbox(Exchange, ImplicitAPI):
                 'nonce': nonce,
             }, params)
             request = self.urlencode(query)
-            secret = self.hash(self.encode(self.secret), 'sha256')
+            secret = self.hash(self.encode(self.secret), 'md5')
             query['signature'] = self.hmac(self.encode(request), self.encode(secret), hashlib.sha256)
             body = self.urlencode(query)
             headers = {

@@ -1215,7 +1215,9 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
     handleMessage(client, message) {
-        this.handleError(client, message);
+        if (this.handleError(client, message)) {
+            return;
+        }
         let channel = this.safeString2(message, 'ch', 'method');
         if (channel !== undefined) {
             const splitChannel = channel.split('/');
@@ -1294,13 +1296,29 @@ export default class hitbtc extends hitbtcRest {
         //
         const error = this.safeValue(message, 'error');
         if (error !== undefined) {
-            const code = this.safeValue(error, 'code');
-            const errorMessage = this.safeString(error, 'message');
-            const description = this.safeString(error, 'description');
-            const feedback = this.id + ' ' + description;
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
-            this.throwBroadlyMatchedException(this.exceptions['broad'], errorMessage, feedback);
-            throw new ExchangeError(feedback); // unknown message
+            try {
+                const code = this.safeValue(error, 'code');
+                const errorMessage = this.safeString(error, 'message');
+                const description = this.safeString(error, 'description');
+                const feedback = this.id + ' ' + description;
+                this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+                this.throwBroadlyMatchedException(this.exceptions['broad'], errorMessage, feedback);
+                throw new ExchangeError(feedback); // unknown message
+            }
+            catch (e) {
+                if (e instanceof AuthenticationError) {
+                    const messageHash = 'authenticated';
+                    client.reject(e, messageHash);
+                    if (messageHash in client.subscriptions) {
+                        delete client.subscriptions[messageHash];
+                    }
+                }
+                else {
+                    const id = this.safeString(message, 'id');
+                    client.reject(e, id);
+                }
+                return true;
+            }
         }
         return undefined;
     }

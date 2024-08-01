@@ -141,6 +141,7 @@ var bitrue$1 = require('./src/pro/bitrue.js');
 var bitstamp$1 = require('./src/pro/bitstamp.js');
 var bitvavo$1 = require('./src/pro/bitvavo.js');
 var blockchaincom$1 = require('./src/pro/blockchaincom.js');
+var blofin$1 = require('./src/pro/blofin.js');
 var bybit$1 = require('./src/pro/bybit.js');
 var cex$1 = require('./src/pro/cex.js');
 var coinbase$1 = require('./src/pro/coinbase.js');
@@ -191,7 +192,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.3.67';
+const version = '4.3.70';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -325,6 +326,7 @@ const pro = {
     'bitstamp': bitstamp$1,
     'bitvavo': bitvavo$1,
     'blockchaincom': blockchaincom$1,
+    'blofin': blofin$1,
     'bybit': bybit$1,
     'cex': cex$1,
     'coinbase': coinbase$1,

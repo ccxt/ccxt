@@ -2169,9 +2169,9 @@ public partial class oxfun : Exchange
     {
         /**
         * @method
-        * @name bitflex#withdraw
+        * @name oxfun#withdraw
         * @description make a withdrawal
-        * @see https://docs.bitflex.com/spot#withdraw
+        * @see https://docs.ox.fun/?json#post-v3-withdrawal
         * @param {string} code unified currency code
         * @param {float} amount the amount to withdraw
         * @param {string} address the address to withdraw to

@@ -832,9 +832,6 @@ export default class hyperliquid extends Exchange {
         if (since === undefined) {
             since = 0;
         }
-        if (limit === undefined) {
-            limit = 500;
-        }
         params = this.omit(params, ['until']);
         const request = {
             'type': 'candleSnapshot',

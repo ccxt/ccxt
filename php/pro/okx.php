@@ -1951,6 +1951,13 @@ class okx extends \ccxt\async\okx {
                 throw new ExchangeError($feedback);
             }
         } catch (Exception $e) {
+            // if the $message contains an $id, it means it is a response to a request
+            // so we only reject that promise, instead of deleting all futures, destroying the authentication future
+            $id = $this->safe_string($message, 'id');
+            if ($id !== null) {
+                $client->reject ($e, $id);
+                return false;
+            }
             $client->reject ($e);
             return false;
         }

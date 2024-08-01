@@ -45,6 +45,7 @@ class bingx extends Exchange {
                 'createTrailingPercentOrder' => true,
                 'createTriggerOrder' => true,
                 'fetchBalance' => true,
+                'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
@@ -1125,7 +1126,27 @@ class bingx extends Exchange {
         //        "s" => "BTC-USDT"
         //    }
         //
-        $time = $this->safe_integer_n($trade, array( 'time', 'filledTm', 'T' ));
+        // inverse swap fetchMyTrades
+        //
+        //     {
+        //         "orderId" => "1817441228670648320",
+        //         "symbol" => "SOL-USD",
+        //         "type" => "MARKET",
+        //         "side" => "BUY",
+        //         "positionSide" => "LONG",
+        //         "tradeId" => "97244554",
+        //         "volume" => "2",
+        //         "tradePrice" => "182.652",
+        //         "amount" => "20.00000000",
+        //         "realizedPnl" => "0.00000000",
+        //         "commission" => "-0.00005475",
+        //         "currency" => "SOL",
+        //         "buyer" => true,
+        //         "maker" => false,
+        //         "tradeTime" => 1722146730000
+        //     }
+        //
+        $time = $this->safe_integer_n($trade, array( 'time', 'filledTm', 'T', 'tradeTime' ));
         $datetimeId = $this->safe_string($trade, 'filledTm');
         if ($datetimeId !== null) {
             $time = $this->parse8601($datetimeId);
@@ -1138,8 +1159,8 @@ class bingx extends Exchange {
         $currencyId = $this->safe_string_n($trade, array( 'currency', 'N', 'commissionAsset' ));
         $currencyCode = $this->safe_currency_code($currencyId);
         $m = $this->safe_bool($trade, 'm');
-        $marketId = $this->safe_string($trade, 's');
-        $isBuyerMaker = $this->safe_bool_2($trade, 'buyerMaker', 'isBuyerMaker');
+        $marketId = $this->safe_string_2($trade, 's', 'symbol');
+        $isBuyerMaker = $this->safe_bool_n($trade, array( 'buyerMaker', 'isBuyerMaker', 'maker' ));
         $takeOrMaker = null;
         if (($isBuyerMaker !== null) || ($m !== null)) {
             $takeOrMaker = ($isBuyerMaker || $m) ? 'maker' : 'taker';
@@ -1176,7 +1197,7 @@ class bingx extends Exchange {
             'type' => $this->safe_string_lower($trade, 'o'),
             'side' => $this->parse_order_side($side),
             'takerOrMaker' => $takeOrMaker,
-            'price' => $this->safe_string_2($trade, 'price', 'p'),
+            'price' => $this->safe_string_n($trade, array( 'price', 'p', 'tradePrice' )),
             'amount' => $amount,
             'cost' => $cost,
             'fee' => array(
@@ -2957,7 +2978,7 @@ class bingx extends Exchange {
         //        "clientOrderID" => ""
         //    }
         //
-        // inverse swap cancelAllOrders, cancelOrder, fetchOrder, fetchOpenOrders
+        // inverse swap cancelAllOrders, cancelOrder, fetchOrder, fetchOpenOrders, fetchClosedOrders, fetchCanceledOrders
         //
         //     {
         //         "symbol" => "SOL-USD",
@@ -3017,7 +3038,7 @@ class bingx extends Exchange {
         $side = $this->safe_string_lower_2($order, 'side', 'S');
         $timestamp = $this->safe_integer_n($order, array( 'time', 'transactTime', 'E' ));
         $lastTradeTimestamp = $this->safe_integer_2($order, 'updateTime', 'T');
-        $statusId = $this->safe_string_2($order, 'status', 'X');
+        $statusId = $this->safe_string_upper_2($order, 'status', 'X');
         $feeCurrencyCode = $this->safe_string_2($order, 'feeAsset', 'N');
         $feeCost = $this->safe_string_n($order, array( 'fee', 'commission', 'n' ));
         if (($feeCurrencyCode === null)) {
@@ -3925,8 +3946,49 @@ class bingx extends Exchange {
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches information on multiple closed $orders made by the user
-         * @see https://bingx-api.github.io/docs/#/spot/trade-api.html#Query%20Order%20History
-         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#User's%20Force%20Orders
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20history
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders
+         * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
+         * @param {string} $symbol unified market $symbol of the closed $orders
+         * @param {int} [$since] timestamp in ms of the earliest order
+         * @param {int} [$limit] the max number of closed $orders to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch $orders for
+         * @param {boolean} [$params->standard] whether to fetch standard contract $orders
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
+        $this->load_markets();
+        $orders = $this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $params);
+        return $this->filter_by($orders, 'status', 'closed');
+    }
+
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple canceled $orders made by the user
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20history
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders
+         * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
+         * @param {string} $symbol unified market $symbol of the canceled $orders
+         * @param {int} [$since] timestamp in ms of the earliest order
+         * @param {int} [$limit] the max number of canceled $orders to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch $orders for
+         * @param {boolean} [$params->standard] whether to fetch standard contract $orders
+         * @return {array} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
+        $this->load_markets();
+        $orders = $this->fetch_canceled_and_closed_orders($symbol, $since, $limit, $params);
+        return $this->filter_by($orders, 'status', 'canceled');
+    }
+
+    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed $orders made by the user
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20history
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20history
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#User's%20History%20Orders
          * @see https://bingx-api.github.io/docs/#/standard/contract-interface.html#Historical%20order
          * @param {string} [$symbol] unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -3944,73 +4006,130 @@ class bingx extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = null;
+        $type = null;
+        $subType = null;
         $standard = null;
+        $response = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchClosedOrders', $market, $params);
         list($standard, $params) = $this->handle_option_and_params($params, 'fetchClosedOrders', 'standard', false);
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
         if ($standard) {
-            $response = $this->contractV1PrivateGetAllOrders ($this->extend($request, $query));
-        } elseif ($marketType === 'spot') {
-            $response = $this->spotV1PrivateGetTradeHistoryOrders ($this->extend($request, $query));
+            $response = $this->contractV1PrivateGetAllOrders ($this->extend($request, $params));
+        } elseif ($type === 'spot') {
+            $response = $this->spotV1PrivateGetTradeHistoryOrders ($this->extend($request, $params));
+            //
+            //    {
+            //        "code" => 0,
+            //        "msg" => "",
+            //        "data" => {
+            //            "orders" => array(
+            //                {
+            //                    "symbol" => "XRP-USDT",
+            //                    "orderId" => 1514073325788200960,
+            //                    "price" => "0.5",
+            //                    "origQty" => "20",
+            //                    "executedQty" => "0",
+            //                    "cummulativeQuoteQty" => "0",
+            //                    "status" => "PENDING",
+            //                    "type" => "LIMIT",
+            //                    "side" => "BUY",
+            //                    "time" => 1649818185647,
+            //                    "updateTime" => 1649818185647,
+            //                    "origQuoteOrderQty" => "0"
+            //                }
+            //            )
+            //        }
+            //    }
+            //
         } else {
-            $response = $this->swapV2PrivateGetTradeAllOrders ($this->extend($request, $query));
+            if ($subType === 'inverse') {
+                $response = $this->cswapV1PrivateGetTradeOrderHistory ($this->extend($request, $params));
+                //
+                //     {
+                //         "code" => 0,
+                //         "msg" => "",
+                //         "data" => {
+                //             "orders" => array(
+                //                 array(
+                //                     "symbol" => "SOL-USD",
+                //                     "orderId" => "1816002957423951872",
+                //                     "side" => "BUY",
+                //                     "positionSide" => "LONG",
+                //                     "type" => "LIMIT",
+                //                     "quantity" => 1,
+                //                     "origQty" => "10.00000000",
+                //                     "price" => "150.000",
+                //                     "executedQty" => "0.00000000",
+                //                     "avgPrice" => "0.000",
+                //                     "cumQuote" => "",
+                //                     "stopPrice" => "0.000",
+                //                     "profit" => "0.0000",
+                //                     "commission" => "0.000000",
+                //                     "status" => "Filled",
+                //                     "time" => 1721803819000,
+                //                     "updateTime" => 1721803856000,
+                //                     "clientOrderId" => "",
+                //                     "leverage" => "",
+                //                     "takeProfit" => array(
+                //                         "type" => "",
+                //                         "quantity" => 0,
+                //                         "stopPrice" => 0,
+                //                         "price" => 0,
+                //                         "workingType" => "",
+                //                         "stopGuaranteed" => ""
+                //                     ),
+                //                     "stopLoss" => array(
+                //                         "type" => "",
+                //                         "quantity" => 0,
+                //                         "stopPrice" => 0,
+                //                         "price" => 0,
+                //                         "workingType" => "",
+                //                         "stopGuaranteed" => ""
+                //                     ),
+                //                     "advanceAttr" => 0,
+                //                     "positionID" => 0,
+                //                     "takeProfitEntrustPrice" => 0,
+                //                     "stopLossEntrustPrice" => 0,
+                //                     "orderType" => "",
+                //                     "workingType" => "MARK_PRICE"
+                //                 ),
+                //             )
+                //         }
+                //     }
+                //
+            } else {
+                $response = $this->swapV2PrivateGetTradeAllOrders ($this->extend($request, $params));
+                //
+                //     {
+                //         "code" => 0,
+                //         "msg" => "",
+                //         "data" => {
+                //             "orders" => array(
+                //                 array(
+                //                     "symbol" => "LINK-USDT",
+                //                     "orderId" => 1585839271162413056,
+                //                     "side" => "BUY",
+                //                     "positionSide" => "LONG",
+                //                     "type" => "TRIGGER_MARKET",
+                //                     "origQty" => "5.0",
+                //                     "price" => "9",
+                //                     "executedQty" => "0.0",
+                //                     "avgPrice" => "0",
+                //                     "cumQuote" => "0",
+                //                     "stopPrice" => "5",
+                //                     "profit" => "0.0000",
+                //                     "commission" => "0.000000",
+                //                     "status" => "CANCELLED",
+                //                     "time" => 1667631605000,
+                //                     "updateTime" => 1667631605000
+                //                 ),
+                //             )
+                //         }
+                //     }
+                //
+            }
         }
-        //
-        //  spot
-        //
-        //    {
-        //        "code" => 0,
-        //        "msg" => "",
-        //        "data" => {
-        //            "orders" => array(
-        //                {
-        //                    "symbol" => "XRP-USDT",
-        //                    "orderId" => 1514073325788200960,
-        //                    "price" => "0.5",
-        //                    "origQty" => "20",
-        //                    "executedQty" => "0",
-        //                    "cummulativeQuoteQty" => "0",
-        //                    "status" => "PENDING",
-        //                    "type" => "LIMIT",
-        //                    "side" => "BUY",
-        //                    "time" => 1649818185647,
-        //                    "updateTime" => 1649818185647,
-        //                    "origQuoteOrderQty" => "0"
-        //                }
-        //            )
-        //        }
-        //    }
-        //
-        // swap
-        //
-        //    {
-        //        "code" => 0,
-        //        "msg" => "",
-        //        "data" => {
-        //          "orders" => array(
-        //            array(
-        //              "symbol" => "LINK-USDT",
-        //              "orderId" => 1585839271162413056,
-        //              "side" => "BUY",
-        //              "positionSide" => "LONG",
-        //              "type" => "TRIGGER_MARKET",
-        //              "origQty" => "5.0",
-        //              "price" => "9",
-        //              "executedQty" => "0.0",
-        //              "avgPrice" => "0",
-        //              "cumQuote" => "0",
-        //              "stopPrice" => "5",
-        //              "profit" => "0.0000",
-        //              "commission" => "0.000000",
-        //              "status" => "CANCELLED",
-        //              "time" => 1667631605000,
-        //              "updateTime" => 1667631605000
-        //            ),
-        //          )
-        //        }
-        //    }
-        //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $orders = $this->safe_list($data, 'orders', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
@@ -4439,7 +4558,8 @@ class bingx extends Exchange {
     public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
         /**
          * set margin mode to 'cross' or 'isolated'
-         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Switch%20Margin%20Mode
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Change%20Margin%20Type
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Set%20Margin%20Type
          * @param {string} $marginMode 'cross' or 'isolated'
          * @param {string} $symbol unified $market $symbol
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4464,7 +4584,13 @@ class bingx extends Exchange {
             'symbol' => $market['id'],
             'marginType' => $marginMode,
         );
-        return $this->swapV2PrivatePostTradeMarginType ($this->extend($request, $params));
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('setMarginMode', $market, $params);
+        if ($subType === 'inverse') {
+            return $this->cswapV1PrivatePostTradeMarginType ($this->extend($request, $params));
+        } else {
+            return $this->swapV2PrivatePostTradeMarginType ($this->extend($request, $params));
+        }
     }
 
     public function add_margin(string $symbol, float $amount, $params = array ()): array {
@@ -4702,14 +4828,16 @@ class bingx extends Exchange {
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         /**
          * fetch all trades made by the user
-         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20History
-         * @see https://bingx-api.github.io/docs/#/swapV2/trade-api.html#Query%20historical%20transaction%20orders
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20transaction%20details
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20historical%20transaction%20orders
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order%20Trade%20Detail
          * @param {string} [$symbol] unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch trades for
          * @param {int} [$limit] the maximum number of trades structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms for the ending date filter, default is null
          * @param {string} $params->trandingUnit COIN (directly represent assets such and ETH) or CONT (represents the number of contract sheets)
+         * @param {string} $params->orderId the order id required for inverse swap
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         if ($symbol === null) {
@@ -4717,81 +4845,117 @@ class bingx extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
-        $now = $this->milliseconds();
-        $response = null;
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        if ($since !== null) {
-            $startTimeReq = $market['spot'] ? 'startTime' : 'startTs';
-            $request[$startTimeReq] = $since;
-        } elseif ($market['swap']) {
-            $request['startTs'] = $now - 7776000000; // 90 days
-        }
-        $until = $this->safe_integer($params, 'until');
-        $params = $this->omit($params, 'until');
-        if ($until !== null) {
-            $endTimeReq = $market['spot'] ? 'endTime' : 'endTs';
-            $request[$endTimeReq] = $until;
-        } elseif ($market['swap']) {
-            $request['endTs'] = $now;
-        }
+        $request = array();
         $fills = null;
-        if ($market['spot']) {
-            $response = $this->spotV1PrivateGetTradeMyTrades ($this->extend($request, $params));
-            $data = $this->safe_dict($response, 'data', array());
-            $fills = $this->safe_list($data, 'fills', array());
+        $response = null;
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchMyTrades', $market, $params);
+        if ($subType === 'inverse') {
+            $orderId = $this->safe_string($params, 'orderId');
+            if ($orderId === null) {
+                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires an $orderId argument for inverse swap trades');
+            }
+            $response = $this->cswapV1PrivateGetTradeAllFillOrders ($this->extend($request, $params));
+            $fills = $this->safe_list($response, 'data', array());
             //
             //     {
             //         "code" => 0,
             //         "msg" => "",
-            //         "debugMsg" => "",
-            //         "data" => {
-            //             "fills" => array(
-            //                 {
-            //                     "symbol" => "LTC-USDT",
-            //                     "id" => 36237072,
-            //                     "orderId" => 1674069326895775744,
-            //                     "price" => "85.891",
-            //                     "qty" => "0.0582",
-            //                     "quoteQty" => "4.9988562000000005",
-            //                     "commission" => -0.00005820000000000001,
-            //                     "commissionAsset" => "LTC",
-            //                     "time" => 1687964205000,
-            //                     "isBuyer" => true,
-            //                     "isMaker" => false
-            //                 }
-            //             )
-            //         }
+            //         "timestamp" => 1722147756019,
+            //         "data" => array(
+            //             {
+            //                 "orderId" => "1817441228670648320",
+            //                 "symbol" => "SOL-USD",
+            //                 "type" => "MARKET",
+            //                 "side" => "BUY",
+            //                 "positionSide" => "LONG",
+            //                 "tradeId" => "97244554",
+            //                 "volume" => "2",
+            //                 "tradePrice" => "182.652",
+            //                 "amount" => "20.00000000",
+            //                 "realizedPnl" => "0.00000000",
+            //                 "commission" => "-0.00005475",
+            //                 "currency" => "SOL",
+            //                 "buyer" => true,
+            //                 "maker" => false,
+            //                 "tradeTime" => 1722146730000
+            //             }
+            //         )
             //     }
             //
         } else {
-            $tradingUnit = $this->safe_string_upper($params, 'tradingUnit', 'CONT');
-            $params = $this->omit($params, 'tradingUnit');
-            $request['tradingUnit'] = $tradingUnit;
-            $response = $this->swapV2PrivateGetTradeAllFillOrders ($this->extend($request, $params));
-            $data = $this->safe_dict($response, 'data', array());
-            $fills = $this->safe_list($data, 'fill_orders', array());
-            //
-            //    {
-            //       "code" => "0",
-            //       "msg" => '',
-            //       "data" => { fill_orders => array(
-            //          {
-            //              "volume" => "0.1",
-            //              "price" => "106.75",
-            //              "amount" => "10.6750",
-            //              "commission" => "-0.0053",
-            //              "currency" => "USDT",
-            //              "orderId" => "1676213270274379776",
-            //              "liquidatedPrice" => "0.00",
-            //              "liquidatedMarginRatio" => "0.00",
-            //              "filledTime" => "2023-07-04T20:56:01.000+0800"
-            //          }
-            //        )
-            //      }
-            //    }
-            //
+            $request['symbol'] = $market['id'];
+            $now = $this->milliseconds();
+            if ($since !== null) {
+                $startTimeReq = $market['spot'] ? 'startTime' : 'startTs';
+                $request[$startTimeReq] = $since;
+            } elseif ($market['swap']) {
+                $request['startTs'] = $now - 7776000000; // 90 days
+            }
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, 'until');
+            if ($until !== null) {
+                $endTimeReq = $market['spot'] ? 'endTime' : 'endTs';
+                $request[$endTimeReq] = $until;
+            } elseif ($market['swap']) {
+                $request['endTs'] = $now;
+            }
+            if ($market['spot']) {
+                $response = $this->spotV1PrivateGetTradeMyTrades ($this->extend($request, $params));
+                $data = $this->safe_dict($response, 'data', array());
+                $fills = $this->safe_list($data, 'fills', array());
+                //
+                //     {
+                //         "code" => 0,
+                //         "msg" => "",
+                //         "debugMsg" => "",
+                //         "data" => {
+                //             "fills" => array(
+                //                 {
+                //                     "symbol" => "LTC-USDT",
+                //                     "id" => 36237072,
+                //                     "orderId" => 1674069326895775744,
+                //                     "price" => "85.891",
+                //                     "qty" => "0.0582",
+                //                     "quoteQty" => "4.9988562000000005",
+                //                     "commission" => -0.00005820000000000001,
+                //                     "commissionAsset" => "LTC",
+                //                     "time" => 1687964205000,
+                //                     "isBuyer" => true,
+                //                     "isMaker" => false
+                //                 }
+                //             )
+                //         }
+                //     }
+                //
+            } else {
+                $tradingUnit = $this->safe_string_upper($params, 'tradingUnit', 'CONT');
+                $params = $this->omit($params, 'tradingUnit');
+                $request['tradingUnit'] = $tradingUnit;
+                $response = $this->swapV2PrivateGetTradeAllFillOrders ($this->extend($request, $params));
+                $data = $this->safe_dict($response, 'data', array());
+                $fills = $this->safe_list($data, 'fill_orders', array());
+                //
+                //    {
+                //       "code" => "0",
+                //       "msg" => '',
+                //       "data" => { fill_orders => array(
+                //          {
+                //              "volume" => "0.1",
+                //              "price" => "106.75",
+                //              "amount" => "10.6750",
+                //              "commission" => "-0.0053",
+                //              "currency" => "USDT",
+                //              "orderId" => "1676213270274379776",
+                //              "liquidatedPrice" => "0.00",
+                //              "liquidatedMarginRatio" => "0.00",
+                //              "filledTime" => "2023-07-04T20:56:01.000+0800"
+                //          }
+                //        )
+                //      }
+                //    }
+                //
+            }
         }
         return $this->parse_trades($fills, $market, $since, $limit, $params);
     }
@@ -5406,7 +5570,8 @@ class bingx extends Exchange {
     public function fetch_margin_mode(string $symbol, $params = array ()): array {
         /**
          * fetches the margin mode of the trading pair
-         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Margin%20Mode
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Margin%20Type
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Margin%20Type
          * @param {string} $symbol unified $symbol of the $market to fetch the margin mode for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=margin-mode-structure margin mode structure~
@@ -5416,26 +5581,45 @@ class bingx extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->swapV2PrivateGetTradeMarginType ($this->extend($request, $params));
-        //
-        //     {
-        //         "code" => 0,
-        //         "msg" => "",
-        //         "data" => {
-        //             "marginType" => "CROSSED"
-        //         }
-        //     }
-        //
+        $subType = null;
+        $response = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchMarginMode', $market, $params);
+        if ($subType === 'inverse') {
+            $response = $this->cswapV1PrivateGetTradeMarginType ($this->extend($request, $params));
+            //
+            //     {
+            //         "code" => 0,
+            //         "msg" => "",
+            //         "timestamp" => 1721966069132,
+            //         "data" => {
+            //             "symbol" => "SOL-USD",
+            //             "marginType" => "CROSSED"
+            //         }
+            //     }
+            //
+        } else {
+            $response = $this->swapV2PrivateGetTradeMarginType ($this->extend($request, $params));
+            //
+            //     {
+            //         "code" => 0,
+            //         "msg" => "",
+            //         "data" => {
+            //             "marginType" => "CROSSED"
+            //         }
+            //     }
+            //
+        }
         $data = $this->safe_dict($response, 'data', array());
         return $this->parse_margin_mode($data, $market);
     }
 
     public function parse_margin_mode(array $marginMode, $market = null): array {
+        $marketId = $this->safe_string($marginMode, 'symbol');
         $marginType = $this->safe_string_lower($marginMode, 'marginType');
         $marginType = ($marginType === 'crossed') ? 'cross' : $marginType;
         return array(
             'info' => $marginMode,
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_symbol($marketId, $market, '-', 'swap'),
             'marginMode' => $marginType,
         );
     }

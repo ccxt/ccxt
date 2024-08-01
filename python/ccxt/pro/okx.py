@@ -1764,6 +1764,12 @@ class okx(ccxt.async_support.okx):
                     self.throw_broadly_matched_exception(self.exceptions['broad'], messageString, feedback)
                 raise ExchangeError(feedback)
         except Exception as e:
+            # if the message contains an id, it means it is a response to a request
+            # so we only reject that promise, instead of deleting all futures, destroying the authentication future
+            id = self.safe_string(message, 'id')
+            if id is not None:
+                client.reject(e, id)
+                return False
             client.reject(e)
             return False
         return message
