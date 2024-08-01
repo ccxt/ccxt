@@ -989,10 +989,14 @@ export default class binance extends binanceRest {
             'id': requestId,
         };
         const trades = await this.watchMultiple (url, messageHashes, this.extend (request, query), messageHashes, subscribe);
+        const first = this.safeValue (trades, 0);
+        const tradeSymbol = this.safeString (first, 'symbol');
+        const newLimit = trades.getLimit (tradeSymbol, limit);
+        if (newLimit === 0) {
+            return this.watchTradesForSymbols (symbols, since, limit, params);
+        }
         if (this.newUpdates) {
-            const first = this.safeValue (trades, 0);
-            const tradeSymbol = this.safeString (first, 'symbol');
-            limit = trades.getLimit (tradeSymbol, limit);
+            limit = newLimit;
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }

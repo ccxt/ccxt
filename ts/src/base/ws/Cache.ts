@@ -65,13 +65,13 @@ class ArrayCache extends BaseCache implements CustomArray {
 
         if (symbol === undefined) {
             newUpdatesValue = this.allNewUpdates
-            this.clearAllUpdates = true
+            this.clearUpdates ();
         } else {
             newUpdatesValue = this.newUpdatesBySymbol[symbol];
             if ((newUpdatesValue !== undefined) && this.nestedNewUpdatesBySymbol) {
                 newUpdatesValue = newUpdatesValue.size
             }
-            this.clearUpdatesBySymbol[symbol] = true
+            this.clearUpdates (symbol);
         }
 
         if (newUpdatesValue === undefined) {
@@ -83,22 +83,24 @@ class ArrayCache extends BaseCache implements CustomArray {
         }
     }
 
+    clearUpdates (symbol = undefined) {
+        if (symbol) {
+            this.clearUpdatesBySymbol[symbol] = false
+            this.newUpdatesBySymbol[symbol] = 0
+        } else {
+            this.clearAllUpdates = false
+            this.clearUpdatesBySymbol = {}
+            this.allNewUpdates = 0
+            this.newUpdatesBySymbol = {}
+        }
+    }
+
     append (item) {
         // maxSize may be 0 when initialized by a .filter() copy-construction
         if (this.maxSize && (this.length === this.maxSize)) {
             this.shift ()
         }
         this.push (item)
-        if (this.clearAllUpdates) {
-            this.clearAllUpdates = false
-            this.clearUpdatesBySymbol = {}
-            this.allNewUpdates = 0
-            this.newUpdatesBySymbol = {}
-        }
-        if (this.clearUpdatesBySymbol[item.symbol]) {
-            this.clearUpdatesBySymbol[item.symbol] = false
-            this.newUpdatesBySymbol[item.symbol] = 0
-        }
         this.newUpdatesBySymbol[item.symbol] = (this.newUpdatesBySymbol[item.symbol] || 0) + 1
         this.allNewUpdates = (this.allNewUpdates || 0) + 1
     }
