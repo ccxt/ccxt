@@ -1101,6 +1101,15 @@ export default class valr extends Exchange {
                 postOnly = (orderType.indexOf ('post-only') >= 0);
             }
         }
+        const totalFee = this.safeString (order, 'totalFee');
+        const feeCurrency = this.safeString (order, 'feeCurrency');
+        let fee = undefined;
+        if (totalFee !== undefined && feeCurrency !== undefined) {
+            fee = {
+                'fee': totalFee,
+                'currency': this.safeCurrencyCode (feeCurrency),
+            };
+        }
         const datetime = this.safeString2 (order, 'createdAt', 'orderCreatedAt');
         const updateDatetime = this.safeString2 (order, 'updatedAt', 'orderUpdatedAt');
         const result = {
@@ -1127,7 +1136,7 @@ export default class valr extends Exchange {
             'takeProfitPrice': undefined,
             'stopLossPrice': undefined,
             'status': status,
-            'fee': undefined,
+            'fee': fee,
             'info': order,
         };
         return this.safeOrder (result, market);
