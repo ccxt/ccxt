@@ -198,11 +198,32 @@ class Precise:
         if string1 is None or string2 is None:
             return None
         return str(Precise(string1).mul(Precise(string2)))
+    
+
+    @staticmethod
+    def get_decimal_count(number):
+        if (number is None):
+            return 0
+        if '.' in number:
+            return len(number.split('.')[1])
+        return 0
 
     @staticmethod
     def string_div(string1, string2, precision=18):
         if string1 is None or string2 is None:
             return None
+
+        # check https://github.com/ccxt/ccxt/pull/23208
+        # for a more detailed explanation of this change
+        # basically some exchanges like mexc, have markets with really low prices
+        # and the default precision of 18 is not enough to handle the division
+        if "." in string1 or "." in string2:
+            decimal_cases_1 = Precise.get_decimal_count(string1)
+            decimal_cases_2 = Precise.get_decimal_count(string2)
+            if (decimal_cases_1 > precision or decimal_cases_2 > precision):
+                smallest_number = max(decimal_cases_1, decimal_cases_2)
+                precision = min(smallest_number, 28)
+
         string2_precise = Precise(string2)
         if string2_precise.integer == 0:
             return None
