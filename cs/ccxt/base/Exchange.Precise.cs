@@ -259,11 +259,38 @@ namespace ccxt
             return (new Precise(string1.ToString()).mul(new Precise(string2.ToString()))).ToString();
         }
 
+        static public Int64 getDecimalCount(string number)
+        {
+            if (number == null)
+            {
+                return 0;
+            }
+            var numberParts = number.Split('.');
+            if (numberParts.Length > 1)
+            {
+                return numberParts[1].Length;
+            }
+            return 0;
+        }
+
         static public string stringDiv(object string1, object string2, object precision = null)
         {
             if (string1 == null || string2 == null)
                 return null;
 
+            var str1 = string1 as string;
+            var str2 = string2 as string;
+            var prec = Convert.ToInt64(precision);
+            if (str1.StartsWith("0.") || str2.StartsWith("0."))
+            {
+                var decimalCases1 = getDecimalCount(str1);
+                var decimalCases2 = getDecimalCount(str2);
+                if (decimalCases1 > prec || decimalCases2 > prec)
+                {
+                    var smallest = Math.Max(decimalCases1, decimalCases2);
+                    precision = Math.Min(Convert.ToInt64(smallest), 28);
+                }
+            }
             var string2Precise = new Precise(string2.ToString());
             if (string2Precise.integer == 0)
             {
