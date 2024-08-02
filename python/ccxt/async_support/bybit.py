@@ -7625,7 +7625,7 @@ class bybit(Exchange, ImplicitAPI):
         quoteValueString = Precise.string_mul(baseValueString, priceString)
         return self.safe_liquidation({
             'info': liquidation,
-            'symbol': self.safe_symbol(marketId, market),
+            'symbol': self.safe_symbol(marketId, market, None, 'contract'),
             'contracts': self.parse_number(contractsString),
             'contractSize': self.parse_number(contractSizeString),
             'price': self.parse_number(priceString),

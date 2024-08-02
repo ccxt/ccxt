@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.3.69';
+const version = '4.3.72';
 
 (Exchange as any).ccxtVersion = version
 
@@ -135,6 +135,7 @@ import okx from  './src/okx.js'
 import onetrading from  './src/onetrading.js'
 import oxfun from  './src/oxfun.js'
 import p2b from  './src/p2b.js'
+import paradex from  './src/paradex.js'
 import paymium from  './src/paymium.js'
 import phemex from  './src/phemex.js'
 import poloniex from  './src/poloniex.js'
@@ -215,6 +216,7 @@ import okxPro from  './src/pro/okx.js'
 import onetradingPro from  './src/pro/onetrading.js'
 import oxfunPro from  './src/pro/oxfun.js'
 import p2bPro from  './src/pro/p2b.js'
+import paradexPro from  './src/pro/paradex.js'
 import phemexPro from  './src/pro/phemex.js'
 import poloniexPro from  './src/pro/poloniex.js'
 import poloniexfuturesPro from  './src/pro/poloniexfutures.js'
@@ -317,6 +319,7 @@ const exchanges = {
     'onetrading':             onetrading,
     'oxfun':                  oxfun,
     'p2b':                    p2b,
+    'paradex':                paradex,
     'paymium':                paymium,
     'phemex':                 phemex,
     'poloniex':               poloniex,
@@ -397,6 +400,7 @@ const pro = {
     'onetrading':             onetradingPro,
     'oxfun':                  oxfunPro,
     'p2b':                    p2bPro,
+    'paradex':                paradexPro,
     'phemex':                 phemexPro,
     'poloniex':               poloniexPro,
     'poloniexfutures':        poloniexfuturesPro,
@@ -634,6 +638,7 @@ export {
     onetrading,
     oxfun,
     p2b,
+    paradex,
     paymium,
     phemex,
     poloniex,

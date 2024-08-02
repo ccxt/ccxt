@@ -1724,5 +1724,13 @@
                 "spread": "same"
             }
         }
+    },
+    "paradex": {
+        "skipMethods": {
+            "loadMarkets" : {
+                "active":"not provided",
+                "currencyIdAndCode": "broken currencies"
+            }
+        }
     }
 }
