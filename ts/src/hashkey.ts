@@ -174,10 +174,10 @@ export default class hashkey extends Exchange {
                         'api/v1/spot/tradeOrders': 5, // done
                         'api/v1/futures/leverage': 1,
                         'api/v1/futures/order': 1, // done
-                        'api/v1/futures/openOrders': 1,
+                        'api/v1/futures/openOrders': 1, // done
                         'api/v1/futures/userTrades': 1,
                         'api/v1/futures/positions': 1, // done
-                        'api/v1/futures/historyOrders': 1,
+                        'api/v1/futures/historyOrders': 1, // done
                         'api/v1/futures/balance': 1, // update fetchBalance
                         'api/v1/futures/liquidationAssignStatus': 1, // todo ask
                         'api/v1/futures/riskLimit': 1, // not unified
@@ -2386,10 +2386,11 @@ export default class hashkey extends Exchange {
          * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
          * @param {string} [params.clientOrderId] a unique id for the order that can be used as an alternative for the id
          * @param {string} [params.accountId] *spot markets only* account id to fetch the order from
-         * @param {string} [params.orderType] *swap markets only* 'LIMIT' or 'STOP' - the type of the swap order
-         * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
+         * @param {bool} [params.trigger] *swap markets only* true for fetching a trigger order (default false)
+         * @param {bool} [params.stop] *swap markets only* an alternative for trigger param
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const methodName = 'fetchOrder';
@@ -2453,10 +2454,11 @@ export default class hashkey extends Exchange {
             if (clientOrderId !== undefined) {
                 request['clientOrderId'] = clientOrderId;
             }
-            let orderType: Str = undefined;
-            [ orderType, params ] = this.handleOptionAndParams (params, methodName, 'orderType');
-            if (orderType !== undefined) {
-                request['type'] = orderType; // todo report type is not mandatory
+            let isTrigger = false;
+            [ isTrigger, params ] = this.handleOptionAndParams (params, methodName, 'trigger');
+            [ isTrigger, params ] = this.handleOptionAndParams (params, methodName, 'stop', isTrigger);
+            if (isTrigger) {
+                request['type'] = 'STOP'; // todo report type is not mandatory
             }
             response = await this.privateGetApiV1FuturesOrder (this.extend (request, params));
             //
@@ -2502,8 +2504,9 @@ export default class hashkey extends Exchange {
          * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entries for (default 'spot')
          * @param {string} [params.orderId] *spot markets only* the id of the order to fetch
          * @param {string} [params.side] *spot markets only* 'buy' or 'sell' - the side of the orders to fetch
-         * @param {string} [params.fromOrderId] *swap markets only*the id of the order to start from
-         * @param {string} [params.orderType] *swap markets only* 'LIMIT' or 'STOP' - the type of swap orders - is mandatory for swap markets
+         * @param {string} [params.fromOrderId] *swap markets only* the id of the order to start from
+         * @param {bool} [params.trigger] *swap markets only* true for fetching trigger orders (default false)
+         * @param {bool} [params.stop] *swap markets only* an alternative for trigger param
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const methodName = 'fetchOpenOrders';
@@ -2606,7 +2609,8 @@ export default class hashkey extends Exchange {
          * @param {int} [limit] the maximum number of order structures to retrieve - maximum 500
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.fromOrderId] the id of the order to start from
-         * @param {string} params.orderType *is mandatory* 'LIMIT' or 'STOP' - the type of swap orders
+         * @param {bool} [params.trigger] true for fetching trigger orders (default false)
+         * @param {bool} [params.stop] an alternative for trigger param
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         let methodName = 'fetchOpenSwapOrders';
@@ -2615,15 +2619,17 @@ export default class hashkey extends Exchange {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a symbol argument for swap market orders');
         }
         const market = this.market (symbol);
-        let orderType: Str = undefined;
-        [ orderType, params ] = this.handleOptionAndParams (params, methodName, 'orderType');
-        if (orderType === undefined) {
-            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires an orderType parameter for swap market orders');
-        }
         const request: Dict = {
             'symbol': market['id'],
-            'type': orderType,
         };
+        let isTrigger = false;
+        [ isTrigger, params ] = this.handleOptionAndParams (params, methodName, 'trigger');
+        [ isTrigger, params ] = this.handleOptionAndParams (params, methodName, 'stop', isTrigger);
+        if (isTrigger) {
+            request['type'] = 'STOP';
+        } else {
+            request['type'] = 'LIMIT';
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -2690,78 +2696,134 @@ export default class hashkey extends Exchange {
          * @param {int} [limit] the maximum number of order structures to retrieve - default 500, maximum 1000
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch entries for - only supports the last 90 days timeframe
-         * @param {string} [params.orderId] the id of the order to fetch
-         * @param {string} [params.side] 'buy' or 'sell' - the side of the orders to fetch
+         * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entries for (default 'spot')
+         * @param {string} [params.orderId] *spot markets only* the id of the order to fetch
+         * @param {string} [params.side] *spot markets only* 'buy' or 'sell' - the side of the orders to fetch
+         * @param {string} [params.fromOrderId] *swap markets only* the id of the order to start from
+         * @param {bool} [params.trigger] *swap markets only* the id of the order to start from true for fetching trigger orders (default false)
+         * @param {bool} [params.stop] *swap markets only* the id of the order to start from an alternative for trigger param
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        const methodName = 'fetchCanceledAndClosedOrders';
+        this.checkTypeParam (methodName, params);
         await this.loadMarkets ();
         const request: Dict = {};
-        let market: Market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id']; // todo: report - symbol is not mandatory for hashkey
-        }
         if (limit !== undefined) {
-            request['limit'] = limit; // todo could return wrong limit if it is called from fetchCanceledOrders or fetchClosedOrders
+            request['limit'] = limit;
         }
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const callerMethodName = 'fetchCanceledAndClosedOrders';
         let until: Int = undefined;
-        [ until, params ] = this.handleOptionAndParams (params, callerMethodName, 'until');
+        [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        let orderId: Str = undefined;
-        [ orderId, params ] = this.handleOptionAndParams (params, callerMethodName, 'orderId');
-        if (orderId !== undefined) {
-            request['orderId'] = orderId;
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
         }
-        let side: Str = undefined;
-        [ side, params ] = this.handleOptionAndParams (params, callerMethodName, 'side');
-        if (side !== undefined) {
-            request['side'] = side.toUpperCase ();
+        let marketType = 'spot';
+        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
+        let response = undefined;
+        if (marketType === 'spot') {
+            if (symbol !== undefined) {
+                request['symbol'] = market['id']; // todo: report - symbol is not mandatory for spot markets
+            }
+            let orderId: Str = undefined;
+            [ orderId, params ] = this.handleOptionAndParams (params, methodName, 'orderId');
+            if (orderId !== undefined) {
+                request['orderId'] = orderId;
+            }
+            let side: Str = undefined;
+            [ side, params ] = this.handleOptionAndParams (params, methodName, 'side');
+            if (side !== undefined) {
+                request['side'] = side.toUpperCase ();
+            }
+            response = await this.privateGetApiV1SpotTradeOrders (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "accountId": "1732885739589466112",
+            //             "exchangeId": "301",
+            //             "symbol": "ETHUSDT",
+            //             "symbolName": "ETHUSDT",
+            //             "clientOrderId": "1722082982086472",
+            //             "orderId": "1739352552762301440",
+            //             "price": "0",
+            //             "origQty": "0.001",
+            //             "executedQty": "0.001",
+            //             "cummulativeQuoteQty": "3.28996",
+            //             "cumulativeQuoteQty": "3.28996",
+            //             "avgPrice": "3289.96",
+            //             "status": "FILLED",
+            //             "timeInForce": "IOC",
+            //             "type": "MARKET",
+            //             "side": "BUY",
+            //             "stopPrice": "0.0",
+            //             "icebergQty": "0.0",
+            //             "time": "1722082982093",
+            //             "updateTime": "1722082982097",
+            //             "isWorking": true,
+            //             "reqAmount": "0"
+            //         },
+            //         ...
+            //     ]
+            //
+        } else if (marketType === 'swap') {
+            request['symbol'] = market['id'];
+            let isTrigger = false;
+            [ isTrigger, params ] = this.handleOptionAndParams (params, methodName, 'trigger');
+            [ isTrigger, params ] = this.handleOptionAndParams (params, methodName, 'stop', isTrigger);
+            if (isTrigger) {
+                request['type'] = 'STOP';
+            } else {
+                request['type'] = 'LIMIT';
+            }
+            let fromOrderId: Str = undefined;
+            [ fromOrderId, params ] = this.handleOptionAndParams (params, methodName, 'fromOrderId');
+            if (fromOrderId !== undefined) {
+                request['fromOrderId'] = fromOrderId;
+            }
+            response = await this.privateGetApiV1FuturesHistoryOrders (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "time": "1722429951611",
+            //             "updateTime": "1722429951700",
+            //             "orderId": "1742263144028363776",
+            //             "clientOrderId": "1722429950315",
+            //             "symbol": "ETHUSDT-PERPETUAL",
+            //             "price": "3460.62",
+            //             "leverage": "5",
+            //             "origQty": "10",
+            //             "executedQty": "10",
+            //             "avgPrice": "3327.52",
+            //             "marginLocked": "0",
+            //             "type": "LIMIT",
+            //             "side": "BUY_OPEN",
+            //             "timeInForce": "IOC",
+            //             "status": "FILLED",
+            //             "priceType": "MARKET",
+            //             "isLiquidationOrder": false,
+            //             "indexPrice": "0",
+            //             "liquidationType": ""
+            //         }
+            //     ]
+            //
+        } else {
+            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
-        const response = await this.privateGetApiV1SpotTradeOrders (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "accountId": "1732885739589466112",
-        //             "exchangeId": "301",
-        //             "symbol": "ETHUSDT",
-        //             "symbolName": "ETHUSDT",
-        //             "clientOrderId": "1722082982086472",
-        //             "orderId": "1739352552762301440",
-        //             "price": "0",
-        //             "origQty": "0.001",
-        //             "executedQty": "0.001",
-        //             "cummulativeQuoteQty": "3.28996",
-        //             "cumulativeQuoteQty": "3.28996",
-        //             "avgPrice": "3289.96",
-        //             "status": "FILLED",
-        //             "timeInForce": "IOC",
-        //             "type": "MARKET",
-        //             "side": "BUY",
-        //             "stopPrice": "0.0",
-        //             "icebergQty": "0.0",
-        //             "time": "1722082982093",
-        //             "updateTime": "1722082982097",
-        //             "isWorking": true,
-        //             "reqAmount": "0"
-        //         },
-        //         ...
-        //     ]
-        //
         return this.parseOrders (response, market, since, limit);
     }
 
     checkTypeParam (methodName, params) {
-        // some hashkey endpoints has mandatory param 'type' for swap markets that defines the type of an order
+        // some hashkey endpoints have a type param for swap markets that defines the type of an order
+        // type param is reserved in ccxt for defining the type of the market
         // current method warns user if he provides the exchange specific value in type parameter
         const paramsType = this.safeString (params, 'type');
         if ((paramsType !== undefined) && (paramsType !== 'spot') && (paramsType !== 'swap')) {
-            throw new BadRequest (this.id + ' ' + methodName + ' () type parameter can not be "' + paramsType + '". It should define the type of the market ("spot" or "swap"). To define the type of an order use orderType parameter');
+            throw new BadRequest (this.id + ' ' + methodName + ' () type parameter can not be "' + paramsType + '". It should define the type of the market ("spot" or "swap"). To define the type of an order use the trigger parameter (true for trigger orders)');
         }
     }
 
