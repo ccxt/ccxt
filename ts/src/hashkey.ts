@@ -6,7 +6,7 @@ import { ArgumentsRequired, BadRequest, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -76,7 +76,7 @@ export default class hashkey extends Exchange {
                 'fetchFundingRates': true,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': true,
-                'fetchLeverage': false,
+                'fetchLeverage': true,
                 'fetchLeverageTiers': true,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
@@ -172,7 +172,7 @@ export default class hashkey extends Exchange {
                         'api/v1/spot/order': 1, // done
                         'api/v1/spot/openOrders': 1, // done
                         'api/v1/spot/tradeOrders': 5, // done
-                        'api/v1/futures/leverage': 1,
+                        'api/v1/futures/leverage': 1, // done
                         'api/v1/futures/order': 1, // done
                         'api/v1/futures/openOrders': 1, // done
                         'api/v1/futures/userTrades': 1, // done
@@ -3440,6 +3440,53 @@ export default class hashkey extends Exchange {
             'percentage': undefined,
             'info': position,
         });
+    }
+
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+        /**
+         * @method
+         * @name hashkey#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/query-futures-leverage-trade
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.recvWindow] the time window for the request
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        let recvWindow: Int = undefined;
+        [ recvWindow, params ] = this.handleOptionAndParams (params, 'fetchLeverage', 'recvWindow');
+        if (recvWindow !== undefined) {
+            request['recvWindow'] = recvWindow;
+        }
+        const response = await this.privateGetApiV1FuturesLeverage (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             "symbolId": "ETHUSDT-PERPETUAL",
+        //             "leverage": "5",
+        //             "marginType": "CROSS"
+        //         }
+        //     ]
+        //
+        const leverage = this.safeDict (response, 0, {});
+        return this.parseLeverage (leverage, market);
+    }
+
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        const marginMode = this.safeString (leverage, 'marginType');
+        const leverageValue = this.safeNumber (leverage, 'leverage');
+        return {
+            'info': leverage,
+            'symbol': market['symbol'],
+            'marginMode': marginMode.toLowerCase (),
+            'longLeverage': leverageValue,
+            'shortLeverage': undefined,
+        } as Leverage;
     }
 
     async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
