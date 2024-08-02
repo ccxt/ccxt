@@ -893,54 +893,38 @@ Note: the `false` value for the `active` property doesn't always guarantee that 
 
 ## Precision And Limits
 
-**Do not confuse `limits` with `precision`!** Precision has nothing to do with min limits. A precision of 8 digits does not necessarily mean a min limit of 0.00000001. The opposite is also true: a min limit of 0.0001 does not necessarily mean a precision of 4.
+**Do not confuse `limits` with `precision`!** Precision has nothing to do with min limits. To understand it better, read below.
 
 Examples:
 
-1. `(market['limits']['amount']['min'] == 0.05) && (market['precision']['amount'] == 4)`
+1. `(market['limits']['amount']['min'] == 0.05) && (market['precision']['amount'] == 0.0001)`
 
-  In this example the **amount** of any order placed on the market **must satisfy both conditions**:
+  The **amount** of an order placed for that pair **must satisfy both conditions**:
 
-  - The *amount value* should be >= 0.05:
+  - The *amount value* should be >= 0.05 and *Precision of the amount* should be up to 4 decimal digits (not less than 0.0001):
     ```diff
-    + good: 0.05, 0.051, 0.0501, 0.0502, ..., 0.0599, 0.06, 0.0601, ...
-    - bad: 0.04, 0.049, 0.0499
-    ```
-  - *Precision of the amount* should be up to 4 decimal digits:
-    ```diff
-    + good: 0.05, 0.051, 0.052, ..., 0.0531, ..., 0.06, ... 0.0719, ...
-    - bad: 0.05001, 0.05000, 0.06001
+    + good: 0.05, 0.051, 0.0511, ..., 0.06, ... 0.0719, ...
+    - bad: 0.05001, 0.0612345, ...
     ```
 
-2. `(market['limits']['price']['min'] == 0.019) && (market['precision']['price'] == 5)`
+2. `(market['limits']['price']['min'] == 0.019) && (market['precision']['price'] == 0.00001)`
 
-  In this example the **price** of any order placed on the market **must satisfy both conditions**:
+  The **price** of an order placed for that pair **must satisfy both conditions**:
 
-  - The *price value* should be >= 0.019:
+  - The *price value* should be >= 0.019 and *Precision of the price* should be up to 5 decimal digits (not less than 0.00001)::
     ```diff
-    + good: 0.019, ... 0.0191, ... 0.01911, 0.01912, ...
-    - bad: 0.016, ..., 0.01699
-    ```
-  - *Precision of price* should be 5 decimal digits or less:
-    ```diff
-    + good: 0.02, 0.021, 0.0212, 0.02123, 0.02124, 0.02125, ...
-    - bad: 0.017000, 0.017001, ...
+    + good: 0.019, 0.01923, 0.02, 0.02124, ...
+    - bad: 0.019
     ```
 
-3. `(market['limits']['amount']['min'] == 50) && (market['precision']['amount'] == -1)`
+3. `(market['limits']['amount']['min'] == 50) && (market['precision']['amount'] == 10)`
 
   In this example **both conditions must be satisfied**:
 
-  - The *amount value* should be greater than or equal to 50:
+  - The *amount value* should be greater than or equal to 50 and *amount precision* should be an integer multiple of 10
     ```diff
-    + good: 50, 60, 70, 80, 90, 100, ... 2000, ...
-    - bad: 1, 2, 3, ..., 9
-    ```
-  - A negative *amount precision* means that the amount should be an integer multiple of 10 (to the absolute power specified):
-    ```diff
-    + good: 50, ..., 110, ... 1230, ..., 1000000, ..., 1234560, ...
-    - bad: 9.5, ... 10.1, ..., 11, ... 200.71, ...
-    ```
+    + good: 50, 60, .., 110, ... 123050, ...
+    - bad: 51, 123, 1015, ...
 
 *The `precision` and `limits` params are currently under heavy development, some of these fields may be missing here and there until the unification process is complete. This does not influence most of the orders but can be significant in extreme cases of very large or very small orders.*
 
@@ -972,11 +956,12 @@ The decimal precision counting mode is available in the `exchange.precisionMode`
 
 #### Precision Mode
 
-Supported precision modes in `exchange['precisionMode']` are:
+CCXT internally uses `exchange['precisionMode']` which can be one of these two:
 
-- `DECIMAL_PLACES` – counts all digits, 99% of exchanges use this counting mode. With this mode of precision, the numbers in `market_or_currency['precision']` designate the number of decimal digits after the dot for further rounding or truncation.
+- `TICK_SIZE` – almost all exchanges use this counting mode . In this mode, the numbers in `market_or_currency['precision']` designate the minimal precision fractions (floats) for rounding or truncating.
 - `SIGNIFICANT_DIGITS` – counts non-zero digits only, some exchanges (`bitfinex` and maybe a few other) implement this mode of counting decimals. With this mode of precision, the numbers in `market_or_currency['precision']` designate the Nth place of the last significant (non-zero) decimal digit after the dot.
-- `TICK_SIZE` – some exchanges only allow a multiple of a specific value (`bitmex` uses this mode, for example). In this mode, the numbers in `market_or_currency['precision']` designate the minimal precision fractions (floats) for rounding or truncating.
+
+All exchanges in CCXT use `TICK_SIZE` precision, except `bitfinex, bithumb, bitvavo`. In case you are dealing with these exceptional exchanges, in precision values (e.g. `market['precision']['amount']`) you will get a digit e.g `3` instead of `0.001`. So, beware to handle that accordingly.
 
 #### Padding Mode
 
