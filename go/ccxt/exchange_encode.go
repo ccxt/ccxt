@@ -18,6 +18,10 @@ func (e *Exchange) base16ToBinary(str interface{}) []byte {
 	return bytes
 }
 
+func (e *Exchange) Base16ToBinary(str interface{}) []byte {
+	return e.base16ToBinary(str)
+}
+
 func convertHexStringToByteArray(hexString string) ([]byte, error) {
 	if len(hexString)%2 != 0 {
 		return nil, fmt.Errorf("the hex string must have an even number of characters")
@@ -44,7 +48,15 @@ func (e *Exchange) remove0xPrefix(str interface{}) string {
 	return s
 }
 
+func (e *Exchange) Remove0xPrefix(str interface{}) string {
+	return e.remove0xPrefix(str)
+}
+
 func (e *Exchange) stringToBase64(pt interface{}) string {
+	return stringToBase64(pt)
+}
+
+func (e *Exchange) StringToBase64(pt interface{}) string {
 	return stringToBase64(pt)
 }
 
@@ -54,6 +66,10 @@ func stringToBase64(pt interface{}) string {
 }
 
 func (e *Exchange) base64ToBinary(pt interface{}) []byte {
+	return base64ToBinary(pt)
+}
+
+func (e *Exchange) Base64ToBinary(pt interface{}) []byte {
 	return base64ToBinary(pt)
 }
 
@@ -70,6 +86,10 @@ func base64ToBinary(pt interface{}) []byte {
 func (e *Exchange) base58ToBinary(pt interface{}) []byte {
 	// return Base58.Decode(pt.(string))
 	return nil
+}
+
+func (e *Exchange) Base58ToBinary(pt interface{}) []byte {
+	return e.base58ToBinary(pt)
 }
 
 func (e *Exchange) BinaryConcat(a, b interface{}) []byte {
@@ -91,8 +111,16 @@ func (e *Exchange) binaryConcatArray(a interface{}) string {
 	return a.(string) // stub
 }
 
+func (e *Exchange) BinaryConcatArray(a interface{}) string {
+	return e.binaryConcatArray(a)
+}
+
 func (e *Exchange) numberToBE(n, padding interface{}) string {
 	return n.(string) // stub
+}
+
+func (e *Exchange) NumberToBE(n, padding interface{}) string {
+	return e.numberToBE(n, padding)
 }
 
 func BinaryToHex(buff []byte) string {

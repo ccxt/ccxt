@@ -26,11 +26,14 @@ func sha384() string    { return "sha384" }
 func Sha512() string    { return "sha512" }
 func sha512() string    { return "sha512" }
 func Md5() string       { return "md5" }
+func md5() string       { return "md5" }
 func Ed25519() string   { return "ed25519" }
 func ed25519() string   { return "ed25519" }
 func Keccak() string    { return "keccak" }
 func Secp256k1() string { return "secp256k1" }
 func P256() string      { return "p256" }
+func keccak() string    { return "keccak" }
+func secp256k1() string { return "secp256k1" }
 
 func (this *Exchange) Hmac(request2 interface{}, secret2 interface{}, algorithm2 func() string, args ...interface{}) string {
 	digest := GetArg(args, 0, "hex").(string)
@@ -143,6 +146,10 @@ func Hash(request2 interface{}, hash func() string, digest2 interface{}) interfa
 		return hex.EncodeToString(signature)
 	}
 	return base64.StdEncoding.EncodeToString(signature)
+}
+
+func (this *Exchange) Axolotl(a interface{}, b interface{}, c interface{}) string {
+	return ""
 }
 
 func signSHA256(data string) []byte {
