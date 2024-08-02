@@ -239,7 +239,8 @@ public partial class testMainClass : BaseTest
         {
             res = method.Invoke(exchange, argsWithExchange.ToArray());
             await ((Task)res);
-        } else
+        }
+        else
         {
             // if base tests
             res = method.Invoke(this, new object[] { });

@@ -1000,7 +1000,7 @@ class NewTranspiler {
     transpileWsOrderbookTestsToCSharp (outDir: string) {
 
         const jsFile = './ts/src/pro/test/base/test.OrderBook.ts';
-        const csharpFile = `${outDir}/Ws/Orderbook.cs`;
+        const csharpFile = `${outDir}/Ws/test.OrderBook.cs`;
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
 
@@ -1040,7 +1040,7 @@ class NewTranspiler {
     transpileWsCacheTestsToCSharp (outDir: string) {
 
         const jsFile = './ts/src/pro/test/base/test.Cache.ts';
-        const csharpFile = `${outDir}/Ws/Cache.cs`;
+        const csharpFile = `${outDir}/Ws/tests.Cache.cs`;
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
 

@@ -169,6 +169,7 @@ public partial class BaseTest
     {
         return Exchange.Json(a);
     }
+
     public object DeepEqual(object a, object b)
     {
         return isEqual(json(a), json(b));

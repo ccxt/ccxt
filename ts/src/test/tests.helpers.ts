@@ -187,9 +187,10 @@ function getTestFilesSync (properties, ws = false, isBaseTests = false) {
 }
 
 async function getTestFiles (properties, ws = false, isBaseTests = false) {
+    const path = ws ? DIR_NAME + '../pro/test/' : DIR_NAME;
     const tests = {};
     if (isBaseTests) {
-        const basePath = ws ? DIR_NAME + '../pro/test/base/' : DIR_NAME + '/base/';
+        const basePath = path + 'base/';
         const files = ioDirRead (basePath);
         for (let i = 0; i < files.length; i++) {
             const filename = files[i];
@@ -206,7 +207,6 @@ async function getTestFiles (properties, ws = false, isBaseTests = false) {
         tests['languageSpecific'] = await importTestFile (basePath + '/custom/test.languageSpecific');
         return tests;
     }
-    const path = ws ? DIR_NAME + '../pro/test/' : DIR_NAME;
     // exchange tests
     const finalPropList = properties.concat ([ proxyTestFileName ]);
     for (let i = 0; i < finalPropList.length; i++) {
