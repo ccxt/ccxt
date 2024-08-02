@@ -217,7 +217,7 @@ export default class hashkey extends Exchange {
                         'api/v1/spot/order': 1, // done
                         'api/v1/spot/openOrders': 5, // done
                         'api/v1/spot/cancelOrderByIds': 5, // done
-                        'api/v1/futures/order': 1,
+                        'api/v1/futures/order': 1, // done
                         'api/v1/futures/batchOrders': 1,
                         'api/v1/futures/cancelOrderByIds': 1,
                     },
@@ -2356,35 +2356,88 @@ export default class hashkey extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
          * @param {string} [params.clientOrderId] a unique id for the order that can be used as an alternative for the id
+         * @param {bool} [params.trigger] *swap markets only* true for canceling a trigger order (default false)
+         * @param {bool} [params.stop] *swap markets only* an alternative for trigger param
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        const methodName = 'cancelOrder';
+        this.checkTypeParam (methodName, params);
         await this.loadMarkets ();
         const request: Dict = {};
         if (id !== undefined) {
             request['orderId'] = id;
         } else {
             const clientOrderId = this.safeString (params, 'clientOrderId');
-            params = this.omit (params, 'clientOrderId');
-            request['clientOrderId'] = clientOrderId;
+            if (clientOrderId === undefined) {
+                throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires an id argument or clientOrderId parameter');
+            }
         }
-        const response = await this.privateDeleteApiV1SpotOrder (this.extend (request, params));
-        //
-        //     {
-        //         "accountId": "1732885739589466112",
-        //         "symbol": "ETHUSDT",
-        //         "clientOrderId": "1722006209978370",
-        //         "orderId": "1738708541676585728",
-        //         "transactTime": "1722006209989",
-        //         "price": "5000",
-        //         "origQty": "0.005",
-        //         "executedQty": "0",
-        //         "status": "NEW",
-        //         "timeInForce": "GTC",
-        //         "type": "LIMIT_MAKER",
-        //         "side": "SELL"
-        //     }
-        //
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let marketType = 'spot';
+        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
+        let response = undefined;
+        if (marketType === 'spot') {
+            response = await this.privateDeleteApiV1SpotOrder (this.extend (request, params));
+            //
+            //     {
+            //         "accountId": "1732885739589466112",
+            //         "symbol": "ETHUSDT",
+            //         "clientOrderId": "1722006209978370",
+            //         "orderId": "1738708541676585728",
+            //         "transactTime": "1722006209989",
+            //         "price": "5000",
+            //         "origQty": "0.005",
+            //         "executedQty": "0",
+            //         "status": "NEW",
+            //         "timeInForce": "GTC",
+            //         "type": "LIMIT_MAKER",
+            //         "side": "SELL"
+            //     }
+            //
+        } else if (marketType === 'swap') {
+            let trigger = false;
+            [ trigger, params ] = this.handleOptionAndParams (params, methodName, 'trigger');
+            [ trigger, params ] = this.handleOptionAndParams (params, methodName, 'stop', trigger);
+            if (trigger) {
+                request['type'] = 'STOP';
+            } else {
+                request['type'] = 'LIMIT';
+            }
+            if (market !== undefined) {
+                request['symbol'] = market['id'];
+            }
+            response = await this.privateDeleteApiV1FuturesOrder (this.extend (request, params));
+            //
+            //     {
+            //         "time": "1722432302919",
+            //         "updateTime": "1722432302925",
+            //         "orderId": "1742282868229463040",
+            //         "clientOrderId": "1722432301670",
+            //         "symbol": "ETHUSDT-PERPETUAL",
+            //         "price": "4000",
+            //         "leverage": "5",
+            //         "origQty": "10",
+            //         "executedQty": "0",
+            //         "avgPrice": "0",
+            //         "marginLocked": "0",
+            //         "type": "LIMIT_MAKER",
+            //         "side": "SELL_CLOSE",
+            //         "timeInForce": "GTC",
+            //         "status": "NEW",
+            //         "priceType": "INPUT",
+            //         "isLiquidationOrder": false,
+            //         "indexPrice": "0",
+            //         "liquidationType": ""
+            //     }
+            //
+        } else {
+            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
+        }
         return this.parseOrder (response);
     }
 
