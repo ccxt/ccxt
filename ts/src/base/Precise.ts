@@ -186,6 +186,12 @@ class Precise {
         if ((string1 === undefined) || (string2 === undefined)) {
             return undefined;
         }
+        if (string1.startsWith ('0.') || string2.startsWith ('0.')) {
+            if (string1.length > 18 || string2.length > 18) {
+                const smallestNumber = Math.max (string1.length, string2.length);
+                precision = Math.min (smallestNumber, 28);
+            }
+        }
         const string2Precise = new Precise (string2);
         if (string2Precise.integer === zero) {
             return undefined;
