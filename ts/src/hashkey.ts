@@ -110,7 +110,7 @@ export default class hashkey extends Exchange {
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'sandbox': false,
-                'setLeverage': false,
+                'setLeverage': true,
                 'setMargin': false,
                 'setPositionMode': false,
                 'transfer': true,
@@ -205,7 +205,7 @@ export default class hashkey extends Exchange {
                         'api/v1/spot/order': 1, // done
                         'api/v1.1/spot/order': 1, // done
                         'api/v1/spot/batchOrders': 5, // todo implement
-                        'api/v1/futures/leverage': 1,
+                        'api/v1/futures/leverage': 1, // done
                         'api/v1/futures/order': 1, // done
                         'api/v1/futures/position/trading-stop': 1,
                         'api/v1/futures/batchOrders': 1,
@@ -3478,15 +3478,55 @@ export default class hashkey extends Exchange {
     }
 
     parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
-        const marginMode = this.safeString (leverage, 'marginType');
+        let marginMode = this.safeString (leverage, 'marginType');
+        if (marginMode !== undefined) {
+            marginMode = marginMode.toLowerCase ();
+        }
         const leverageValue = this.safeNumber (leverage, 'leverage');
         return {
             'info': leverage,
             'symbol': market['symbol'],
-            'marginMode': marginMode.toLowerCase (),
+            'marginMode': marginMode,
             'longLeverage': leverageValue,
-            'shortLeverage': undefined,
+            'shortLeverage': leverageValue,
         } as Leverage;
+    }
+
+    async setLeverage (leverage: Int, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name hashkey#setLeverage
+         * @description set the level of leverage for a market
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/change-futures-leverage-trade
+         * @param {float} leverage the rate of leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.recvWindow] the time window for the request
+         * @returns {object} response from the exchange
+         */
+        await this.loadMarkets ();
+        const request: Dict = {
+            'leverage': leverage,
+        };
+        const market = this.market (symbol);
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        request['symbol'] = market['id'];
+        let recvWindow: Int = undefined;
+        [ recvWindow, params ] = this.handleOptionAndParams (params, 'setLeverage', 'recvWindow');
+        if (recvWindow !== undefined) {
+            request['recvWindow'] = recvWindow;
+        }
+        const response = await this.privatePostApiV1FuturesLeverage (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0000",
+        //         "symbolId": "ETHUSDT-PERPETUAL",
+        //         "leverage": "3"
+        //     }
+        //
+        return this.parseLeverage (response, market);
     }
 
     async fetchLeverageTiers (symbols: Strings = undefined, params = {}): Promise<LeverageTiers> {
