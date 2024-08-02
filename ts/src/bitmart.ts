@@ -995,50 +995,87 @@ export default class bitmart extends Exchange {
          * @method
          * @name bitmart#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://developer-pro.bitmart.com/en/spot/#get-currency-list-v1
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.publicGetSpotV1Currencies (params);
+        const response = await this.publicGetAccountV1Currencies (params);
         //
-        //     {
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"8c768b3c-025f-413f-bec5-6d6411d46883",
-        //         "data":{
-        //             "currencies":[
-        //                 {"currency":"MATIC","name":"Matic Network","withdraw_enabled":true,"deposit_enabled":true},
-        //                 {"currency":"KTN","name":"Kasoutuuka News","withdraw_enabled":true,"deposit_enabled":false},
-        //                 {"currency":"BRT","name":"Berith","withdraw_enabled":true,"deposit_enabled":true},
-        //             ]
-        //         }
-        //     }
+        //    {
+        //        message: 'OK',
+        //        code: '1000',
+        //        trace: '5534867fdee4403aba27b34c6922da0f.123.17225867075010273',
+        //        data: {
+        //            currencies: [
+        //                {
+        //                    currency: 'GGT',
+        //                    name: 'Grape Governance Token',
+        //                    contract_address: '0x39B0E13A29c2A27ce88ceBD21262A232b0633613',
+        //                    network: 'ERC20',
+        //                    withdraw_enabled: true,
+        //                    deposit_enabled: true,
+        //                    withdraw_minsize: '42',
+        //                    withdraw_minfee: '4.18'
+        //                },
+        //                ...
+        //            ]
+        //        }
+        //    }
         //
-        const data = this.safeValue (response, 'data', {});
-        const currencies = this.safeValue (data, 'currencies', []);
+        const data = this.safeDict (response, 'data', {});
+        const currencies = this.safeList (data, 'currencies', []);
         const result: Dict = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
-            const id = this.safeString (currency, 'id');
+            const id = this.safeString (currency, 'currency');
             const code = this.safeCurrencyCode (id);
-            const name = this.safeString (currency, 'name');
             const withdrawEnabled = this.safeValue (currency, 'withdraw_enabled');
             const depositEnabled = this.safeValue (currency, 'deposit_enabled');
+            const networkId = this.safeString (currency, 'network');
             const active = withdrawEnabled && depositEnabled;
-            result[code] = {
+            const fee = this.safeNumber (currency, 'withdraw_minfee');
+            const minWithdraw = this.safeNumber (currency, 'withdraw_minsize');
+            result[code] = this.safeCurrencyStructure ({
+                'info': currency, // the original payload
                 'id': id,
                 'code': code,
-                'name': name,
-                'info': currency, // the original payload
+                'name': this.safeString (currency, 'name'),
                 'active': active,
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
-                'fee': undefined,
+                'fee': fee,
+                'fees': undefined,
                 'precision': undefined,
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
-                    'withdraw': { 'min': undefined, 'max': undefined },
+                    'withdraw': {
+                        'min': minWithdraw,
+                        'max': undefined,
+                    },
                 },
-            };
+                'networks': [
+                    {
+                        'info': undefined,
+                        'id': networkId,
+                        'network': this.networkIdToCode (networkId),
+                        'active': active,
+                        'deposit': depositEnabled,
+                        'withdraw': withdrawEnabled,
+                        'fee': fee,
+                        'precision': undefined,
+                        'limits': {
+                            'withdraw': {
+                                'min': minWithdraw,
+                                'max': undefined,
+                            },
+                            'deposit': {
+                                'min': undefined,
+                                'max': undefined,
+                            },
+                        },
+                    },
+                ],
+            });
         }
         return result;
     }

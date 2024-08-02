@@ -628,6 +628,14 @@
                     "BTC/USDT:USDT"
                 ]
             }
+        ],
+        "fetchCurrencies": [
+            {
+                "description": "Fetch Currencies",
+                "method": "fetchCurrencies",
+                "url": "https://api-cloud.bitmart.com/account/v1/currencies",
+                "input": []
+            }
         ]
     }
 }
