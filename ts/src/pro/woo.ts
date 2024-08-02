@@ -95,12 +95,14 @@ export default class woo extends wooRest {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return.
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.method] either (default) 'orderbook' or 'orderbookupdate'
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const name = 'orderbookupdate';
+        const defaultMethod = 'orderbook';
+        const method = this.safeString (params, 'method', defaultMethod);
         const market = this.market (symbol);
-        const topic = market['id'] + '@' + name;
+        const topic = market['id'] + '@' + method;
         const urlUid = (this.uid) ? '/' + this.uid : '';
         const url = this.urls['api']['ws']['public'] + urlUid;
         const requestId = this.requestId (url);
@@ -111,12 +113,14 @@ export default class woo extends wooRest {
         };
         const subscription: Dict = {
             'id': requestId.toString (),
-            'name': name,
+            'name': method,
             'symbol': symbol,
-            'method': this.handleOrderBookSubscription,
             'limit': limit,
             'params': params,
         };
+        if (method === 'orderbookupdate') {
+            subscription['method'] = this.handleOrderBookSubscription;
+        }
         const orderbook = await this.watch (url, topic, this.extend (request, params), topic, subscription);
         return orderbook.limit ();
     }
@@ -149,25 +153,40 @@ export default class woo extends wooRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const topic = this.safeString (message, 'topic');
-        if (!(symbol in this.orderbooks)) {
-            return;
-        }
-        const orderbook = this.orderbooks[symbol];
-        const timestamp = this.safeInteger (orderbook, 'timestamp');
-        if (timestamp === undefined) {
-            orderbook.cache.push (message);
-        } else {
-            try {
-                const ts = this.safeInteger (message, 'ts');
-                if (ts > timestamp) {
-                    this.handleOrderBookMessage (client, message, orderbook);
-                    client.resolve (orderbook, topic);
-                }
-            } catch (e) {
-                delete this.orderbooks[symbol];
-                delete client.subscriptions[topic];
-                client.reject (e, topic);
+        const method = this.safeString (topic.split ('@'), 1);
+        if (method === 'orderbookupdate') {
+            if (!(symbol in this.orderbooks)) {
+                return;
             }
+            const orderbook = this.orderbooks[symbol];
+            const timestamp = this.safeInteger (orderbook, 'timestamp');
+            if (timestamp === undefined) {
+                orderbook.cache.push (message);
+            } else {
+                try {
+                    const ts = this.safeInteger (message, 'ts');
+                    if (ts > timestamp) {
+                        this.handleOrderBookMessage (client, message, orderbook);
+                        client.resolve (orderbook, topic);
+                    }
+                } catch (e) {
+                    delete this.orderbooks[symbol];
+                    delete client.subscriptions[topic];
+                    client.reject (e, topic);
+                }
+            }
+        } else {
+            if (!(symbol in this.orderbooks)) {
+                const defaultLimit = this.safeInteger (this.options, 'watchOrderBookLimit', 1000);
+                const subscription = client.subscriptions[topic];
+                const limit = this.safeInteger (subscription, 'limit', defaultLimit);
+                this.orderbooks[symbol] = this.orderBook ({}, limit);
+            }
+            const orderbook = this.orderbooks[symbol];
+            const timestamp = this.safeInteger (message, 'ts');
+            const snapshot = this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks');
+            orderbook.reset (snapshot);
+            client.resolve (orderbook, topic);
         }
     }
 
@@ -1177,6 +1196,7 @@ export default class woo extends wooRest {
             'ping': this.handlePing,
             'pong': this.handlePong,
             'subscribe': this.handleSubscribe,
+            'orderbook': this.handleOrderBook,
             'orderbookupdate': this.handleOrderBook,
             'ticker': this.handleTicker,
             'tickers': this.handleTickers,
