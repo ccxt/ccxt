@@ -217,7 +217,7 @@ class Precise:
         # for a more detailed explanation of this change
         # basically some exchanges like mexc, have markets with really low prices
         # and the default precision of 18 is not enough to handle the division
-        if "." in string1 or "." in string2:
+        if string1.startswith("0.") or string2.startswith("0."):
             decimal_cases_1 = Precise.get_decimal_count(string1)
             decimal_cases_2 = Precise.get_decimal_count(string2)
             if (decimal_cases_1 > precision or decimal_cases_2 > precision):
