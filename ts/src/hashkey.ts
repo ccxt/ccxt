@@ -175,7 +175,7 @@ export default class hashkey extends Exchange {
                         'api/v1/futures/leverage': 1,
                         'api/v1/futures/order': 1, // done
                         'api/v1/futures/openOrders': 1, // done
-                        'api/v1/futures/userTrades': 1,
+                        'api/v1/futures/userTrades': 1, // done
                         'api/v1/futures/positions': 1, // done
                         'api/v1/futures/historyOrders': 1, // done
                         'api/v1/futures/balance': 1, // update fetchBalance
@@ -978,85 +978,122 @@ export default class hashkey extends Exchange {
          * @name hashkey#fetchMyTrades
          * @description fetch all trades made by the user
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-account-trade-list
-         * @param {string} symbol unified market symbol
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/query-futures-trades
+         * @param {string} symbol *is mandatory for swap markets* unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum amount of trades to fetch (default 200, max 500)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch trades for (default 'spot')
          * @param {int} [params.until] the latest time in ms to fetch trades for, only supports the last 30 days timeframe
-         * @param {string} [params.clientOrderId] filter trades by orderId
-         * @param {int} [params.fromId] srarting trade id
-         * @param {int} [params.toId] ending trade id
-         * @param {int} [params.accountId] filter trades by account id
+         * @param {string} [params.fromId] srarting trade id
+         * @param {string} [params.toId] ending trade id
+         * @param {string} [params.clientOrderId] *spot markets only* filter trades by orderId
+         * @param {string} [params.accountId] *spot markets only* filter trades by account id
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
+        const methodName = 'fetchMyTrades';
         await this.loadMarkets ();
         const request: Dict = {};
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['symbol'] = market['id'];
         }
+        let marketType = 'spot';
+        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params);
         if (since !== undefined) {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger (params, 'until');
+        let until: Int = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
-            params = this.omit (params, 'until');
         }
-        let clientOrderId: Str = undefined;
-        [ clientOrderId, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['clientOrderId'] = clientOrderId;
-        }
-        let fromId: Int = undefined;
-        [ fromId, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'fromId');
+        let fromId: Str = undefined;
+        [ fromId, params ] = this.handleOptionAndParams (params, methodName, 'fromId');
         if (fromId !== undefined) {
-            request['fromId'] = clientOrderId;
+            request['fromId'] = fromId;
         }
-        let toId: Int = undefined;
-        [ toId, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'toId');
+        let toId: Str = undefined;
+        [ toId, params ] = this.handleOptionAndParams (params, methodName, 'toId');
         if (toId !== undefined) {
-            request['toId'] = clientOrderId;
+            request['toId'] = toId;
         }
-        let accountId: Int = undefined;
-        [ accountId, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'accountId');
-        if (accountId !== undefined) {
-            request['accountId'] = clientOrderId;
+        let response = undefined;
+        if (marketType === 'spot') {
+            if (market !== undefined) {
+                request['symbol'] = market['id'];
+            }
+            let clientOrderId: Str = undefined;
+            [ clientOrderId, params ] = this.handleOptionAndParams (params, methodName, 'clientOrderId');
+            if (clientOrderId !== undefined) {
+                request['clientOrderId'] = clientOrderId;
+            }
+            let accountId: Str = undefined;
+            [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
+            if (accountId !== undefined) {
+                request['accountId'] = clientOrderId;
+            }
+            response = await this.privateGetApiV1AccountTrades (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "id": "1739352552862964736",
+            //             "clientOrderId": "1722082982086472",
+            //             "ticketId": "1739352552795029504",
+            //             "symbol": "ETHUSDT",
+            //             "symbolName": "ETHUSDT",
+            //             "orderId": "1739352552762301440",
+            //             "matchOrderId": "0",
+            //             "price": "3289.96",
+            //             "qty": "0.001",
+            //             "commission": "0.0000012",
+            //             "commissionAsset": "ETH",
+            //             "time": "1722082982097",
+            //             "isBuyer": true,
+            //             "isMaker": false,
+            //             "fee": {
+            //                 "feeCoinId": "ETH",
+            //                 "feeCoinName": "ETH",
+            //                 "fee": "0.0000012"
+            //             },
+            //             "feeCoinId": "ETH",
+            //             "feeAmount": "0.0000012",
+            //             "makerRebate": "0"
+            //         },
+            //         ...
+            //     ]
+            //
+        } else if (marketType === 'swap') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a symbol argument for swap markets');
+            }
+            request['symbol'] = market['id'];
+            response = await this.privateGetApiV1FuturesUserTrades (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "time": "1722429951648",
+            //             "tradeId": "1742263144691139328",
+            //             "orderId": "1742263144028363776",
+            //             "symbol": "ETHUSDT-PERPETUAL",
+            //             "price": "3327.54",
+            //             "quantity": "4",
+            //             "commissionAsset": "USDT",
+            //             "commission": "0.00798609",
+            //             "makerRebate": "0",
+            //             "type": "LIMIT",
+            //             "side": "BUY_OPEN",
+            //             "realizedPnl": "0",
+            //             "isMarker": false
+            //         }
+            //     ]
+            //
+        } else {
+            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
-        const response = await this.privateGetApiV1AccountTrades (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "id": "1739352552862964736",
-        //             "clientOrderId": "1722082982086472",
-        //             "ticketId": "1739352552795029504",
-        //             "symbol": "ETHUSDT",
-        //             "symbolName": "ETHUSDT",
-        //             "orderId": "1739352552762301440",
-        //             "matchOrderId": "0",
-        //             "price": "3289.96",
-        //             "qty": "0.001",
-        //             "commission": "0.0000012",
-        //             "commissionAsset": "ETH",
-        //             "time": "1722082982097",
-        //             "isBuyer": true,
-        //             "isMaker": false,
-        //             "fee": {
-        //                 "feeCoinId": "ETH",
-        //                 "feeCoinName": "ETH",
-        //                 "fee": "0.0000012"
-        //             },
-        //             "feeCoinId": "ETH",
-        //             "feeAmount": "0.0000012",
-        //             "makerRebate": "0"
-        //         },
-        //         ...
-        //     ]
-        //
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -1071,7 +1108,7 @@ export default class hashkey extends Exchange {
         //         "ibm": true
         //     }
         //
-        // fetchMyTrades
+        // fetchMyTrades spot
         //
         //     {
         //         "id": "1739352552862964736",
@@ -1098,30 +1135,57 @@ export default class hashkey extends Exchange {
         //         "makerRebate": "0"
         //     }
         //
-        const id = this.safeString (trade, 'id');
+        // fetchMyTrades swap
+        //     {
+        //         "time": "1722429951648",
+        //         "tradeId": "1742263144691139328",
+        //         "orderId": "1742263144028363776",
+        //         "symbol": "ETHUSDT-PERPETUAL",
+        //         "price": "3327.54",
+        //         "quantity": "4",
+        //         "commissionAsset": "USDT",
+        //         "commission": "0.00798609",
+        //         "makerRebate": "0",
+        //         "type": "LIMIT",
+        //         "side": "BUY_OPEN",
+        //         "realizedPnl": "0",
+        //         "isMarker": false // todo report
+        //     }
         const timestamp = this.safeInteger2 (trade, 't', 'time');
-        const symbol = this.safeString (market, 'symbol');
-        const price = this.safeString2 (trade, 'p', 'price');
-        const amount = this.safeString2 (trade, 'q', 'qty');
-        let side = undefined;
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
+        let side = this.safeStringLower (trade, 'side'); // swap trades have side param
+        if (side !== undefined) {
+            side = this.safeString (side.split ('_'), 0);
+        }
         const isBuyer = this.safeBool (trade, 'isBuyer');
-        side = isBuyer ? 'buy' : 'sell';
+        if (isBuyer !== undefined) {
+            side = isBuyer ? 'buy' : 'sell';
+        }
         let takerOrMaker = undefined;
-        const isMaker = this.safeBool (trade, 'isMaker');
-        takerOrMaker = isMaker ? 'maker' : 'taker';
-        const feeInfo = this.safeDict (trade, 'fee', {});
+        const isMaker = this.safeBool2 (trade, 'isMaker', 'isMarker');
+        if (isMaker !== undefined) {
+            takerOrMaker = isMaker ? 'maker' : 'taker';
+        }
+        let feeCost = this.safeString (trade, 'commission');
+        let feeCurrncyId = this.safeString (trade, 'commissionAsset');
+        const feeInfo = this.safeDict (trade, 'fee');
+        if (feeInfo !== undefined) {
+            feeCost = this.safeString (feeInfo, 'fee');
+            feeCurrncyId = this.safeString (feeInfo, 'feeCoinId');
+        }
         const fee = {
-            'cost': this.safeString (feeInfo, 'fee'),
-            'currency': this.safeCurrencyCode (this.safeString (feeInfo, 'feeCoinId')),
+            'cost': feeCost,
+            'currency': this.safeCurrencyCode (feeCurrncyId),
         };
         return this.safeTrade ({
-            'id': id,
+            'id': this.safeString2 (trade, 'id', 'tradeId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'side': side,
-            'price': price,
-            'amount': amount,
+            'price': this.safeString2 (trade, 'p', 'price'),
+            'amount': this.safeStringN (trade, [ 'q', 'qty', 'quantity' ]),
             'cost': undefined,
             'takerOrMaker': takerOrMaker,
             'type': undefined,
@@ -1145,6 +1209,7 @@ export default class hashkey extends Exchange {
          * @param {int} [params.until] timestamp in ms of the latest candle to fetch
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
+        const methodName = 'fetchOHLCV';
         await this.loadMarkets ();
         const market = this.market (symbol);
         timeframe = this.safeString (this.timeframes, timeframe, timeframe);
@@ -1158,10 +1223,10 @@ export default class hashkey extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger (params, 'until');
+        let until: Int = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
-            params = this.omit (params, 'until');
         }
         const response = await this.publicGetQuoteV1Klines (this.extend (request, params));
         //
@@ -1502,6 +1567,7 @@ export default class hashkey extends Exchange {
          * @param {int} [params.fromId] starting ID (To be released)
          * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
+        const methodName = 'fetchDeposits';
         await this.loadMarkets ();
         const request: Dict = {};
         let currency: Currency = undefined;
@@ -1515,13 +1581,13 @@ export default class hashkey extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger (params, 'until');
+        let until: Int = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
-            params = this.omit (params, 'until');
         }
         let fromId: Str = undefined;
-        [ fromId, params ] = this.handleOptionAndParams (params, 'fetchDeposits', 'fromId');
+        [ fromId, params ] = this.handleOptionAndParams (params, methodName, 'fromId');
         if (fromId !== undefined) {
             request['fromId'] = fromId;
         }
@@ -1556,6 +1622,7 @@ export default class hashkey extends Exchange {
          * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
+        const methodName = 'fetchWithdrawals';
         await this.loadMarkets ();
         const request: Dict = {};
         let currency: Currency = undefined;
@@ -1569,10 +1636,10 @@ export default class hashkey extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const until = this.safeInteger (params, 'until');
+        let until: Int = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
-            params = this.omit (params, 'until');
         }
         const response = await this.privateGetApiV1AccountWithdrawOrders (this.extend (request, params));
         //
@@ -1891,19 +1958,20 @@ export default class hashkey extends Exchange {
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         const methodName = 'fetchLedger';
+        if (since === undefined) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a since argument');
+        }
+        let until: Int = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
+        if (until === undefined) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires an until argument');
+        }
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {};
-        if (since === undefined) {
-            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a since argument to fetch the ledger');
-        }
         request['startTime'] = since;
         if (limit !== undefined) {
             request['limit'] = limit;
-        }
-        const until = this.safeInteger (params, 'until');
-        if (until === undefined) {
-            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires an until argument to fetch the ledger');
         }
         request['endTime'] = until;
         let flowType = undefined;
@@ -2454,10 +2522,10 @@ export default class hashkey extends Exchange {
             if (clientOrderId !== undefined) {
                 request['clientOrderId'] = clientOrderId;
             }
-            let isTrigger = false;
-            [ isTrigger, params ] = this.handleOptionAndParams (params, methodName, 'trigger');
-            [ isTrigger, params ] = this.handleOptionAndParams (params, methodName, 'stop', isTrigger);
-            if (isTrigger) {
+            let trigger = false;
+            [ trigger, params ] = this.handleOptionAndParams (params, methodName, 'trigger');
+            [ trigger, params ] = this.handleOptionAndParams (params, methodName, 'stop', trigger);
+            if (trigger) {
                 request['type'] = 'STOP'; // todo report type is not mandatory
             }
             response = await this.privateGetApiV1FuturesOrder (this.extend (request, params));
@@ -2622,10 +2690,10 @@ export default class hashkey extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let isTrigger = false;
-        [ isTrigger, params ] = this.handleOptionAndParams (params, methodName, 'trigger');
-        [ isTrigger, params ] = this.handleOptionAndParams (params, methodName, 'stop', isTrigger);
-        if (isTrigger) {
+        let trigger = false;
+        [ trigger, params ] = this.handleOptionAndParams (params, methodName, 'trigger');
+        [ trigger, params ] = this.handleOptionAndParams (params, methodName, 'stop', trigger);
+        if (trigger) {
             request['type'] = 'STOP';
         } else {
             request['type'] = 'LIMIT';
@@ -2691,7 +2759,8 @@ export default class hashkey extends Exchange {
          * @name hashkey#fetchCanceledAndClosedOrders
          * @description fetches information on multiple canceled and closed orders made by the user
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-all-orders
-         * @param {string} symbol unified market symbol of the market orders were made in
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/query-futures-history-orders
+         * @param {string} symbol *is mandatory for swap markets* unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve - default 500, maximum 1000
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2727,7 +2796,7 @@ export default class hashkey extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
         let response = undefined;
         if (marketType === 'spot') {
-            if (symbol !== undefined) {
+            if (market !== undefined) {
                 request['symbol'] = market['id']; // todo: report - symbol is not mandatory for spot markets
             }
             let orderId: Str = undefined;
@@ -2771,11 +2840,14 @@ export default class hashkey extends Exchange {
             //     ]
             //
         } else if (marketType === 'swap') {
+            if (symbol === undefined) {
+                throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a symbol argument for swap markets');
+            }
             request['symbol'] = market['id'];
-            let isTrigger = false;
-            [ isTrigger, params ] = this.handleOptionAndParams (params, methodName, 'trigger');
-            [ isTrigger, params ] = this.handleOptionAndParams (params, methodName, 'stop', isTrigger);
-            if (isTrigger) {
+            let trigger = false;
+            [ trigger, params ] = this.handleOptionAndParams (params, methodName, 'trigger');
+            [ trigger, params ] = this.handleOptionAndParams (params, methodName, 'stop', trigger);
+            if (trigger) {
                 request['type'] = 'STOP';
             } else {
                 request['type'] = 'LIMIT';
