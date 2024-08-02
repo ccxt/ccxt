@@ -198,7 +198,7 @@ class Precise:
         if string1 is None or string2 is None:
             return None
         return str(Precise(string1).mul(Precise(string2)))
-    
+
 
     @staticmethod
     def get_decimal_count(number):
