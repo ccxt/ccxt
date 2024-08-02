@@ -169,10 +169,28 @@ class Precise {
         return strval((new Precise($string1))->mul(new Precise($string2)));
     }
 
+    public static function get_decimal_count($string) {
+        if ($string === null) {
+            return 0;
+        }
+        $decimalIndex = strpos($string, '.');
+        return ($decimalIndex > -1) ? strlen($string) - $decimalIndex - 1 : 0;
+    }
+
     public static function string_div($string1, $string2, $precision = 18) {
         if (($string1 === null) || ($string2 === null)) {
             return null;
         }
+
+        if (strpos($string1, '0.') == 0 || strpos($string2, '.0') == 0) {
+            $decimal_cases_1 = Precise::get_decimal_count($string1);
+            $decimal_cases_2 = Precise::get_decimal_count($string2);
+            if ($decimal_cases_1 > $precision || $decimal_cases_2 > $precision) {
+                $smallest_number = max($decimal_cases_1, $decimal_cases_2);
+                $precision = min($smallest_number, 28);
+            }
+        }
+
         $string2_precise = new Precise($string2);
         if (gmp_cmp($string2_precise->integer, '0') === 0) {
             return null;
