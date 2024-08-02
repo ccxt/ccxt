@@ -1,3 +1,4 @@
+import { get } from 'http';
 import { Str, Int } from './types';
 
 const zero = BigInt (0);
@@ -147,6 +148,16 @@ class Precise {
         return (this.decimals === other.decimals) && (this.integer === other.integer);
     }
 
+    static getDecimalCount (number: Str) {
+        if (number === undefined) {
+            return 0;
+        }
+        if (number.indexOf ('.') > -1) {
+            return number.split ('.')[1].length;
+        }
+        return 0;
+    }
+
     toString () {
         this.reduce ();
         let sign;
@@ -187,8 +198,10 @@ class Precise {
             return undefined;
         }
         if (string1.startsWith ('0.') || string2.startsWith ('0.')) {
-            if (string1.length > 18 || string2.length > 18) {
-                const smallestNumber = Math.max (string1.length, string2.length);
+            const decimalCasesString1 = Precise.getDecimalCount (string1);
+            const decimalCasesString2 = Precise.getDecimalCount (string2);
+            if (decimalCasesString1 > precision || decimalCasesString2 > precision) {
+                const smallestNumber = Math.max (decimalCasesString1, decimalCasesString2);
                 precision = Math.min (smallestNumber, 28);
             }
         }
