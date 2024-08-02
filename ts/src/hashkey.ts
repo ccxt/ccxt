@@ -2454,7 +2454,7 @@ export default class hashkey extends Exchange {
          * @param {string} [params.side] 'buy' or 'sell'
          * @returns {object} response from exchange
          */
-        // Does not cancel trigger orders. For canceling trigger order use cancelOrder
+        // Does not cancel trigger orders. For canceling trigger order use cancelOrder() or cancelOrders()
         const methodName = 'cancelAllOrders';
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a symbol argument');
@@ -2481,31 +2481,46 @@ export default class hashkey extends Exchange {
         }
     }
 
-    async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
+    async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
         /**
          * @method
          * @name hashkey#cancelOrders
          * @description cancel multiple orders
          * @see https://hashkeyglobal-apidoc.readme.io/reference/cancel-multiple-orders
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/batch-cancel-futures-order-by-order-id
          * @param {string[]} ids order ids
          * @param {string} [symbol] unified market symbol (not used by hashkey)
+         * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        const methodName = 'cancelOrders';
         await this.loadMarkets ();
         const request = {};
-        let orders = '';
+        let orderIds = '';
         for (let i = 0; i < ids.length; i++) {
-            orders += this.safeString (ids, i) + ','; // todo comma is url encoded
+            orderIds += this.safeString (ids, i) + ','; // todo comma is url encoded
         }
-        orders = orders.slice (0, -1);
-        request['ids'] = orders;
-        //
-        //     {
-        //         "code": "0000",
-        //         "result": []
-        //     }
-        //
-        return await this.privateDeleteApiV1SpotCancelOrderByIds (this.extend (request));
+        orderIds = orderIds.slice (0, -1);
+        request['ids'] = orderIds;
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let marketType = 'spot';
+        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
+        if (marketType === 'spot') {
+            return await this.privateDeleteApiV1SpotCancelOrderByIds (this.extend (request));
+            //
+            //     {
+            //         "code": "0000",
+            //         "result": []
+            //     }
+            //
+        } else if (marketType === 'swap') {
+            return await this.privateDeleteApiV1FuturesCancelOrderByIds (this.extend (request));
+        } else {
+            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
+        }
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
