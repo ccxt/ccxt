@@ -197,6 +197,10 @@ class Precise {
         if ((string1 === undefined) || (string2 === undefined)) {
             return undefined;
         }
+        // check https://github.com/ccxt/ccxt/pull/23208
+        // for a more detailed explanation of this change
+        // basically some exchanges like mexc, have markets with really low prices
+        // and the default precision of 18 is not enough to handle the division
         if (string1.startsWith ('0.') || string2.startsWith ('0.')) {
             const decimalCasesString1 = Precise.getDecimalCount (string1);
             const decimalCasesString2 = Precise.getDecimalCount (string2);
