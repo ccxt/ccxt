@@ -218,7 +218,7 @@ export default class hashkey extends Exchange {
                         'api/v1/spot/openOrders': 5, // done
                         'api/v1/spot/cancelOrderByIds': 5, // done
                         'api/v1/futures/order': 1, // done
-                        'api/v1/futures/batchOrders': 1,
+                        'api/v1/futures/batchOrders': 1, // done
                         'api/v1/futures/cancelOrderByIds': 1,
                     },
                 },
@@ -1975,12 +1975,12 @@ export default class hashkey extends Exchange {
         }
         request['endTime'] = until;
         let flowType = undefined;
-        [ flowType, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'flowType');
+        [ flowType, params ] = this.handleOptionAndParams (params, methodName, 'flowType');
         if (flowType !== undefined) {
             request['flowType'] = this.encodeFlowType (flowType);
         }
         let accountType = undefined;
-        [ accountType, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'accountType');
+        [ accountType, params ] = this.handleOptionAndParams (params, methodName, 'accountType');
         if (accountType !== undefined) {
             request['accountType'] = this.encodeAccountType (accountType);
         }
@@ -2353,6 +2353,7 @@ export default class hashkey extends Exchange {
          * @name hashkey#cancelOrder
          * @description cancels an open order
          * @see https://hashkeyglobal-apidoc.readme.io/reference/cancel-order
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/cancel-futures-order
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2447,13 +2448,16 @@ export default class hashkey extends Exchange {
          * @name hashkey#cancelAllOrders
          * @description cancel all open orders
          * @see https://hashkeyglobal-apidoc.readme.io/reference/cancel-all-open-orders
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/batch-cancel-futures-order
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.side] 'buy' or 'sell'
          * @returns {object} response from exchange
          */
+        // Does not cancel trigger orders. For canceling trigger order use cancelOrder
+        const methodName = 'cancelAllOrders';
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -2465,10 +2469,16 @@ export default class hashkey extends Exchange {
         if (side !== undefined) {
             request['side'] = side;
         }
-        //
-        //     { "success": true }
-        //
-        return await this.privateDeleteApiV1SpotOpenOrders (this.extend (request, params));
+        if (market['spot']) {
+            return await this.privateDeleteApiV1SpotOpenOrders (this.extend (request, params));
+            //
+            //     { "success": true }
+            //
+        } else if (market['swap']) {
+            return await this.privateDeleteApiV1SpotOpenOrders (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + market['type'] + ' type of markets');
+        }
     }
 
     async cancelOrders (ids:string[], symbol: Str = undefined, params = {}) {
