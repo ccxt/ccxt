@@ -26,6 +26,10 @@ func (this *Exchange) Uuid() string {
 	return this.Uuid2()
 }
 
+func (this *Exchange) Uuidv1() string {
+	return u.New().String()
+}
+
 // uuid16 returns the first 16 characters of a UUID without dashes.
 func (this *Exchange) Uuid16() string {
 	return this.BaseUID()[:16]

@@ -22,7 +22,9 @@ func Sha1() string      { return "sha1" }
 func Sha256() string    { return "sha256" }
 func sha256() string    { return "sha256" }
 func Sha384() string    { return "sha384" }
+func sha384() string    { return "sha384" }
 func Sha512() string    { return "sha512" }
+func sha512() string    { return "sha512" }
 func Md5() string       { return "md5" }
 func Ed25519() string   { return "ed25519" }
 func ed25519() string   { return "ed25519" }
