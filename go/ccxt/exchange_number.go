@@ -38,7 +38,7 @@ func (this *Exchange) NumberToString(x interface{}) string {
 		return ""
 	case float64, float32, int, int64, int32:
 		str := fmt.Sprintf("%v", v)
-		if math.Abs(v.(float64)) < 1.0 {
+		if math.Abs(ToFloat64((v))) < 1.0 {
 			parts := strings.Split(str, "e-")
 			if len(parts) == 2 {
 				n := strings.Replace(parts[0], ".", "", -1)

@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	urlLib "net/url"
 	"strings"
 	"time"
 )
@@ -32,8 +31,11 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 
 	if this.Verbose {
 		fmt.Println("Headers:", headersMap)
+		fmt.Println("\n\n")
 		fmt.Printf("Request: %s %s\n", methodStr, urlStr)
+		fmt.Println("\n\n")
 		fmt.Printf("Body: %v\n", body)
+		fmt.Println("\n\n")
 	}
 
 	headersStrMap := make(map[string]string)
@@ -62,17 +64,17 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 		switch v := body.(type) {
 		case string:
 			// If the body is a string, use URL encoding
-			data := urlLib.Values{}
-			parsedData, err := urlLib.ParseQuery(v)
-			if err != nil {
-				panic(fmt.Sprintf("error parsing query string: %w", v))
-			}
-			for key, values := range parsedData {
-				for _, value := range values {
-					data.Set(key, value)
-				}
-			}
-			req, err = http.NewRequest(methodStr, urlStr, strings.NewReader(data.Encode()))
+			// data := urlLib.Values{}
+			// parsedData, err := urlLib.ParseQuery(v)
+			// if err != nil {
+			// 	panic(fmt.Sprintf("error parsing query string: %w", v))
+			// }
+			// for key, values := range parsedData {
+			// 	for _, value := range values {
+			// 		data.Set(key, value)
+			// 	}
+			// }
+			req, err = http.NewRequest(methodStr, urlStr, strings.NewReader(v))
 			if err != nil {
 				panic(fmt.Sprintf("error creating request"))
 			}
@@ -118,7 +120,9 @@ func (this *Exchange) Fetch(url interface{}, method interface{}, headers interfa
 	}
 
 	// Log the response (for debugging purposes)
-	fmt.Printf("Response: %s\n", respBody)
+	if this.Verbose {
+		fmt.Printf("Response: %s\n", respBody)
+	}
 
 	// Check for HTTP errors
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {

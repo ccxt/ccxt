@@ -77,19 +77,19 @@ func Hmac(request2 interface{}, secret2 interface{}, algorithm2 func() string, d
 
 func signHMACSHA256(data, secret []byte) []byte {
 	h := hmac.New(sha256Hash.New, secret)
-	h.Write(data)
+	h.Write([]byte(data))
 	return h.Sum(nil)
 }
 
 func signHMACSHA512(data, secret []byte) []byte {
 	h := hmac.New(sha512Hash.New, secret)
-	h.Write(data)
+	h.Write([]byte(data))
 	return h.Sum(nil)
 }
 
 func signHMACSHA384(data, secret []byte) []byte {
 	h := hmac.New(sha512Hash.New, secret)
-	h.Write(data)
+	h.Write([]byte(data))
 	return h.Sum(nil)
 }
 

@@ -259,6 +259,24 @@ func (this *Exchange) SafeStringLower(obj interface{}, key interface{}, defaultV
 	return "" // check this return type
 }
 
+func (this *Exchange) SafeStringLower2(obj interface{}, key interface{}, key2 interface{}, defaultValue ...interface{}) interface{} {
+	// return strings.ToUpper(this.safeString(obj, key, defaultValue...))
+	res := this.SafeString2(obj, key, key2, defaultValue...)
+	if res != "" && res != nil {
+		return strings.ToLower(res.(string))
+	}
+	return "" // check this return type
+}
+
+func (this *Exchange) SafeStringUpper2(obj interface{}, key interface{}, key2 interface{}, defaultValue ...interface{}) interface{} {
+	// return strings.ToUpper(this.safeString(obj, key, defaultValue...))
+	res := this.SafeString2(obj, key, key2, defaultValue...)
+	if res != "" && res != nil {
+		return strings.ToUpper(res.(string))
+	}
+	return "" // check this return type
+}
+
 func (this *Exchange) SafeString2(obj interface{}, key interface{}, key2 interface{}, defaultValue ...interface{}) interface{} {
 	var defVal interface{} = nil
 	if len(defaultValue) > 0 {
