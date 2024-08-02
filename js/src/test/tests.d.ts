@@ -66,5 +66,6 @@ declare class testMainClass extends baseMainTestClass {
     testOxfun(): Promise<boolean>;
     testXT(): Promise<boolean>;
     testVertex(): Promise<boolean>;
+    testParadex(): Promise<boolean>;
 }
 export default testMainClass;

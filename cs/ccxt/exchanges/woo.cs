@@ -2856,11 +2856,13 @@ public partial class woo : Exchange
         //
         object marketId = this.safeString(income, "symbol");
         object symbol = this.safeSymbol(marketId, market);
-        object amount = this.safeNumber(income, "funding_fee");
+        object amount = this.safeString(income, "funding_fee");
         object code = this.safeCurrencyCode("USD");
         object id = this.safeString(income, "id");
         object timestamp = this.safeTimestamp(income, "updated_time");
         object rate = this.safeNumber(income, "funding_rate");
+        object paymentType = this.safeString(income, "payment_type");
+        amount = ((bool) isTrue((isEqual(paymentType, "Pay")))) ? Precise.stringNeg(amount) : amount;
         return new Dictionary<string, object>() {
             { "info", income },
             { "symbol", symbol },
@@ -2868,7 +2870,7 @@ public partial class woo : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "id", id },
-            { "amount", amount },
+            { "amount", this.parseNumber(amount) },
             { "rate", rate },
         };
     }

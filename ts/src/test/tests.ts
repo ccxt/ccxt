@@ -5,11 +5,9 @@ import { Exchange } from '../../ccxt.js';
 import { Str } from '../base/types.js';
 
 import {
-    DIR_NAME,
     // errors
     AuthenticationError,
     NotSupported,
-    ExchangeError,
     InvalidProxySettings,
     ExchangeNotAvailable,
     OperationFailed,
@@ -17,26 +15,24 @@ import {
     // shared
     getCliArgValue,
     //
-    proxyTestFileName,
     baseMainTestClass,
     dump,
     jsonParse,
     jsonStringify,
     convertAscii,
-    getTestName,
     ioFileExists,
     ioFileRead,
     ioDirRead,
     callMethod,
+    callMethodSync,
     callExchangeMethodDynamically,
     callExchangeMethodDynamicallySync,
-    callOverridenMethod,
     exceptionMessage,
     exitScript,
     getExchangeProp,
     setExchangeProp,
     initExchange,
-    importTestFile,
+    getTestFilesSync,
     getTestFiles,
     setFetchResponse,
     isNullValue,
@@ -120,7 +116,11 @@ class testMainClass extends baseMainTestClass {
     async importFiles (exchange: Exchange) {
         const properties = Object.keys (exchange.has);
         properties.push ('loadMarkets');
-        this.testFiles = await getTestFiles (properties, this.wsTests);
+        if (this.isSynchronous) {
+            this.testFiles = getTestFilesSync (properties, this.wsTests);
+        } else {
+            this.testFiles = await getTestFiles (properties, this.wsTests);
+        }
     }
 
     loadCredentialsFromEnv (exchange: Exchange) {
@@ -268,7 +268,11 @@ class testMainClass extends baseMainTestClass {
             const argsStringified = '(' + exchange.json (args) + ')'; // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
             dump (this.addPadding ('[INFO] TESTING', 25), this.exchangeHint (exchange), methodName, argsStringified);
         }
-        await callMethod (this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
+        if (this.isSynchronous) {
+            callMethodSync (this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
+        } else {
+            await callMethod (this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
+        }
         if (this.info) {
             dump (this.addPadding ('[INFO] TESTING DONE', 25), this.exchangeHint (exchange), methodName);
         }
@@ -827,7 +831,7 @@ class testMainClass extends baseMainTestClass {
         if (exception !== undefined) {
             const errorMessage = '[TEST_FAILURE] Failed ' + proxyTestName + ' : ' + exceptionMessage (exception);
             // temporary comment the below, because c# transpilation failure
-            // throw new ExchangeError (errorMessage.toString ());
+            // throw new Exchange Error (errorMessage.toString ());
             dump ('[TEST_WARNING]' + errorMessage.toString ());
         }
     }
@@ -844,7 +848,9 @@ class testMainClass extends baseMainTestClass {
         try {
             const result = await this.loadExchange (exchange);
             if (!result) {
-                await close (exchange);
+                if (!this.isSynchronous) {
+                    await close (exchange);
+                }
                 return;
             }
             // if (exchange.id === 'binance') {
@@ -852,9 +858,13 @@ class testMainClass extends baseMainTestClass {
             //     // await this.testProxies (exchange);
             // }
             await this.testExchange (exchange, symbol);
-            await close (exchange);
+            if (!this.isSynchronous) {
+                await close (exchange);
+            }
         } catch (e) {
-            await close (exchange);
+            if (!this.isSynchronous) {
+                await close (exchange);
+            }
             throw e;
         }
     }
@@ -1390,6 +1400,7 @@ class testMainClass extends baseMainTestClass {
             this.testOxfun (),
             this.testXT (),
             this.testVertex (),
+            this.testParadex ()
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1427,7 +1438,9 @@ class testMainClass extends baseMainTestClass {
         assert (clientOrderIdSwap.startsWith (swapIdString), 'binance - swap clientOrderId: ' + clientOrderIdSwap + ' does not start with swapId' + swapIdString);
         const clientOrderIdInverse = swapInverseOrderRequest['newClientOrderId'];
         assert (clientOrderIdInverse.startsWith (swapIdString), 'binance - swap clientOrderIdInverse: ' + clientOrderIdInverse + ' does not start with swapId' + swapIdString);
-        await close (exchange);
+        if (!this.isSynchronous) {
+            await close (exchange);
+        }
         return true;
     }
 
@@ -1455,7 +1468,9 @@ class testMainClass extends baseMainTestClass {
         assert (clientOrderIdSwap.startsWith (idString), 'okx - swap clientOrderId: ' + clientOrderIdSwap + ' does not start with id: ' + idString);
         const swapTag = swapOrderRequest[0]['tag'];
         assert (swapTag === id, 'okx - id: ' + id + ' different from swap tag: ' + swapTag);
-        await close (exchange);
+        if (!this.isSynchronous) {
+            await close (exchange);
+        }
         return true;
     }
 
@@ -1471,7 +1486,9 @@ class testMainClass extends baseMainTestClass {
         }
         const brokerId = request['params']['broker_id'];
         assert (brokerId === id, 'cryptocom - id: ' + id + ' different from  broker_id: ' + brokerId);
-        await close (exchange);
+        if (!this.isSynchronous) {
+            await close (exchange);
+        }
         return true;
     }
 
@@ -1487,7 +1504,9 @@ class testMainClass extends baseMainTestClass {
             reqHeaders = exchange.last_request_headers;
         }
         assert (reqHeaders['Referer'] === id, 'bybit - id: ' + id + ' not in headers.');
-        await close (exchange);
+        if (!this.isSynchronous) {
+            await close (exchange);
+        }
         return true;
     }
 
@@ -1506,7 +1525,9 @@ class testMainClass extends baseMainTestClass {
         }
         const id = 'ccxt';
         assert (reqHeaders['KC-API-PARTNER'] === id, 'kucoin - id: ' + id + ' not in headers.');
-        await close (exchange);
+        if (!this.isSynchronous) {
+            await close (exchange);
+        }
         return true;
     }
 
@@ -1524,7 +1545,9 @@ class testMainClass extends baseMainTestClass {
             reqHeaders = exchange.last_request_headers;
         }
         assert (reqHeaders['KC-API-PARTNER'] === id, 'kucoinfutures - id: ' + id + ' not in headers.');
-        await close (exchange);
+        if (!this.isSynchronous) {
+            await close (exchange);
+        }
         return true;
     }
 
@@ -1539,7 +1562,9 @@ class testMainClass extends baseMainTestClass {
             reqHeaders = exchange.last_request_headers;
         }
         assert (reqHeaders['X-CHANNEL-API-CODE'] === id, 'bitget - id: ' + id + ' not in headers.');
-        await close (exchange);
+        if (!this.isSynchronous) {
+            await close (exchange);
+        }
         return true;
     }
 
@@ -1555,7 +1580,9 @@ class testMainClass extends baseMainTestClass {
             reqHeaders = exchange.last_request_headers;
         }
         assert (reqHeaders['source'] === id, 'mexc - id: ' + id + ' not in headers.');
-        await close (exchange);
+        if (!this.isSynchronous) {
+            await close (exchange);
+        }
         return true;
     }
 
@@ -1589,7 +1616,9 @@ class testMainClass extends baseMainTestClass {
         assert (clientOrderIdSwap.startsWith (idString), 'htx - swap channel_code ' + clientOrderIdSwap + ' does not start with id: ' + idString);
         const clientOrderIdInverse = swapInverseOrderRequest['channel_code'];
         assert (clientOrderIdInverse.startsWith (idString), 'htx - swap inverse channel_code ' + clientOrderIdInverse + ' does not start with id: ' + idString);
-        await close (exchange);
+        if (!this.isSynchronous) {
+            await close (exchange);
+        }
         return true;
     }
 
@@ -1615,7 +1644,9 @@ class testMainClass extends baseMainTestClass {
         }
         const clientOrderIdStop = stopOrderRequest['brokerId'];
         assert (clientOrderIdStop.startsWith (idString), 'woo - brokerId: ' + clientOrderIdStop + ' does not start with id: ' + idString);
-        await close (exchange);
+        if (!this.isSynchronous) {
+            await close (exchange);
+        }
         return true;
     }
 
@@ -1631,7 +1662,9 @@ class testMainClass extends baseMainTestClass {
             reqHeaders = exchange.last_request_headers;
         }
         assert (reqHeaders['X-BM-BROKER-ID'] === id, 'bitmart - id: ' + id + ' not in headers');
-        await close (exchange);
+        if (!this.isSynchronous) {
+            await close (exchange);
+        }
         return true;
     }
 
@@ -1648,7 +1681,9 @@ class testMainClass extends baseMainTestClass {
         const clientOrderId = spotOrderRequest['client_id'];
         const idString = id.toString ();
         assert (clientOrderId.startsWith (idString), 'coinex - clientOrderId: ' + clientOrderId + ' does not start with id: ' + idString);
-        await close (exchange);
+        if (!this.isSynchronous) {
+            await close (exchange);
+        }
         return true;
     }
 
@@ -1664,7 +1699,9 @@ class testMainClass extends baseMainTestClass {
             reqHeaders = exchange.last_request_headers;
         }
         assert (reqHeaders['X-SOURCE-KEY'] === id, 'bingx - id: ' + id + ' not in headers.');
-        await close (exchange);
+        if (!this.isSynchronous) {
+            await close (exchange);
+        }
     }
 
     async testPhemex () {
@@ -1679,7 +1716,9 @@ class testMainClass extends baseMainTestClass {
         const clientOrderId = request['clOrdID'];
         const idString = id.toString ();
         assert (clientOrderId.startsWith (idString), 'phemex - clOrdID: ' + clientOrderId + ' does not start with id: ' + idString);
-        await close (exchange);
+        if (!this.isSynchronous) {
+            await close (exchange);
+        }
     }
 
     async testBlofin () {
@@ -1694,7 +1733,9 @@ class testMainClass extends baseMainTestClass {
         const brokerId = request['brokerId'];
         const idString = id.toString ();
         assert (brokerId.startsWith (idString), 'blofin - brokerId: ' + brokerId + ' does not start with id: ' + idString);
-        await close (exchange);
+        if (!this.isSynchronous) {
+            await close (exchange);
+        }
     }
 
     async testHyperliquid () {
@@ -1708,7 +1749,9 @@ class testMainClass extends baseMainTestClass {
         }
         const brokerId = (request['action']['brokerCode']).toString ();
         assert (brokerId === id, 'hyperliquid - brokerId: ' + brokerId + ' does not start with id: ' + id);
-        await close (exchange);
+        if (!this.isSynchronous) {
+            await close (exchange);
+        }
     }
 
     async testCoinbaseinternational () {
@@ -1724,7 +1767,9 @@ class testMainClass extends baseMainTestClass {
         }
         const clientOrderId = request['client_order_id'];
         assert (clientOrderId.startsWith (id.toString ()), 'clientOrderId does not start with id');
-        await close (exchange);
+        if (!this.isSynchronous) {
+            await close (exchange);
+        }
         return true;
     }
 
@@ -1740,7 +1785,9 @@ class testMainClass extends baseMainTestClass {
         }
         const clientOrderId = request['client_order_id'];
         assert (clientOrderId.startsWith (id.toString ()), 'clientOrderId does not start with id');
-        await close (exchange);
+        if (!this.isSynchronous) {
+            await close (exchange);
+        }
         return true;
     }
 
@@ -1757,7 +1804,9 @@ class testMainClass extends baseMainTestClass {
         }
         const brokerId = request['order_tag'];
         assert (brokerId === id, 'woofipro - id: ' + id + ' different from  broker_id: ' + brokerId);
-        await close (exchange);
+        if (!this.isSynchronous) {
+            await close (exchange);
+        }
         return true;
     }
 
@@ -1798,7 +1847,9 @@ class testMainClass extends baseMainTestClass {
         }
         const swapMedia = swapOrderRequest['clientMedia'];
         assert (swapMedia === id, 'xt - id: ' + id + ' different from swap tag: ' + swapMedia);
-        await close (exchange);
+        if (!this.isSynchronous) {
+            await close (exchange);
+        }
         return true;
     }
 
@@ -1818,7 +1869,32 @@ class testMainClass extends baseMainTestClass {
         const order = request['place_order'];
         const brokerId = order['id'];
         assert (brokerId === id, 'vertex - id: ' + id.toString () + ' different from  broker_id: ' + brokerId.toString ());
-        await close (exchange);
+        if (!this.isSynchronous) {
+            await close (exchange);
+        }
+        return true;
+    }
+
+    async testParadex () {
+        const exchange = this.initOfflineExchange ('paradex');
+        exchange.walletAddress = '0xc751489d24a33172541ea451bc253d7a9e98c781';
+        exchange.privateKey = 'c33b1eb4b53108bf52e10f636d8c1236c04c33a712357ba3543ab45f48a5cb0b';
+        exchange.options['authToken'] = 'token';
+        exchange.options['systemConfig'] =
+        { "starknet_gateway_url":"https://potc-testnet-sepolia.starknet.io", "starknet_fullnode_rpc_url":"https://pathfinder.api.testnet.paradex.trade/rpc/v0_7", "starknet_chain_id":"PRIVATE_SN_POTC_SEPOLIA", "block_explorer_url":"https://voyager.testnet.paradex.trade/", "paraclear_address":"0x286003f7c7bfc3f94e8f0af48b48302e7aee2fb13c23b141479ba00832ef2c6", "paraclear_decimals":8, "paraclear_account_proxy_hash":"0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9", "paraclear_account_hash":"0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e", "oracle_address":"0x2c6a867917ef858d6b193a0ff9e62b46d0dc760366920d631715d58baeaca1f", "bridged_tokens":[ { "name":"TEST USDC", "symbol":"USDC", "decimals":6, "l1_token_address":"0x29A873159D5e14AcBd63913D4A7E2df04570c666", "l1_bridge_address":"0x8586e05adc0C35aa11609023d4Ae6075Cb813b4C", "l2_token_address":"0x6f373b346561036d98ea10fb3e60d2f459c872b1933b50b21fe6ef4fda3b75e", "l2_bridge_address":"0x46e9237f5408b5f899e72125dd69bd55485a287aaf24663d3ebe00d237fc7ef" } ], "l1_core_contract_address":"0x582CC5d9b509391232cd544cDF9da036e55833Af", "l1_operator_address":"0x11bACdFbBcd3Febe5e8CEAa75E0Ef6444d9B45FB", "l1_chain_id":"11155111", "liquidation_fee":"0.2" };
+        let reqHeaders = undefined;
+        const id = 'CCXT';
+        assert (exchange.options['broker'] === id, 'paradex - id: ' + id + ' not in options');
+        await exchange.loadMarkets ();
+        try {
+            await exchange.createOrder ('BTC/USD:USDC', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert (reqHeaders['PARADEX-PARTNER'] === id, 'paradex - id: ' + id + ' not in headers');
+        if (!this.isSynchronous) {
+            await close (exchange);
+        }
         return true;
     }
 }

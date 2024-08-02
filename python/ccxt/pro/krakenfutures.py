@@ -82,16 +82,16 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         url = self.urls['api']['ws']
         messageHash = 'challenge'
         client = self.client(url)
-        future = self.safe_value(client.subscriptions, messageHash)
-        if future is None:
+        future = client.future(messageHash)
+        authenticated = self.safe_value(client.subscriptions, messageHash)
+        if authenticated is None:
             request: dict = {
                 'event': 'challenge',
                 'api_key': self.apiKey,
             }
             message = self.extend(request, params)
-            future = await self.watch(url, messageHash, message, messageHash)
-            client.subscriptions[messageHash] = future
-        return future
+            self.watch(url, messageHash, message, messageHash)
+        return await future
 
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
@@ -1483,7 +1483,8 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             signature = self.hmac(hashedChallenge, base64Secret, hashlib.sha512, 'base64')
             self.options['challenge'] = challenge
             self.options['signedChallenge'] = signature
-            client.resolve(message, messageHash)
+            future = self.safe_value(client.futures, messageHash)
+            future.resolve(True)
         else:
             error = AuthenticationError(self.id + ' ' + self.json(message))
             client.reject(error, messageHash)

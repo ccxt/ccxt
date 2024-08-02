@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from tests_helpers import get_cli_arg_value, dump, exit_script, get_test_files, init_exchange, set_exchange_prop, call_method, exception_message, io_file_exists, io_file_read, baseMainTestClass, AuthenticationError, NotSupported, OperationFailed, OnMaintenance, ExchangeNotAvailable, InvalidProxySettings, get_exchange_prop, close, json_parse, json_stringify, is_null_value, io_dir_read, convert_ascii, call_exchange_method_dynamically, set_fetch_response, call_exchange_method_dynamically_sync  # noqa: F401
+from tests_helpers import AuthenticationError, NotSupported, InvalidProxySettings, ExchangeNotAvailable, OperationFailed, OnMaintenance, get_cli_arg_value, baseMainTestClass, dump, json_parse, json_stringify, convert_ascii, io_file_exists, io_file_read, io_dir_read, call_method, call_method_sync, call_exchange_method_dynamically, call_exchange_method_dynamically_sync, exception_message, exit_script, get_exchange_prop, set_exchange_prop, init_exchange, get_test_files_sync, get_test_files, set_fetch_response, is_null_value, close  # noqa: F401
 
 class testMainClass(baseMainTestClass):
     def parse_cli_args(self):
@@ -69,7 +69,10 @@ class testMainClass(baseMainTestClass):
     def import_files(self, exchange):
         properties = list(exchange.has.keys())
         properties.append('loadMarkets')
-        self.test_files = get_test_files(properties, self.ws_tests)
+        if self.is_synchronous:
+            self.test_files = get_test_files_sync(properties, self.ws_tests)
+        else:
+            self.test_files = get_test_files(properties, self.ws_tests)
 
     def load_credentials_from_env(self, exchange):
         exchange_id = exchange.id
@@ -189,7 +192,10 @@ class testMainClass(baseMainTestClass):
         if self.info:
             args_stringified = '(' + exchange.json(args) + ')'  # args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
             dump(self.add_padding('[INFO] TESTING', 25), self.exchange_hint(exchange), method_name, args_stringified)
-        call_method(self.test_files, method_name, exchange, skipped_properties_for_method, args)
+        if self.is_synchronous:
+            call_method_sync(self.test_files, method_name, exchange, skipped_properties_for_method, args)
+        else:
+            call_method(self.test_files, method_name, exchange, skipped_properties_for_method, args)
         if self.info:
             dump(self.add_padding('[INFO] TESTING DONE', 25), self.exchange_hint(exchange), method_name)
         # add to the list of successed tests
@@ -584,7 +590,7 @@ class testMainClass(baseMainTestClass):
         if exception is not None:
             error_message = '[TEST_FAILURE] Failed ' + proxy_test_name + ' : ' + exception_message(exception)
             # temporary comment the below, because c# transpilation failure
-            # throw new ExchangeError (errorMessage.toString ());
+            # throw new Exchange Error (errorMessage.toString ());
             dump('[TEST_WARNING]' + str(error_message))
 
     def start_test(self, exchange, symbol):
@@ -596,16 +602,19 @@ class testMainClass(baseMainTestClass):
         try:
             result = self.load_exchange(exchange)
             if not result:
-                close(exchange)
+                if not self.is_synchronous:
+                    close(exchange)
                 return
             # if (exchange.id === 'binance') {
             #     # we test proxies functionality just for one random exchange on each build, because proxy functionality is not exchange-specific, instead it's all done from base methods, so just one working sample would mean it works for all ccxt exchanges
             #     # this.testProxies (exchange);
             # }
             self.test_exchange(exchange, symbol)
-            close(exchange)
+            if not self.is_synchronous:
+                close(exchange)
         except Exception as e:
-            close(exchange)
+            if not self.is_synchronous:
+                close(exchange)
             raise e
 
     def assert_static_error(self, cond, message, calculated_output, stored_output, key=None):
@@ -1040,7 +1049,7 @@ class testMainClass(baseMainTestClass):
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_hyperliquid(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_oxfun(), self.test_xt(), self.test_vertex()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_hyperliquid(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_oxfun(), self.test_xt(), self.test_vertex(), self.test_paradex()]
         (promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1073,7 +1082,8 @@ class testMainClass(baseMainTestClass):
         assert client_order_id_swap.startswith(swap_id_string), 'binance - swap clientOrderId: ' + client_order_id_swap + ' does not start with swapId' + swap_id_string
         client_order_id_inverse = swap_inverse_order_request['newClientOrderId']
         assert client_order_id_inverse.startswith(swap_id_string), 'binance - swap clientOrderIdInverse: ' + client_order_id_inverse + ' does not start with swapId' + swap_id_string
-        close(exchange)
+        if not self.is_synchronous:
+            close(exchange)
         return True
 
     def test_okx(self):
@@ -1098,7 +1108,8 @@ class testMainClass(baseMainTestClass):
         assert client_order_id_swap.startswith(id_string), 'okx - swap clientOrderId: ' + client_order_id_swap + ' does not start with id: ' + id_string
         swap_tag = swap_order_request[0]['tag']
         assert swap_tag == id, 'okx - id: ' + id + ' different from swap tag: ' + swap_tag
-        close(exchange)
+        if not self.is_synchronous:
+            close(exchange)
         return True
 
     def test_cryptocom(self):
@@ -1112,7 +1123,8 @@ class testMainClass(baseMainTestClass):
             request = json_parse(exchange.last_request_body)
         broker_id = request['params']['broker_id']
         assert broker_id == id, 'cryptocom - id: ' + id + ' different from  broker_id: ' + broker_id
-        close(exchange)
+        if not self.is_synchronous:
+            close(exchange)
         return True
 
     def test_bybit(self):
@@ -1126,7 +1138,8 @@ class testMainClass(baseMainTestClass):
             # we expect an error here, we're only interested in the headers
             req_headers = exchange.last_request_headers
         assert req_headers['Referer'] == id, 'bybit - id: ' + id + ' not in headers.'
-        close(exchange)
+        if not self.is_synchronous:
+            close(exchange)
         return True
 
     def test_kucoin(self):
@@ -1143,7 +1156,8 @@ class testMainClass(baseMainTestClass):
             req_headers = exchange.last_request_headers
         id = 'ccxt'
         assert req_headers['KC-API-PARTNER'] == id, 'kucoin - id: ' + id + ' not in headers.'
-        close(exchange)
+        if not self.is_synchronous:
+            close(exchange)
         return True
 
     def test_kucoinfutures(self):
@@ -1159,7 +1173,8 @@ class testMainClass(baseMainTestClass):
         except Exception as e:
             req_headers = exchange.last_request_headers
         assert req_headers['KC-API-PARTNER'] == id, 'kucoinfutures - id: ' + id + ' not in headers.'
-        close(exchange)
+        if not self.is_synchronous:
+            close(exchange)
         return True
 
     def test_bitget(self):
@@ -1172,7 +1187,8 @@ class testMainClass(baseMainTestClass):
         except Exception as e:
             req_headers = exchange.last_request_headers
         assert req_headers['X-CHANNEL-API-CODE'] == id, 'bitget - id: ' + id + ' not in headers.'
-        close(exchange)
+        if not self.is_synchronous:
+            close(exchange)
         return True
 
     def test_mexc(self):
@@ -1186,7 +1202,8 @@ class testMainClass(baseMainTestClass):
         except Exception as e:
             req_headers = exchange.last_request_headers
         assert req_headers['source'] == id, 'mexc - id: ' + id + ' not in headers.'
-        close(exchange)
+        if not self.is_synchronous:
+            close(exchange)
         return True
 
     def test_htx(self):
@@ -1216,7 +1233,8 @@ class testMainClass(baseMainTestClass):
         assert client_order_id_swap.startswith(id_string), 'htx - swap channel_code ' + client_order_id_swap + ' does not start with id: ' + id_string
         client_order_id_inverse = swap_inverse_order_request['channel_code']
         assert client_order_id_inverse.startswith(id_string), 'htx - swap inverse channel_code ' + client_order_id_inverse + ' does not start with id: ' + id_string
-        close(exchange)
+        if not self.is_synchronous:
+            close(exchange)
         return True
 
     def test_woo(self):
@@ -1241,7 +1259,8 @@ class testMainClass(baseMainTestClass):
             stop_order_request = json_parse(exchange.last_request_body)
         client_order_id_stop = stop_order_request['brokerId']
         assert client_order_id_stop.startswith(id_string), 'woo - brokerId: ' + client_order_id_stop + ' does not start with id: ' + id_string
-        close(exchange)
+        if not self.is_synchronous:
+            close(exchange)
         return True
 
     def test_bitmart(self):
@@ -1255,7 +1274,8 @@ class testMainClass(baseMainTestClass):
         except Exception as e:
             req_headers = exchange.last_request_headers
         assert req_headers['X-BM-BROKER-ID'] == id, 'bitmart - id: ' + id + ' not in headers'
-        close(exchange)
+        if not self.is_synchronous:
+            close(exchange)
         return True
 
     def test_coinex(self):
@@ -1270,7 +1290,8 @@ class testMainClass(baseMainTestClass):
         client_order_id = spot_order_request['client_id']
         id_string = str(id)
         assert client_order_id.startswith(id_string), 'coinex - clientOrderId: ' + client_order_id + ' does not start with id: ' + id_string
-        close(exchange)
+        if not self.is_synchronous:
+            close(exchange)
         return True
 
     def test_bingx(self):
@@ -1284,7 +1305,8 @@ class testMainClass(baseMainTestClass):
             # we expect an error here, we're only interested in the headers
             req_headers = exchange.last_request_headers
         assert req_headers['X-SOURCE-KEY'] == id, 'bingx - id: ' + id + ' not in headers.'
-        close(exchange)
+        if not self.is_synchronous:
+            close(exchange)
 
     def test_phemex(self):
         exchange = self.init_offline_exchange('phemex')
@@ -1297,7 +1319,8 @@ class testMainClass(baseMainTestClass):
         client_order_id = request['clOrdID']
         id_string = str(id)
         assert client_order_id.startswith(id_string), 'phemex - clOrdID: ' + client_order_id + ' does not start with id: ' + id_string
-        close(exchange)
+        if not self.is_synchronous:
+            close(exchange)
 
     def test_blofin(self):
         exchange = self.init_offline_exchange('blofin')
@@ -1310,7 +1333,8 @@ class testMainClass(baseMainTestClass):
         broker_id = request['brokerId']
         id_string = str(id)
         assert broker_id.startswith(id_string), 'blofin - brokerId: ' + broker_id + ' does not start with id: ' + id_string
-        close(exchange)
+        if not self.is_synchronous:
+            close(exchange)
 
     def test_hyperliquid(self):
         exchange = self.init_offline_exchange('hyperliquid')
@@ -1322,7 +1346,8 @@ class testMainClass(baseMainTestClass):
             request = json_parse(exchange.last_request_body)
         broker_id = str((request['action']['brokerCode']))
         assert broker_id == id, 'hyperliquid - brokerId: ' + broker_id + ' does not start with id: ' + id
-        close(exchange)
+        if not self.is_synchronous:
+            close(exchange)
 
     def test_coinbaseinternational(self):
         exchange = self.init_offline_exchange('coinbaseinternational')
@@ -1336,7 +1361,8 @@ class testMainClass(baseMainTestClass):
             request = json_parse(exchange.last_request_body)
         client_order_id = request['client_order_id']
         assert client_order_id.startswith(str(id)), 'clientOrderId does not start with id'
-        close(exchange)
+        if not self.is_synchronous:
+            close(exchange)
         return True
 
     def test_coinbase_advanced(self):
@@ -1350,7 +1376,8 @@ class testMainClass(baseMainTestClass):
             request = json_parse(exchange.last_request_body)
         client_order_id = request['client_order_id']
         assert client_order_id.startswith(str(id)), 'clientOrderId does not start with id'
-        close(exchange)
+        if not self.is_synchronous:
+            close(exchange)
         return True
 
     def test_woofi_pro(self):
@@ -1365,7 +1392,8 @@ class testMainClass(baseMainTestClass):
             request = json_parse(exchange.last_request_body)
         broker_id = request['order_tag']
         assert broker_id == id, 'woofipro - id: ' + id + ' different from  broker_id: ' + broker_id
-        close(exchange)
+        if not self.is_synchronous:
+            close(exchange)
         return True
 
     def test_oxfun(self):
@@ -1401,7 +1429,8 @@ class testMainClass(baseMainTestClass):
             swap_order_request = json_parse(exchange.last_request_body)
         swap_media = swap_order_request['clientMedia']
         assert swap_media == id, 'xt - id: ' + id + ' different from swap tag: ' + swap_media
-        close(exchange)
+        if not self.is_synchronous:
+            close(exchange)
         return True
 
     def test_vertex(self):
@@ -1423,5 +1452,48 @@ class testMainClass(baseMainTestClass):
         order = request['place_order']
         broker_id = order['id']
         assert broker_id == id, 'vertex - id: ' + str(id) + ' different from  broker_id: ' + str(broker_id)
-        close(exchange)
+        if not self.is_synchronous:
+            close(exchange)
+        return True
+
+    def test_paradex(self):
+        exchange = self.init_offline_exchange('paradex')
+        exchange.walletAddress = '0xc751489d24a33172541ea451bc253d7a9e98c781'
+        exchange.privateKey = 'c33b1eb4b53108bf52e10f636d8c1236c04c33a712357ba3543ab45f48a5cb0b'
+        exchange.options['authToken'] = 'token'
+        exchange.options['systemConfig'] = {
+            'starknet_gateway_url': 'https://potc-testnet-sepolia.starknet.io',
+            'starknet_fullnode_rpc_url': 'https://pathfinder.api.testnet.paradex.trade/rpc/v0_7',
+            'starknet_chain_id': 'PRIVATE_SN_POTC_SEPOLIA',
+            'block_explorer_url': 'https://voyager.testnet.paradex.trade/',
+            'paraclear_address': '0x286003f7c7bfc3f94e8f0af48b48302e7aee2fb13c23b141479ba00832ef2c6',
+            'paraclear_decimals': 8,
+            'paraclear_account_proxy_hash': '0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9',
+            'paraclear_account_hash': '0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e',
+            'oracle_address': '0x2c6a867917ef858d6b193a0ff9e62b46d0dc760366920d631715d58baeaca1f',
+            'bridged_tokens': [{
+    'name': 'TEST USDC',
+    'symbol': 'USDC',
+    'decimals': 6,
+    'l1_token_address': '0x29A873159D5e14AcBd63913D4A7E2df04570c666',
+    'l1_bridge_address': '0x8586e05adc0C35aa11609023d4Ae6075Cb813b4C',
+    'l2_token_address': '0x6f373b346561036d98ea10fb3e60d2f459c872b1933b50b21fe6ef4fda3b75e',
+    'l2_bridge_address': '0x46e9237f5408b5f899e72125dd69bd55485a287aaf24663d3ebe00d237fc7ef',
+}],
+            'l1_core_contract_address': '0x582CC5d9b509391232cd544cDF9da036e55833Af',
+            'l1_operator_address': '0x11bACdFbBcd3Febe5e8CEAa75E0Ef6444d9B45FB',
+            'l1_chain_id': '11155111',
+            'liquidation_fee': '0.2',
+        }
+        req_headers = None
+        id = 'CCXT'
+        assert exchange.options['broker'] == id, 'paradex - id: ' + id + ' not in options'
+        exchange.load_markets()
+        try:
+            exchange.create_order('BTC/USD:USDC', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            req_headers = exchange.last_request_headers
+        assert req_headers['PARADEX-PARTNER'] == id, 'paradex - id: ' + id + ' not in headers'
+        if not self.is_synchronous:
+            close(exchange)
         return True

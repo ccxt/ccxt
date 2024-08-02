@@ -16,7 +16,7 @@ interface Exchange {
     v1PublicGetInstrumentsInstrument (params?: {}): Promise<implicitReturnType>;
     v1PublicGetInstrumentsInstrumentQuote (params?: {}): Promise<implicitReturnType>;
     v1PublicGetInstrumentsInstrumentFunding (params?: {}): Promise<implicitReturnType>;
-    v1PublicGet (params?: {}): Promise<implicitReturnType>;
+    v1PublicGetInstrumentsInstrumentCandles (params?: {}): Promise<implicitReturnType>;
     v1PrivateGetOrders (params?: {}): Promise<implicitReturnType>;
     v1PrivateGetOrdersId (params?: {}): Promise<implicitReturnType>;
     v1PrivateGetPortfolios (params?: {}): Promise<implicitReturnType>;

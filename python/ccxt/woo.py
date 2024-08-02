@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.woo import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Bool, Conversion, Currencies, Currency, Int, Leverage, MarginModification, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, TradingFees, Transaction, TransferEntry, TransferEntries
+from ccxt.base.types import Account, Balances, Bool, Conversion, Currencies, Currency, Int, Leverage, MarginModification, Market, MarketType, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from typing import Any
 from ccxt.base.errors import ExchangeError
@@ -2184,7 +2184,7 @@ class woo(Exchange, ImplicitAPI):
             transfer['toAccount'] = toAccount
         return transfer
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
         :see: https://docs.woo.org/#get-transfer-history
@@ -2464,11 +2464,13 @@ class woo(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(income, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        amount = self.safe_number(income, 'funding_fee')
+        amount = self.safe_string(income, 'funding_fee')
         code = self.safe_currency_code('USD')
         id = self.safe_string(income, 'id')
         timestamp = self.safe_timestamp(income, 'updated_time')
         rate = self.safe_number(income, 'funding_rate')
+        paymentType = self.safe_string(income, 'payment_type')
+        amount = Precise.string_neg(amount) if (paymentType == 'Pay') else amount
         return {
             'info': income,
             'symbol': symbol,
@@ -2476,7 +2478,7 @@ class woo(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'id': id,
-            'amount': amount,
+            'amount': self.parse_number(amount),
             'rate': rate,
         }
 

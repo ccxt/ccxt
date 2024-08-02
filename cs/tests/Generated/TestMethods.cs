@@ -99,7 +99,13 @@ public partial class testMainClass : BaseTest
     {
         object properties = new List<object>(((IDictionary<string,object>)exchange.has).Keys);
         ((IList<object>)properties).Add("loadMarkets");
-        this.testFiles = await getTestFiles(properties, this.wsTests);
+        if (isTrue(this.isSynchronous))
+        {
+            this.testFiles = getTestFilesSync(properties, this.wsTests);
+        } else
+        {
+            this.testFiles = await getTestFiles(properties, this.wsTests);
+        }
     }
 
     public virtual void loadCredentialsFromEnv(Exchange exchange)
@@ -281,7 +287,13 @@ public partial class testMainClass : BaseTest
             object argsStringified = add(add("(", exchange.json(args)), ")"); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
             dump(this.addPadding("[INFO] TESTING", 25), this.exchangeHint(exchange), methodName, argsStringified);
         }
-        await callMethod(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
+        if (isTrue(this.isSynchronous))
+        {
+            callMethodSync(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
+        } else
+        {
+            await callMethod(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
+        }
         if (isTrue(this.info))
         {
             dump(this.addPadding("[INFO] TESTING DONE", 25), this.exchangeHint(exchange), methodName);
@@ -860,7 +872,7 @@ public partial class testMainClass : BaseTest
         {
             object errorMessage = add(add(add("[TEST_FAILURE] Failed ", proxyTestName), " : "), exceptionMessage(exception));
             // temporary comment the below, because c# transpilation failure
-            // throw new ExchangeError (errorMessage.toString ());
+            // throw new Exchange Error (errorMessage.toString ());
             dump(add("[TEST_WARNING]", ((object)errorMessage).ToString()));
         }
     }
@@ -881,7 +893,10 @@ public partial class testMainClass : BaseTest
             object result = await this.loadExchange(exchange);
             if (!isTrue(result))
             {
-                await close(exchange);
+                if (!isTrue(this.isSynchronous))
+                {
+                    await close(exchange);
+                }
                 return;
             }
             // if (exchange.id === 'binance') {
@@ -889,10 +904,16 @@ public partial class testMainClass : BaseTest
             //     // await this.testProxies (exchange);
             // }
             await this.testExchange(exchange, symbol);
-            await close(exchange);
+            if (!isTrue(this.isSynchronous))
+            {
+                await close(exchange);
+            }
         } catch(Exception e)
         {
-            await close(exchange);
+            if (!isTrue(this.isSynchronous))
+            {
+                await close(exchange);
+            }
             throw e;
         }
     }
@@ -1534,7 +1555,7 @@ public partial class testMainClass : BaseTest
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testVertex()};
+        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testVertex(), this.testParadex()};
         await promiseAll(promises);
         object successMessage = add(add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
         dump(add("[INFO]", successMessage));
@@ -1578,7 +1599,10 @@ public partial class testMainClass : BaseTest
         assert(((string)clientOrderIdSwap).StartsWith(((string)swapIdString)), add(add(add("binance - swap clientOrderId: ", clientOrderIdSwap), " does not start with swapId"), swapIdString));
         object clientOrderIdInverse = getValue(swapInverseOrderRequest, "newClientOrderId");
         assert(((string)clientOrderIdInverse).StartsWith(((string)swapIdString)), add(add(add("binance - swap clientOrderIdInverse: ", clientOrderIdInverse), " does not start with swapId"), swapIdString));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 
@@ -1611,7 +1635,10 @@ public partial class testMainClass : BaseTest
         assert(((string)clientOrderIdSwap).StartsWith(((string)idString)), add(add(add("okx - swap clientOrderId: ", clientOrderIdSwap), " does not start with id: "), idString));
         object swapTag = getValue(getValue(swapOrderRequest, 0), "tag");
         assert(isEqual(swapTag, id), add(add(add("okx - id: ", id), " different from swap tag: "), swapTag));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 
@@ -1630,7 +1657,10 @@ public partial class testMainClass : BaseTest
         }
         object brokerId = getValue(getValue(request, "params"), "broker_id");
         assert(isEqual(brokerId, id), add(add(add("cryptocom - id: ", id), " different from  broker_id: "), brokerId));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 
@@ -1649,7 +1679,10 @@ public partial class testMainClass : BaseTest
             reqHeaders = exchange.last_request_headers;
         }
         assert(isEqual(getValue(reqHeaders, "Referer"), id), add(add("bybit - id: ", id), " not in headers."));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 
@@ -1671,7 +1704,10 @@ public partial class testMainClass : BaseTest
         }
         object id = "ccxt";
         assert(isEqual(getValue(reqHeaders, "KC-API-PARTNER"), id), add(add("kucoin - id: ", id), " not in headers."));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 
@@ -1692,7 +1728,10 @@ public partial class testMainClass : BaseTest
             reqHeaders = exchange.last_request_headers;
         }
         assert(isEqual(getValue(reqHeaders, "KC-API-PARTNER"), id), add(add("kucoinfutures - id: ", id), " not in headers."));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 
@@ -1710,7 +1749,10 @@ public partial class testMainClass : BaseTest
             reqHeaders = exchange.last_request_headers;
         }
         assert(isEqual(getValue(reqHeaders, "X-CHANNEL-API-CODE"), id), add(add("bitget - id: ", id), " not in headers."));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 
@@ -1729,7 +1771,10 @@ public partial class testMainClass : BaseTest
             reqHeaders = exchange.last_request_headers;
         }
         assert(isEqual(getValue(reqHeaders, "source"), id), add(add("mexc - id: ", id), " not in headers."));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 
@@ -1770,7 +1815,10 @@ public partial class testMainClass : BaseTest
         assert(((string)clientOrderIdSwap).StartsWith(((string)idString)), add(add(add("htx - swap channel_code ", clientOrderIdSwap), " does not start with id: "), idString));
         object clientOrderIdInverse = getValue(swapInverseOrderRequest, "channel_code");
         assert(((string)clientOrderIdInverse).StartsWith(((string)idString)), add(add(add("htx - swap inverse channel_code ", clientOrderIdInverse), " does not start with id: "), idString));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 
@@ -1803,7 +1851,10 @@ public partial class testMainClass : BaseTest
         }
         object clientOrderIdStop = getValue(stopOrderRequest, "brokerId");
         assert(((string)clientOrderIdStop).StartsWith(((string)idString)), add(add(add("woo - brokerId: ", clientOrderIdStop), " does not start with id: "), idString));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 
@@ -1822,7 +1873,10 @@ public partial class testMainClass : BaseTest
             reqHeaders = exchange.last_request_headers;
         }
         assert(isEqual(getValue(reqHeaders, "X-BM-BROKER-ID"), id), add(add("bitmart - id: ", id), " not in headers"));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 
@@ -1842,7 +1896,10 @@ public partial class testMainClass : BaseTest
         object clientOrderId = getValue(spotOrderRequest, "client_id");
         object idString = ((object)id).ToString();
         assert(((string)clientOrderId).StartsWith(((string)idString)), add(add(add("coinex - clientOrderId: ", clientOrderId), " does not start with id: "), idString));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 
@@ -1861,7 +1918,10 @@ public partial class testMainClass : BaseTest
             reqHeaders = exchange.last_request_headers;
         }
         assert(isEqual(getValue(reqHeaders, "X-SOURCE-KEY"), id), add(add("bingx - id: ", id), " not in headers."));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
     }
 
     public async virtual Task testPhemex()
@@ -1879,7 +1939,10 @@ public partial class testMainClass : BaseTest
         object clientOrderId = getValue(request, "clOrdID");
         object idString = ((object)id).ToString();
         assert(((string)clientOrderId).StartsWith(((string)idString)), add(add(add("phemex - clOrdID: ", clientOrderId), " does not start with id: "), idString));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
     }
 
     public async virtual Task testBlofin()
@@ -1897,7 +1960,10 @@ public partial class testMainClass : BaseTest
         object brokerId = getValue(request, "brokerId");
         object idString = ((object)id).ToString();
         assert(((string)brokerId).StartsWith(((string)idString)), add(add(add("blofin - brokerId: ", brokerId), " does not start with id: "), idString));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
     }
 
     public async virtual Task testHyperliquid()
@@ -1914,7 +1980,10 @@ public partial class testMainClass : BaseTest
         }
         object brokerId = ((object)(getValue(getValue(request, "action"), "brokerCode"))).ToString();
         assert(isEqual(brokerId, id), add(add(add("hyperliquid - brokerId: ", brokerId), " does not start with id: "), id));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
     }
 
     public async virtual Task<object> testCoinbaseinternational()
@@ -1933,7 +2002,10 @@ public partial class testMainClass : BaseTest
         }
         object clientOrderId = getValue(request, "client_order_id");
         assert(((string)clientOrderId).StartsWith(((string)((object)id).ToString())), "clientOrderId does not start with id");
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 
@@ -1952,7 +2024,10 @@ public partial class testMainClass : BaseTest
         }
         object clientOrderId = getValue(request, "client_order_id");
         assert(((string)clientOrderId).StartsWith(((string)((object)id).ToString())), "clientOrderId does not start with id");
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 
@@ -1972,7 +2047,10 @@ public partial class testMainClass : BaseTest
         }
         object brokerId = getValue(request, "order_tag");
         assert(isEqual(brokerId, id), add(add(add("woofipro - id: ", id), " different from  broker_id: "), brokerId));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 
@@ -2021,7 +2099,10 @@ public partial class testMainClass : BaseTest
         }
         object swapMedia = getValue(swapOrderRequest, "clientMedia");
         assert(isEqual(swapMedia, id), add(add(add("xt - id: ", id), " different from swap tag: "), swapMedia));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 
@@ -2048,7 +2129,59 @@ public partial class testMainClass : BaseTest
         object order = getValue(request, "place_order");
         object brokerId = getValue(order, "id");
         assert(isEqual(brokerId, id), add(add(add("vertex - id: ", ((object)id).ToString()), " different from  broker_id: "), ((object)brokerId).ToString()));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
+        return true;
+    }
+
+    public async virtual Task<object> testParadex()
+    {
+        Exchange exchange = this.initOfflineExchange("paradex");
+        exchange.walletAddress = "0xc751489d24a33172541ea451bc253d7a9e98c781";
+        exchange.privateKey = "c33b1eb4b53108bf52e10f636d8c1236c04c33a712357ba3543ab45f48a5cb0b";
+        ((IDictionary<string,object>)exchange.options)["authToken"] = "token";
+        ((IDictionary<string,object>)exchange.options)["systemConfig"] = new Dictionary<string, object>() {
+            { "starknet_gateway_url", "https://potc-testnet-sepolia.starknet.io" },
+            { "starknet_fullnode_rpc_url", "https://pathfinder.api.testnet.paradex.trade/rpc/v0_7" },
+            { "starknet_chain_id", "PRIVATE_SN_POTC_SEPOLIA" },
+            { "block_explorer_url", "https://voyager.testnet.paradex.trade/" },
+            { "paraclear_address", "0x286003f7c7bfc3f94e8f0af48b48302e7aee2fb13c23b141479ba00832ef2c6" },
+            { "paraclear_decimals", 8 },
+            { "paraclear_account_proxy_hash", "0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9" },
+            { "paraclear_account_hash", "0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e" },
+            { "oracle_address", "0x2c6a867917ef858d6b193a0ff9e62b46d0dc760366920d631715d58baeaca1f" },
+            { "bridged_tokens", new List<object>() {new Dictionary<string, object>() {
+    { "name", "TEST USDC" },
+    { "symbol", "USDC" },
+    { "decimals", 6 },
+    { "l1_token_address", "0x29A873159D5e14AcBd63913D4A7E2df04570c666" },
+    { "l1_bridge_address", "0x8586e05adc0C35aa11609023d4Ae6075Cb813b4C" },
+    { "l2_token_address", "0x6f373b346561036d98ea10fb3e60d2f459c872b1933b50b21fe6ef4fda3b75e" },
+    { "l2_bridge_address", "0x46e9237f5408b5f899e72125dd69bd55485a287aaf24663d3ebe00d237fc7ef" },
+}} },
+            { "l1_core_contract_address", "0x582CC5d9b509391232cd544cDF9da036e55833Af" },
+            { "l1_operator_address", "0x11bACdFbBcd3Febe5e8CEAa75E0Ef6444d9B45FB" },
+            { "l1_chain_id", "11155111" },
+            { "liquidation_fee", "0.2" },
+        };
+        object reqHeaders = null;
+        object id = "CCXT";
+        assert(isEqual(getValue(exchange.options, "broker"), id), add(add("paradex - id: ", id), " not in options"));
+        await exchange.loadMarkets();
+        try
+        {
+            await exchange.createOrder("BTC/USD:USDC", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert(isEqual(getValue(reqHeaders, "PARADEX-PARTNER"), id), add(add("paradex - id: ", id), " not in headers"));
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 }
