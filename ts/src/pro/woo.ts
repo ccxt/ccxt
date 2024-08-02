@@ -91,16 +91,17 @@ export default class woo extends wooRest {
          * @method
          * @name woo#watchOrderBook
          * @see https://docs.woo.org/#orderbookupdate
+         * @see https://docs.woo.org/#orderbook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return.
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.method] either (default) 'orderbook' or 'orderbookupdate'
+         * @param {string} [params.method] either (default) 'orderbook' or 'orderbookupdate', default is 'orderbook'
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const defaultMethod = 'orderbook';
-        const method = this.safeString (params, 'method', defaultMethod);
+        let method = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'method', 'orderbook');
         const market = this.market (symbol);
         const topic = market['id'] + '@' + method;
         const urlUid = (this.uid) ? '/' + this.uid : '';
