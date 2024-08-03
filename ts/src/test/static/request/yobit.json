@@ -127,18 +127,6 @@
                         "ETH/USDT"
                     ]
                 ]
-            },
-            {
-                "disabled": true,
-                "description": "all tickers",
-                "method": "fetchTickers",
-                "url": "https://yobit.net/api/3/ticker/zmc_waves-zne_btc-zne_doge-zne_eth-zne_rur-zne_usd-zne_waves-zonto_btc-zonto_doge-zonto_eth-zonto_rur-zonto_usd-zonto_waves-zoom_btc-zoom_doge-zoom_eth-zoom_rur-zoom_usd-zoom_waves-zrc_btc-zrc_doge-zrc_eth-zrc_rur-zrc_usd-zrc_waves-zrx_btc-zrx_doge-zrx_eth-zrx_rur-zrx_usd-zrx_waves-zur_btc-zur_doge-zur_eth-zur_rur-zur_usd-zur_waves-zxz_btc-zxz_doge-zxz_eth-zxz_rur-zxz_usd-zxz_yo-zyd_btc-zyd_doge-zyd_eth-zyd_rur-zyd_usd-zyd_waves",
-                "input": [
-                  null,
-                  {
-                    "all": true
-                  }
-                ]
             }
         ]
     }
