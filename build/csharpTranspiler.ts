@@ -1041,7 +1041,7 @@ class NewTranspiler {
     transpileWsCacheTestsToCSharp (outDir: string) {
 
         const jsFile = './ts/src/pro/test/base/test.Cache.ts';
-        const csharpFile = `${outDir}/Ws/tests.Cache.cs`;
+        const csharpFile = `${outDir}/Ws/test.Cache.cs`;
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
 
