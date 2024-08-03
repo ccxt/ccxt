@@ -264,7 +264,6 @@ function tco_GetMinimumAmountForLimitPrice (exchange, market, price, predefinedA
 }
 
 async function tco_TryCancelOrder (exchange, symbol, order, skippedProperties) {
-    const logPrefix = testSharedMethods.logTemplate (exchange, 'createOrder', order);
     const orderFetched = await testSharedMethods.tryFetchOrder (exchange, symbol, order['id'], skippedProperties);
     const needsCancel = exchange.inArray (orderFetched['status'], [ 'open', 'pending', undefined ]);
     // if it was not reported as closed/filled, then try to cancel it
@@ -274,7 +273,7 @@ async function tco_TryCancelOrder (exchange, symbol, order, skippedProperties) {
             await tco_CancelOrder (exchange, symbol, order['id']);
         } catch (e) {
             // order might have been closed/filled already, before 'cancelOrder' call reaches server, so it is tolerable, we don't throw exception
-            tco_Debug (logPrefix,  symbol, ' a moment ago order was reported as pending, but could not be cancelled at this moment. Exception message: ' + e.toString ());
+            tco_Debug (exchange, symbol, ' a moment ago order was reported as pending, but could not be cancelled at this moment. Exception message: ' + e.toString ());
         }
     } else {
         tco_Debug (exchange, symbol, 'order is already closed/filled, no need to cancel it');
