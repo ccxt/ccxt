@@ -555,6 +555,7 @@ export default class yobit extends Exchange {
         }, market);
     }
 
+
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
@@ -565,40 +566,49 @@ export default class yobit extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        if (symbols === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTickers() requires "symbols" argument');
+        let all = undefined;
+        [ all, params ] = this.handleParamBool (params, 'all', false);
+        if (symbols === undefined && !all) {
+            throw new ArgumentsRequired (this.id + ' fetchTickers() requires "symbols" argument or use `params["all"] = true` to send multiple requests for all markets');
         }
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
-        let ids = undefined;
-        if (symbols === undefined) {
-            ids = this.ids;
-        } else {
-            ids = this.marketIds (symbols);
-        }
-        const idsLength: number = ids.length;
-        const idsString = ids.join ('-');
+        const promises = [];
         const maxLength = this.safeInteger (this.options, 'maxUrlLength', 2048);
         // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
-        const lenghtOfBaseUrl = 30; // the url including api-base and endpoint dir is 30 chars
-        const actualLength = idsString.length + lenghtOfBaseUrl;
-        if (actualLength > maxLength) {
-            throw new ArgumentsRequired (this.id + ' fetchTickers() is being requested for ' + idsLength.toString () + ' markets (which has an URL length of ' + actualLength.toString () + ' characters), but it exceedes max URL length (' + maxLength.toString () + '), please pass limisted symbols array to fetchTickers to fit in one request');
+        const lenghtOfBaseUrl = 40; // safe space for the url including api-base and endpoint dir is 30 chars
+        if (all) {
+            symbols = this.symbols;
+            let ids = '';
+            for (let i = 0; i < this.ids.length; i++) {
+                const id = this.ids[i];
+                const prefix = (ids === '') ? '' : '-';
+                ids += prefix + id;
+                if (ids.length > maxLength) {
+                    promises.push (this.fetchTickersHelper (ids, params));
+                    ids = '';
+                }
+            }
+            if (ids !== '') {
+                promises.push (this.fetchTickersHelper (ids, params));
+            }
+        } else {
+            symbols = this.marketSymbols (symbols);
+            const ids = this.marketIds (symbols);
+            const idsLength: number = ids.length;
+            const idsString = ids.join ('-');
+            const actualLength = idsString.length + lenghtOfBaseUrl;
+            if (actualLength > maxLength) {
+                throw new ArgumentsRequired (this.id + ' fetchTickers() is being requested for ' + idsLength.toString () + ' markets (which has an URL length of ' + actualLength.toString () + ' characters), but it exceedes max URL length (' + maxLength.toString () + '), please pass limisted symbols array to fetchTickers to fit in one request');
+            }
+            promises.push (this.fetchTickersHelper (idsString, params));
         }
-        const request: Dict = {
-            'pair': idsString,
-        };
-        const tickers = await this.publicGetTickerPair (this.extend (request, params));
-        const result: Dict = {};
-        const keys = Object.keys (tickers);
-        for (let k = 0; k < keys.length; k++) {
-            const id = keys[k];
-            const ticker = tickers[id];
-            const market = this.safeMarket (id);
-            const symbol = market['symbol'];
-            result[symbol] = this.parseTicker (ticker, market);
+        const resultAll = await Promise.all (promises);
+        let finalResult = {};
+        for (let i = 0; i < resultAll.length; i++) {
+            const result = this.filterByArrayTickers (resultAll[i], 'symbol', symbols);
+            finalResult = this.extend (finalResult, result);
         }
-        return this.filterByArrayTickers (result, 'symbol', symbols);
+        return finalResult;
     }
 
     async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
