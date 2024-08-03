@@ -580,6 +580,7 @@ export default class yobit extends Exchange {
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {object} [params.all] you can set to `true` for convenience to fetch all tickers from this exchange by sending multiple requests
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         let all = undefined;
