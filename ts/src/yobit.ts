@@ -583,9 +583,9 @@ export default class yobit extends Exchange {
          * @param {object} [params.all] you can set to `true` for convenience to fetch all tickers from this exchange by sending multiple requests
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        let all = undefined;
-        [ all, params ] = this.handleParamBool (params, 'all', false);
-        if (symbols === undefined && !all) {
+        let allSymbols = undefined;
+        [ allSymbols, params ] = this.handleParamBool (params, 'all', false);
+        if (symbols === undefined && !allSymbols) {
             throw new ArgumentsRequired (this.id + ' fetchTickers() requires "symbols" argument or use `params["all"] = true` to send multiple requests for all markets');
         }
         await this.loadMarkets ();
@@ -593,7 +593,7 @@ export default class yobit extends Exchange {
         const maxLength = this.safeInteger (this.options, 'maxUrlLength', 2048);
         // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
         const lenghtOfBaseUrl = 40; // safe space for the url including api-base and endpoint dir is 30 chars
-        if (all) {
+        if (allSymbols) {
             symbols = this.symbols;
             let ids = '';
             for (let i = 0; i < this.ids.length; i++) {
