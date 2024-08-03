@@ -1197,11 +1197,15 @@ class binance extends \ccxt\async\binance {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+             * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+             * @see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
              * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             $params['callerMethodName'] = 'watchOHLCV';
@@ -1214,10 +1218,14 @@ class binance extends \ccxt\async\binance {
         return Async\async(function () use ($symbolsAndTimeframes, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+             * @see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
              * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified $symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of $candles to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that $timezone instead of UTC, example '+08:00'
              * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
@@ -1230,6 +1238,10 @@ class binance extends \ccxt\async\binance {
             if ($firstMarket['contract']) {
                 $type = $firstMarket['linear'] ? 'future' : 'delivery';
             }
+            $isSpot = ($type === 'spot');
+            $timezone = null;
+            list($timezone, $params) = $this->handle_param_string($params, 'timezone', null);
+            $isUtc8 = ($timezone !== null) && (($timezone === '+08:00') || Precise::string_eq($timezone, '8'));
             $rawHashes = array();
             $messageHashes = array();
             for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
@@ -1240,10 +1252,13 @@ class binance extends \ccxt\async\binance {
                 $market = $this->market($symbolString);
                 $marketId = $market['lowercaseId'];
                 if ($klineType === 'indexPriceKline') {
-                    // weird behavior for index price kline we can't use the perp suffix
+                    // weird behavior for index price kline we can't use the perp $suffix
                     $marketId = str_replace('_perp', '', $marketId);
                 }
-                $rawHashes[] = $marketId . '@' . $klineType . '_' . $interval;
+                $shouldUseUTC8 = ($isUtc8 && $isSpot);
+                $suffix = '@+08:00';
+                $utcSuffix = $shouldUseUTC8 ? $suffix : '';
+                $rawHashes[] = $marketId . '@' . $klineType . '_' . $interval . $utcSuffix;
                 $messageHashes[] = 'ohlcv::' . $symbolString . '::' . $timeframeString;
             }
             $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, 'multipleOHLCV');

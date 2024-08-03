@@ -15,7 +15,7 @@ class Client(object):
     subscriptions = {}
     rejections = {}
     message_queue = {}
-    useMessageQueue = True
+    useMessageQueue = False
     on_message_callback = None
     on_error_callback = None
     on_close_callback = None

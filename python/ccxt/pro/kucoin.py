@@ -1024,6 +1024,10 @@ class kucoin(ccxt.async_support.kucoin):
         tradeId = self.safe_string(trade, 'tradeId')
         price = self.safe_string(trade, 'matchPrice')
         amount = self.safe_string(trade, 'matchSize')
+        if price is None:
+            # /spot/tradeFills
+            price = self.safe_string(trade, 'price')
+            amount = self.safe_string(trade, 'size')
         order = self.safe_string(trade, 'orderId')
         timestamp = self.safe_integer_product_2(trade, 'ts', 'time', 0.000001)
         feeCurrency = market['quote']

@@ -296,6 +296,9 @@ public partial class binance
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -313,6 +316,12 @@ public partial class binance
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.timezone</term>
+    /// <description>
+    /// object : if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
     /// </description>
     /// </item>
     /// </list>
@@ -329,6 +338,9 @@ public partial class binance
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -346,6 +358,12 @@ public partial class binance
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.timezone</term>
+    /// <description>
+    /// object : if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
     /// </description>
     /// </item>
     /// </list>

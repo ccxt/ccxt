@@ -374,10 +374,14 @@ async function run () {
                     }
 
                     if (debug) {
-                        const keys = Object.keys (httpsAgent.freeSockets)
-                        const firstKey = keys[0]
-                        let httpAgent = httpsAgent.freeSockets[firstKey];
-                        log (firstKey, httpAgent.length)
+                        if (httpsAgent.freeSockets) {
+                            const keys = Object.keys (httpsAgent.freeSockets)
+                            if (keys.length) {
+                                const firstKey = keys[0]
+                                let httpAgent = httpsAgent.freeSockets[firstKey];
+                                log (firstKey, httpAgent.length)
+                            }
+                        }
                     }
 
                     if (!poll && !isWsMethod){
