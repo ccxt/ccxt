@@ -94,7 +94,11 @@
                         "filled": 0.0001,
                         "remaining": 0,
                         "status": "closed",
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "trades": [],
                         "fees": [],
                         "lastUpdateTimestamp": null,
@@ -197,7 +201,11 @@
                         "filled": 0,
                         "remaining": 0.0001,
                         "status": "open",
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "trades": [],
                         "fees": [],
                         "lastUpdateTimestamp": null,
@@ -298,7 +306,11 @@
                     "filled": 1000,
                     "remaining": 0,
                     "status": "closed",
-                    "fee": null,
+                    "fee": {
+                        "cost": null,
+                        "currency": null,
+                        "rate": null
+                    },
                     "trades": [],
                     "fees": [],
                     "lastUpdateTimestamp": null,
@@ -876,7 +888,11 @@
                         "price": 73208,
                         "cost": 3345.6056,
                         "amount": 0.0457,
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "fees": []
                     }
                 ]

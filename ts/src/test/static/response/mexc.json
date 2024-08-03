@@ -130,7 +130,8 @@
                         "cost": 5.54124,
                         "fee": {
                             "cost": 0,
-                            "currency": "USDT"
+                            "currency": "USDT",
+                            "rate": null
                         },
                         "info": {
                             "symbol": "ATLASUSDT",
@@ -152,7 +153,8 @@
                         "fees": [
                             {
                                 "cost": 0,
-                                "currency": "USDT"
+                                "currency": "USDT",
+                                "rate": null
                             }
                         ]
                     }
@@ -210,7 +212,11 @@
                         "cost": 5.54124,
                         "filled": 1220,
                         "remaining": 0,
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "trades": [],
                         "info": {
                             "symbol": "ATLASUSDT",
@@ -276,7 +282,11 @@
                         "price": 73238.7,
                         "amount": 0.000112,
                         "cost": 8.2027344,
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "info": {
                             "a": null,
                             "f": null,

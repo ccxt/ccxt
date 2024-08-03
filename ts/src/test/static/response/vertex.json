@@ -41,7 +41,11 @@
                         "deposit": true,
                         "withdraw": true,
                         "networks": null,
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "limits": {
                             "amount": {
                                 "min": null,
@@ -215,7 +219,11 @@
                         "order": null,
                         "takerOrMaker": null,
                         "type": null,
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "info": {
                             "ticker_id": "USDT_USDC",
                             "trade_id": "20295068",
@@ -308,7 +316,8 @@
                         "type": null,
                         "fee": {
                             "cost": 0,
-                            "currency": null
+                            "currency": null,
+                            "rate": null
                         },
                         "info": {
                             "digest": "0x6564157372747c4798048254f10ce8aa8f3b11e028c6cf9f502e5a5c12354a19",
@@ -4552,7 +4561,11 @@
                         "filled": 0,
                         "remaining": 1,
                         "status": null,
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "trades": [],
                         "fees": [],
                         "stopPrice": null,
@@ -4619,7 +4632,11 @@
                     "filled": 0,
                     "remaining": 1,
                     "status": null,
-                    "fee": null,
+                    "fee": {
+                        "cost": null,
+                        "currency": null,
+                        "rate": null
+                    },
                     "trades": [],
                     "fees": [],
                     "stopPrice": null,

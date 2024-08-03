@@ -121,12 +121,14 @@
               "cost": 3.92,
               "fee": {
                 "cost": 0.03136,
-                "currency": "USDT"
+                "currency": "USDT",
+                "rate": null
               },
               "fees": [
                 {
                   "cost": 0.03136,
-                  "currency": "USDT"
+                  "currency": "USDT",
+                  "rate": null
                 }
               ]
             }
@@ -194,12 +196,14 @@
               "cost": 12.182,
               "fee": {
                 "cost": 0.0036,
-                "currency": "USDC"
+                "currency": "USDC",
+                "rate": null
               },
               "fees": [
                 {
                   "cost": 0.0036,
-                  "currency": "USDC"
+                  "currency": "USDC",
+                  "rate": null
                 }
               ]
             }
@@ -327,13 +331,15 @@
               "status": "closed",
               "fee": {
                 "cost": "0.03136",
-                "currency": "USDT"
+                "currency": "USDT",
+                "rate": null
               },
               "trades": [],
               "fees": [
                 {
                   "cost": 0.03136,
-                  "currency": "USDT"
+                  "currency": "USDT",
+                  "rate": null
                 }
               ],
               "lastUpdateTimestamp": null,

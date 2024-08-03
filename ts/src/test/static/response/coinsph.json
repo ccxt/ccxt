@@ -35,7 +35,11 @@
                         "price": 73247.3,
                         "amount": 0.0066912,
                         "cost": 490.11233376,
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "info": {
                             "price": "73247.300000000000000000",
                             "id": "1640734866998845445",

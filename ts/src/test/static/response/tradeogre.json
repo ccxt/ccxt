@@ -49,13 +49,15 @@
                   "status": null,
                   "fee": {
                     "currency": null,
-                    "cost": null
+                    "cost": null,
+                    "rate": null
                   },
                   "trades": [],
                   "fees": [
                     {
                       "currency": null,
-                      "cost": null
+                      "cost": null,
+                      "rate": null
                     }
                   ],
                   "lastUpdateTimestamp": null,
@@ -154,12 +156,14 @@
                     "cost": 12.991565728,
                     "fee": {
                       "currency": null,
-                      "cost": null
+                      "cost": null,
+                      "rate": null
                     },
                     "fees": [
                       {
                         "currency": null,
-                        "cost": null
+                        "cost": null,
+                        "rate": null
                       }
                     ]
                   }

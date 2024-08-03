@@ -77,7 +77,11 @@
                         "remaining": 1,
                         "timestamp": 1700137607713,
                         "datetime": "2023-11-16T12:26:47.713Z",
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "status": "open",
                         "info": {
                             "id": "114606863965757440",
@@ -285,7 +289,11 @@
                     "remaining": 0,
                     "timestamp": 1703780982072,
                     "datetime": "2023-12-28T16:29:42.072Z",
-                    "fee": null,
+                    "fee": {
+                        "cost": null,
+                        "currency": null,
+                        "rate": null
+                    },
                     "status": "closed",
                     "info": {
                         "id": "129888283827113984",
@@ -495,7 +503,11 @@
                         "price": 73266.7,
                         "amount": 1,
                         "cost": 73.2667,
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "fees": []
                     }
                 ]

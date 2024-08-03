@@ -96,12 +96,14 @@
                     "cost": 10.00258300871396,
                     "fee": {
                       "cost": 0.01,
-                      "currency": "WAVES"
+                      "currency": "WAVES",
+                      "rate": null
                     },
                     "fees": [
                       {
                         "cost": 0.01,
-                        "currency": "WAVES"
+                        "currency": "WAVES",
+                        "rate": null
                       }
                     ]
                   }
@@ -1694,14 +1696,15 @@
                     "status": "closed",
                     "fee": {
                       "currency": "WAVES",
-                      "fee": 0.00999971
+                      "cost": 0.00999971,
+                      "rate": null
                     },
                     "trades": [],
                     "fees": [
                       {
                         "currency": "WAVES",
-                        "fee": 0.00999971,
-                        "cost": null
+                        "cost": 0.00999971,
+                        "rate": null
                       }
                     ],
                     "lastUpdateTimestamp": null,

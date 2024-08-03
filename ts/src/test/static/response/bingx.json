@@ -62,13 +62,15 @@
                     "status": "canceled",
                     "fee": {
                         "currency": "LTC",
-                        "cost": null
+                        "cost": null,
+                        "rate": null
                     },
                     "trades": [],
                     "fees": [
                         {
                             "currency": "LTC",
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         }
                     ],
                     "reduceOnly": null
@@ -191,13 +193,15 @@
                     "status": "open",
                     "fee": {
                         "currency": "LTC",
-                        "cost": null
+                        "cost": null,
+                        "rate": null
                     },
                     "trades": [],
                     "fees": [
                         {
                             "currency": "LTC",
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         }
                     ],
                     "reduceOnly": null
@@ -262,13 +266,15 @@
                     "status": null,
                     "fee": {
                         "currency": "USDT",
-                        "cost": null
+                        "cost": null,
+                        "rate": null
                     },
                     "trades": [],
                     "fees": [
                         {
                             "currency": "USDT",
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         }
                     ],
                     "reduceOnly": null
@@ -346,13 +352,15 @@
                     "status": null,
                     "fee": {
                         "currency": "USDT",
-                        "cost": null
+                        "cost": null,
+                        "rate": null
                     },
                     "trades": [],
                     "fees": [
                         {
                             "currency": "USDT",
-                            "cost": null
+                            "cost": null,
+                            "fee": null
                         }
                     ],
                     "reduceOnly": null
@@ -437,13 +445,15 @@
                     "status": null,
                     "fee": {
                         "currency": "USDT",
-                        "cost": null
+                        "cost": null,
+                        "rate": null
                     },
                     "trades": [],
                     "fees": [
                         {
                             "currency": "USDT",
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         }
                     ],
                     "reduceOnly": null
@@ -534,14 +544,16 @@
                   "status": null,
                   "fee": {
                     "currency": "USDT",
-                    "cost": null
+                    "cost": null,
+                    "rate": null
                   },
                   "trades": [],
                   "reduceOnly": false,
                   "fees": [
                     {
                       "currency": "USDT",
-                      "cost": null
+                      "cost": null,
+                      "rate": null
                     }
                   ]
                 }
@@ -631,14 +643,16 @@
                   "status": null,
                   "fee": {
                     "currency": "USDT",
-                    "cost": null
+                    "cost": null,
+                    "rate": null
                   },
                   "trades": [],
                   "reduceOnly": false,
                   "fees": [
                     {
                       "currency": "USDT",
-                      "cost": null
+                      "cost": null,
+                      "rate": null
                     }
                   ]
                 }
@@ -720,13 +734,15 @@
                         "status": "closed",
                         "fee": {
                             "currency": "LTC",
-                            "cost": "0.0000679"
+                            "cost": "0.0000679",
+                            "rate": null
                         },
                         "trades": [],
                         "fees": [
                             {
                                 "currency": "LTC",
-                                "cost": 0.0000679
+                                "cost": 0.0000679,
+                                "rate": null
                             }
                         ],
                         "reduceOnly": null
@@ -855,13 +871,15 @@
                         "status": "closed",
                         "fee": {
                             "currency": "USDT",
-                            "cost": "0.003509"
+                            "cost": "0.003509",
+                            "rate": null
                         },
                         "trades": [],
                         "fees": [
                             {
                                 "currency": "USDT",
-                                "cost": 0.003509
+                                "cost": 0.003509,
+                                "rate": null
                             }
                         ],
                         "reduceOnly": null
@@ -1252,13 +1270,15 @@
                         "status": "open",
                         "fee": {
                             "currency": "LTC",
-                            "cost": "0"
+                            "cost": "0",
+                            "rate": null
                         },
                         "trades": [],
                         "fees": [
                             {
                                 "currency": "LTC",
-                                "cost": 0
+                                "cost": 0,
+                                "rate": null
                             }
                         ],
                         "reduceOnly": null
@@ -1727,14 +1747,16 @@
                   "status": "closed",
                   "fee": {
                     "currency": "USDT",
-                    "cost": "0.004186"
+                    "cost": "0.004186",
+                    "rate": null
                   },
                   "trades": [],
                   "reduceOnly": true,
                   "fees": [
                     {
                       "currency": "USDT",
-                      "cost": 0.004186
+                      "cost": 0.004186,
+                      "rate": null
                     }
                   ]
                 }
@@ -1875,14 +1897,16 @@
                   "status": "open",
                   "fee": {
                     "currency": "USDT",
-                    "cost": null
+                    "cost": null,
+                    "rate": null
                   },
                   "trades": [],
                   "reduceOnly": true,
                   "fees": [
                     {
                       "currency": "USDT",
-                      "cost": null
+                      "cost": null,
+                      "rate": null
                     }
                   ]
                 }

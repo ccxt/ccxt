@@ -100,14 +100,16 @@
                         "status": "closed",
                         "fee": {
                             "cost": 0.040866,
-                            "currency": "USDT"
+                            "currency": "USDT",
+                            "rate": null
                         },
                         "trades": [],
                         "reduceOnly": true,
                         "fees": [
                             {
                                 "cost": 0.040866,
-                                "currency": "USDT"
+                                "currency": "USDT",
+                                "rate": null
                             }
                         ],
                         "stopPrice": null,
@@ -211,14 +213,16 @@
                         "status": "open",
                         "fee": {
                             "cost": 0,
-                            "currency": "USDT"
+                            "currency": "USDT",
+                            "rate": null
                         },
                         "trades": [],
                         "reduceOnly": false,
                         "fees": [
                             {
                                 "cost": 0,
-                                "currency": "USDT"
+                                "currency": "USDT",
+                                "rate": null
                             }
                         ],
                         "stopPrice": null,
@@ -283,12 +287,14 @@
                         "cost": 67.85,
                         "fee": {
                             "cost": 0.04071,
-                            "currency": "USDT"
+                            "currency": "USDT",
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "cost": 0.04071,
-                                "currency": "USDT"
+                                "currency": "USDT",
+                                "rate": null
                             }
                         ]
                     }
@@ -354,7 +360,8 @@
                         "comment": null,
                         "fee": {
                             "currency": null,
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         }
                     }
                 ]
@@ -425,7 +432,8 @@
                         "comment": null,
                         "fee": {
                             "currency": "USDT",
-                            "cost": 1
+                            "cost": 1,
+                            "rate": null
                         }
                     }
                 ]
@@ -778,7 +786,11 @@
                         "price": 67.88,
                         "amount": 3,
                         "cost": 203.64,
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "fees": []
                     }
                 ]

@@ -51,7 +51,11 @@
                     "filled": null,
                     "remaining": null,
                     "status": null,
-                    "fee": null,
+                    "fee": {
+                        "cost": null,
+                        "currency": null,
+                        "rate": null
+                    },
                     "trades": [],
                     "fees": []
                 }
@@ -192,13 +196,15 @@
                     "status": "closed",
                     "fee": {
                         "cost": "0.000001614",
-                        "currency": "BTC"
+                        "currency": "BTC",
+                        "rate": null
                     },
                     "trades": [],
                     "fees": [
                         {
                             "cost": 0.000001614,
-                            "currency": "BTC"
+                            "currency": "BTC",
+                            "rate": null
                         }
                     ]
                 }
@@ -337,13 +343,15 @@
                     "status": "closed",
                     "fee": {
                         "cost": "0.0658173",
-                        "currency": "USDT"
+                        "currency": "USDT",
+                        "rate": null
                     },
                     "trades": [],
                     "fees": [
                         {
                             "cost": 0.0658173,
-                            "currency": "USDT"
+                            "currency": "USDT",
+                            "rate": null
                         }
                     ]
                 }
@@ -483,13 +491,15 @@
                     "status": "open",
                     "fee": {
                         "cost": 0,
-                        "currency": "USDT"
+                        "currency": "USDT",
+                        "rate": null
                     },
                     "trades": [],
                     "fees": [
                         {
                             "cost": 0,
-                            "currency": "USDT"
+                            "currency": "USDT",
+                            "rate": null
                         }
                     ]
                 }
@@ -631,13 +641,15 @@
                     "status": "closed",
                     "fee": {
                         "cost": "0.00385935",
-                        "currency": "USDT"
+                        "currency": "USDT",
+                        "rate": null
                     },
                     "trades": [],
                     "fees": [
                         {
                             "cost": 0.00385935,
-                            "currency": "USDT"
+                            "currency": "USDT",
+                            "rate": null
                         }
                     ]
                 }
@@ -777,13 +789,15 @@
                         "status": "closed",
                         "fee": {
                             "cost": 0.0041327,
-                            "currency": "USDT"
+                            "currency": "USDT",
+                            "rate": null
                         },
                         "trades": [],
                         "fees": [
                             {
                                 "cost": 0.0041327,
-                                "currency": "USDT"
+                                "currency": "USDT",
+                                "rate": null
                             }
                         ]
                     }
@@ -1516,7 +1530,11 @@
                         "filled": null,
                         "remaining": null,
                         "status": null,
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "trades": [],
                         "fees": []
                     }
@@ -1784,7 +1802,11 @@
                         "price": 51444.4,
                         "amount": 0.972,
                         "cost": 50003.9568,
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "fees": []
                     }
                 ]

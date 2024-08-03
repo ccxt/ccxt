@@ -248,7 +248,11 @@
                         "price": 68.01,
                         "amount": 0.0485,
                         "cost": 3.298485,
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "fees": [
                             {
                                 "cost": "0.000097",
@@ -294,7 +298,11 @@
                         "price": 68.02,
                         "amount": 0.025,
                         "cost": 1.7005,
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "fees": [
                             {
                                 "cost": "0.000050",
@@ -363,7 +371,11 @@
                         "price": 68.42,
                         "amount": 1,
                         "cost": 6.842,
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "fees": [
                             {
                                 "cost": "0.003421",
@@ -445,7 +457,8 @@
                         "remaining": 0.000014922081740664,
                         "fee": {
                             "currency": "LTC",
-                            "cost": 0.000147
+                            "cost": 0.000147,
+                            "rate": null
                         },
                         "fees": [
                             {
@@ -546,7 +559,11 @@
                         "cost": 6.842,
                         "filled": 1,
                         "remaining": 0,
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "fees": [],
                         "trades": [],
                         "info": {
@@ -622,7 +639,11 @@
                         "price": 73236.4,
                         "amount": 0.0002,
                         "cost": 14.64728,
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "fees": []
                     }
                 ]

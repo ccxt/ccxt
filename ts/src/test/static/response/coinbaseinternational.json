@@ -707,12 +707,16 @@
             "average": null,
             "status": "WORKING",
             "fee": {
-              "cost": 0
+              "cost": 0,
+              "currency": null,
+              "rate": null
             },
             "trades": [],
             "fees": [
               {
-                "cost": 0
+                "cost": 0,
+                "currency": null,
+                "rate": null
               }
             ],
             "lastUpdateTimestamp": null,
@@ -794,12 +798,16 @@
             "average": null,
             "status": "WORKING",
             "fee": {
-              "cost": 0
+              "cost": 0,
+              "currency": null,
+              "rate": null
             },
             "trades": [],
             "fees": [
               {
-                "cost": 0
+                "cost": 0,
+                "currency": null,
+                "rate": null
               }
             ],
             "lastUpdateTimestamp": null,
@@ -894,12 +902,16 @@
               "average": null,
               "status": "WORKING",
               "fee": {
-                "cost": 0
+                "cost": 0,
+                "currency": null,
+                "rate": null
               },
               "trades": [],
               "fees": [
                 {
-                  "cost": 0
+                  "cost": 0,
+                  "currency": null,
+                  "rate": null
                 }
               ],
               "lastUpdateTimestamp": null,
@@ -1002,12 +1014,14 @@
               "cost": 594,
               "fee": {
                 "cost": 0.1188,
-                "currency": "USDC"
+                "currency": "USDC",
+                "rate": null
               },
               "fees": [
                 {
                   "cost": 0.1188,
-                  "currency": "USDC"
+                  "currency": "USDC",
+                  "rate": null
                 }
               ]
             }
@@ -1126,7 +1140,8 @@
               "updated": 1710238451451,
               "fee": {
                 "cost": null,
-                "currency": null
+                "currency": null,
+                "rate": null
               }
             },
             {
@@ -1164,7 +1179,8 @@
               "updated": 1710383738514,
               "fee": {
                 "cost": null,
-                "currency": null
+                "currency": null,
+                "rate": null
               }
             },
             {
@@ -1202,7 +1218,8 @@
               "updated": 1710384592540,
               "fee": {
                 "cost": null,
-                "currency": null
+                "currency": null,
+                "rate": null
               }
             },
             {
@@ -1239,7 +1256,8 @@
               "updated": 1710385519164,
               "fee": {
                 "cost": null,
-                "currency": null
+                "currency": null,
+                "rate": null
               }
             }
           ]

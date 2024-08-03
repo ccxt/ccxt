@@ -258,13 +258,15 @@
             "status": "closed",
             "fee": {
               "currency": "USDT",
-              "cost": 0.01567
+              "cost": 0.01567,
+              "rate": null
             },
             "trades": [],
             "fees": [
               {
                 "currency": "USDT",
-                "cost": 0.01567
+                "cost": 0.01567,
+                "rate": null
               }
             ],
             "reduceOnly": null,
@@ -391,13 +393,15 @@
             "status": "closed",
             "fee": {
               "currency": null,
-              "cost": null
+              "cost": null,
+              "rate": null
             },
             "trades": [],
             "fees": [
               {
                 "currency": null,
-                "cost": null
+                "cost": null,
+                "rate": null
               }
             ],
             "reduceOnly": null,
