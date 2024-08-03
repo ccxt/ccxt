@@ -2401,10 +2401,11 @@ export default class hashkey extends Exchange {
             //     }
             //
         } else if (marketType === 'swap') {
-            let trigger = false;
-            [ trigger, params ] = this.handleOptionAndParams (params, methodName, 'trigger');
-            [ trigger, params ] = this.handleOptionAndParams (params, methodName, 'stop', trigger);
-            if (trigger) {
+            let isStop = false;
+            [ isStop, params ] = this.handleOptionAndParams (params, methodName, 'stop', isStop);
+            let isTrigger = isStop;
+            [ isTrigger, params ] = this.handleOptionAndParams (params, methodName, 'trigger', isTrigger);
+            if (isTrigger) {
                 request['type'] = 'STOP';
             } else {
                 request['type'] = 'LIMIT';
@@ -2600,10 +2601,11 @@ export default class hashkey extends Exchange {
             if (clientOrderId !== undefined) {
                 request['clientOrderId'] = clientOrderId;
             }
-            let trigger = false;
-            [ trigger, params ] = this.handleOptionAndParams (params, methodName, 'trigger');
-            [ trigger, params ] = this.handleOptionAndParams (params, methodName, 'stop', trigger);
-            if (trigger) {
+            let isStop = false;
+            [ isStop, params ] = this.handleOptionAndParams (params, methodName, 'stop', isStop);
+            let isTrigger = isStop;
+            [ isTrigger, params ] = this.handleOptionAndParams (params, methodName, 'trigger', isTrigger);
+            if (isTrigger) {
                 request['type'] = 'STOP'; // todo report type is not mandatory
             }
             response = await this.privateGetApiV1FuturesOrder (this.extend (request, params));
@@ -2768,10 +2770,11 @@ export default class hashkey extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let trigger = false;
-        [ trigger, params ] = this.handleOptionAndParams (params, methodName, 'trigger');
-        [ trigger, params ] = this.handleOptionAndParams (params, methodName, 'stop', trigger);
-        if (trigger) {
+        let isStop = false;
+        [ isStop, params ] = this.handleOptionAndParams (params, methodName, 'stop', isStop);
+        let isTrigger = isStop;
+        [ isTrigger, params ] = this.handleOptionAndParams (params, methodName, 'trigger', isTrigger);
+        if (isTrigger) {
             request['type'] = 'STOP';
         } else {
             request['type'] = 'LIMIT';
@@ -2922,10 +2925,11 @@ export default class hashkey extends Exchange {
                 throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a symbol argument for swap markets');
             }
             request['symbol'] = market['id'];
-            let trigger = false;
-            [ trigger, params ] = this.handleOptionAndParams (params, methodName, 'trigger');
-            [ trigger, params ] = this.handleOptionAndParams (params, methodName, 'stop', trigger);
-            if (trigger) {
+            let isStop = false;
+            [ isStop, params ] = this.handleOptionAndParams (params, methodName, 'stop', isStop);
+            let isTrigger = isStop;
+            [ isTrigger, params ] = this.handleOptionAndParams (params, methodName, 'trigger', isTrigger);
+            if (isTrigger) {
                 request['type'] = 'STOP';
             } else {
                 request['type'] = 'LIMIT';
