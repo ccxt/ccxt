@@ -555,6 +555,22 @@ export default class yobit extends Exchange {
         }, market);
     }
 
+    async fetchTickersHelper (idsString: string, params = {}): Promise<Tickers> {
+        const request: Dict = {
+            'pair': idsString,
+        };
+        const tickers = await this.publicGetTickerPair (this.extend (request, params));
+        const result: Dict = {};
+        const keys = Object.keys (tickers);
+        for (let k = 0; k < keys.length; k++) {
+            const id = keys[k];
+            const ticker = tickers[id];
+            const market = this.safeMarket (id);
+            const symbol = market['symbol'];
+            result[symbol] = this.parseTicker (ticker, market);
+        }
+        return result;
+    }
 
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
