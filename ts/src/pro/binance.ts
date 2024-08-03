@@ -967,6 +967,7 @@ export default class binance extends binanceRest {
         }
         let name = undefined;
         [ name, params ] = this.handleOptionAndParams (params, 'watchTradesForSymbols', 'name', 'trade');
+        params = this.omit (params, 'callerMethodName');
         const firstMarket = this.market (symbols[0]);
         let type = firstMarket['type'];
         if (firstMarket['contract']) {
@@ -1284,6 +1285,7 @@ export default class binance extends binanceRest {
         const subscribe = {
             'id': requestId,
         };
+        params = this.omit (params, 'callerMethodName');
         const [ symbol, timeframe, candles ] = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes, subscribe);
         if (this.newUpdates) {
             limit = candles.getLimit (symbol, limit);
