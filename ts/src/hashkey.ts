@@ -2076,16 +2076,17 @@ export default class hashkey extends Exchange {
          * @see https://hashkeyglobal-apidoc.readme.io/reference/create-order
          * @see https://hashkeyglobal-apidoc.readme.io/reference/create-new-futures-order
          * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit' or 'LIMIT_MAKER' or 'STOP'
+         * @param {string} type 'market' or 'limit' or 'LIMIT_MAKER' for spot, 'market' or 'limit' or 'STOP' for swap
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of you want to trade in units of the base currency
          * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
-         * @param {boolean} [params.test] *spot only* whether to use the test endpoint or not, default is false
+         * @param {boolean} [params.test] *spot markets only* whether to use the test endpoint or not, default is false
          * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
-         * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
-         * @param {string} [params.clientOrderId] a unique id for the order
+         * @param {string} [params.timeInForce] "GTC" or "IOC" or "PO" for spot, 'GTC' or 'FOK' or 'IOC' or 'LIMIT_MAKER' or 'PO' for swap
+         * @param {string} [params.clientOrderId] a unique id for the order - is mandatory for swap
+         * @param {float} [params.triggerPrice] *swap markets only* The price at which a trigger order is triggered at
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2269,7 +2270,7 @@ export default class hashkey extends Exchange {
     async createSwapOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
-         * @name hashkey#createSpotOrder
+         * @name hashkey#createSwapOrder
          * @description create a trade order on swap market
          * @see https://hashkeyglobal-apidoc.readme.io/reference/create-new-futures-order
          * @param {string} symbol unified symbol of the market to create an order in
@@ -2280,6 +2281,7 @@ export default class hashkey extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
          * @param {bool} [params.reduceOnly] true or false whether the order is reduce only
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @param {string} [params.timeInForce] 'GTC', 'FOK', 'IOC', 'LIMIT_MAKER' or 'PO'
          * @param {string} [params.clientOrderId] a unique id for the order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2288,16 +2290,16 @@ export default class hashkey extends Exchange {
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
-            'type': type.toUpperCase (),
+            'type': 'LIMIT',
             'quantity': this.amountToPrecision (symbol, amount),
         };
         const isMarketOrder = type === 'market';
         if (isMarketOrder) {
-            request['type'] = 'LIMIT';
             request['priceType'] = 'MARKET';
         }
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
+            request['priceType'] = 'INPUT';
         }
         let reduceOnly = false;
         [ reduceOnly, params ] = this.handleParamBool (params, 'reduceOnly', reduceOnly);
@@ -2305,8 +2307,7 @@ export default class hashkey extends Exchange {
         if (reduceOnly) {
             suffix = '_CLOSE';
         }
-        side = side.toUpperCase () + suffix;
-        request['side'] = side;
+        request['side'] = side.toUpperCase () + suffix;
         let timeInForce: Str = undefined;
         [ timeInForce, params ] = this.handleParamString (params, 'timeInForce');
         let postOnly = false;
@@ -2321,6 +2322,12 @@ export default class hashkey extends Exchange {
             // throw new ArgumentsRequired (this.id + ' createSwapOrder() requires a clientOrderId parameter');
             clientOrderId = this.milliseconds ().toString (); // todo delete it after check
             request['clientOrderId'] = clientOrderId;
+        }
+        const triggerPrice = this.safeNumber (params, 'triggerPrice');
+        if (triggerPrice !== undefined) {
+            request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
+            request['type'] = 'STOP';
+            params = this.omit (params, 'triggerPrice');
         }
         const response = await this.privatePostApiV1FuturesOrder (this.extend (request, params));
         //
@@ -2401,10 +2408,8 @@ export default class hashkey extends Exchange {
             //     }
             //
         } else if (marketType === 'swap') {
-            let isStop = false;
-            [ isStop, params ] = this.handleOptionAndParams (params, methodName, 'stop', isStop);
-            let isTrigger = isStop;
-            [ isTrigger, params ] = this.handleOptionAndParams (params, methodName, 'trigger', isTrigger);
+            let isTrigger = false;
+            [ isTrigger, params ] = this.handleTriggerOptionAndParams (params, methodName, isTrigger);
             if (isTrigger) {
                 request['type'] = 'STOP';
             } else {
@@ -2601,10 +2606,8 @@ export default class hashkey extends Exchange {
             if (clientOrderId !== undefined) {
                 request['clientOrderId'] = clientOrderId;
             }
-            let isStop = false;
-            [ isStop, params ] = this.handleOptionAndParams (params, methodName, 'stop', isStop);
-            let isTrigger = isStop;
-            [ isTrigger, params ] = this.handleOptionAndParams (params, methodName, 'trigger', isTrigger);
+            let isTrigger = false;
+            [ isTrigger, params ] = this.handleTriggerOptionAndParams (params, methodName, isTrigger);
             if (isTrigger) {
                 request['type'] = 'STOP'; // todo report type is not mandatory
             }
@@ -2770,10 +2773,8 @@ export default class hashkey extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let isStop = false;
-        [ isStop, params ] = this.handleOptionAndParams (params, methodName, 'stop', isStop);
-        let isTrigger = isStop;
-        [ isTrigger, params ] = this.handleOptionAndParams (params, methodName, 'trigger', isTrigger);
+        let isTrigger = false;
+        [ isTrigger, params ] = this.handleTriggerOptionAndParams (params, methodName, isTrigger);
         if (isTrigger) {
             request['type'] = 'STOP';
         } else {
@@ -2925,10 +2926,8 @@ export default class hashkey extends Exchange {
                 throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a symbol argument for swap markets');
             }
             request['symbol'] = market['id'];
-            let isStop = false;
-            [ isStop, params ] = this.handleOptionAndParams (params, methodName, 'stop', isStop);
-            let isTrigger = isStop;
-            [ isTrigger, params ] = this.handleOptionAndParams (params, methodName, 'trigger', isTrigger);
+            let isTrigger = false;
+            [ isTrigger, params ] = this.handleTriggerOptionAndParams (params, methodName, isTrigger);
             if (isTrigger) {
                 request['type'] = 'STOP';
             } else {
@@ -2979,6 +2978,14 @@ export default class hashkey extends Exchange {
         if ((paramsType !== undefined) && (paramsType !== 'spot') && (paramsType !== 'swap')) {
             throw new BadRequest (this.id + ' ' + methodName + ' () type parameter can not be "' + paramsType + '". It should define the type of the market ("spot" or "swap"). To define the type of an order use the trigger parameter (true for trigger orders)');
         }
+    }
+
+    handleTriggerOptionAndParams (params: object, methodName: string, defaultValue = undefined) {
+        let isStop = defaultValue;
+        [ isStop, params ] = this.handleOptionAndParams (params, methodName, 'stop', isStop);
+        let isTrigger = isStop;
+        [ isTrigger, params ] = this.handleOptionAndParams (params, methodName, 'trigger', isTrigger);
+        return [ isTrigger, params ];
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {
@@ -3100,6 +3107,20 @@ export default class hashkey extends Exchange {
         if (priceType === 'MARKET') {
             type = 'market';
         }
+        let price = this.omitZero (this.safeString (order, 'price'));
+        if (type === 'STOP') {
+            if (price === undefined) {
+                type = 'market';
+            } else {
+                type = 'limit';
+            }
+        } else {
+            type = this.parseOrderType (type);
+        }
+        const average = this.omitZero (this.safeString (order, 'avgPrice'));
+        if (price === undefined) {
+            price = average;
+        }
         let side = this.safeStringLower (order, 'side');
         const parts = side.split ('_');
         side = parts[0];
@@ -3118,11 +3139,6 @@ export default class hashkey extends Exchange {
             postOnly = true;
             timeInForce = 'PO';
         }
-        let price = this.omitZero (this.safeString (order, 'price'));
-        const average = this.omitZero (this.safeString (order, 'avgPrice'));
-        if (price === undefined) {
-            price = average;
-        }
         let feeCurrncyId = this.safeString (order, 'feeCoin');
         if (feeCurrncyId === '') {
             feeCurrncyId = undefined;
@@ -3137,7 +3153,7 @@ export default class hashkey extends Exchange {
             'lastUpdateTimestamp': this.safeInteger (order, 'updateTime'),
             'status': this.parseOrderStatus (status),
             'symbol': market['symbol'],
-            'type': this.parseOrderType (type),
+            'type': type,
             'timeInForce': timeInForce,
             'side': side,
             'price': price,
@@ -3168,6 +3184,7 @@ export default class hashkey extends Exchange {
             'PARTIALLY_CANCELED': 'canceled',
             'FILLED': 'closed',
             'CANCELED': 'canceled',
+            'ORDER_CANCELED': 'canceled',
             'PENDING_CANCEL': 'canceled',
             'REJECTED': 'rejected',
             'ORDER_NEW': 'open',
@@ -3181,7 +3198,6 @@ export default class hashkey extends Exchange {
             'LIMIT': 'limit',
             'LIMIT_MAKER': 'limit',
             'MARKET_OF_BASE': 'market',
-            'STOP': 'limit', // stop orders from privatePostApiV1FuturesOrder are limit orders
         };
         return this.safeString (types, type, type);
     }
@@ -3454,7 +3470,6 @@ export default class hashkey extends Exchange {
          * @see https://hashkeyglobal-apidoc.readme.io/reference/query-futures-leverage-trade
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.recvWindow] the time window for the request
          * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
          */
         await this.loadMarkets ();
@@ -3462,11 +3477,6 @@ export default class hashkey extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let recvWindow: Int = undefined;
-        [ recvWindow, params ] = this.handleOptionAndParams (params, 'fetchLeverage', 'recvWindow');
-        if (recvWindow !== undefined) {
-            request['recvWindow'] = recvWindow;
-        }
         const response = await this.privateGetApiV1FuturesLeverage (this.extend (request, params));
         //
         //     [
@@ -3505,23 +3515,17 @@ export default class hashkey extends Exchange {
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.recvWindow] the time window for the request
          * @returns {object} response from the exchange
          */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const request: Dict = {
             'leverage': leverage,
         };
         const market = this.market (symbol);
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
-        }
         request['symbol'] = market['id'];
-        let recvWindow: Int = undefined;
-        [ recvWindow, params ] = this.handleOptionAndParams (params, 'setLeverage', 'recvWindow');
-        if (recvWindow !== undefined) {
-            request['recvWindow'] = recvWindow;
-        }
         const response = await this.privatePostApiV1FuturesLeverage (this.extend (request, params));
         //
         //     {
