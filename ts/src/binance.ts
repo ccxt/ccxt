@@ -10140,9 +10140,9 @@ export default class binance extends Exchange {
         let defaultMethod = undefined;
         [ defaultMethod, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'method');
         if (defaultMethod === undefined) {
-            const option = this.safeValue (this.options, 'fetchPositions');
-            if (typeof option === 'string') {
-                defaultMethod = option;
+            const options = this.safeDict (this.options, 'fetchPositions');
+            if (options === undefined) {
+                defaultMethod = this.safeString (this.options, 'fetchPositions');
             } else {
                 defaultMethod = 'positionRisk';
             }
