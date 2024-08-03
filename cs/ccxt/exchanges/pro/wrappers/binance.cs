@@ -230,6 +230,10 @@ public partial class binance
     /// get the list of most recent trades for a list of symbols
     /// </summary>
     /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#trade-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -247,6 +251,12 @@ public partial class binance
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.name</term>
+    /// <description>
+    /// string : the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
     /// </description>
     /// </item>
     /// </list>
@@ -263,6 +273,10 @@ public partial class binance
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#trade-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -280,6 +294,12 @@ public partial class binance
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.name</term>
+    /// <description>
+    /// string : the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
     /// </description>
     /// </item>
     /// </list>

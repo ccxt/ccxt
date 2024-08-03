@@ -864,10 +864,15 @@ class binance(ccxt.async_support.binance):
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a list of symbols
+        :see: https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
+        :see: https://binance-docs.github.io/apidocs/spot/en/#trade-streams
+        :see: https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
         :param str[] symbols: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.name]: the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
@@ -878,8 +883,9 @@ class binance(ccxt.async_support.binance):
             if symbolsLength > 200:
                 raise BadRequest(self.id + ' watchTradesForSymbols() accepts 200 symbols at most. To watch more symbols call watchTradesForSymbols() multiple times')
             streamHash += '::' + ','.join(symbols)
-        options = self.safe_value(self.options, 'watchTradesForSymbols', {})
-        name = self.safe_string(options, 'name', 'trade')
+        name = None
+        name, params = self.handle_option_and_params(params, 'watchTradesForSymbols', 'name', 'trade')
+        params = self.omit(params, 'callerMethodName')
         firstMarket = self.market(symbols[0])
         type = firstMarket['type']
         if firstMarket['contract']:
@@ -914,12 +920,18 @@ class binance(ccxt.async_support.binance):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+        :see: https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
+        :see: https://binance-docs.github.io/apidocs/spot/en/#trade-streams
+        :see: https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.name]: the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
+        params['callerMethodName'] = 'watchTrades'
         return await self.watch_trades_for_symbols([symbol], since, limit, params)
 
     def parse_ws_trade(self, trade, market=None) -> Trade:
@@ -1166,6 +1178,7 @@ class binance(ccxt.async_support.binance):
         subscribe = {
             'id': requestId,
         }
+        params = self.omit(params, 'callerMethodName')
         symbol, timeframe, candles = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes, subscribe)
         if self.newUpdates:
             limit = candles.getLimit(symbol, limit)
