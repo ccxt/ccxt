@@ -6,7 +6,7 @@ import { ArgumentsRequired, BadRequest, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -41,21 +41,21 @@ export default class hashkey extends Exchange {
                 'closePosition': false,
                 'createConvertTrade': false,
                 'createDepositAddress': false,
-                'createMarketBuyOrderWithCost': false,
-                'createMarketOrder': false,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrder': true,
                 'createMarketOrderWithCost': false,
                 'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createOrderWithTakeProfitAndStopLoss': false,
-                'createReduceOnlyOrder': false,
-                'createStopLimitOrder': false,
+                'createReduceOnlyOrder': true,
+                'createStopLimitOrder': true,
                 'createStopLossOrder': false,
-                'createStopMarketOrder': false,
-                'createStopOrder': false,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'createTakeProfitOrder': false,
                 'createTrailingAmountOrder': false,
                 'createTrailingPercentOrder': false,
-                'createTriggerOrder': false,
+                'createTriggerOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
                 'fetchCanceledAndClosedOrders': true,
@@ -151,74 +151,74 @@ export default class hashkey extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'api/v1/exchangeInfo': 5, // done
-                        'quote/v1/depth': 1, // done
-                        'quote/v1/trades': 1, // done
-                        'quote/v1/klines': 1, // done
-                        'quote/v1/ticker/24hr': 1, // done
-                        'quote/v1/ticker/price': 1, // done
+                        'api/v1/exchangeInfo': 5,
+                        'quote/v1/depth': 1,
+                        'quote/v1/trades': 1,
+                        'quote/v1/klines': 1,
+                        'quote/v1/ticker/24hr': 1,
+                        'quote/v1/ticker/price': 1,
                         'quote/v1/ticker/bookTicker': 1, // not unified
                         'quote/v1/depth/merged': 1, // todo ask
                         'quote/v1/markPrice': 1, // not unified todo ask
                         'quote/v1/index': 1, // not unified todo ask
-                        'api/v1/futures/fundingRate': 1, // done
-                        'api/v1/futures/historyFundingRate': 1, // done
-                        'api/v1/ping': 1,
-                        'api/v1/time': 1, // done
+                        'api/v1/futures/fundingRate': 1,
+                        'api/v1/futures/historyFundingRate': 1,
+                        'api/v1/ping': 1, // todo check
+                        'api/v1/time': 1,
                     },
                 },
                 'private': {
                     'get': {
-                        'api/v1/spot/order': 1, // done
-                        'api/v1/spot/openOrders': 1, // done
-                        'api/v1/spot/tradeOrders': 5, // done
-                        'api/v1/futures/leverage': 1, // done
-                        'api/v1/futures/order': 1, // done
-                        'api/v1/futures/openOrders': 1, // done
-                        'api/v1/futures/userTrades': 1, // done
-                        'api/v1/futures/positions': 1, // done
-                        'api/v1/futures/historyOrders': 1, // done
-                        'api/v1/futures/balance': 1, // update fetchBalance
+                        'api/v1/spot/order': 1,
+                        'api/v1/spot/openOrders': 1,
+                        'api/v1/spot/tradeOrders': 5,
+                        'api/v1/futures/leverage': 1,
+                        'api/v1/futures/order': 1,
+                        'api/v1/futures/openOrders': 1,
+                        'api/v1/futures/userTrades': 1,
+                        'api/v1/futures/positions': 1,
+                        'api/v1/futures/historyOrders': 1,
+                        'api/v1/futures/balance': 1,
                         'api/v1/futures/liquidationAssignStatus': 1, // todo ask
                         'api/v1/futures/riskLimit': 1, // not unified
-                        'api/v1/futures/commissionRate': 1, // done
-                        'api/v1/futures/getBestOrder': 1,
-                        'api/v1/account/vipInfo': 5, // done
-                        'api/v1/account': 1, // done
-                        'api/v1/account/trades': 5, // done
-                        'api/v1/account/type': 5, // done
+                        'api/v1/futures/commissionRate': 1,
+                        'api/v1/futures/getBestOrder': 1, // not unified
+                        'api/v1/account/vipInfo': 5,
+                        'api/v1/account': 1,
+                        'api/v1/account/trades': 5,
+                        'api/v1/account/type': 5,
                         'api/v1/account/checkApiKey': 1, // not unified
-                        'api/v1/account/balanceFlow': 5, // done
+                        'api/v1/account/balanceFlow': 5,
                         'api/v1/spot/subAccount/openOrders': 1, // update fetchOpenOrders
                         'api/v1/spot/subAccount/tradeOrders': 1, // update fetchCanceledAndClosedOrders
                         'api/v1/subAccount/trades': 1, // update fetchTrades
                         'api/v1/futures/subAccount/openOrders': 1, // update fetchOpenOrders
                         'api/v1/futures/subAccount/historyOrders': 1, // update fetchCanceledAndClosedOrders
                         'api/v1/futures/subAccount/userTrades': 1, // update fetchTrades
-                        'api/v1/account/deposit/address': 1, // done
-                        'api/v1/account/depositOrders': 1, // done
-                        'api/v1/account/withdrawOrders': 1, // done
+                        'api/v1/account/deposit/address': 1,
+                        'api/v1/account/depositOrders': 1,
+                        'api/v1/account/withdrawOrders': 1,
                     },
                     'post': {
-                        'api/v1/userDataStream': 1,
-                        'api/v1/spot/orderTest': 1, // done
-                        'api/v1/spot/order': 1, // done
-                        'api/v1.1/spot/order': 1, // done
-                        'api/v1/spot/batchOrders': 5, // todo implement
-                        'api/v1/futures/leverage': 1, // done
-                        'api/v1/futures/order': 1, // done
-                        'api/v1/futures/position/trading-stop': 1,
-                        'api/v1/futures/batchOrders': 1,
-                        'api/v1/account/assetTransfer': 1, // done
+                        'api/v1/userDataStream': 1, // todo check
+                        'api/v1/spot/orderTest': 1,
+                        'api/v1/spot/order': 1,
+                        'api/v1.1/spot/order': 1,
+                        'api/v1/spot/batchOrders': 5,
+                        'api/v1/futures/leverage': 1,
+                        'api/v1/futures/order': 1,
+                        'api/v1/futures/position/trading-stop': 3,
+                        'api/v1/futures/batchOrders': 5,
+                        'api/v1/account/assetTransfer': 1,
                         'api/v1/account/authAddress': 1, // todo ask about it
-                        'api/v1/account/withdraw': 1, // done
+                        'api/v1/account/withdraw': 1,
                     },
                     'delete': {
-                        'api/v1/spot/order': 1, // done
-                        'api/v1/spot/openOrders': 5, // done
-                        'api/v1/spot/cancelOrderByIds': 5, // done
-                        'api/v1/futures/order': 1, // done
-                        'api/v1/futures/batchOrders': 1, // done
+                        'api/v1/spot/order': 1,
+                        'api/v1/spot/openOrders': 5,
+                        'api/v1/spot/cancelOrderByIds': 5,
+                        'api/v1/futures/order': 1,
+                        'api/v1/futures/batchOrders': 1,
                         'api/v1/futures/cancelOrderByIds': 1,
                     },
                 },
@@ -308,6 +308,7 @@ export default class hashkey extends Exchange {
                     // {"code":"-1004","msg":"Bad request"}
                     // {"code":"-1002","msg":"Unauthorized operation"}
                     // {"code":"-1133","msg":"Order price lower than the minimum"}
+                    // {"code":"-1123","msg":"Invalid client order id"}
                 },
                 'broad': {
                 },
@@ -2100,6 +2101,24 @@ export default class hashkey extends Exchange {
         }
     }
 
+    async createMarketBuyOrderWithCost (symbol: string, cost: number, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() is supported for spot markets only');
+        }
+        return await this.createOrder (symbol, 'market', 'buy', undefined, undefined, this.extend ({ 'cost': cost }, params));
+    }
+
     async createSpotOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
         /**
          * @method
@@ -2120,6 +2139,10 @@ export default class hashkey extends Exchange {
          * @param {string} [params.clientOrderId] a unique id for the order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        const triggerPrice = this.safeString2 (params, 'stopPrice', 'triggerPrice');
+        if (triggerPrice !== undefined) {
+            throw new NotSupported (this.id + ' trigger orders are not supported for spot markets');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const isMarketBuy = (type === 'market') && (side === 'buy');
@@ -2218,6 +2241,17 @@ export default class hashkey extends Exchange {
         return this.parseOrder (response, market);
     }
 
+    createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Dict {
+        const market = this.market (symbol);
+        if (market['spot']) {
+            return this.createSpotOrderRequest (symbol, type, side, amount, price, params);
+        } else if (market['swap']) {
+            return this.createSwapOrderRequest (symbol, type, side, amount, price, params);
+        } else {
+            throw new NotSupported (this.id + ' ' + 'createOrderRequest() is not supported for ' + market['type'] + ' type of markets');
+        }
+    }
+
     createSpotOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Dict {
         /**
          * @method
@@ -2234,7 +2268,7 @@ export default class hashkey extends Exchange {
          * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
          * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
          * @param {string} [params.clientOrderId] a unique id for the order
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} request to be sent to the exchange
          */
         const market = this.market (symbol);
         type = type.toUpperCase ();
@@ -2246,7 +2280,8 @@ export default class hashkey extends Exchange {
         if (amount !== undefined) {
             request['quantity'] = this.amountToPrecision (symbol, amount);
         }
-        const cost = this.handleParamString (params, 'cost');
+        let cost: Str = undefined;
+        [ cost, params ] = this.handleParamString (params, 'cost');
         if (cost !== undefined) {
             request['quantity'] = this.costToPrecision (symbol, cost);
         }
@@ -2267,12 +2302,12 @@ export default class hashkey extends Exchange {
         return this.extend (request, params);
     }
 
-    async createSwapOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+    createSwapOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Dict {
         /**
          * @method
-         * @name hashkey#createSwapOrder
-         * @description create a trade order on swap market
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/create-new-futures-order
+         * @ignore
+         * @name hashkey#createSwapOrderRequest
+         * @description helper function to build request
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit' or 'STOP'
          * @param {string} side 'buy' or 'sell'
@@ -2284,9 +2319,8 @@ export default class hashkey extends Exchange {
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @param {string} [params.timeInForce] 'GTC', 'FOK', 'IOC', 'LIMIT_MAKER' or 'PO'
          * @param {string} [params.clientOrderId] a unique id for the order
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object} request to be sent to the exchange
          */
-        await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
@@ -2316,8 +2350,7 @@ export default class hashkey extends Exchange {
             timeInForce = 'LIMIT_MAKER';
         }
         request['timeInForce'] = timeInForce;
-        let clientOrderId: Str = undefined;
-        [ clientOrderId, params ] = this.handleParamString (params, 'clientOrderId');
+        let clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId === undefined) {
             // throw new ArgumentsRequired (this.id + ' createSwapOrder() requires a clientOrderId parameter');
             clientOrderId = this.milliseconds ().toString (); // todo delete it after check
@@ -2329,6 +2362,31 @@ export default class hashkey extends Exchange {
             request['type'] = 'STOP';
             params = this.omit (params, 'triggerPrice');
         }
+        return this.extend (request, params);
+    }
+
+    async createSwapOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name hashkey#createSwapOrder
+         * @description create a trade order on swap market
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/create-new-futures-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit' or 'STOP'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of you want to trade in units of the base currency
+         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
+         * @param {bool} [params.reduceOnly] true or false whether the order is reduce only
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {string} [params.timeInForce] 'GTC', 'FOK', 'IOC', 'LIMIT_MAKER' or 'PO'
+         * @param {string} [params.clientOrderId] a unique id for the order
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = this.createSwapOrderRequest (symbol, type, side, amount, price, params);
         const response = await this.privatePostApiV1FuturesOrder (this.extend (request, params));
         //
         //     {
@@ -2352,6 +2410,116 @@ export default class hashkey extends Exchange {
         //     }
         //
         return this.parseOrder (response, market);
+    }
+
+    async createOrders (orders: OrderRequest[], params = {}) {
+        /**
+         * @method
+         * @name hashkey#createOrders
+         * @description create a list of trade orders (all orders should be of the same symbol)
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/create-multiple-orders
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/batch-create-new-futures-order
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @param {object} [params] extra parameters specific to the api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const ordersRequests = [];
+        for (let i = 0; i < orders.length; i++) {
+            const rawOrder = orders[i];
+            const symbol = this.safeString (rawOrder, 'symbol');
+            const type = this.safeString (rawOrder, 'type');
+            const side = this.safeString (rawOrder, 'side');
+            const amount = this.safeNumber (rawOrder, 'amount');
+            const price = this.safeNumber (rawOrder, 'price');
+            const orderParams = this.safeDict (rawOrder, 'params', {});
+            const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
+            ordersRequests.push (orderRequest);
+        }
+        const firstOrder = ordersRequests[0];
+        const firstSymbol = this.safeString (firstOrder, 'symbol');
+        const market = this.market (firstSymbol);
+        const request: Dict = {
+            'orders': ordersRequests,
+        };
+        let response = undefined;
+        if (market['spot']) {
+            response = await this.privatePostApiV1SpotBatchOrders (this.extend (request, params));
+            //
+            //     {
+            //         "code": 0,
+            //         "result": [
+            //             {
+            //                 "code": "0000",
+            //                 "order": {
+            //                     "accountId": "1732885739589466112",
+            //                     "symbol": "ETHUSDT",
+            //                     "symbolName": "ETHUSDT",
+            //                     "clientOrderId": "1722701490163000",
+            //                     "orderId": "1744540984757258752",
+            //                     "transactTime": "1722701491385",
+            //                     "price": "1500",
+            //                     "origQty": "0.001",
+            //                     "executedQty": "0",
+            //                     "status": "NEW",
+            //                     "timeInForce": "GTC",
+            //                     "type": "LIMIT",
+            //                     "side": "BUY",
+            //                     "reqAmount": "0"
+            //                 }
+            //             }
+            //         ],
+            //         "concentration": ""
+            //     }
+            //
+        } else if (market['swap']) {
+            response = await this.privatePostApiV1FuturesBatchOrders (this.extend (request, params));
+            //
+            //     {
+            //         "code": "0000",
+            //         "result": [
+            //             {
+            //                 "code": "0000",
+            //                 "order": {
+            //                     "time": "1722704251911",
+            //                     "updateTime": "1722704251918",
+            //                     "orderId": "1744564141727808768",
+            //                     "clientOrderId": "1722704250648000",
+            //                     "symbol": "ETHUSDT-PERPETUAL",
+            //                     "price": "1500",
+            //                     "leverage": "4",
+            //                     "origQty": "1",
+            //                     "executedQty": "0",
+            //                     "avgPrice": "0",
+            //                     "marginLocked": "0.375",
+            //                     "type": "LIMIT",
+            //                     "side": "BUY_OPEN",
+            //                     "timeInForce": "GTC",
+            //                     "status": "NEW",
+            //                     "priceType": "INPUT",
+            //                     "isLiquidationOrder": false,
+            //                     "indexPrice": "0",
+            //                     "liquidationType": ""
+            //                 }
+            //             },
+            //             {
+            //                 "code": "0207",
+            //                 "msg": "Create limit order sell price too low"
+            //             }
+            //         ]
+            //     }
+            //
+        } else {
+            throw new NotSupported (this.id + ' ' + 'createOrderRequest() is not supported for ' + market['type'] + ' type of markets');
+        }
+        const result = this.safeList (response, 'result', []);
+        const responseOrders = [];
+        for (let i = 0; i < result.length; i++) {
+            const responseEntry = this.safeDict (result, i, {});
+            const responseOrder = this.safeDict (responseEntry, 'order', {});
+            responseOrders.push (responseOrder);
+        }
+        return this.parseOrders (responseOrders);
     }
 
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -2481,7 +2649,7 @@ export default class hashkey extends Exchange {
             //     { "success": true }
             //
         } else if (market['swap']) {
-            return await this.privateDeleteApiV1SpotOpenOrders (this.extend (request, params));
+            return await this.privateDeleteApiV1FuturesBatchOrders (this.extend (request, params));
         } else {
             throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + market['type'] + ' type of markets');
         }
@@ -3766,6 +3934,7 @@ export default class hashkey extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + path;
+        let query: Str = undefined;
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const timestamp = this.milliseconds ();
@@ -3776,21 +3945,30 @@ export default class hashkey extends Exchange {
             if (recvWindow !== undefined) {
                 additionalParams['recvWindow'] = recvWindow;
             }
-            const totalParams = this.extend (additionalParams, params);
-            const signature = this.hmac (this.encode (this.customUrlencode (totalParams)), this.encode (this.secret), sha256);
-            totalParams['signature'] = signature;
-            const totalParamsString = this.customUrlencode (totalParams);
-            if (method === 'GET') {
-                url += '?' + totalParamsString;
-            } else {
-                body = totalParamsString;
-            }
             headers = {
                 'X-HK-APIKEY': this.apiKey,
                 'Content-Type': 'application/x-www-form-urlencoded',
             };
+            let signature: Str = undefined;
+            if ((method === 'POST') && ((path === 'api/v1/spot/batchOrders') || (path === 'api/v1/futures/batchOrders'))) {
+                headers['Content-Type'] = 'application/json';
+                body = this.json (this.safeList (params, 'orders'));
+                signature = this.hmac (this.encode (this.customUrlencode (additionalParams)), this.encode (this.secret), sha256);
+                query = this.customUrlencode (this.extend (additionalParams, { 'signature': signature }));
+                url += '?' + query;
+            } else {
+                const totalParams = this.extend (additionalParams, params);
+                signature = this.hmac (this.encode (this.customUrlencode (totalParams)), this.encode (this.secret), sha256);
+                totalParams['signature'] = signature;
+                query = this.customUrlencode (totalParams);
+                if (method === 'GET') {
+                    url += '?' + query;
+                } else {
+                    body = query;
+                }
+            }
         } else {
-            const query = this.urlencode (params);
+            query = this.urlencode (params);
             if (query.length !== 0) {
                 url += '?' + query;
             }
