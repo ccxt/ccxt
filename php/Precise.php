@@ -182,7 +182,7 @@ class Precise {
             return null;
         }
 
-        if (strpos($string1, '0.') == 0 || strpos($string2, '.0') == 0) {
+        if (str_starts_with($string1, '0.') || str_starts_with($string2, '.0')) {
             $decimal_cases_1 = Precise::get_decimal_count($string1);
             $decimal_cases_2 = Precise::get_decimal_count($string2);
             if ($decimal_cases_1 > $precision || $decimal_cases_2 > $precision) {
