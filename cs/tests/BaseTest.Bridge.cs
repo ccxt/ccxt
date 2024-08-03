@@ -101,7 +101,6 @@ public partial class BaseTest
     public static object multiply(object a, object b) => Exchange.multiply(a, b);
     public static object subtract(object a, object b) => Exchange.subtract(a, b);
     public static object divide(object a, object b) => Exchange.divide(a, b);
-    public static object parseFloat(object a) => Exchange.parseFloat(a);
     public static string toStringOrNull(object a) => Exchange.toStringOrNull(a);
     public static bool isEqual(object a, object b) => Exchange.isEqual(a, b);
     public static bool isTrue(object a) => Exchange.isTrue(a);
