@@ -455,11 +455,7 @@ public partial class Exchange
             }
             foreach (var future in this.futures.Values)
             {
-                if (!future.task.IsCompleted)
-                {
-                    future.reject(new ExchangeClosedByUser("Connection closed by the user"));
-
-                }
+                future.reject(new ExchangeClosedByUser("Connection closed by the user"));
             }
         }
     }
