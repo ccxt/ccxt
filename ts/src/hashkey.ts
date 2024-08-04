@@ -225,22 +225,15 @@ export default class hashkey extends Exchange {
             },
             'fees': {
                 'trading': {
-                    // todo add swap fees
+                    'maker': this.parseNumber ('0.0012'),
+                    'taker': this.parseNumber ('0.0012'),
+                },
+                'spot': {
                     'tierBased': true,
                     'percentage': true,
                     'maker': this.parseNumber ('0.0012'),
                     'taker': this.parseNumber ('0.0012'),
                     'tiers': {
-                        'taker': [
-                            [ this.parseNumber ('0'), this.parseNumber ('0.0012') ],
-                            [ this.parseNumber ('1000000'), this.parseNumber ('0.00090') ],
-                            [ this.parseNumber ('5000000'), this.parseNumber ('0.00085') ],
-                            [ this.parseNumber ('10000000'), this.parseNumber ('0.00075') ],
-                            [ this.parseNumber ('50000000'), this.parseNumber ('0.00065') ],
-                            [ this.parseNumber ('200000000'), this.parseNumber ('0.00045') ],
-                            [ this.parseNumber ('400000000'), this.parseNumber ('0.00040') ],
-                            [ this.parseNumber ('800000000'), this.parseNumber ('0.00035') ],
-                        ],
                         'maker': [
                             [ this.parseNumber ('0'), this.parseNumber ('0.0012') ],
                             [ this.parseNumber ('1000000'), this.parseNumber ('0.00080') ],
@@ -251,8 +244,45 @@ export default class hashkey extends Exchange {
                             [ this.parseNumber ('400000000'), this.parseNumber ('0.00010') ],
                             [ this.parseNumber ('800000000'), this.parseNumber ('0.00') ],
                         ],
+                        'taker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.0012') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.00090') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.00085') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.00075') ],
+                            [ this.parseNumber ('50000000'), this.parseNumber ('0.00065') ],
+                            [ this.parseNumber ('200000000'), this.parseNumber ('0.00045') ],
+                            [ this.parseNumber ('400000000'), this.parseNumber ('0.00040') ],
+                            [ this.parseNumber ('800000000'), this.parseNumber ('0.00035') ],
+                        ],
                     },
                 },
+                'swap': {
+                    'tierBased': true,
+                    'percentage': true,
+                    'maker': this.parseNumber ('0.00025'),
+                    'taker': this.parseNumber ('0.00060'),
+                    'tiers': {
+                        'maker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.00025') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.00016') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.00014') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.00012') ],
+                            [ this.parseNumber ('50000000'), this.parseNumber ('0.000080') ],
+                            [ this.parseNumber ('200000000'), this.parseNumber ('0.000060') ],
+                            [ this.parseNumber ('400000000'), this.parseNumber ('0.000020') ],
+                            [ this.parseNumber ('800000000'), this.parseNumber ('0.00') ],
+                        ],
+                        'taker': [
+                            [ this.parseNumber ('0'), this.parseNumber ('0.00060') ],
+                            [ this.parseNumber ('1000000'), this.parseNumber ('0.00050') ],
+                            [ this.parseNumber ('5000000'), this.parseNumber ('0.00045') ],
+                            [ this.parseNumber ('10000000'), this.parseNumber ('0.00040') ],
+                            [ this.parseNumber ('50000000'), this.parseNumber ('0.00035') ],
+                            [ this.parseNumber ('200000000'), this.parseNumber ('0.00030') ],
+                            [ this.parseNumber ('400000000'), this.parseNumber ('0.00025') ],
+                            [ this.parseNumber ('800000000'), this.parseNumber ('0.00020') ],
+                        ],
+                    },
             },
             'options': {
                 'recvWindow': undefined,
