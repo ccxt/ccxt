@@ -283,6 +283,7 @@ export default class hashkey extends Exchange {
                             [ this.parseNumber ('800000000'), this.parseNumber ('0.00020') ],
                         ],
                     },
+                },
             },
             'options': {
                 'recvWindow': undefined,
@@ -1913,7 +1914,7 @@ export default class hashkey extends Exchange {
         /**
          * @method
          * @name hashkey#fetchAccounts
-         * @description fetch subaccounts associated with a profile
+         * @description fetch all the accounts associated with a profile
          * @see https://hashkeyglobal-apidoc.readme.io/reference/query-sub-account
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/#/?id=account-structure} indexed by the account type
@@ -1935,9 +1936,18 @@ export default class hashkey extends Exchange {
     }
 
     parseAccount (account) {
+        const accountLabel = this.safeString (account, 'accountLabel');
+        let label = '';
+        if (accountLabel === 'Main Trading Account' || accountLabel === 'Main Future Account') {
+            label = 'main';
+        } else if (accountLabel === 'Sub Main Trading Account' || accountLabel === 'Sub Main Future Account') {
+            label = 'sub';
+        }
+        const accountType = this.parseAccountType (this.safeString (account, 'accountType'));
+        const type = label + ' ' + accountType;
         return {
             'id': this.safeString (account, 'accountId'),
-            'type': this.parseAccountType (this.safeString (account, 'accountType')),
+            'type': type,
             'code': undefined,
             'info': account,
         };
@@ -1945,10 +1955,10 @@ export default class hashkey extends Exchange {
 
     parseAccountType (type) {
         const types: Dict = {
-            '1': 'spot',
-            '3': 'swap',
-            '5': 'custody', // todo check
-            '6': 'fiat', // todo check
+            '1': 'spot account',
+            '3': 'swap account',
+            '5': 'custody account', // todo check
+            '6': 'fiat account', // todo check
         };
         return this.safeString (types, type, type);
     }
