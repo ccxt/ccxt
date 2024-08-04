@@ -3,7 +3,7 @@
 
 import hashkeyRest from '../hashkey.js';
 import type { } from '../base/types.js';
-// import Client from '../base/ws/Client.js';
+import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
 
