@@ -988,7 +988,7 @@ export default class bitstamp extends Exchange {
         if (market === undefined) {
             market = this.getMarketFromTrade (trade);
         }
-        const feeCost = this.safeNumber (trade, 'fee');
+        const feeCostString = this.safeString (trade, 'fee');
         const feeCurrency = market['quote'];
         const priceId = (rawMarketId !== undefined) ? rawMarketId : market['marketId'];
         priceString = this.safeString (trade, priceId, priceString);
@@ -1032,9 +1032,9 @@ export default class bitstamp extends Exchange {
             costString = Precise.stringAbs (costString);
         }
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrency,
             };
         }
