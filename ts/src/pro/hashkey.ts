@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import hashkeyRest from '../hashkey.js';
-import type { Dict, Int, Market, OHLCV, Ticker, Trade } from '../base/types.js';
+import type { Dict, Int, Market, OHLCV, OrderBook, Ticker, Trade } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
@@ -16,7 +16,7 @@ export default class hashkey extends hashkeyRest {
                 'watchBalance': false,
                 'watchMyTrades': false,
                 'watchOHLCV': true,
-                'watchOrderBook': false,
+                'watchOrderBook': true,
                 'watchOrders': false,
                 'watchTicker': true,
                 'watchTrades': true,
@@ -220,6 +220,7 @@ export default class hashkey extends hashkeyRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [params.binary] true or false - default false
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
@@ -284,6 +285,72 @@ export default class hashkey extends hashkeyRest {
         return parsed;
     }
 
+    async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name alpaca#watchOrderBook
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return.
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const topic = 'depth';
+        const messageHash = 'orderbook:' + symbol;
+        const orderbook = await this.wathPublic (market, topic, messageHash, params);
+        return orderbook.limit ();
+    }
+
+    handleOrderBook (client: Client, message) {
+        //
+        //     {
+        //         "symbol": "ETHUSDT",
+        //         "symbolName": "ETHUSDT",
+        //         "topic": "depth",
+        //         "params": { "realtimeInterval": "24h" },
+        //         "data": [
+        //             {
+        //                 "e": 301,
+        //                 "s": "ETHUSDT",
+        //                 "t": 1722873144371,
+        //                 "v": "84661262_18",
+        //                 "b": [
+        //                     [ "1650", "0.0864" ],
+        //                     ...
+        //                 ],
+        //                 "a": [
+        //                     ["4085", "0.0074" ],
+        //                     ...
+        //                 ],
+        //                 "o": 0
+        //             }
+        //         ],
+        //         "f": false,
+        //         "sendTime": 1722873144589,
+        //         "channelId": "2265aafffe68b588-00000001-0011510c-9e9ca710b1500854-551830bd",
+        //         "shared": false
+        //     }
+        //
+        const marketId = this.safeString (message, 'symbol');
+        const symbol = this.safeSymbol (marketId);
+        const messageHash = 'orderbook:' + symbol;
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ({});
+        }
+        const orderbook = this.orderbooks[symbol];
+        const data = this.safeList (message, 'data', []);
+        const dataEntry = this.safeDict (data, 0);
+        const timestamp = this.safeInteger (dataEntry, 'timestamp');
+        const snapshot = this.parseOrderBook (dataEntry, symbol, timestamp, 'b', 'a');
+        orderbook.reset (snapshot);
+        orderbook['nonce'] = this.safeInteger (message, 'id');
+        this.orderbooks[symbol] = orderbook;
+        client.resolve (orderbook, messageHash);
+    }
+
     handleMessage (client: Client, message) {
         const topic = this.safeString (message, 'topic');
         if (topic === 'kline') {
@@ -292,6 +359,8 @@ export default class hashkey extends hashkeyRest {
             this.handleTicker (client, message);
         } else if (topic === 'trade') {
             this.handleTrades (client, message);
+        } else if (topic === 'depth') {
+            this.handleOrderBook (client, message);
         }
     }
 }
