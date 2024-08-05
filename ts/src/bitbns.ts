@@ -845,11 +845,12 @@ export default class bitbns extends Exchange {
         }
         const symbol = market['symbol'];
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'fee');
-        if (feeCost !== undefined) {
+        const feeCostString = this.safeString (trade, 'fee');
+        if (feeCostString !== undefined) {
+            const feeCurrencyCode = market['quote'];
             fee = {
-                'cost': feeCost,
-                'currency': market['quote'],
+                'cost': feeCostString,
+                'currency': feeCurrencyCode,
             };
         }
         return this.safeTrade ({
