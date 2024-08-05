@@ -225,63 +225,63 @@ export default class hashkey extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'maker': this.parseNumber ('0.0012'),
-                    'taker': this.parseNumber ('0.0012'),
-                },
-                'spot': {
-                    'tierBased': true,
-                    'percentage': true,
-                    'maker': this.parseNumber ('0.0012'),
-                    'taker': this.parseNumber ('0.0012'),
-                    'tiers': {
-                        'maker': [
-                            [ this.parseNumber ('0'), this.parseNumber ('0.0012') ],
-                            [ this.parseNumber ('1000000'), this.parseNumber ('0.00080') ],
-                            [ this.parseNumber ('5000000'), this.parseNumber ('0.00070') ],
-                            [ this.parseNumber ('10000000'), this.parseNumber ('0.00060') ],
-                            [ this.parseNumber ('50000000'), this.parseNumber ('0.00040') ],
-                            [ this.parseNumber ('200000000'), this.parseNumber ('0.00030') ],
-                            [ this.parseNumber ('400000000'), this.parseNumber ('0.00010') ],
-                            [ this.parseNumber ('800000000'), this.parseNumber ('0.00') ],
-                        ],
-                        'taker': [
-                            [ this.parseNumber ('0'), this.parseNumber ('0.0012') ],
-                            [ this.parseNumber ('1000000'), this.parseNumber ('0.00090') ],
-                            [ this.parseNumber ('5000000'), this.parseNumber ('0.00085') ],
-                            [ this.parseNumber ('10000000'), this.parseNumber ('0.00075') ],
-                            [ this.parseNumber ('50000000'), this.parseNumber ('0.00065') ],
-                            [ this.parseNumber ('200000000'), this.parseNumber ('0.00045') ],
-                            [ this.parseNumber ('400000000'), this.parseNumber ('0.00040') ],
-                            [ this.parseNumber ('800000000'), this.parseNumber ('0.00035') ],
-                        ],
+                    'spot': {
+                        'tierBased': true,
+                        'percentage': true,
+                        'feeSide': 'get',
+                        'maker': this.parseNumber ('0.0012'),
+                        'taker': this.parseNumber ('0.0012'),
+                        'tiers': {
+                            'maker': [
+                                [ this.parseNumber ('0'), this.parseNumber ('0.0012') ],
+                                [ this.parseNumber ('1000000'), this.parseNumber ('0.00080') ],
+                                [ this.parseNumber ('5000000'), this.parseNumber ('0.00070') ],
+                                [ this.parseNumber ('10000000'), this.parseNumber ('0.00060') ],
+                                [ this.parseNumber ('50000000'), this.parseNumber ('0.00040') ],
+                                [ this.parseNumber ('200000000'), this.parseNumber ('0.00030') ],
+                                [ this.parseNumber ('400000000'), this.parseNumber ('0.00010') ],
+                                [ this.parseNumber ('800000000'), this.parseNumber ('0.00') ],
+                            ],
+                            'taker': [
+                                [ this.parseNumber ('0'), this.parseNumber ('0.0012') ],
+                                [ this.parseNumber ('1000000'), this.parseNumber ('0.00090') ],
+                                [ this.parseNumber ('5000000'), this.parseNumber ('0.00085') ],
+                                [ this.parseNumber ('10000000'), this.parseNumber ('0.00075') ],
+                                [ this.parseNumber ('50000000'), this.parseNumber ('0.00065') ],
+                                [ this.parseNumber ('200000000'), this.parseNumber ('0.00045') ],
+                                [ this.parseNumber ('400000000'), this.parseNumber ('0.00040') ],
+                                [ this.parseNumber ('800000000'), this.parseNumber ('0.00035') ],
+                            ],
+                        },
                     },
-                },
-                'swap': {
-                    'tierBased': true,
-                    'percentage': true,
-                    'maker': this.parseNumber ('0.00025'),
-                    'taker': this.parseNumber ('0.00060'),
-                    'tiers': {
-                        'maker': [
-                            [ this.parseNumber ('0'), this.parseNumber ('0.00025') ],
-                            [ this.parseNumber ('1000000'), this.parseNumber ('0.00016') ],
-                            [ this.parseNumber ('5000000'), this.parseNumber ('0.00014') ],
-                            [ this.parseNumber ('10000000'), this.parseNumber ('0.00012') ],
-                            [ this.parseNumber ('50000000'), this.parseNumber ('0.000080') ],
-                            [ this.parseNumber ('200000000'), this.parseNumber ('0.000060') ],
-                            [ this.parseNumber ('400000000'), this.parseNumber ('0.000020') ],
-                            [ this.parseNumber ('800000000'), this.parseNumber ('0.00') ],
-                        ],
-                        'taker': [
-                            [ this.parseNumber ('0'), this.parseNumber ('0.00060') ],
-                            [ this.parseNumber ('1000000'), this.parseNumber ('0.00050') ],
-                            [ this.parseNumber ('5000000'), this.parseNumber ('0.00045') ],
-                            [ this.parseNumber ('10000000'), this.parseNumber ('0.00040') ],
-                            [ this.parseNumber ('50000000'), this.parseNumber ('0.00035') ],
-                            [ this.parseNumber ('200000000'), this.parseNumber ('0.00030') ],
-                            [ this.parseNumber ('400000000'), this.parseNumber ('0.00025') ],
-                            [ this.parseNumber ('800000000'), this.parseNumber ('0.00020') ],
-                        ],
+                    'swap': {
+                        'tierBased': true,
+                        'percentage': true,
+                        'feeSide': 'get',
+                        'maker': this.parseNumber ('0.00025'),
+                        'taker': this.parseNumber ('0.00060'),
+                        'tiers': {
+                            'maker': [
+                                [ this.parseNumber ('0'), this.parseNumber ('0.00025') ],
+                                [ this.parseNumber ('1000000'), this.parseNumber ('0.00016') ],
+                                [ this.parseNumber ('5000000'), this.parseNumber ('0.00014') ],
+                                [ this.parseNumber ('10000000'), this.parseNumber ('0.00012') ],
+                                [ this.parseNumber ('50000000'), this.parseNumber ('0.000080') ],
+                                [ this.parseNumber ('200000000'), this.parseNumber ('0.000060') ],
+                                [ this.parseNumber ('400000000'), this.parseNumber ('0.000020') ],
+                                [ this.parseNumber ('800000000'), this.parseNumber ('0.00') ],
+                            ],
+                            'taker': [
+                                [ this.parseNumber ('0'), this.parseNumber ('0.00060') ],
+                                [ this.parseNumber ('1000000'), this.parseNumber ('0.00050') ],
+                                [ this.parseNumber ('5000000'), this.parseNumber ('0.00045') ],
+                                [ this.parseNumber ('10000000'), this.parseNumber ('0.00040') ],
+                                [ this.parseNumber ('50000000'), this.parseNumber ('0.00035') ],
+                                [ this.parseNumber ('200000000'), this.parseNumber ('0.00030') ],
+                                [ this.parseNumber ('400000000'), this.parseNumber ('0.00025') ],
+                                [ this.parseNumber ('800000000'), this.parseNumber ('0.00020') ],
+                            ],
+                        },
                     },
                 },
             },
@@ -758,11 +758,27 @@ export default class hashkey extends Exchange {
         let amountPrecisionString = this.safeString (amountFilter, 'stepSize');
         let amountMinLimitString = this.safeString (amountFilter, 'minQty');
         let amountMaxLimitString = this.safeString (amountFilter, 'maxQty');
+        let minLeverage: Int = undefined;
+        let maxLeverage: Int = undefined;
         if (isSwap) {
             amountPrecisionString = Precise.stringDiv (amountPrecisionString, contractSizeString);
             amountMinLimitString = Precise.stringDiv (amountMinLimitString, contractSizeString);
             amountMaxLimitString = Precise.stringDiv (amountMaxLimitString, contractSizeString);
+            const riskLimits = this.safeList (market, 'riskLimits');
+            if (riskLimits !== undefined) {
+                const first = this.safeDict (riskLimits, 0);
+                const last = this.safeDict (riskLimits, riskLimits.length - 1);
+                let minInitialMargin = this.safeString (first, 'initialMargin');
+                let maxInitialMargin = this.safeString (last, 'initialMargin');
+                if (Precise.stringGt (minInitialMargin, maxInitialMargin)) {
+                    [ minInitialMargin, maxInitialMargin ] = [ maxInitialMargin, minInitialMargin ];
+                }
+                minLeverage = this.parseToInt (Precise.stringDiv ('1', maxInitialMargin));
+                maxLeverage = this.parseToInt (Precise.stringDiv ('1', minInitialMargin));
+            }
         }
+        const tradingFees = this.safeDict (this.fees, 'trading');
+        const fees = isSpot ? this.safeDict (tradingFees, 'spot') : this.safeDict (tradingFees, 'swap');
         return {
             'id': marketId,
             'symbol': symbol,
@@ -784,8 +800,11 @@ export default class hashkey extends Exchange {
             'contractSize': this.parseNumber (contractSizeString),
             'linear': isLinear,
             'inverse': isInverse,
-            'taker': this.fees['trading']['taker'],
-            'maker': this.fees['trading']['maker'],
+            'taker': this.safeNumber (fees, 'taker'),
+            'maker': this.safeNumber (fees, 'maker'),
+            'percentage': this.safeBool (fees, 'percentage'),
+            'tierBased': this.safeBool (fees, 'tierBased'),
+            'feeSide': this.safeString (fees, 'feeSide'),
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
@@ -804,8 +823,8 @@ export default class hashkey extends Exchange {
                     'max': this.safeNumber (priceFilter, 'maxPrice'),
                 },
                 'leverage': {
-                    'min': undefined, // todo
-                    'max': undefined, // todo
+                    'min': minLeverage,
+                    'max': maxLeverage,
                 },
                 'cost': {
                     'min': this.parseNumber (minCostString),
