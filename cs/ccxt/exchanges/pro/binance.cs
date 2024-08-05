@@ -1030,10 +1030,15 @@ public partial class binance : ccxt.binance
         * @method
         * @name binance#watchTradesForSymbols
         * @description get the list of most recent trades for a list of symbols
+        * @see https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
+        * @see https://binance-docs.github.io/apidocs/spot/en/#trade-streams
+        * @see https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
         * @param {string[]} symbols unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
         */
         parameters ??= new Dictionary<string, object>();
@@ -1049,8 +1054,11 @@ public partial class binance : ccxt.binance
             }
             streamHash = add(streamHash, add("::", String.Join(",", ((IList<object>)symbols).ToArray())));
         }
-        object options = this.safeValue(this.options, "watchTradesForSymbols", new Dictionary<string, object>() {});
-        object name = this.safeString(options, "name", "trade");
+        object name = null;
+        var nameparametersVariable = this.handleOptionAndParams(parameters, "watchTradesForSymbols", "name", "trade");
+        name = ((IList<object>)nameparametersVariable)[0];
+        parameters = ((IList<object>)nameparametersVariable)[1];
+        parameters = this.omit(parameters, "callerMethodName");
         object firstMarket = this.market(getValue(symbols, 0));
         object type = getValue(firstMarket, "type");
         if (isTrue(getValue(firstMarket, "contract")))
@@ -1095,13 +1103,19 @@ public partial class binance : ccxt.binance
         * @method
         * @name binance#watchTrades
         * @description get the list of most recent trades for a particular symbol
+        * @see https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
+        * @see https://binance-docs.github.io/apidocs/spot/en/#trade-streams
+        * @see https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
         */
         parameters ??= new Dictionary<string, object>();
+        ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchTrades";
         return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
     }
 
@@ -1304,11 +1318,15 @@ public partial class binance : ccxt.binance
         * @method
         * @name binance#watchOHLCV
         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+        * @see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
         * @param {string} timeframe the length of time each candle represents
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
         * @param {int} [limit] the maximum amount of candles to fetch
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
         */
         timeframe ??= "1m";
@@ -1324,10 +1342,14 @@ public partial class binance : ccxt.binance
         * @method
         * @name binance#watchOHLCVForSymbols
         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+        * @see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
         * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
         * @param {int} [limit] the maximum amount of candles to fetch
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
         */
         parameters ??= new Dictionary<string, object>();
@@ -1344,6 +1366,12 @@ public partial class binance : ccxt.binance
         {
             type = ((bool) isTrue(getValue(firstMarket, "linear"))) ? "future" : "delivery";
         }
+        object isSpot = (isEqual(type, "spot"));
+        object timezone = null;
+        var timezoneparametersVariable = this.handleParamString(parameters, "timezone", null);
+        timezone = ((IList<object>)timezoneparametersVariable)[0];
+        parameters = ((IList<object>)timezoneparametersVariable)[1];
+        object isUtc8 = isTrue((!isEqual(timezone, null))) && isTrue((isTrue((isEqual(timezone, "+08:00"))) || isTrue(Precise.stringEq(timezone, "8"))));
         object rawHashes = new List<object>() {};
         object messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
@@ -1359,7 +1387,10 @@ public partial class binance : ccxt.binance
                 // weird behavior for index price kline we can't use the perp suffix
                 marketId = ((string)marketId).Replace((string)"_perp", (string)"");
             }
-            ((IList<object>)rawHashes).Add(add(add(add(add(marketId, "@"), klineType), "_"), interval));
+            object shouldUseUTC8 = (isTrue(isUtc8) && isTrue(isSpot));
+            object suffix = "@+08:00";
+            object utcSuffix = ((bool) isTrue(shouldUseUTC8)) ? suffix : "";
+            ((IList<object>)rawHashes).Add(add(add(add(add(add(marketId, "@"), klineType), "_"), interval), utcSuffix));
             ((IList<object>)messageHashes).Add(add(add(add("ohlcv::", symbolString), "::"), timeframeString));
         }
         object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/"), this.stream(type, "multipleOHLCV"));
@@ -1372,6 +1403,7 @@ public partial class binance : ccxt.binance
         object subscribe = new Dictionary<string, object>() {
             { "id", requestId },
         };
+        parameters = this.omit(parameters, "callerMethodName");
         var symboltimeframecandlesVariable = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscribe);
         var symbol = ((IList<object>) symboltimeframecandlesVariable)[0];
         var timeframe = ((IList<object>) symboltimeframecandlesVariable)[1];

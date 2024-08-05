@@ -54,6 +54,7 @@ declare function callExchangeMethodDynamically(exchange: Exchange, methodName: s
 declare function callExchangeMethodDynamicallySync(exchange: Exchange, methodName: string, args: any): void;
 declare function callOverridenMethod(exchange: any, methodName: any, args: any): Promise<any>;
 declare function exceptionMessage(exc: any): string;
+declare function getRootException(exc: any): any;
 declare function exitScript(code?: number): void;
 declare function getExchangeProp(exchange: any, prop: any, defaultValue?: any): any;
 declare function setExchangeProp(exchange: any, prop: any, value: any): void;
@@ -63,6 +64,6 @@ declare function getTestFiles(properties: any, ws?: boolean): Promise<{}>;
 declare function setFetchResponse(exchange: Exchange, mockResponse: any): Exchange;
 declare function isNullValue(value: any): boolean;
 declare function close(exchange: Exchange): Promise<void>;
-export { AuthenticationError, NotSupported, ExchangeError, InvalidProxySettings, ExchangeNotAvailable, OperationFailed, OnMaintenance, getCliArgValue, baseMainTestClass, dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, callOverridenMethod, exceptionMessage, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFiles, getTestFilesSync, setFetchResponse, isNullValue, close, argvExchange, argvSymbol, argvMethod, };
+export { AuthenticationError, NotSupported, ExchangeError, InvalidProxySettings, ExchangeNotAvailable, OperationFailed, OnMaintenance, getCliArgValue, baseMainTestClass, dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, callOverridenMethod, exceptionMessage, getRootException, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFiles, getTestFilesSync, setFetchResponse, isNullValue, close, argvExchange, argvSymbol, argvMethod, };
 declare const _default: {};
 export default _default;

@@ -353,7 +353,7 @@ class ace(Exchange, ImplicitAPI):
         for i in range(0, len(pairs)):
             marketId = pairs[i]
             market = self.safe_market(marketId)
-            rawTicker = self.safe_dict(response, marketId)
+            rawTicker = self.safe_dict(response, marketId, {})
             ticker = self.parse_ticker(rawTicker, market)
             tickers.append(ticker)
         return self.filter_by_array_tickers(tickers, 'symbol', symbols)

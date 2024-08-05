@@ -230,6 +230,10 @@ public partial class binance
     /// get the list of most recent trades for a list of symbols
     /// </summary>
     /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#trade-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -247,6 +251,12 @@ public partial class binance
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.name</term>
+    /// <description>
+    /// string : the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
     /// </description>
     /// </item>
     /// </list>
@@ -263,6 +273,10 @@ public partial class binance
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#trade-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -282,6 +296,12 @@ public partial class binance
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.name</term>
+    /// <description>
+    /// string : the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}.</returns>
@@ -296,6 +316,9 @@ public partial class binance
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -313,6 +336,12 @@ public partial class binance
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.timezone</term>
+    /// <description>
+    /// object : if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
     /// </description>
     /// </item>
     /// </list>
@@ -329,6 +358,9 @@ public partial class binance
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -346,6 +378,12 @@ public partial class binance
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.timezone</term>
+    /// <description>
+    /// object : if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
     /// </description>
     /// </item>
     /// </list>
