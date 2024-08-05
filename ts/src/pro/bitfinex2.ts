@@ -3,10 +3,10 @@
 
 import bitfinex2Rest from '../bitfinex2.js';
 import { Precise } from '../base/Precise.js';
-import { ExchangeError, AuthenticationError, InvalidNonce } from '../base/errors.js';
+import { ExchangeError, AuthenticationError, ChecksumError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -37,9 +37,9 @@ export default class bitfinex2 extends bitfinex2Rest {
                 'watchOrderBook': {
                     'prec': 'P0',
                     'freq': 'F0',
+                    'checksum': true,
                 },
                 'ordersLimit': 1000,
-                'checksum': true,
             },
         });
     }
@@ -51,13 +51,13 @@ export default class bitfinex2 extends bitfinex2Rest {
         const url = this.urls['api']['ws']['public'];
         const client = this.client (url);
         const messageHash = channel + ':' + marketId;
-        const request = {
+        const request: Dict = {
             'event': 'subscribe',
             'channel': channel,
             'symbol': marketId,
         };
         const result = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, { 'checksum': false });
-        const checksum = this.safeValue (this.options, 'checksum', true);
+        const checksum = this.safeBool (this.options, 'checksum', true);
         if (checksum && !client.subscriptions[messageHash]['checksum'] && (channel === 'book')) {
             client.subscriptions[messageHash]['checksum'] = true;
             await client.send ({
@@ -94,7 +94,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         const channel = 'candles';
         const key = 'trade:' + interval + ':' + market['id'];
         const messageHash = channel + ':' + interval + ':' + market['id'];
-        const request = {
+        const request: Dict = {
             'event': 'subscribe',
             'channel': channel,
             'key': key,
@@ -218,7 +218,7 @@ export default class bitfinex2 extends bitfinex2Rest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         let messageHash = 'myTrade';
@@ -331,11 +331,12 @@ export default class bitfinex2 extends bitfinex2Rest {
         const messageLength = message.length;
         if (messageLength === 2) {
             // initial snapshot
-            let trades = this.safeList (message, 1, []);
+            const trades = this.safeList (message, 1, []);
             // needs to be reversed to make chronological order
-            trades = trades.reverse ();
-            for (let i = 0; i < trades.length; i++) {
-                const parsed = this.parseWsTrade (trades[i], market);
+            const length = trades.length;
+            for (let i = 0; i < length; i++) {
+                const index = length - i - 1;
+                const parsed = this.parseWsTrade (trades[index], market);
                 stored.append (parsed);
             }
         } else {
@@ -545,7 +546,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         const options = this.safeValue (this.options, 'watchOrderBook', {});
         const prec = this.safeString (options, 'prec', 'P0');
         const freq = this.safeString (options, 'freq', 'F0');
-        const request = {
+        const request: Dict = {
             'prec': prec, // string, level of price aggregation, 'P0', 'P1', 'P2', 'P3', 'P4', default P0
             'freq': freq, // string, frequency of updates 'F0' = realtime, 'F1' = 2 seconds, default is 'F0'
         };
@@ -590,8 +591,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         const prec = this.safeString (subscription, 'prec', 'P0');
         const isRaw = (prec === 'R0');
         // if it is an initial snapshot
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
+        if (!(symbol in this.orderbooks)) {
             const limit = this.safeInteger (subscription, 'len');
             if (isRaw) {
                 // raw order books
@@ -600,7 +600,7 @@ export default class bitfinex2 extends bitfinex2Rest {
                 // P0, P1, P2, P3, P4
                 this.orderbooks[symbol] = this.countedOrderBook ({}, limit);
             }
-            orderbook = this.orderbooks[symbol];
+            const orderbook = this.orderbooks[symbol];
             if (isRaw) {
                 const deltas = message[1];
                 for (let i = 0; i < deltas.length; i++) {
@@ -611,7 +611,7 @@ export default class bitfinex2 extends bitfinex2Rest {
                     const bookside = orderbook[side];
                     const idString = this.safeString (delta, 0);
                     const price = this.safeFloat (delta, 1);
-                    bookside.store (price, size, idString);
+                    bookside.storeArray ([ price, size, idString ]);
                 }
             } else {
                 const deltas = message[1];
@@ -623,12 +623,13 @@ export default class bitfinex2 extends bitfinex2Rest {
                     const size = (amount < 0) ? -amount : amount;
                     const side = (amount < 0) ? 'asks' : 'bids';
                     const bookside = orderbook[side];
-                    bookside.store (price, size, counter);
+                    bookside.storeArray ([ price, size, counter ]);
                 }
             }
             orderbook['symbol'] = symbol;
             client.resolve (orderbook, messageHash);
         } else {
+            const orderbook = this.orderbooks[symbol];
             const deltas = message[1];
             const orderbookItem = this.orderbooks[symbol];
             if (isRaw) {
@@ -640,7 +641,7 @@ export default class bitfinex2 extends bitfinex2Rest {
                 // price = 0 means that you have to remove the order from your book
                 const amount = Precise.stringGt (price, '0') ? size : '0';
                 const idString = this.safeString (deltas, 0);
-                bookside.store (this.parseNumber (price), this.parseNumber (amount), idString);
+                bookside.storeArray ([ this.parseNumber (price), this.parseNumber (amount), idString ]);
             } else {
                 const amount = this.safeString (deltas, 2);
                 const counter = this.safeString (deltas, 1);
@@ -648,7 +649,7 @@ export default class bitfinex2 extends bitfinex2Rest {
                 const size = Precise.stringLt (amount, '0') ? Precise.stringNeg (amount) : amount;
                 const side = Precise.stringLt (amount, '0') ? 'asks' : 'bids';
                 const bookside = orderbookItem[side];
-                bookside.store (this.parseNumber (price), this.parseNumber (size), this.parseNumber (counter));
+                bookside.storeArray ([ this.parseNumber (price), this.parseNumber (size), this.parseNumber (counter) ]);
             }
             client.resolve (orderbook, messageHash);
         }
@@ -691,8 +692,13 @@ export default class bitfinex2 extends bitfinex2Rest {
         const localChecksum = this.crc32 (payload, true);
         const responseChecksum = this.safeInteger (message, 2);
         if (responseChecksum !== localChecksum) {
-            const error = new InvalidNonce (this.id + ' invalid checksum');
-            client.reject (error, messageHash);
+            delete client.subscriptions[messageHash];
+            delete this.orderbooks[symbol];
+            const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
+            if (checksum) {
+                const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+                client.reject (error, messageHash);
+            }
         }
     }
 
@@ -782,7 +788,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         } else {
             data = [ this.safeValue (message, 2) ];
         }
-        const updatedTypes = {};
+        const updatedTypes: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const rawBalance = data[i];
             const currencyId = this.safeString (rawBalance, 1);
@@ -866,7 +872,7 @@ export default class bitfinex2 extends bitfinex2Rest {
             const payload = 'AUTH' + nonce.toString ();
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha384, 'hex');
             const event = 'auth';
-            const request = {
+            const request: Dict = {
                 'apiKey': this.apiKey,
                 'authSig': signature,
                 'authNonce': nonce,
@@ -876,7 +882,7 @@ export default class bitfinex2 extends bitfinex2Rest {
             const message = this.extend (request, params);
             this.watch (url, messageHash, message, messageHash);
         }
-        return future;
+        return await future;
     }
 
     handleAuthenticationMessage (client: Client, message) {
@@ -905,7 +911,7 @@ export default class bitfinex2 extends bitfinex2Rest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         let messageHash = 'orders';
@@ -968,7 +974,7 @@ export default class bitfinex2 extends bitfinex2Rest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const orders = this.orders;
-        const symbolIds = {};
+        const symbolIds: Dict = {};
         if (messageType === 'os') {
             const snapshotLength = data.length;
             if (snapshotLength === 0) {
@@ -999,7 +1005,7 @@ export default class bitfinex2 extends bitfinex2Rest {
     }
 
     parseWsOrderStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'ACTIVE': 'open',
             'CANCELED': 'canceled',
             'EXECUTED': 'closed',
@@ -1129,14 +1135,14 @@ export default class bitfinex2 extends bitfinex2Rest {
             const subscription = this.safeValue (client.subscriptions, channelId, {});
             const channel = this.safeString (subscription, 'channel');
             const name = this.safeString (message, 1);
-            const publicMethods = {
+            const publicMethods: Dict = {
                 'book': this.handleOrderBook,
                 'cs': this.handleChecksum,
                 'candles': this.handleOHLCV,
                 'ticker': this.handleTicker,
                 'trades': this.handleTrades,
             };
-            const privateMethods = {
+            const privateMethods: Dict = {
                 'os': this.handleOrders,
                 'ou': this.handleOrders,
                 'on': this.handleOrders,
@@ -1157,7 +1163,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         } else {
             const event = this.safeString (message, 'event');
             if (event !== undefined) {
-                const methods = {
+                const methods: Dict = {
                     'info': this.handleSystemStatus,
                     'subscribed': this.handleSubscriptionStatus,
                     'auth': this.handleAuthenticationMessage,

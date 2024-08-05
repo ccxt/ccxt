@@ -56,7 +56,7 @@ class currencycom(ccxt.async_support.currencycom):
             },
         })
 
-    def ping(self, client):
+    def ping(self, client: Client):
         # custom ping-pong
         requestId = str(self.request_id())
         return {
@@ -194,7 +194,7 @@ class currencycom(ccxt.async_support.currencycom):
             'fee': None,
         }
 
-    def handle_trades(self, client: Client, message, subscription):
+    def handle_trades(self, client: Client, message):
         #
         #     {
         #         "status": "OK",
@@ -306,7 +306,7 @@ class currencycom(ccxt.async_support.currencycom):
         messageHash = '/api/v1/account'
         url = self.urls['api']['ws']
         requestId = str(self.request_id())
-        payload = {
+        payload: dict = {
             'timestamp': self.milliseconds(),
             'apiKey': self.apiKey,
         }
@@ -402,7 +402,7 @@ class currencycom(ccxt.async_support.currencycom):
         destination = 'OHLCMarketData.subscribe'
         messageHash = destination + ':' + timeframe
         timeframes = self.safe_value(self.options, 'timeframes')
-        request = {
+        request: dict = {
             'destination': destination,
             'payload': {
                 'intervals': [
@@ -441,16 +441,17 @@ class currencycom(ccxt.async_support.currencycom):
         destination = 'depthMarketData.subscribe'
         messageHash = destination + ':' + symbol
         timestamp = self.safe_integer(data, 'ts')
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
-            orderbook = self.order_book()
+        # orderbook = self.safe_value(self.orderbooks, symbol)
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book()
+        orderbook = self.orderbooks[symbol]
         orderbook.reset({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
         })
-        bids = self.safe_value(data, 'bid', {})
-        asks = self.safe_value(data, 'ofr', {})
+        bids = self.safe_dict(data, 'bid', {})
+        asks = self.safe_dict(data, 'ofr', {})
         self.handle_deltas(orderbook['bids'], bids)
         self.handle_deltas(orderbook['asks'], asks)
         self.orderbooks[symbol] = orderbook
@@ -512,7 +513,7 @@ class currencycom(ccxt.async_support.currencycom):
                 if status == 'OK':
                     subscriptionDestination = self.safe_string(subscription, 'destination')
                     if subscriptionDestination is not None:
-                        methods = {
+                        methods: dict = {
                             '/api/v1/ticker/24hr': self.handle_ticker,
                             '/api/v1/account': self.handle_balance,
                         }
@@ -524,7 +525,7 @@ class currencycom(ccxt.async_support.currencycom):
                             return
         destination = self.safe_string(message, 'destination')
         if destination is not None:
-            methods = {
+            methods: dict = {
                 'marketdepth.event': self.handle_order_book,
                 'internal.trade': self.handle_trades,
                 'ohlc.event': self.handle_ohlcv,

@@ -1,6 +1,8 @@
 {
     "exchange": "blockchaincom",
-    "skipKeys": ["clOrdId"],
+    "skipKeys": [
+        "clOrdId"
+    ],
     "outputType": "json",
     "methods": {
         "fetchMyTrades": [
@@ -108,6 +110,39 @@
                     50
                 ],
                 "output": "{\"ordType\":\"LIMIT\",\"symbol\":\"LTC-USDT\",\"side\":\"BUY\",\"orderQty\":\"0.1\",\"clOrdId\":\"4314cf84b4d38e68\",\"price\":\"50\"}"
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.blockchain.com/v3/exchange/l3/BTC-USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api.blockchain.com/v3/exchange/tickers/BTC-USDT",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api.blockchain.com/v3/exchange/tickers",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
             }
         ]
     }

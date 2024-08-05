@@ -1351,9 +1351,6 @@ export default class bitrue extends Exchange {
                 'interval': this.safeString(timeframesFuture, timeframe, '1min'),
             };
             if (limit !== undefined) {
-                if (limit > 300) {
-                    limit = 300;
-                }
                 request['limit'] = limit;
             }
             if (market['linear']) {
@@ -1372,9 +1369,6 @@ export default class bitrue extends Exchange {
                 'scale': this.safeString(timeframesSpot, timeframe, '1m'),
             };
             if (limit !== undefined) {
-                if (limit > 1440) {
-                    limit = 1440;
-                }
                 request['limit'] = limit;
             }
             if (since !== undefined) {
@@ -1916,7 +1910,7 @@ export default class bitrue extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] *spot only* the price at which a trigger order is triggered at
          * @param {string} [params.clientOrderId] a unique id for the order, automatically generated if not sent
@@ -2569,7 +2563,7 @@ export default class bitrue extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2822,7 +2816,7 @@ export default class bitrue extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTransaction(data, currency);
     }
     parseDepositWithdrawFee(fee, currency = undefined) {
@@ -2878,7 +2872,7 @@ export default class bitrue extends Exchange {
          */
         await this.loadMarkets();
         const response = await this.spotV1PublicGetExchangeInfo(params);
-        const coins = this.safeValue(response, 'coins');
+        const coins = this.safeList(response, 'coins');
         return this.parseDepositWithdrawFees(coins, codes, 'coin');
     }
     parseTransfer(transfer, currency = undefined) {
@@ -3006,7 +3000,7 @@ export default class bitrue extends Exchange {
         //         'data': null
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTransfer(data, currency);
     }
     async setLeverage(leverage, symbol = undefined, params = {}) {
@@ -3046,13 +3040,26 @@ export default class bitrue extends Exchange {
         return response;
     }
     parseMarginModification(data, market = undefined) {
+        //
+        // setMargin
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "success"
+        //         "data": null
+        //     }
+        //
         return {
             'info': data,
-            'type': undefined,
-            'amount': undefined,
-            'code': undefined,
             'symbol': market['symbol'],
+            'type': undefined,
+            'marginMode': 'isolated',
+            'amount': undefined,
+            'total': undefined,
+            'code': undefined,
             'status': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
         };
     }
     async setMargin(symbol, amount, params = {}) {
@@ -3138,6 +3145,11 @@ export default class bitrue extends Exchange {
                 signPath = signPath + '/' + version + '/' + path;
                 let signMessage = timestamp + method + signPath;
                 if (method === 'GET') {
+                    const keys = Object.keys(params);
+                    const keysLength = keys.length;
+                    if (keysLength > 0) {
+                        signMessage += '?' + this.urlencode(params);
+                    }
                     const signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256);
                     headers = {
                         'X-CH-APIKEY': this.apiKey,
@@ -3151,7 +3163,7 @@ export default class bitrue extends Exchange {
                         'recvWindow': recvWindow,
                     }, params);
                     body = this.json(query);
-                    signMessage = signMessage + JSON.stringify(body);
+                    signMessage += body;
                     const signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256);
                     headers = {
                         'Content-Type': 'application/json',

@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, P
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -21,6 +21,7 @@ export default class bithumb extends Exchange {
             'name': 'Bithumb',
             'countries': [ 'KR' ], // South Korea
             'rateLimit': 500,
+            'pro': true,
             'has': {
                 'CORS': true,
                 'spot': true,
@@ -56,7 +57,11 @@ export default class bithumb extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -181,7 +186,7 @@ export default class bithumb extends Exchange {
         });
     }
 
-    safeMarket (marketId = undefined, market = undefined, delimiter = undefined, marketType = undefined) {
+    safeMarket (marketId: Str = undefined, market: Market = undefined, delimiter: Str = undefined, marketType: Str = undefined): MarketInterface {
         // bithumb has a different type of conflict in markets, because
         // their ids are the base currency (BTC for instance), so we can have
         // multiple "BTC" ids representing the different markets (BTC/ETH, "BTC/DOGE", etc)
@@ -193,7 +198,7 @@ export default class bithumb extends Exchange {
         return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bithumb#fetchMarkets
@@ -203,17 +208,57 @@ export default class bithumb extends Exchange {
          * @returns {object[]} an array of objects representing market data
          */
         const result = [];
-        const quoteCurrencies = this.safeValue (this.options, 'quoteCurrencies', {});
+        const quoteCurrencies = this.safeDict (this.options, 'quoteCurrencies', {});
         const quotes = Object.keys (quoteCurrencies);
+        const promises = [];
+        for (let i = 0; i < quotes.length; i++) {
+            const request = {
+                'quoteId': quotes[i],
+            };
+            promises.push (this.publicGetTickerALLQuoteId (this.extend (request, params)));
+            //
+            //    {
+            //        "status": "0000",
+            //        "data": {
+            //            "ETH": {
+            //                "opening_price": "0.05153399",
+            //                "closing_price": "0.05145144",
+            //                "min_price": "0.05145144",
+            //                "max_price": "0.05160781",
+            //                "units_traded": "6.541124172077830855",
+            //                "acc_trade_value": "0.33705472498492329997697755",
+            //                "prev_closing_price": "0.0515943",
+            //                "units_traded_24H": "43.368879902677400513",
+            //                "acc_trade_value_24H": "2.24165339555398079994373342",
+            //                "fluctate_24H": "-0.00018203",
+            //                "fluctate_rate_24H": "-0.35"
+            //            },
+            //            "XRP": {
+            //                "opening_price": "0.00000918",
+            //                "closing_price": "0.0000092",
+            //                "min_price": "0.00000918",
+            //                "max_price": "0.0000092",
+            //                "units_traded": "6516.949363",
+            //                "acc_trade_value": "0.0598792533602796",
+            //                "prev_closing_price": "0.00000916",
+            //                "units_traded_24H": "229161.50354738",
+            //                "acc_trade_value_24H": "2.0446589371637117",
+            //                "fluctate_24H": "0.00000049",
+            //                "fluctate_rate_24H": "5.63"
+            //            },
+            //            ...
+            //            "date": "1721675913145"
+            //        }
+            //    }
+            //
+        }
+        const results = await Promise.all (promises);
         for (let i = 0; i < quotes.length; i++) {
             const quote = quotes[i];
             const quoteId = quote;
-            const extension = this.safeValue (quoteCurrencies, quote, {});
-            const request = {
-                'quoteId': quoteId,
-            };
-            const response = await this.publicGetTickerALLQuoteId (this.extend (request, params));
-            const data = this.safeValue (response, 'data');
+            const response = results[i];
+            const data = this.safeDict (response, 'data');
+            const extension = this.safeDict (quoteCurrencies, quote, {});
             const currencyIds = Object.keys (data);
             for (let j = 0; j < currencyIds.length; j++) {
                 const currencyId = currencyIds[j];
@@ -282,8 +327,8 @@ export default class bithumb extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = { 'info': response };
-        const balances = this.safeValue (response, 'data');
+        const result: Dict = { 'info': response };
+        const balances = this.safeDict (response, 'data');
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
@@ -308,7 +353,7 @@ export default class bithumb extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'currency': 'ALL',
         };
         const response = await this.privatePostInfoBalance (this.extend (request, params));
@@ -328,7 +373,7 @@ export default class bithumb extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
         };
@@ -356,12 +401,12 @@ export default class bithumb extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         const timestamp = this.safeInteger (data, 'timestamp');
         return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // fetchTicker, fetchTickers
         //
@@ -421,16 +466,20 @@ export default class bithumb extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        const result = {};
-        const quoteCurrencies = this.safeValue (this.options, 'quoteCurrencies', {});
+        const result: Dict = {};
+        const quoteCurrencies = this.safeDict (this.options, 'quoteCurrencies', {});
         const quotes = Object.keys (quoteCurrencies);
+        const promises = [];
+        for (let i = 0; i < quotes.length; i++) {
+            const request: Dict = {
+                'quoteId': quotes[i],
+            };
+            promises.push (this.publicGetTickerALLQuoteId (this.extend (request, params)));
+        }
+        const responses = await Promise.all (promises);
         for (let i = 0; i < quotes.length; i++) {
             const quote = quotes[i];
-            const quoteId = quote;
-            const request = {
-                'quoteId': quoteId,
-            };
-            const response = await this.publicGetTickerALLQuoteId (this.extend (request, params));
+            const response = responses[i];
             //
             //     {
             //         "status":"0000",
@@ -452,7 +501,7 @@ export default class bithumb extends Exchange {
             //         }
             //     }
             //
-            const data = this.safeValue (response, 'data', {});
+            const data = this.safeDict (response, 'data', {});
             const timestamp = this.safeInteger (data, 'date');
             const tickers = this.omit (data, 'date');
             const currencyIds = Object.keys (tickers);
@@ -481,7 +530,7 @@ export default class bithumb extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
         };
@@ -505,7 +554,7 @@ export default class bithumb extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
+        const data = this.safeDict (response, 'data', {});
         return this.parseTicker (data, market);
     }
 
@@ -545,7 +594,7 @@ export default class bithumb extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
@@ -574,11 +623,11 @@ export default class bithumb extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -670,7 +719,7 @@ export default class bithumb extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
         };
@@ -692,11 +741,11 @@ export default class bithumb extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name bithumb#createOrder
@@ -708,13 +757,13 @@ export default class bithumb extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'order_currency': market['id'],
             'payment_currency': market['quote'],
             'units': amount,
@@ -755,7 +804,7 @@ export default class bithumb extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'order_id': id,
             'count': 1,
             'order_currency': market['base'],
@@ -789,12 +838,12 @@ export default class bithumb extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeDict (response, 'data');
         return this.parseOrder (this.extend (data, { 'order_id': id }), market);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'Pending': 'open',
             'Completed': 'closed',
             'Cancel': 'canceled',
@@ -802,7 +851,7 @@ export default class bithumb extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         //
         // fetchOrder
@@ -844,7 +893,7 @@ export default class bithumb extends Exchange {
         //     }
         //
         const timestamp = this.safeIntegerProduct (order, 'order_date', 0.001);
-        const sideProperty = this.safeValue2 (order, 'type', 'side');
+        const sideProperty = this.safeString2 (order, 'type', 'side');
         const side = (sideProperty === 'bid') ? 'buy' : 'sell';
         const status = this.parseOrderStatus (this.safeString (order, 'order_status'));
         const price = this.safeString2 (order, 'order_price', 'price');
@@ -874,7 +923,7 @@ export default class bithumb extends Exchange {
             symbol = market['symbol'];
         }
         const id = this.safeString (order, 'order_id');
-        const rawTrades = this.safeValue (order, 'contract', []);
+        const rawTrades = this.safeList (order, 'contract', []);
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -921,7 +970,7 @@ export default class bithumb extends Exchange {
         if (limit === undefined) {
             limit = 100;
         }
-        const request = {
+        const request: Dict = {
             'count': limit,
             'order_currency': market['base'],
             'payment_currency': market['quote'],
@@ -947,7 +996,7 @@ export default class bithumb extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -973,23 +1022,31 @@ export default class bithumb extends Exchange {
         const side = (params['side'] === 'buy') ? 'bid' : 'ask';
         params = this.omit (params, [ 'side', 'currency' ]);
         // https://github.com/ccxt/ccxt/issues/6771
-        const request = {
+        const request: Dict = {
             'order_id': id,
             'type': side,
             'order_currency': market['base'],
             'payment_currency': market['quote'],
         };
-        return await this.privatePostTradeCancel (this.extend (request, params));
+        const response = await this.privatePostTradeCancel (this.extend (request, params));
+        //
+        //    {
+        //       'status': 'string',
+        //    }
+        //
+        return this.safeOrder ({
+            'info': response,
+        });
     }
 
     async cancelUnifiedOrder (order, params = {}) {
-        const request = {
+        const request: Dict = {
             'side': order['side'],
         };
         return await this.cancelOrder (order['id'], order['symbol'], this.extend (request, params));
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name bithumb#withdraw
@@ -1006,7 +1063,7 @@ export default class bithumb extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'units': amount,
             'address': address,
             'currency': currency['id'],
@@ -1026,7 +1083,7 @@ export default class bithumb extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // withdraw
         //
@@ -1101,7 +1158,7 @@ export default class bithumb extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

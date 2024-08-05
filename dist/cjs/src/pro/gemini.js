@@ -4,6 +4,7 @@ var gemini$1 = require('../gemini.js');
 var Cache = require('../base/ws/Cache.js');
 var errors = require('../base/errors.js');
 var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
+var Precise = require('../base/Precise.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -384,10 +385,11 @@ class gemini extends gemini$1 {
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
         const messageHash = 'orderbook:' + symbol;
-        let orderbook = this.safeValue(this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook();
+        // let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook();
         }
+        const orderbook = this.orderbooks[symbol];
         for (let i = 0; i < changes.length; i++) {
             const delta = changes[i];
             const price = this.safeNumber(delta, 1);
@@ -415,7 +417,7 @@ class gemini extends gemini$1 {
         const orderbook = await this.helperForWatchMultipleConstruct('orderbook', symbols, params);
         return orderbook.limit();
     }
-    async watchBidsAsks(symbols, limit = undefined, params = {}) {
+    async watchBidsAsks(symbols = undefined, params = {}) {
         /**
          * @method
          * @name gemini#watchBidsAsks
@@ -469,10 +471,11 @@ class gemini extends gemini$1 {
             const entry = rawBidAskChanges[i];
             const rawSide = this.safeString(entry, 'side');
             const price = this.safeNumber(entry, 'price');
-            const size = this.safeNumber(entry, 'remaining');
-            if (size === 0) {
+            const sizeString = this.safeString(entry, 'remaining');
+            if (Precise["default"].stringEq(sizeString, '0')) {
                 continue;
             }
+            const size = this.parseNumber(sizeString);
             if (rawSide === 'bid') {
                 currentBidAsk['bid'] = price;
                 currentBidAsk['bidVolume'] = size;
@@ -911,7 +914,8 @@ class gemini extends gemini$1 {
                 },
             },
         };
-        this.options = this.extend(defaultOptions, this.options);
+        // this.options = this.extend (defaultOptions, this.options);
+        this.extendExchangeOptions(defaultOptions);
         const originalHeaders = this.options['ws']['options']['headers'];
         const headers = {
             'X-GEMINI-APIKEY': this.apiKey,

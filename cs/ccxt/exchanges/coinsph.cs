@@ -84,7 +84,11 @@ public partial class coinsph : Exchange
                 { "fetchOrders", false },
                 { "fetchOrderTrades", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
+                { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchStatus", true },
@@ -1141,7 +1145,7 @@ public partial class coinsph : Exchange
         * @param {string} type 'market', 'limit', 'stop_loss', 'take_profit', 'stop_loss_limit', 'take_profit_limit' or 'limit_maker'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
         * @param {bool} [params.test] set to true to test an order, no order will be created but the request will be validated
@@ -1670,6 +1674,8 @@ public partial class coinsph : Exchange
             { "symbol", symbol },
             { "maker", this.safeNumber(fee, "makerCommission") },
             { "taker", this.safeNumber(fee, "takerCommission") },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 

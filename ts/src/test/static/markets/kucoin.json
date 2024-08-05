@@ -510,7 +510,7 @@
         "margin": true,
         "contract": false,
         "precision": {
-            "amount": 0.000001,
+            "amount": 0.01,
             "price": 0.001
         },
         "limits": {
@@ -536,7 +536,7 @@
             "quoteMinSize": "0.1",
             "baseMaxSize": "10000000000",
             "quoteMaxSize": "99999999",
-            "baseIncrement": "0.000001",
+            "baseIncrement": "0.01",
             "quoteIncrement": "0.000001",
             "priceIncrement": "0.001",
             "priceLimitRate": "0.1",

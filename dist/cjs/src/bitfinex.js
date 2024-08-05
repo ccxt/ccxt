@@ -450,7 +450,7 @@ class bitfinex extends bitfinex$1 {
         //        }
         //    }
         //
-        const withdraw = this.safeValue(response, 'withdraw');
+        const withdraw = this.safeList(response, 'withdraw');
         return this.parseDepositWithdrawFees(withdraw, codes);
     }
     parseDepositWithdrawFee(fee, currency = undefined) {
@@ -860,7 +860,7 @@ class bitfinex extends bitfinex$1 {
         const response = await this.publicGetTickers(params);
         const result = {};
         for (let i = 0; i < response.length; i++) {
-            const ticker = this.parseTicker(response[i]);
+            const ticker = this.parseTicker({ 'result': response[i] });
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }
@@ -882,9 +882,33 @@ class bitfinex extends bitfinex$1 {
             'symbol': market['id'],
         };
         const ticker = await this.publicGetPubtickerSymbol(this.extend(request, params));
+        //
+        //    {
+        //        mid: '63560.5',
+        //        bid: '63560.0',
+        //        ask: '63561.0',
+        //        last_price: '63547.0',
+        //        low: '62812.0',
+        //        high: '64480.0',
+        //        volume: '517.25634977',
+        //        timestamp: '1715102384.9849467'
+        //    }
+        //
         return this.parseTicker(ticker, market);
     }
     parseTicker(ticker, market = undefined) {
+        //
+        //    {
+        //        mid: '63560.5',
+        //        bid: '63560.0',
+        //        ask: '63561.0',
+        //        last_price: '63547.0',
+        //        low: '62812.0',
+        //        high: '64480.0',
+        //        volume: '517.25634977',
+        //        timestamp: '1715102384.9849467'
+        //    }
+        //
         const timestamp = this.safeTimestamp(ticker, 'timestamp');
         const marketId = this.safeString(ticker, 'pair');
         market = this.safeMarket(marketId, market);
@@ -1058,7 +1082,7 @@ class bitfinex extends bitfinex$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1131,7 +1155,33 @@ class bitfinex extends bitfinex$1 {
         const request = {
             'order_id': parseInt(id),
         };
-        return await this.privatePostOrderCancel(this.extend(request, params));
+        const response = await this.privatePostOrderCancel(this.extend(request, params));
+        //
+        //    {
+        //        id: '161236928925',
+        //        cid: '1720172026812',
+        //        cid_date: '2024-07-05',
+        //        gid: null,
+        //        symbol: 'adaust',
+        //        exchange: 'bitfinex',
+        //        price: '0.33',
+        //        avg_execution_price: '0.0',
+        //        side: 'buy',
+        //        type: 'exchange limit',
+        //        timestamp: '1720172026.813',
+        //        is_live: true,
+        //        is_cancelled: false,
+        //        is_hidden: false,
+        //        oco_order: null,
+        //        was_forced: false,
+        //        original_amount: '10.0',
+        //        remaining_amount: '10.0',
+        //        executed_amount: '0.0',
+        //        src: 'api',
+        //        meta: {}
+        //    }
+        //
+        return this.parseOrder(response);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**
@@ -1139,11 +1189,19 @@ class bitfinex extends bitfinex$1 {
          * @name bitfinex#cancelAllOrders
          * @description cancel all open orders
          * @see https://docs.bitfinex.com/v1/reference/rest-auth-cancel-all-orders
-         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {string} symbol not used by bitfinex cancelAllOrders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} response from exchange
          */
-        return await this.privatePostOrderCancelAll(params);
+        const response = await this.privatePostOrderCancelAll(params);
+        //
+        //    { result: 'Submitting 1 order cancellations.' }
+        //
+        return [
+            this.safeOrder({
+                'info': response,
+            }),
+        ];
     }
     parseOrder(order, market = undefined) {
         //
@@ -1322,6 +1380,9 @@ class bitfinex extends bitfinex$1 {
         await this.loadMarkets();
         if (limit === undefined) {
             limit = 100;
+        }
+        else {
+            limit = Math.min(limit, 10000);
         }
         const market = this.market(symbol);
         const v2id = 't' + market['id'];
@@ -1577,7 +1638,7 @@ class bitfinex extends bitfinex$1 {
         //     ]
         //
         const response = this.safeValue(responses, 0, {});
-        const id = this.safeNumber(response, 'withdrawal_id');
+        const id = this.safeInteger(response, 'withdrawal_id');
         const message = this.safeString(response, 'message');
         const errorMessage = this.findBroadlyMatchedKey(this.exceptions['broad'], message);
         if (id === 0) {
@@ -1619,7 +1680,7 @@ class bitfinex extends bitfinex$1 {
         return response;
     }
     nonce() {
-        return this.milliseconds();
+        return this.microseconds();
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let request = '/' + this.implodeParams(path, params);

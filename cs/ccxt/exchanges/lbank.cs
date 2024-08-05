@@ -616,7 +616,7 @@ public partial class lbank : Exchange
         //     }
         //
         object data = this.safeValue(response, "data", new List<object>() {});
-        object first = this.safeValue(data, 0, new Dictionary<string, object>() {});
+        object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
         return this.parseTicker(first, market);
     }
 
@@ -704,7 +704,7 @@ public partial class lbank : Exchange
         //         "success": true
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTickers(data, symbols);
     }
 
@@ -975,7 +975,7 @@ public partial class lbank : Exchange
         //           "ts":1647021999308
         //      }
         //
-        object trades = this.safeValue(response, "data", new List<object>() {});
+        object trades = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -1016,6 +1016,9 @@ public partial class lbank : Exchange
         if (isTrue(isEqual(limit, null)))
         {
             limit = 100;
+        } else
+        {
+            limit = mathMin(limit, 2000);
         }
         if (isTrue(isEqual(since, null)))
         {
@@ -1270,6 +1273,8 @@ public partial class lbank : Exchange
             { "symbol", symbol },
             { "maker", this.safeNumber(fee, "makerCommission") },
             { "taker", this.safeNumber(fee, "takerCommission") },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 
@@ -1289,7 +1294,7 @@ public partial class lbank : Exchange
         object result = await this.fetchTradingFees(this.extend(parameters, new Dictionary<string, object>() {
             { "category", getValue(market, "id") },
         }));
-        return result;
+        return this.safeDict(result, symbol);
     }
 
     public async override Task<object> fetchTradingFees(object parameters = null)
@@ -1353,7 +1358,7 @@ public partial class lbank : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -1543,6 +1548,27 @@ public partial class lbank : Exchange
         //          "status":-1
         //      }
         //
+        // cancelOrder
+        //
+        //    {
+        //        "executedQty":0.0,
+        //        "price":0.05,
+        //        "origQty":100.0,
+        //        "tradeType":"buy",
+        //        "status":0
+        //    }
+        //
+        // cancelAllOrders
+        //
+        //    {
+        //        "executedQty":0.00000000000000000000,
+        //        "orderId":"293ef71b-3e67-4962-af93-aa06990a045f",
+        //        "price":0.05000000000000000000,
+        //        "origQty":100.00000000000000000000,
+        //        "tradeType":"buy",
+        //        "status":0
+        //    }
+        //
         object id = this.safeString2(order, "orderId", "order_id");
         object clientOrderId = this.safeString2(order, "clientOrderId", "custom_id");
         object timestamp = this.safeInteger2(order, "time", "create_time");
@@ -1552,7 +1578,7 @@ public partial class lbank : Exchange
         object timeInForce = null;
         object postOnly = false;
         object type = "limit";
-        object rawType = this.safeString(order, "type"); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
+        object rawType = this.safeString2(order, "type", "tradeType"); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
         object parts = ((string)rawType).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
         object side = this.safeString(parts, 0);
         object typePart = this.safeString(parts, 1); // market, maker, ioc, fok or undefined (limit)
@@ -1669,7 +1695,7 @@ public partial class lbank : Exchange
         //          "ts":1648164471827
         //      }
         //
-        object result = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object result = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(result);
     }
 
@@ -1774,7 +1800,7 @@ public partial class lbank : Exchange
         //          "ts":1648509742164
         //      }
         //
-        object trades = this.safeValue(response, "data", new List<object>() {});
+        object trades = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -1838,7 +1864,7 @@ public partial class lbank : Exchange
         //      }
         //
         object result = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object orders = this.safeValue(result, "orders", new List<object>() {});
+        object orders = this.safeList(result, "orders", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -1900,7 +1926,7 @@ public partial class lbank : Exchange
         //     }
         //
         object result = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object orders = this.safeValue(result, "orders", new List<object>() {});
+        object orders = this.safeList(result, "orders", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -1943,12 +1969,12 @@ public partial class lbank : Exchange
         //          "origQty":100.0,
         //          "tradeType":"buy",
         //          "status":0
-        //          },
+        //      },
         //      "error_code":0,
         //      "ts":1648501286196
         //  }
-        object result = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        return result;
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseOrder(data);
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -1990,8 +2016,8 @@ public partial class lbank : Exchange
         //          "ts":1648506641469
         //      }
         //
-        object result = this.safeValue(response, "data", new List<object>() {});
-        return result;
+        object data = this.safeList(response, "data", new List<object>() {});
+        return this.parseOrders(data);
     }
 
     public virtual object getNetworkCodeForCurrency(object currencyCode, object parameters)
@@ -2345,7 +2371,7 @@ public partial class lbank : Exchange
         //      }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object deposits = this.safeValue(data, "depositOrders", new List<object>() {});
+        object deposits = this.safeList(data, "depositOrders", new List<object>() {});
         return this.parseTransactions(deposits, currency, since, limit);
     }
 
@@ -2403,7 +2429,7 @@ public partial class lbank : Exchange
         //      }
         //
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object withdraws = this.safeValue(data, "withdraws", new List<object>() {});
+        object withdraws = this.safeList(data, "withdraws", new List<object>() {});
         return this.parseTransactions(withdraws, currency, since, limit);
     }
 
@@ -2648,7 +2674,7 @@ public partial class lbank : Exchange
         //        "code": 0
         //    }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseDepositWithdrawFees(data, codes, "coin");
     }
 
@@ -2862,7 +2888,7 @@ public partial class lbank : Exchange
             object sign = null;
             if (isTrue(isEqual(signatureMethod, "RSA")))
             {
-                object cacheSecretAsPem = this.safeValue(this.options, "cacheSecretAsPem", true);
+                object cacheSecretAsPem = this.safeBool(this.options, "cacheSecretAsPem", true);
                 object pem = null;
                 if (isTrue(cacheSecretAsPem))
                 {

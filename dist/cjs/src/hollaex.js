@@ -88,6 +88,7 @@ class hollaex extends hollaex$1 {
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -533,12 +534,12 @@ class hollaex extends hollaex$1 {
         //
         return this.parseTickers(response, symbols);
     }
-    parseTickers(response, symbols = undefined, params = {}) {
+    parseTickers(tickers, symbols = undefined, params = {}) {
         const result = {};
-        const keys = Object.keys(response);
+        const keys = Object.keys(tickers);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const ticker = response[key];
+            const ticker = tickers[key];
             const marketId = this.safeString(ticker, 'symbol', key);
             const market = this.safeMarket(marketId, undefined, '-');
             const symbol = market['symbol'];
@@ -632,7 +633,7 @@ class hollaex extends hollaex$1 {
         //         ]
         //     }
         //
-        const trades = this.safeValue(response, market['id'], []);
+        const trades = this.safeList(response, market['id'], []);
         return this.parseTrades(trades, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
@@ -1055,7 +1056,7 @@ class hollaex extends hollaex$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseOrders(data, market, since, limit);
     }
     parseOrderStatus(status) {
@@ -1144,7 +1145,7 @@ class hollaex extends hollaex$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
          * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
@@ -1319,7 +1320,7 @@ class hollaex extends hollaex$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTrades(data, market, since, limit);
     }
     parseDepositAddress(depositAddress, currency = undefined) {
@@ -1472,7 +1473,7 @@ class hollaex extends hollaex$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit);
     }
     async fetchWithdrawal(id, code = undefined, params = {}) {
@@ -1520,7 +1521,7 @@ class hollaex extends hollaex$1 {
         //     }
         //
         const data = this.safeValue(response, 'data', []);
-        const transaction = this.safeValue(data, 0, {});
+        const transaction = this.safeDict(data, 0, {});
         return this.parseTransaction(transaction, currency);
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1580,7 +1581,7 @@ class hollaex extends hollaex$1 {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         return this.parseTransactions(data, currency, since, limit);
     }
     parseTransaction(transaction, currency = undefined) {
@@ -1841,7 +1842,7 @@ class hollaex extends hollaex$1 {
         //         "network":"https://api.hollaex.network"
         //     }
         //
-        const coins = this.safeValue(response, 'coins');
+        const coins = this.safeList(response, 'coins');
         return this.parseDepositWithdrawFees(coins, codes, 'symbol');
     }
     normalizeNumberIfNeeded(number) {

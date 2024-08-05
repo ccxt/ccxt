@@ -1,11 +1,11 @@
 //  ---------------------------------------------------------------------------
 
 import Exchange from './abstract/tokocrypto.js';
-import { TRUNCATE, DECIMAL_PLACES } from './base/functions/number.js';
+import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
 import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, DDoSProtection, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, NotSupported, BadRequest, BadSymbol, AccountSuspended, OrderImmediatelyFillable, OnMaintenance, BadResponse, RequestTimeout, OrderNotFillable, MarginModeAlreadySet, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Int, Market, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -211,7 +211,7 @@ export default class tokocrypto extends Exchange {
                     'maker': this.parseNumber ('0.0075'), // 0.1% trading fee, zero fees for all trading pairs before November 1
                 },
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             'options': {
                 // 'fetchTradesMethod': 'binanceGetTrades', // binanceGetTrades, binanceGetAggTrades
                 'createMarketBuyOrderRequiresPrice': true,
@@ -619,7 +619,7 @@ export default class tokocrypto extends Exchange {
         return this.safeInteger (response, 'serverTime');
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name tokocrypto#fetchMarkets
@@ -694,7 +694,7 @@ export default class tokocrypto extends Exchange {
                 }
             }
             const isMarginTradingAllowed = this.safeBool (market, 'isMarginTradingAllowed', false);
-            const entry = {
+            const entry: Dict = {
                 'id': id,
                 'lowercaseId': lowercaseId,
                 'symbol': symbol,
@@ -721,10 +721,10 @@ export default class tokocrypto extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (market, 'quantityPrecision'),
-                    'price': this.safeInteger (market, 'pricePrecision'),
-                    'base': this.safeInteger (market, 'baseAssetPrecision'),
-                    'quote': this.safeInteger (market, 'quotePrecision'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityPrecision'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision'))),
+                    'base': this.parseNumber (this.parsePrecision (this.safeString (market, 'baseAssetPrecision'))),
+                    'quote': this.parseNumber (this.parsePrecision (this.safeString (market, 'quotePrecision'))),
                 },
                 'limits': {
                     'leverage': {
@@ -749,8 +749,7 @@ export default class tokocrypto extends Exchange {
             };
             if ('PRICE_FILTER' in filtersByType) {
                 const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
-                const tickSize = this.safeString (filter, 'tickSize');
-                entry['precision']['price'] = this.precisionFromString (tickSize);
+                entry['precision']['price'] = this.safeNumber (filter, 'tickSize');
                 // PRICE_FILTER reports zero values for maxPrice
                 // since they updated filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
@@ -759,12 +758,11 @@ export default class tokocrypto extends Exchange {
                     'min': this.safeNumber (filter, 'minPrice'),
                     'max': this.safeNumber (filter, 'maxPrice'),
                 };
-                entry['precision']['price'] = this.precisionFromString (filter['tickSize']);
+                entry['precision']['price'] = filter['tickSize'];
             }
             if ('LOT_SIZE' in filtersByType) {
                 const filter = this.safeValue (filtersByType, 'LOT_SIZE', {});
-                const stepSize = this.safeString (filter, 'stepSize');
-                entry['precision']['amount'] = this.precisionFromString (stepSize);
+                entry['precision']['amount'] = this.safeNumber (filter, 'stepSize');
                 entry['limits']['amount'] = {
                     'min': this.safeNumber (filter, 'minQty'),
                     'max': this.safeNumber (filter, 'maxQty'),
@@ -799,7 +797,7 @@ export default class tokocrypto extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {};
+        const request: Dict = {};
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
@@ -847,7 +845,7 @@ export default class tokocrypto extends Exchange {
         return orderbook;
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // aggregate trades
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
@@ -1008,7 +1006,7 @@ export default class tokocrypto extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': this.getMarketIdByType (market),
             // 'fromId': 123,    // ID to get aggregate trades from INCLUSIVE.
             // 'startTime': 456, // Timestamp in ms to get aggregate trades from INCLUSIVE.
@@ -1020,8 +1018,28 @@ export default class tokocrypto extends Exchange {
                 request['limit'] = limit;
             }
             const responseInner = this.publicGetOpenV1MarketTrades (this.extend (request, params));
-            const data = this.safeValue (responseInner, 'data', {});
-            return this.parseTrades (data, market, since, limit);
+            //
+            //    {
+            //       "code": 0,
+            //       "msg": "success",
+            //       "data": {
+            //           "list": [
+            //                {
+            //                    "id": 28457,
+            //                    "price": "4.00000100",
+            //                    "qty": "12.00000000",
+            //                    "time": 1499865549590,
+            //                    "isBuyerMaker": true,
+            //                    "isBestMatch": true
+            //                }
+            //            ]
+            //        },
+            //        "timestamp": 1571921637091
+            //    }
+            //
+            const data = this.safeDict (responseInner, 'data', {});
+            const list = this.safeList (data, 'list', []);
+            return this.parseTrades (list, market, since, limit);
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default = 500, maximum = 1000
@@ -1079,7 +1097,7 @@ export default class tokocrypto extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "symbol": "ETHBTC",
@@ -1198,12 +1216,12 @@ export default class tokocrypto extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['baseId'] + market['quoteId'],
         };
         const response = await this.binanceGetTicker24hr (this.extend (request, params));
         if (Array.isArray (response)) {
-            const firstTicker = this.safeValue (response, 0, {});
+            const firstTicker = this.safeDict (response, 0, {});
             return this.parseTicker (firstTicker, market);
         }
         return this.parseTicker (response, market);
@@ -1294,7 +1312,7 @@ export default class tokocrypto extends Exchange {
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, [ 'price', 'until' ]);
         limit = (limit === undefined) ? defaultLimit : Math.min (limit, maxLimit);
-        const request = {
+        const request: Dict = {
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
             'limit': limit,
         };
@@ -1323,7 +1341,7 @@ export default class tokocrypto extends Exchange {
         //         [1591478640000,"0.02500800","0.02501100","0.02500300","0.02500800","154.14200000",1591478699999,"3.85405839",97,"5.32300000","0.13312641","0"],
         //     ]
         //
-        const data = this.safeValue (response, 'data', response);
+        const data = this.safeList (response, 'data', response);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
@@ -1344,7 +1362,7 @@ export default class tokocrypto extends Exchange {
         const type = this.safeString (params, 'type', defaultType);
         const defaultMarginMode = this.safeString2 (this.options, 'marginMode', 'defaultMarginMode');
         const marginMode = this.safeStringLower (params, 'marginMode', defaultMarginMode);
-        const request = {};
+        const request: Dict = {};
         const response = await this.privateGetOpenV1AccountSpot (this.extend (request, params));
         //
         // spot
@@ -1375,7 +1393,7 @@ export default class tokocrypto extends Exchange {
 
     parseBalanceCustom (response, type = undefined, marginMode = undefined) {
         const timestamp = this.safeInteger (response, 'updateTime');
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1394,8 +1412,8 @@ export default class tokocrypto extends Exchange {
         return this.safeBalance (result);
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             '-2': 'open',
             '0': 'open', // NEW
             '1': 'open', // PARTIALLY_FILLED
@@ -1415,7 +1433,7 @@ export default class tokocrypto extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // spot
         //
@@ -1571,7 +1589,7 @@ export default class tokocrypto extends Exchange {
     }
 
     parseOrderType (status) {
-        const statuses = {
+        const statuses: Dict = {
             '2': 'market',
             '1': 'limit',
             '4': 'limit',
@@ -1580,7 +1598,7 @@ export default class tokocrypto extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name tokocrypto#createOrder
@@ -1591,7 +1609,7 @@ export default class tokocrypto extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] the price at which a trigger order would be triggered
          * @param {float} [params.cost] for spot market buy orders, the quote quantity that can be used as an alternative for the amount
@@ -1625,7 +1643,7 @@ export default class tokocrypto extends Exchange {
                 throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
             }
         }
-        const reverseOrderTypeMapping = {
+        const reverseOrderTypeMapping: Dict = {
             'LIMIT': 1,
             'MARKET': 2,
             'STOP_LOSS': 3,
@@ -1634,7 +1652,7 @@ export default class tokocrypto extends Exchange {
             'TAKE_PROFIT_LIMIT': 6,
             'LIMIT_MAKER': 7,
         };
-        const request = {
+        const request: Dict = {
             'symbol': market['baseId'] + '_' + market['quoteId'],
             'type': this.safeString (reverseOrderTypeMapping, uppercaseType),
         };
@@ -1756,7 +1774,7 @@ export default class tokocrypto extends Exchange {
         //         "timestamp": 1662710994975
         //     }
         //
-        const rawOrder = this.safeValue (response, 'data', {});
+        const rawOrder = this.safeDict (response, 'data', {});
         return this.parseOrder (rawOrder, market);
     }
 
@@ -1770,7 +1788,7 @@ export default class tokocrypto extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'orderId': id,
         };
         const response = await this.privateGetOpenV1Orders (this.extend (request, params));
@@ -1806,7 +1824,7 @@ export default class tokocrypto extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const list = this.safeValue (data, 'list', []);
-        const rawOrder = this.safeValue (list, 0, {});
+        const rawOrder = this.safeDict (list, 0, {});
         return this.parseOrder (rawOrder);
     }
 
@@ -1827,7 +1845,7 @@ export default class tokocrypto extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             // 'type': -1, // -1 = all, 1 = open, 2 = closed
             // 'side': 1, // or 2
@@ -1878,7 +1896,7 @@ export default class tokocrypto extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const orders = this.safeValue (data, 'list', []);
+        const orders = this.safeList (data, 'list', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -1894,7 +1912,7 @@ export default class tokocrypto extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = { 'type': 1 }; // -1 = all, 1 = open, 2 = closed
+        const request: Dict = { 'type': 1 }; // -1 = all, 1 = open, 2 = closed
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
@@ -1910,7 +1928,7 @@ export default class tokocrypto extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = { 'type': 2 }; // -1 = all, 1 = open, 2 = closed
+        const request: Dict = { 'type': 2 }; // -1 = all, 1 = open, 2 = closed
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
@@ -1925,7 +1943,7 @@ export default class tokocrypto extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = {
+        const request: Dict = {
             'orderId': id,
         };
         const response = await this.privatePostOpenV1OrdersCancel (this.extend (request, params));
@@ -1956,7 +1974,7 @@ export default class tokocrypto extends Exchange {
         //         "timestamp": 1662710683634
         //     }
         //
-        const rawOrder = this.safeValue (response, 'data', {});
+        const rawOrder = this.safeDict (response, 'data', {});
         return this.parseOrder (rawOrder);
     }
 
@@ -1977,7 +1995,7 @@ export default class tokocrypto extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         const endTime = this.safeInteger2 (params, 'until', 'endTime');
@@ -2018,7 +2036,7 @@ export default class tokocrypto extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const trades = this.safeValue (data, 'list', []);
+        const trades = this.safeList (data, 'list', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -2034,7 +2052,7 @@ export default class tokocrypto extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'asset': currency['id'],
             // 'network': 'ETH', // 'BSC', 'XMR', you can get network and isDefault in networkList in the response of sapiGetCapitalConfigDetail
         };
@@ -2094,7 +2112,7 @@ export default class tokocrypto extends Exchange {
          */
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {};
+        const request: Dict = {};
         const until = this.safeInteger (params, 'until');
         if (code !== undefined) {
             currency = this.currency (code);
@@ -2137,7 +2155,7 @@ export default class tokocrypto extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const deposits = this.safeValue (data, 'list', []);
+        const deposits = this.safeList (data, 'list', []);
         return this.parseTransactions (deposits, currency, since, limit);
     }
 
@@ -2154,7 +2172,7 @@ export default class tokocrypto extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -2195,12 +2213,12 @@ export default class tokocrypto extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const withdrawals = this.safeValue (data, 'list', []);
+        const withdrawals = this.safeList (data, 'list', []);
         return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
     parseTransactionStatusByType (status, type = undefined) {
-        const statusesByType = {
+        const statusesByType: Dict = {
             'deposit': {
                 '0': 'pending',
                 '1': 'ok',
@@ -2219,7 +2237,7 @@ export default class tokocrypto extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -2335,7 +2353,7 @@ export default class tokocrypto extends Exchange {
         };
     }
 
-    async withdraw (code: string, amount: number, address, tag = undefined, params = {}) {
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name bybit#withdraw
@@ -2352,7 +2370,7 @@ export default class tokocrypto extends Exchange {
         await this.loadMarkets ();
         this.checkAddress (address);
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'asset': currency['id'],
             // 'clientId': 'string', // // client's custom id for withdraw order, server does not check it's uniqueness, automatically generated if not sent
             // 'network': 'string',
@@ -2445,7 +2463,7 @@ export default class tokocrypto extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if ((code === 418) || (code === 429)) {
             throw new DDoSProtection (this.id + ' ' + code.toString () + ' ' + reason + ' ' + body);
         }

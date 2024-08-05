@@ -1,9 +1,10 @@
 
-import assert from 'assert';
 import testTrade from '../../../test/Exchange/base/test.trade.js';
 import testSharedMethods from '../../../test/Exchange/base/test.sharedMethods.js';
+import { Exchange } from '../../../../ccxt.js';
 
-async function testWatchTrades (exchange, skippedProperties, symbol) {
+
+async function testWatchTrades (exchange: Exchange, skippedProperties: object, symbol: string) {
     const method = 'watchTrades';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
@@ -18,12 +19,14 @@ async function testWatchTrades (exchange, skippedProperties, symbol) {
             now = exchange.milliseconds ();
             continue;
         }
-        assert (Array.isArray (response), exchange.id + ' ' + method + ' ' + symbol + ' must return an array. ' + exchange.json (response));
+        testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, response);
         now = exchange.milliseconds ();
         for (let i = 0; i < response.length; i++) {
             testTrade (exchange, skippedProperties, method, response[i], symbol, now);
         }
-        testSharedMethods.assertTimestampOrder (exchange, method, symbol, response);
+        if (!('timestamp' in skippedProperties)) {
+            testSharedMethods.assertTimestampOrder (exchange, method, symbol, response);
+        }
     }
 }
 

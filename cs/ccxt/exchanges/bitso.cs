@@ -62,8 +62,11 @@ public partial class bitso : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrderTrades", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -87,7 +90,10 @@ public partial class bitso : Exchange
             { "urls", new Dictionary<string, object>() {
                 { "logo", "https://user-images.githubusercontent.com/51840849/87295554-11f98280-c50e-11ea-80d6-15b3bafa8cbf.jpg" },
                 { "api", new Dictionary<string, object>() {
-                    { "rest", "https://api.bitso.com" },
+                    { "rest", "https://bitso.com/api" },
+                } },
+                { "test", new Dictionary<string, object>() {
+                    { "rest", "https://stage.bitso.com/api" },
                 } },
                 { "www", "https://bitso.com" },
                 { "doc", "https://bitso.com/api_info" },
@@ -675,7 +681,7 @@ public partial class bitso : Exchange
         //         ]
         //     }
         //
-        object payload = this.safeValue(response, "payload", new List<object>() {});
+        object payload = this.safeList(response, "payload", new List<object>() {});
         return this.parseOHLCVs(payload, market, timeframe, since, limit);
     }
 
@@ -966,7 +972,7 @@ public partial class bitso : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -1008,7 +1014,19 @@ public partial class bitso : Exchange
         object request = new Dictionary<string, object>() {
             { "oid", id },
         };
-        return await this.privateDeleteOrdersOid(this.extend(request, parameters));
+        object response = await this.privateDeleteOrdersOid(this.extend(request, parameters));
+        //
+        //     {
+        //         "success": true,
+        //         "payload": ["yWTQGxDMZ0VimZgZ"]
+        //     }
+        //
+        object payload = this.safeList(response, "payload", new List<object>() {});
+        object orderId = this.safeString(payload, 0);
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+            { "id", orderId },
+        });
     }
 
     public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
@@ -1286,7 +1304,7 @@ public partial class bitso : Exchange
         //     }
         //
         object transactions = this.safeValue(response, "payload", new List<object>() {});
-        object first = this.safeValue(transactions, 0, new Dictionary<string, object>() {});
+        object first = this.safeDict(transactions, 0, new Dictionary<string, object>() {});
         return this.parseTransaction(first);
     }
 
@@ -1334,7 +1352,7 @@ public partial class bitso : Exchange
         //         }]
         //     }
         //
-        object transactions = this.safeValue(response, "payload", new List<object>() {});
+        object transactions = this.safeList(response, "payload", new List<object>() {});
         return this.parseTransactions(transactions, currency, since, limit, parameters);
     }
 
@@ -1531,7 +1549,7 @@ public partial class bitso : Exchange
         //        }
         //    }
         //
-        object payload = this.safeValue(response, "payload", new Dictionary<string, object>() {});
+        object payload = this.safeList(response, "payload", new List<object>() {});
         return this.parseDepositWithdrawFees(payload, codes);
     }
 
@@ -1680,7 +1698,7 @@ public partial class bitso : Exchange
         //     }
         //
         object payload = this.safeValue(response, "payload", new List<object>() {});
-        object first = this.safeValue(payload, 0);
+        object first = this.safeDict(payload, 0);
         return this.parseTransaction(first, currency);
     }
 

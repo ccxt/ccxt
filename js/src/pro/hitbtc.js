@@ -116,7 +116,7 @@ export default class hitbtc extends hitbtcRest {
             //    }
             //
         }
-        return future;
+        return await future;
     }
     async subscribePublic(name, messageHashPrefix, symbols = undefined, params = {}) {
         /**
@@ -250,7 +250,10 @@ export default class hitbtc extends hitbtcRest {
         //        }
         //    }
         //
-        const data = this.safeValue2(message, 'snapshot', 'update', {});
+        const snapshot = this.safeDict(message, 'snapshot');
+        const update = this.safeDict(message, 'update');
+        const data = snapshot ? snapshot : update;
+        const type = snapshot ? 'snapshot' : 'update';
         const marketIds = Object.keys(data);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
@@ -259,17 +262,23 @@ export default class hitbtc extends hitbtcRest {
             const item = data[marketId];
             const messageHash = 'orderbooks::' + symbol;
             if (!(symbol in this.orderbooks)) {
-                const subscription = this.safeValue(client.subscriptions, messageHash, {});
+                const subscription = this.safeDict(client.subscriptions, messageHash, {});
                 const limit = this.safeInteger(subscription, 'limit');
                 this.orderbooks[symbol] = this.orderBook({}, limit);
             }
+            const orderbook = this.orderbooks[symbol];
             const timestamp = this.safeInteger(item, 't');
             const nonce = this.safeInteger(item, 's');
-            const orderbook = this.orderbooks[symbol];
-            const asks = this.safeValue(item, 'a', []);
-            const bids = this.safeValue(item, 'b', []);
-            this.handleDeltas(orderbook['asks'], asks);
-            this.handleDeltas(orderbook['bids'], bids);
+            if (type === 'snapshot') {
+                const parsedSnapshot = this.parseOrderBook(item, symbol, timestamp, 'b', 'a');
+                orderbook.reset(parsedSnapshot);
+            }
+            else {
+                const asks = this.safeList(item, 'a', []);
+                const bids = this.safeList(item, 'b', []);
+                this.handleDeltas(orderbook['asks'], asks);
+                this.handleDeltas(orderbook['bids'], bids);
+            }
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601(timestamp);
             orderbook['nonce'] = nonce;
@@ -999,7 +1008,7 @@ export default class hitbtc extends hitbtcRest {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
          * @param {bool} [params.margin] true for creating a margin order
@@ -1189,7 +1198,7 @@ export default class hitbtc extends hitbtcRest {
         //        "id": 1700233093414
         //    }
         //
-        const messageHash = this.safeInteger(message, 'id');
+        const messageHash = this.safeString(message, 'id');
         const result = this.safeValue(message, 'result', {});
         if (Array.isArray(result)) {
             const parsedOrders = [];
@@ -1206,7 +1215,9 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
     handleMessage(client, message) {
-        this.handleError(client, message);
+        if (this.handleError(client, message)) {
+            return;
+        }
         let channel = this.safeString2(message, 'ch', 'method');
         if (channel !== undefined) {
             const splitChannel = channel.split('/');
@@ -1285,13 +1296,29 @@ export default class hitbtc extends hitbtcRest {
         //
         const error = this.safeValue(message, 'error');
         if (error !== undefined) {
-            const code = this.safeValue(error, 'code');
-            const errorMessage = this.safeString(error, 'message');
-            const description = this.safeString(error, 'description');
-            const feedback = this.id + ' ' + description;
-            this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
-            this.throwBroadlyMatchedException(this.exceptions['broad'], errorMessage, feedback);
-            throw new ExchangeError(feedback); // unknown message
+            try {
+                const code = this.safeValue(error, 'code');
+                const errorMessage = this.safeString(error, 'message');
+                const description = this.safeString(error, 'description');
+                const feedback = this.id + ' ' + description;
+                this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+                this.throwBroadlyMatchedException(this.exceptions['broad'], errorMessage, feedback);
+                throw new ExchangeError(feedback); // unknown message
+            }
+            catch (e) {
+                if (e instanceof AuthenticationError) {
+                    const messageHash = 'authenticated';
+                    client.reject(e, messageHash);
+                    if (messageHash in client.subscriptions) {
+                        delete client.subscriptions[messageHash];
+                    }
+                }
+                else {
+                    const id = this.safeString(message, 'id');
+                    client.reject(e, id);
+                }
+                return true;
+            }
         }
         return undefined;
     }

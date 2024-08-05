@@ -55,6 +55,9 @@ public partial class bitget : ccxt.bitget
                     { "1d", "1D" },
                     { "1w", "1W" },
                 } },
+                { "watchOrderBook", new Dictionary<string, object>() {
+                    { "checksum", true },
+                } },
             } },
             { "streaming", new Dictionary<string, object>() {
                 { "ping", this.ping },
@@ -76,6 +79,7 @@ public partial class bitget : ccxt.bitget
                         { "30015", typeof(AuthenticationError) },
                         { "30016", typeof(BadRequest) },
                     } },
+                    { "broad", new Dictionary<string, object>() {} },
                 } },
             } },
         });
@@ -576,7 +580,7 @@ public partial class bitget : ccxt.bitget
             this.handleDeltas(getValue(storedOrderBook, "bids"), bids);
             ((IDictionary<string,object>)storedOrderBook)["timestamp"] = timestamp;
             ((IDictionary<string,object>)storedOrderBook)["datetime"] = this.iso8601(timestamp);
-            object checksum = this.safeValue(this.options, "checksum", true);
+            object checksum = this.safeBool(this.options, "checksum", true);
             object isSnapshot = isEqual(this.safeString(message, "action"), "snapshot"); // snapshot does not have a checksum
             if (isTrue(!isTrue(isSnapshot) && isTrue(checksum)))
             {
@@ -603,8 +607,11 @@ public partial class bitget : ccxt.bitget
                 object responseChecksum = this.safeInteger(rawOrderBook, "checksum");
                 if (isTrue(!isEqual(calculatedChecksum, responseChecksum)))
                 {
-                    var error = new InvalidNonce(add(this.id, " invalid checksum"));
+
+
+                    var error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));
                     ((WebSocketClient)client).reject(error, messageHash);
+                    return;
                 }
             }
         } else
@@ -735,11 +742,11 @@ public partial class bitget : ccxt.bitget
         }
         object data = this.safeList(message, "data", new List<object>() {});
         object length = getArrayLength(data);
-        object maxLength = mathMax(subtract(length, 1), 0);
         // fix chronological order by reversing
-        for (object i = maxLength; isGreaterThanOrEqual(i, 0); postFixDecrement(ref i))
+        for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
         {
-            object rawTrade = getValue(data, i);
+            object index = subtract(subtract(length, i), 1);
+            object rawTrade = getValue(data, index);
             object parsed = this.parseWsTrade(rawTrade, market);
             callDynamically(stored, "append", new object[] {parsed});
         }
@@ -757,57 +764,72 @@ public partial class bitget : ccxt.bitget
         //         "side": "buy",
         //         "tradeId": "1116461060594286593"
         //     }
+        // swap private
         //
-        // order with trade in it
-        //     {
-        //         accBaseVolume: '0.1',
-        //         baseVolume: '0.1',
-        //         cTime: '1709221342922',
-        //         clientOid: '1147122943507734528',
-        //         enterPointSource: 'API',
-        //         feeDetail: [Array],
-        //         fillFee: '-0.0049578',
-        //         fillFeeCoin: 'USDT',
-        //         fillNotionalUsd: '8.263',
-        //         fillPrice: '82.63',
-        //         fillTime: '1709221342986',
-        //         force: 'gtc',
-        //         instId: 'LTCUSDT',
-        //         leverage: '10',
-        //         marginCoin: 'USDT',
-        //         marginMode: 'crossed',
-        //         notionalUsd: '8.268',
-        //         orderId: '1147122943499345921',
-        //         orderType: 'market',
-        //         pnl: '0',
-        //         posMode: 'hedge_mode',
-        //         posSide: 'short',
-        //         price: '0',
-        //         priceAvg: '82.63',
-        //         reduceOnly: 'no',
-        //         side: 'sell',
-        //         size: '0.1',
-        //         status: 'filled',
-        //         tradeId: '1147122943772479563',
-        //         tradeScope: 'T',
-        //         tradeSide: 'open',
-        //         uTime: '1709221342986'
-        //     }
+        //            {
+        //               "orderId": "1169142761031114781",
+        //               "tradeId": "1169142761312637004",
+        //               "symbol": "LTCUSDT",
+        //               "orderType": "market",
+        //               "side": "buy",
+        //               "price": "80.87",
+        //               "baseVolume": "0.1",
+        //               "quoteVolume": "8.087",
+        //               "profit": "0",
+        //               "tradeSide": "open",
+        //               "posMode": "hedge_mode",
+        //               "tradeScope": "taker",
+        //               "feeDetail": [
+        //                  {
+        //                     "feeCoin": "USDT",
+        //                     "deduction": "no",
+        //                     "totalDeductionFee": "0",
+        //                     "totalFee": "-0.0048522"
+        //                  }
+        //               ],
+        //               "cTime": "1714471276596",
+        //               "uTime": "1714471276596"
+        //            }
+        // spot private
+        //        {
+        //           "orderId": "1169142457356959747",
+        //           "tradeId": "1169142457636958209",
+        //           "symbol": "LTCUSDT",
+        //           "orderType": "market",
+        //           "side": "buy",
+        //           "priceAvg": "81.069",
+        //           "size": "0.074",
+        //           "amount": "5.999106",
+        //           "tradeScope": "taker",
+        //           "feeDetail": [
+        //              {
+        //                 "feeCoin": "LTC",
+        //                 "deduction": "no",
+        //                 "totalDeductionFee": "0",
+        //                 "totalFee": "0.000074"
+        //              }
+        //           ],
+        //           "cTime": "1714471204194",
+        //           "uTime": "1714471204194"
+        //        }
         //
-        object instId = this.safeString(trade, "instId");
+        object instId = this.safeString2(trade, "symbol", "instId");
+        object posMode = this.safeString(trade, "posMode");
+        object defaultType = ((bool) isTrue((!isEqual(posMode, null)))) ? "contract" : "spot";
         if (isTrue(isEqual(market, null)))
         {
-            market = this.safeMarket(instId, null, null, "contract");
+            market = this.safeMarket(instId, null, null, defaultType);
         }
         object timestamp = this.safeIntegerN(trade, new List<object>() {"uTime", "cTime", "ts"});
-        object feeCost = this.safeString(trade, "fillFee");
+        object feeDetail = this.safeList(trade, "feeDetail", new List<object>() {});
+        object first = this.safeDict(feeDetail, 0);
         object fee = null;
-        if (isTrue(!isEqual(feeCost, null)))
+        if (isTrue(!isEqual(first, null)))
         {
-            object feeCurrencyId = this.safeString(trade, "fillFeeCoin");
+            object feeCurrencyId = this.safeString(first, "feeCoin");
             object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             fee = new Dictionary<string, object>() {
-                { "cost", Precise.stringAbs(feeCost) },
+                { "cost", Precise.stringAbs(this.safeString(first, "totalFee")) },
                 { "currency", feeCurrencyCode },
             };
         }
@@ -818,12 +840,12 @@ public partial class bitget : ccxt.bitget
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "symbol", getValue(market, "symbol") },
-            { "type", null },
+            { "type", this.safeString(trade, "orderType") },
             { "side", this.safeString(trade, "side") },
-            { "takerOrMaker", null },
+            { "takerOrMaker", this.safeString(trade, "tradeScope") },
             { "price", this.safeString2(trade, "priceAvg", "price") },
-            { "amount", this.safeString(trade, "size") },
-            { "cost", this.safeString(trade, "fillNotionalUsd") },
+            { "amount", this.safeString2(trade, "size", "baseVolume") },
+            { "cost", this.safeString2(trade, "amount", "quoteVolume") },
             { "fee", fee },
         }, market);
     }
@@ -1036,16 +1058,20 @@ public partial class bitget : ccxt.bitget
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.stop] *contract only* set to true for watching trigger orders
-        * @param {string} [params.marginMode] 'isolated' or 'cross' for watching spot margin orders
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        * @param {string} [params.marginMode] 'isolated' or 'cross' for watching spot margin orders]
+        * @param {string} [params.type] 'spot', 'swap'
+        * @param {string} [params.subType] 'linear', 'inverse'
+        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
         object marketId = null;
-        object isStop = this.safeBool(parameters, "stop", false);
-        parameters = this.omit(parameters, "stop");
-        object messageHash = ((bool) isTrue((isStop))) ? "triggerOrder" : "order";
+        object isTrigger = null;
+        var isTriggerparametersVariable = this.isTriggerOrder(parameters);
+        isTrigger = ((IList<object>)isTriggerparametersVariable)[0];
+        parameters = ((IList<object>)isTriggerparametersVariable)[1];
+        object messageHash = ((bool) isTrue((isTrigger))) ? "triggerOrder" : "order";
         object subscriptionHash = "order:trades";
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -1054,17 +1080,31 @@ public partial class bitget : ccxt.bitget
             marketId = getValue(market, "id");
             messageHash = add(add(messageHash, ":"), symbol);
         }
+        object productType = this.safeString(parameters, "productType");
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        if (isTrue(isTrue((isEqual(type, "spot"))) && isTrue((isEqual(symbol, null)))))
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("watchOrders", market, parameters, "linear");
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        if (isTrue(isTrue((isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin")))) && isTrue((isEqual(symbol, null)))))
         {
             throw new ArgumentsRequired ((string)add(add(add(this.id, " watchOrders requires a symbol argument for "), type), " markets.")) ;
         }
-        if (isTrue(isTrue(isStop) && isTrue(isEqual(type, "spot"))))
+        if (isTrue(isTrue(isTrue((isEqual(productType, null))) && isTrue((!isEqual(type, "spot")))) && isTrue((isEqual(symbol, null)))))
         {
-            throw new NotSupported ((string)add(add(add(this.id, " watchOrders does not support stop orders for "), type), " markets.")) ;
+            messageHash = add(add(messageHash, ":"), subType);
+        } else if (isTrue(isEqual(productType, "USDT-FUTURES")))
+        {
+            messageHash = add(messageHash, ":linear");
+        } else if (isTrue(isEqual(productType, "COIN-FUTURES")))
+        {
+            messageHash = add(messageHash, ":inverse");
+        } else if (isTrue(isEqual(productType, "USDC-FUTURES")))
+        {
+            messageHash = add(messageHash, ":usdcfutures"); // non unified channel
         }
         object instType = null;
         var instTypeparametersVariable = this.getInstType(market, parameters);
@@ -1074,12 +1114,12 @@ public partial class bitget : ccxt.bitget
         {
             subscriptionHash = add(add(subscriptionHash, ":"), symbol);
         }
-        if (isTrue(isStop))
+        if (isTrue(isTrigger))
         {
             subscriptionHash = add(subscriptionHash, ":stop"); // we don't want to re-use the same subscription hash for stop orders
         }
-        object instId = ((bool) isTrue((isEqual(type, "spot")))) ? marketId : "default"; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
-        object channel = ((bool) isTrue(isStop)) ? "orders-algo" : "orders";
+        object instId = ((bool) isTrue((isTrue(isEqual(type, "spot")) || isTrue(isEqual(type, "margin"))))) ? marketId : "default"; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
+        object channel = ((bool) isTrue(isTrigger)) ? "orders-algo" : "orders";
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams("watchOrders", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
@@ -1087,6 +1127,7 @@ public partial class bitget : ccxt.bitget
         if (isTrue(!isEqual(marginMode, null)))
         {
             instType = "MARGIN";
+            messageHash = add(add(messageHash, ":"), marginMode);
             if (isTrue(isEqual(marginMode, "isolated")))
             {
                 channel = "orders-isolated";
@@ -1095,6 +1136,7 @@ public partial class bitget : ccxt.bitget
                 channel = "orders-crossed";
             }
         }
+        subscriptionHash = add(add(subscriptionHash, ":"), instType);
         object args = new Dictionary<string, object>() {
             { "instType", instType },
             { "channel", channel },
@@ -1108,7 +1150,7 @@ public partial class bitget : ccxt.bitget
         return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
     }
 
-    public virtual void handleOrder(WebSocketClient client, object message, object subscription = null)
+    public virtual void handleOrder(WebSocketClient client, object message)
     {
         //
         // spot
@@ -1117,25 +1159,7 @@ public partial class bitget : ccxt.bitget
         //         "action": "snapshot",
         //         "arg": { "instType": "SPOT", "channel": "orders", "instId": "BTCUSDT" },
         //         "data": [
-        //             {
-        //                 "instId": "BTCUSDT",
-        //                 "orderId": "1116512721422422017",
-        //                 "clientOid": "798d1425-d31d-4ada-a51b-ec701e00a1d9",
-        //                 "price": "35000.00",
-        //                 "size": "7.0000",
-        //                 "newSize": "500.0000",
-        //                 "notional": "7.000000",
-        //                 "orderType": "limit",
-        //                 "force": "gtc",
-        //                 "side": "buy",
-        //                 "accBaseVolume": "0.0000",
-        //                 "priceAvg": "0.00",
-        //                 "status": "live",
-        //                 "cTime": "1701923297267",
-        //                 "uTime": "1701923297267",
-        //                 "feeDetail": [],
-        //                 "enterPointSource": "WEB"
-        //             }
+        //             // see all examples in parseWsOrder
         //         ],
         //         "ts": 1701923297285
         //     }
@@ -1146,73 +1170,9 @@ public partial class bitget : ccxt.bitget
         //         "action": "snapshot",
         //         "arg": { "instType": "USDT-FUTURES", "channel": "orders", "instId": "default" },
         //         "data": [
-        //             {
-        //                 "accBaseVolume": "0",
-        //                 "cTime": "1701920553759",
-        //                 "clientOid": "1116501214318198793",
-        //                 "enterPointSource": "WEB",
-        //                 "feeDetail": [{
-        //                     "feeCoin": "USDT",
-        //                     "fee": "-0.162003"
-        //                 }],
-        //                 "force": "gtc",
-        //                 "instId": "BTCUSDT",
-        //                 "leverage": "20",
-        //                 "marginCoin": "USDT",
-        //                 "marginMode": "isolated",
-        //                 "notionalUsd": "105",
-        //                 "orderId": "1116501214293032964",
-        //                 "orderType": "limit",
-        //                 "posMode": "hedge_mode",
-        //                 "posSide": "long",
-        //                 "price": "35000",
-        //                 "reduceOnly": "no",
-        //                 "side": "buy",
-        //                 "size": "0.003",
-        //                 "status": "canceled",
-        //                 "tradeSide": "open",
-        //                 "uTime": "1701920595866"
-        //             }
+        //             // see all examples in parseWsOrder
         //         ],
         //         "ts": 1701920595879
-        //     }
-        //
-        // trigger
-        //
-        //     {
-        //         "action": "snapshot",
-        //         "arg": {
-        //             "instType": "USDT-FUTURES",
-        //             "channel": "orders-algo",
-        //             "instId": "default"
-        //         },
-        //         "data": [
-        //             {
-        //                 "instId": "BTCUSDT",
-        //                 "orderId": "1116508960750899201",
-        //                 "clientOid": "1116508960750899200",
-        //                 "triggerPrice": "35000.000000000",
-        //                 "triggerType": "mark_price",
-        //                 "triggerTime": "1701922464373",
-        //                 "planType": "pl",
-        //                 "price": "35000.000000000",
-        //                 "size": "0.001000000",
-        //                 "actualSize": "0.000000000",
-        //                 "orderType": "limit",
-        //                 "side": "buy",
-        //                 "tradeSide": "open",
-        //                 "posSide": "long",
-        //                 "marginCoin": "USDT",
-        //                 "status": "cancelled",
-        //                 "posMode": "hedge_mode",
-        //                 "enterPointSource": "api",
-        //                 "stopSurplusTriggerType": "fill_price",
-        //                 "stopLossTriggerType": "fill_price",
-        //                 "cTime": "1701922400653",
-        //                 "uTime": "1701922464373"
-        //             }
-        //         ],
-        //         "ts": 1701922464417
         //     }
         //
         // isolated and cross margin
@@ -1221,30 +1181,15 @@ public partial class bitget : ccxt.bitget
         //         "action": "snapshot",
         //         "arg": { "instType": "MARGIN", "channel": "orders-crossed", "instId": "BTCUSDT" },
         //         "data": [
-        //             {
-        //                 "enterPointSource": "web",
-        //                 "force": "gtc",
-        //                 "orderType": "limit",
-        //                 "price": "35000.000000000",
-        //                 "quoteSize": "10.500000000",
-        //                 "side": "buy",
-        //                 "status": "live",
-        //                 "baseSize": "0.000300000",
-        //                 "cTime": "1701923982427",
-        //                 "clientOid": "4902047879864dc980c4840e9906db4e",
-        //                 "fillPrice": "0.000000000",
-        //                 "baseVolume": "0.000000000",
-        //                 "fillTotalAmount": "0.000000000",
-        //                 "loanType": "auto-loan-and-repay",
-        //                 "orderId": "1116515595178356737"
-        //             }
+        //             // see examples in parseWsOrder
         //         ],
         //         "ts": 1701923982497
         //     }
         //
-        object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
+        object arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         object channel = this.safeString(arg, "channel");
         object instType = this.safeString(arg, "instType");
+        object argInstId = this.safeString(arg, "instId");
         object marketType = null;
         if (isTrue(isEqual(instType, "SPOT")))
         {
@@ -1256,6 +1201,9 @@ public partial class bitget : ccxt.bitget
         {
             marketType = "contract";
         }
+        object isLinearSwap = (isEqual(instType, "USDT-FUTURES"));
+        object isInverseSwap = (isEqual(instType, "COIN-FUTURES"));
+        object isUSDCFutures = (isEqual(instType, "USDC-FUTURES"));
         object data = this.safeValue(message, "data", new List<object>() {});
         if (isTrue(isEqual(this.orders, null)))
         {
@@ -1263,17 +1211,14 @@ public partial class bitget : ccxt.bitget
             this.orders = new ArrayCacheBySymbolById(limit);
             this.triggerOrders = new ArrayCacheBySymbolById(limit);
         }
-        object stored = ((bool) isTrue((isEqual(channel, "ordersAlgo")))) ? this.triggerOrders : this.orders;
-        object messageHash = ((bool) isTrue((isEqual(channel, "ordersAlgo")))) ? "triggerOrder" : "order";
+        object isTrigger = isTrue((isEqual(channel, "orders-algo"))) || isTrue((isEqual(channel, "ordersAlgo")));
+        object stored = ((bool) isTrue(isTrigger)) ? this.triggerOrders : this.orders;
+        object messageHash = ((bool) isTrue(isTrigger)) ? "triggerOrder" : "order";
         object marketSymbols = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object order = getValue(data, i);
-            if (isTrue(inOp(order, "tradeId")))
-            {
-                this.handleMyTrades(client as WebSocketClient, order);
-            }
-            object marketId = this.safeString(order, "instId");
+            object marketId = this.safeString(order, "instId", argInstId);
             object market = this.safeMarket(marketId, null, null, marketType);
             object parsed = this.parseWsOrder(order, market);
             callDynamically(stored, "append", new object[] {parsed});
@@ -1285,9 +1230,28 @@ public partial class bitget : ccxt.bitget
         {
             object symbol = getValue(keys, i);
             object innerMessageHash = add(add(messageHash, ":"), symbol);
+            if (isTrue(isEqual(channel, "orders-crossed")))
+            {
+                innerMessageHash = add(innerMessageHash, ":cross");
+            } else if (isTrue(isEqual(channel, "orders-isolated")))
+            {
+                innerMessageHash = add(innerMessageHash, ":isolated");
+            }
             callDynamically(client as WebSocketClient, "resolve", new object[] {stored, innerMessageHash});
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
+        if (isTrue(isLinearSwap))
+        {
+            callDynamically(client as WebSocketClient, "resolve", new object[] {stored, "order:linear"});
+        }
+        if (isTrue(isInverseSwap))
+        {
+            callDynamically(client as WebSocketClient, "resolve", new object[] {stored, "order:inverse"});
+        }
+        if (isTrue(isUSDCFutures))
+        {
+            callDynamically(client as WebSocketClient, "resolve", new object[] {stored, "order:usdcfutures"});
+        }
     }
 
     public override object parseWsOrder(object order, object market = null)
@@ -1295,103 +1259,122 @@ public partial class bitget : ccxt.bitget
         //
         // spot
         //
-        //     {
-        //         "instId": "BTCUSDT",
-        //         "orderId": "1116512721422422017",
-        //         "clientOid": "798d1425-d31d-4ada-a51b-ec701e00a1d9",
-        //         "price": "35000.00",
-        //         "size": "7.0000",
-        //         "newSize": "500.0000",
-        //         "notional": "7.000000",
-        //         "orderType": "limit",
-        //         "force": "gtc",
-        //         "side": "buy",
-        //         "accBaseVolume": "0.0000",
-        //         "priceAvg": "0.00",
-        //         "status": "live",
-        //         "cTime": "1701923297267",
-        //         "uTime": "1701923297267",
-        //         "feeDetail": [],
-        //         "enterPointSource": "WEB"
-        //     }
+        //   {
+        //         instId: 'EOSUSDT',
+        //         orderId: '1171779081105780739',
+        //         price: '0.81075', // limit price, field not present for market orders
+        //         clientOid: 'a2330139-1d04-4d78-98be-07de3cfd1055',
+        //         notional: '5.675250', // this is not cost! but notional
+        //         newSize: '7.0000', // this is not cost! quanity (for limit order or market sell) or cost (for market buy order)
+        //         size: '5.6752', // this is not cost, neither quanity, but notional! this field for "spot" can be ignored at all
+        //         // Note: for limit order (even filled) we don't have cost value in response, only in market order
+        //         orderType: 'limit', // limit, market
+        //         force: 'gtc',
+        //         side: 'buy',
+        //         accBaseVolume: '0.0000', // in case of 'filled', this would be set (for limit orders, this is the only indicator of the amount filled)
+        //         priceAvg: '0.00000', // in case of 'filled', this would be set
+        //         status: 'live', // live, filled, partially_filled
+        //         cTime: '1715099824215',
+        //         uTime: '1715099824215',
+        //         feeDetail: [],
+        //         enterPointSource: 'API'
+        //                   #### trigger order has these additional fields: ####
+        //         "triggerPrice": "35100",
+        //         "price": "35100", // this is same as trigger price
+        //         "executePrice": "35123", // this is limit price
+        //         "triggerType": "fill_price",
+        //         "planType": "amount",
+        //                   #### in case order had a partial fill: ####
+        //         fillPrice: '35123',
+        //         tradeId: '1171775539946528779',
+        //         baseVolume: '7', // field present in market order
+        //         fillTime: '1715098979937',
+        //         fillFee: '-0.0069987',
+        //         fillFeeCoin: 'BTC',
+        //         tradeScope: 'T',
+        //    }
         //
         // contract
         //
         //     {
-        //         "accBaseVolume": "0",
-        //         "cTime": "1701920553759",
-        //         "clientOid": "1116501214318198793",
-        //         "enterPointSource": "WEB",
-        //         "feeDetail": [{
+        //         accBaseVolume: '0', // total amount filled during lifetime for order
+        //         cTime: '1715065875539',
+        //         clientOid: '1171636690041344003',
+        //         enterPointSource: 'API',
+        //         feeDetail: [ {
         //             "feeCoin": "USDT",
         //             "fee": "-0.162003"
-        //         }],
-        //         "force": "gtc",
-        //         "instId": "BTCUSDT",
-        //         "leverage": "20",
-        //         "marginCoin": "USDT",
-        //         "marginMode": "isolated",
-        //         "notionalUsd": "105",
-        //         "orderId": "1116501214293032964",
-        //         "orderType": "limit",
-        //         "posMode": "hedge_mode",
-        //         "posSide": "long",
-        //         "price": "35000",
-        //         "reduceOnly": "no",
-        //         "side": "buy",
-        //         "size": "0.003",
-        //         "status": "canceled",
-        //         "tradeSide": "open",
-        //         "uTime": "1701920595866"
-        //     }
-        //
-        // trigger
-        //
-        //     {
-        //         "instId": "BTCUSDT",
-        //         "orderId": "1116508960750899201",
-        //         "clientOid": "1116508960750899200",
-        //         "triggerPrice": "35000.000000000",
+        //         } ],
+        //         force: 'gtc',
+        //         instId: 'SEOSSUSDT',
+        //         leverage: '10',
+        //         marginCoin: 'USDT',
+        //         marginMode: 'crossed',
+        //         notionalUsd: '10.4468',
+        //         orderId: '1171636690028761089',
+        //         orderType: 'market',
+        //         posMode: 'hedge_mode', // one_way_mode, hedge_mode
+        //         posSide: 'short', // short, long, net
+        //         price: '0', // zero for market order
+        //         reduceOnly: 'no',
+        //         side: 'sell',
+        //         size: '13', // this is contracts amount
+        //         status: 'live', // live, filled, cancelled
+        //         tradeSide: 'open',
+        //         uTime: '1715065875539'
+        //                   #### when filled order is incoming, these additional fields are present too: ###
+        //         baseVolume: '9', // amount filled for the incoming update/trade
+        //         accBaseVolume: '13', // i.e. 9 has been filled from 13 amount (this value is same as 'size')
+        //         fillFee: '-0.0062712',
+        //         fillFeeCoin: 'SUSDT',
+        //         fillNotionalUsd: '10.452',
+        //         fillPrice: '0.804',
+        //         fillTime: '1715065875605',
+        //         pnl: '0',
+        //         priceAvg: '0.804',
+        //         tradeId: '1171636690314407937',
+        //         tradeScope: 'T',
+        //                   #### trigger order has these additional fields:
+        //         "triggerPrice": "0.800000000",
+        //         "price": "0.800000000",  // <-- this is same as trigger price, actual limit-price is not present in initial response
         //         "triggerType": "mark_price",
-        //         "triggerTime": "1701922464373",
+        //         "triggerTime": "1715082796679",
         //         "planType": "pl",
-        //         "price": "35000.000000000",
-        //         "size": "0.001000000",
         //         "actualSize": "0.000000000",
-        //         "orderType": "limit",
-        //         "side": "buy",
-        //         "tradeSide": "open",
-        //         "posSide": "long",
-        //         "marginCoin": "USDT",
-        //         "status": "cancelled",
-        //         "posMode": "hedge_mode",
-        //         "enterPointSource": "api",
         //         "stopSurplusTriggerType": "fill_price",
         //         "stopLossTriggerType": "fill_price",
-        //         "cTime": "1701922400653",
-        //         "uTime": "1701922464373"
         //     }
         //
         // isolated and cross margin
         //
         //     {
-        //         "enterPointSource": "web",
-        //         "force": "gtc",
-        //         "orderType": "limit",
-        //         "price": "35000.000000000",
-        //         "quoteSize": "10.500000000",
-        //         "side": "buy",
-        //         "status": "live",
-        //         "baseSize": "0.000300000",
-        //         "cTime": "1701923982427",
-        //         "clientOid": "4902047879864dc980c4840e9906db4e",
-        //         "fillPrice": "0.000000000",
-        //         "baseVolume": "0.000000000",
-        //         "fillTotalAmount": "0.000000000",
-        //         "loanType": "auto-loan-and-repay",
-        //         "orderId": "1116515595178356737"
-        //     }
+        //         enterPointSource: "web",
+        //         feeDetail: [
+        //           {
+        //             feeCoin: "AAVE",
+        //             deduction: "no",
+        //             totalDeductionFee: "0",
+        //             totalFee: "-0.00010740",
+        //           },
+        //         ],
+        //         force: "gtc",
+        //         orderType: "limit",
+        //         price: "93.170000000",
+        //         fillPrice: "93.170000000",
+        //         baseSize: "0.110600000", // total amount of order
+        //         quoteSize: "10.304602000", // total cost of order (independently if order is filled or pending)
+        //         baseVolume: "0.107400000", // filled amount of order (during order's lifecycle, and not for this specific incoming update)
+        //         fillTotalAmount: "10.006458000", // filled cost of order (during order's lifecycle, and not for this specific incoming update)
+        //         side: "buy",
+        //         status: "partially_filled",
+        //         cTime: "1717875017306",
+        //         clientOid: "b57afe789a06454e9c560a2aab7f7201",
+        //         loanType: "auto-loan",
+        //         orderId: "1183419084588060673",
+        //       }
         //
+        object isSpot = !isTrue((inOp(order, "posMode")));
+        object isMargin = (inOp(order, "loanType"));
         object marketId = this.safeString(order, "instId");
         market = this.safeMarket(marketId, market);
         object timestamp = this.safeInteger(order, "cTime");
@@ -1405,34 +1388,73 @@ public partial class bitget : ccxt.bitget
         {
             object feeCurrency = this.safeString(fee, "feeCoin");
             feeObject = new Dictionary<string, object>() {
-                { "cost", Precise.stringAbs(feeAmount) },
+                { "cost", this.parseNumber(Precise.stringAbs(feeAmount)) },
                 { "currency", this.safeCurrencyCode(feeCurrency) },
             };
         }
         object triggerPrice = this.safeNumber(order, "triggerPrice");
-        object price = this.safeString(order, "price");
+        object isTriggerOrder = (!isEqual(triggerPrice, null));
+        object price = null;
+        if (!isTrue(isTriggerOrder))
+        {
+            price = this.safeNumber(order, "price");
+        } else if (isTrue(isTrue(isSpot) && isTrue(isTriggerOrder)))
+        {
+            // for spot trigger order, limit price is this
+            price = this.safeNumber(order, "executePrice");
+        }
         object avgPrice = this.omitZero(this.safeString2(order, "priceAvg", "fillPrice"));
-        object cost = this.safeStringN(order, new List<object>() {"notional", "notionalUsd", "quoteSize"});
         object side = this.safeString(order, "side");
         object type = this.safeString(order, "orderType");
-        if (isTrue(isTrue(isTrue(isEqual(side, "buy")) && isTrue(getValue(market, "spot"))) && isTrue((isEqual(type, "market")))))
+        object accBaseVolume = this.omitZero(this.safeString(order, "accBaseVolume"));
+        object newSizeValue = this.omitZero(this.safeString(order, "newSize"));
+        object isMarketOrder = (isEqual(type, "market"));
+        object isBuy = (isEqual(side, "buy"));
+        object totalAmount = null;
+        object filledAmount = null;
+        object cost = null;
+        object remaining = null;
+        object totalFilled = this.safeString(order, "accBaseVolume");
+        if (isTrue(isSpot))
         {
-            cost = this.safeString(order, "newSize", cost);
-        }
-        object filled = this.safeString2(order, "accBaseVolume", "baseVolume");
-        if (isTrue(isTrue(getValue(market, "spot")) && isTrue((!isEqual(rawStatus, "live")))))
+            if (isTrue(isMargin))
+            {
+                totalAmount = this.safeString(order, "baseSize");
+                totalFilled = this.safeString(order, "baseVolume");
+                cost = this.safeString(order, "fillTotalAmount");
+            } else
+            {
+                object partialFillAmount = this.safeString(order, "baseVolume");
+                if (isTrue(!isEqual(partialFillAmount, null)))
+                {
+                    filledAmount = partialFillAmount;
+                } else
+                {
+                    filledAmount = totalFilled;
+                }
+                if (isTrue(isMarketOrder))
+                {
+                    if (isTrue(isBuy))
+                    {
+                        totalAmount = accBaseVolume;
+                        cost = newSizeValue;
+                    } else
+                    {
+                        totalAmount = newSizeValue;
+                    }
+                } else
+                {
+                    totalAmount = this.safeString(order, "newSize");
+                }
+            }
+        } else
         {
-            filled = Precise.stringDiv(cost, avgPrice);
+            // baseVolume should not be used for "amount" for contracts !
+            filledAmount = this.safeString(order, "baseVolume");
+            totalAmount = this.safeString(order, "size");
+            cost = this.safeString(order, "fillNotionalUsd");
         }
-        object amount = this.safeString(order, "baseVolume");
-        if (isTrue(!isTrue(getValue(market, "spot")) || !isTrue((isTrue(isEqual(side, "buy")) && isTrue(isEqual(type, "market"))))))
-        {
-            amount = this.safeString(order, "newSize", amount);
-        }
-        if (isTrue(isTrue(getValue(market, "swap")) && isTrue((isEqual(amount, null)))))
-        {
-            amount = this.safeString(order, "size");
-        }
+        remaining = Precise.stringSub(totalAmount, totalFilled);
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "symbol", symbol },
@@ -1446,13 +1468,12 @@ public partial class bitget : ccxt.bitget
             { "postOnly", null },
             { "side", side },
             { "price", price },
-            { "stopPrice", triggerPrice },
             { "triggerPrice", triggerPrice },
-            { "amount", amount },
+            { "amount", totalAmount },
             { "cost", cost },
             { "average", avgPrice },
-            { "filled", filled },
-            { "remaining", null },
+            { "filled", filledAmount },
+            { "remaining", remaining },
             { "status", this.parseWsOrderStatus(rawStatus) },
             { "fee", feeObject },
             { "trades", null },
@@ -1484,8 +1505,6 @@ public partial class bitget : ccxt.bitget
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
-        // only contracts stream provides the trade info consistently in between order updates
-        // the spot stream only provides on limit orders updates so we can't support it for spot
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object market = null;
@@ -1496,22 +1515,14 @@ public partial class bitget : ccxt.bitget
             symbol = getValue(market, "symbol");
             messageHash = add(add(messageHash, ":"), symbol);
         }
-        object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
-        type = ((IList<object>)typeparametersVariable)[0];
-        parameters = ((IList<object>)typeparametersVariable)[1];
-        if (isTrue(isEqual(type, "spot")))
-        {
-            throw new NotSupported ((string)add(add(add(this.id, " watchMyTrades is not supported for "), type), " markets.")) ;
-        }
         object instType = null;
         var instTypeparametersVariable = this.getInstType(market, parameters);
         instType = ((IList<object>)instTypeparametersVariable)[0];
         parameters = ((IList<object>)instTypeparametersVariable)[1];
-        object subscriptionHash = "order:trades";
+        object subscriptionHash = add("fill:", instType);
         object args = new Dictionary<string, object>() {
             { "instType", instType },
-            { "channel", "orders" },
+            { "channel", "fill" },
             { "instId", "default" },
         };
         object trades = await this.watchPrivate(messageHash, subscriptionHash, args, parameters);
@@ -1525,34 +1536,74 @@ public partial class bitget : ccxt.bitget
     public virtual void handleMyTrades(WebSocketClient client, object message)
     {
         //
-        // order and trade mixin (contract)
-        //
+        // spot
+        // {
+        //     "action": "snapshot",
+        //     "arg": {
+        //        "instType": "SPOT",
+        //        "channel": "fill",
+        //        "instId": "default"
+        //     },
+        //     "data": [
+        //        {
+        //           "orderId": "1169142457356959747",
+        //           "tradeId": "1169142457636958209",
+        //           "symbol": "LTCUSDT",
+        //           "orderType": "market",
+        //           "side": "buy",
+        //           "priceAvg": "81.069",
+        //           "size": "0.074",
+        //           "amount": "5.999106",
+        //           "tradeScope": "taker",
+        //           "feeDetail": [
+        //              {
+        //                 "feeCoin": "LTC",
+        //                 "deduction": "no",
+        //                 "totalDeductionFee": "0",
+        //                 "totalFee": "0.000074"
+        //              }
+        //           ],
+        //           "cTime": "1714471204194",
+        //           "uTime": "1714471204194"
+        //        }
+        //     ],
+        //     "ts": 1714471204270
+        // }
+        // swap
         //     {
-        //         "accBaseVolume": "0",
-        //         "cTime": "1701920553759",
-        //         "clientOid": "1116501214318198793",
-        //         "enterPointSource": "WEB",
-        //         "feeDetail": [{
-        //             "feeCoin": "USDT",
-        //             "fee": "-0.162003"
-        //         }],
-        //         "force": "gtc",
-        //         "instId": "BTCUSDT",
-        //         "leverage": "20",
-        //         "marginCoin": "USDT",
-        //         "marginMode": "isolated",
-        //         "notionalUsd": "105",
-        //         "orderId": "1116501214293032964",
-        //         "orderType": "limit",
-        //         "posMode": "hedge_mode",
-        //         "posSide": "long",
-        //         "price": "35000",
-        //         "reduceOnly": "no",
-        //         "side": "buy",
-        //         "size": "0.003",
-        //         "status": "canceled",
-        //         "tradeSide": "open",
-        //         "uTime": "1701920595866"
+        //         "action": "snapshot",
+        //         "arg": {
+        //            "instType": "USDT-FUTURES",
+        //            "channel": "fill",
+        //            "instId": "default"
+        //         },
+        //         "data": [
+        //            {
+        //               "orderId": "1169142761031114781",
+        //               "tradeId": "1169142761312637004",
+        //               "symbol": "LTCUSDT",
+        //               "orderType": "market",
+        //               "side": "buy",
+        //               "price": "80.87",
+        //               "baseVolume": "0.1",
+        //               "quoteVolume": "8.087",
+        //               "profit": "0",
+        //               "tradeSide": "open",
+        //               "posMode": "hedge_mode",
+        //               "tradeScope": "taker",
+        //               "feeDetail": [
+        //                  {
+        //                     "feeCoin": "USDT",
+        //                     "deduction": "no",
+        //                     "totalDeductionFee": "0",
+        //                     "totalFee": "-0.0048522"
+        //                  }
+        //               ],
+        //               "cTime": "1714471276596",
+        //               "uTime": "1714471276596"
+        //            }
+        //         ],
+        //         "ts": 1714471276629
         //     }
         //
         if (isTrue(isEqual(this.myTrades, null)))
@@ -1561,13 +1612,19 @@ public partial class bitget : ccxt.bitget
             this.myTrades = new ArrayCache(limit);
         }
         object stored = this.myTrades;
-        object parsed = this.parseWsTrade(message);
-        callDynamically(stored, "append", new object[] {parsed});
-        object symbol = getValue(parsed, "symbol");
+        object data = this.safeList(message, "data", new List<object>() {});
+        object length = getArrayLength(data);
         object messageHash = "myTrades";
+        for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
+        {
+            object trade = getValue(data, i);
+            object parsed = this.parseWsTrade(trade);
+            callDynamically(stored, "append", new object[] {parsed});
+            object symbol = getValue(parsed, "symbol");
+            object symbolSpecificMessageHash = add("myTrades:", symbol);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {stored, symbolSpecificMessageHash});
+        }
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
-        object symbolSpecificMessageHash = add("myTrades:", symbol);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {stored, symbolSpecificMessageHash});
     }
 
     public async override Task<object> watchBalance(object parameters = null)
@@ -1763,7 +1820,7 @@ public partial class bitget : ccxt.bitget
             object message = this.extend(request, parameters);
             this.watch(url, messageHash, message, messageHash);
         }
-        return future;
+        return await (future as Exchange.Future);
     }
 
     public async virtual Task<object> watchPrivate(object messageHash, object subscriptionHash, object args, object parameters = null)
@@ -1891,10 +1948,16 @@ public partial class bitget : ccxt.bitget
         object methods = new Dictionary<string, object>() {
             { "ticker", this.handleTicker },
             { "trade", this.handleTrades },
+            { "fill", this.handleMyTrades },
             { "orders", this.handleOrder },
             { "ordersAlgo", this.handleOrder },
+            { "orders-algo", this.handleOrder },
+            { "orders-crossed", this.handleOrder },
+            { "orders-isolated", this.handleOrder },
             { "account", this.handleBalance },
             { "positions", this.handlePositions },
+            { "account-isolated", this.handleBalance },
+            { "account-crossed", this.handleBalance },
         };
         object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
         object topic = this.safeValue(arg, "channel", "");

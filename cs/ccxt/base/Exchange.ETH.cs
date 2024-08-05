@@ -1,11 +1,14 @@
 
-using Nethereum.ABI;
 namespace ccxt;
 using Nethereum.ABI;
+using Nethereum.ABI.Model;
 using Nethereum;
 using Nethereum.ABI.ABIDeserialisation;
 using Nethereum.ABI.EIP712;
 using Nethereum.Signer.EIP712;
+using System.Linq;
+using System.Text;
+using System.Numerics;
 
 public partial class Exchange
 {
@@ -17,18 +20,84 @@ public partial class Exchange
     //     return this.base16ToBinary(TypedDataEncoder.encode(domain, messageTypes, messageData).slice(-132));
     // }
 
+    private object[] ConvertToArray(object obj)
+    {
+        var array = (obj as IList<object>).ToArray();
+        for (var i = 0; i < array.Length; i++)
+        {
+            var item = array[i];
+            if (item is IDictionary<string, object>)
+            {
+                // array[i] = ConvertToDictionary(item);
+            }
+            else if (item is IList<object>)
+            {
+                array[i] = ConvertToArray(item);
+            }
+        }
+        return array;
+    }
+
     public object ethAbiEncode(object types2, object args2)
     {
         //  ['(uint32,bool,uint64,uint64,bool,uint8,uint64)[]', 'uint8', 'address', 'uint256']
         //  [Array(1), 0, '0x0000000000000000000000000000000000000000', 1708007294587]
+
+        //     // test
+        //     var typesDefinion = "tuple((uint32,bool,uint64,uint64,bool,uint8,uint64)[],uint8,address,uint256)";
+        //     var valsTuple = new object[]
+        //     {
+        //         new object[]
+        //         {
+        //             new object[]
+        //             {
+        //                 5,
+        //                 true,
+        //                 1000000000,
+        //                 100000000,
+        //                 false,
+        //                 2,
+        //                 0
+        //             },
+        //             0,
+        //             "0x0000000000000000000000000000000000000000",
+        //             0
+        //         }
+        //     };
+        //     // var types = types2 as IList<object>;
+        //     var vals = (args2 as IList<object>).ToArray();
+
+        //     var objectValues = ConvertToArray(args2);
+
+        //     var wrappedValues = new object[] { objectValues };
+
+        //     object converted;
+
+
+        //     var valsTuple2 = new object[] { vals };
+        //     // var typesDefinion = "tuple(" + String.Join(",", types) + ")";
+
+        //     var testExtract = new ABIStringSignatureDeserialiser().ExtractParameters(typesDefinion, false);
+        //     var parameterEncoder = new Nethereum.ABI.FunctionEncoding.ParametersEncoder();
+        //     var encoded = parameterEncoder.EncodeParameters(testExtract.ToArray(), valsTuple.ToArray());
+
+        //     var encodedFromExchange = parameterEncoder.EncodeParameters(testExtract.ToArray(), wrappedValues);
+
+        //     var areEqual = encoded.SequenceEqual(encodedFromExchange);
+
+        //     return encoded;
         var types = types2 as IList<object>;
         var vals = args2 as IList<object>;
         var valsTuple = new List<object>() { vals };
-        var typesDefinion = "tuple(" + String.Join(",", types) + ")";
-
-        var testExtract = new ABIStringSignatureDeserialiser().ExtractParameters(typesDefinion, false);
-        var parameterEncoder = new Nethereum.ABI.FunctionEncoding.ParametersEncoder();
-        var encoded = parameterEncoder.EncodeParameters(testExtract.ToArray(), valsTuple.ToArray());
+        var tupleType = new TupleType();
+        var components = new List<Parameter>();
+        foreach (var type in types)
+        {
+            var typeExtract = new ABIStringSignatureDeserialiser().ExtractParameters(type.ToString(), false);
+            components.Add(typeExtract[0]);
+        }
+        tupleType.SetComponents(components.ToArray());
+        var encoded = tupleType.Encode(ConvertToArray(vals));
         return encoded;
     }
 
@@ -63,16 +132,51 @@ public partial class Exchange
 
         // fill in domain types
         var domainTypesDescription = new List<MemberDescription> { };
-        for (var i = 0; i < domainTypes.Count; i++)
+        var domainValuesArray = new List<MemberValue> { };
+        var eip721Domain = new List<object[]> { };
+        eip721Domain.Add(new object[]{
+                "name",
+                "string"
+        });
+        eip721Domain.Add(new object[]{
+                "version",
+                "string"
+        });
+        eip721Domain.Add(new object[]{
+                "chainId",
+                "uint256"
+        });
+        eip721Domain.Add(new object[]{
+                "verifyingContract",
+                "address"
+        });
+        eip721Domain.Add(new object[]{
+                "salt",
+                "bytes32"
+        });
+        foreach (var d in eip721Domain)
         {
-            var key = domainTypes.Keys.ElementAt(i);
-            var value = domainTypes.Values.ElementAt(i);
-            var member = new MemberDescription();
-            member.Name = key;
-            member.Type = value;
-            domainTypesDescription.Add(member);
+            var key = d[0] as string;
+            var type = d[1] as string;
+            for (var i = 0; i < domain.Count; i++)
+            {
+                if (String.Equals(key, domain.Keys.ElementAt(i)))
+                {
+                    var value = domainValues[i];
+                    var memberDescription = new MemberDescription();
+                    memberDescription.Name = key;
+                    memberDescription.Type = type;
+                    domainTypesDescription.Add(memberDescription);
+
+                    var memberValue = new MemberValue();
+                    memberValue.TypeName = type;
+                    memberValue.Value = value;
+                    domainValuesArray.Add(memberValue);
+                }
+            }
         }
         types["EIP712Domain"] = domainTypesDescription.ToArray();
+        typeRaw.DomainRawValues = domainValuesArray.ToArray();
 
         // fill in message types
         var messageTypesDict = new Dictionary<string, string>();
@@ -104,24 +208,49 @@ public partial class Exchange
             var value = messageData.Values.ElementAt(i); // 1
             var member = new MemberValue();
             member.TypeName = type;
-            member.Value = value;
+            if (type == "bytes32" && value is string)
+            {
+                var hexString = value as string;
+                if (hexString.StartsWith("0x"))
+                {
+                    hexString = hexString.Substring(2);
+                }
+
+                // Convert the hex string to a byte array
+                byte[] byteArray = Enumerable.Range(0, hexString.Length)
+                                             .Where(x => x % 2 == 0)
+                                             .Select(x => Convert.ToByte(hexString.Substring(x, 2), 16))
+                                             .ToArray();
+                member.Value = byteArray;
+            }
+            else if (type == "bytes32[]")
+            {
+                var hexStrings = value as IList<object>;
+                var byteArray = new List<byte[]> { };
+                foreach (var hex2 in hexStrings)
+                {
+                    var hex = hex2 as string;
+                    if (hex.StartsWith("0x"))
+                    {
+                        hex = hex.Substring(2);
+                    }
+
+                    // Convert the hex string to a byte array
+                    var byteArrayElem = Enumerable.Range(0, hex.Length)
+                                                 .Where(x => x % 2 == 0)
+                                                 .Select(x => Convert.ToByte(hex.Substring(x, 2), 16))
+                                                 .ToArray();
+                    byteArray.Add(byteArrayElem);
+                }
+                member.Value = byteArray.ToArray();
+            }
+            else
+            {
+                member.Value = value;
+            }
             messageValues.Add(member);
         }
         typeRaw.Message = messageValues.ToArray();
-
-        var domainValuesArray = new List<MemberValue> { };
-        // fill in domain values
-        for (var i = 0; i < domain.Count; i++)
-        {
-            var key = domain.Keys.ElementAt(i);
-            var value = domainValues[i];
-            var member = new MemberValue();
-            member.TypeName = domainTypes[key];
-            member.Value = value;
-            domainValuesArray.Add(member);
-        }
-        typeRaw.DomainRawValues = domainValuesArray.ToArray();
-
         typeRaw.Types = types;
         typeRaw.PrimaryType = typeName;
         var typedEncoder = new Eip712TypedDataSigner();

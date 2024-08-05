@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, InsufficientFunds, OrderNotFound, Bad
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Int, Market, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Currency, Dict, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -185,7 +185,7 @@ export default class bitbns extends Exchange {
         };
     }
 
-    async fetchMarkets (params = {}) {
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name bitbns#fetchMarkets
@@ -299,7 +299,7 @@ export default class bitbns extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
@@ -327,7 +327,7 @@ export default class bitbns extends Exchange {
         return this.parseOrderBook (response, market['symbol'], timestamp);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "symbol":"BTC/INR",
@@ -434,7 +434,7 @@ export default class bitbns extends Exchange {
 
     parseBalance (response): Balances {
         const timestamp = undefined;
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -492,7 +492,7 @@ export default class bitbns extends Exchange {
     }
 
     parseStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             '-1': 'cancelled',
             '0': 'open',
             '1': 'open',
@@ -507,7 +507,7 @@ export default class bitbns extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder
         //
@@ -586,7 +586,7 @@ export default class bitbns extends Exchange {
         }, market);
     }
 
-    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: number = undefined, params = {}) {
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         /**
          * @method
          * @name bitbns#createOrder
@@ -597,7 +597,7 @@ export default class bitbns extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
          *
@@ -612,7 +612,7 @@ export default class bitbns extends Exchange {
         const targetRate = this.safeString (params, 'target_rate');
         const trailRate = this.safeString (params, 'trail_rate');
         params = this.omit (params, [ 'triggerPrice', 'stopPrice', 'trail_rate', 'target_rate', 't_rate' ]);
-        const request = {
+        const request: Dict = {
             'side': side.toUpperCase (),
             'symbol': market['uppercaseId'],
             'quantity': this.amountToPrecision (symbol, amount),
@@ -669,7 +669,7 @@ export default class bitbns extends Exchange {
         const market = this.market (symbol);
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'trigger', 'stop' ]);
-        const request = {
+        const request: Dict = {
             'entry_id': id,
             'symbol': market['uppercaseId'],
         };
@@ -698,7 +698,7 @@ export default class bitbns extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'entry_id': id,
         };
@@ -733,7 +733,7 @@ export default class bitbns extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const first = this.safeValue (data, 0);
+        const first = this.safeDict (data, 0);
         return this.parseOrder (first, market);
     }
 
@@ -759,7 +759,7 @@ export default class bitbns extends Exchange {
         const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'trigger', 'stop' ]);
         const quoteSide = (market['quoteId'] === 'USDT') ? 'usdtListOpen' : 'listOpen';
-        const request = {
+        const request: Dict = {
             'symbol': market['uppercaseId'],
             'page': 0,
             'side': isTrigger ? (quoteSide + 'StopOrders') : (quoteSide + 'Orders'),
@@ -785,11 +785,11 @@ export default class bitbns extends Exchange {
         //         "code":200
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchMyTrades
         //
@@ -886,7 +886,7 @@ export default class bitbns extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'page': 0,
         };
@@ -935,7 +935,7 @@ export default class bitbns extends Exchange {
         //         "code": 200
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTrades (data, market, since, limit);
     }
 
@@ -955,7 +955,7 @@ export default class bitbns extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'coin': market['baseId'],
             'market': market['quoteId'],
         };
@@ -986,7 +986,7 @@ export default class bitbns extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'symbol': currency['id'],
             'page': 0,
         };
@@ -1014,7 +1014,7 @@ export default class bitbns extends Exchange {
         //         "code":200
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 
@@ -1034,7 +1034,7 @@ export default class bitbns extends Exchange {
         }
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'symbol': currency['id'],
             'page': 0,
         };
@@ -1042,12 +1042,12 @@ export default class bitbns extends Exchange {
         //
         //     ...
         //
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
     }
 
     parseTransactionStatusByType (status, type = undefined) {
-        const statusesByType = {
+        const statusesByType: Dict = {
             'deposit': {
                 '0': 'pending',
                 '1': 'ok',
@@ -1066,7 +1066,7 @@ export default class bitbns extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -1145,7 +1145,7 @@ export default class bitbns extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'symbol': currency['id'],
         };
         const response = await this.v1PostGetCoinAddressSymbol (this.extend (request, params));
@@ -1201,7 +1201,7 @@ export default class bitbns extends Exchange {
             } else {
                 body = '{}';
             }
-            const auth = {
+            const auth: Dict = {
                 'timeStamp_nonce': nonce,
                 'body': body,
             };
@@ -1214,7 +1214,7 @@ export default class bitbns extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }

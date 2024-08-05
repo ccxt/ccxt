@@ -413,11 +413,12 @@ public partial class gemini : ccxt.gemini
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object messageHash = add("orderbook:", symbol);
-        object orderbook = this.safeValue(this.orderbooks, symbol);
-        if (isTrue(isEqual(orderbook, null)))
+        // let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (!isTrue((inOp(this.orderbooks, symbol))))
         {
-            orderbook = this.orderBook();
+            ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
+        object orderbook = getValue(this.orderbooks, symbol);
         for (object i = 0; isLessThan(i, getArrayLength(changes)); postFixIncrement(ref i))
         {
             object delta = getValue(changes, i);
@@ -450,7 +451,7 @@ public partial class gemini : ccxt.gemini
         return (orderbook as IOrderBook).limit();
     }
 
-    public async virtual Task<object> watchBidsAsks(object symbols, object limit = null, object parameters = null)
+    public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)
     {
         /**
         * @method
@@ -510,11 +511,12 @@ public partial class gemini : ccxt.gemini
             object entry = getValue(rawBidAskChanges, i);
             object rawSide = this.safeString(entry, "side");
             object price = this.safeNumber(entry, "price");
-            object size = this.safeNumber(entry, "remaining");
-            if (isTrue(isEqual(size, 0)))
+            object sizeString = this.safeString(entry, "remaining");
+            if (isTrue(Precise.stringEq(sizeString, "0")))
             {
                 continue;
             }
+            object size = this.parseNumber(sizeString);
             if (isTrue(isEqual(rawSide, "bid")))
             {
                 ((IDictionary<string,object>)currentBidAsk)["bid"] = price;
@@ -999,7 +1001,8 @@ public partial class gemini : ccxt.gemini
                 } },
             } },
         };
-        this.options = this.extend(defaultOptions, this.options);
+        // this.options = this.extend (defaultOptions, this.options);
+        this.extendExchangeOptions(defaultOptions);
         object originalHeaders = getValue(getValue(getValue(this.options, "ws"), "options"), "headers");
         object headers = new Dictionary<string, object>() {
             { "X-GEMINI-APIKEY", this.apiKey },

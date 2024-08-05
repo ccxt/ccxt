@@ -7,8 +7,8 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\NotSupported;
 use ccxt\AuthenticationError;
+use ccxt\NotSupported;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -76,50 +76,52 @@ class hitbtc extends \ccxt\async\hitbtc {
     }
 
     public function authenticate() {
-        /**
-         * @ignore
-         * authenticates the user to access private web socket channels
-         * @see https://api.hitbtc.com/#socket-authentication
-         * @return {array} response from exchange
-         */
-        $this->check_required_credentials();
-        $url = $this->urls['api']['ws']['private'];
-        $messageHash = 'authenticated';
-        $client = $this->client($url);
-        $future = $client->future ($messageHash);
-        $authenticated = $this->safe_value($client->subscriptions, $messageHash);
-        if ($authenticated === null) {
-            $timestamp = $this->milliseconds();
-            $signature = $this->hmac($this->encode($this->number_to_string($timestamp)), $this->encode($this->secret), 'sha256', 'hex');
-            $request = array(
-                'method' => 'login',
-                'params' => array(
-                    'type' => 'HS256',
-                    'api_key' => $this->apiKey,
-                    'timestamp' => $timestamp,
-                    'signature' => $signature,
-                ),
-            );
-            $this->watch($url, $messageHash, $request, $messageHash);
-            //
-            //    {
-            //        "jsonrpc" => "2.0",
-            //        "result" => true
-            //    }
-            //
-            //    # Failure to return results
-            //
-            //    {
-            //        "jsonrpc" => "2.0",
-            //        "error" => {
-            //            "code" => 1002,
-            //            "message" => "Authorization is required or has been failed",
-            //            "description" => "invalid $signature format"
-            //        }
-            //    }
-            //
-        }
-        return $future;
+        return Async\async(function ()  {
+            /**
+             * @ignore
+             * authenticates the user to access private web socket channels
+             * @see https://api.hitbtc.com/#socket-authentication
+             * @return {array} response from exchange
+             */
+            $this->check_required_credentials();
+            $url = $this->urls['api']['ws']['private'];
+            $messageHash = 'authenticated';
+            $client = $this->client($url);
+            $future = $client->future ($messageHash);
+            $authenticated = $this->safe_value($client->subscriptions, $messageHash);
+            if ($authenticated === null) {
+                $timestamp = $this->milliseconds();
+                $signature = $this->hmac($this->encode($this->number_to_string($timestamp)), $this->encode($this->secret), 'sha256', 'hex');
+                $request = array(
+                    'method' => 'login',
+                    'params' => array(
+                        'type' => 'HS256',
+                        'api_key' => $this->apiKey,
+                        'timestamp' => $timestamp,
+                        'signature' => $signature,
+                    ),
+                );
+                $this->watch($url, $messageHash, $request, $messageHash);
+                //
+                //    {
+                //        "jsonrpc" => "2.0",
+                //        "result" => true
+                //    }
+                //
+                //    # Failure to return results
+                //
+                //    {
+                //        "jsonrpc" => "2.0",
+                //        "error" => {
+                //            "code" => 1002,
+                //            "message" => "Authorization is required or has been failed",
+                //            "description" => "invalid $signature format"
+                //        }
+                //    }
+                //
+            }
+            return Async\await($future);
+        }) ();
     }
 
     public function subscribe_public(string $name, string $messageHashPrefix, ?array $symbols = null, $params = array ()) {
@@ -141,7 +143,7 @@ class hitbtc extends \ccxt\async\hitbtc {
                 'id' => $this->nonce(),
                 'ch' => $name,
             );
-            $request = array_merge($subscribe, $params);
+            $request = $this->extend($subscribe, $params);
             return Async\await($this->watch($url, $messageHash, $request, $messageHash));
         }) ();
     }
@@ -258,7 +260,10 @@ class hitbtc extends \ccxt\async\hitbtc {
         //        }
         //    }
         //
-        $data = $this->safe_value_2($message, 'snapshot', 'update', array());
+        $snapshot = $this->safe_dict($message, 'snapshot');
+        $update = $this->safe_dict($message, 'update');
+        $data = $snapshot ? $snapshot : $update;
+        $type = $snapshot ? 'snapshot' : 'update';
         $marketIds = is_array($data) ? array_keys($data) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
@@ -267,17 +272,22 @@ class hitbtc extends \ccxt\async\hitbtc {
             $item = $data[$marketId];
             $messageHash = 'orderbooks::' . $symbol;
             if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
-                $subscription = $this->safe_value($client->subscriptions, $messageHash, array());
+                $subscription = $this->safe_dict($client->subscriptions, $messageHash, array());
                 $limit = $this->safe_integer($subscription, 'limit');
                 $this->orderbooks[$symbol] = $this->order_book(array(), $limit);
             }
+            $orderbook = $this->orderbooks[$symbol];
             $timestamp = $this->safe_integer($item, 't');
             $nonce = $this->safe_integer($item, 's');
-            $orderbook = $this->orderbooks[$symbol];
-            $asks = $this->safe_value($item, 'a', array());
-            $bids = $this->safe_value($item, 'b', array());
-            $this->handle_deltas($orderbook['asks'], $asks);
-            $this->handle_deltas($orderbook['bids'], $bids);
+            if ($type === 'snapshot') {
+                $parsedSnapshot = $this->parse_order_book($item, $symbol, $timestamp, 'b', 'a');
+                $orderbook->reset ($parsedSnapshot);
+            } else {
+                $asks = $this->safe_list($item, 'a', array());
+                $bids = $this->safe_list($item, 'b', array());
+                $this->handle_deltas($orderbook['asks'], $asks);
+                $this->handle_deltas($orderbook['bids'], $bids);
+            }
             $orderbook['timestamp'] = $timestamp;
             $orderbook['datetime'] = $this->iso8601($timestamp);
             $orderbook['nonce'] = $nonce;
@@ -588,7 +598,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         $trades = $this->to_array($trades);
         $result = array();
         for ($i = 0; $i < count($trades); $i++) {
-            $trade = array_merge($this->parse_ws_trade($trades[$i], $market), $params);
+            $trade = $this->extend($this->parse_ws_trade($trades[$i], $market), $params);
             $result[] = $trade;
         }
         $result = $this->sort_by_2($result, 'timestamp', 'id');
@@ -1008,7 +1018,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $request = array(
                 'mode' => $mode,
             );
-            return Async\await($this->subscribe_private($name, null, array_merge($request, $params)));
+            return Async\await($this->subscribe_private($name, null, $this->extend($request, $params)));
         }) ();
     }
 
@@ -1023,7 +1033,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
              * @param {bool} [$params->margin] true for creating a margin order
@@ -1040,7 +1050,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
             list($request, $params) = $this->create_order_request($market, $marketType, $type, $side, $amount, $price, $marginMode, $params);
-            $request = array_merge($request, $params);
+            $request = $this->extend($request, $params);
             if ($marketType === 'swap') {
                 return Async\await($this->trade_request('futures_new_order', $request));
             } elseif (($marketType === 'margin') || ($marginMode !== null)) {
@@ -1076,7 +1086,7 @@ class hitbtc extends \ccxt\async\hitbtc {
             $marketType = null;
             list($marketType, $params) = $this->handle_market_type_and_params('cancelOrderWs', $market, $params);
             list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelOrderWs', $params);
-            $request = array_merge($request, $query);
+            $request = $this->extend($request, $query);
             if ($marketType === 'swap') {
                 return Async\await($this->trade_request('futures_cancel_order', $request));
             } elseif (($marketType === 'margin') || ($marginMode !== null)) {
@@ -1212,7 +1222,7 @@ class hitbtc extends \ccxt\async\hitbtc {
         //        "id" => 1700233093414
         //    }
         //
-        $messageHash = $this->safe_integer($message, 'id');
+        $messageHash = $this->safe_string($message, 'id');
         $result = $this->safe_value($message, 'result', array());
         if (gettype($result) === 'array' && array_keys($result) === array_keys(array_keys($result))) {
             $parsedOrders = array();
@@ -1229,7 +1239,9 @@ class hitbtc extends \ccxt\async\hitbtc {
     }
 
     public function handle_message(Client $client, $message) {
-        $this->handle_error($client, $message);
+        if ($this->handle_error($client, $message)) {
+            return;
+        }
         $channel = $this->safe_string_2($message, 'ch', 'method');
         if ($channel !== null) {
             $splitChannel = explode('/', $channel);
@@ -1303,18 +1315,32 @@ class hitbtc extends \ccxt\async\hitbtc {
         //          $message => 'Insufficient funds',
         //          $description => 'Check that the funds are sufficient, given commissions'
         //        ),
-        //        id => 1700228604325
+        //        $id => 1700228604325
         //    }
         //
         $error = $this->safe_value($message, 'error');
         if ($error !== null) {
-            $code = $this->safe_value($error, 'code');
-            $errorMessage = $this->safe_string($error, 'message');
-            $description = $this->safe_string($error, 'description');
-            $feedback = $this->id . ' ' . $description;
-            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
-            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
-            throw new ExchangeError($feedback); // unknown $message
+            try {
+                $code = $this->safe_value($error, 'code');
+                $errorMessage = $this->safe_string($error, 'message');
+                $description = $this->safe_string($error, 'description');
+                $feedback = $this->id . ' ' . $description;
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
+                throw new ExchangeError($feedback); // unknown $message
+            } catch (Exception $e) {
+                if ($e instanceof AuthenticationError) {
+                    $messageHash = 'authenticated';
+                    $client->reject ($e, $messageHash);
+                    if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                        unset($client->subscriptions[$messageHash]);
+                    }
+                } else {
+                    $id = $this->safe_string($message, 'id');
+                    $client->reject ($e, $id);
+                }
+                return true;
+            }
         }
         return null;
     }

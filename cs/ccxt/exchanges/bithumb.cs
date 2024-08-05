@@ -12,6 +12,7 @@ public partial class bithumb : Exchange
             { "name", "Bithumb" },
             { "countries", new List<object>() {"KR"} },
             { "rateLimit", 500 },
+            { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", true },
                 { "spot", true },
@@ -47,7 +48,11 @@ public partial class bithumb : Exchange
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
+                { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -142,7 +147,7 @@ public partial class bithumb : Exchange
         });
     }
 
-    public override object safeMarket(object marketId, object market = null, object delimiter = null, object marketType = null)
+    public override object safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
     {
         // bithumb has a different type of conflict in markets, because
         // their ids are the base currency (BTC for instance), so we can have
@@ -168,18 +173,24 @@ public partial class bithumb : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         object result = new List<object>() {};
-        object quoteCurrencies = this.safeValue(this.options, "quoteCurrencies", new Dictionary<string, object>() {});
+        object quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new Dictionary<string, object>() {});
         object quotes = new List<object>(((IDictionary<string,object>)quoteCurrencies).Keys);
+        object promises = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
+        {
+            object request = new Dictionary<string, object>() {
+                { "quoteId", getValue(quotes, i) },
+            };
+            ((IList<object>)promises).Add(this.publicGetTickerALLQuoteId(this.extend(request, parameters)));
+        }
+        object results = await promiseAll(promises);
         for (object i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
         {
             object quote = getValue(quotes, i);
             object quoteId = quote;
-            object extension = this.safeValue(quoteCurrencies, quote, new Dictionary<string, object>() {});
-            object request = new Dictionary<string, object>() {
-                { "quoteId", quoteId },
-            };
-            object response = await this.publicGetTickerALLQuoteId(this.extend(request, parameters));
-            object data = this.safeValue(response, "data");
+            object response = getValue(results, i);
+            object data = this.safeDict(response, "data");
+            object extension = this.safeDict(quoteCurrencies, quote, new Dictionary<string, object>() {});
             object currencyIds = new List<object>(((IDictionary<string,object>)data).Keys);
             for (object j = 0; isLessThan(j, getArrayLength(currencyIds)); postFixIncrement(ref j))
             {
@@ -256,7 +267,7 @@ public partial class bithumb : Exchange
         object result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object balances = this.safeValue(response, "data");
+        object balances = this.safeDict(response, "data");
         object codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
         {
@@ -335,7 +346,7 @@ public partial class bithumb : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object timestamp = this.safeInteger(data, "timestamp");
         return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
     }
@@ -404,16 +415,21 @@ public partial class bithumb : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object result = new Dictionary<string, object>() {};
-        object quoteCurrencies = this.safeValue(this.options, "quoteCurrencies", new Dictionary<string, object>() {});
+        object quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new Dictionary<string, object>() {});
         object quotes = new List<object>(((IDictionary<string,object>)quoteCurrencies).Keys);
+        object promises = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
+        {
+            object request = new Dictionary<string, object>() {
+                { "quoteId", getValue(quotes, i) },
+            };
+            ((IList<object>)promises).Add(this.publicGetTickerALLQuoteId(this.extend(request, parameters)));
+        }
+        object responses = await promiseAll(promises);
         for (object i = 0; isLessThan(i, getArrayLength(quotes)); postFixIncrement(ref i))
         {
             object quote = getValue(quotes, i);
-            object quoteId = quote;
-            object request = new Dictionary<string, object>() {
-                { "quoteId", quoteId },
-            };
-            object response = await this.publicGetTickerALLQuoteId(this.extend(request, parameters));
+            object response = getValue(responses, i);
             //
             //     {
             //         "status":"0000",
@@ -435,7 +451,7 @@ public partial class bithumb : Exchange
             //         }
             //     }
             //
-            object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             object timestamp = this.safeInteger(data, "date");
             object tickers = this.omit(data, "date");
             object currencyIds = new List<object>(((IDictionary<string,object>)tickers).Keys);
@@ -491,7 +507,7 @@ public partial class bithumb : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTicker(data, market);
     }
 
@@ -557,7 +573,7 @@ public partial class bithumb : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
@@ -685,7 +701,7 @@ public partial class bithumb : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseTrades(data, market, since, limit);
     }
 
@@ -702,7 +718,7 @@ public partial class bithumb : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -790,7 +806,7 @@ public partial class bithumb : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data");
         return this.parseOrder(this.extend(data, new Dictionary<string, object>() {
             { "order_id", id },
         }), market);
@@ -849,7 +865,7 @@ public partial class bithumb : Exchange
         //     }
         //
         object timestamp = this.safeIntegerProduct(order, "order_date", 0.001);
-        object sideProperty = this.safeValue2(order, "type", "side");
+        object sideProperty = this.safeString2(order, "type", "side");
         object side = ((bool) isTrue((isEqual(sideProperty, "bid")))) ? "buy" : "sell";
         object status = this.parseOrderStatus(this.safeString(order, "order_status"));
         object price = this.safeString2(order, "order_price", "price");
@@ -885,7 +901,7 @@ public partial class bithumb : Exchange
             symbol = getValue(market, "symbol");
         }
         object id = this.safeString(order, "order_id");
-        object rawTrades = this.safeValue(order, "contract", new List<object>() {});
+        object rawTrades = this.safeList(order, "contract", new List<object>() {});
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },
@@ -963,7 +979,7 @@ public partial class bithumb : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOrders(data, market, since, limit);
     }
 
@@ -999,7 +1015,15 @@ public partial class bithumb : Exchange
             { "order_currency", getValue(market, "base") },
             { "payment_currency", getValue(market, "quote") },
         };
-        return await this.privatePostTradeCancel(this.extend(request, parameters));
+        object response = await this.privatePostTradeCancel(this.extend(request, parameters));
+        //
+        //    {
+        //       'status': 'string',
+        //    }
+        //
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     public async override Task<object> cancelUnifiedOrder(object order, object parameters = null)

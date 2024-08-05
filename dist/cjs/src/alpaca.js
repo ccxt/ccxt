@@ -71,7 +71,13 @@ class alpaca extends alpaca$1 {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': false,
+                'fetchPositionHistory': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
                 'fetchStatus': false,
                 'fetchTicker': false,
                 'fetchTickers': false,
@@ -83,6 +89,7 @@ class alpaca extends alpaca$1 {
                 'fetchTransactions': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'transfer': false,
@@ -684,7 +691,7 @@ class alpaca extends alpaca$1 {
          * @param {string} type 'market', 'limit' or 'stop_limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -784,7 +791,7 @@ class alpaca extends alpaca$1 {
         //       "message": "order is not found."
         //   }
         //
-        return this.safeValue(response, 'message', {});
+        return this.parseOrder(response);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**
@@ -802,7 +809,11 @@ class alpaca extends alpaca$1 {
             return this.parseOrders(response, undefined);
         }
         else {
-            return response;
+            return [
+                this.safeOrder({
+                    'info': response,
+                }),
+            ];
         }
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
@@ -1085,6 +1096,7 @@ class alpaca extends alpaca$1 {
         let url = this.implodeHostname(this.urls['api'][api[0]]);
         headers = (headers !== undefined) ? headers : {};
         if (api[1] === 'private') {
+            this.checkRequiredCredentials();
             headers['APCA-API-KEY-ID'] = this.apiKey;
             headers['APCA-API-SECRET-KEY'] = this.secret;
         }

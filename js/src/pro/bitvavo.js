@@ -503,7 +503,7 @@ export default class bitvavo extends bitvavoRest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=ortradeder-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired(this.id + ' watchMyTrades() requires a symbol argument');
@@ -541,7 +541,7 @@ export default class bitvavo extends bitvavoRest {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
          * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
          * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
@@ -572,7 +572,7 @@ export default class bitvavo extends bitvavoRest {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} [amount] how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1087,7 +1087,7 @@ export default class bitvavo extends bitvavoRest {
         return messageHash;
     }
     checkMessageHashDoesNotExist(messageHash) {
-        const supressMultipleWsRequestsError = this.safeValue(this.options, 'supressMultipleWsRequestsError', false);
+        const supressMultipleWsRequestsError = this.safeBool(this.options, 'supressMultipleWsRequestsError', false);
         if (!supressMultipleWsRequestsError) {
             const client = this.safeValue(this.clients, this.urls['api']['ws']);
             if (client !== undefined) {
@@ -1215,7 +1215,7 @@ export default class bitvavo extends bitvavoRest {
                 'timestamp': timestamp,
             };
             const message = this.extend(request, params);
-            future = this.watch(url, messageHash, message);
+            future = await this.watch(url, messageHash, message, messageHash);
             client.subscriptions[messageHash] = future;
         }
         return future;

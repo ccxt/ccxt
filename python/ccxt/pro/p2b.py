@@ -57,6 +57,7 @@ class p2b(ccxt.async_support.p2b):
                 'watchTickers': {
                     'name': 'state',  # or 'price'
                 },
+                'tickerSubs': self.create_safe_dictionary(),
             },
             'streaming': {
                 'ping': self.ping,
@@ -74,7 +75,7 @@ class p2b(ccxt.async_support.p2b):
         :returns dict: data from the websocket stream
         """
         url = self.urls['api']['ws']
-        subscribe = {
+        subscribe: dict = {
             'method': name,
             'params': request,
             'id': self.milliseconds(),
@@ -120,13 +121,14 @@ class p2b(ccxt.async_support.p2b):
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
-        watchTickerOptions = self.safe_value(self.options, 'watchTicker')
+        watchTickerOptions = self.safe_dict(self.options, 'watchTicker')
         name = self.safe_string(watchTickerOptions, 'name', 'state')  # or price
         name, params = self.handle_option_and_params(params, 'method', 'name', name)
         market = self.market(symbol)
-        request = [
-            market['id'],
-        ]
+        symbol = market['symbol']
+        self.options['tickerSubs'][market['id']] = True  # we need to re-subscribe to all tickers upon watching a new ticker
+        tickerSubs = self.options['tickerSubs']
+        request = list(tickerSubs.keys())
         messageHash = name + '::' + market['symbol']
         return await self.subscribe(name + '.subscribe', messageHash, request, params)
 
@@ -369,7 +371,7 @@ class p2b(ccxt.async_support.p2b):
             self.handle_pong(client, message)
             return
         method = self.safe_string(message, 'method')
-        methods = {
+        methods: dict = {
             'depth.update': self.handle_order_book,
             'price.update': self.handle_ticker,
             'kline.update': self.handle_ohlcv,
@@ -386,7 +388,7 @@ class p2b(ccxt.async_support.p2b):
             raise ExchangeError(self.id + ' error: ' + self.json(error))
         return False
 
-    def ping(self, client):
+    def ping(self, client: Client):
         """
         :see: https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#ping
          * @param client
@@ -407,3 +409,11 @@ class p2b(ccxt.async_support.p2b):
         #
         client.lastPong = self.safe_integer(message, 'id')
         return message
+
+    def on_error(self, client: Client, error):
+        self.options['tickerSubs'] = self.create_safe_dictionary()
+        self.on_error(client, error)
+
+    def on_close(self, client: Client, error):
+        self.options['tickerSubs'] = self.create_safe_dictionary()
+        self.on_close(client, error)

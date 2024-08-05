@@ -53,8 +53,11 @@ public partial class bl3p : Exchange
                 { "fetchOpenInterestHistory", false },
                 { "fetchOrderBook", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -172,7 +175,7 @@ public partial class bl3p : Exchange
             { "market", getValue(market, "id") },
         };
         object response = await this.publicGetMarketOrderbook(this.extend(request, parameters));
-        object orderbook = this.safeValue(response, "data");
+        object orderbook = this.safeDict(response, "data");
         return this.parseOrderBook(orderbook, getValue(market, "symbol"), null, "bids", "asks", "price_int", "amount_int");
     }
 
@@ -397,7 +400,7 @@ public partial class bl3p : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         *
         * EXCHANGE SPECIFIC PARAMETERS
@@ -443,7 +446,13 @@ public partial class bl3p : Exchange
         object request = new Dictionary<string, object>() {
             { "order_id", id },
         };
-        return await this.privatePostMarketMoneyOrderCancel(this.extend(request, parameters));
+        object response = await this.privatePostMarketMoneyOrderCancel(this.extend(request, parameters));
+        //
+        // "success"
+        //
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     public async override Task<object> createDepositAddress(object code, object parameters = null)

@@ -102,7 +102,7 @@ public partial class BaseTest
     public static bool isEqual(object a, object b) => Exchange.isEqual(a, b);
     public static bool isTrue(object a) => Exchange.isTrue(a);
     public static object encode(object a) => a;
-    public static string hash(object request2, Delegate algorithm2 = null, object digest2 = null) => Exchange.Hash(request2, algorithm2, digest2);
+    public static object hash(object request2, Delegate algorithm2 = null, object digest2 = null) => Exchange.Hash(request2, algorithm2, digest2);
     public static string hmac(object request2, object secret2, Delegate algorithm2 = null, string digest = "hex") => Exchange.Hmac(request2, secret2, algorithm2, digest);
     public static string rsa(object request, object secret, Delegate alg = null) => Exchange.Rsa(request, secret, alg);
     public static object ecdsa(object request, object secret, Delegate alg = null, Delegate stub = null) => Exchange.Ecdsa(request, secret, alg, stub);
@@ -117,6 +117,7 @@ public partial class BaseTest
     public static string ed25519() => "ed25519";
     public static string keccak() => "keccak";
     public static string secp256k1() => "secp256k1";
+    public static object parseFloat(object a) => Exchange.parseFloat(a);
 
     public bool equals(object a, object b)
     {
@@ -163,4 +164,14 @@ public partial class BaseTest
 
     }
 
+}
+
+
+
+public partial class BaseTest
+{
+    public void testLanguageSpecific()
+    {
+
+    }
 }

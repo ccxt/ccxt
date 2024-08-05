@@ -93,6 +93,7 @@ public partial class currencycom : Exchange
                 { "fetchWithdrawal", null },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", null },
+                { "sandbox", true },
                 { "setLeverage", null },
                 { "setMarginMode", null },
                 { "setPositionMode", null },
@@ -1022,7 +1023,7 @@ public partial class currencycom : Exchange
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit; // default 500, max 1000
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000); // default 500, max 1000
         }
         object response = await this.publicGetV2Klines(this.extend(request, parameters));
         //
@@ -1321,7 +1322,7 @@ public partial class currencycom : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -2068,7 +2069,7 @@ public partial class currencycom : Exchange
         //        ]
         //    }
         //
-        object data = this.safeValue(response, "positions", new List<object>() {});
+        object data = this.safeList(response, "positions", new List<object>() {});
         return this.parsePositions(data, symbols);
     }
 

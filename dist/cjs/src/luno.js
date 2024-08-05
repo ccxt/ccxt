@@ -61,8 +61,11 @@ class luno extends luno$1 {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -144,6 +147,7 @@ class luno extends luno$1 {
                         'withdrawals': 1,
                         'send': 1,
                         'oauth2/grant': 1,
+                        'beneficiaries': 1,
                         // POST /api/exchange/1/move
                     },
                     'put': {
@@ -151,6 +155,7 @@ class luno extends luno$1 {
                     },
                     'delete': {
                         'withdrawals/{id}': 1,
+                        'beneficiaries/{id}': 1,
                     },
                 },
             },
@@ -485,7 +490,7 @@ class luno extends luno$1 {
             request['pair'] = market['id'];
         }
         const response = await this.privateGetListorders(this.extend(request, params));
-        const orders = this.safeValue(response, 'orders', []);
+        const orders = this.safeList(response, 'orders', []);
         return this.parseOrders(orders, market, since, limit);
     }
     async fetchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -748,7 +753,7 @@ class luno extends luno$1 {
         //          ]
         //      }
         //
-        const trades = this.safeValue(response, 'trades', []);
+        const trades = this.safeList(response, 'trades', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -794,7 +799,7 @@ class luno extends luno$1 {
         //          "pair": "XBTEUR"
         //     }
         //
-        const ohlcvs = this.safeValue(response, 'candles', []);
+        const ohlcvs = this.safeList(response, 'candles', []);
         return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -863,7 +868,7 @@ class luno extends luno$1 {
         //          ]
         //      }
         //
-        const trades = this.safeValue(response, 'trades', []);
+        const trades = this.safeList(response, 'trades', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchTradingFee(symbol, params = {}) {
@@ -894,6 +899,8 @@ class luno extends luno$1 {
             'symbol': symbol,
             'maker': this.safeNumber(response, 'maker_fee'),
             'taker': this.safeNumber(response, 'taker_fee'),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -907,7 +914,7 @@ class luno extends luno$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -954,7 +961,15 @@ class luno extends luno$1 {
         const request = {
             'order_id': id,
         };
-        return await this.privatePostStoporder(this.extend(request, params));
+        const response = await this.privatePostStoporder(this.extend(request, params));
+        //
+        //    {
+        //        "success": true
+        //    }
+        //
+        return this.safeOrder({
+            'info': response,
+        });
     }
     async fetchLedgerByEntries(code = undefined, entry = undefined, limit = undefined, params = {}) {
         // by default without entry number or limit number, return most recent entry

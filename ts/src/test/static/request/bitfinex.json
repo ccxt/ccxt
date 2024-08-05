@@ -196,6 +196,59 @@
                 ],
                 "output": "{\"nonce\":\"1699460636239\",\"request\":\"/v1/order/new\",\"symbol\":\"LTCUST\",\"side\":\"buy\",\"amount\":\"0.1\",\"type\":\"exchange limit\",\"ocoorder\":false,\"buy_price_oco\":0,\"sell_price_oco\":0,\"price\":\"50\"}"
             }
+        ],
+        "fetchTrades": [
+            {
+                "description": "spot fetchTrades",
+                "method": "fetchTrades",
+                "url": "https://api.bitfinex.com/v1/trades/BTCUST?limit_trades=50",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "spot orderbook",
+                "method": "fetchOrderBook",
+                "url": "https://api.bitfinex.com/v1/book/BTCUST",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTicker": [
+            {
+                "description": "spot ticker",
+                "method": "fetchTicker",
+                "url": "https://api.bitfinex.com/v1/pubticker/BTCUST",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "spot tickers",
+                "method": "fetchTickers",
+                "url": "https://api.bitfinex.com/v1/tickers",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ]
+            }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "spot ohlcv",
+                "method": "fetchOHLCV",
+                "url": "https://api-pub.bitfinex.com/v2/candles/trade:1m:tBTCUST/hist?sort=1&limit=100",
+                "input": [
+                    "BTC/USDT"
+                ]
+            }
         ]
     },
     "outputType": "json"

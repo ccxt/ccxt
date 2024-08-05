@@ -50,6 +50,7 @@ public partial class testMainClass : BaseTest
             {
                 checkedSymbol = getValue(argSymbols, 0);
             }
+            testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
             for (object i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
             {
                 object ticker = getValue(values, i);

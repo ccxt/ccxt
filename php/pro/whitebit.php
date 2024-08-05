@@ -6,8 +6,8 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\ArgumentsRequired;
 use ccxt\AuthenticationError;
+use ccxt\ArgumentsRequired;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -493,7 +493,7 @@ class whitebit extends \ccxt\async\whitebit {
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             if ($symbol === null) {
                 throw new ArgumentsRequired($this->id . ' watchOrders() requires a $symbol argument');
@@ -547,7 +547,7 @@ class whitebit extends \ccxt\async\whitebit {
         }
         $stored = $this->orders;
         $status = $this->safe_integer($params, 0);
-        $parsed = $this->parse_ws_order(array_merge($data, array( 'status' => $status )));
+        $parsed = $this->parse_ws_order($this->extend($data, array( 'status' => $status )));
         $stored->append ($parsed);
         $symbol = $parsed['symbol'];
         $messageHash = 'orders:' . $symbol;
@@ -732,7 +732,7 @@ class whitebit extends \ccxt\async\whitebit {
                 'method' => $method,
                 'params' => $reqParams,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
         }) ();
     }
@@ -759,7 +759,7 @@ class whitebit extends \ccxt\async\whitebit {
                     'method' => $method,
                     'params' => $marketIds,
                 );
-                $message = array_merge($request, $params);
+                $message = $this->extend($request, $params);
                 return Async\await($this->watch($url, $messageHash, $message, $method, $subscription));
             } else {
                 $subscription = $this->safe_value($client->subscriptions, $method, array());
@@ -806,7 +806,7 @@ class whitebit extends \ccxt\async\whitebit {
                 'method' => $method,
                 'params' => $reqParams,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
         }) ();
     }
@@ -951,7 +951,7 @@ class whitebit extends \ccxt\async\whitebit {
         return $message;
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         return array(
             'id' => 0,
             'method' => 'ping',

@@ -6,7 +6,6 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -39,7 +38,7 @@ class mexc extends \ccxt\async\mexc {
                 'api' => array(
                     'ws' => array(
                         'spot' => 'wss://wbs.mexc.com/ws',
-                        'swap' => 'wss://contract.mexc.com/ws',
+                        'swap' => 'wss://contract.mexc.com/edge',
                     ),
                 ),
             ),
@@ -66,7 +65,7 @@ class mexc extends \ccxt\async\mexc {
             ),
             'streaming' => array(
                 'ping' => array($this, 'ping'),
-                'keepAlive' => 10000,
+                'keepAlive' => 8000,
             ),
             'exceptions' => array(
             ),
@@ -169,7 +168,7 @@ class mexc extends \ccxt\async\mexc {
                 'method' => 'SUBSCRIPTION',
                 'params' => array( $channel ),
             );
-            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $channel));
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $channel));
         }) ();
     }
 
@@ -182,7 +181,7 @@ class mexc extends \ccxt\async\mexc {
                 'method' => 'SUBSCRIPTION',
                 'params' => array( $channel ),
             );
-            return Async\await($this->watch($url, $messageHash, array_merge($request, $params), $channel));
+            return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $channel));
         }) ();
     }
 
@@ -193,7 +192,7 @@ class mexc extends \ccxt\async\mexc {
                 'method' => $channel,
                 'param' => $requestParams,
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $messageHash));
         }) ();
     }
@@ -214,7 +213,7 @@ class mexc extends \ccxt\async\mexc {
                     'reqTime' => $timestamp,
                 ),
             );
-            $message = array_merge($request, $params);
+            $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $channel));
         }) ();
     }
@@ -524,14 +523,16 @@ class mexc extends \ccxt\async\mexc {
     }
 
     public function handle_delta($orderbook, $delta) {
-        $nonce = $this->safe_integer($orderbook, 'nonce');
+        $existingNonce = $this->safe_integer($orderbook, 'nonce');
         $deltaNonce = $this->safe_integer_2($delta, 'r', 'version');
-        if ($deltaNonce !== $nonce && $deltaNonce !== $nonce + 1) {
-            throw new ExchangeError($this->id . ' handleOrderBook received an out-of-order nonce');
+        if ($deltaNonce < $existingNonce) {
+            // even when doing < comparison, this happens => https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
+            // so, we just skip old updates
+            return;
         }
         $orderbook['nonce'] = $deltaNonce;
-        $asks = $this->safe_value($delta, 'asks', array());
-        $bids = $this->safe_value($delta, 'bids', array());
+        $asks = $this->safe_list($delta, 'asks', array());
+        $bids = $this->safe_list($delta, 'bids', array());
         $asksOrderSide = $orderbook['asks'];
         $bidsOrderSide = $orderbook['bids'];
         $this->handle_bookside_delta($asksOrderSide, $asks);
@@ -636,7 +637,7 @@ class mexc extends \ccxt\async\mexc {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $messageHash = 'myTrades';
@@ -727,6 +728,21 @@ class mexc extends \ccxt\async\mexc {
         //        "v" => "5"
         //    }
         //
+        //
+        //   d => {
+        //       p => '1.0005',
+        //       v => '5.71',
+        //       a => '5.712855',
+        //       S => 1,
+        //       T => 1714325698237,
+        //       t => 'edafcd9fdc2f426e82443d114691f724',
+        //       c => '',
+        //       i => 'C02__413321238354677760043',
+        //       m => 0,
+        //       st => 0,
+        //       n => '0.005712855',
+        //       N => 'USDT'
+        //   }
         $timestamp = $this->safe_integer($trade, 'T');
         $tradeId = $this->safe_string($trade, 't');
         if ($timestamp === null) {
@@ -738,6 +754,8 @@ class mexc extends \ccxt\async\mexc {
         $rawSide = $this->safe_string($trade, 'S');
         $side = ($rawSide === '1') ? 'buy' : 'sell';
         $isMaker = $this->safe_integer($trade, 'm');
+        $feeAmount = $this->safe_number($trade, 'n');
+        $feeCurrencyId = $this->safe_string($trade, 'N');
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $tradeId,
@@ -751,7 +769,10 @@ class mexc extends \ccxt\async\mexc {
             'price' => $priceString,
             'amount' => $amountString,
             'cost' => null,
-            'fee' => null,
+            'fee' => array(
+                'cost' => $feeAmount,
+                'currency' => $this->safe_currency_code($feeCurrencyId),
+            ),
         ), $market);
     }
 
@@ -1116,7 +1137,7 @@ class mexc extends \ccxt\async\mexc {
                 'listenKey' => $listenKey,
             );
             try {
-                Async\await($this->spotPrivatePutUserDataStream (array_merge($request, $params)));
+                Async\await($this->spotPrivatePutUserDataStream ($this->extend($request, $params)));
                 $listenKeyRefreshRate = $this->safe_integer($this->options, 'listenKeyRefreshRate', 1200000);
                 $this->delay($listenKeyRefreshRate, array($this, 'keep_alive_listen_key'), $listenKey, $params);
             } catch (Exception $error) {
@@ -1201,7 +1222,7 @@ class mexc extends \ccxt\async\mexc {
         }
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         return array( 'method' => 'ping' );
     }
 }

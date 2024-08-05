@@ -184,7 +184,7 @@ class bitopro extends bitopro$1 {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         this.checkRequiredCredentials();
         await this.loadMarkets();
@@ -385,7 +385,8 @@ class bitopro extends bitopro$1 {
                 },
             },
         };
-        this.options = this.extend(defaultOptions, this.options);
+        // this.options = this.extend (defaultOptions, this.options);
+        this.extendExchangeOptions(defaultOptions);
         const originalHeaders = this.options['ws']['options']['headers'];
         const headers = {
             'X-BITOPRO-API': 'ccxt',

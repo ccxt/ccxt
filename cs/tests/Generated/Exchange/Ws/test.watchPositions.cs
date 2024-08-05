@@ -18,7 +18,7 @@ public partial class testMainClass : BaseTest
             object response = null;
             try
             {
-                response = await exchange.watchPositions(symbol);
+                response = await exchange.watchPositions(new List<object>() {symbol});
             } catch(Exception e)
             {
                 if (!isTrue(testSharedMethods.isTemporaryFailure(e)))
@@ -28,7 +28,7 @@ public partial class testMainClass : BaseTest
                 now = exchange.milliseconds();
                 continue;
             }
-            assert(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return an array. "), exchange.json(response)));
+            testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
             now = exchange.milliseconds();
             for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {

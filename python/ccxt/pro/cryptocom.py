@@ -6,12 +6,13 @@
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.types import Balances, Int, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade
+from ccxt.base.types import Balances, Int, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
-from ccxt.base.errors import NetworkError
-from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
+from ccxt.base.errors import NetworkError
+from ccxt.base.errors import ChecksumError
 
 
 class cryptocom(ccxt.async_support.cryptocom):
@@ -51,6 +52,9 @@ class cryptocom(ccxt.async_support.cryptocom):
                 'watchPositions': {
                     'fetchPositionsSnapshot': True,  # or False
                     'awaitPositionsSnapshot': True,  # whether to wait for the positions snapshot before providing updates
+                },
+                'watchOrderBook': {
+                    'checksum': True,
                 },
             },
             'streaming': {
@@ -103,13 +107,16 @@ class cryptocom(ccxt.async_support.cryptocom):
         if topicParams is None:
             params['params'] = {}
         bookSubscriptionType = None
-        bookSubscriptionType, params = self.handle_option_and_params_2(params, 'watchOrderBook', 'watchOrderBookForSymbols', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE')
-        if bookSubscriptionType is not None:
-            params['params']['bookSubscriptionType'] = bookSubscriptionType
+        bookSubscriptionType2 = None
+        bookSubscriptionType, params = self.handle_option_and_params(params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE')
+        bookSubscriptionType2, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType)
+        params['params']['bookSubscriptionType'] = bookSubscriptionType2
         bookUpdateFrequency = None
-        bookUpdateFrequency, params = self.handle_option_and_params_2(params, 'watchOrderBook', 'watchOrderBookForSymbols', 'bookUpdateFrequency')
-        if bookUpdateFrequency is not None:
-            params['params']['bookSubscriptionType'] = bookSubscriptionType
+        bookUpdateFrequency2 = None
+        bookUpdateFrequency, params = self.handle_option_and_params(params, 'watchOrderBook', 'bookUpdateFrequency')
+        bookUpdateFrequency2, params = self.handle_option_and_params(params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency)
+        if bookUpdateFrequency2 is not None:
+            params['params']['bookSubscriptionType'] = bookUpdateFrequency2
         for i in range(0, len(symbols)):
             symbol = symbols[i]
             market = self.market(symbol)
@@ -124,7 +131,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         price = self.safe_float(delta, 0)
         amount = self.safe_float(delta, 1)
         count = self.safe_integer(delta, 2)
-        bookside.store(price, amount, count)
+        bookside.storeArray([price, amount, count])
 
     def handle_deltas(self, bookside, deltas):
         for i in range(0, len(deltas)):
@@ -192,10 +199,10 @@ class cryptocom(ccxt.async_support.cryptocom):
         data = self.safe_value(message, 'data')
         data = self.safe_value(data, 0)
         timestamp = self.safe_integer(data, 't')
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
+        if not (symbol in self.orderbooks):
             limit = self.safe_integer(message, 'depth')
-            orderbook = self.counted_order_book({}, limit)
+            self.orderbooks[symbol] = self.counted_order_book({}, limit)
+        orderbook = self.orderbooks[symbol]
         channel = self.safe_string(message, 'channel')
         nonce = self.safe_integer_2(data, 'u', 's')
         books = data
@@ -210,7 +217,9 @@ class cryptocom(ccxt.async_support.cryptocom):
             previousNonce = self.safe_integer(data, 'pu')
             currentNonce = orderbook['nonce']
             if currentNonce != previousNonce:
-                raise InvalidNonce(self.id + ' watchOrderBook() ' + symbol + ' ' + previousNonce + ' != ' + nonce)
+                checksum = self.handle_option('watchOrderBook', 'checksum', True)
+                if checksum:
+                    raise ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
         self.handle_deltas(orderbook['asks'], self.safe_value(books, 'asks', []))
         self.handle_deltas(orderbook['bids'], self.safe_value(books, 'bids', []))
         orderbook['nonce'] = nonce
@@ -307,7 +316,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         market = None
@@ -501,7 +510,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         await self.authenticate()
         url = self.urls['api']['ws']['private']
         id = self.nonce()
-        request = {
+        request: dict = {
             'method': 'subscribe',
             'params': {
                 'channels': ['user.position_balance'],
@@ -515,7 +524,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         client = self.client(url)
         self.set_positions_cache(client, symbols)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
-        awaitPositionsSnapshot = self.safe_value('watchPositions', 'awaitPositionsSnapshot', True)
+        awaitPositionsSnapshot = self.safe_bool('watchPositions', 'awaitPositionsSnapshot', True)
         if fetchPositionsSnapshot and awaitPositionsSnapshot and self.positions is None:
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
@@ -671,7 +680,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         messageHashRequest = self.safe_string(message, 'id')
         client.resolve(self.balance, messageHashRequest)
 
-    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: float = None, params={}) -> Order:
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-create-order
         create a trade order
@@ -679,13 +688,13 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         params = self.create_order_request(symbol, type, side, amount, price, params)
-        request = {
+        request: dict = {
             'method': 'private/create-order',
             'params': params,
         }
@@ -722,7 +731,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         params = self.extend({
             'order_id': id,
         }, params)
-        request = {
+        request: dict = {
             'method': 'private/cancel-order',
             'params': params,
         }
@@ -739,7 +748,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         """
         await self.load_markets()
         market = None
-        request = {
+        request: dict = {
             'method': 'private/cancel-all-orders',
             'params': self.extend({}, params),
         }
@@ -763,7 +772,7 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def watch_public(self, messageHash, params={}):
         url = self.urls['api']['ws']['public']
         id = self.nonce()
-        request = {
+        request: dict = {
             'method': 'subscribe',
             'params': {
                 'channels': [messageHash],
@@ -776,7 +785,7 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def watch_public_multiple(self, messageHashes, topics, params={}):
         url = self.urls['api']['ws']['public']
         id = self.nonce()
-        request = {
+        request: dict = {
             'method': 'subscribe',
             'params': {
                 'channels': topics,
@@ -789,7 +798,7 @@ class cryptocom(ccxt.async_support.cryptocom):
     async def watch_private_request(self, nonce, params={}):
         await self.authenticate()
         url = self.urls['api']['ws']['private']
-        request = {
+        request: dict = {
             'id': nonce,
             'nonce': nonce,
         }
@@ -800,7 +809,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         await self.authenticate()
         url = self.urls['api']['ws']['private']
         id = self.nonce()
-        request = {
+        request: dict = {
             'method': 'subscribe',
             'params': {
                 'channels': [messageHash],
@@ -819,6 +828,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         #        "message": "invalid channel {"channels":["trade.BTCUSD-PERP"]}"
         #    }
         #
+        id = self.safe_string(message, 'id')
         errorCode = self.safe_string(message, 'code')
         try:
             if errorCode and errorCode != '0':
@@ -827,6 +837,7 @@ class cryptocom(ccxt.async_support.cryptocom):
                 messageString = self.safe_value(message, 'message')
                 if messageString is not None:
                     self.throw_broadly_matched_exception(self.exceptions['broad'], messageString, feedback)
+                raise ExchangeError(feedback)
             return False
         except Exception as e:
             if isinstance(e, AuthenticationError):
@@ -835,11 +846,11 @@ class cryptocom(ccxt.async_support.cryptocom):
                 if messageHash in client.subscriptions:
                     del client.subscriptions[messageHash]
             else:
-                client.reject(e)
+                client.reject(e, id)
             return True
 
     def handle_subscribe(self, client: Client, message):
-        methods = {
+        methods: dict = {
             'candlestick': self.handle_ohlcv,
             'ticker': self.handle_ticker,
             'trade': self.handle_trades,
@@ -896,7 +907,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         if self.handle_error_message(client, message):
             return
         method = self.safe_string(message, 'method')
-        methods = {
+        methods: dict = {
             '': self.handle_ping,
             'public/heartbeat': self.handle_ping,
             'public/auth': self.handle_authenticate,
@@ -922,7 +933,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             nonce = str(self.nonce())
             auth = method + nonce + self.apiKey + nonce
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-            request = {
+            request: dict = {
                 'id': nonce,
                 'nonce': nonce,
                 'method': method,
@@ -931,7 +942,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             }
             message = self.extend(request, params)
             self.watch(url, messageHash, message, messageHash)
-        return future
+        return await future
 
     def handle_ping(self, client: Client, message):
         self.spawn(self.pong, client, message)

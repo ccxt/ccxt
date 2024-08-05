@@ -7,7 +7,10 @@ import { CurveFn } from '../../static_dependencies/noble-curves/abstract/weierst
 import { CurveFn as CurveFnEDDSA } from '../../static_dependencies/noble-curves/abstract/edwards.js';
 import { Hex } from '../../static_dependencies/noble-curves/abstract/utils.js';
 import { Base64 } from '../../static_dependencies/jsencrypt/lib/asn1js/base64.js';
-
+import { ASN1 } from "../../static_dependencies/jsencrypt/lib/asn1js/asn1.js";
+import { secp256k1 } from '../../static_dependencies/noble-curves/secp256k1.js';
+import { P256 } from '../../static_dependencies/noble-curves/p256.js';
+import { numberToBytesLE } from '../../static_dependencies/noble-curves/abstract/utils.js';
 /*  ------------------------------------------------------------------------ */
 
 const encoders = {
@@ -17,6 +20,11 @@ const encoders = {
 }
 
 type Digest = 'binary' | 'hex' | 'base64'
+
+const supportedCurve = {
+    '1.3.132.0.10': secp256k1,
+    '1.2.840.10045.3.1.7': P256,
+}
 
 /*  .............................................   */
 
@@ -34,11 +42,50 @@ const hmac = (request: Input, secret: Input, hash: CHash, digest: Digest = 'hex'
 
 /*  .............................................   */
 
-function ecdsa (request: Hex, secret: Hex, curve: CurveFn, prehash: CHash = null) {
+function ecdsa (request: Hex, secret: Hex, curve: CurveFn, prehash: CHash = null, fixedLength = false) {
     if (prehash) {
         request = hash (request, prehash, 'hex')
     }
-    const signature = curve.sign (request, secret)
+    if (typeof secret === 'string' && secret.length > 64) {
+        // decode pem key
+        if (secret.startsWith ('-----BEGIN EC PRIVATE KEY-----')) {
+            const der = Base64.unarmor (secret);
+            let asn1 = ASN1.decode(der);
+            if (asn1.sub.length === 4) {
+                // ECPrivateKey ::= SEQUENCE {
+                //     version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
+                //     privateKey     OCTET STRING,
+                //     parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
+                //     publicKey  [1] BIT STRING OPTIONAL
+                // }
+                if (typeof asn1.sub[2].sub !== null && asn1.sub[2].sub.length > 0) {
+                    const oid = asn1.sub[2].sub[0].content (undefined);
+                    if (supportedCurve[oid] === undefined) throw new Error('Unsupported curve');
+                    curve = supportedCurve[oid];
+                }
+                secret = asn1.sub[1].getHexStringValue()
+            } else {
+                // maybe return false
+                throw new Error('Unsupported key format');
+            }
+        } else {
+            // maybe return false
+            throw new Error('Unsupported key format');
+        }
+    }
+    let signature = curve.sign(request, secret, {
+      lowS: true,
+    });
+    const minimumSize = (BigInt(1) << (BigInt(8) * BigInt(31))) - BigInt(1);
+    const halfOrder = curve.CURVE.n / BigInt(2);
+    let counter = 0;
+    while (fixedLength && (signature.r > halfOrder || signature.r <= minimumSize || signature.s <= minimumSize)) {
+      signature = curve.sign(request, secret, {
+        lowS: true,
+        extraEntropy: numberToBytesLE(BigInt(counter), 32)
+      });
+      counter += 1;
+    }
     return {
         'r': signature.r.toString (16),
         's': signature.s.toString (16),
@@ -52,10 +99,16 @@ function axolotl (request: Hex, secret: Hex, curve: CurveFnEDDSA) {
     return base58.encode (signature)
 }
 
-function eddsa (request: Hex, secret: string, curve: CurveFnEDDSA) {
-    // secret is the base64 pem encoded key
-    // we get the last 32 bytes
-    const privateKey = new Uint8Array (Base64.unarmor (secret).slice (16))
+function eddsa (request: Hex, secret: Input, curve: CurveFnEDDSA) {
+    let privateKey = undefined;
+    if (secret.length === 32) {
+      // ed25519 secret is 32 bytes
+      privateKey = secret
+    } else if (typeof secret === 'string') {
+      // secret is the base64 pem encoded key
+      // we get the last 32 bytes
+      privateKey = new Uint8Array (Base64.unarmor (secret).slice (16))
+    }
     const signature = curve.sign (request, privateKey)
     return base64.encode (signature)
 }

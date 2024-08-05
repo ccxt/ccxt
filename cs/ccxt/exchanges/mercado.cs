@@ -57,8 +57,11 @@ public partial class mercado : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrders", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -433,7 +436,7 @@ public partial class mercado : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -458,7 +461,10 @@ public partial class mercado : Exchange
                 {
                     throw new InvalidOrder ((string)add(this.id, " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount")) ;
                 }
-                ((IDictionary<string,object>)request)["cost"] = this.priceToPrecision(getValue(market, "symbol"), multiply(amount, price));
+                object amountString = this.numberToString(amount);
+                object priceString = this.numberToString(price);
+                object cost = this.parseToNumeric(Precise.stringMul(amountString, priceString));
+                ((IDictionary<string,object>)request)["cost"] = this.priceToPrecision(getValue(market, "symbol"), cost);
             } else
             {
                 ((IDictionary<string,object>)request)["quantity"] = this.amountToPrecision(getValue(market, "symbol"), amount);
@@ -519,7 +525,7 @@ public partial class mercado : Exchange
         //     }
         //
         object responseData = this.safeValue(response, "response_data", new Dictionary<string, object>() {});
-        object order = this.safeValue(responseData, "order", new Dictionary<string, object>() {});
+        object order = this.safeDict(responseData, "order", new Dictionary<string, object>() {});
         return this.parseOrder(order, market);
     }
 
@@ -631,7 +637,7 @@ public partial class mercado : Exchange
         };
         object response = await this.privatePostGetOrder(this.extend(request, parameters));
         object responseData = this.safeValue(response, "response_data", new Dictionary<string, object>() {});
-        object order = this.safeValue(responseData, "order");
+        object order = this.safeDict(responseData, "order");
         return this.parseOrder(order, market);
     }
 
@@ -709,7 +715,7 @@ public partial class mercado : Exchange
         //     }
         //
         object responseData = this.safeValue(response, "response_data", new Dictionary<string, object>() {});
-        object withdrawal = this.safeValue(responseData, "withdrawal");
+        object withdrawal = this.safeDict(responseData, "withdrawal");
         return this.parseTransaction(withdrawal, currency);
     }
 
@@ -821,7 +827,7 @@ public partial class mercado : Exchange
         };
         object response = await this.privatePostListOrders(this.extend(request, parameters));
         object responseData = this.safeValue(response, "response_data", new Dictionary<string, object>() {});
-        object orders = this.safeValue(responseData, "orders", new List<object>() {});
+        object orders = this.safeList(responseData, "orders", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -850,7 +856,7 @@ public partial class mercado : Exchange
         };
         object response = await this.privatePostListOrders(this.extend(request, parameters));
         object responseData = this.safeValue(response, "response_data", new Dictionary<string, object>() {});
-        object orders = this.safeValue(responseData, "orders", new List<object>() {});
+        object orders = this.safeList(responseData, "orders", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 

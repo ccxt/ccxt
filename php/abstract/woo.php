@@ -127,8 +127,14 @@ abstract class woo extends \ccxt\Exchange {
     public function v1_private_get_client_transaction_history($params = array()) {
         return $this->request('client/transaction_history', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 60));
     }
+    public function v1_private_get_client_futures_leverage($params = array()) {
+        return $this->request('client/futures_leverage', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 60));
+    }
     public function v1_private_post_order($params = array()) {
         return $this->request('order', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function v1_private_post_order_cancel_all_after($params = array()) {
+        return $this->request('order/cancel_all_after', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function v1_private_post_asset_main_sub_transfer($params = array()) {
         return $this->request('asset/main_sub_transfer', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 30));
@@ -153,6 +159,12 @@ abstract class woo extends \ccxt\Exchange {
     }
     public function v1_private_post_client_leverage($params = array()) {
         return $this->request('client/leverage', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 120));
+    }
+    public function v1_private_post_client_futures_leverage($params = array()) {
+        return $this->request('client/futures_leverage', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 30));
+    }
+    public function v1_private_post_client_isolated_margin($params = array()) {
+        return $this->request('client/isolated_margin', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 30));
     }
     public function v1_private_delete_order($params = array()) {
         return $this->request('order', array('v1', 'private'), 'DELETE', $params, null, null, array("cost" => 1));
@@ -361,8 +373,14 @@ abstract class woo extends \ccxt\Exchange {
     public function v1PrivateGetClientTransactionHistory($params = array()) {
         return $this->request('client/transaction_history', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 60));
     }
+    public function v1PrivateGetClientFuturesLeverage($params = array()) {
+        return $this->request('client/futures_leverage', array('v1', 'private'), 'GET', $params, null, null, array("cost" => 60));
+    }
     public function v1PrivatePostOrder($params = array()) {
         return $this->request('order', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function v1PrivatePostOrderCancelAllAfter($params = array()) {
+        return $this->request('order/cancel_all_after', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
     public function v1PrivatePostAssetMainSubTransfer($params = array()) {
         return $this->request('asset/main_sub_transfer', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 30));
@@ -387,6 +405,12 @@ abstract class woo extends \ccxt\Exchange {
     }
     public function v1PrivatePostClientLeverage($params = array()) {
         return $this->request('client/leverage', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 120));
+    }
+    public function v1PrivatePostClientFuturesLeverage($params = array()) {
+        return $this->request('client/futures_leverage', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 30));
+    }
+    public function v1PrivatePostClientIsolatedMargin($params = array()) {
+        return $this->request('client/isolated_margin', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 30));
     }
     public function v1PrivateDeleteOrder($params = array()) {
         return $this->request('order', array('v1', 'private'), 'DELETE', $params, null, null, array("cost" => 1));

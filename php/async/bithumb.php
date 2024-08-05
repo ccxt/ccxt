@@ -12,6 +12,7 @@ use ccxt\ArgumentsRequired;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
 use React\Async;
+use React\Promise;
 use React\Promise\PromiseInterface;
 
 class bithumb extends Exchange {
@@ -22,6 +23,7 @@ class bithumb extends Exchange {
             'name' => 'Bithumb',
             'countries' => array( 'KR' ), // South Korea
             'rateLimit' => 500,
+            'pro' => true,
             'has' => array(
                 'CORS' => true,
                 'spot' => true,
@@ -57,7 +59,11 @@ class bithumb extends Exchange {
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
@@ -182,7 +188,7 @@ class bithumb extends Exchange {
         ));
     }
 
-    public function safe_market($marketId = null, $market = null, $delimiter = null, $marketType = null) {
+    public function safe_market(?string $marketId = null, ?array $market = null, ?string $delimiter = null, ?string $marketType = null): array {
         // bithumb has a different type of conflict in markets, because
         // their ids are the base currency (BTC for instance), so we can have
         // multiple "BTC" ids representing the different markets (BTC/ETH, "BTC/DOGE", etc)
@@ -194,7 +200,7 @@ class bithumb extends Exchange {
         return $this->decimal_to_precision($amount, TRUNCATE, $this->markets[$symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * retrieves $data on all markets for bithumb
@@ -203,17 +209,57 @@ class bithumb extends Exchange {
              * @return {array[]} an array of objects representing $market $data
              */
             $result = array();
-            $quoteCurrencies = $this->safe_value($this->options, 'quoteCurrencies', array());
+            $quoteCurrencies = $this->safe_dict($this->options, 'quoteCurrencies', array());
             $quotes = is_array($quoteCurrencies) ? array_keys($quoteCurrencies) : array();
+            $promises = array();
+            for ($i = 0; $i < count($quotes); $i++) {
+                $request = array(
+                    'quoteId' => $quotes[$i],
+                );
+                $promises[] = $this->publicGetTickerALLQuoteId ($this->extend($request, $params));
+                //
+                //    {
+                //        "status" => "0000",
+                //        "data" => {
+                //            "ETH" => array(
+                //                "opening_price" => "0.05153399",
+                //                "closing_price" => "0.05145144",
+                //                "min_price" => "0.05145144",
+                //                "max_price" => "0.05160781",
+                //                "units_traded" => "6.541124172077830855",
+                //                "acc_trade_value" => "0.33705472498492329997697755",
+                //                "prev_closing_price" => "0.0515943",
+                //                "units_traded_24H" => "43.368879902677400513",
+                //                "acc_trade_value_24H" => "2.24165339555398079994373342",
+                //                "fluctate_24H" => "-0.00018203",
+                //                "fluctate_rate_24H" => "-0.35"
+                //            ),
+                //            "XRP" => array(
+                //                "opening_price" => "0.00000918",
+                //                "closing_price" => "0.0000092",
+                //                "min_price" => "0.00000918",
+                //                "max_price" => "0.0000092",
+                //                "units_traded" => "6516.949363",
+                //                "acc_trade_value" => "0.0598792533602796",
+                //                "prev_closing_price" => "0.00000916",
+                //                "units_traded_24H" => "229161.50354738",
+                //                "acc_trade_value_24H" => "2.0446589371637117",
+                //                "fluctate_24H" => "0.00000049",
+                //                "fluctate_rate_24H" => "5.63"
+                //            ),
+                //            ...
+                //            "date" => "1721675913145"
+                //        }
+                //    }
+                //
+            }
+            $results = Async\await(Promise\all($promises));
             for ($i = 0; $i < count($quotes); $i++) {
                 $quote = $quotes[$i];
                 $quoteId = $quote;
-                $extension = $this->safe_value($quoteCurrencies, $quote, array());
-                $request = array(
-                    'quoteId' => $quoteId,
-                );
-                $response = Async\await($this->publicGetTickerALLQuoteId (array_merge($request, $params)));
-                $data = $this->safe_value($response, 'data');
+                $response = $results[$i];
+                $data = $this->safe_dict($response, 'data');
+                $extension = $this->safe_dict($quoteCurrencies, $quote, array());
                 $currencyIds = is_array($data) ? array_keys($data) : array();
                 for ($j = 0; $j < count($currencyIds); $j++) {
                     $currencyId = $currencyIds[$j];
@@ -284,7 +330,7 @@ class bithumb extends Exchange {
 
     public function parse_balance($response): array {
         $result = array( 'info' => $response );
-        $balances = $this->safe_value($response, 'data');
+        $balances = $this->safe_dict($response, 'data');
         $codes = is_array($this->currencies) ? array_keys($this->currencies) : array();
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
@@ -311,7 +357,7 @@ class bithumb extends Exchange {
             $request = array(
                 'currency' => 'ALL',
             );
-            $response = Async\await($this->privatePostInfoBalance (array_merge($request, $params)));
+            $response = Async\await($this->privatePostInfoBalance ($this->extend($request, $params)));
             return $this->parse_balance($response);
         }) ();
     }
@@ -335,7 +381,7 @@ class bithumb extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit; // default 30, max 30
             }
-            $response = Async\await($this->publicGetOrderbookBaseIdQuoteId (array_merge($request, $params)));
+            $response = Async\await($this->publicGetOrderbookBaseIdQuoteId ($this->extend($request, $params)));
             //
             //     {
             //         "status":"0000",
@@ -356,13 +402,13 @@ class bithumb extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             $timestamp = $this->safe_integer($data, 'timestamp');
             return $this->parse_order_book($data, $symbol, $timestamp, 'bids', 'asks', 'price', 'quantity');
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTicker, fetchTickers
         //
@@ -422,15 +468,19 @@ class bithumb extends Exchange {
              */
             Async\await($this->load_markets());
             $result = array();
-            $quoteCurrencies = $this->safe_value($this->options, 'quoteCurrencies', array());
+            $quoteCurrencies = $this->safe_dict($this->options, 'quoteCurrencies', array());
             $quotes = is_array($quoteCurrencies) ? array_keys($quoteCurrencies) : array();
+            $promises = array();
+            for ($i = 0; $i < count($quotes); $i++) {
+                $request = array(
+                    'quoteId' => $quotes[$i],
+                );
+                $promises[] = $this->publicGetTickerALLQuoteId ($this->extend($request, $params));
+            }
+            $responses = Async\await(Promise\all($promises));
             for ($i = 0; $i < count($quotes); $i++) {
                 $quote = $quotes[$i];
-                $quoteId = $quote;
-                $request = array(
-                    'quoteId' => $quoteId,
-                );
-                $response = Async\await($this->publicGetTickerALLQuoteId (array_merge($request, $params)));
+                $response = $responses[$i];
                 //
                 //     {
                 //         "status":"0000",
@@ -452,7 +502,7 @@ class bithumb extends Exchange {
                 //         }
                 //     }
                 //
-                $data = $this->safe_value($response, 'data', array());
+                $data = $this->safe_dict($response, 'data', array());
                 $timestamp = $this->safe_integer($data, 'date');
                 $tickers = $this->omit($data, 'date');
                 $currencyIds = is_array($tickers) ? array_keys($tickers) : array();
@@ -485,7 +535,7 @@ class bithumb extends Exchange {
                 'baseId' => $market['baseId'],
                 'quoteId' => $market['quoteId'],
             );
-            $response = Async\await($this->publicGetTickerBaseIdQuoteId (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTickerBaseIdQuoteId ($this->extend($request, $params)));
             //
             //     {
             //         "status":"0000",
@@ -505,7 +555,7 @@ class bithumb extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_ticker($data, $market);
         }) ();
     }
@@ -550,7 +600,7 @@ class bithumb extends Exchange {
                 'quoteId' => $market['quoteId'],
                 'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
             );
-            $response = Async\await($this->publicGetCandlestickBaseIdQuoteIdInterval (array_merge($request, $params)));
+            $response = Async\await($this->publicGetCandlestickBaseIdQuoteIdInterval ($this->extend($request, $params)));
             //
             //     {
             //         "status" => "0000",
@@ -574,12 +624,12 @@ class bithumb extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -677,7 +727,7 @@ class bithumb extends Exchange {
             if ($limit !== null) {
                 $request['count'] = $limit; // default 20, max 100
             }
-            $response = Async\await($this->publicGetTransactionHistoryBaseIdQuoteId (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTransactionHistoryBaseIdQuoteId ($this->extend($request, $params)));
             //
             //     {
             //         "status":"0000",
@@ -692,7 +742,7 @@ class bithumb extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_trades($data, $market, $since, $limit);
         }) ();
     }
@@ -708,7 +758,7 @@ class bithumb extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
              */
@@ -726,7 +776,7 @@ class bithumb extends Exchange {
             } else {
                 $method = 'privatePostTradeMarket' . $this->capitalize($side);
             }
-            $response = Async\await($this->$method (array_merge($request, $params)));
+            $response = Async\await($this->$method ($this->extend($request, $params)));
             $id = $this->safe_string($response, 'order_id');
             if ($id === null) {
                 throw new InvalidOrder($this->id . ' createOrder() did not return an order id');
@@ -761,7 +811,7 @@ class bithumb extends Exchange {
                 'order_currency' => $market['base'],
                 'payment_currency' => $market['quote'],
             );
-            $response = Async\await($this->privatePostInfoOrderDetail (array_merge($request, $params)));
+            $response = Async\await($this->privatePostInfoOrderDetail ($this->extend($request, $params)));
             //
             //     {
             //         "status" => "0000",
@@ -789,12 +839,12 @@ class bithumb extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data');
-            return $this->parse_order(array_merge($data, array( 'order_id' => $id )), $market);
+            $data = $this->safe_dict($response, 'data');
+            return $this->parse_order($this->extend($data, array( 'order_id' => $id )), $market);
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'Pending' => 'open',
             'Completed' => 'closed',
@@ -803,7 +853,7 @@ class bithumb extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //
         // fetchOrder
@@ -845,7 +895,7 @@ class bithumb extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer_product($order, 'order_date', 0.001);
-        $sideProperty = $this->safe_value_2($order, 'type', 'side');
+        $sideProperty = $this->safe_string_2($order, 'type', 'side');
         $side = ($sideProperty === 'bid') ? 'buy' : 'sell';
         $status = $this->parse_order_status($this->safe_string($order, 'order_status'));
         $price = $this->safe_string_2($order, 'order_price', 'price');
@@ -875,7 +925,7 @@ class bithumb extends Exchange {
             $symbol = $market['symbol'];
         }
         $id = $this->safe_string($order, 'order_id');
-        $rawTrades = $this->safe_value($order, 'contract', array());
+        $rawTrades = $this->safe_list($order, 'contract', array());
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -929,7 +979,7 @@ class bithumb extends Exchange {
             if ($since !== null) {
                 $request['after'] = $since;
             }
-            $response = Async\await($this->privatePostInfoOrders (array_merge($request, $params)));
+            $response = Async\await($this->privatePostInfoOrders ($this->extend($request, $params)));
             //
             //     {
             //         "status" => "0000",
@@ -947,7 +997,7 @@ class bithumb extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }
@@ -979,7 +1029,15 @@ class bithumb extends Exchange {
                 'order_currency' => $market['base'],
                 'payment_currency' => $market['quote'],
             );
-            return Async\await($this->privatePostTradeCancel (array_merge($request, $params)));
+            $response = Async\await($this->privatePostTradeCancel ($this->extend($request, $params)));
+            //
+            //    {
+            //       'status' => 'string',
+            //    }
+            //
+            return $this->safe_order(array(
+                'info' => $response,
+            ));
         }) ();
     }
 
@@ -988,11 +1046,11 @@ class bithumb extends Exchange {
             $request = array(
                 'side' => $order['side'],
             );
-            return Async\await($this->cancel_order($order['id'], $order['symbol'], array_merge($request, $params)));
+            return Async\await($this->cancel_order($order['id'], $order['symbol'], $this->extend($request, $params)));
         }) ();
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -1021,7 +1079,7 @@ class bithumb extends Exchange {
                     $request['destination'] = $tag;
                 }
             }
-            $response = Async\await($this->privatePostTradeBtcWithdrawal (array_merge($request, $params)));
+            $response = Async\await($this->privatePostTradeBtcWithdrawal ($this->extend($request, $params)));
             //
             // array( "status" : "0000")
             //
@@ -1029,7 +1087,7 @@ class bithumb extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // withdraw
         //
@@ -1086,7 +1144,7 @@ class bithumb extends Exchange {
             }
         } else {
             $this->check_required_credentials();
-            $body = $this->urlencode(array_merge(array(
+            $body = $this->urlencode($this->extend(array(
                 'endpoint' => $endpoint,
             ), $query));
             $nonce = (string) $this->nonce();
@@ -1104,7 +1162,7 @@ class bithumb extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

@@ -9,9 +9,9 @@ import hashlib
 from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
-from ccxt.base.errors import AuthenticationError
 
 
 class hollaex(ccxt.async_support.hollaex):
@@ -170,7 +170,7 @@ class hollaex(ccxt.async_support.hollaex):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         messageHash = 'usertrade'
@@ -218,7 +218,7 @@ class hollaex(ccxt.async_support.hollaex):
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCache(limit)
         stored = self.myTrades
-        marketIds = {}
+        marketIds: dict = {}
         for i in range(0, len(rawTrades)):
             trade = rawTrades[i]
             parsed = self.parse_trade(trade)
@@ -329,7 +329,7 @@ class hollaex(ccxt.async_support.hollaex):
             rawOrders = [data]
         else:
             rawOrders = data
-        marketIds = {}
+        marketIds: dict = {}
         for i in range(0, len(rawOrders)):
             order = rawOrders[i]
             parsed = self.parse_order(order)
@@ -394,7 +394,7 @@ class hollaex(ccxt.async_support.hollaex):
 
     async def watch_public(self, messageHash, params={}):
         url = self.urls['api']['ws']
-        request = {
+        request: dict = {
             'op': 'subscribe',
             'args': [messageHash],
         }
@@ -414,13 +414,13 @@ class hollaex(ccxt.async_support.hollaex):
         url = self.urls['api']['ws']
         auth = 'CONNECT' + '/stream' + expires
         signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
-        authParams = {
+        authParams: dict = {
             'api-key': self.apiKey,
             'api-signature': signature,
             'api-expires': expires,
         }
         signedUrl = url + '?' + self.urlencode(authParams)
-        request = {
+        request: dict = {
             'op': 'subscribe',
             'args': [messageHash],
         }
@@ -534,7 +534,7 @@ class hollaex(ccxt.async_support.hollaex):
         if content == 'pong':
             self.handle_pong(client, message)
             return
-        methods = {
+        methods: dict = {
             'trade': self.handle_trades,
             'orderbook': self.handle_order_book,
             'order': self.handle_order,
@@ -546,7 +546,7 @@ class hollaex(ccxt.async_support.hollaex):
         if method is not None:
             method(client, message)
 
-    def ping(self, client):
+    def ping(self, client: Client):
         # hollaex does not support built-in ws protocol-level ping-pong
         return {'op': 'ping'}
 

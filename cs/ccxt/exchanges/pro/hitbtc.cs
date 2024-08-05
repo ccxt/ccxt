@@ -99,7 +99,7 @@ public partial class hitbtc : ccxt.hitbtc
             };
             this.watch(url, messageHash, request, messageHash);
         }
-        return future;
+        return await (future as Exchange.Future);
     }
 
     public async virtual Task<object> subscribePublic(object name, object messageHashPrefix, object symbols = null, object parameters = null)
@@ -250,7 +250,10 @@ public partial class hitbtc : ccxt.hitbtc
         //        }
         //    }
         //
-        object data = this.safeValue2(message, "snapshot", "update", new Dictionary<string, object>() {});
+        object snapshot = this.safeDict(message, "snapshot");
+        object update = this.safeDict(message, "update");
+        object data = ((bool) isTrue(snapshot)) ? snapshot : update;
+        object type = ((bool) isTrue(snapshot)) ? "snapshot" : "update";
         object marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
@@ -261,17 +264,24 @@ public partial class hitbtc : ccxt.hitbtc
             object messageHash = add("orderbooks::", symbol);
             if (!isTrue((inOp(this.orderbooks, symbol))))
             {
-                object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
+                object subscription = this.safeDict(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
                 object limit = this.safeInteger(subscription, "limit");
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
             }
+            object orderbook = getValue(this.orderbooks, symbol);
             object timestamp = this.safeInteger(item, "t");
             object nonce = this.safeInteger(item, "s");
-            object orderbook = getValue(this.orderbooks, symbol);
-            object asks = this.safeValue(item, "a", new List<object>() {});
-            object bids = this.safeValue(item, "b", new List<object>() {});
-            this.handleDeltas(getValue(orderbook, "asks"), asks);
-            this.handleDeltas(getValue(orderbook, "bids"), bids);
+            if (isTrue(isEqual(type, "snapshot")))
+            {
+                object parsedSnapshot = this.parseOrderBook(item, symbol, timestamp, "b", "a");
+                (orderbook as IOrderBook).reset(parsedSnapshot);
+            } else
+            {
+                object asks = this.safeList(item, "a", new List<object>() {});
+                object bids = this.safeList(item, "b", new List<object>() {});
+                this.handleDeltas(getValue(orderbook, "asks"), asks);
+                this.handleDeltas(getValue(orderbook, "bids"), bids);
+            }
             ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
             ((IDictionary<string,object>)orderbook)["datetime"] = this.iso8601(timestamp);
             ((IDictionary<string,object>)orderbook)["nonce"] = nonce;
@@ -1075,7 +1085,7 @@ public partial class hitbtc : ccxt.hitbtc
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
         * @param {bool} [params.margin] true for creating a margin order
@@ -1306,7 +1316,7 @@ public partial class hitbtc : ccxt.hitbtc
         //        "id": 1700233093414
         //    }
         //
-        object messageHash = this.safeInteger(message, "id");
+        object messageHash = this.safeString(message, "id");
         object result = this.safeValue(message, "result", new Dictionary<string, object>() {});
         if (isTrue(((result is IList<object>) || (result.GetType().IsGenericType && result.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
@@ -1327,7 +1337,10 @@ public partial class hitbtc : ccxt.hitbtc
 
     public override void handleMessage(WebSocketClient client, object message)
     {
-        this.handleError(client as WebSocketClient, message);
+        if (isTrue(this.handleError(client as WebSocketClient, message)))
+        {
+            return;
+        }
         object channel = this.safeString2(message, "ch", "method");
         if (isTrue(!isEqual(channel, null)))
         {
@@ -1419,13 +1432,32 @@ public partial class hitbtc : ccxt.hitbtc
         object error = this.safeValue(message, "error");
         if (isTrue(!isEqual(error, null)))
         {
-            object code = this.safeValue(error, "code");
-            object errorMessage = this.safeString(error, "message");
-            object description = this.safeString(error, "description");
-            object feedback = add(add(this.id, " "), description);
-            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
-            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
-            throw new ExchangeError ((string)feedback) ;
+            try
+            {
+                object code = this.safeValue(error, "code");
+                object errorMessage = this.safeString(error, "message");
+                object description = this.safeString(error, "description");
+                object feedback = add(add(this.id, " "), description);
+                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
+                this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
+                throw new ExchangeError ((string)feedback) ;
+            } catch(Exception e)
+            {
+                if (isTrue(e is AuthenticationError))
+                {
+                    object messageHash = "authenticated";
+                    ((WebSocketClient)client).reject(e, messageHash);
+                    if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
+                    {
+
+                    }
+                } else
+                {
+                    object id = this.safeString(message, "id");
+                    ((WebSocketClient)client).reject(e, id);
+                }
+                return true;
+            }
         }
         return null;
     }

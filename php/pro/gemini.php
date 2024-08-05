@@ -8,6 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\NotSupported;
+use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -398,10 +399,11 @@ class gemini extends \ccxt\async\gemini {
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
         $messageHash = 'orderbook:' . $symbol;
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
-            $orderbook = $this->order_book();
+        // $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book();
         }
+        $orderbook = $this->orderbooks[$symbol];
         for ($i = 0; $i < count($changes); $i++) {
             $delta = $changes[$i];
             $price = $this->safe_number($delta, 1);
@@ -431,8 +433,8 @@ class gemini extends \ccxt\async\gemini {
         }) ();
     }
 
-    public function watch_bids_asks(array $symbols, ?int $limit = null, $params = array ()): PromiseInterface {
-        return Async\async(function () use ($symbols, $limit, $params) {
+    public function watch_bids_asks(?array $symbols = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $params) {
             /**
              * watches best bid & ask for $symbols
              * @see https://docs.gemini.com/websocket-api/#multi-market-data
@@ -486,10 +488,11 @@ class gemini extends \ccxt\async\gemini {
             $entry = $rawBidAskChanges[$i];
             $rawSide = $this->safe_string($entry, 'side');
             $price = $this->safe_number($entry, 'price');
-            $size = $this->safe_number($entry, 'remaining');
-            if ($size === 0) {
+            $sizeString = $this->safe_string($entry, 'remaining');
+            if (Precise::string_eq($sizeString, '0')) {
                 continue;
             }
+            $size = $this->parse_number($sizeString);
             if ($rawSide === 'bid') {
                 $currentBidAsk['bid'] = $price;
                 $currentBidAsk['bidVolume'] = $size;
@@ -935,7 +938,8 @@ class gemini extends \ccxt\async\gemini {
                 ),
             ),
         );
-        $this->options = array_merge($defaultOptions, $this->options);
+        // $this->options = $this->extend($defaultOptions, $this->options);
+        $this->extend_exchange_options($defaultOptions);
         $originalHeaders = $this->options['ws']['options']['headers'];
         $headers = array(
             'X-GEMINI-APIKEY' => $this->apiKey,

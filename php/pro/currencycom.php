@@ -55,7 +55,7 @@ class currencycom extends \ccxt\async\currencycom {
         ));
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         // custom ping-pong
         $requestId = (string) $this->request_id();
         return array(
@@ -107,7 +107,7 @@ class currencycom extends \ccxt\async\currencycom {
         //
         $payload = $this->safe_value($message, 'payload');
         $balance = $this->parse_balance($payload);
-        $this->balance = array_merge($this->balance, $balance);
+        $this->balance = $this->extend($this->balance, $balance);
         $messageHash = $this->safe_string($subscription, 'messageHash');
         $client->resolve ($this->balance, $messageHash);
         if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
@@ -201,7 +201,7 @@ class currencycom extends \ccxt\async\currencycom {
         );
     }
 
-    public function handle_trades(Client $client, $message, $subscription) {
+    public function handle_trades(Client $client, $message) {
         //
         //     {
         //         "status" => "OK",
@@ -311,7 +311,7 @@ class currencycom extends \ccxt\async\currencycom {
                     'symbols' => [ $market['id'] ],
                 ),
             ), $params);
-            $subscription = array_merge($request, array(
+            $subscription = $this->extend($request, array(
                 'messageHash' => $messageHash,
                 'symbol' => $symbol,
             ));
@@ -336,7 +336,7 @@ class currencycom extends \ccxt\async\currencycom {
                 'payload' => $payload,
             ), $params);
             $request['payload']['signature'] = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
-            $subscription = array_merge($request, array(
+            $subscription = $this->extend($request, array(
                 'messageHash' => $messageHash,
             ));
             return Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscription));
@@ -377,7 +377,7 @@ class currencycom extends \ccxt\async\currencycom {
                     'symbol' => $market['id'],
                 ),
             ), $params);
-            $subscription = array_merge($request, array(
+            $subscription = $this->extend($request, array(
                 'messageHash' => $messageHash,
                 'symbol' => $symbol,
             ));
@@ -445,7 +445,7 @@ class currencycom extends \ccxt\async\currencycom {
                     ],
                 ),
             );
-            $ohlcv = Async\await($this->watch_public($messageHash, $symbol, array_merge($request, $params)));
+            $ohlcv = Async\await($this->watch_public($messageHash, $symbol, $this->extend($request, $params)));
             if ($this->newUpdates) {
                 $limit = $ohlcv->getLimit ($symbol, $limit);
             }
@@ -481,17 +481,18 @@ class currencycom extends \ccxt\async\currencycom {
         $destination = 'depthMarketData.subscribe';
         $messageHash = $destination . ':' . $symbol;
         $timestamp = $this->safe_integer($data, 'ts');
-        $orderbook = $this->safe_value($this->orderbooks, $symbol);
-        if ($orderbook === null) {
-            $orderbook = $this->order_book();
+        // $orderbook = $this->safe_value($this->orderbooks, $symbol);
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->order_book();
         }
+        $orderbook = $this->orderbooks[$symbol];
         $orderbook->reset (array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
         ));
-        $bids = $this->safe_value($data, 'bid', array());
-        $asks = $this->safe_value($data, 'ofr', array());
+        $bids = $this->safe_dict($data, 'bid', array());
+        $asks = $this->safe_dict($data, 'ofr', array());
         $this->handle_deltas($orderbook['bids'], $bids);
         $this->handle_deltas($orderbook['asks'], $asks);
         $this->orderbooks[$symbol] = $orderbook;

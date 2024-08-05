@@ -29,7 +29,7 @@ export default class bitget extends bitgetRest {
     handlePositions(client: Client, message: any): void;
     parseWsPosition(position: any, market?: any): Position;
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
-    handleOrder(client: Client, message: any, subscription?: any): void;
+    handleOrder(client: Client, message: any): void;
     parseWsOrder(order: any, market?: any): Order;
     parseWsOrderStatus(status: any): string;
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -43,7 +43,7 @@ export default class bitget extends bitgetRest {
     handleAuthenticate(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): boolean;
     handleMessage(client: Client, message: any): void;
-    ping(client: any): string;
+    ping(client: Client): string;
     handlePong(client: Client, message: any): any;
     handleSubscriptionStatus(client: Client, message: any): any;
 }

@@ -9,7 +9,6 @@ import hashlib
 from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
-from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 
 
@@ -41,7 +40,7 @@ class mexc(ccxt.async_support.mexc):
                 'api': {
                     'ws': {
                         'spot': 'wss://wbs.mexc.com/ws',
-                        'swap': 'wss://contract.mexc.com/ws',
+                        'swap': 'wss://contract.mexc.com/edge',
                     },
                 },
             },
@@ -68,7 +67,7 @@ class mexc(ccxt.async_support.mexc):
             },
             'streaming': {
                 'ping': self.ping,
-                'keepAlive': 10000,
+                'keepAlive': 8000,
             },
             'exceptions': {
             },
@@ -89,7 +88,7 @@ class mexc(ccxt.async_support.mexc):
             return await self.watch_spot_public(channel, messageHash, params)
         else:
             channel = 'sub.ticker'
-            requestParams = {
+            requestParams: dict = {
                 'symbol': market['id'],
             }
             return await self.watch_swap_public(channel, messageHash, requestParams, params)
@@ -158,7 +157,7 @@ class mexc(ccxt.async_support.mexc):
 
     async def watch_spot_public(self, channel, messageHash, params={}):
         url = self.urls['api']['ws']['spot']
-        request = {
+        request: dict = {
             'method': 'SUBSCRIPTION',
             'params': [channel],
         }
@@ -168,7 +167,7 @@ class mexc(ccxt.async_support.mexc):
         self.check_required_credentials()
         listenKey = await self.authenticate(channel)
         url = self.urls['api']['ws']['spot'] + '?listenKey=' + listenKey
-        request = {
+        request: dict = {
             'method': 'SUBSCRIPTION',
             'params': [channel],
         }
@@ -176,7 +175,7 @@ class mexc(ccxt.async_support.mexc):
 
     async def watch_swap_public(self, channel, messageHash, requestParams, params={}):
         url = self.urls['api']['ws']['swap']
-        request = {
+        request: dict = {
             'method': channel,
             'param': requestParams,
         }
@@ -190,7 +189,7 @@ class mexc(ccxt.async_support.mexc):
         timestamp = str(self.milliseconds())
         payload = self.apiKey + timestamp
         signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256)
-        request = {
+        request: dict = {
             'method': channel,
             'param': {
                 'apiKey': self.apiKey,
@@ -224,7 +223,7 @@ class mexc(ccxt.async_support.mexc):
             ohlcv = await self.watch_spot_public(channel, messageHash, params)
         else:
             channel = 'sub.kline'
-            requestParams = {
+            requestParams: dict = {
                 'symbol': market['id'],
                 'interval': timeframeId,
             }
@@ -360,7 +359,7 @@ class mexc(ccxt.async_support.mexc):
             orderbook = await self.watch_spot_public(channel, messageHash, params)
         else:
             channel = 'sub.depth'
-            requestParams = {
+            requestParams: dict = {
                 'symbol': market['id'],
             }
             orderbook = await self.watch_swap_public(channel, messageHash, requestParams, params)
@@ -481,13 +480,15 @@ class mexc(ccxt.async_support.mexc):
                 bookside.store(price, amount)
 
     def handle_delta(self, orderbook, delta):
-        nonce = self.safe_integer(orderbook, 'nonce')
+        existingNonce = self.safe_integer(orderbook, 'nonce')
         deltaNonce = self.safe_integer_2(delta, 'r', 'version')
-        if deltaNonce != nonce and deltaNonce != nonce + 1:
-            raise ExchangeError(self.id + ' handleOrderBook received an out-of-order nonce')
+        if deltaNonce < existingNonce:
+            # even when doing < comparison, self happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
+            # so, we just skip old updates
+            return
         orderbook['nonce'] = deltaNonce
-        asks = self.safe_value(delta, 'asks', [])
-        bids = self.safe_value(delta, 'bids', [])
+        asks = self.safe_list(delta, 'asks', [])
+        bids = self.safe_list(delta, 'bids', [])
         asksOrderSide = orderbook['asks']
         bidsOrderSide = orderbook['bids']
         self.handle_bookside_delta(asksOrderSide, asks)
@@ -513,7 +514,7 @@ class mexc(ccxt.async_support.mexc):
             trades = await self.watch_spot_public(channel, messageHash, params)
         else:
             channel = 'sub.deal'
-            requestParams = {
+            requestParams: dict = {
                 'symbol': market['id'],
             }
             trades = await self.watch_swap_public(channel, messageHash, requestParams, params)
@@ -581,7 +582,7 @@ class mexc(ccxt.async_support.mexc):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         messageHash = 'myTrades'
@@ -664,6 +665,21 @@ class mexc(ccxt.async_support.mexc):
         #        "v": "5"
         #    }
         #
+        #
+        #   d: {
+        #       p: '1.0005',
+        #       v: '5.71',
+        #       a: '5.712855',
+        #       S: 1,
+        #       T: 1714325698237,
+        #       t: 'edafcd9fdc2f426e82443d114691f724',
+        #       c: '',
+        #       i: 'C02__413321238354677760043',
+        #       m: 0,
+        #       st: 0,
+        #       n: '0.005712855',
+        #       N: 'USDT'
+        #   }
         timestamp = self.safe_integer(trade, 'T')
         tradeId = self.safe_string(trade, 't')
         if timestamp is None:
@@ -674,6 +690,8 @@ class mexc(ccxt.async_support.mexc):
         rawSide = self.safe_string(trade, 'S')
         side = 'buy' if (rawSide == '1') else 'sell'
         isMaker = self.safe_integer(trade, 'm')
+        feeAmount = self.safe_number(trade, 'n')
+        feeCurrencyId = self.safe_string(trade, 'N')
         return self.safe_trade({
             'info': trade,
             'id': tradeId,
@@ -687,7 +705,10 @@ class mexc(ccxt.async_support.mexc):
             'price': priceString,
             'amount': amountString,
             'cost': None,
-            'fee': None,
+            'fee': {
+                'cost': feeAmount,
+                'currency': self.safe_currency_code(feeCurrencyId),
+            },
         }, market)
 
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -896,7 +917,7 @@ class mexc(ccxt.async_support.mexc):
         }, market)
 
     def parse_ws_order_status(self, status, market=None):
-        statuses = {
+        statuses: dict = {
             '1': 'open',     # new order
             '2': 'closed',   # filled
             '3': 'open',     # partially filled
@@ -911,7 +932,7 @@ class mexc(ccxt.async_support.mexc):
         return self.safe_string(statuses, status, status)
 
     def parse_ws_order_type(self, type):
-        types = {
+        types: dict = {
             '1': 'limit',   # LIMIT_ORDER
             '2': None,  # POST_ONLY
             '3': None,  # IMMEDIATE_OR_CANCEL
@@ -922,7 +943,7 @@ class mexc(ccxt.async_support.mexc):
         return self.safe_string(types, type)
 
     def parse_ws_time_in_force(self, timeInForce):
-        timeInForceIds = {
+        timeInForceIds: dict = {
             '1': 'GTC',   # LIMIT_ORDER
             '2': 'PO',  # POST_ONLY
             '3': 'IOC',  # IMMEDIATE_OR_CANCEL
@@ -1021,7 +1042,7 @@ class mexc(ccxt.async_support.mexc):
     async def keep_alive_listen_key(self, listenKey, params={}):
         if listenKey is None:
             return
-        request = {
+        request: dict = {
             'listenKey': listenKey,
         }
         try:
@@ -1053,7 +1074,7 @@ class mexc(ccxt.async_support.mexc):
         elif msg.find('@') > -1:
             parts = msg.split('@')
             channel = self.safe_string(parts, 1)
-            methods = {
+            methods: dict = {
                 'public.increase.depth.v3.api': self.handle_order_book_subscription,
             }
             method = self.safe_value(methods, channel)
@@ -1076,7 +1097,7 @@ class mexc(ccxt.async_support.mexc):
         else:
             parts = c.split('@')
             channel = self.safe_string(parts, 1)
-        methods = {
+        methods: dict = {
             'public.deals.v3.api': self.handle_trades,
             'push.deal': self.handle_trades,
             'public.kline.v3.api': self.handle_ohlcv,
@@ -1097,5 +1118,5 @@ class mexc(ccxt.async_support.mexc):
             method = methods[channel]
             method(client, message)
 
-    def ping(self, client):
+    def ping(self, client: Client):
         return {'method': 'ping'}
