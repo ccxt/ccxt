@@ -2,8 +2,8 @@
 //  ---------------------------------------------------------------------------
 
 import hashkeyRest from '../hashkey.js';
-import type { Dict, Int, Market, OHLCV, Ticker } from '../base/types.js';
-import { ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import type { Dict, Int, Market, OHLCV, Ticker, Trade } from '../base/types.js';
+import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -19,7 +19,7 @@ export default class hashkey extends hashkeyRest {
                 'watchOrderBook': false,
                 'watchOrders': false,
                 'watchTicker': true,
-                'watchTrades': false,
+                'watchTrades': true,
                 'watchPositions': false,
             },
             'urls': {
@@ -211,12 +211,87 @@ export default class hashkey extends hashkeyRest {
         client.resolve (this.tickers[symbol], messageHash);
     }
 
+    async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name hashkey#watchTrades
+         * @description watches information on multiple trades made in a market
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const topic = 'trade';
+        const messageHash = 'trades:' + symbol;
+        const trades = await this.wathPublic (market, topic, messageHash, params);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    handleTrades (client: Client, message) {
+        //
+        //     {
+        //         "symbol": "ETHUSDT",
+        //         "symbolName": "ETHUSDT",
+        //         "topic": "trade",
+        //         "params": {
+        //             "realtimeInterval": "24h"
+        //         },
+        //         "data": [
+        //             {
+        //                 "v": "1745922896272048129",
+        //                 "t": 1722866228075,
+        //                 "p": "2340.41",
+        //                 "q": "0.0132",
+        //                 "m": true
+        //             },
+        //             ...
+        //         ],
+        //         "f": true,
+        //         "sendTime": 1722869464248,
+        //         "channelId": "668498fffeba4108-00000001-00113184-562e27d215e43f9c-c188b319",
+        //         "shared": false
+        //     }
+        //
+        const marketId = this.safeString (message, 'symbol');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        if (!(symbol in this.trades)) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.trades[symbol] = new ArrayCache (limit);
+        }
+        const stored = this.trades[symbol];
+        const data = this.safeList (message, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const trade = this.safeDict (data, i);
+            const parsed = this.parseWsTrade (trade, market);
+            stored.append (parsed);
+        }
+        const messageHash = 'trades' + ':' + symbol;
+        client.resolve (stored, messageHash);
+    }
+
+    parseWsTrade (trade: Dict, market: Market = undefined): Trade {
+        const parsed = this.parseTrade (trade, market);
+        const id = this.safeString (trade, 'v');
+        parsed['id'] = id;
+        return parsed;
+    }
+
     handleMessage (client: Client, message) {
         const topic = this.safeString (message, 'topic');
         if (topic === 'kline') {
             this.handleOHLCV (client, message);
         } else if (topic === 'realtimes') {
             this.handleTicker (client, message);
+        } else if (topic === 'trade') {
+            this.handleTrades (client, message);
         }
     }
 }
