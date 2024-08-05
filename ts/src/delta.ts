@@ -1385,14 +1385,14 @@ export default class delta extends Exchange {
         if (type !== undefined) {
             type = type.replace ('_order', '');
         }
-        const feeCost = this.safeNumber (trade, 'commission');
+        const feeCostString = this.safeString (trade, 'commission');
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             const settlingAsset = this.safeDict (product, 'settling_asset', {});
             const feeCurrencyId = this.safeString (settlingAsset, 'symbol');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             };
         }
