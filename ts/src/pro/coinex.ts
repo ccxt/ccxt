@@ -1080,12 +1080,20 @@ export default class coinex extends coinexRest {
 
     handleAuthenticationMessage (client: Client, message) {
         //
+        // success
+        //
         //     {
-        //         "error": null,
-        //         "result": {
-        //             "status": "success"
-        //         },
-        //         "id": 1
+        //         "id": 1,
+        //         "code": 0,
+        //         "message": "OK"
+        //     }
+        //
+        // fail
+        //
+        //     {
+        //         "id": 1,
+        //         "code": 21002,
+        //         "message": ""
         //     }
         //
         const messageHashSpot = 'authenticated:spot';
