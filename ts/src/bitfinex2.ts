@@ -1303,12 +1303,12 @@ export default class bitfinex2 extends Exchange {
             orderId = this.safeString (tradeList, 3);
             const maker = this.safeInteger (tradeList, 8);
             takerOrMaker = (maker === 1) ? 'maker' : 'taker';
-            const feeCostString = this.safeString (tradeList, 9);
-            const feeCost = this.parseNumber (Precise.stringNeg (feeCostString));
+            let feeCostString = this.safeString (tradeList, 9);
+            feeCostString = Precise.stringNeg (feeCostString);
             const feeCurrencyId = this.safeString (tradeList, 10);
             const feeCurrency = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrency,
             };
             const orderType = tradeList[6];
