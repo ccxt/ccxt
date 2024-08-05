@@ -666,7 +666,7 @@ export default class valr extends Exchange {
                     'min': this.safeFloat (market, 'minBaseAmount'),
                     'max': this.safeFloat (market, 'maxBaseAmount'),
                 },
-                'price': {
+                'cost': {
                     'min': this.safeFloat (market, 'minQuoteAmount'),
                     'max': this.safeFloat (market, 'maxQuoteAmount'),
                 },
