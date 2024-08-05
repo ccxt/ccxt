@@ -9394,7 +9394,7 @@ export default class binance extends Exchange {
         market = this.safeMarket (marketId, market, undefined, 'contract');
         const symbol = this.safeString (market, 'symbol');
         const leverageString = this.safeString (position, 'leverage');
-        const leverage = parseInt (leverageString);
+        const leverage = (leverageString !== undefined) ? parseInt (leverageString) : undefined;
         const initialMarginString = this.safeString (position, 'initialMargin');
         const initialMargin = this.parseNumber (initialMarginString);
         let initialMarginPercentageString = undefined;
