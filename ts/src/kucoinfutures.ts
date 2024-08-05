@@ -2510,15 +2510,15 @@ export default class kucoinfutures extends kucoin {
         const amountString = this.safeString2 (trade, 'size', 'amount');
         const side = this.safeString (trade, 'side');
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'fee');
-        if (feeCost !== undefined) {
+        const feeCostString = this.safeString (trade, 'fee');
+        if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'feeCurrency');
             let feeCurrency = this.safeCurrencyCode (feeCurrencyId);
             if (feeCurrency === undefined) {
                 feeCurrency = (side === 'sell') ? market['quote'] : market['base'];
             }
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrency,
                 'rate': this.safeString (trade, 'feeRate'),
             };
