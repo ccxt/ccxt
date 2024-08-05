@@ -887,7 +887,7 @@ export default class lbank extends Exchange {
         const order = this.safeString (trade, 'orderUuid');
         const symbol = this.safeSymbol (undefined, market);
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'tradeFee');
+        const feeCost = this.safeString (trade, 'tradeFee');
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
