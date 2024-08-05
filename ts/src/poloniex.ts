@@ -927,11 +927,11 @@ export default class poloniex extends Exchange {
         const amountString = this.safeString (trade, 'quantity');
         const costString = this.safeString (trade, 'amount');
         const feeCurrencyId = this.safeString (trade, 'feeCurrency');
-        const feeCost = this.safeNumber (trade, 'feeAmount');
-        if (feeCost !== undefined) {
+        const feeCostString = this.safeString (trade, 'feeAmount');
+        if (feeCostString !== undefined) {
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             };
         }
