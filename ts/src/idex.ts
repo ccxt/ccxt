@@ -606,12 +606,12 @@ export default class idex extends Exchange {
         const oppositeSide = (makerSide === 'buy') ? 'sell' : 'buy';
         const side = this.safeString (trade, 'side', oppositeSide);
         const takerOrMaker = this.safeString (trade, 'liquidity', 'taker');
-        const feeCost = this.safeNumber (trade, 'fee');
+        const feeCostString = this.safeString (trade, 'fee');
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'feeAsset');
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': this.safeCurrencyCode (feeCurrencyId),
             };
         }
