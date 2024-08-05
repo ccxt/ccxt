@@ -61,6 +61,450 @@
                 }
             }
         ],
+        "fetchTrades": [
+            {
+                "description": "Fetch trades with a limit argument",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT",
+                    1721909422123,
+                    2
+                ],
+                "httpResponse": [
+                    {
+                        "t": "1722860048522",
+                        "p": "50941.49",
+                        "q": "0.00735",
+                        "ibm": true
+                    },
+                    {
+                        "t": "1722860048556",
+                        "p": "50981.1",
+                        "q": "0.00058",
+                        "ibm": false
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "timestamp": 1722860048522,
+                        "datetime": "2024-08-05T12:14:08.522Z",
+                        "symbol": "BTC/USDT",
+                        "side": null,
+                        "price": 50941.49,
+                        "amount": 0.00735,
+                        "cost": 374.4199515,
+                        "takerOrMaker": null,
+                        "type": null,
+                        "order": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "t": "1722860048522",
+                            "p": "50941.49",
+                            "q": "0.00735",
+                            "ibm": true
+                        },
+                        "fees": [
+                            {
+                                "cost": null,
+                                "currency": null
+                            }
+                        ]
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1722860048556,
+                        "datetime": "2024-08-05T12:14:08.556Z",
+                        "symbol": "BTC/USDT",
+                        "side": null,
+                        "price": 50981.1,
+                        "amount": 0.00058,
+                        "cost": 29.569038,
+                        "takerOrMaker": null,
+                        "type": null,
+                        "order": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "t": "1722860048556",
+                            "p": "50981.1",
+                            "q": "0.00058",
+                            "ibm": false
+                        },
+                        "fees": [
+                            {
+                                "cost": null,
+                                "currency": null
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "description": "Fetch trades with a limit argument for swap",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT:USDT",
+                    1721909422123,
+                    2
+                ],
+                "httpResponse": [
+                    {
+                        "t": "1722860271093",
+                        "p": "50592",
+                        "q": "1",
+                        "ibm": true
+                    },
+                    {
+                        "t": "1722860271183",
+                        "p": "50596",
+                        "q": "184",
+                        "ibm": true
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "timestamp": 1722860271093,
+                        "datetime": "2024-08-05T12:17:51.093Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "side": null,
+                        "price": 50592,
+                        "amount": 1,
+                        "cost": 50.592,
+                        "takerOrMaker": null,
+                        "type": null,
+                        "order": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "t": "1722860271093",
+                            "p": "50592",
+                            "q": "1",
+                            "ibm": true
+                        },
+                        "fees": [
+                            {
+                                "cost": null,
+                                "currency": null
+                            }
+                        ]
+                    },
+                    {
+                        "id": null,
+                        "timestamp": 1722860271183,
+                        "datetime": "2024-08-05T12:17:51.183Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "side": null,
+                        "price": 50596,
+                        "amount": 184,
+                        "cost": 9309.664,
+                        "takerOrMaker": null,
+                        "type": null,
+                        "order": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "info": {
+                            "t": "1722860271183",
+                            "p": "50596",
+                            "q": "184",
+                            "ibm": true
+                        },
+                        "fees": [
+                            {
+                                "cost": null,
+                                "currency": null
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchMyTrades",
+                "input": [
+                    "ETH/USDT",
+                    1722076468643,
+                    2
+                ],
+                "httpResponse": [
+                    {
+                        "id": "1739352552862964736",
+                        "clientOrderId": "1722082982086472",
+                        "ticketId": "1739352552795029504",
+                        "symbol": "ETHUSDT",
+                        "symbolName": "ETHUSDT",
+                        "orderId": "1739352552762301440",
+                        "matchOrderId": "0",
+                        "price": "3289.96",
+                        "qty": "0.001",
+                        "commission": "0.0000012",
+                        "commissionAsset": "ETH",
+                        "time": "1722082982097",
+                        "isBuyer": true,
+                        "isMaker": false,
+                        "fee": {
+                            "feeCoinId": "ETH",
+                            "feeCoinName": "ETH",
+                            "fee": "0.0000012"
+                        },
+                        "feeCoinId": "ETH",
+                        "feeAmount": "0.0000012",
+                        "makerRebate": "0"
+                    },
+                    {
+                        "id": "1739297914033858304",
+                        "clientOrderId": "1722076468629532",
+                        "ticketId": "1739297913982697472",
+                        "symbol": "ETHUSDT",
+                        "symbolName": "ETHUSDT",
+                        "orderId": "1739297913950044928",
+                        "matchOrderId": "0",
+                        "price": "3275.41",
+                        "qty": "0.0009",
+                        "commission": "0.00000108",
+                        "commissionAsset": "ETH",
+                        "time": "1722076468643",
+                        "isBuyer": true,
+                        "isMaker": false,
+                        "fee": {
+                            "feeCoinId": "ETH",
+                            "feeCoinName": "ETH",
+                            "fee": "0.00000108"
+                        },
+                        "feeCoinId": "ETH",
+                        "feeAmount": "0.00000108",
+                        "makerRebate": "0"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "1739297914033858304",
+                        "timestamp": 1722076468643,
+                        "datetime": "2024-07-27T10:34:28.643Z",
+                        "symbol": "ETH/USDT",
+                        "side": "buy",
+                        "price": 3275.41,
+                        "amount": 0.0009,
+                        "cost": 2.947869,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "order": "1739297913950044928",
+                        "fee": {
+                            "cost": 0.00000108,
+                            "currency": "ETH"
+                        },
+                        "info": {
+                            "id": "1739297914033858304",
+                            "clientOrderId": "1722076468629532",
+                            "ticketId": "1739297913982697472",
+                            "symbol": "ETHUSDT",
+                            "symbolName": "ETHUSDT",
+                            "orderId": "1739297913950044928",
+                            "matchOrderId": "0",
+                            "price": "3275.41",
+                            "qty": "0.0009",
+                            "commission": "0.00000108",
+                            "commissionAsset": "ETH",
+                            "time": "1722076468643",
+                            "isBuyer": true,
+                            "isMaker": false,
+                            "fee": {
+                                "feeCoinId": "ETH",
+                                "feeCoinName": "ETH",
+                                "fee": "0.00000108"
+                            },
+                            "feeCoinId": "ETH",
+                            "feeAmount": "0.00000108",
+                            "makerRebate": "0"
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.00000108,
+                                "currency": "ETH"
+                            }
+                        ]
+                    },
+                    {
+                        "id": "1739352552862964736",
+                        "timestamp": 1722082982097,
+                        "datetime": "2024-07-27T12:23:02.097Z",
+                        "symbol": "ETH/USDT",
+                        "side": "buy",
+                        "price": 3289.96,
+                        "amount": 0.001,
+                        "cost": 3.28996,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "order": "1739352552762301440",
+                        "fee": {
+                            "cost": 0.0000012,
+                            "currency": "ETH"
+                        },
+                        "info": {
+                            "id": "1739352552862964736",
+                            "clientOrderId": "1722082982086472",
+                            "ticketId": "1739352552795029504",
+                            "symbol": "ETHUSDT",
+                            "symbolName": "ETHUSDT",
+                            "orderId": "1739352552762301440",
+                            "matchOrderId": "0",
+                            "price": "3289.96",
+                            "qty": "0.001",
+                            "commission": "0.0000012",
+                            "commissionAsset": "ETH",
+                            "time": "1722082982097",
+                            "isBuyer": true,
+                            "isMaker": false,
+                            "fee": {
+                                "feeCoinId": "ETH",
+                                "feeCoinName": "ETH",
+                                "fee": "0.0000012"
+                            },
+                            "feeCoinId": "ETH",
+                            "feeAmount": "0.0000012",
+                            "makerRebate": "0"
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.0000012,
+                                "currency": "ETH"
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "description": "Fetch my trades for swap with a limit argument",
+                "method": "fetchMyTrades",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1722429951648,
+                    2
+                ],
+                "httpResponse": [
+                    {
+                        "time": "1722685297437",
+                        "tradeId": "1744405140125908224",
+                        "orderId": "1744405140008461056",
+                        "symbol": "ETHUSDT-PERPETUAL",
+                        "price": "2998.25",
+                        "quantity": "10",
+                        "commissionAsset": "USDT",
+                        "commission": "0.0179895",
+                        "makerRebate": "0",
+                        "type": "MARKET",
+                        "side": "SELL_CLOSE",
+                        "realizedPnl": "-3.29278",
+                        "isMarker": false
+                    },
+                    {
+                        "time": "1722684714238",
+                        "tradeId": "1744400247898104576",
+                        "orderId": "1744400247788997120",
+                        "symbol": "ETHUSDT-PERPETUAL",
+                        "price": "2995.99",
+                        "quantity": "5",
+                        "commissionAsset": "USDT",
+                        "commission": "0.00898797",
+                        "makerRebate": "0",
+                        "type": "LIMIT",
+                        "side": "SELL_OPEN",
+                        "realizedPnl": "0",
+                        "isMarker": false
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "1744400247898104576",
+                        "timestamp": 1722684714238,
+                        "datetime": "2024-08-03T11:31:54.238Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 2995.99,
+                        "amount": 5,
+                        "cost": 14.97995,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "order": "1744400247788997120",
+                        "fee": {
+                            "cost": 0.00898797,
+                            "currency": "USDT"
+                        },
+                        "info": {
+                            "time": "1722684714238",
+                            "tradeId": "1744400247898104576",
+                            "orderId": "1744400247788997120",
+                            "symbol": "ETHUSDT-PERPETUAL",
+                            "price": "2995.99",
+                            "quantity": "5",
+                            "commissionAsset": "USDT",
+                            "commission": "0.00898797",
+                            "makerRebate": "0",
+                            "type": "LIMIT",
+                            "side": "SELL_OPEN",
+                            "realizedPnl": "0",
+                            "isMarker": false
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.00898797,
+                                "currency": "USDT"
+                            }
+                        ]
+                    },
+                    {
+                        "id": "1744405140125908224",
+                        "timestamp": 1722685297437,
+                        "datetime": "2024-08-03T11:41:37.437Z",
+                        "symbol": "ETH/USDT:USDT",
+                        "side": "sell",
+                        "price": 2998.25,
+                        "amount": 10,
+                        "cost": 29.9825,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "order": "1744405140008461056",
+                        "fee": {
+                            "cost": 0.0179895,
+                            "currency": "USDT"
+                        },
+                        "info": {
+                            "time": "1722685297437",
+                            "tradeId": "1744405140125908224",
+                            "orderId": "1744405140008461056",
+                            "symbol": "ETHUSDT-PERPETUAL",
+                            "price": "2998.25",
+                            "quantity": "10",
+                            "commissionAsset": "USDT",
+                            "commission": "0.0179895",
+                            "makerRebate": "0",
+                            "type": "MARKET",
+                            "side": "SELL_CLOSE",
+                            "realizedPnl": "-3.29278",
+                            "isMarker": false
+                        },
+                        "fees": [
+                            {
+                                "cost": 0.0179895,
+                                "currency": "USDT"
+                            }
+                        ]
+                    }
+                ]
+            }
+        ],
         "fetchOHLCV": [
             {
                 "description": "Fetch OHLCV",
@@ -347,6 +791,257 @@
                         "coinType": "ERC20_TOKEN"
                     }
                 }
+            }
+        ],
+        "transfer": [
+            {
+                "description": "Transfet from main account to sub account",
+                "method": "transfer",
+                "input": [
+                    "USDT",
+                    1,
+                    "1732885739589466112",
+                    "1743748690940626432"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "timestamp": "1722862229848",
+                    "clientOrderId": "",
+                    "orderId": "1745889354776122368"
+                },
+                "parsedResponse": {
+                    "id": "1745889354776122368",
+                    "timestamp": 1722862229848,
+                    "datetime": "2024-08-05T12:50:29.848Z",
+                    "currency": "USDT",
+                    "amount": null,
+                    "fromAccount": null,
+                    "toAccount": null,
+                    "status": "ok",
+                    "info": {
+                        "success": true,
+                        "timestamp": "1722862229848",
+                        "clientOrderId": "",
+                        "orderId": "1745889354776122368"
+                    }
+                }
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "Fetch accounts",
+                "method": "fetchAccounts",
+                "input": [],
+                "httpResponse": [
+                    {
+                        "accountId": "1732885739589466112",
+                        "accountLabel": "Main Trading Account",
+                        "accountType": "1",
+                        "accountIndex": "0"
+                    },
+                    {
+                        "accountId": "1735619524953226496",
+                        "accountLabel": "Main Future Account",
+                        "accountType": "3",
+                        "accountIndex": "0"
+                    },
+                    {
+                        "accountId": "1732885739589466115",
+                        "accountLabel": "Custody Account",
+                        "accountType": "5",
+                        "accountIndex": "0"
+                    },
+                    {
+                        "accountId": "1732885739589466116",
+                        "accountLabel": "Fiat Account",
+                        "accountType": "6",
+                        "accountIndex": "0"
+                    },
+                    {
+                        "accountId": "1743748690940626432",
+                        "accountLabel": "Sub Main Trading Account",
+                        "accountType": "1",
+                        "accountIndex": "0"
+                    },
+                    {
+                        "accountId": "1743748691225839104",
+                        "accountLabel": "Sub Main Future Account",
+                        "accountType": "3",
+                        "accountIndex": "0"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "1732885739589466112",
+                        "type": "main spot account",
+                        "code": null,
+                        "info": {
+                            "accountId": "1732885739589466112",
+                            "accountLabel": "Main Trading Account",
+                            "accountType": "1",
+                            "accountIndex": "0"
+                        }
+                    },
+                    {
+                        "id": "1735619524953226496",
+                        "type": "main swap account",
+                        "code": null,
+                        "info": {
+                            "accountId": "1735619524953226496",
+                            "accountLabel": "Main Future Account",
+                            "accountType": "3",
+                            "accountIndex": "0"
+                        }
+                    },
+                    {
+                        "id": "1732885739589466115",
+                        "type": " custody account",
+                        "code": null,
+                        "info": {
+                            "accountId": "1732885739589466115",
+                            "accountLabel": "Custody Account",
+                            "accountType": "5",
+                            "accountIndex": "0"
+                        }
+                    },
+                    {
+                        "id": "1732885739589466116",
+                        "type": " fiat account",
+                        "code": null,
+                        "info": {
+                            "accountId": "1732885739589466116",
+                            "accountLabel": "Fiat Account",
+                            "accountType": "6",
+                            "accountIndex": "0"
+                        }
+                    },
+                    {
+                        "id": "1743748690940626432",
+                        "type": "sub spot account",
+                        "code": null,
+                        "info": {
+                            "accountId": "1743748690940626432",
+                            "accountLabel": "Sub Main Trading Account",
+                            "accountType": "1",
+                            "accountIndex": "0"
+                        }
+                    },
+                    {
+                        "id": "1743748691225839104",
+                        "type": "sub swap account",
+                        "code": null,
+                        "info": {
+                            "accountId": "1743748691225839104",
+                            "accountLabel": "Sub Main Future Account",
+                            "accountType": "3",
+                            "accountIndex": "0"
+                        }
+                    }
+                ]
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "Fill this with a description of the method call",
+                "method": "fetchLedger",
+                "input": [
+                    "USDT",
+                    1722239052000,
+                    2,
+                    {
+                        "until": 1722411852000
+                    }
+                ],
+                "httpResponse": [
+                    {
+                        "id": "1740844413612065537",
+                        "accountId": "1732885739589466112",
+                        "coin": "USDT",
+                        "coinId": "USDT",
+                        "coinName": "USDT",
+                        "flowTypeValue": "51",
+                        "flowType": "USER_ACCOUNT_TRANSFER",
+                        "flowName": "",
+                        "change": "-1",
+                        "total": "8.015680088",
+                        "created": "1722260825765"
+                    },
+                    {
+                        "id": "1740843877328280576",
+                        "accountId": "1732885739589466112",
+                        "coin": "USDT",
+                        "coinId": "USDT",
+                        "coinName": "USDT",
+                        "flowTypeValue": "51",
+                        "flowType": "USER_ACCOUNT_TRANSFER",
+                        "flowName": "",
+                        "change": "-1",
+                        "total": "9.015680088",
+                        "created": "1722260761834"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "1740843877328280576",
+                        "info": {
+                            "id": "1740843877328280576",
+                            "accountId": "1732885739589466112",
+                            "coin": "USDT",
+                            "coinId": "USDT",
+                            "coinName": "USDT",
+                            "flowTypeValue": "51",
+                            "flowType": "USER_ACCOUNT_TRANSFER",
+                            "flowName": "",
+                            "change": "-1",
+                            "total": "9.015680088",
+                            "created": "1722260761834"
+                        },
+                        "timestamp": 1722260761834,
+                        "datetime": "2024-07-29T13:46:01.834Z",
+                        "account": "1732885739589466112",
+                        "direction": "out",
+                        "referenceId": null,
+                        "referenceAccount": null,
+                        "type": "transfer",
+                        "currency": "USDT",
+                        "symbol": null,
+                        "amount": -1,
+                        "before": null,
+                        "after": 9.015680088,
+                        "status": "ok",
+                        "fee": null
+                    },
+                    {
+                        "id": "1740844413612065537",
+                        "info": {
+                            "id": "1740844413612065537",
+                            "accountId": "1732885739589466112",
+                            "coin": "USDT",
+                            "coinId": "USDT",
+                            "coinName": "USDT",
+                            "flowTypeValue": "51",
+                            "flowType": "USER_ACCOUNT_TRANSFER",
+                            "flowName": "",
+                            "change": "-1",
+                            "total": "8.015680088",
+                            "created": "1722260825765"
+                        },
+                        "timestamp": 1722260825765,
+                        "datetime": "2024-07-29T13:47:05.765Z",
+                        "account": "1732885739589466112",
+                        "direction": "out",
+                        "referenceId": null,
+                        "referenceAccount": null,
+                        "type": "transfer",
+                        "currency": "USDT",
+                        "symbol": null,
+                        "amount": -1,
+                        "before": null,
+                        "after": 8.015680088,
+                        "status": "ok",
+                        "fee": null
+                    }
+                ]
             }
         ]
     }
