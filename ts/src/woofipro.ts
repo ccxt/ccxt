@@ -689,7 +689,7 @@ export default class woofipro extends Exchange {
         const amount = this.safeString (trade, 'executed_quantity');
         const order_id = this.safeString (trade, 'order_id');
         const fee = this.parseTokenAndFeeTemp (trade, 'fee_asset', 'fee');
-        const feeCost = this.safeNumber (fee, 'cost');
+        const feeCost = this.safeString (fee, 'cost');
         if (feeCost !== undefined) {
             fee['cost'] = feeCost;
         }
