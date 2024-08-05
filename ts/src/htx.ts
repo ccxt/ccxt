@@ -2584,7 +2584,7 @@ export default class htx extends Exchange {
         }
         if (feeCost !== undefined) {
             fee = {
-                'cost': this.parseNumber (feeCost),
+                'cost': feeCost,
                 'currency': feeCurrency,
             };
         }
