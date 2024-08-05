@@ -1,6 +1,6 @@
 {
     "exchange": "hashkey",
-    "skipKeys": ["timestamp", "signature", "clientOrderId"],
+    "skipKeys": ["timestamp", "signature", "clientOrderId", "timeInForce"],
     "outputType": "urlencoded",
     "methods": {
         "fetchMarkets": [
