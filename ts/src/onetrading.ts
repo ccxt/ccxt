@@ -928,15 +928,15 @@ export default class onetrading extends Exchange {
         const costString = this.safeString (trade, 'volume');
         const marketId = this.safeString (trade, 'instrument_code');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const feeCost = this.safeNumber (feeInfo, 'fee_amount');
+        const feeCostString = this.safeString (feeInfo, 'fee_amount');
         let takerOrMaker = undefined;
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (feeInfo, 'fee_currency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             const feeRateString = this.safeString (feeInfo, 'fee_percentage');
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
                 'rate': feeRateString,
             };
