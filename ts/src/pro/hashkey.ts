@@ -171,7 +171,7 @@ export default class hashkey extends hashkeyRest {
         symbol = market['symbol'];
         const topic = 'realtimes';
         const messageHash = 'ticker:' + symbol;
-        return await await this.wathPublic (market, topic, messageHash, params);
+        return await this.wathPublic (market, topic, messageHash, params);
     }
 
     handleTicker (client: Client, message) {
