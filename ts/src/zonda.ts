@@ -1297,16 +1297,16 @@ export default class zonda extends Exchange {
         }
         const priceString = this.safeString2 (trade, 'rate', 'r');
         const amountString = this.safeString2 (trade, 'amount', 'a');
-        const feeCost = this.safeNumber (trade, 'commissionValue');
+        const feeCostString = this.safeString (trade, 'commissionValue');
         const marketId = this.safeString (trade, 'market');
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             const feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
             fee = {
                 'currency': feeCurrency,
-                'cost': feeCost,
+                'cost': feeCostString,
             };
         }
         const order = this.safeString (trade, 'offerId');
