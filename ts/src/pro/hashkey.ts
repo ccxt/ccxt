@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import hashkeyRest from '../hashkey.js';
-import type { Dict, Int, Market, OHLCV } from '../base/types.js';
+import type { Dict, Int, Market, OHLCV, Ticker } from '../base/types.js';
 import { ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
@@ -15,10 +15,10 @@ export default class hashkey extends hashkeyRest {
                 'ws': true,
                 'watchBalance': false,
                 'watchMyTrades': false,
-                'watchOHLCV': false,
+                'watchOHLCV': true,
                 'watchOrderBook': false,
                 'watchOrders': false,
-                'watchTicker': false,
+                'watchTicker': true,
                 'watchTrades': false,
                 'watchPositions': false,
             },
@@ -59,14 +59,14 @@ export default class hashkey extends hashkeyRest {
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
-         * @name ascendex#watchOHLCV
+         * @name hashkey#watchOHLCV
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [params.binary]
+         * @param {bool} [params.binary] true or false - default false
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         await this.loadMarkets ();
@@ -156,10 +156,67 @@ export default class hashkey extends hashkeyRest {
         ];
     }
 
+    async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name hahskey#watchTicker
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [params.binary] true or false - default false
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const topic = 'realtimes';
+        const messageHash = 'ticker:' + symbol;
+        return await await this.wathPublic (market, topic, messageHash, params);
+    }
+
+    handleTicker (client: Client, message) {
+        //
+        //     {
+        //         "symbol": "ETHUSDT",
+        //         "symbolName": "ETHUSDT",
+        //         "topic": "realtimes",
+        //         "params": {
+        //             "realtimeInterval": "24h"
+        //         },
+        //         "data": [
+        //             {
+        //                 "t": 1722864411064,
+        //                 "s": "ETHUSDT",
+        //                 "sn": "ETHUSDT",
+        //                 "c": "2195",
+        //                 "h": "2918.85",
+        //                 "l": "2135.5",
+        //                 "o": "2915.78",
+        //                 "v": "666.5019",
+        //                 "qv": "1586902.757079",
+        //                 "m": "-0.2472",
+        //                 "e": 301
+        //             }
+        //         ],
+        //         "f": false,
+        //         "sendTime": 1722864411086,
+        //         "shared": false
+        //     }
+        //
+        const data = this.safeList (message, 'data', []);
+        const ticker = this.parseTicker (this.safeDict (data, 0));
+        const symbol = ticker['symbol'];
+        const messageHash = 'ticker:' + symbol;
+        this.tickers[symbol] = ticker;
+        client.resolve (this.tickers[symbol], messageHash);
+    }
+
     handleMessage (client: Client, message) {
         const topic = this.safeString (message, 'topic');
         if (topic === 'kline') {
             this.handleOHLCV (client, message);
+        } else if (topic === 'realtimes') {
+            this.handleTicker (client, message);
         }
     }
 }
