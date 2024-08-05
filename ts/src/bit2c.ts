@@ -791,7 +791,7 @@ export default class bit2c extends Exchange {
             } else if (side === 1) {
                 side = 'sell';
             }
-            const feeCost = this.safeNumber (trade, 'feeAmount');
+            const feeCost = this.safeString (trade, 'feeAmount');
             if (feeCost !== undefined) {
                 fee = {
                     'cost': feeCost,
