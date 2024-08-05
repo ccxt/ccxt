@@ -1465,6 +1465,8 @@ class bitmex(Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def parse_funding_rate_histories(self, response, symbol, since, limit):
+        if not response:
+            return []
         rates = []
         for i in range(0, len(response)):
             entry = response[i]

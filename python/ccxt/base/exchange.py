@@ -3605,6 +3605,8 @@ class Exchange(object):
         return params, isStop or order_type == 'stop'
 
     def parse_funding_rate_histories(self, response, market=None, since=None, limit=None):
+        if not response:
+            return []
         rates = []
         for i in range(0, len(response)):
             entry = response[i]
