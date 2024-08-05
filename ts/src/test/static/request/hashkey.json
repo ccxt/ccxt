@@ -3,6 +3,14 @@
     "skipKeys": ["timestamp", "signature"],
     "outputType": "urlencoded",
     "methods": {
+        "fetchMarkets": [
+            {
+                "description": "Fetch markets",
+                "method": "fetchMarkets",
+                "url": "https://api-glb.hashkey.com/api/v1/exchangeInfo",
+                "input": []
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "Fetch all currencies",
@@ -73,6 +81,44 @@
                 "input": [
                     "BTC/USDT:USDT",
                     1721909422123,
+                    2
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "Fetch my trades for spot",
+                "method": "fetchMyTrades",
+                "url": "https://api-glb.hashkey.com/api/v1/account/trades?timestamp=1722860399498&symbol=ETHUSDT&signature=ec8c3ebd2b0220ccc008a17137672dd5b39585c61820f68369fc86fd13bcef73",
+                "input": [
+                    "ETH/USDT"
+                ]
+            },
+            {
+                "description": "Fetch my trades for swap",
+                "method": "fetchMyTrades",
+                "url": "https://api-glb.hashkey.com/api/v1/futures/userTrades?timestamp=1722860478301&symbol=ETHUSDT-PERPETUAL&signature=f2e893c275facc965ef484cfb9f7b68a421fe7b830c6b66415fb43c4c6b9b015",
+                "input": [
+                    "ETH/USDT:USDT"
+                ]
+            },
+            {
+                "description": "Fetch my trades for spot with a limit argument",
+                "method": "fetchMyTrades",
+                "url": "https://api-glb.hashkey.com/api/v1/account/trades?timestamp=1722860817329&startTime=1722076468643&limit=2&symbol=ETHUSDT&signature=59aa29ee7f8b56192d11711d4b914e85efea45920f799c3e6beff3f85dab0379",
+                "input": [
+                    "ETH/USDT",
+                    1722076468643,
+                    2
+                ]
+            },
+            {
+                "description": "Fetch my trades for swap with a limit argument",
+                "method": "fetchMyTrades",
+                "url": "https://api-glb.hashkey.com/api/v1/futures/userTrades?timestamp=1722860554037&startTime=1722429951648&limit=2&symbol=ETHUSDT-PERPETUAL&signature=95c69acaffc7f47abe261b88accf0519ce6aceeffd2b116d55402a87f4117ba8",
+                "input": [
+                    "ETH/USDT:USDT",
+                    1722429951648,
                     2
                 ]
             }
@@ -149,6 +195,43 @@
                   "USDT",
                     {
                         "network": "ARB"
+                    }
+                ]
+            }
+        ],
+        "transfer": [
+            {
+                "description": "Transfer from main account to sub account",
+                "method": "transfer",
+                "url": "https://api-glb.hashkey.com/api/v1/account/assetTransfer",
+                "input": [
+                    "USDT",
+                    1,
+                    "1732885739589466112",
+                    "1743748690940626432"
+                ],
+                "output": "timestamp=1722862228807&coin=USDT&quantity=1&fromAccountId=1732885739589466112&toAccountId=1743748690940626432&signature=b9ec4f0c218ea24ee6bf3bd3474e9fe65d380a9d598e4b045fb81e09754712ee"
+            }
+        ],
+        "fetchAccounts": [
+            {
+                "description": "Fetch accounts",
+                "method": "fetchAccounts",
+                "url": "https://api-glb.hashkey.com/api/v1/account/type?timestamp=1722862043255&signature=46b94fffffe287badc3975118587eeb12963b0899fa8588ba0627eba13e78c71",
+                "input": []
+            }
+        ],
+        "fetchLedger": [
+            {
+                "description": "Fetch ledger",
+                "method": "fetchLedger",
+                "url": "https://api-glb.hashkey.com/api/v1/account/balanceFlow?timestamp=1722862735789&startTime=1722239052000&limit=2&endTime=1722411852000&signature=3dac63f4e95be61cc62b61574a731b5718adaff2a02f7363bc878c276c98a91f",
+                "input": [
+                    "USDT",
+                    1722239052000,
+                    2,
+                    {
+                        "until": 1722411852000
                     }
                 ]
             }
