@@ -781,9 +781,10 @@ export default class blockchaincom extends Exchange {
         market = this.safeMarket (marketId, market, '-');
         const symbol = market['symbol'];
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'fee');
-        if (feeCost !== undefined) {
-            fee = { 'cost': feeCost, 'currency': market['quote'] };
+        const feeCostString = this.safeString (trade, 'fee');
+        if (feeCostString !== undefined) {
+            const feeCurrency = market['quote'];
+            fee = { 'cost': feeCostString, 'currency': feeCurrency };
         }
         return this.safeTrade ({
             'id': tradeId,
