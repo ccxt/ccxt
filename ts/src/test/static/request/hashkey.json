@@ -379,18 +379,6 @@
                 "output": "timestamp=1722866300832&symbol=ETHUSDT-PERPETUAL&type=LIMIT&quantity=1&price=3500&priceType=INPUT&side=SELL_OPEN&timeInForce=LIMIT_MAKER&clientOrderId=1722866300331&postOnly=true&signature=6d2ca8d4da7b756b2935c00140a9e3628a8744c9d5788db2881eb7fc7d0f71fc"
             }
         ],
-        "createMarketBuyOrderWithCost": [
-            {
-                "description": "Spot market buy with cost",
-                "method": "createMarketBuyOrderWithCost",
-                "url": "https://api-glb.hashkey.com/api/v1/spot/order",
-                "input": [
-                    "ETH/USDT",
-                    1
-                ],
-                "output": "timestamp=1722866467583&symbol=ETHUSDT&side=BUY&type=MARKET&quantity=1&signature=872920457adf0e300c99d0a594aee382b484785cd96b6eb6179e13d90ec17f63"
-            }
-        ],
         "cancelOrder": [
             {
                 "description": "Cancel order",
