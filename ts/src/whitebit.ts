@@ -1082,7 +1082,7 @@ export default class whitebit extends Exchange {
             takerOrMaker = (role === 1) ? 'maker' : 'taker';
         }
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'fee');
+        const feeCost = this.safeString (trade, 'fee');
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
