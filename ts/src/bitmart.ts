@@ -1611,16 +1611,16 @@ export default class bitmart extends Exchange {
         }
         const marketId = this.safeString2 (trade, 'symbol', 0);
         market = this.safeMarket (marketId, market);
-        const feeCost = this.safeNumber2 (trade, 'fee', 'paid_fees');
+        const feeCostString = this.safeString2 (trade, 'fee', 'paid_fees');
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (trade, 'feeCoinName');
             let feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             if (feeCurrencyCode === undefined) {
                 feeCurrencyCode = (side === 'buy') ? market['base'] : market['quote'];
             }
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             };
         }
