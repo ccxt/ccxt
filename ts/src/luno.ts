@@ -723,7 +723,7 @@ export default class luno extends Exchange {
             // Does not include potential fee costs
             'cost': this.safeString (trade, 'counter'),
             'fee': {
-                'cost': this.parseNumber (feeCost),
+                'cost': feeCost,
                 'currency': feeCurrency,
             },
         }, market);
