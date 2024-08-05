@@ -484,11 +484,11 @@ export default class btcturk extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const side = this.safeString2 (trade, 'side', 'orderType');
         let fee = undefined;
-        const feeCostString = this.safeString (trade, 'fee');
-        if (feeCostString !== undefined) {
+        const feeAmountString = this.safeString (trade, 'fee');
+        if (feeAmountString !== undefined) {
             const feeCurrency = this.safeString (trade, 'denominatorSymbol');
             fee = {
-                'cost': this.parseNumber (Precise.stringAbs (feeCostString)),
+                'cost': Precise.stringAbs (feeAmountString),
                 'currency': this.safeCurrencyCode (feeCurrency),
             };
         }
