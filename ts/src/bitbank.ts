@@ -354,11 +354,11 @@ export default class bitbank extends Exchange {
         const id = this.safeString2 (trade, 'transaction_id', 'trade_id');
         const takerOrMaker = this.safeString (trade, 'maker_taker');
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'fee_amount_quote');
-        if (feeCost !== undefined) {
+        const feeCostString = this.safeString (trade, 'fee_amount_quote');
+        if (feeCostString !== undefined) {
             fee = {
                 'currency': market['quote'],
-                'cost': feeCost,
+                'cost': feeCostString,
             };
         }
         const orderId = this.safeString (trade, 'order_id');
