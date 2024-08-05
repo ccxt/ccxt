@@ -4505,7 +4505,7 @@ export default class binance extends Exchange {
         let fee = undefined;
         if ('commission' in trade) {
             fee = {
-                'cost': this.safeNumber (trade, 'commission'),
+                'cost': this.safeString (trade, 'commission'),
                 'currency': this.safeCurrencyCode (this.safeString (trade, 'commissionAsset')),
             };
         }
@@ -4520,7 +4520,7 @@ export default class binance extends Exchange {
             takerOrMaker = this.safeStringLower (trade, 'liquidity');
             if ('fee' in trade) {
                 fee = {
-                    'cost': this.safeNumber (trade, 'fee'),
+                    'cost': this.safeString (trade, 'fee'),
                     'currency': settle,
                 };
             }
