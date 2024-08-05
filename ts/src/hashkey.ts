@@ -1890,6 +1890,11 @@ export default class hashkey extends Exchange {
     parseTransfer (transfer, currency: Currency = undefined) {
         const timestamp = this.safeInteger (transfer, 'timestamp');
         const currencyId = this.safeString (currency, 'id');
+        let status: Str = undefined;
+        const success = this.safeBool (transfer, 'success', false);
+        if (success) {
+            status = 'ok';
+        }
         return {
             'id': this.safeString (transfer, 'orderId'),
             'timestamp': timestamp,
@@ -1898,16 +1903,9 @@ export default class hashkey extends Exchange {
             'amount': undefined,
             'fromAccount': undefined,
             'toAccount': undefined,
-            'status': this.parseTransferStatus (this.safeString (transfer, 'success')),
+            'status': status,
             'info': transfer,
         };
-    }
-
-    parseTransferStatus (status) {
-        const statuses: Dict = {
-            'true': 'ok',
-        };
-        return this.safeString (statuses, status, status);
     }
 
     async fetchAccounts (params = {}): Promise<Account[]> {
