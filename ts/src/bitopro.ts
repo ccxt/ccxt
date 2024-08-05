@@ -578,12 +578,13 @@ export default class bitopro extends Exchange {
             amount = this.safeString (trade, 'baseAmount');
         }
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'fee');
+        const feeAmount = this.safeString (trade, 'fee');
         const feeSymbol = this.safeCurrencyCode (this.safeString (trade, 'feeSymbol'));
-        if (feeCost !== undefined) {
+        if (feeAmount !== undefined) {
             fee = {
-                'cost': feeCost,
+                'cost': feeAmount,
                 'currency': feeSymbol,
+                'rate': undefined,
             };
         }
         const isTaker = this.safeValue (trade, 'isTaker');
