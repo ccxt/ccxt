@@ -2027,7 +2027,7 @@ export default class okx extends Exchange {
             const feeCurrencyId = this.safeString (trade, 'feeCcy');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
-                'cost': this.parseNumber (feeCostSigned),
+                'cost': feeCostSigned,
                 'currency': feeCurrencyCode,
             };
         }
