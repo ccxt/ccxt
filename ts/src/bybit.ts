@@ -2729,7 +2729,7 @@ export default class bybit extends Exchange {
                 feeCurrencyCode = market['inverse'] ? market['base'] : market['settle'];
             }
             fee = {
-                'cost': this.parseNumber (feeCostString),
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
                 'rate': feeRateString,
             };
