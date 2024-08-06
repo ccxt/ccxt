@@ -167,7 +167,7 @@ export default class bybit extends bybitRest {
         } else {
             if (isSpot) {
                 url = url[accessibility]['spot'];
-            } else if (type === 'swap') {
+            } else if ((type === 'swap') || (type === 'future')) {
                 let subType = undefined;
                 [ subType, params ] = this.handleSubTypeAndParams (method, market, params, 'linear');
                 url = url[accessibility][subType];
@@ -2082,7 +2082,7 @@ export default class bybit extends bybitRest {
             this.handleSubscriptionStatus (client, message);
             return;
         }
-        const topic = this.safeString2 (message, 'topic', 'op');
+        const topic = this.safeString2 (message, 'topic', 'op', '');
         const methods: Dict = {
             'orderbook': this.handleOrderBook,
             'kline': this.handleOHLCV,
