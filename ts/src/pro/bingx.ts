@@ -272,6 +272,9 @@ export default class bingx extends bingxRest {
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' watchTickers is not supported for spot markets yet');
         }
+        if (subType === 'inverse') {
+            throw new NotSupported (this.id + ' watchTickers is not supported for inverse markets yet');
+        }
         const messageHashes = [];
         const subscriptionHashes = [ 'all@ticker' ];
         if (symbolsDefined) {
@@ -315,13 +318,18 @@ export default class bingx extends bingxRest {
         symbols = this.marketSymbols (symbols, undefined, true, true, false);
         let firstMarket = undefined;
         let marketType = undefined;
+        let subType = undefined;
         const symbolsDefined = (symbols !== undefined);
         if (symbolsDefined) {
             firstMarket = this.market (symbols[0]);
         }
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchOrderBookForSymbols', firstMarket, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('watchOrderBookForSymbols', firstMarket, params, 'linear');
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' watchOrderBookForSymbols is not supported for spot markets yet');
+        }
+        if (subType === 'inverse') {
+            throw new NotSupported (this.id + ' watchOrderBookForSymbols is not supported for inverse markets yet');
         }
         limit = this.getOrderBookLimitByMarketType (marketType, limit);
         let interval = undefined;
@@ -339,7 +347,7 @@ export default class bingx extends bingxRest {
         } else {
             messageHashes.push (this.getMessageHash ('orderbook'));
         }
-        const url = this.safeString (this.urls['api']['ws'], marketType);
+        const url = this.safeString (this.urls['api']['ws'], subType);
         const uuid = this.uuid ();
         const request: Dict = {
             'id': uuid,
@@ -363,6 +371,7 @@ export default class bingx extends bingxRest {
          * @method
          * @name bingx#watchOHLCVForSymbols
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20K-Line%20Data%20of%20all%20trading%20pairs
          * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
@@ -376,15 +385,21 @@ export default class bingx extends bingxRest {
         await this.loadMarkets ();
         const messageHashes = [];
         let marketType = undefined;
+        let subType = undefined;
         let chosenTimeframe = undefined;
+        let firstMarket = undefined;
         if (symbolsLength !== 0) {
             let symbols = this.getListFromObjectValues (symbolsAndTimeframes, 0);
             symbols = this.marketSymbols (symbols, undefined, true, true, false);
-            const firstMarket = this.market (symbols[0]);
-            [ marketType, params ] = this.handleMarketTypeAndParams ('watchOrderBookForSymbols', firstMarket, params);
-            if (marketType === 'spot') {
-                throw new NotSupported (this.id + ' watchOrderBookForSymbols is not supported for spot markets yet');
-            }
+            firstMarket = this.market (symbols[0]);
+        }
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchOHLCVForSymbols', firstMarket, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('watchOHLCVForSymbols', firstMarket, params, 'linear');
+        if (marketType === 'spot') {
+            throw new NotSupported (this.id + ' watchOHLCVForSymbols is not supported for spot markets yet');
+        }
+        if (subType === 'inverse') {
+            throw new NotSupported (this.id + ' watchOHLCVForSymbols is not supported for inverse markets yet');
         }
         const marketOptions = this.safeDict (this.options, marketType);
         const timeframes = this.safeDict (marketOptions, 'timeframes', {});
@@ -402,7 +417,7 @@ export default class bingx extends bingxRest {
             messageHashes.push (this.getMessageHash ('ohlcv', market['symbol'], chosenTimeframe));
         }
         const subscriptionHash = 'all@kline_' + chosenTimeframe;
-        const url = this.safeString (this.urls['api']['ws'], marketType);
+        const url = this.safeString (this.urls['api']['ws'], subType);
         const uuid = this.uuid ();
         const request: Dict = {
             'id': uuid,
