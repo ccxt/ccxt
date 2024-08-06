@@ -3396,6 +3396,10 @@ export default class Exchange {
         let fees = this.safeList (container, 'fees');
         const feeDefined = fee !== undefined;
         const feesDefined = fees !== undefined;
+        // in case `fee & fees` are undefined, set `fees` as empty array
+        if (fees === undefined) {
+            fees = [];
+        }
         // parsing only if at least one of them is defined
         const shouldParseFees = (feeDefined || feesDefined);
         if (shouldParseFees) {
@@ -3405,22 +3409,19 @@ export default class Exchange {
             if (!feesDefined) {
                 // just set it directly, no further processing needed
                 fees = [ fee ];
-            } else {
-                // 'fees' were set, so reparse them
-                const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees) : fees;
-                const reducedLength = reducedFees.length;
-                for (let i = 0; i < reducedLength; i++) {
-                    reducedFees[i] = this.parseFeeNumeric (reducedFees[i]);
-                }
-                fees = reducedFees;
-                if (!feeDefined && (reducedLength === 1)) {
-                    fee = reducedFees[0];
-                }
             }
-        }
-        // in case `fee & fees` are undefined, set `fees` as empty array
-        if (fees === undefined) {
-            fees = [];
+            // 'fees' were set, so reparse them
+            const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees) : fees;
+            const reducedLength = reducedFees.length;
+            for (let i = 0; i < reducedLength; i++) {
+                reducedFees[i] = this.parseFeeNumeric (reducedFees[i]);
+            }
+            fees = reducedFees;
+            if (reducedLength === 1) {
+                fee = reducedFees[0];
+            } else if (reducedLength === 0) {
+                fee = undefined;
+            }
         }
         return [ fee, fees ];
     }
