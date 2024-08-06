@@ -1085,7 +1085,7 @@ export default class hashkey extends Exchange {
             let accountId: Str = undefined;
             [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
             if (accountId !== undefined) {
-                request['accountId'] = clientOrderId;
+                request['accountId'] = accountId;
             }
             response = await this.privateGetApiV1AccountTrades (this.extend (request, params));
             //
