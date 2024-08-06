@@ -30,7 +30,8 @@ export default class bingx extends bingxRest {
                 'api': {
                     'ws': {
                         'spot': 'wss://open-api-ws.bingx.com/market',
-                        'swap': 'wss://open-api-swap.bingx.com/swap-market',
+                        'linear': 'wss://open-api-swap.bingx.com/swap-market',
+                        'inverse': 'wss://open-api-cswap-ws.bingx.com/market',
                     },
                 },
             },
@@ -91,17 +92,27 @@ export default class bingx extends bingxRest {
          * @method
          * @name bingx#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#Subscribe%20to%2024-hour%20Price%20Change
          * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20to%2024-hour%20price%20changes
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%2024-Hour%20Price%20Change
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('watchTicker', market, params);
-        const url = this.safeValue (this.urls['api']['ws'], marketType);
-        if (url === undefined) {
-            throw new BadRequest (this.id + ' watchTicker is not supported for ' + marketType + ' markets.');
+        let marketType = undefined;
+        let subType = undefined;
+        let url = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchTicker', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('watchTicker', market, params, 'linear');
+        if (marketType === 'swap') {
+            url = this.urls['api']['ws'][subType];
+        } else {
+            url = this.urls['api']['ws'][marketType];
+            if (url === undefined) {
+                throw new BadRequest (this.id + ' watchTicker is not supported for ' + marketType + ' markets.');
+            }
         }
         const subscriptionHash = market['id'] + '@ticker';
         const messageHash = this.getMessageHash ('ticker', market['symbol']);
@@ -113,7 +124,7 @@ export default class bingx extends bingxRest {
         if (marketType === 'swap') {
             request['reqType'] = 'sub';
         }
-        return await this.watch (url, messageHash, this.extend (request, query), subscriptionHash);
+        return await this.watch (url, messageHash, this.extend (request, params), subscriptionHash);
     }
 
     handleTicker (client: Client, message) {
