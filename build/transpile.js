@@ -2473,96 +2473,108 @@ class Transpiler {
         const allTsExamplesFiles = fs.readdirSync (examplesFolders.ts).filter((f) => f.endsWith('.ts'));
         for (const filenameWithExtenstion of allTsExamplesFiles) {
             const tsFile = path.join (examplesFolders.ts, filenameWithExtenstion)
-            let tsContent = fs.readFileSync (tsFile).toString ()
+            let tsContent = fs.readFileSync (tsFile).toString ();
             if (tsContent.indexOf (transpileFlagPhrase) > -1) {
-                const isCcxtPro = tsContent.indexOf ('ccxt.pro') > -1;
-                log.magenta ('Transpiling from', tsFile.yellow)
-                const fileName = filenameWithExtenstion.replace ('.ts', '')
-                // temporary: avoid console.log with + (plos) because it may break in python.
-                if (tsContent.match ('console\.log \((.*?)\\+(.*?)\);')){
-                    throw new Error ('console.log with +(plus) detected in ' + tsFile + '. Please use commas or string interpolation.');
-                }
-
-                // detect all function declarations in JS, e.g. `async function Xyz (...)`)
-                const allDetectedFunctionNames = [...tsContent.matchAll(/\bfunction (.*?)\(/g)].map (match => match[1].trim());
-
-                // exec the main transpile function
-                const transpiled = transpiler.transpileDifferentLanguages(fileConfig, tsContent);
-                let [ phpAsyncBody, pythonAsyncBody ] = [ transpiled[0].content, transpiled[1].content  ];
-                // ###### replace common (synchronity agnostic) syntaxes ######
-                const fixPython = (body)=> {
-                    return this.regexAll (body, [
-                        [ /console\.log/g, 'print' ],
-                        // in python import ccxt.pro as ccxt
-                        [ /ccxt.pro/g, 'ccxt' ],
-                        // cases like: exchange = new ccxt.binance ()
-                        //[ / ccxt\.(.?)\(/g, 'ccxt.' + '$2\(' ],
-                        // cases like: exchange = new ccxt['name' or name] ()
-                        [ /ccxt\[(.*?)\]/g, 'getattr(ccxt, $1)'],
-                        // cases like: exchange = new ccxt.pro['name' or name] ()
-                        [ /ccxt.pro\[(.*?)\]/g, 'getattr(ccxt, $1)'],
-                    ]);
-                };
-                const fixPhp = (body)=> {
-                    const regexes = [
-                        [ /\$console\->log/g, 'var_dump' ],
-                        // cases like: exchange = new ccxt.pro.huobi ()
-                        [  /new \$ccxt->pro->/g, 'new \\ccxt\\pro\\' ],
-                        // cases like: exchange = new ccxt.huobi ()
-                        [ /new \$ccxt->/g, 'new \\ccxt\\async\\' ],
-                        // cases like: exchange = new ccxt['huobi' or varname] ()
-                        [ /(\s*)(\$\w+)\s*=\s*new\s+\$ccxt\[([^\]]*)\]\(([^\]]*)\)/g, '$1$exchange_class = \'\\ccxt\\async\\\\\'.$3;$1$2 = new $exchange_class($4)' ],
-                        // cases like: exchange = new ccxt.pro['huobi' or varname] ()
-                        [ /(\s*)(\$\w+)\s*=\s*new\s+\$ccxt\\async\\pro\[([^\]]*)\]\(([^\]]*)\)/g, '$1$exchange_class = \'\\ccxt\\pro\\\\\'.$3;$1$2 = new $exchange_class($4)' ],
-                        // fix cases like: async\pro->kucoin
-                        [ /async\\pro->/g, 'pro\\' ],
-                    ];
-                    return this.regexAll (body, regexes);
-                };
-
-                const finalBodies = {};
-                finalBodies.pyAsync = fixPython (pythonAsyncBody);
-                finalBodies.phpAsync = fixPhp (phpAsyncBody);
-
-                // specifically in python (not needed in other langs), we need add `await .close()` inside matching methods
-                for (const funcNameInit of allDetectedFunctionNames) {
-                    const funcName = unCamelCase (funcNameInit)
-                    // match function bodies
-                    const funcBodyRegex = new RegExp ('(?=def ' + funcName + '\\()(.*?)(?=\\n\\w)', 'gs');
-                    // inside functions, find exchange initiations
-                    finalBodies.pyAsync = finalBodies.pyAsync.replace (funcBodyRegex, function (wholeMatch, innerMatch){
-                        // find inited exchanges
-                        // case 1: inited with getattr
-                        let matches = [ ... innerMatch.matchAll(/(\w*?) \= getattr\(ccxt,\s*(.*?)\)/g)];
-                        if (matches.length === 0) {
-                            // case 2: inited with direct call
-                            matches = [ ... innerMatch.matchAll(/(\w*?) \= ccxt\.(.*?)\(/g)];
-                        }
-                        let matchedBody = innerMatch;
-                        // add `await exchange.close()` to instantiated variables
-                        for (const exchLineMatches of matches) {
-                            // we presume all methods to be in main scope, so adding just 4 spaces
-                            matchedBody = matchedBody + '    await ' + exchLineMatches[1] + '.close()\n'
-                        }
-                        return matchedBody;
-                    });
-                    // place main-scope await function calls within asyncio
-                    finalBodies.pyAsync = finalBodies.pyAsync.replace (new RegExp ('await ' + funcName + '\\((.*?)\\)', 'g'), function(wholeMatch, innerMatch){ return '\nasyncio.run(' + wholeMatch.replace('await ','').trim() + ')';})
-                }
-
-                let finalPyHeaders = undefined;
-                if (isCcxtPro) {
-                    finalPyHeaders = fileHeaders.pyPro ;
-                } else {
-                    // these are cases when transpliation happens of not specific PRO file, i.e. "example" snippets, where just "new ccxt.pro" appears
-                    if (tsContent.match ('new ccxt.pro')){
-                        finalPyHeaders += 'import ccxt.pro  # noqa: E402' + '\n'
+                const pythonFile = filenameWithExtenstion.replace ('.ts', '.py');
+                const phpFile = filenameWithExtenstion.replace ('.ts', '.php');
+                let tsMtime = fs.statSync (tsFile).mtime.getTime ();
+                tsMtime = tsMtime - tsMtime % 1000;
+                const pythonPath = path.join (examplesFolders.py, pythonFile);
+                const phpPath = path.join (examplesFolders.php, phpFile);
+                const pythonMtime  = pythonPath    ? (fs.existsSync (pythonPath)  ? fs.statSync (pythonPath).mtime.getTime ()  : 0) : undefined;
+                const phpMtime  = phpPath    ? (fs.existsSync (phpPath)  ? fs.statSync (phpPath).mtime.getTime ()  : 0) : undefined;
+                if ((tsMtime > pythonMtime) || (tsMtime > phpMtime)) {  // only transpile if edits have been made
+                    const isCcxtPro = tsContent.indexOf ('ccxt.pro') > -1;
+                    log.magenta ('Transpiling from', tsFile.yellow)
+                    const fileName = filenameWithExtenstion.replace ('.ts', '')
+                    // temporary: avoid console.log with + (plos) because it may break in python.
+                    if (tsContent.match ('console\.log \((.*?)\\+(.*?)\);')){
+                        throw new Error ('console.log with +(plus) detected in ' + tsFile + '. Please use commas or string interpolation.');
                     }
-                    finalPyHeaders += '\n\n'
+
+                    // detect all function declarations in JS, e.g. `async function Xyz (...)`)
+                    const allDetectedFunctionNames = [...tsContent.matchAll(/\bfunction (.*?)\(/g)].map (match => match[1].trim());
+
+                    // exec the main transpile function
+                    const transpiled = transpiler.transpileDifferentLanguages(fileConfig, tsContent);
+                    let [ phpAsyncBody, pythonAsyncBody ] = [ transpiled[0].content, transpiled[1].content  ];
+                    // ###### replace common (synchronity agnostic) syntaxes ######
+                    const fixPython = (body)=> {
+                        return this.regexAll (body, [
+                            [ /console\.log/g, 'print' ],
+                            // in python import ccxt.pro as ccxt
+                            [ /ccxt.pro/g, 'ccxt' ],
+                            // cases like: exchange = new ccxt.binance ()
+                            //[ / ccxt\.(.?)\(/g, 'ccxt.' + '$2\(' ],
+                            // cases like: exchange = new ccxt['name' or name] ()
+                            [ /ccxt\[(.*?)\]/g, 'getattr(ccxt, $1)'],
+                            // cases like: exchange = new ccxt.pro['name' or name] ()
+                            [ /ccxt.pro\[(.*?)\]/g, 'getattr(ccxt, $1)'],
+                        ]);
+                    };
+                    const fixPhp = (body)=> {
+                        const regexes = [
+                            [ /\$console\->log/g, 'var_dump' ],
+                            // cases like: exchange = new ccxt.pro.huobi ()
+                            [  /new \$ccxt->pro->/g, 'new \\ccxt\\pro\\' ],
+                            // cases like: exchange = new ccxt.huobi ()
+                            [ /new \$ccxt->/g, 'new \\ccxt\\async\\' ],
+                            // cases like: exchange = new ccxt['huobi' or varname] ()
+                            [ /(\s*)(\$\w+)\s*=\s*new\s+\$ccxt\[([^\]]*)\]\(([^\]]*)\)/g, '$1$exchange_class = \'\\ccxt\\async\\\\\'.$3;$1$2 = new $exchange_class($4)' ],
+                            // cases like: exchange = new ccxt.pro['huobi' or varname] ()
+                            [ /(\s*)(\$\w+)\s*=\s*new\s+\$ccxt\\async\\pro\[([^\]]*)\]\(([^\]]*)\)/g, '$1$exchange_class = \'\\ccxt\\pro\\\\\'.$3;$1$2 = new $exchange_class($4)' ],
+                            // fix cases like: async\pro->kucoin
+                            [ /async\\pro->/g, 'pro\\' ],
+                        ];
+                        return this.regexAll (body, regexes);
+                    };
+
+                    const finalBodies = {};
+                    finalBodies.pyAsync = fixPython (pythonAsyncBody);
+                    finalBodies.phpAsync = fixPhp (phpAsyncBody);
+
+                    // specifically in python (not needed in other langs), we need add `await .close()` inside matching methods
+                    for (const funcNameInit of allDetectedFunctionNames) {
+                        const funcName = unCamelCase (funcNameInit)
+                        // match function bodies
+                        const funcBodyRegex = new RegExp ('(?=def ' + funcName + '\\()(.*?)(?=\\n\\w)', 'gs');
+                        // inside functions, find exchange initiations
+                        finalBodies.pyAsync = finalBodies.pyAsync.replace (funcBodyRegex, function (wholeMatch, innerMatch){
+                            // find inited exchanges
+                            // case 1: inited with getattr
+                            let matches = [ ... innerMatch.matchAll(/(\w*?) \= getattr\(ccxt,\s*(.*?)\)/g)];
+                            if (matches.length === 0) {
+                                // case 2: inited with direct call
+                                matches = [ ... innerMatch.matchAll(/(\w*?) \= ccxt\.(.*?)\(/g)];
+                            }
+                            let matchedBody = innerMatch;
+                            // add `await exchange.close()` to instantiated variables
+                            for (const exchLineMatches of matches) {
+                                // we presume all methods to be in main scope, so adding just 4 spaces
+                                matchedBody = matchedBody + '    await ' + exchLineMatches[1] + '.close()\n'
+                            }
+                            return matchedBody;
+                        });
+                        // place main-scope await function calls within asyncio
+                        finalBodies.pyAsync = finalBodies.pyAsync.replace (new RegExp ('await ' + funcName + '\\((.*?)\\)', 'g'), function(wholeMatch, innerMatch){ return '\nasyncio.run(' + wholeMatch.replace('await ','').trim() + ')';})
+                    }
+
+                    let finalPyHeaders = undefined;
+                    if (isCcxtPro) {
+                        finalPyHeaders = fileHeaders.pyPro ;
+                    } else {
+                        // these are cases when transpliation happens of not specific PRO file, i.e. "example" snippets, where just "new ccxt.pro" appears
+                        if (tsContent.match ('new ccxt.pro')){
+                            finalPyHeaders += 'import ccxt.pro  # noqa: E402' + '\n'
+                        }
+                        finalPyHeaders += '\n\n'
+                    }
+                    // write files
+                    overwriteSafe (examplesFolders.py  + fileName + '.py', preambles.pyAsync + finalPyHeaders + finalBodies.pyAsync)
+                    overwriteSafe (examplesFolders.php + fileName + '.php', preambles.phpAsync + fileHeaders.phpAsync + finalBodies.phpAsync)
+                } else {
+                    log.green ('Already transpiled', filenameWithExtenstion.yellow)
                 }
-                // write files
-                overwriteSafe (examplesFolders.py  + fileName + '.py', preambles.pyAsync + finalPyHeaders + finalBodies.pyAsync)
-                overwriteSafe (examplesFolders.php + fileName + '.php', preambles.phpAsync + fileHeaders.phpAsync + finalBodies.phpAsync)
             }
         }
     }
