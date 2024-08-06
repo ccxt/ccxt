@@ -117,6 +117,7 @@ public partial class BaseTest
     public static string ed25519() => "ed25519";
     public static string keccak() => "keccak";
     public static string secp256k1() => "secp256k1";
+    public static object parseFloat(object a) => Exchange.parseFloat(a);
 
     public bool equals(object a, object b)
     {

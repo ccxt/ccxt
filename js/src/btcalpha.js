@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/btcalpha.js';
-import { ExchangeError, AuthenticationError, DDoSProtection, InvalidOrder, InsufficientFunds } from './base/errors.js';
+import { ExchangeError, InvalidOrder, InsufficientFunds } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -932,20 +932,12 @@ export default class btcalpha extends Exchange {
         //     {"date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC"}
         //
         const error = this.safeString(response, 'error');
-        const feedback = this.id + ' ' + body;
         if (error !== undefined) {
+            const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException(this.exceptions['exact'], error, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], error, feedback);
+            throw new ExchangeError(feedback); // unknown error
         }
-        if (code === 401 || code === 403) {
-            throw new AuthenticationError(feedback);
-        }
-        else if (code === 429) {
-            throw new DDoSProtection(feedback);
-        }
-        if (code < 400) {
-            return undefined;
-        }
-        throw new ExchangeError(feedback);
+        return undefined;
     }
 }

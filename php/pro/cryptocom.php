@@ -6,9 +6,10 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\NetworkError;
-use ccxt\InvalidNonce;
+use ccxt\ChecksumError;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -49,6 +50,9 @@ class cryptocom extends \ccxt\async\cryptocom {
                 'watchPositions' => array(
                     'fetchPositionsSnapshot' => true, // or false
                     'awaitPositionsSnapshot' => true, // whether to wait for the positions snapshot before providing updates
+                ),
+                'watchOrderBook' => array(
+                    'checksum' => true,
                 ),
             ),
             'streaming' => array(
@@ -230,7 +234,10 @@ class cryptocom extends \ccxt\async\cryptocom {
             $previousNonce = $this->safe_integer($data, 'pu');
             $currentNonce = $orderbook['nonce'];
             if ($currentNonce !== $previousNonce) {
-                throw new InvalidNonce($this->id . ' watchOrderBook() ' . $symbol . ' ' . $previousNonce . ' != ' . $nonce);
+                $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
+                if ($checksum) {
+                    throw new ChecksumError($this->id . ' ' . $this->orderbook_checksum_message($symbol));
+                }
             }
         }
         $this->handle_deltas($orderbook['asks'], $this->safe_value($books, 'asks', array()));
@@ -343,7 +350,7 @@ class cryptocom extends \ccxt\async\cryptocom {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -928,6 +935,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         //        "message" => "invalid channel array("channels":["trade.BTCUSD-PERP"])"
         //    }
         //
+        $id = $this->safe_string($message, 'id');
         $errorCode = $this->safe_string($message, 'code');
         try {
             if ($errorCode && $errorCode !== '0') {
@@ -937,6 +945,7 @@ class cryptocom extends \ccxt\async\cryptocom {
                 if ($messageString !== null) {
                     $this->throw_broadly_matched_exception($this->exceptions['broad'], $messageString, $feedback);
                 }
+                throw new ExchangeError($feedback);
             }
             return false;
         } catch (Exception $e) {
@@ -947,7 +956,7 @@ class cryptocom extends \ccxt\async\cryptocom {
                     unset($client->subscriptions[$messageHash]);
                 }
             } else {
-                $client->reject ($e);
+                $client->reject ($e, $id);
             }
             return true;
         }

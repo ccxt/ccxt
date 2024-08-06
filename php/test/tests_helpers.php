@@ -60,8 +60,8 @@ function filter_argvs($argsArray, $needle, $include = true) {
 };
 
 function select_argv ($argsArray, $needle) {
-    $foundArray = array_filter($argsArray, function ($x) use ($needle) { return str_contains($x, $needle); });
-    return count($foundArray) > 0 ? $foundArray : null;
+    $foundArray = array_values(array_filter($argsArray, function ($x) use ($needle) { return str_contains($x, $needle); }));
+    return count($foundArray) > 0 ? $foundArray[0] : null;
 }
 
 $argvs_filtered = filter_argvs ($argv, '--', false);
@@ -170,10 +170,13 @@ function io_dir_read($path) {
     return $cleanFiles;
 }
 
-
-function call_method($testFiles, $methodName, $exchange, $skippedProperties, $args) {
+function call_method_sync($testFiles, $methodName, $exchange, $skippedProperties, $args) {
     $methodNameWithNameSpace = '\\ccxt\\' . $testFiles[$methodName];
     return call_user_func($methodNameWithNameSpace, $exchange, $skippedProperties, ... $args);
+}
+
+function call_method($testFiles, $methodName, $exchange, $skippedProperties, $args) {
+    return call_method_sync($testFiles, $methodName, $exchange, $skippedProperties, $args);
 }
 
 function call_overriden_method($exchange, $methodName, $args) {
@@ -219,6 +222,11 @@ function exception_message($exc) {
     }
     $final_message = '[' . get_class($exc) . '] ' . $origin_message . "\n" . $output;
     return substr($final_message, 0, LOG_CHARS_LENGTH);
+}
+
+// stub for c#
+function get_root_exception($exc) {
+    return $exc;
 }
 
 function exit_script($code = 0) {
@@ -283,7 +291,7 @@ function init_exchange ($exchangeId, $args, $is_ws = false) {
     return $newClass;
 }
 
-function get_test_files ($properties, $ws = false) {
+function get_test_files_sync ($properties, $ws = false) {
     $func = function() use ($properties, $ws){
         $tests = array();
         $finalPropList = array_merge ($properties, [proxyTestFileName]);
@@ -305,6 +313,10 @@ function get_test_files ($properties, $ws = false) {
     } else {
         return Async\async ($func)();
     }
+}
+
+function get_test_files ($properties, $ws = false) {
+    return get_test_files_sync($properties, $ws);
 }
 
 function is_null_value($value) {

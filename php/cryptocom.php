@@ -159,6 +159,9 @@ class cryptocom extends Exchange {
                             'public/get-expired-settlement-price' => 10 / 3,
                             'public/get-insurance' => 1,
                         ),
+                        'post' => array(
+                            'public/staking/get-conversion-rate' => 2,
+                        ),
                     ),
                     'private' => array(
                         'post' => array(
@@ -188,6 +191,16 @@ class cryptocom extends Exchange {
                             'private/get-accounts' => 10 / 3,
                             'private/get-withdrawal-history' => 10 / 3,
                             'private/get-deposit-history' => 10 / 3,
+                            'private/staking/stake' => 2,
+                            'private/staking/unstake' => 2,
+                            'private/staking/get-staking-position' => 2,
+                            'private/staking/get-staking-instruments' => 2,
+                            'private/staking/get-open-stake' => 2,
+                            'private/staking/get-stake-history' => 2,
+                            'private/staking/get-reward-history' => 2,
+                            'private/staking/convert' => 2,
+                            'private/staking/get-open-convert' => 2,
+                            'private/staking/get-convert-history' => 2,
                         ),
                     ),
                 ),
@@ -371,7 +384,15 @@ class cryptocom extends Exchange {
                     '40006' => '\\ccxt\\BadRequest',
                     '40007' => '\\ccxt\\BadRequest',
                     '40101' => '\\ccxt\\AuthenticationError',
-                    '50001' => '\\ccxt\\BadRequest',
+                    '40102' => '\\ccxt\\InvalidNonce', // Nonce value differs by more than 60 seconds from server
+                    '40103' => '\\ccxt\\AuthenticationError', // IP address not whitelisted
+                    '40104' => '\\ccxt\\AuthenticationError', // Disallowed based on user tier
+                    '40107' => '\\ccxt\\BadRequest', // Session subscription limit has been exceeded
+                    '40401' => '\\ccxt\\OrderNotFound',
+                    '40801' => '\\ccxt\\RequestTimeout',
+                    '42901' => '\\ccxt\\RateLimitExceeded',
+                    '43005' => '\\ccxt\\InvalidOrder', // Rejected POST_ONLY create-order request (normally happened when exec_inst contains POST_ONLY but time_in_force is NOT GOOD_TILL_CANCEL)
+                    '50001' => '\\ccxt\\ExchangeError',
                     '9010001' => '\\ccxt\\OnMaintenance', // array("code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details.")
                 ),
                 'broad' => array(),
@@ -802,15 +823,24 @@ class cryptocom extends Exchange {
             'instrument_name' => $market['id'],
             'timeframe' => $this->safe_string($this->timeframes, $timeframe, $timeframe),
         );
-        if ($since !== null) {
-            $request['start_ts'] = $since;
-        }
         if ($limit !== null) {
+            if ($limit > 300) {
+                $limit = 300;
+            }
             $request['count'] = $limit;
         }
-        $until = $this->safe_integer($params, 'until');
+        $now = $this->microseconds();
+        $duration = $this->parse_timeframe($timeframe);
+        $until = $this->safe_integer($params, 'until', $now);
         $params = $this->omit($params, array( 'until' ));
-        if ($until !== null) {
+        if ($since !== null) {
+            $request['start_ts'] = $since - $duration * 1000;
+            if ($limit !== null) {
+                $request['end_ts'] = $this->sum($since, $duration * $limit * 1000);
+            } else {
+                $request['end_ts'] = $until;
+            }
+        } else {
             $request['end_ts'] = $until;
         }
         $response = $this->v1PublicGetPublicGetCandlestick ($this->extend($request, $params));
@@ -1422,7 +1452,7 @@ class cryptocom extends Exchange {
         /**
          * cancel multiple $orders for multiple symbols
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-$order-list-list
-         * @param {CancellationRequest[]} $orders each $order should contain the parameters required by cancelOrder namely $id and $symbol
+         * @param {CancellationRequest[]} $orders each $order should contain the parameters required by cancelOrder namely $id and $symbol, example [array("id" => "a", "symbol" => "BTC/USDT"), array("id" => "b", "symbol" => "ETH/USDT")]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structures~
          */

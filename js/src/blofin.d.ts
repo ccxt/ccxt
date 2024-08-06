@@ -56,7 +56,7 @@ export default class blofin extends Exchange {
         previousFundingDatetime: any;
     }>;
     parseBalanceByType(type: any, response: any): Balances;
-    parseTradingBalance(response: any): Balances;
+    parseBalance(response: any): Balances;
     parseFundingBalance(response: any): Balances;
     parseTradingFee(fee: Dict, market?: Market): TradingFeeInterface;
     fetchBalance(params?: {}): Promise<Balances>;

@@ -2507,7 +2507,7 @@ export default class hitbtc extends Exchange {
     async fetchMarginModes (symbols: Str[] = undefined, params = {}): Promise<MarginModes> {
         /**
          * @method
-         * @name hitbtc#fetchMarginMode
+         * @name hitbtc#fetchMarginModes
          * @description fetches margin mode of the user
          * @see https://api.hitbtc.com/#get-margin-position-parameters
          * @see https://api.hitbtc.com/#get-futures-position-parameters

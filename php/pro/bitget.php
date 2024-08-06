@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
-use ccxt\InvalidNonce;
+use ccxt\ChecksumError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -63,6 +63,9 @@ class bitget extends \ccxt\async\bitget {
                     '12h' => '12H',
                     '1d' => '1D',
                     '1w' => '1W',
+                ),
+                'watchOrderBook' => array(
+                    'checksum' => true,
                 ),
             ),
             'streaming' => array(
@@ -569,9 +572,9 @@ class bitget extends \ccxt\async\bitget {
                 $calculatedChecksum = $this->crc32($payload, true);
                 $responseChecksum = $this->safe_integer($rawOrderBook, 'checksum');
                 if ($calculatedChecksum !== $responseChecksum) {
-                    $error = new InvalidNonce ($this->id . ' invalid checksum');
                     unset($client->subscriptions[$messageHash]);
                     unset($this->orderbooks[$symbol]);
+                    $error = new ChecksumError ($this->id . ' ' . $this->orderbook_checksum_message($symbol));
                     $client->reject ($error, $messageHash);
                     return;
                 }
@@ -987,7 +990,7 @@ class bitget extends \ccxt\async\bitget {
              * @param {string} [$params->marginMode] 'isolated' or 'cross' for watching spot margin $orders]
              * @param {string} [$params->type] 'spot', 'swap'
              * @param {string} [$params->subType] 'linear', 'inverse'
-             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1814,7 +1817,7 @@ class bitget extends \ccxt\async\bitget {
         }
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         return 'ping';
     }
 

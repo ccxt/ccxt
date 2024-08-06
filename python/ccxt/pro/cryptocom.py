@@ -9,9 +9,10 @@ import hashlib
 from ccxt.base.types import Balances, Int, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import NetworkError
-from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import ChecksumError
 
 
 class cryptocom(ccxt.async_support.cryptocom):
@@ -51,6 +52,9 @@ class cryptocom(ccxt.async_support.cryptocom):
                 'watchPositions': {
                     'fetchPositionsSnapshot': True,  # or False
                     'awaitPositionsSnapshot': True,  # whether to wait for the positions snapshot before providing updates
+                },
+                'watchOrderBook': {
+                    'checksum': True,
                 },
             },
             'streaming': {
@@ -213,7 +217,9 @@ class cryptocom(ccxt.async_support.cryptocom):
             previousNonce = self.safe_integer(data, 'pu')
             currentNonce = orderbook['nonce']
             if currentNonce != previousNonce:
-                raise InvalidNonce(self.id + ' watchOrderBook() ' + symbol + ' ' + previousNonce + ' != ' + nonce)
+                checksum = self.handle_option('watchOrderBook', 'checksum', True)
+                if checksum:
+                    raise ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
         self.handle_deltas(orderbook['asks'], self.safe_value(books, 'asks', []))
         self.handle_deltas(orderbook['bids'], self.safe_value(books, 'bids', []))
         orderbook['nonce'] = nonce
@@ -310,7 +316,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         market = None
@@ -822,6 +828,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         #        "message": "invalid channel {"channels":["trade.BTCUSD-PERP"]}"
         #    }
         #
+        id = self.safe_string(message, 'id')
         errorCode = self.safe_string(message, 'code')
         try:
             if errorCode and errorCode != '0':
@@ -830,6 +837,7 @@ class cryptocom(ccxt.async_support.cryptocom):
                 messageString = self.safe_value(message, 'message')
                 if messageString is not None:
                     self.throw_broadly_matched_exception(self.exceptions['broad'], messageString, feedback)
+                raise ExchangeError(feedback)
             return False
         except Exception as e:
             if isinstance(e, AuthenticationError):
@@ -838,7 +846,7 @@ class cryptocom(ccxt.async_support.cryptocom):
                 if messageHash in client.subscriptions:
                     del client.subscriptions[messageHash]
             else:
-                client.reject(e)
+                client.reject(e, id)
             return True
 
     def handle_subscribe(self, client: Client, message):

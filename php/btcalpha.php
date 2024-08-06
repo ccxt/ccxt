@@ -920,19 +920,12 @@ class btcalpha extends Exchange {
         //     array("date":1570599531.4814300537,"error":"Out of balance -9.99243661 BTC")
         //
         $error = $this->safe_string($response, 'error');
-        $feedback = $this->id . ' ' . $body;
         if ($error !== null) {
+            $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $error, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $error, $feedback);
+            throw new ExchangeError($feedback); // unknown $error
         }
-        if ($code === 401 || $code === 403) {
-            throw new AuthenticationError($feedback);
-        } elseif ($code === 429) {
-            throw new DDoSProtection($feedback);
-        }
-        if ($code < 400) {
-            return null;
-        }
-        throw new ExchangeError($feedback);
+        return null;
     }
 }

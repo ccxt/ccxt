@@ -1419,7 +1419,11 @@ export default class latoken extends Exchange {
         //         "status":"SUCCESS"
         //     }
         //
-        return response;
+        return [
+            this.safeOrder({
+                'info': response,
+            }),
+        ];
     }
     async fetchTransactions(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**

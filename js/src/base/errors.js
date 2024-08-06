@@ -83,18 +83,6 @@ class MarketClosed extends OperationRejected {
         this.name = 'MarketClosed';
     }
 }
-class BadResponse extends ExchangeError {
-    constructor(message) {
-        super(message);
-        this.name = 'BadResponse';
-    }
-}
-class NullResponse extends BadResponse {
-    constructor(message) {
-        super(message);
-        this.name = 'NullResponse';
-    }
-}
 class InsufficientFunds extends ExchangeError {
     constructor(message) {
         super(message);
@@ -131,12 +119,6 @@ class OrderNotCached extends InvalidOrder {
         this.name = 'OrderNotCached';
     }
 }
-class CancelPending extends InvalidOrder {
-    constructor(message) {
-        super(message);
-        this.name = 'CancelPending';
-    }
-}
 class OrderImmediatelyFillable extends InvalidOrder {
     constructor(message) {
         super(message);
@@ -167,10 +149,10 @@ class NotSupported extends ExchangeError {
         this.name = 'NotSupported';
     }
 }
-class ProxyError extends ExchangeError {
+class InvalidProxySettings extends ExchangeError {
     constructor(message) {
         super(message);
-        this.name = 'ProxyError';
+        this.name = 'InvalidProxySettings';
     }
 }
 class ExchangeClosedByUser extends ExchangeError {
@@ -221,11 +203,35 @@ class InvalidNonce extends NetworkError {
         this.name = 'InvalidNonce';
     }
 }
+class ChecksumError extends InvalidNonce {
+    constructor(message) {
+        super(message);
+        this.name = 'ChecksumError';
+    }
+}
 class RequestTimeout extends NetworkError {
     constructor(message) {
         super(message);
         this.name = 'RequestTimeout';
     }
 }
-export { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, ProxyError, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout };
-export default { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, ProxyError, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout };
+class BadResponse extends OperationFailed {
+    constructor(message) {
+        super(message);
+        this.name = 'BadResponse';
+    }
+}
+class NullResponse extends BadResponse {
+    constructor(message) {
+        super(message);
+        this.name = 'NullResponse';
+    }
+}
+class CancelPending extends OperationFailed {
+    constructor(message) {
+        super(message);
+        this.name = 'CancelPending';
+    }
+}
+export { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending };
+export default { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending };

@@ -1417,6 +1417,27 @@ class lbank(Exchange, ImplicitAPI):
         #          "status":-1
         #      }
         #
+        # cancelOrder
+        #
+        #    {
+        #        "executedQty":0.0,
+        #        "price":0.05,
+        #        "origQty":100.0,
+        #        "tradeType":"buy",
+        #        "status":0
+        #    }
+        #
+        # cancelAllOrders
+        #
+        #    {
+        #        "executedQty":0.00000000000000000000,
+        #        "orderId":"293ef71b-3e67-4962-af93-aa06990a045f",
+        #        "price":0.05000000000000000000,
+        #        "origQty":100.00000000000000000000,
+        #        "tradeType":"buy",
+        #        "status":0
+        #    }
+        #
         id = self.safe_string_2(order, 'orderId', 'order_id')
         clientOrderId = self.safe_string_2(order, 'clientOrderId', 'custom_id')
         timestamp = self.safe_integer_2(order, 'time', 'create_time')
@@ -1426,7 +1447,7 @@ class lbank(Exchange, ImplicitAPI):
         timeInForce = None
         postOnly = False
         type = 'limit'
-        rawType = self.safe_string(order, 'type')  # buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
+        rawType = self.safe_string_2(order, 'type', 'tradeType')  # buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
         parts = rawType.split('_')
         side = self.safe_string(parts, 0)
         typePart = self.safe_string(parts, 1)  # market, maker, ioc, fok or None(limit)
@@ -1760,12 +1781,12 @@ class lbank(Exchange, ImplicitAPI):
         #          "origQty":100.0,
         #          "tradeType":"buy",
         #          "status":0
-        #          },
+        #      },
         #      "error_code":0,
         #      "ts":1648501286196
         #  }
-        result = self.safe_value(response, 'data', {})
-        return result
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_order(data)
 
     async def cancel_all_orders(self, symbol: Str = None, params={}):
         """
@@ -1800,8 +1821,8 @@ class lbank(Exchange, ImplicitAPI):
         #          "ts":1648506641469
         #      }
         #
-        result = self.safe_value(response, 'data', [])
-        return result
+        data = self.safe_list(response, 'data', [])
+        return self.parse_orders(data)
 
     def get_network_code_for_currency(self, currencyCode, params):
         defaultNetworks = self.safe_value(self.options, 'defaultNetworks')

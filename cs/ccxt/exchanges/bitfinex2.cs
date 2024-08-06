@@ -2514,7 +2514,7 @@ public partial class bitfinex2 : Exchange
                 feeCost = Precise.stringAbs(feeCost);
             }
             amount = this.safeNumber(data, 5);
-            id = this.safeString(data, 0);
+            id = this.safeInteger(data, 0);
             status = "ok";
             if (isTrue(isEqual(id, 0)))
             {

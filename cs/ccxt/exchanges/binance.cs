@@ -178,8 +178,10 @@ public partial class binance : Exchange
                     { "dapiPrivateV2", "https://testnet.binancefuture.com/dapi/v2" },
                     { "fapiPublic", "https://testnet.binancefuture.com/fapi/v1" },
                     { "fapiPublicV2", "https://testnet.binancefuture.com/fapi/v2" },
+                    { "fapiPublicV3", "https://testnet.binancefuture.com/fapi/v3" },
                     { "fapiPrivate", "https://testnet.binancefuture.com/fapi/v1" },
                     { "fapiPrivateV2", "https://testnet.binancefuture.com/fapi/v2" },
+                    { "fapiPrivateV3", "https://testnet.binancefuture.com/fapi/v3" },
                     { "public", "https://testnet.binance.vision/api/v3" },
                     { "private", "https://testnet.binance.vision/api/v3" },
                     { "v1", "https://testnet.binance.vision/api/v1" },
@@ -197,9 +199,11 @@ public partial class binance : Exchange
                     { "dapiData", "https://dapi.binance.com/futures/data" },
                     { "fapiPublic", "https://fapi.binance.com/fapi/v1" },
                     { "fapiPublicV2", "https://fapi.binance.com/fapi/v2" },
+                    { "fapiPublicV3", "https://fapi.binance.com/fapi/v3" },
                     { "fapiPrivate", "https://fapi.binance.com/fapi/v1" },
-                    { "fapiData", "https://fapi.binance.com/futures/data" },
                     { "fapiPrivateV2", "https://fapi.binance.com/fapi/v2" },
+                    { "fapiPrivateV3", "https://fapi.binance.com/fapi/v3" },
+                    { "fapiData", "https://fapi.binance.com/futures/data" },
                     { "public", "https://api.binance.com/api/v3" },
                     { "private", "https://api.binance.com/api/v3" },
                     { "v1", "https://api.binance.com/api/v1" },
@@ -846,7 +850,10 @@ public partial class binance : Exchange
                         } },
                         { "allOrders", 5 },
                         { "openOrder", 1 },
-                        { "openOrders", 1 },
+                        { "openOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                            { "noSymbol", 40 },
+                        } },
                         { "order", 1 },
                         { "account", 5 },
                         { "balance", 5 },
@@ -878,6 +885,8 @@ public partial class binance : Exchange
                         { "trade/asyn", 1000 },
                         { "trade/asyn/id", 10 },
                         { "feeBurn", 1 },
+                        { "symbolConfig", 5 },
+                        { "accountConfig", 5 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "batchOrders", 5 },
@@ -911,6 +920,16 @@ public partial class binance : Exchange
                     } },
                 } },
                 { "fapiPrivateV2", new Dictionary<string, object>() {
+                    { "get", new Dictionary<string, object>() {
+                        { "account", 1 },
+                        { "balance", 1 },
+                        { "positionRisk", 1 },
+                    } },
+                } },
+                { "fapiPublicV3", new Dictionary<string, object>() {
+                    { "get", new Dictionary<string, object>() {} },
+                } },
+                { "fapiPrivateV3", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
                         { "account", 1 },
                         { "balance", 1 },
@@ -1055,18 +1074,30 @@ public partial class binance : Exchange
                         { "ping", 1 },
                         { "um/order", 1 },
                         { "um/openOrder", 1 },
-                        { "um/openOrders", 1 },
+                        { "um/openOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                            { "noSymbol", 40 },
+                        } },
                         { "um/allOrders", 5 },
                         { "cm/order", 1 },
                         { "cm/openOrder", 1 },
-                        { "cm/openOrders", 1 },
+                        { "cm/openOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                            { "noSymbol", 40 },
+                        } },
                         { "cm/allOrders", 20 },
                         { "um/conditional/openOrder", 1 },
-                        { "um/conditional/openOrders", 40 },
+                        { "um/conditional/openOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                            { "noSymbol", 40 },
+                        } },
                         { "um/conditional/orderHistory", 1 },
                         { "um/conditional/allOrders", 40 },
                         { "cm/conditional/openOrder", 1 },
-                        { "cm/conditional/openOrders", 40 },
+                        { "cm/conditional/openOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                            { "noSymbol", 40 },
+                        } },
                         { "cm/conditional/orderHistory", 1 },
                         { "cm/conditional/allOrders", 40 },
                         { "margin/order", 5 },
@@ -1531,7 +1562,7 @@ public partial class binance : Exchange
                         { "-3042", typeof(BadRequest) },
                         { "-3043", typeof(PermissionDenied) },
                         { "-3044", typeof(OperationFailed) },
-                        { "-3045", typeof(OperationFailed) },
+                        { "-3045", typeof(OperationRejected) },
                         { "-3999", typeof(PermissionDenied) },
                         { "-4000", typeof(ExchangeError) },
                         { "-4001", typeof(BadRequest) },
@@ -1547,7 +1578,7 @@ public partial class binance : Exchange
                         { "-4011", typeof(BadRequest) },
                         { "-4012", typeof(PermissionDenied) },
                         { "-4013", typeof(AuthenticationError) },
-                        { "-4014", typeof(OperationFailed) },
+                        { "-4014", typeof(OperationRejected) },
                         { "-4015", typeof(PermissionDenied) },
                         { "-4016", typeof(PermissionDenied) },
                         { "-4017", typeof(PermissionDenied) },
@@ -1556,7 +1587,7 @@ public partial class binance : Exchange
                         { "-4020", typeof(ExchangeError) },
                         { "-4021", typeof(BadRequest) },
                         { "-4022", typeof(BadRequest) },
-                        { "-4023", typeof(OperationFailed) },
+                        { "-4023", typeof(OperationRejected) },
                         { "-4024", typeof(InsufficientFunds) },
                         { "-4025", typeof(InsufficientFunds) },
                         { "-4026", typeof(InsufficientFunds) },
@@ -1565,7 +1596,7 @@ public partial class binance : Exchange
                         { "-4029", typeof(BadRequest) },
                         { "-4030", typeof(BadResponse) },
                         { "-4031", typeof(OperationFailed) },
-                        { "-4032", typeof(OperationFailed) },
+                        { "-4032", typeof(OperationRejected) },
                         { "-4033", typeof(BadRequest) },
                         { "-4034", typeof(OperationRejected) },
                         { "-4035", typeof(PermissionDenied) },
@@ -1685,7 +1716,7 @@ public partial class binance : Exchange
                         { "-5003", typeof(InsufficientFunds) },
                         { "-5004", typeof(OperationRejected) },
                         { "-5005", typeof(OperationRejected) },
-                        { "-5006", typeof(OperationFailed) },
+                        { "-5006", typeof(OperationRejected) },
                         { "-5007", typeof(BadRequest) },
                         { "-5008", typeof(OperationRejected) },
                         { "-5009", typeof(BadSymbol) },
@@ -1700,8 +1731,8 @@ public partial class binance : Exchange
                         { "-6004", typeof(BadRequest) },
                         { "-6005", typeof(BadRequest) },
                         { "-6006", typeof(BadRequest) },
-                        { "-6007", typeof(OperationFailed) },
-                        { "-6008", typeof(OperationFailed) },
+                        { "-6007", typeof(OperationRejected) },
+                        { "-6008", typeof(OperationRejected) },
                         { "-6009", typeof(RateLimitExceeded) },
                         { "-6011", typeof(OperationRejected) },
                         { "-6012", typeof(InsufficientFunds) },
@@ -3077,7 +3108,7 @@ public partial class binance : Exchange
             linear = isEqual(settle, quote);
             inverse = isEqual(settle, bs);
             object feesType = ((bool) isTrue(linear)) ? "linear" : "inverse";
-            fees = this.safeDict(this.fees, feesType, new Dictionary<string, object>() {});
+            fees = ((object)this.safeDict(this.fees, feesType, new Dictionary<string, object>() {}));
         }
         object active = (isEqual(status, "TRADING"));
         if (isTrue(spot))
@@ -3402,7 +3433,7 @@ public partial class binance : Exchange
         } else if (isTrue(this.isLinear(type, subType)))
         {
             type = "linear";
-            response = await this.fapiPrivateV2GetAccount(this.extend(request, query));
+            response = await this.fapiPrivateV3GetAccount(this.extend(request, query));
         } else if (isTrue(this.isInverse(type, subType)))
         {
             type = "inverse";
@@ -6804,10 +6835,7 @@ public partial class binance : Exchange
             type = this.safeString(parameters, "type", marketType);
         } else if (isTrue(getValue(this.options, "warnOnFetchOpenOrdersWithoutSymbol")))
         {
-            object symbols = this.symbols;
-            object numSymbols = getArrayLength(symbols);
-            object fetchOpenOrdersRateLimit = this.parseToInt(divide(numSymbols, 2));
-            throw new ExchangeError ((string)add(add(add(add(add(this.id, " fetchOpenOrders() WARNING: fetching open orders without specifying a symbol is rate-limited to one call per "), ((object)fetchOpenOrdersRateLimit).ToString()), " seconds. Do not call this method frequently to avoid ban. Set "), this.id), ".options[\"warnOnFetchOpenOrdersWithoutSymbol\"] = false to suppress this warning message.")) ;
+            throw new ExchangeError ((string)add(add(add(this.id, " fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge this warning, set "), this.id), ".options[\"warnOnFetchOpenOrdersWithoutSymbol\"] = false to suppress this warning message.")) ;
         } else
         {
             object defaultType = this.safeString2(this.options, "fetchOpenOrders", "defaultType", "spot");
@@ -7442,7 +7470,9 @@ public partial class binance : Exchange
             return this.parseOrders(response, market);
         } else
         {
-            return response;
+            return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
         }
     }
 
@@ -9677,24 +9707,29 @@ public partial class binance : Exchange
         //
         // usdm
         //
+        // v3 (similar for cross & isolated)
+        //
         //    {
-        //       "symbol": "BTCBUSD",
-        //       "initialMargin": "0",
-        //       "maintMargin": "0",
-        //       "unrealizedProfit": "0.00000000",
-        //       "positionInitialMargin": "0",
-        //       "openOrderInitialMargin": "0",
-        //       "leverage": "20",
-        //       "isolated": false,
-        //       "entryPrice": "0.0000",
-        //       "maxNotional": "100000",
-        //       "positionSide": "BOTH",
-        //       "positionAmt": "0.000",
-        //       "notional": "0",
-        //       "isolatedWallet": "0",
-        //       "updateTime": "0",
-        //       "crossMargin": "100.93634809",
-        //     }
+        //        "symbol": "WLDUSDT",
+        //        "positionSide": "BOTH",
+        //        "positionAmt": "-849",
+        //        "unrealizedProfit": "11.17920750",
+        //        "notional": "-1992.46079250",
+        //        "isolatedMargin": "0",
+        //        "isolatedWallet": "0",
+        //        "initialMargin": "99.62303962",
+        //        "maintMargin": "11.95476475",
+        //        "updateTime": "1721995760449"
+        //        "leverage": "50",                        // in v2
+        //        "entryPrice": "2.34",                    // in v2
+        //        "positionInitialMargin": "118.82116614", // in v2
+        //        "openOrderInitialMargin": "0",           // in v2
+        //        "isolated": false,                       // in v2
+        //        "breakEvenPrice": "2.3395788",           // in v2
+        //        "maxNotional": "25000",                  // in v2
+        //        "bidNotional": "0",                      // in v2
+        //        "askNotional": "0"                       // in v2
+        //    }
         //
         // coinm
         //
@@ -9760,14 +9795,18 @@ public partial class binance : Exchange
         market = this.safeMarket(marketId, market, null, "contract");
         object symbol = this.safeString(market, "symbol");
         object leverageString = this.safeString(position, "leverage");
-        object leverage = parseInt(leverageString);
+        object leverage = ((bool) isTrue((!isEqual(leverageString, null)))) ? parseInt(leverageString) : null;
         object initialMarginString = this.safeString(position, "initialMargin");
         object initialMargin = this.parseNumber(initialMarginString);
-        object initialMarginPercentageString = Precise.stringDiv("1", leverageString, 8);
-        object rational = this.isRoundNumber(mod(1000, leverage));
-        if (!isTrue(rational))
+        object initialMarginPercentageString = null;
+        if (isTrue(!isEqual(leverageString, null)))
         {
-            initialMarginPercentageString = Precise.stringDiv(Precise.stringAdd(initialMarginPercentageString, "1e-8"), "1", 8);
+            initialMarginPercentageString = Precise.stringDiv("1", leverageString, 8);
+            object rational = this.isRoundNumber(mod(1000, leverage));
+            if (!isTrue(rational))
+            {
+                initialMarginPercentageString = Precise.stringDiv(Precise.stringAdd(initialMarginPercentageString, "1e-8"), "1", 8);
+            }
         }
         // as oppose to notionalValue
         object usdm = (inOp(position, "notional"));
@@ -9809,6 +9848,11 @@ public partial class binance : Exchange
             timestamp = null;
         }
         object isolated = this.safeBool(position, "isolated");
+        if (isTrue(isEqual(isolated, null)))
+        {
+            object isolatedMarginRaw = this.safeString(position, "isolatedMargin");
+            isolated = !isTrue(Precise.stringEq(isolatedMarginRaw, "0"));
+        }
         object marginMode = null;
         object collateralString = null;
         object walletBalance = null;
@@ -9932,23 +9976,34 @@ public partial class binance : Exchange
         //
         // usdm
         //
-        //     {
-        //       "symbol": "BTCUSDT",
-        //       "positionAmt": "0.001",
-        //       "entryPrice": "43578.07000",
-        //       "markPrice": "43532.30000000",
-        //       "unRealizedProfit": "-0.04577000",
-        //       "liquidationPrice": "21841.24993976",
-        //       "leverage": "2",
-        //       "maxNotionalValue": "300000000",
-        //       "marginType": "isolated",
-        //       "isolatedMargin": "21.77841506",
-        //       "isAutoAddMargin": "false",
-        //       "positionSide": "BOTH",
-        //       "notional": "43.53230000",
-        //       "isolatedWallet": "21.82418506",
-        //       "updateTime": "1621358023886"
-        //     }
+        //  {
+        //     symbol: "WLDUSDT",
+        //     positionSide: "BOTH",
+        //     positionAmt: "5",
+        //     entryPrice: "2.3483",
+        //     breakEvenPrice: "2.349356735",
+        //     markPrice: "2.39560000",
+        //     unRealizedProfit: "0.23650000",
+        //     liquidationPrice: "0",
+        //     isolatedMargin: "0",
+        //     notional: "11.97800000",
+        //     isolatedWallet: "0",
+        //     updateTime: "1722062678998",
+        //     initialMargin: "2.39560000",         // not in v2
+        //     maintMargin: "0.07186800",           // not in v2
+        //     positionInitialMargin: "2.39560000", // not in v2
+        //     openOrderInitialMargin: "0",         // not in v2
+        //     adl: "2",                            // not in v2
+        //     bidNotional: "0",                    // not in v2
+        //     askNotional: "0",                    // not in v2
+        //     marginAsset: "USDT",                 // not in v2
+        //     // the below fields are only in v2
+        //     leverage: "5",
+        //     maxNotionalValue: "6000000",
+        //     marginType: "cross",
+        //     isAutoAddMargin: "false",
+        //     isolated: false,
+        //     adlQuantile: "2",
         //
         // coinm
         //
@@ -10006,6 +10061,7 @@ public partial class binance : Exchange
         object marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market, null, "contract");
         object symbol = this.safeString(market, "symbol");
+        object isolatedMarginString = this.safeString(position, "isolatedMargin");
         object leverageBrackets = this.safeDict(this.options, "leverageBrackets", new Dictionary<string, object>() {});
         object leverageBracket = this.safeList(leverageBrackets, symbol, new List<object>() {});
         object notionalString = this.safeString2(position, "notional", "notionalValue");
@@ -10025,12 +10081,14 @@ public partial class binance : Exchange
         object contracts = this.parseNumber(contractsAbs);
         object unrealizedPnlString = this.safeString(position, "unRealizedProfit");
         object unrealizedPnl = this.parseNumber(unrealizedPnlString);
-        object leverageString = this.safeString(position, "leverage");
-        object leverage = parseInt(leverageString);
         object liquidationPriceString = this.omitZero(this.safeString(position, "liquidationPrice"));
         object liquidationPrice = this.parseNumber(liquidationPriceString);
         object collateralString = null;
         object marginMode = this.safeString(position, "marginType");
+        if (isTrue(isTrue(isEqual(marginMode, null)) && isTrue(isolatedMarginString)))
+        {
+            marginMode = ((bool) isTrue(Precise.stringEq(isolatedMarginString, "0"))) ? "cross" : "isolated";
+        }
         object side = null;
         if (isTrue(Precise.stringGt(notionalString, "0")))
         {
@@ -10049,45 +10107,51 @@ public partial class binance : Exchange
         {
             // calculate collateral
             object precision = this.safeDict(market, "precision", new Dictionary<string, object>() {});
-            if (isTrue(linear))
+            object basePrecisionValue = this.safeString(precision, "base");
+            object quotePrecisionValue = this.safeString2(precision, "quote", "price");
+            object precisionIsUndefined = isTrue((isEqual(basePrecisionValue, null))) && isTrue((isEqual(quotePrecisionValue, null)));
+            if (!isTrue(precisionIsUndefined))
             {
-                // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
-                object onePlusMaintenanceMarginPercentageString = null;
-                object entryPriceSignString = entryPriceString;
-                if (isTrue(isEqual(side, "short")))
+                if (isTrue(linear))
                 {
-                    onePlusMaintenanceMarginPercentageString = Precise.stringAdd("1", maintenanceMarginPercentageString);
-                    entryPriceSignString = Precise.stringMul("-1", entryPriceSignString);
+                    // walletBalance = (liquidationPrice * (±1 + mmp) ± entryPrice) * contracts
+                    object onePlusMaintenanceMarginPercentageString = null;
+                    object entryPriceSignString = entryPriceString;
+                    if (isTrue(isEqual(side, "short")))
+                    {
+                        onePlusMaintenanceMarginPercentageString = Precise.stringAdd("1", maintenanceMarginPercentageString);
+                        entryPriceSignString = Precise.stringMul("-1", entryPriceSignString);
+                    } else
+                    {
+                        onePlusMaintenanceMarginPercentageString = Precise.stringAdd("-1", maintenanceMarginPercentageString);
+                    }
+                    object inner = Precise.stringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString);
+                    object leftSide = Precise.stringAdd(inner, entryPriceSignString);
+                    object quotePrecision = this.precisionFromString(this.safeString2(precision, "quote", "price"));
+                    if (isTrue(!isEqual(quotePrecision, null)))
+                    {
+                        collateralString = Precise.stringDiv(Precise.stringMul(leftSide, contractsAbs), "1", quotePrecision);
+                    }
                 } else
                 {
-                    onePlusMaintenanceMarginPercentageString = Precise.stringAdd("-1", maintenanceMarginPercentageString);
-                }
-                object inner = Precise.stringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString);
-                object leftSide = Precise.stringAdd(inner, entryPriceSignString);
-                object quotePrecision = this.precisionFromString(this.safeString2(precision, "quote", "price"));
-                if (isTrue(!isEqual(quotePrecision, null)))
-                {
-                    collateralString = Precise.stringDiv(Precise.stringMul(leftSide, contractsAbs), "1", quotePrecision);
-                }
-            } else
-            {
-                // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
-                object onePlusMaintenanceMarginPercentageString = null;
-                object entryPriceSignString = entryPriceString;
-                if (isTrue(isEqual(side, "short")))
-                {
-                    onePlusMaintenanceMarginPercentageString = Precise.stringSub("1", maintenanceMarginPercentageString);
-                } else
-                {
-                    onePlusMaintenanceMarginPercentageString = Precise.stringSub("-1", maintenanceMarginPercentageString);
-                    entryPriceSignString = Precise.stringMul("-1", entryPriceSignString);
-                }
-                object leftSide = Precise.stringMul(contractsAbs, contractSizeString);
-                object rightSide = Precise.stringSub(Precise.stringDiv("1", entryPriceSignString), Precise.stringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString));
-                object basePrecision = this.precisionFromString(this.safeString(precision, "base"));
-                if (isTrue(!isEqual(basePrecision, null)))
-                {
-                    collateralString = Precise.stringDiv(Precise.stringMul(leftSide, rightSide), "1", basePrecision);
+                    // walletBalance = (contracts * contractSize) * (±1/entryPrice - (±1 - mmp) / liquidationPrice)
+                    object onePlusMaintenanceMarginPercentageString = null;
+                    object entryPriceSignString = entryPriceString;
+                    if (isTrue(isEqual(side, "short")))
+                    {
+                        onePlusMaintenanceMarginPercentageString = Precise.stringSub("1", maintenanceMarginPercentageString);
+                    } else
+                    {
+                        onePlusMaintenanceMarginPercentageString = Precise.stringSub("-1", maintenanceMarginPercentageString);
+                        entryPriceSignString = Precise.stringMul("-1", entryPriceSignString);
+                    }
+                    object leftSide = Precise.stringMul(contractsAbs, contractSizeString);
+                    object rightSide = Precise.stringSub(Precise.stringDiv("1", entryPriceSignString), Precise.stringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString));
+                    object basePrecision = this.precisionFromString(this.safeString(precision, "base"));
+                    if (isTrue(!isEqual(basePrecision, null)))
+                    {
+                        collateralString = Precise.stringDiv(Precise.stringMul(leftSide, rightSide), "1", basePrecision);
+                    }
                 }
             }
         } else
@@ -10104,15 +10168,32 @@ public partial class binance : Exchange
         }
         object maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
         object maintenanceMarginString = Precise.stringMul(maintenanceMarginPercentageString, notionalStringAbs);
-        object maintenanceMargin = this.parseNumber(maintenanceMarginString);
-        object initialMarginPercentageString = Precise.stringDiv("1", leverageString, 8);
-        object rational = this.isRoundNumber(mod(1000, leverage));
-        if (!isTrue(rational))
+        if (isTrue(isEqual(maintenanceMarginString, null)))
         {
-            initialMarginPercentageString = Precise.stringAdd(initialMarginPercentageString, "1e-8");
+            // for a while, this new value was a backup to the existing calculations, but in future we might prioritize this
+            maintenanceMarginString = this.safeString(position, "maintMargin");
         }
-        object initialMarginString = Precise.stringDiv(Precise.stringMul(notionalStringAbs, initialMarginPercentageString), "1", 8);
-        object initialMargin = this.parseNumber(initialMarginString);
+        object maintenanceMargin = this.parseNumber(maintenanceMarginString);
+        object initialMarginString = null;
+        object initialMarginPercentageString = null;
+        object leverageString = this.safeString(position, "leverage");
+        if (isTrue(!isEqual(leverageString, null)))
+        {
+            object leverage = parseInt(leverageString);
+            object rational = this.isRoundNumber(mod(1000, leverage));
+            initialMarginPercentageString = Precise.stringDiv("1", leverageString, 8);
+            if (!isTrue(rational))
+            {
+                initialMarginPercentageString = Precise.stringAdd(initialMarginPercentageString, "1e-8");
+            }
+            object unrounded = Precise.stringMul(notionalStringAbs, initialMarginPercentageString);
+            initialMarginString = Precise.stringDiv(unrounded, "1", 8);
+        } else
+        {
+            initialMarginString = this.safeString(position, "initialMargin");
+            object unrounded = Precise.stringMul(initialMarginString, "1");
+            initialMarginPercentageString = Precise.stringDiv(unrounded, notionalStringAbs, 8);
+        }
         object marginRatio = null;
         object percentage = null;
         if (!isTrue(Precise.stringEquals(collateralString, "0")))
@@ -10136,7 +10217,7 @@ public partial class binance : Exchange
             { "markPrice", markPrice },
             { "entryPrice", entryPrice },
             { "timestamp", timestamp },
-            { "initialMargin", initialMargin },
+            { "initialMargin", this.parseNumber(initialMarginString) },
             { "initialMarginPercentage", this.parseNumber(initialMarginPercentageString) },
             { "maintenanceMargin", maintenanceMargin },
             { "maintenanceMarginPercentage", maintenanceMarginPercentage },
@@ -10546,11 +10627,21 @@ public partial class binance : Exchange
         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        object defaultValue = this.safeString(this.options, "fetchPositions", "positionRisk");
         object defaultMethod = null;
-        var defaultMethodparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "method", defaultValue);
+        var defaultMethodparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "method");
         defaultMethod = ((IList<object>)defaultMethodparametersVariable)[0];
         parameters = ((IList<object>)defaultMethodparametersVariable)[1];
+        if (isTrue(isEqual(defaultMethod, null)))
+        {
+            object options = this.safeDict(this.options, "fetchPositions");
+            if (isTrue(isEqual(options, null)))
+            {
+                defaultMethod = this.safeString(this.options, "fetchPositions", "positionRisk");
+            } else
+            {
+                defaultMethod = "positionRisk";
+            }
+        }
         if (isTrue(isEqual(defaultMethod, "positionRisk")))
         {
             return await this.fetchPositionsRisk(symbols, parameters);
@@ -10562,7 +10653,7 @@ public partial class binance : Exchange
             return await this.fetchOptionPositions(symbols, parameters);
         } else
         {
-            throw new NotSupported ((string)add(add(add(this.id, ".options[\"fetchPositions\"]/params[\"method\"] = \""), defaultMethod), "\" is invalid, please choose between \"account\", \"positionRisk\" and \"option\"")) ;
+            throw new NotSupported ((string)add(add(add(this.id, ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \""), defaultMethod), "\" is invalid, please choose between \"account\", \"positionRisk\" and \"option\"")) ;
         }
     }
 
@@ -10582,6 +10673,7 @@ public partial class binance : Exchange
         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions in a portfolio margin account
         * @param {string} [params.subType] "linear" or "inverse"
         * @param {boolean} [params.filterClosed] set to true if you would like to filter out closed positions, default is false
+        * @param {boolean} [params.useV2] set to true if you want to use obsolete endpoint, where some more additional fields were provided
         * @returns {object} data on account positions
         */
         parameters ??= new Dictionary<string, object>();
@@ -10613,7 +10705,17 @@ public partial class binance : Exchange
                 response = await this.papiGetUmAccount(parameters);
             } else
             {
-                response = await this.fapiPrivateV2GetAccount(parameters);
+                object useV2 = null;
+                var useV2parametersVariable = this.handleOptionAndParams(parameters, "fetchAccountPositions", "useV2", false);
+                useV2 = ((IList<object>)useV2parametersVariable)[0];
+                parameters = ((IList<object>)useV2parametersVariable)[1];
+                if (!isTrue(useV2))
+                {
+                    response = await this.fapiPrivateV3GetAccount(parameters);
+                } else
+                {
+                    response = await this.fapiPrivateV2GetAccount(parameters);
+                }
             }
         } else if (isTrue(this.isInverse(type, subType)))
         {
@@ -10685,7 +10787,7 @@ public partial class binance : Exchange
                 response = await this.papiGetUmPositionRisk(this.extend(request, parameters));
             } else
             {
-                response = await this.fapiPrivateV2GetPositionRisk(this.extend(request, parameters));
+                response = await this.fapiPrivateV3GetPositionRisk(this.extend(request, parameters));
             }
         } else if (isTrue(this.isInverse(type, subType)))
         {
@@ -10706,18 +10808,18 @@ public partial class binance : Exchange
         //
         //     [
         //         {
+        //             "symbol": "BTCUSDT",
+        //             "positionSide": "BOTH",
+        //             "positionAmt": "0.000",
         //             "entryPrice": "0.00000",
+        //             "markPrice": "6679.50671178",
+        //             "unRealizedProfit": "0.00000000",
+        //             "liquidationPrice": "0",
+        //             "isolatedMargin": "0.00000000",
         //             "marginType": "isolated",
         //             "isAutoAddMargin": "false",
-        //             "isolatedMargin": "0.00000000",
         //             "leverage": "10",
-        //             "liquidationPrice": "0",
-        //             "markPrice": "6679.50671178",
         //             "maxNotionalValue": "20000000",
-        //             "positionAmt": "0.000",
-        //             "symbol": "BTCUSDT",
-        //             "unRealizedProfit": "0.00000000",
-        //             "positionSide": "BOTH",
         //             "updateTime": 0
         //        }
         //     ]
@@ -10734,27 +10836,13 @@ public partial class binance : Exchange
         //             "liquidationPrice": "5930.78",
         //             "markPrice": "6679.50671178",
         //             "maxNotionalValue": "20000000",
-        //             "positionAmt": "20.000",
+        //             "positionSide": "LONG",
+        //             "positionAmt": "20.000", // negative value for 'SHORT'
         //             "symbol": "BTCUSDT",
         //             "unRealizedProfit": "2316.83423560"
-        //             "positionSide": "LONG",
         //             "updateTime": 1625474304765
         //         },
-        //         {
-        //             "entryPrice": "0.00000",
-        //             "marginType": "isolated",
-        //             "isAutoAddMargin": "false",
-        //             "isolatedMargin": "5413.95799991",
-        //             "leverage": "10",
-        //             "liquidationPrice": "7189.95",
-        //             "markPrice": "6679.50671178",
-        //             "maxNotionalValue": "20000000",
-        //             "positionAmt": "-10.000",
-        //             "symbol": "BTCUSDT",
-        //             "unRealizedProfit": "-1156.46711780",
-        //             "positionSide": "SHORT",
-        //             "updateTime": 0
-        //         }
+        //         .. second dict is similar, but with `positionSide: SHORT`
         //     ]
         //
         // inverse portfolio margin:
@@ -10798,11 +10886,11 @@ public partial class binance : Exchange
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
-            object parsed = this.parsePositionRisk(getValue(response, i));
-            object entryPrice = this.safeString(parsed, "entryPrice");
-            if (isTrue(isTrue(isTrue((!isEqual(entryPrice, "0"))) && isTrue((!isEqual(entryPrice, "0.0")))) && isTrue((!isEqual(entryPrice, "0.00000000")))))
+            object rawPosition = getValue(response, i);
+            object entryPriceString = this.safeString(rawPosition, "entryPrice");
+            if (isTrue(Precise.stringGt(entryPriceString, "0")))
             {
-                ((IList<object>)result).Add(parsed);
+                ((IList<object>)result).Add(this.parsePositionRisk(getValue(response, i)));
             }
         }
         symbols = this.marketSymbols(symbols);
@@ -11669,7 +11757,7 @@ public partial class binance : Exchange
             {
                 throw new AuthenticationError ((string)add(this.id, " userDataStream endpoint requires `apiKey` credential")) ;
             }
-        } else if (isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(api, "private"))) || isTrue((isEqual(api, "eapiPrivate")))) || isTrue((isTrue(isEqual(api, "sapi")) && isTrue(!isEqual(path, "system/status"))))) || isTrue((isEqual(api, "sapiV2")))) || isTrue((isEqual(api, "sapiV3")))) || isTrue((isEqual(api, "sapiV4")))) || isTrue((isEqual(api, "dapiPrivate")))) || isTrue((isEqual(api, "dapiPrivateV2")))) || isTrue((isEqual(api, "fapiPrivate")))) || isTrue((isEqual(api, "fapiPrivateV2")))) || isTrue((isTrue(isEqual(api, "papi")) && isTrue(!isEqual(path, "ping"))))))
+        } else if (isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(api, "private"))) || isTrue((isEqual(api, "eapiPrivate")))) || isTrue((isTrue(isEqual(api, "sapi")) && isTrue(!isEqual(path, "system/status"))))) || isTrue((isEqual(api, "sapiV2")))) || isTrue((isEqual(api, "sapiV3")))) || isTrue((isEqual(api, "sapiV4")))) || isTrue((isEqual(api, "dapiPrivate")))) || isTrue((isEqual(api, "dapiPrivateV2")))) || isTrue((isEqual(api, "fapiPrivate")))) || isTrue((isEqual(api, "fapiPrivateV2")))) || isTrue((isEqual(api, "fapiPrivateV3")))) || isTrue((isTrue(isEqual(api, "papi")) && isTrue(!isEqual(path, "ping"))))))
         {
             this.checkRequiredCredentials();
             if (isTrue(isTrue(isEqual(method, "POST")) && isTrue((isTrue((isEqual(path, "order"))) || isTrue((isEqual(path, "sor/order")))))))
@@ -12798,6 +12886,10 @@ public partial class binance : Exchange
         if (isTrue(getValue(market, "option")))
         {
             ((IDictionary<string,object>)request)["underlyingAsset"] = getValue(market, "baseId");
+            if (isTrue(isEqual(getValue(market, "expiry"), null)))
+            {
+                throw new NotSupported ((string)add(add(this.id, " fetchOpenInterest does not support "), symbol)) ;
+            }
             ((IDictionary<string,object>)request)["expiration"] = this.yymmdd(getValue(market, "expiry"));
         } else
         {
@@ -12846,6 +12938,7 @@ public partial class binance : Exchange
         //
         if (isTrue(getValue(market, "option")))
         {
+            symbol = getValue(market, "symbol");
             object result = this.parseOpenInterests(response, market);
             for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
             {
@@ -13307,7 +13400,7 @@ public partial class binance : Exchange
     {
         /**
         * @method
-        * @name binance#fetchMarginMode
+        * @name binance#fetchMarginModes
         * @description fetches margin modes ("isolated" or "cross") that the market for the symbol in in, with symbol=undefined all markets for a subType (linear/inverse) are returned
         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2

@@ -34,7 +34,7 @@ declare class testMainClass extends baseMainTestClass {
     assertStaticRequestOutput(exchange: any, type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput: any, newOutput: any): void;
     assertStaticResponseOutput(exchange: Exchange, skipKeys: string[], computedResult: any, storedResult: any): void;
     sanitizeDataInput(input: any): any[];
-    testMethodStatically(exchange: any, method: string, data: object, type: string, skipKeys: string[]): Promise<void>;
+    testRequestStatically(exchange: any, method: string, data: object, type: string, skipKeys: string[]): Promise<void>;
     testResponseStatically(exchange: any, method: string, skipKeys: string[], data: object): Promise<void>;
     initOfflineExchange(exchangeName: string): Exchange;
     testExchangeRequestStatically(exchangeName: string, exchangeData: object, testName?: Str): Promise<boolean>;
@@ -66,5 +66,6 @@ declare class testMainClass extends baseMainTestClass {
     testOxfun(): Promise<boolean>;
     testXT(): Promise<boolean>;
     testVertex(): Promise<boolean>;
+    testParadex(): Promise<boolean>;
 }
 export default testMainClass;

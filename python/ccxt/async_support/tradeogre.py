@@ -221,7 +221,7 @@ class tradeogre(Exchange, ImplicitAPI):
                 'inverse': None,
                 'contractSize': None,
                 'taker': self.fees['trading']['taker'],
-                'maker': self.fees['trading']['taker'],
+                'maker': self.fees['trading']['maker'],
                 'expiry': None,
                 'expiryDatetime': None,
                 'strike': None,

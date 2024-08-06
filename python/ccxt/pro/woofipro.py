@@ -363,7 +363,7 @@ class woofipro(ccxt.async_support.woofipro):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -686,9 +686,10 @@ class woofipro(ccxt.async_support.woofipro):
             'cost': self.safe_string(order, 'totalFee'),
             'currency': self.safe_string(order, 'feeAsset'),
         }
+        priceString = self.safe_string(order, 'price')
         price = self.safe_number(order, 'price')
         avgPrice = self.safe_number(order, 'avgPrice')
-        if (price == 0) and (avgPrice is not None):
+        if Precise.string_eq(priceString, '0') and (avgPrice is not None):
             price = avgPrice
         amount = self.safe_string(order, 'quantity')
         side = self.safe_string_lower(order, 'side')

@@ -3012,7 +3012,7 @@ class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/v5/asset/all-balance
          * @see https://bybit-exchange.github.io/docs/v5/account/wallet-balance
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->type] wallet $type, ['spot', 'swap', 'fund']
+         * @param {string} [$params->type] wallet $type, ['spot', 'swap', 'funding']
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
          */
         $this->load_markets();
@@ -3020,15 +3020,26 @@ class bybit extends Exchange {
         list($enableUnifiedMargin, $enableUnifiedAccount) = $this->is_unified_enabled();
         $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
         $type = null;
+        // don't use getBybitType here
         list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchBalance', null, $params);
+        if (($type === 'swap') || ($type === 'future')) {
+            $type = $subType;
+        }
+        $lowercaseRawType = ($type !== null) ? strtolower($type) : null;
         $isSpot = ($type === 'spot');
-        $isSwap = ($type === 'swap');
+        $isLinear = ($type === 'linear');
+        $isInverse = ($type === 'inverse');
+        $isFunding = ($lowercaseRawType === 'fund') || ($lowercaseRawType === 'funding');
         if ($isUnifiedAccount) {
-            if ($isSpot || $isSwap) {
+            if ($isInverse) {
+                $type = 'contract';
+            } else {
                 $type = 'unified';
             }
         } else {
-            if ($isSwap) {
+            if ($isLinear || $isInverse) {
                 $type = 'contract';
             }
         }
@@ -3039,10 +3050,10 @@ class bybit extends Exchange {
         $response = null;
         if ($isSpot && ($marginMode !== null)) {
             $response = $this->privateGetV5SpotCrossMarginTradeAccount ($this->extend($request, $params));
-        } elseif ($unifiedType === 'FUND') {
+        } elseif ($isFunding) {
             // use this endpoint only we have no other choice
             // because it requires transfer permission
-            $request['accountType'] = $unifiedType;
+            $request['accountType'] = 'FUND';
             $response = $this->privateGetV5AssetTransferQueryAccountCoinsBalance ($this->extend($request, $params));
         } else {
             $request['accountType'] = $unifiedType;
@@ -3290,13 +3301,13 @@ class bybit extends Exchange {
         if ($code !== null) {
             if ($code !== '0') {
                 $category = $this->safe_string($order, 'category');
-                $inferedMarketType = ($category === 'spot') ? 'spot' : 'contract';
+                $inferredMarketType = ($category === 'spot') ? 'spot' : 'contract';
                 return $this->safe_order(array(
                     'info' => $order,
                     'status' => 'rejected',
                     'id' => $this->safe_string($order, 'orderId'),
                     'clientOrderId' => $this->safe_string($order, 'orderLinkId'),
-                    'symbol' => $this->safe_symbol($this->safe_string($order, 'symbol'), null, null, $inferedMarketType),
+                    'symbol' => $this->safe_symbol($this->safe_string($order, 'symbol'), null, null, $inferredMarketType),
                 ));
             }
         }
@@ -3344,7 +3355,7 @@ class bybit extends Exchange {
                 $feeCurrencyCode = $market['inverse'] ? $market['base'] : $market['settle'];
             }
             $fee = array(
-                'cost' => $feeCostString,
+                'cost' => $this->parse_number($feeCostString),
                 'currency' => $feeCurrencyCode,
             );
         }
@@ -4259,6 +4270,11 @@ class bybit extends Exchange {
         }
         $this->load_markets();
         $market = $this->market($symbol);
+        $types = $this->is_unified_enabled();
+        $enableUnifiedAccount = $types[1];
+        if (!$enableUnifiedAccount) {
+            throw new NotSupported($this->id . ' cancelOrders() supports UTA accounts only');
+        }
         $category = null;
         list($category, $params) = $this->get_bybit_type('cancelOrders', $market, $params);
         if ($category === 'inverse') {
@@ -4360,13 +4376,16 @@ class bybit extends Exchange {
         /**
          * cancel multiple $orders for multiple symbols
          * @see https://bybit-exchange.github.io/docs/v5/order/batch-cancel
-         * @param {string[]} ids $order ids
-         * @param {string} $symbol unified $symbol of the $market the $order was made in
+         * @param {CancellationRequest[]} $orders list of $order ids with $symbol, example [array("id" => "a", "symbol" => "BTC/USDT"), array("id" => "b", "symbol" => "ETH/USDT")]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string[]} [$params->clientOrderIds] client $order ids
          * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structures~
          */
         $this->load_markets();
+        $types = $this->is_unified_enabled();
+        $enableUnifiedAccount = $types[1];
+        if (!$enableUnifiedAccount) {
+            throw new NotSupported($this->id . ' cancelOrdersForSymbols() supports UTA accounts only');
+        }
         $ordersRequests = array();
         $category = null;
         for ($i = 0; $i < count($orders); $i++) {
@@ -6200,6 +6219,7 @@ class bybit extends Exchange {
          * @param {string} [$params->settleCoin] Settle coin. Supports linear, inverse & option
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
          */
+        $this->load_markets();
         $symbol = null;
         if (($symbols !== null) && gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
             $symbolsLength = count($symbols);
@@ -6213,7 +6233,6 @@ class bybit extends Exchange {
             $symbol = $symbols;
             $symbols = array( $this->symbol($symbol) );
         }
-        $this->load_markets();
         list($enableUnifiedMargin, $enableUnifiedAccount) = $this->is_unified_enabled();
         $isUnifiedAccount = ($enableUnifiedMargin || $enableUnifiedAccount);
         $request = array();
@@ -7118,8 +7137,8 @@ class bybit extends Exchange {
         $currency = null;
         $request = array();
         if ($code !== null) {
-            $currency = $this->safe_currency_code($code);
-            $request['coin'] = $currency;
+            $currency = $this->safe_currency($code);
+            $request['coin'] = $currency['id'];
         }
         if ($since !== null) {
             $request['startTime'] = $since;
@@ -8049,7 +8068,7 @@ class bybit extends Exchange {
         $quoteValueString = Precise::string_mul($baseValueString, $priceString);
         return $this->safe_liquidation(array(
             'info' => $liquidation,
-            'symbol' => $this->safe_symbol($marketId, $market),
+            'symbol' => $this->safe_symbol($marketId, $market, null, 'contract'),
             'contracts' => $this->parse_number($contractsString),
             'contractSize' => $this->parse_number($contractSizeString),
             'price' => $this->parse_number($priceString),

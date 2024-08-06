@@ -14,11 +14,11 @@ use ccxt\InsufficientFunds;
 use ccxt\InvalidAddress;
 use ccxt\InvalidOrder;
 use ccxt\OrderNotFound;
-use ccxt\CancelPending;
 use ccxt\NotSupported;
 use ccxt\RateLimitExceeded;
 use ccxt\ExchangeNotAvailable;
 use ccxt\InvalidNonce;
+use ccxt\CancelPending;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -90,6 +90,7 @@ class kraken extends Exchange {
                 'fetchOrderTrades' => 'emulated',
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -652,6 +653,33 @@ class kraken extends Exchange {
         return $result;
     }
 
+    public function fetch_status($params = array ()) {
+        return Async\async(function () use ($params) {
+            /**
+             * the latest known information on the availability of the exchange API
+             * @see https://docs.kraken.com/api/docs/rest-api/get-system-status/
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-status-structure status structure~
+             */
+            $response = Async\await($this->publicGetSystemStatus ($params));
+            //
+            // {
+            //     error => array(),
+            //     $result => array( status => 'online', timestamp => '2024-07-22T16:34:44Z' )
+            // }
+            //
+            $result = $this->safe_dict($response, 'result');
+            $statusRaw = $this->safe_string($result, 'status');
+            return array(
+                'status' => ($statusRaw === 'online') ? 'ok' : 'maintenance',
+                'updated' => null,
+                'eta' => null,
+                'url' => null,
+                'info' => $response,
+            );
+        }) ();
+    }
+
     public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
@@ -1073,7 +1101,7 @@ class kraken extends Exchange {
         } else {
             $direction = 'in';
         }
-        $timestamp = $this->safe_timestamp($item, 'time');
+        $timestamp = $this->safe_integer_product($item, 'time', 1000);
         return array(
             'info' => $item,
             'id' => $id,

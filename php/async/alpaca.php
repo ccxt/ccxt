@@ -816,7 +816,11 @@ class alpaca extends Exchange {
             if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
                 return $this->parse_orders($response, null);
             } else {
-                return $response;
+                return array(
+                    $this->safe_order(array(
+                        'info' => $response,
+                    )),
+                );
             }
         }) ();
     }
@@ -1107,6 +1111,7 @@ class alpaca extends Exchange {
         $url = $this->implode_hostname($this->urls['api'][$api[0]]);
         $headers = ($headers !== null) ? $headers : array();
         if ($api[1] === 'private') {
+            $this->check_required_credentials();
             $headers['APCA-API-KEY-ID'] = $this->apiKey;
             $headers['APCA-API-SECRET-KEY'] = $this->secret;
         }

@@ -1932,8 +1932,38 @@ class digifinex extends digifinex$1 {
             if (numCanceledOrders !== 1) {
                 throw new errors.OrderNotFound(this.id + ' cancelOrder() ' + id + ' not found');
             }
+            const orders = this.parseCancelOrders(response);
+            return this.safeDict(orders, 0);
         }
-        return response;
+        else {
+            return this.safeOrder({
+                'info': response,
+                'orderId': this.safeString(response, 'data'),
+            });
+        }
+    }
+    parseCancelOrders(response) {
+        const success = this.safeList(response, 'success');
+        const error = this.safeList(response, 'error');
+        const result = [];
+        for (let i = 0; i < success.length; i++) {
+            const order = success[i];
+            result.push(this.safeOrder({
+                'info': order,
+                'id': order,
+                'status': 'canceled',
+            }));
+        }
+        for (let i = 0; i < error.length; i++) {
+            const order = error[i];
+            result.push(this.safeOrder({
+                'info': order,
+                'id': this.safeString2(order, 'order-id', 'order_id'),
+                'status': 'failed',
+                'clientOrderId': this.safeString(order, 'client-order-id'),
+            }));
+        }
+        return result;
     }
     async cancelOrders(ids, symbol = undefined, params = {}) {
         /**
@@ -1966,12 +1996,7 @@ class digifinex extends digifinex$1 {
         //         ]
         //     }
         //
-        const canceledOrders = this.safeValue(response, 'success', []);
-        const numCanceledOrders = canceledOrders.length;
-        if (numCanceledOrders < 1) {
-            throw new errors.OrderNotFound(this.id + ' cancelOrders() error');
-        }
-        return response;
+        return this.parseCancelOrders(response);
     }
     parseOrderStatus(status) {
         const statuses = {
