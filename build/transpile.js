@@ -1999,7 +1999,10 @@ class Transpiler {
                 pyFileSync: baseFolders.py + unCamelCasedFileName + '.py',
                 phpFileSync: baseFolders.php + unCamelCasedFileName + '.php',
             };
-            tests.push(test);
+            const [ tsMtime, pythonMtime, phpMtime ] = this.getMTimes (test.tsFile, [ test.pyFileSync, test.phpFileSync ]);
+            if ((tsMtime > pythonMtime) || (tsMtime > phpMtime)) {  // only transpile if edits have been made
+                tests.push(test);
+            }
         }
         this.transpileAndSaveExchangeTests (tests);
     }
