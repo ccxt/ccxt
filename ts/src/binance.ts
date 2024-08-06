@@ -216,10 +216,7 @@ export default class binance extends Exchange {
                     'fapiPrivate': 'https://fapi.binance.com/fapi/v1',
                     'fapiPrivateV2': 'https://fapi.binance.com/fapi/v2',
                     'fapiPrivateV3': 'https://fapi.binance.com/fapi/v3',
-<<<<<<< HEAD
-=======
                     'fapiData': 'https://fapi.binance.com/futures/data',
->>>>>>> master
                     'public': 'https://api.binance.com/api/v3',
                     'private': 'https://api.binance.com/api/v3',
                     'v1': 'https://api.binance.com/api/v1',
@@ -855,13 +852,8 @@ export default class binance extends Exchange {
                         'trade/asyn': 1000,
                         'trade/asyn/id': 10,
                         'feeBurn': 1,
-<<<<<<< HEAD
-                        'symbolConfig': 1,
-                        'accountConfig': 1,
-=======
                         'symbolConfig': 5,
                         'accountConfig': 5,
->>>>>>> master
                     },
                     'post': {
                         'batchOrders': 5,
@@ -902,12 +894,9 @@ export default class binance extends Exchange {
                         'positionRisk': 1,
                     },
                 },
-<<<<<<< HEAD
-=======
                 'fapiPublicV3': {
                     'get': {},
                 },
->>>>>>> master
                 'fapiPrivateV3': {
                     'get': {
                         'account': 1,
@@ -10208,9 +10197,6 @@ export default class binance extends Exchange {
             if (isPortfolioMargin) {
                 response = await this.papiGetUmAccount (params);
             } else {
-<<<<<<< HEAD
-                response = await this.fapiPrivateV3GetAccount (params);
-=======
                 let useV2 = undefined;
                 [ useV2, params ] = this.handleOptionAndParams (params, 'fetchAccountPositions', 'useV2', false);
                 if (!useV2) {
@@ -10284,7 +10270,6 @@ export default class binance extends Exchange {
                 //        ]
                 //    }
                 //
->>>>>>> master
             }
         } else if (this.isInverse (type, subType)) {
             if (isPortfolioMargin) {
@@ -10341,8 +10326,6 @@ export default class binance extends Exchange {
                 response = await this.papiGetUmPositionRisk (this.extend (request, params));
             } else {
                 response = await this.fapiPrivateV3GetPositionRisk (this.extend (request, params));
-<<<<<<< HEAD
-=======
                 //
                 // [
                 //  {
@@ -10369,7 +10352,6 @@ export default class binance extends Exchange {
                 //  },
                 // ]
                 //
->>>>>>> master
             }
         } else if (this.isInverse (type, subType)) {
             if (isPortfolioMargin) {
@@ -12661,7 +12643,7 @@ export default class binance extends Exchange {
             //
             // [
             //     {
-            //         "symbol": "BTCUSDT", 
+            //         "symbol": "BTCUSDT",
             //         "marginType": "CROSSED",
             //         "isAutoAddMargin": "false",
             //         "leverage": 21,
