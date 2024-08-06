@@ -133,7 +133,7 @@ public partial class woo : Exchange
                 { "doc", new List<object>() {"https://docs.woo.org/"} },
                 { "fees", new List<object>() {"https://support.woo.org/hc/en-001/articles/4404611795353--Trading-Fees"} },
                 { "referral", new Dictionary<string, object>() {
-                    { "url", "https://x.woo.org/register?ref=YWOWC96B" },
+                    { "url", "https://x.woo.org/register?ref=DIJT0CNL" },
                     { "discount", 0.35 },
                 } },
             } },

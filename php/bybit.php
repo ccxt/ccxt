@@ -7137,8 +7137,8 @@ class bybit extends Exchange {
         $currency = null;
         $request = array();
         if ($code !== null) {
-            $currency = $this->safe_currency_code($code);
-            $request['coin'] = $currency;
+            $currency = $this->safe_currency($code);
+            $request['coin'] = $currency['id'];
         }
         if ($since !== null) {
             $request['startTime'] = $since;

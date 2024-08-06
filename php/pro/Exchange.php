@@ -77,6 +77,7 @@ Exchange::$exchanges = array(
     'onetrading',
     'oxfun',
     'p2b',
+    'paradex',
     'phemex',
     'poloniex',
     'poloniexfutures',

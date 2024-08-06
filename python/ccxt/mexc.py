@@ -4908,7 +4908,7 @@ class mexc(Exchange, ImplicitAPI):
         networks = self.safe_dict(self.options, 'networks', {})
         network = self.safe_string_2(params, 'network', 'netWork')  # self line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network, network)  # handle ETH > ERC-20 alias
-        network = self.network_code_to_id(network)
+        network = self.network_id_to_code(network)
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
