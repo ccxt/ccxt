@@ -1968,7 +1968,14 @@ class Transpiler {
                 phpFileSync: baseFolders.php + 'exchange/sync/' + unCamelCasedFileName + '.php',
                 phpFileAsync: baseFolders.php + 'exchange/async/' + unCamelCasedFileName + '.php',
             };
-            tests.push(test);
+            const [ tsMtime, pythonSyncMtime, pythonAsyncMtime, phpSyncMtime, phpAsyncMtime ] = this.getMTimes (test.tsFile, [ test.pyFileSync, test.pyFileAsync, test.phpFileSync, test.phpFileAsync ]);
+            if ((tsMtime > pythonSyncMtime) ||
+                (tsMtime > pythonAsyncMtime) ||
+                (tsMtime > phpSyncMtime) ||
+                (tsMtime > phpAsyncMtime)
+            ) {  // only transpile if edits have been made
+                tests.push(test);
+            }
         }
         this.transpileAndSaveExchangeTests (tests);
     }
