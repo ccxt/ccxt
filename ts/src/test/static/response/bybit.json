@@ -2509,6 +2509,58 @@
                   }
                 ]
             }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "fetchTransfers",
+                "method": "fetchTransfers",
+                "input": [
+                  "USDT"
+                ],
+                "httpResponse": {
+                  "retCode": "0",
+                  "retMsg": "success",
+                  "result": {
+                    "list": [
+                      {
+                        "transferId": "f26122f3-da92-4bef-b7cf-74f876568db9",
+                        "coin": "USDT",
+                        "amount": "10",
+                        "fromAccountType": "UNIFIED",
+                        "toAccountType": "FUND",
+                        "timestamp": "1722865698000",
+                        "status": "SUCCESS",
+                        "nextPageCursor": "eyJtaW5JRCI6MTM3ODAyMDU2LCJtYXhJRCI6MTM3ODAyMDU2fQ=="
+                      }
+                    ],
+                    "nextPageCursor": "eyJtaW5JRCI6MTM3ODAyMDU2LCJtYXhJRCI6MTM3ODAyMDU2fQ=="
+                  },
+                  "retExtInfo": {},
+                  "time": "1722866135254"
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "transferId": "f26122f3-da92-4bef-b7cf-74f876568db9",
+                      "coin": "USDT",
+                      "amount": "10",
+                      "fromAccountType": "UNIFIED",
+                      "toAccountType": "FUND",
+                      "timestamp": "1722865698000",
+                      "status": "SUCCESS",
+                      "nextPageCursor": "eyJtaW5JRCI6MTM3ODAyMDU2LCJtYXhJRCI6MTM3ODAyMDU2fQ=="
+                    },
+                    "id": "f26122f3-da92-4bef-b7cf-74f876568db9",
+                    "timestamp": 1722865698000,
+                    "datetime": "2024-08-05T13:48:18.000Z",
+                    "currency": "USDT",
+                    "amount": 10,
+                    "fromAccount": "unified",
+                    "toAccount": "fund",
+                    "status": "ok"
+                  }
+                ]
+            }
         ]
     }
 }

@@ -6739,8 +6739,8 @@ class bybit(Exchange, ImplicitAPI):
         currency = None
         request: dict = {}
         if code is not None:
-            currency = self.safe_currency_code(code)
-            request['coin'] = currency
+            currency = self.safe_currency(code)
+            request['coin'] = currency['id']
         if since is not None:
             request['startTime'] = since
         if limit is not None:
