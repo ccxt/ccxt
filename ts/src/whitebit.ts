@@ -814,7 +814,7 @@ export default class whitebit extends Exchange {
         //    }
         //
         // WS market_update
-        // 
+        //
         //     {
         //         "open": "52853.04",
         //         "close": "55913.88",
