@@ -2118,6 +2118,12 @@ export default class valr extends Exchange {
         if (code !== undefined) {
             query['currency'] = currency['id'];
         }
+        if (since !== undefined) {
+            query['startTime'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            query['limit'] = limit;
+        }
         const response = await this.privateGetAccountTransactionhistory (this.extend (query, params));
         return this.parseTransfers (response, currency, since, limit, params);
     }
