@@ -269,7 +269,6 @@ export default class whitebit extends whitebitRest {
         //           "low": "20851.44",
         //           "open": "24076.12",
         //           "period": 86400,
-        //           "last": "22293.86",
         //           "volume": "87016.995668"
         //         }
         //       ],
