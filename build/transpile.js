@@ -1802,89 +1802,94 @@ class Transpiler {
         const pyFile = './python/ccxt/test/base/test_cryptography.py'
         const phpFile = './php/test/base/test_cryptography.php'
 
-        log.magenta ('Transpiling from', jsFile.yellow)
-        let js = fs.readFileSync (jsFile).toString ()
+        const [ jsMtime, pythonMtime, phpMtime ] = this.getMTimes (jsFile, [ pyFile, phpFile ]);
+        if ((jsMtime > pythonMtime) || (jsMtime > phpMtime)) {  // only transpile if edits have been made
+            log.magenta ('Transpiling from', jsFile.yellow)
+            let js = fs.readFileSync (jsFile).toString ()
 
-        js = this.regexAll (js, [
-            [ /\'use strict\';?\s+/g, '' ],
-            [ /[^\n]+from[^\n]+\n/g, '' ],
-            [ /^export default[^\n]+\n/g, '' ],
-            [/^const\s+{.*}\s+=.*$/gm, ''],
-            [ /function equals \([\S\s]+?return true;?\n}\n/g, '' ],
-            [ /(export default .*)/g, '' ],
-            [ /testCryptography/g, 'test_cryptography' ],
-        ])
+            js = this.regexAll (js, [
+                [ /\'use strict\';?\s+/g, '' ],
+                [ /[^\n]+from[^\n]+\n/g, '' ],
+                [ /^export default[^\n]+\n/g, '' ],
+                [/^const\s+{.*}\s+=.*$/gm, ''],
+                [ /function equals \([\S\s]+?return true;?\n}\n/g, '' ],
+                [ /(export default .*)/g, '' ],
+                [ /testCryptography/g, 'test_cryptography' ],
+            ])
 
-        let { python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
+            let { python2Body, phpBody } = this.transpileJavaScriptToPythonAndPHP ({ js, removeEmptyLines: false })
 
-        python2Body = this.regexAll (python2Body, [
-            [ /function (\w+)\(\) \{/g, 'def $1():' ],
-        ])
+            python2Body = this.regexAll (python2Body, [
+                [ /function (\w+)\(\) \{/g, 'def $1():' ],
+            ])
 
-        const pythonHeader = [
-            "",
-            "import ccxt  # noqa: F402",
-            "import hashlib  # noqa: F402",
-            "",
-            "Exchange = ccxt.Exchange",
-            "hash = Exchange.hash",
-            "hmac = Exchange.hmac",
-            "ecdsa = Exchange.ecdsa",
-            "eddsa = Exchange.eddsa",
-            "jwt = Exchange.jwt",
-            "crc32 = Exchange.crc32",
-            "rsa = Exchange.rsa",
-            "encode = Exchange.encode",
-            "",
-            "",
-            "def equals(a, b):",
-            "    return a == b",
-            "",
-        ].join ("\n")
+            const pythonHeader = [
+                "",
+                "import ccxt  # noqa: F402",
+                "import hashlib  # noqa: F402",
+                "",
+                "Exchange = ccxt.Exchange",
+                "hash = Exchange.hash",
+                "hmac = Exchange.hmac",
+                "ecdsa = Exchange.ecdsa",
+                "eddsa = Exchange.eddsa",
+                "jwt = Exchange.jwt",
+                "crc32 = Exchange.crc32",
+                "rsa = Exchange.rsa",
+                "encode = Exchange.encode",
+                "",
+                "",
+                "def equals(a, b):",
+                "    return a == b",
+                "",
+            ].join ("\n")
 
-        const phpHeader = [
-            "",
-            "function hash(...$args) {",
-            "    return Exchange::hash(...$args);",
-            "}",
-            "",
-            "function hmac(...$args) {",
-            "    return Exchange::hmac(...$args);",
-            "}",
-            "",
-            "function encode(...$args) {",
-            "    return Exchange::encode(...$args);",
-            "}",
-            "",
-            "function ecdsa(...$args) {",
-            "    return Exchange::ecdsa(...$args);",
-            "}",
-            "",
-            "function eddsa(...$args) {",
-            "    return Exchange::eddsa(...$args);",
-            "}",
-            "",
-            "function jwt(...$args) {",
-            "    return Exchange::jwt(...$args);",
-            "}",
-            "",
-            "function crc32(...$arg) {",
-            "    return Exchange::crc32(...$arg);",
-            "}",
-            "",
-            "function rsa(...$arg) {",
-            "    return Exchange::rsa(...$arg);",
-            "}",
-        ].join ("\n")
+            const phpHeader = [
+                "",
+                "function hash(...$args) {",
+                "    return Exchange::hash(...$args);",
+                "}",
+                "",
+                "function hmac(...$args) {",
+                "    return Exchange::hmac(...$args);",
+                "}",
+                "",
+                "function encode(...$args) {",
+                "    return Exchange::encode(...$args);",
+                "}",
+                "",
+                "function ecdsa(...$args) {",
+                "    return Exchange::ecdsa(...$args);",
+                "}",
+                "",
+                "function eddsa(...$args) {",
+                "    return Exchange::eddsa(...$args);",
+                "}",
+                "",
+                "function jwt(...$args) {",
+                "    return Exchange::jwt(...$args);",
+                "}",
+                "",
+                "function crc32(...$arg) {",
+                "    return Exchange::crc32(...$arg);",
+                "}",
+                "",
+                "function rsa(...$arg) {",
+                "    return Exchange::rsa(...$arg);",
+                "}",
+            ].join ("\n")
 
-        const python = this.getPythonPreamble (4) + pythonHeader + python2Body + '\n'
-        const php = this.getPHPPreamble (true, 3) + phpHeader + phpBody
+            const python = this.getPythonPreamble (4) + pythonHeader + python2Body + '\n'
+            const php = this.getPHPPreamble (true, 3) + phpHeader + phpBody
 
-        log.magenta ('→', pyFile.yellow)
-        log.magenta ('→', phpFile.yellow)
+            log.magenta ('→', pyFile.yellow)
+            log.magenta ('→', phpFile.yellow)
 
-        overwriteSafe (pyFile, python)
-        overwriteSafe (phpFile, php)
+            overwriteSafe (pyFile, python)
+            overwriteSafe (phpFile, php)
+        } else {
+            log.green ('Already transpiled', jsFile.yellow)
+        }
     }
 
     // ============================================================================
