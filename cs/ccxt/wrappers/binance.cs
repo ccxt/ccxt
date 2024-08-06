@@ -1945,6 +1945,12 @@ public partial class binance
     /// boolean : set to true if you would like to filter out closed positions, default is false
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.useV2</term>
+    /// <description>
+    /// boolean : set to true if you want to use obsolete endpoint, where some more additional fields were provided
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> data on account positions.</returns>
