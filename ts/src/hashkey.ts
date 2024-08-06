@@ -1030,6 +1030,7 @@ export default class hashkey extends Exchange {
          * @description fetch all trades made by the user
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-account-trade-list
          * @see https://hashkeyglobal-apidoc.readme.io/reference/query-futures-trades
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-user
          * @param {string} symbol *is mandatory for swap markets* unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum amount of trades to fetch (default 200, max 500)
@@ -1039,7 +1040,7 @@ export default class hashkey extends Exchange {
          * @param {string} [params.fromId] srarting trade id
          * @param {string} [params.toId] ending trade id
          * @param {string} [params.clientOrderId] *spot markets only* filter trades by orderId
-         * @param {string} [params.accountId] *spot markets only* filter trades by account id
+         * @param {string} [params.accountId] filter trades by account id
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         const methodName = 'fetchMyTrades';
@@ -1122,26 +1123,33 @@ export default class hashkey extends Exchange {
                 throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a symbol argument for swap markets');
             }
             request['symbol'] = market['id'];
-            response = await this.privateGetApiV1FuturesUserTrades (this.extend (request, params));
-            //
-            //     [
-            //         {
-            //             "time": "1722429951648",
-            //             "tradeId": "1742263144691139328",
-            //             "orderId": "1742263144028363776",
-            //             "symbol": "ETHUSDT-PERPETUAL",
-            //             "price": "3327.54",
-            //             "quantity": "4",
-            //             "commissionAsset": "USDT",
-            //             "commission": "0.00798609",
-            //             "makerRebate": "0",
-            //             "type": "LIMIT",
-            //             "side": "BUY_OPEN",
-            //             "realizedPnl": "0",
-            //             "isMarker": false
-            //         }
-            //     ]
-            //
+            let accountId: Str = undefined;
+            [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
+            if (accountId !== undefined) {
+                request['subAccountId'] = accountId;
+                response = await this.privateGetApiV1FuturesSubAccountUserTrades (this.extend (request, params));
+            } else {
+                response = await this.privateGetApiV1FuturesUserTrades (this.extend (request, params));
+                //
+                //     [
+                //         {
+                //             "time": "1722429951648",
+                //             "tradeId": "1742263144691139328",
+                //             "orderId": "1742263144028363776",
+                //             "symbol": "ETHUSDT-PERPETUAL",
+                //             "price": "3327.54",
+                //             "quantity": "4",
+                //             "commissionAsset": "USDT",
+                //             "commission": "0.00798609",
+                //             "makerRebate": "0",
+                //             "type": "LIMIT",
+                //             "side": "BUY_OPEN",
+                //             "realizedPnl": "0",
+                //             "isMarker": false
+                //         }
+                //     ]
+                //
+            }
         } else {
             throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
@@ -2873,6 +2881,7 @@ export default class hashkey extends Exchange {
          * @description fetch all unfilled currently open orders
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-current-open-orders
          * @see https://hashkeyglobal-apidoc.readme.io/reference/query-open-futures-orders
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-open-orders
          * @param {string} [symbol] unified market symbol of the market orders were made in - is mandatory for swap markets
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve - default 500, maximum 1000
@@ -2980,6 +2989,7 @@ export default class hashkey extends Exchange {
          * @name hashkey#fetchOpenSwapOrders
          * @description fetch all unfilled currently open orders for swap markets
          * @see https://hashkeyglobal-apidoc.readme.io/reference/query-open-futures-orders
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-open-orders
          * @param {string} symbol *is mandatory* unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve - maximum 500
@@ -2987,6 +2997,7 @@ export default class hashkey extends Exchange {
          * @param {string} [params.fromOrderId] the id of the order to start from
          * @param {bool} [params.trigger] true for fetching trigger orders (default false)
          * @param {bool} [params.stop] an alternative for trigger param
+         * @param {string} [params.accountId] account id to fetch the order from
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         let methodName = 'fetchOpenSwapOrders';
@@ -3013,50 +3024,58 @@ export default class hashkey extends Exchange {
         if (fromOrderId !== undefined) {
             request['fromOrderId'] = fromOrderId;
         }
-        const response = await this.privateGetApiV1FuturesOpenOrders (this.extend (request, params));
-        // 'LIMIT'
-        //     [
-        //         {
-        //             "time": "1722432302919",
-        //             "updateTime": "1722432302925",
-        //             "orderId": "1742282868229463040",
-        //             "clientOrderId": "1722432301670",
-        //             "symbol": "ETHUSDT-PERPETUAL",
-        //             "price": "4000",
-        //             "leverage": "5",
-        //             "origQty": "10",
-        //             "executedQty": "0",
-        //             "avgPrice": "0",
-        //             "marginLocked": "0",
-        //             "type": "LIMIT_MAKER",
-        //             "side": "SELL_CLOSE",
-        //             "timeInForce": "GTC",
-        //             "status": "NEW",
-        //             "priceType": "INPUT",
-        //             "isLiquidationOrder": false,
-        //             "indexPrice": "0",
-        //             "liquidationType": ""
-        //         }
-        //     ]
-        //
-        // 'STOP'
-        //     [
-        //         {
-        //             "time": "1722433095688",
-        //             "updateTime": "1722433095688",
-        //             "orderId": "1742289518466225664",
-        //             "accountId": "1735619524953226496",
-        //             "clientOrderId": "1722433094438",
-        //             "symbol": "ETHUSDT-PERPETUAL",
-        //             "price": "3700",
-        //             "leverage": "0",
-        //             "origQty": "10",
-        //             "type": "STOP",
-        //             "side": "SELL_CLOSE",
-        //             "status": "ORDER_NEW",
-        //             "stopPrice": "3600"
-        //         }
-        //     ]
+        let response = undefined;
+        let accountId: Str = undefined;
+        [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
+        if (accountId !== undefined) {
+            request['subAccountId'] = accountId;
+            response = await this.privateGetApiV1FuturesSubAccountOpenOrders (this.extend (request, params));
+        } else {
+            response = await this.privateGetApiV1FuturesOpenOrders (this.extend (request, params));
+            // 'LIMIT'
+            //     [
+            //         {
+            //             "time": "1722432302919",
+            //             "updateTime": "1722432302925",
+            //             "orderId": "1742282868229463040",
+            //             "clientOrderId": "1722432301670",
+            //             "symbol": "ETHUSDT-PERPETUAL",
+            //             "price": "4000",
+            //             "leverage": "5",
+            //             "origQty": "10",
+            //             "executedQty": "0",
+            //             "avgPrice": "0",
+            //             "marginLocked": "0",
+            //             "type": "LIMIT_MAKER",
+            //             "side": "SELL_CLOSE",
+            //             "timeInForce": "GTC",
+            //             "status": "NEW",
+            //             "priceType": "INPUT",
+            //             "isLiquidationOrder": false,
+            //             "indexPrice": "0",
+            //             "liquidationType": ""
+            //         }
+            //     ]
+            //
+            // 'STOP'
+            //     [
+            //         {
+            //             "time": "1722433095688",
+            //             "updateTime": "1722433095688",
+            //             "orderId": "1742289518466225664",
+            //             "accountId": "1735619524953226496",
+            //             "clientOrderId": "1722433094438",
+            //             "symbol": "ETHUSDT-PERPETUAL",
+            //             "price": "3700",
+            //             "leverage": "0",
+            //             "origQty": "10",
+            //             "type": "STOP",
+            //             "side": "SELL_CLOSE",
+            //             "status": "ORDER_NEW",
+            //             "stopPrice": "3600"
+            //         }
+            //     ]
+        }
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -3067,6 +3086,7 @@ export default class hashkey extends Exchange {
          * @description fetches information on multiple canceled and closed orders made by the user
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-all-orders
          * @see https://hashkeyglobal-apidoc.readme.io/reference/query-futures-history-orders
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-history-orders
          * @param {string} symbol *is mandatory for swap markets* unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve - default 500, maximum 1000
@@ -3078,6 +3098,7 @@ export default class hashkey extends Exchange {
          * @param {string} [params.fromOrderId] *swap markets only* the id of the order to start from
          * @param {bool} [params.trigger] *swap markets only* the id of the order to start from true for fetching trigger orders (default false)
          * @param {bool} [params.stop] *swap markets only* the id of the order to start from an alternative for trigger param
+         * @param {string} [params.accountId] account id to fetch the order from
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const methodName = 'fetchCanceledAndClosedOrders';
@@ -3163,32 +3184,39 @@ export default class hashkey extends Exchange {
             if (fromOrderId !== undefined) {
                 request['fromOrderId'] = fromOrderId;
             }
-            response = await this.privateGetApiV1FuturesHistoryOrders (this.extend (request, params));
-            //
-            //     [
-            //         {
-            //             "time": "1722429951611",
-            //             "updateTime": "1722429951700",
-            //             "orderId": "1742263144028363776",
-            //             "clientOrderId": "1722429950315",
-            //             "symbol": "ETHUSDT-PERPETUAL",
-            //             "price": "3460.62",
-            //             "leverage": "5",
-            //             "origQty": "10",
-            //             "executedQty": "10",
-            //             "avgPrice": "3327.52",
-            //             "marginLocked": "0",
-            //             "type": "LIMIT",
-            //             "side": "BUY_OPEN",
-            //             "timeInForce": "IOC",
-            //             "status": "FILLED",
-            //             "priceType": "MARKET",
-            //             "isLiquidationOrder": false,
-            //             "indexPrice": "0",
-            //             "liquidationType": ""
-            //         }
-            //     ]
-            //
+            let accountId: Str = undefined;
+            [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
+            if (accountId !== undefined) {
+                request['subAccountId'] = accountId;
+                response = await this.privateGetApiV1FuturesSubAccountHistoryOrders (this.extend (request, params));
+            } else {
+                response = await this.privateGetApiV1FuturesHistoryOrders (this.extend (request, params));
+                //
+                //     [
+                //         {
+                //             "time": "1722429951611",
+                //             "updateTime": "1722429951700",
+                //             "orderId": "1742263144028363776",
+                //             "clientOrderId": "1722429950315",
+                //             "symbol": "ETHUSDT-PERPETUAL",
+                //             "price": "3460.62",
+                //             "leverage": "5",
+                //             "origQty": "10",
+                //             "executedQty": "10",
+                //             "avgPrice": "3327.52",
+                //             "marginLocked": "0",
+                //             "type": "LIMIT",
+                //             "side": "BUY_OPEN",
+                //             "timeInForce": "IOC",
+                //             "status": "FILLED",
+                //             "priceType": "MARKET",
+                //             "isLiquidationOrder": false,
+                //             "indexPrice": "0",
+                //             "liquidationType": ""
+                //         }
+                //     ]
+                //
+            }
         } else {
             throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
