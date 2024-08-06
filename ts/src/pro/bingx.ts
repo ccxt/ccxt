@@ -107,12 +107,9 @@ export default class bingx extends bingxRest {
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchTicker', market, params);
         [ subType, params ] = this.handleSubTypeAndParams ('watchTicker', market, params, 'linear');
         if (marketType === 'swap') {
-            url = this.urls['api']['ws'][subType];
+            url = this.safeString (this.urls['api']['ws'], subType);
         } else {
-            url = this.urls['api']['ws'][marketType];
-            if (url === undefined) {
-                throw new BadRequest (this.id + ' watchTicker is not supported for ' + marketType + ' markets.');
-            }
+            url = this.safeString (this.urls['api']['ws'], marketType);
         }
         const subscriptionHash = market['id'] + '@ticker';
         const messageHash = this.getMessageHash ('ticker', market['symbol']);
@@ -471,6 +468,7 @@ export default class bingx extends bingxRest {
          * @description watches information on multiple trades made in a market
          * @see https://bingx-api.github.io/docs/#/spot/socket/market.html#Subscribe%20to%20tick-by-tick
          * @see https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20the%20Latest%20Trade%20Detail
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscription%20transaction%20by%20transaction
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -480,10 +478,14 @@ export default class bingx extends bingxRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let marketType = undefined;
+        let subType = undefined;
+        let url = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchTrades', market, params);
-        const url = this.safeValue (this.urls['api']['ws'], marketType);
-        if (url === undefined) {
-            throw new BadRequest (this.id + ' watchTrades is not supported for ' + marketType + ' markets.');
+        [ subType, params ] = this.handleSubTypeAndParams ('watchTrades', market, params, 'linear');
+        if (marketType === 'swap') {
+            url = this.safeString (this.urls['api']['ws'], subType);
+        } else {
+            url = this.safeString (this.urls['api']['ws'], marketType);
         }
         const rawHash = market['id'] + '@trade';
         const messageHash = 'trade::' + symbol;
@@ -504,8 +506,7 @@ export default class bingx extends bingxRest {
 
     handleTrades (client: Client, message) {
         //
-        // spot
-        // first snapshot
+        // spot: first snapshot
         //
         //    {
         //      "id": "d83b78ce-98be-4dc2-b847-12fe471b5bc5",
@@ -514,7 +515,7 @@ export default class bingx extends bingxRest {
         //      "timestamp": 1690214699854
         //    }
         //
-        // subsequent updates
+        // spot: subsequent updates
         //
         //     {
         //         "code": 0,
@@ -532,9 +533,7 @@ export default class bingx extends bingxRest {
         //         "success": true
         //     }
         //
-        //
-        // swap
-        // first snapshot
+        // linear swap: first snapshot
         //
         //    {
         //        "id": "2aed93b1-6e1e-4038-aeba-f5eeaec2ca48",
@@ -544,8 +543,7 @@ export default class bingx extends bingxRest {
         //        "data": null
         //    }
         //
-        // subsequent updates
-        //
+        // linear swap: subsequent updates
         //
         //    {
         //        "code": 0,
@@ -561,6 +559,32 @@ export default class bingx extends bingxRest {
         //            ...
         //        ]
         //    }
+        //
+        // inverse swap: first snapshot
+        //
+        //     {
+        //         "code": 0,
+        //         "id": "a2e482ca-f71b-42f8-a83a-8ff85a713e64",
+        //         "msg": "SUCCESS",
+        //         "timestamp": 1722920589426
+        //     }
+        //
+        // inverse swap: subsequent updates
+        //
+        //     {
+        //         "code": 0,
+        //         "dataType": "BTC-USD@trade",
+        //         "data": {
+        //             "e": "trade",
+        //             "E": 1722920589665,
+        //             "s": "BTC-USD",
+        //             "t": "39125001",
+        //             "p": "55360.0",
+        //             "q": "1",
+        //             "T": 1722920589582,
+        //             "m": false
+        //         }
+        //     }
         //
         const data = this.safeValue (message, 'data', []);
         const rawHash = this.safeString (message, 'dataType');
