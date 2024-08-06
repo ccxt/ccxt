@@ -677,7 +677,7 @@ export default class vertex extends Exchange {
         let amount = undefined;
         let side = undefined;
         let fee = undefined;
-        const feeCost = this.parseString (this.convertFromX18 (this.safeString (trade, 'fee')));
+        const feeCost = this.convertFromX18 (this.safeString (trade, 'fee'));
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
