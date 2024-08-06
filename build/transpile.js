@@ -2392,6 +2392,31 @@ class Transpiler {
 
         this.transpileExchangeTests ()
     }
+    
+    getMTimes (tsPath, otherPaths) {
+        /**
+         * @param {string} tsPath 
+         * @param {string[]} otherPaths 
+         * @return {number[]} mtimes
+         */
+        let tsMtime = fs.statSync (tsPath).mtime.getTime ();
+        tsMtime = tsMtime - tsMtime % 1000;
+        const mTimes = [
+            tsMtime,
+        ];
+        otherPaths.forEach (path => {
+            if (path) {
+                if (fs.existsSync (path)) {
+                    mTimes.push (fs.statSync (path).mtime.getTime ());
+                } else {
+                    mTimes.push (0);
+                }
+            } else {
+                mTimes.push (undefined);
+            }
+        });
+        return mTimes;
+    }
 
     // ============================================================================
     transpileExamples () {
@@ -2477,12 +2502,9 @@ class Transpiler {
             if (tsContent.indexOf (transpileFlagPhrase) > -1) {
                 const pythonFile = filenameWithExtenstion.replace ('.ts', '.py');
                 const phpFile = filenameWithExtenstion.replace ('.ts', '.php');
-                let tsMtime = fs.statSync (tsFile).mtime.getTime ();
-                tsMtime = tsMtime - tsMtime % 1000;
                 const pythonPath = path.join (examplesFolders.py, pythonFile);
                 const phpPath = path.join (examplesFolders.php, phpFile);
-                const pythonMtime  = pythonPath    ? (fs.existsSync (pythonPath)  ? fs.statSync (pythonPath).mtime.getTime ()  : 0) : undefined;
-                const phpMtime  = phpPath    ? (fs.existsSync (phpPath)  ? fs.statSync (phpPath).mtime.getTime ()  : 0) : undefined;
+                const [tsMtime, pythonMtime, phpMtime] = this.getMTimes (tsFile, [ pythonPath, phpPath ]);
                 if ((tsMtime > pythonMtime) || (tsMtime > phpMtime)) {  // only transpile if edits have been made
                     const isCcxtPro = tsContent.indexOf ('ccxt.pro') > -1;
                     log.magenta ('Transpiling from', tsFile.yellow)
