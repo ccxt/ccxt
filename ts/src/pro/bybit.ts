@@ -2082,7 +2082,7 @@ export default class bybit extends bybitRest {
             this.handleSubscriptionStatus (client, message);
             return;
         }
-        const topic = this.safeString2 (message, 'topic', 'op');
+        const topic = this.safeString2 (message, 'topic', 'op', '');
         const methods: Dict = {
             'orderbook': this.handleOrderBook,
             'kline': this.handleOHLCV,
