@@ -3476,13 +3476,13 @@ export default class gate extends Exchange {
         }
         if (gtFee !== undefined) {
             fees.push ({
-                'cost': this.safeString (gtFee),
+                'cost': gtFee,
                 'currency': 'GT',
             });
         }
         if (pointFee !== undefined) {
             fees.push ({
-                'cost': this.safeString (pointFee),
+                'cost': pointFee,
                 'currency': 'GatePoint',
             });
         }
