@@ -262,11 +262,13 @@ export default class bingx extends bingxRest {
         symbols = this.marketSymbols (symbols, undefined, true, true, false);
         let firstMarket = undefined;
         let marketType = undefined;
+        let subType = undefined;
         const symbolsDefined = (symbols !== undefined);
         if (symbolsDefined) {
             firstMarket = this.market (symbols[0]);
         }
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchTickers', firstMarket, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('watchTickers', firstMarket, params, 'linear');
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' watchTickers is not supported for spot markets yet');
         }
@@ -281,7 +283,7 @@ export default class bingx extends bingxRest {
         } else {
             messageHashes.push (this.getMessageHash ('ticker'));
         }
-        const url = this.safeString (this.urls['api']['ws'], marketType);
+        const url = this.safeString (this.urls['api']['ws'], subType);
         const uuid = this.uuid ();
         const request: Dict = {
             'id': uuid,
