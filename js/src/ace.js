@@ -355,7 +355,7 @@ export default class ace extends Exchange {
         for (let i = 0; i < pairs.length; i++) {
             const marketId = pairs[i];
             const market = this.safeMarket(marketId);
-            const rawTicker = this.safeDict(response, marketId);
+            const rawTicker = this.safeDict(response, marketId, {});
             const ticker = this.parseTicker(rawTicker, market);
             tickers.push(ticker);
         }

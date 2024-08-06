@@ -320,8 +320,8 @@ export default class ace extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const response = await this.publicGetOapiV2ListTradePrice (params);
-        const marketId = market['id'];
-        const ticker = this.safeDict (response, marketId, {});
+        const marketId = market['id'] as string;
+        const ticker = this.safeDict (response, marketId, {}) as Dict;
         //
         //     {
         //         "BTC/USDT":{
@@ -360,7 +360,7 @@ export default class ace extends Exchange {
         for (let i = 0; i < pairs.length; i++) {
             const marketId = pairs[i];
             const market = this.safeMarket (marketId);
-            const rawTicker = this.safeDict (response, marketId);
+            const rawTicker = this.safeDict (response, marketId, {}) as Dict;
             const ticker = this.parseTicker (rawTicker, market);
             tickers.push (ticker);
         }

@@ -864,10 +864,15 @@ class binance(ccxt.async_support.binance):
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a list of symbols
+        :see: https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
+        :see: https://binance-docs.github.io/apidocs/spot/en/#trade-streams
+        :see: https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
         :param str[] symbols: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.name]: the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
@@ -878,8 +883,9 @@ class binance(ccxt.async_support.binance):
             if symbolsLength > 200:
                 raise BadRequest(self.id + ' watchTradesForSymbols() accepts 200 symbols at most. To watch more symbols call watchTradesForSymbols() multiple times')
             streamHash += '::' + ','.join(symbols)
-        options = self.safe_value(self.options, 'watchTradesForSymbols', {})
-        name = self.safe_string(options, 'name', 'trade')
+        name = None
+        name, params = self.handle_option_and_params(params, 'watchTradesForSymbols', 'name', 'trade')
+        params = self.omit(params, 'callerMethodName')
         firstMarket = self.market(symbols[0])
         type = firstMarket['type']
         if firstMarket['contract']:
@@ -914,12 +920,18 @@ class binance(ccxt.async_support.binance):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+        :see: https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
+        :see: https://binance-docs.github.io/apidocs/spot/en/#trade-streams
+        :see: https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.name]: the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
+        params['callerMethodName'] = 'watchTrades'
         return await self.watch_trades_for_symbols([symbol], since, limit, params)
 
     def parse_ws_trade(self, trade, market=None) -> Trade:
@@ -1098,11 +1110,15 @@ class binance(ccxt.async_support.binance):
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :see: https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+        :see: https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param dict [params.timezone]: if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         params['callerMethodName'] = 'watchOHLCV'
@@ -1112,10 +1128,14 @@ class binance(ccxt.async_support.binance):
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Int = None, limit: Int = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :see: https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+        :see: https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param dict [params.timezone]: if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -1127,6 +1147,10 @@ class binance(ccxt.async_support.binance):
         type = firstMarket['type']
         if firstMarket['contract']:
             type = 'future' if firstMarket['linear'] else 'delivery'
+        isSpot = (type == 'spot')
+        timezone = None
+        timezone, params = self.handle_param_string(params, 'timezone', None)
+        isUtc8 = (timezone is not None) and ((timezone == '+08:00') or Precise.string_eq(timezone, '8'))
         rawHashes = []
         messageHashes = []
         for i in range(0, len(symbolsAndTimeframes)):
@@ -1139,7 +1163,10 @@ class binance(ccxt.async_support.binance):
             if klineType == 'indexPriceKline':
                 # weird behavior for index price kline we can't use the perp suffix
                 marketId = marketId.replace('_perp', '')
-            rawHashes.append(marketId + '@' + klineType + '_' + interval)
+            shouldUseUTC8 = (isUtc8 and isSpot)
+            suffix = '@+08:00'
+            utcSuffix = suffix if shouldUseUTC8 else ''
+            rawHashes.append(marketId + '@' + klineType + '_' + interval + utcSuffix)
             messageHashes.append('ohlcv::' + symbolString + '::' + timeframeString)
         url = self.urls['api']['ws'][type] + '/' + self.stream(type, 'multipleOHLCV')
         requestId = self.request_id(url)
@@ -1151,6 +1178,7 @@ class binance(ccxt.async_support.binance):
         subscribe = {
             'id': requestId,
         }
+        params = self.omit(params, 'callerMethodName')
         symbol, timeframe, candles = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes, subscribe)
         if self.newUpdates:
             limit = candles.getLimit(symbol, limit)

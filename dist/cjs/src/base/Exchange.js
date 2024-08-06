@@ -22,6 +22,12 @@ require('../static_dependencies/noble-hashes/sha256.js');
 require('../static_dependencies/ethers/address/address.js');
 var typedData = require('../static_dependencies/ethers/hash/typed-data.js');
 var rng = require('../static_dependencies/jsencrypt/lib/jsbn/rng.js');
+var index$1 = require('../static_dependencies/scure-starknet/index.js');
+require('../static_dependencies/noble-curves/abstract/modular.js');
+var selector = require('../static_dependencies/starknet/utils/selector.js');
+var classHash = require('../static_dependencies/starknet/utils/hash/classHash.js');
+var index$2 = require('../static_dependencies/starknet/utils/calldata/index.js');
+var typedData$1 = require('../static_dependencies/starknet/utils/typedData.js');
 var generic = require('./functions/generic.js');
 var misc = require('./functions/misc.js');
 
@@ -1182,6 +1188,49 @@ class Exchange {
     ethEncodeStructuredData(domain, messageTypes, messageData) {
         return this.base16ToBinary(typedData.TypedDataEncoder.encode(domain, messageTypes, messageData).slice(-132));
     }
+    retrieveStarkAccount(signature, accountClassHash, accountProxyClassHash) {
+        const privateKey = index$1.ethSigToPrivate(signature);
+        const publicKey = index$1.getStarkKey(privateKey);
+        const callData = index$2.CallData.compile({
+            implementation: accountClassHash,
+            selector: selector.getSelectorFromName('initialize'),
+            calldata: index$2.CallData.compile({
+                signer: publicKey,
+                guardian: '0',
+            }),
+        });
+        const address = classHash.calculateContractAddressFromHash(publicKey, accountProxyClassHash, callData, 0);
+        return {
+            privateKey,
+            publicKey,
+            address
+        };
+    }
+    starknetEncodeStructuredData(domain, messageTypes, messageData, address) {
+        const types = Object.keys(messageTypes);
+        if (types.length > 1) {
+            throw new errors.NotSupported(this.id + 'starknetEncodeStructuredData only support single type');
+        }
+        const request = {
+            'domain': domain,
+            'primaryType': types[0],
+            'types': this.extend({
+                'StarkNetDomain': [
+                    { 'name': "name", 'type': "felt" },
+                    { 'name': "chainId", 'type': "felt" },
+                    { 'name': "version", 'type': "felt" },
+                ],
+            }, messageTypes),
+            'message': messageData,
+        };
+        const msgHash = typedData$1.getMessageHash(request, address);
+        return msgHash;
+    }
+    starknetSign(hash, pri) {
+        // TODO: unify to ecdsa
+        const signature = index$1.sign(hash.replace('0x', ''), pri.slice(-64));
+        return this.json([signature.r.toString(), signature.s.toString()]);
+    }
     intToBase16(elem) {
         return elem.toString(16);
     }
@@ -1660,6 +1709,12 @@ class Exchange {
     }
     handleDelta(bookside, delta) {
         throw new errors.NotSupported(this.id + ' handleDelta not supported yet');
+    }
+    handleDeltasWithKeys(bookSide, deltas, priceKey = 0, amountKey = 1, countOrIdKey = 2) {
+        for (let i = 0; i < deltas.length; i++) {
+            const bidAsk = this.parseBidAsk(deltas[i], priceKey, amountKey, countOrIdKey);
+            bookSide.storeArray(bidAsk);
+        }
     }
     getCacheIndex(orderbook, deltas) {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible

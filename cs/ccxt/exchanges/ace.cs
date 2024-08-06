@@ -301,7 +301,7 @@ public partial class ace : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object response = await this.publicGetOapiV2ListTradePrice(parameters);
-        object marketId = getValue(market, "id");
+        object marketId = ((string)getValue(market, "id"));
         object ticker = this.safeDict(response, marketId, new Dictionary<string, object>() {});
         //
         //     {
@@ -344,7 +344,7 @@ public partial class ace : Exchange
         {
             object marketId = getValue(pairs, i);
             object market = this.safeMarket(marketId);
-            object rawTicker = this.safeDict(response, marketId);
+            object rawTicker = this.safeDict(response, marketId, new Dictionary<string, object>() {});
             object ticker = this.parseTicker(rawTicker, market);
             ((IList<object>)tickers).Add(ticker);
         }

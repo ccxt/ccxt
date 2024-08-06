@@ -369,6 +369,13 @@ export default class Exchange {
     fixStringifiedJsonMembers(content: string): any;
     ethAbiEncode(types: any, args: any): Uint8Array;
     ethEncodeStructuredData(domain: any, messageTypes: any, messageData: any): Uint8Array;
+    retrieveStarkAccount(signature: any, accountClassHash: any, accountProxyClassHash: any): {
+        privateKey: string;
+        publicKey: string;
+        address: string;
+    };
+    starknetEncodeStructuredData(domain: any, messageTypes: any, messageData: any, address: any): string;
+    starknetSign(hash: any, pri: any): string;
     intToBase16(elem: any): string;
     extendExchangeOptions(newOptions: Dict): void;
     createSafeDictionary(): {};
@@ -708,6 +715,7 @@ export default class Exchange {
     safeList(dictionaryOrList: any, key: IndexType, defaultValue?: any[]): any[] | undefined;
     handleDeltas(orderbook: any, deltas: any): void;
     handleDelta(bookside: any, delta: any): void;
+    handleDeltasWithKeys(bookSide: any, deltas: any, priceKey?: IndexType, amountKey?: IndexType, countOrIdKey?: IndexType): void;
     getCacheIndex(orderbook: any, deltas: any): number;
     findTimeframe(timeframe: any, timeframes?: any): string;
     checkProxyUrlSettings(url?: Str, method?: Str, headers?: any, body?: any): any;

@@ -217,6 +217,9 @@ def exception_message(exc):
         message = message[0:LOG_CHARS_LENGTH]
     return message
 
+# stub for c#
+def get_root_exception(exc):
+    return exc
 
 def exit_script(code=0):
     exit(code)

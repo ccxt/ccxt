@@ -347,6 +347,7 @@ export default class poloniex extends Exchange {
                     '21350': InvalidOrder,
                     '21355': ExchangeError,
                     '21356': BadRequest,
+                    '21721': InsufficientFunds,
                     '24101': BadSymbol,
                     '24102': InvalidOrder,
                     '24103': InvalidOrder,

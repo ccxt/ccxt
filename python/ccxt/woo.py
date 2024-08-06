@@ -155,7 +155,7 @@ class woo(Exchange, ImplicitAPI):
                     'https://support.woo.org/hc/en-001/articles/4404611795353--Trading-Fees',
                 ],
                 'referral': {
-                    'url': 'https://x.woo.org/register?ref=YWOWC96B',
+                    'url': 'https://x.woo.org/register?ref=DIJT0CNL',
                     'discount': 0.35,
                 },
             },
@@ -2464,11 +2464,13 @@ class woo(Exchange, ImplicitAPI):
         #
         marketId = self.safe_string(income, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        amount = self.safe_number(income, 'funding_fee')
+        amount = self.safe_string(income, 'funding_fee')
         code = self.safe_currency_code('USD')
         id = self.safe_string(income, 'id')
         timestamp = self.safe_timestamp(income, 'updated_time')
         rate = self.safe_number(income, 'funding_rate')
+        paymentType = self.safe_string(income, 'payment_type')
+        amount = Precise.string_neg(amount) if (paymentType == 'Pay') else amount
         return {
             'info': income,
             'symbol': symbol,
@@ -2476,7 +2478,7 @@ class woo(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'id': id,
-            'amount': amount,
+            'amount': self.parse_number(amount),
             'rate': rate,
         }
 

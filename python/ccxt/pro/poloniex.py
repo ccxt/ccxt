@@ -1100,13 +1100,7 @@ class poloniex(ccxt.async_support.poloniex):
         if type == 'auth':
             self.handle_authenticate(client, message)
         elif type is None:
-            data = self.safe_value(message, 'data')
-            item = self.safe_value(data, 0)
-            orderId = self.safe_string(item, 'orderId')
-            if orderId == '0':
-                self.handle_error_message(client, item)
-            else:
-                self.handle_order_request(client, message)
+            self.handle_order_request(client, message)
         else:
             data = self.safe_value(message, 'data', [])
             dataLength = len(data)
@@ -1131,12 +1125,40 @@ class poloniex(ccxt.async_support.poloniex):
         #       "event": "error",
         #       "message": "Platform in maintenance mode"
         #    }
+        #    {
+        #       "id":"1722386782048",
+        #       "data":[
+        #          {
+        #             "orderId":0,
+        #             "clientOrderId":null,
+        #             "message":"available insufficient",
+        #             "code":21721
+        #          }
+        #       ]
+        #    }
         #
+        id = self.safe_string(message, 'id')
         event = self.safe_string(message, 'event')
-        orderId = self.safe_string(message, 'orderId')
+        data = self.safe_list(message, 'data')
+        first = self.safe_dict(data, 0)
+        orderId = self.safe_string(first, 'orderId')
         if (event == 'error') or (orderId == '0'):
-            error = self.safe_string(message, 'message')
-            raise ExchangeError(self.id + ' error: ' + self.json(error))
+            try:
+                error = self.safe_string(first, 'message')
+                code = self.safe_string(first, 'code')
+                feedback = self.id + ' ' + self.json(message)
+                self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+                self.throw_broadly_matched_exception(self.exceptions['broad'], error, feedback)
+                raise ExchangeError(feedback)
+            except Exception as e:
+                if isinstance(e, AuthenticationError):
+                    messageHash = 'authenticated'
+                    client.reject(e, messageHash)
+                    if messageHash in client.subscriptions:
+                        del client.subscriptions[messageHash]
+                else:
+                    client.reject(e, id)
+                return True
         return False
 
     def handle_authenticate(self, client: Client, message):

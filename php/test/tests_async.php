@@ -332,7 +332,8 @@ class testMainClass extends baseMainTestClass {
                 try {
                     Async\await($this->test_method($method_name, $exchange, $args, $is_public));
                     return true;
-                } catch(\Throwable $e) {
+                } catch(\Throwable $ex) {
+                    $e = get_root_exception($ex);
                     $is_load_markets = ($method_name === 'loadMarkets');
                     $is_auth_error = ($e instanceof AuthenticationError);
                     $is_not_supported = ($e instanceof NotSupported);
@@ -1322,7 +1323,7 @@ class testMainClass extends baseMainTestClass {
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
         return Async\async(function () {
-            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_vertex()];
+            $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_vertex(), $this->test_paradex()];
             Async\await(Promise\all($promises));
             $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
             dump('[INFO]' . $success_message);
@@ -1840,6 +1841,53 @@ class testMainClass extends baseMainTestClass {
             $order = $request['place_order'];
             $broker_id = $order['id'];
             assert($broker_id === $id, 'vertex - id: ' . ((string) $id) . ' different from  broker_id: ' . ((string) $broker_id));
+            if (!$this->is_synchronous) {
+                Async\await(close($exchange));
+            }
+            return true;
+        }) ();
+    }
+
+    public function test_paradex() {
+        return Async\async(function () {
+            $exchange = $this->init_offline_exchange('paradex');
+            $exchange->walletAddress = '0xc751489d24a33172541ea451bc253d7a9e98c781';
+            $exchange->privateKey = 'c33b1eb4b53108bf52e10f636d8c1236c04c33a712357ba3543ab45f48a5cb0b';
+            $exchange->options['authToken'] = 'token';
+            $exchange->options['systemConfig'] = array(
+                'starknet_gateway_url' => 'https://potc-testnet-sepolia.starknet.io',
+                'starknet_fullnode_rpc_url' => 'https://pathfinder.api.testnet.paradex.trade/rpc/v0_7',
+                'starknet_chain_id' => 'PRIVATE_SN_POTC_SEPOLIA',
+                'block_explorer_url' => 'https://voyager.testnet.paradex.trade/',
+                'paraclear_address' => '0x286003f7c7bfc3f94e8f0af48b48302e7aee2fb13c23b141479ba00832ef2c6',
+                'paraclear_decimals' => 8,
+                'paraclear_account_proxy_hash' => '0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9',
+                'paraclear_account_hash' => '0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e',
+                'oracle_address' => '0x2c6a867917ef858d6b193a0ff9e62b46d0dc760366920d631715d58baeaca1f',
+                'bridged_tokens' => [array(
+    'name' => 'TEST USDC',
+    'symbol' => 'USDC',
+    'decimals' => 6,
+    'l1_token_address' => '0x29A873159D5e14AcBd63913D4A7E2df04570c666',
+    'l1_bridge_address' => '0x8586e05adc0C35aa11609023d4Ae6075Cb813b4C',
+    'l2_token_address' => '0x6f373b346561036d98ea10fb3e60d2f459c872b1933b50b21fe6ef4fda3b75e',
+    'l2_bridge_address' => '0x46e9237f5408b5f899e72125dd69bd55485a287aaf24663d3ebe00d237fc7ef',
+)],
+                'l1_core_contract_address' => '0x582CC5d9b509391232cd544cDF9da036e55833Af',
+                'l1_operator_address' => '0x11bACdFbBcd3Febe5e8CEAa75E0Ef6444d9B45FB',
+                'l1_chain_id' => '11155111',
+                'liquidation_fee' => '0.2',
+            );
+            $req_headers = null;
+            $id = 'CCXT';
+            assert($exchange->options['broker'] === $id, 'paradex - id: ' . $id . ' not in options');
+            Async\await($exchange->load_markets());
+            try {
+                Async\await($exchange->create_order('BTC/USD:USDC', 'limit', 'buy', 1, 20000));
+            } catch(\Throwable $e) {
+                $req_headers = $exchange->last_request_headers;
+            }
+            assert($req_headers['PARADEX-PARTNER'] === $id, 'paradex - id: ' . $id . ' not in headers');
             if (!$this->is_synchronous) {
                 Async\await(close($exchange));
             }

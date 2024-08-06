@@ -1299,16 +1299,7 @@ public partial class poloniex : ccxt.poloniex
             this.handleAuthenticate(client as WebSocketClient, message);
         } else if (isTrue(isEqual(type, null)))
         {
-            object data = this.safeValue(message, "data");
-            object item = this.safeValue(data, 0);
-            object orderId = this.safeString(item, "orderId");
-            if (isTrue(isEqual(orderId, "0")))
-            {
-                this.handleErrorMessage(client as WebSocketClient, item);
-            } else
-            {
-                this.handleOrderRequest(client as WebSocketClient, message);
-            }
+            this.handleOrderRequest(client as WebSocketClient, message);
         } else
         {
             object data = this.safeValue(message, "data", new List<object>() {});
@@ -1339,13 +1330,49 @@ public partial class poloniex : ccxt.poloniex
         //       "event": "error",
         //       "message": "Platform in maintenance mode"
         //    }
+        //    {
+        //       "id":"1722386782048",
+        //       "data":[
+        //          {
+        //             "orderId":0,
+        //             "clientOrderId":null,
+        //             "message":"available insufficient",
+        //             "code":21721
+        //          }
+        //       ]
+        //    }
         //
+        object id = this.safeString(message, "id");
         object eventVar = this.safeString(message, "event");
-        object orderId = this.safeString(message, "orderId");
+        object data = this.safeList(message, "data");
+        object first = this.safeDict(data, 0);
+        object orderId = this.safeString(first, "orderId");
         if (isTrue(isTrue((isEqual(eventVar, "error"))) || isTrue((isEqual(orderId, "0")))))
         {
-            object error = this.safeString(message, "message");
-            throw new ExchangeError ((string)add(add(this.id, " error: "), this.json(error))) ;
+            try
+            {
+                object error = this.safeString(first, "message");
+                object code = this.safeString(first, "code");
+                object feedback = add(add(this.id, " "), this.json(message));
+                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
+                this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, feedback);
+                throw new ExchangeError ((string)feedback) ;
+            } catch(Exception e)
+            {
+                if (isTrue(e is AuthenticationError))
+                {
+                    object messageHash = "authenticated";
+                    ((WebSocketClient)client).reject(e, messageHash);
+                    if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
+                    {
+
+                    }
+                } else
+                {
+                    ((WebSocketClient)client).reject(e, id);
+                }
+                return true;
+            }
         }
         return false;
     }
