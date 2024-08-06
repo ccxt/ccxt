@@ -524,10 +524,7 @@
                         "amount": 100,
                         "cost": 61.824,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
+                        "fee": null,
                         "fees": []
                     },
                     {
@@ -1148,10 +1145,7 @@
                         "amount": 100,
                         "cost": 61.778,
                         "type": null,
-                        "fee": {
-                            "currency": null,
-                            "cost": null
-                        },
+                        "fee": null,
                         "fees": []
                     }
                 ]
