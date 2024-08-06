@@ -9803,7 +9803,7 @@ class binance extends binance$1 {
         const liquidationPrice = this.parseNumber(liquidationPriceString);
         let collateralString = undefined;
         let marginMode = this.safeString(position, 'marginType');
-        if (marginMode === undefined && isolatedMarginString) {
+        if (marginMode === undefined && isolatedMarginString !== undefined) {
             marginMode = Precise["default"].stringEq(isolatedMarginString, '0') ? 'cross' : 'isolated';
         }
         let side = undefined;

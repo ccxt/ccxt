@@ -9806,7 +9806,7 @@ export default class binance extends Exchange {
         const liquidationPrice = this.parseNumber(liquidationPriceString);
         let collateralString = undefined;
         let marginMode = this.safeString(position, 'marginType');
-        if (marginMode === undefined && isolatedMarginString) {
+        if (marginMode === undefined && isolatedMarginString !== undefined) {
             marginMode = Precise.stringEq(isolatedMarginString, '0') ? 'cross' : 'isolated';
         }
         let side = undefined;
