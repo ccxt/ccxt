@@ -173,7 +173,7 @@ class bybit extends \ccxt\async\bybit {
             } else {
                 if ($isSpot) {
                     $url = $url[$accessibility]['spot'];
-                } elseif ($type === 'swap') {
+                } elseif (($type === 'swap') || ($type === 'future')) {
                     $subType = null;
                     list($subType, $params) = $this->handle_sub_type_and_params($method, $market, $params, 'linear');
                     $url = $url[$accessibility][$subType];
@@ -2095,7 +2095,7 @@ class bybit extends \ccxt\async\bybit {
             $this->handle_subscription_status($client, $message);
             return;
         }
-        $topic = $this->safe_string_2($message, 'topic', 'op');
+        $topic = $this->safe_string_2($message, 'topic', 'op', '');
         $methods = array(
             'orderbook' => array($this, 'handle_order_book'),
             'kline' => array($this, 'handle_ohlcv'),

@@ -177,7 +177,7 @@ public partial class bybit : ccxt.bybit
             if (isTrue(isSpot))
             {
                 url = getValue(getValue(url, accessibility), "spot");
-            } else if (isTrue(isEqual(type, "swap")))
+            } else if (isTrue(isTrue((isEqual(type, "swap"))) || isTrue((isEqual(type, "future")))))
             {
                 object subType = null;
                 var subTypeparametersVariable = this.handleSubTypeAndParams(method, market, parameters, "linear");
@@ -2258,7 +2258,7 @@ public partial class bybit : ccxt.bybit
             this.handleSubscriptionStatus(client as WebSocketClient, message);
             return;
         }
-        object topic = this.safeString2(message, "topic", "op");
+        object topic = this.safeString2(message, "topic", "op", "");
         object methods = new Dictionary<string, object>() {
             { "orderbook", this.handleOrderBook },
             { "kline", this.handleOHLCV },
