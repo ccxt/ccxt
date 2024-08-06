@@ -3557,7 +3557,11 @@ export default class Exchange {
                 change = Precise.stringSub (last, open);
             }
             if (average === undefined) {
-                average = Precise.stringDiv (Precise.stringAdd (last, open), '2');
+                let precision = undefined;
+                if (market['precision']['price'] !== undefined) {
+                    precision = this.precisionFromString (this.safeString (market['precision'], 'price'));
+                }
+                average = Precise.stringDiv (Precise.stringAdd (last, open), '2', precision);
             }
         }
         if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && Precise.stringGt (open, '0')) {
