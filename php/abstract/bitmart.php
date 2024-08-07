@@ -187,6 +187,12 @@ abstract class bitmart extends \ccxt\Exchange {
     public function private_get_contract_private_position_risk($params = array()) {
         return $this->request('contract/private/position-risk', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
+    public function private_get_contract_private_affilate_rebate_list($params = array()) {
+        return $this->request('contract/private/affilate/rebate-list', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function private_get_contract_private_affilate_trade_list($params = array()) {
+        return $this->request('contract/private/affilate/trade-list', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
     public function private_post_account_sub_account_main_v1_sub_to_main($params = array()) {
         return $this->request('account/sub-account/main/v1/sub-to-main', 'private', 'POST', $params, null, null, array("cost" => 30));
     }
@@ -474,6 +480,12 @@ abstract class bitmart extends \ccxt\Exchange {
     }
     public function privateGetContractPrivatePositionRisk($params = array()) {
         return $this->request('contract/private/position-risk', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function privateGetContractPrivateAffilateRebateList($params = array()) {
+        return $this->request('contract/private/affilate/rebate-list', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    public function privateGetContractPrivateAffilateTradeList($params = array()) {
+        return $this->request('contract/private/affilate/trade-list', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
     public function privatePostAccountSubAccountMainV1SubToMain($params = array()) {
         return $this->request('account/sub-account/main/v1/sub-to-main', 'private', 'POST', $params, null, null, array("cost" => 30));

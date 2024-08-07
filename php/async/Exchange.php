@@ -1066,10 +1066,12 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function watch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
-        if ($this->has['watchLiquidationsForSymbols']) {
-            return $this->watch_liquidations_for_symbols(array( $symbol ), $since, $limit, $params);
-        }
-        throw new NotSupported($this->id . ' watchLiquidations() is not supported yet');
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            if ($this->has['watchLiquidationsForSymbols']) {
+                return Async\await($this->watch_liquidations_for_symbols(array( $symbol ), $since, $limit, $params));
+            }
+            throw new NotSupported($this->id . ' watchLiquidations() is not supported yet');
+        }) ();
     }
 
     public function watch_liquidations_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
