@@ -2568,7 +2568,9 @@ export default class hashkey extends Exchange {
         if (postOnly) {
             timeInForce = 'LIMIT_MAKER';
         }
-        request['timeInForce'] = timeInForce;
+        if (timeInForce !== undefined) {
+            request['timeInForce'] = timeInForce;
+        }
         let clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId === undefined) {
             // throw new ArgumentsRequired (this.id + ' createSwapOrder() requires a clientOrderId parameter');
