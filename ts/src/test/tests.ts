@@ -1150,7 +1150,7 @@ class testMainClass extends baseMainTestClass {
         }
         catch (e) {
             this.requestTestsFailed = true;
-            const errorMessage = '[' + this.lang + '][STATIC_REQUEST_TEST_FAILURE]' + '[' + this.exchangeHint (exchange) + ']' + '[' + method + ']' + '[' + data['description'] + ']' + ' ' + jsonStringify (e);
+            const errorMessage = '[' + this.lang + '][STATIC_REQUEST_TEST_FAILURE]' + '[' + this.exchangeHint (exchange) + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString () + ' : ' + jsonStringify (data);
             dump ('[TEST_FAILURE]' + errorMessage);
         }
     }
@@ -1169,7 +1169,7 @@ class testMainClass extends baseMainTestClass {
         }
         catch (e) {
             this.responseTestsFailed = true;
-            const errorMessage = '[' + this.lang + '][STATIC_RESPONSE_TEST_FAILURE]' + '[' + this.exchangeHint (exchange) + ']' + '[' + method + ']' + '[' + data['description'] + ']' + ' ' + jsonStringify (e);
+            const errorMessage = '[' + this.lang + '][STATIC_RESPONSE_TEST_FAILURE]' + '[' + this.exchangeHint (exchange) + ']' + '[' + method + ']' + '[' + data['description'] + ']' + e.toString () + ' : ' + jsonStringify (data);
             dump ('[TEST_FAILURE]' + errorMessage);
         }
         setFetchResponse (exchange, undefined); // reset state
