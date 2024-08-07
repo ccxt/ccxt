@@ -299,8 +299,8 @@ export default class bithumb extends Exchange {
                     'strike': undefined,
                     'optionType': undefined,
                     'precision': {
-                        'amount': parseInt ('4'),
-                        'price': parseInt ('4'),
+                        'amount': this.parsePrecision ('8'),
+                        'price': this.parsePrecision ('8'),
                     },
                     'limits': {
                         'leverage': {
