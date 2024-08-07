@@ -4458,7 +4458,10 @@ class bitget(Exchange, ImplicitAPI):
                 order = orderInfo[0]
             else:
                 orderInfo = self.safe_value(data, 'failureList', [])
-                raise ExchangeError(f'{self.id} {orderInfo[0]}')
+                if orderInfo:
+                    raise ExchangeError(f'{self.id} {orderInfo[0]}')
+                else:
+                    raise ExchangeError(f'{self.id} cancel order failed for unknown reason. data: {data}')
         else:
             order = data
         return self.parse_order(order, market)
