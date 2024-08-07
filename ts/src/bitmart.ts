@@ -498,8 +498,8 @@ export default class bitmart extends Exchange {
                     '40045': InvalidOrder, // 400, The order open type is invalid
                     '40046': PermissionDenied, // 403, The account is not opened futures
                     '40047': PermissionDenied, // 403, Services is not available in you countries and areas
-                    '40048': BadRequest, // 403, ClientOrderId only allows a combination of numbers and letters
-                    '40049': BadRequest, // 403, The maximum length of clientOrderId cannot exceed 32
+                    '40048': InvalidOrder, // 403, ClientOrderId only allows a combination of numbers and letters
+                    '40049': InvalidOrder, // 403, The maximum length of clientOrderId cannot exceed 32
                     '40050': InvalidOrder, // 403, Client OrderId duplicated with existing orders
                 },
                 'broad': {},
