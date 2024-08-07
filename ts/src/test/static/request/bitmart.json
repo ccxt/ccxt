@@ -13,11 +13,11 @@
                 ]
             },
             {
-                "description": "Fetch swap ticker",
+                "description": "swap ticker",
                 "method": "fetchTicker",
-                "url": "https://api-cloud-v2.bitmart.com/contract/v1/tickers?contract_symbol=BTCUSDT",
+                "url": "https://api-cloud-v2.bitmart.com/contract/public/details?symbol=BTCUSDT",
                 "input": [
-                    "BTC/USDT:USDT"
+                  "BTC/USDT:USDT"
                 ]
             }
         ],
@@ -33,14 +33,10 @@
                 ]
             },
             {
-                "description": "Fetch swap tickers",
+                "description": "swap tickers",
                 "method": "fetchTickers",
-                "url": "https://api-cloud-v2.bitmart.com/contract/v1/tickers",
-                "input": [
-                    [
-                        "BTC/USDT:USDT"
-                    ]
-                ]
+                "url": "https://api-cloud.bitmart.com/spot/quotation/v3/tickers",
+                "input": []
             },
             {
                 "description": "spot tickers",
@@ -50,17 +46,6 @@
                     [
                         "BTC/USDT",
                         "ETH/USDT"
-                    ]
-                ]
-            },
-            {
-                "description": "swap tickers",
-                "method": "fetchTickers",
-                "url": "https://api-cloud-v2.bitmart.com/contract/v1/tickers",
-                "input": [
-                    [
-                        "BTC/USDT:USDT",
-                        "ETH/USDT:USDT"
                     ]
                 ]
             }

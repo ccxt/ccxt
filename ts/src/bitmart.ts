@@ -1202,18 +1202,34 @@ export default class bitmart extends Exchange {
         //
         // swap
         //
-        //      {
-        //          "contract_symbol":"DOGEUSDT",
-        //          "last_price":"0.130340",
-        //          "index_price":"0.13048245",
-        //          "last_funding_rate":"0.00002287",
-        //          "price_change_percent_24h":"-2.074",
-        //          "volume_24h":"113705028.59482228",
-        //          "url":"https://futures.bitmart.com/en?symbol=DOGEUSDT",
-        //          "high_price":"0.134520",
-        //          "low_price":"0.128570",
-        //          "legal_coin_price":"0.1302699"
-        //      }
+        //     {
+        //       "symbol": "BTCUSDT",
+        //       "product_type": 1,
+        //       "open_timestamp": 1594080000,
+        //       "expire_timestamp": 0,
+        //       "settle_timestamp": 0,
+        //       "base_currency": "BTC",
+        //       "quote_currency": "USDT",
+        //       "last_price": "23920",
+        //       "volume_24h": "18969368",
+        //       "turnover_24h": "458933659.7858",
+        //       "index_price": "23945.25191635",
+        //       "index_name": "BTCUSDT",
+        //       "contract_size": "0.001",
+        //       "min_leverage": "1",
+        //       "max_leverage": "100",
+        //       "price_precision": "0.1",
+        //       "vol_precision": "1",
+        //       "max_volume": "500000",
+        //       "min_volume": "1",
+        //       "funding_rate": "0.0001",
+        //       "expected_funding_rate": "0.00011",
+        //       "open_interest": "4134180870",
+        //       "open_interest_value": "94100888927.0433258",
+        //       "high_24h": "23900",
+        //       "low_24h": "23100",
+        //       "change_24h": "0.004"
+        //  }
         //
         const result = this.safeList (ticker, 'result', []);
         const average = this.safeString2 (ticker, 'avg_price', 'index_price');
@@ -1221,7 +1237,7 @@ export default class bitmart extends Exchange {
         let timestamp = this.safeInteger2 (ticker, 'timestamp', 'ts');
         let last = this.safeString2 (ticker, 'last_price', 'last');
         let percentage = this.safeString (ticker, 'price_change_percent_24h');
-        let change = this.safeString (ticker, 'fluctuation');
+        let change = this.safeString2 (ticker, 'fluctuation', 'change_24h');
         let high = this.safeString2 (ticker, 'high_24h', 'high_price');
         let low = this.safeString2 (ticker, 'low_24h', 'low_price');
         let bid = this.safeString2 (ticker, 'best_bid', 'bid_px');
@@ -1229,8 +1245,8 @@ export default class bitmart extends Exchange {
         let ask = this.safeString2 (ticker, 'best_ask', 'ask_px');
         let askVolume = this.safeString2 (ticker, 'best_ask_size', 'ask_sz');
         let open = this.safeString (ticker, 'open_24h');
-        let baseVolume = this.safeString2 (ticker, 'base_volume_24h', 'v_24h');
-        let quoteVolume = this.safeStringLower2 (ticker, 'quote_volume_24h', 'qv_24h');
+        let baseVolume = this.safeStringN (ticker, [ 'base_volume_24h', 'v_24h', 'volume_24h' ]);
+        let quoteVolume = this.safeStringLowerN (ticker, [ 'quote_volume_24h', 'qv_24h', 'turnover_24h' ]);
         const listMarketId = this.safeString (result, 0);
         if (listMarketId !== undefined) {
             marketId = listMarketId;
@@ -1297,6 +1313,7 @@ export default class bitmart extends Exchange {
          * @name bitmart#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://developer-pro.bitmart.com/en/spot/#get-ticker-of-a-trading-pair-v3
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -1306,8 +1323,8 @@ export default class bitmart extends Exchange {
         const request: Dict = {};
         let response = undefined;
         if (market['swap']) {
-            request['contract_symbol'] = market['id'];
-            response = await this.publicGetContractV1Tickers (this.extend (request, params));
+            request['symbol'] = market['id'];
+            response = await this.publicGetContractPublicDetails (this.extend (request, params));
             //
             //      {
             //          "message":"OK",
@@ -1360,16 +1377,14 @@ export default class bitmart extends Exchange {
             throw new NotSupported (this.id + ' fetchTicker() does not support ' + market['type'] + ' markets, only spot and swap markets are accepted');
         }
         // fails in naming for contract tickers 'contract_symbol'
-        let tickersById = undefined;
         let tickers = [];
         let ticker: Dict = {};
         if (market['spot']) {
             ticker = this.safeDict (response, 'data', {});
         } else {
             const data = this.safeDict (response, 'data', {});
-            tickers = this.safeList (data, 'tickers', []);
-            tickersById = this.indexBy (tickers, 'contract_symbol');
-            ticker = this.safeDict (tickersById, market['id']);
+            tickers = this.safeList (data, 'symbols', []);
+            ticker = this.safeValue (tickers, 0, {});
         }
         return this.parseTicker (ticker, market);
     }
@@ -1380,6 +1395,7 @@ export default class bitmart extends Exchange {
          * @name bitmart#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @see https://developer-pro.bitmart.com/en/spot/#get-ticker-of-all-pairs-v3
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -1421,29 +1437,45 @@ export default class bitmart extends Exchange {
             //     }
             //
         } else if (type === 'swap') {
-            response = await this.publicGetContractV1Tickers (params);
+            response = await this.publicGetContractPublicDetails (params);
             //
-            //     {
-            //         "message": "OK",
-            //         "code": 1000,
-            //         "trace": "c1dec681c24ea5d.105.171712565",
-            //         "data": {
-            //             "tickers": [
-            //                 {
-            //                     "contract_symbol": "SNTUSDT",
-            //                     "last_price": "0.0366600",
-            //                     "index_price": "0.03587373",
-            //                     "last_funding_rate": "0.00005000",
-            //                     "price_change_percent_24h": "-2.629",
-            //                     "volume_24h": "10102540.19909109848",
-            //                     "url": "https://futures.bitmart.com/en?symbol=SNTUSDT",
-            //                     "high_price": "0.0405600",
-            //                     "low_price": "0.0355000",
-            //                     "legal_coin_price": "0.03666697"
-            //                 },
-            //             ]
-            //         }
-            //     }
+            // {
+            //       "code": 1000,
+            //       "message": "Ok",
+            //       "trace": "9b92a999-9463-4c96-91a4-93ad1cad0d72",
+            //       "data": {
+            //         "symbols": [
+            //           {
+            //             "symbol": "BTCUSDT",
+            //             "product_type": 1,
+            //             "open_timestamp": 1594080000,
+            //             "expire_timestamp": 0,
+            //             "settle_timestamp": 0,
+            //             "base_currency": "BTC",
+            //             "quote_currency": "USDT",
+            //             "last_price": "23920",
+            //             "volume_24h": "18969368",
+            //             "turnover_24h": "458933659.7858",
+            //             "index_price": "23945.25191635",
+            //             "index_name": "BTCUSDT",
+            //             "contract_size": "0.001",
+            //             "min_leverage": "1",
+            //             "max_leverage": "100",
+            //             "price_precision": "0.1",
+            //             "vol_precision": "1",
+            //             "max_volume": "500000",
+            //             "min_volume": "1",
+            //             "funding_rate": "0.0001",
+            //             "expected_funding_rate": "0.00011",
+            //             "open_interest": "4134180870",
+            //             "open_interest_value": "94100888927.0433258",
+            //             "high_24h": "23900",
+            //             "low_24h": "23100",
+            //             "change_24h": "0.004"
+            //           },
+            //         ]
+            //       }
+            //   }
             //
         } else {
             throw new NotSupported (this.id + ' fetchTickers() does not support ' + type + ' markets, only spot and swap markets are accepted');
@@ -1453,7 +1485,7 @@ export default class bitmart extends Exchange {
             tickers = this.safeList (response, 'data', []);
         } else {
             const data = this.safeDict (response, 'data', {});
-            tickers = this.safeList (data, 'tickers', []);
+            tickers = this.safeList (data, 'symbols', []);
         }
         const result: Dict = {};
         for (let i = 0; i < tickers.length; i++) {
