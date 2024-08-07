@@ -872,36 +872,43 @@ export default class bitmart extends Exchange {
     async fetchContractMarkets (params = {}) {
         const response = await this.publicGetContractPublicDetails (params);
         //
-        //     {
-        //       "code": 1000,
-        //       "message": "Ok",
-        //       "trace": "9b92a999-9463-4c96-91a4-93ad1cad0d72",
-        //       "data": {
-        //       "symbols": [{
-        //             "symbol": "BTCUSDT",
-        //             "product_type": 1,
-        //             "open_timestamp": 1594080000,
-        //             "expire_timestamp": 0,
-        //             "settle_timestamp": 0,
-        //             "base_currency": "BTC",
-        //             "quote_currency": "USDT",
-        //             "last_price": "23920",
-        //             "volume_24h": "18969368",
-        //             "turnover_24h": "458933659.7858",
-        //             "index_price": "23945.25191635",
-        //             "index_name": "BTCUSDT",
-        //             "contract_size": "0.001",
-        //             "min_leverage": "1",
-        //             "max_leverage": "100",
-        //             "price_precision": "0.1",
-        //             "vol_precision": "1",
-        //             "max_volume": "500000",
-        //             "min_volume": "1"
-        //           },
-        //           ...
-        //         ]
-        //       }
+        // {
+        //     "code": 1000,
+        //     "message": "Ok",
+        //     "trace": "9b92a999-9463-4c96-91a4-93ad1cad0d72",
+        //     "data": {
+        //       "symbols": [
+        //         {
+        //           "symbol": "BTCUSDT",
+        //           "product_type": 1,
+        //           "open_timestamp": 1594080000,
+        //           "expire_timestamp": 0,
+        //           "settle_timestamp": 0,
+        //           "base_currency": "BTC",
+        //           "quote_currency": "USDT",
+        //           "last_price": "23920",
+        //           "volume_24h": "18969368",
+        //           "turnover_24h": "458933659.7858",
+        //           "index_price": "23945.25191635",
+        //           "index_name": "BTCUSDT",
+        //           "contract_size": "0.001",
+        //           "min_leverage": "1",
+        //           "max_leverage": "100",
+        //           "price_precision": "0.1",
+        //           "vol_precision": "1",
+        //           "max_volume": "500000",
+        //           "min_volume": "1",
+        //           "funding_rate": "0.0001",
+        //           "expected_funding_rate": "0.00011",
+        //           "open_interest": "4134180870",
+        //           "open_interest_value": "94100888927.0433258",
+        //           "high_24h": "23900",
+        //           "low_24h": "23100",
+        //           "change_24h": "0.004"
+        //         },
+        //       ]
         //     }
+        // }
         //
         const data = this.safeValue (response, 'data', {});
         const symbols = this.safeValue (data, 'symbols', []);
@@ -981,6 +988,7 @@ export default class bitmart extends Exchange {
         /**
          * @method
          * @name bitmart#fetchMarkets
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
          * @description retrieves data on all markets for bitmart
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
@@ -1465,6 +1473,7 @@ export default class bitmart extends Exchange {
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @see https://developer-pro.bitmart.com/en/spot/#get-depth-v3
          * @see https://developer-pro.bitmart.com/en/futures/#get-market-depth
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#get-market-depth
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1756,7 +1765,7 @@ export default class bitmart extends Exchange {
          * @name bitmart#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @see https://developer-pro.bitmart.com/en/spot/#get-history-k-line-v3
-         * @see https://developer-pro.bitmart.com/en/futures/#get-k-line
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#get-k-line
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -2049,6 +2058,7 @@ export default class bitmart extends Exchange {
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://developer-pro.bitmart.com/en/spot/#get-spot-wallet-balance
          * @see https://developer-pro.bitmart.com/en/futures/#get-contract-assets-detail
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-assets-keyed
          * @see https://developer-pro.bitmart.com/en/spot/#get-account-balance
          * @see https://developer-pro.bitmart.com/en/spot/#get-margin-account-details-isolated
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2421,6 +2431,8 @@ export default class bitmart extends Exchange {
          * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
          * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
          * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
+         * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
+         * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market', 'limit' or 'trailing' for swap markets only
          * @param {string} side 'buy' or 'sell'
@@ -2658,9 +2670,11 @@ export default class bitmart extends Exchange {
             params = this.omit (params, 'clientOrderId');
             request['client_order_id'] = clientOrderId;
         }
-        const leverage = this.safeInteger (params, 'leverage', 1);
+        const leverage = this.safeInteger (params, 'leverage');
         params = this.omit (params, [ 'timeInForce', 'postOnly', 'reduceOnly', 'leverage', 'trailingTriggerPrice', 'trailingPercent', 'triggerPrice', 'stopPrice' ]);
-        request['leverage'] = this.numberToString (leverage);
+        if (leverage !== undefined) {
+            request['leverage'] = this.numberToString (leverage);
+        }
         return this.extend (request, params);
     }
 
@@ -2748,6 +2762,8 @@ export default class bitmart extends Exchange {
          * @see https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
          * @see https://developer-pro.bitmart.com/en/spot/#cancel-order-v3-signed
          * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
+         * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
+         * @see https://developer-pro.bitmart.com/en/futures/#cancel-order-signed
          * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-order-signed
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
@@ -2898,6 +2914,7 @@ export default class bitmart extends Exchange {
          * @description cancel all open orders in a market
          * @see https://developer-pro.bitmart.com/en/spot/#cancel-all-orders
          * @see https://developer-pro.bitmart.com/en/futures/#cancel-all-orders-signed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-all-orders-signed
          * @param {string} symbol unified market symbol of the market to cancel orders in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.side] *spot only* 'buy' or 'sell'
@@ -3132,6 +3149,7 @@ export default class bitmart extends Exchange {
          * @name bitmart#fetchClosedOrders
          * @see https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed
          * @see https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-history-keyed
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
@@ -3202,6 +3220,7 @@ export default class bitmart extends Exchange {
          * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-id-v4-signed
          * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-clientorderid-v4-signed
          * @see https://developer-pro.bitmart.com/en/futures/#get-order-detail-keyed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-detail-keyed
          * @param {string} id the id of the order
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3950,6 +3969,7 @@ export default class bitmart extends Exchange {
          * @description transfer currency internally between wallets on the same account, currently only supports transfer between spot and margin
          * @see https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer-signed
          * @see https://developer-pro.bitmart.com/en/futures/#transfer-signed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#transfer-signed
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
@@ -4237,7 +4257,7 @@ export default class bitmart extends Exchange {
          * @method
          * @name bitmart#fetchOpenInterest
          * @description Retrieves the open interest of a currency
-         * @see https://developer-pro.bitmart.com/en/futures/#get-futures-openinterest
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#get-futures-openinterest
          * @param {string} symbol Unified CCXT market symbol
          * @param {object} [params] exchange specific parameters
          * @returns {object} an open interest structure{@link https://docs.ccxt.com/#/?id=open-interest-structure}
@@ -4295,6 +4315,7 @@ export default class bitmart extends Exchange {
          * @name bitmart#setLeverage
          * @description set the level of leverage for a market
          * @see https://developer-pro.bitmart.com/en/futures/#submit-leverage-signed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-leverage-signed
          * @param {float} leverage the rate of leverage
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -4325,7 +4346,7 @@ export default class bitmart extends Exchange {
          * @method
          * @name bitmart#fetchFundingRate
          * @description fetch the current funding rate
-         * @see https://developer-pro.bitmart.com/en/futures/#get-current-funding-rate
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-funding-rate
          * @param {string} symbol unified market symbol
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
@@ -4394,6 +4415,7 @@ export default class bitmart extends Exchange {
          * @name bitmart#fetchPosition
          * @description fetch data on a single open contract trade position
          * @see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-risk-details-keyed
          * @param {string} symbol unified market symbol of the market the position is held in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}

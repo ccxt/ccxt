@@ -355,6 +355,15 @@
         ],
         "fetchOrder": [
             {
+                "description": "fetch swap order",
+                "method": "fetchOrder",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/order?symbol=LTCUSDT&order_id=3000013086011694",
+                "input": [
+                  "3000013086011694",
+                  "LTC/USDT:USDT"
+                ]
+            },
+            {
                 "description": "Swap trailing order by id",
                 "method": "fetchOrder",
                 "url": "https://api-cloud-v2.bitmart.com/contract/private/order?type=trailing&symbol=BTCUSDT&order_id=2312139250106560",
