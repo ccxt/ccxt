@@ -203,6 +203,8 @@ export default class bitmart extends Exchange {
                         'contract/private/current-plan-order': 1.2,
                         'contract/private/trades': 10,
                         'contract/private/position-risk': 10,
+                        'contract/private/affilate/rebate-list': 10,
+                        'contract/private/affilate/trade-list': 10,
                     },
                     'post': {
                         // sub-account endpoints
@@ -4466,6 +4468,7 @@ export default class bitmart extends Exchange {
          * @name bitmart#fetchPositions
          * @description fetch all open contract positions
          * @see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-risk-details-keyed
          * @param {string[]|undefined} symbols list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/#/?id=position-structure}
