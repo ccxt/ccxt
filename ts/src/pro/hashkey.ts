@@ -14,7 +14,7 @@ export default class hashkey extends hashkeyRest {
             'has': {
                 'ws': true,
                 'watchBalance': false,
-                'watchMyTrades': false,
+                'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
