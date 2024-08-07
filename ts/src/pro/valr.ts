@@ -868,7 +868,7 @@ export default class valr extends valrRest {
         } else if (orderStatus === 'Filled') {
             status = 'closed';
         }
-        const orderTypeReceived = this.safeString (order, 'type');
+        const orderTypeReceived = this.safeString2 (order, 'type', 'orderType');
         let typeOrder = undefined;
         let postOnly = undefined;
         if (orderTypeReceived !== undefined) {
@@ -885,6 +885,15 @@ export default class valr extends valrRest {
         const amount = this.safeString (order, 'originalQuantity');
         let filled = undefined;
         const filledPercentage = this.safeString (order, 'filledPercentage');
+        const totalFee = this.safeString (order, 'executedFee');
+        const feeCurrency = this.safeString (order, 'feeCurrency');
+        let fee = undefined;
+        if (totalFee !== undefined && feeCurrency !== undefined) {
+            fee = {
+                'fee': totalFee,
+                'currency': this.safeCurrencyCode (feeCurrency),
+            };
+        }
         if (remaining === undefined && filledPercentage !== undefined) {
             filled = Precise.stringDiv (Precise.stringMul (amount, filledPercentage), '100');
         }
@@ -905,6 +914,7 @@ export default class valr extends valrRest {
             'lastUpdateTimestamp': this.parse8601 (this.safeString2 (order, 'updatedAt', 'orderUpdatedAt')),
             'timeInForce': this.safeString (order, 'timeInForce'),
             'postOnly': postOnly,
+            'fee': fee,
             'info': order,
         });
     }
