@@ -146,7 +146,7 @@
                     "buy",
                     1
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"type\":\"market\",\"size\":1,\"side\":1,\"open_type\":\"cross\",\"leverage\":\"1\"}"
+                "output": "{\"symbol\":\"LTCUSDT\",\"type\":\"market\",\"size\":1,\"side\":1,\"open_type\":\"cross\"}"
             },
             {
                 "description": "Swap limit sell order",
@@ -159,7 +159,7 @@
                     1,
                     100
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"type\":\"limit\",\"size\":1,\"price\":\"100\",\"side\":4,\"open_type\":\"cross\",\"leverage\":\"1\"}"
+                "output": "{\"symbol\":\"LTCUSDT\",\"type\":\"limit\",\"size\":1,\"price\":\"100\",\"side\":4,\"open_type\":\"cross\"}"
             },
             {
                 "description": "Swap market sell with reduceOnly (reducing long)",
@@ -175,7 +175,7 @@
                         "reduceOnly": true
                     }
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"type\":\"market\",\"size\":1,\"side\":3,\"open_type\":\"cross\",\"leverage\":\"1\"}"
+                "output": "{\"symbol\":\"LTCUSDT\",\"type\":\"market\",\"size\":1,\"side\":3,\"open_type\":\"cross\"}"
             },
             {
                 "description": "Swap limit buy with postOnly and clientOrderId",
@@ -192,7 +192,7 @@
                         "clientOrderId": "myClientOrderId"
                     }
                 ],
-                "output": "{\"symbol\":\"LTCUSDT\",\"type\":\"limit\",\"size\":1,\"mode\":4,\"price\":\"55\",\"side\":1,\"open_type\":\"cross\",\"client_order_id\":\"myClientOrderId\",\"leverage\":\"1\"}"
+                "output": "{\"symbol\":\"LTCUSDT\",\"type\":\"limit\",\"size\":1,\"mode\":4,\"price\":\"55\",\"side\":1,\"open_type\":\"cross\",\"client_order_id\":\"myClientOrderId\"}"
             },
             {
                 "description": "Spot market buy order with createMarketBuyOrderRequiresPrice set to false",
@@ -244,7 +244,7 @@
                         "triggerPrice": "31000"
                     }
                 ],
-                "output": "{\"symbol\":\"BTCUSDT\",\"type\":\"limit\",\"size\":1,\"price\":\"30000\",\"executive_price\":\"30000\",\"trigger_price\":\"31000\",\"price_type\":1,\"price_way\":1,\"side\":1,\"open_type\":\"cross\",\"leverage\":\"1\"}"
+                "output": "{\"symbol\":\"BTCUSDT\",\"type\":\"limit\",\"size\":1,\"price\":\"30000\",\"executive_price\":\"30000\",\"trigger_price\":\"31000\",\"price_type\":1,\"price_way\":1,\"side\":1,\"open_type\":\"cross\"}"
             }
         ],
         "createOrders": [
