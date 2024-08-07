@@ -344,6 +344,7 @@ class poloniex extends poloniex$1 {
                     '21350': errors.InvalidOrder,
                     '21355': errors.ExchangeError,
                     '21356': errors.BadRequest,
+                    '21721': errors.InsufficientFunds,
                     '24101': errors.BadSymbol,
                     '24102': errors.InvalidOrder,
                     '24103': errors.InvalidOrder,

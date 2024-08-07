@@ -7803,8 +7803,8 @@ public partial class bybit : Exchange
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(code, null)))
         {
-            currency = this.safeCurrencyCode(code);
-            ((IDictionary<string,object>)request)["coin"] = currency;
+            currency = this.safeCurrency(code);
+            ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
         }
         if (isTrue(!isEqual(since, null)))
         {
@@ -8836,7 +8836,7 @@ public partial class bybit : Exchange
         object quoteValueString = Precise.stringMul(baseValueString, priceString);
         return this.safeLiquidation(new Dictionary<string, object>() {
             { "info", liquidation },
-            { "symbol", this.safeSymbol(marketId, market) },
+            { "symbol", this.safeSymbol(marketId, market, null, "contract") },
             { "contracts", this.parseNumber(contractsString) },
             { "contractSize", this.parseNumber(contractSizeString) },
             { "price", this.parseNumber(priceString) },

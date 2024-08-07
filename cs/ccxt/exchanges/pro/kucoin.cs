@@ -1218,6 +1218,12 @@ public partial class kucoin : ccxt.kucoin
         object tradeId = this.safeString(trade, "tradeId");
         object price = this.safeString(trade, "matchPrice");
         object amount = this.safeString(trade, "matchSize");
+        if (isTrue(isEqual(price, null)))
+        {
+            // /spot/tradeFills
+            price = this.safeString(trade, "price");
+            amount = this.safeString(trade, "size");
+        }
         object order = this.safeString(trade, "orderId");
         object timestamp = this.safeIntegerProduct2(trade, "ts", "time", 0.000001);
         object feeCurrency = getValue(market, "quote");

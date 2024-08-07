@@ -3296,7 +3296,7 @@ class ascendex extends ascendex$1 {
     async fetchMarginModes(symbols = undefined, params = {}) {
         /**
          * @method
-         * @name ascendex#fetchMarginMode
+         * @name ascendex#fetchMarginModes
          * @description fetches the set margin mode of the user
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
          * @param {string[]} [symbols] a list of unified market symbols

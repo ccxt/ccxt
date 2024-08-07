@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.69'
+__version__ = '4.3.74'
 
 # -----------------------------------------------------------------------------
 
@@ -59,6 +59,12 @@ from ccxt.static_dependencies.ethereum import abi
 from ccxt.static_dependencies.ethereum import account
 from ccxt.static_dependencies.msgpack import packb
 
+# starknet
+from ccxt.static_dependencies.starknet.ccxt_utils import get_private_key_from_eth_signature
+from ccxt.static_dependencies.starknet.hash.address import compute_address
+from ccxt.static_dependencies.starknet.hash.selector import get_selector_from_name
+from ccxt.static_dependencies.starknet.hash.utils import message_signature, private_to_stark_key
+from ccxt.static_dependencies.starknet.utils.typed_data import TypedData as TypedDataDataclass
 
 # -----------------------------------------------------------------------------
 
@@ -1287,6 +1293,57 @@ class Exchange(object):
         return Exchange.binary_concat(b"\x19\x01", encodedData.header, encodedData.body)
 
     @staticmethod
+    def retrieve_stark_account (signature, accountClassHash, accountProxyClassHash):
+        privateKey = get_private_key_from_eth_signature(signature)
+        publicKey = private_to_stark_key(privateKey)
+        calldata = [
+            int(accountClassHash, 16),
+            get_selector_from_name("initialize"),
+            2,
+            publicKey,
+            0,
+        ]
+
+        address = compute_address(
+            class_hash=int(accountProxyClassHash, 16),
+            constructor_calldata=calldata,
+            salt=publicKey,
+        )
+        return {
+            'privateKey': privateKey,
+            'publicKey': publicKey,
+            'address': hex(address)
+        }
+
+    @staticmethod
+    def starknet_encode_structured_data (domain, messageTypes, messageData, address):
+        types = list(messageTypes.keys())
+        if len(types) > 1:
+            raise NotSupported(this.id + 'starknetEncodeStructuredData only support single type')
+
+        request = {
+            'domain': domain,
+            'primaryType': types[0],
+            'types': Exchange.extend({
+                'StarkNetDomain': [
+                    {'name': "name", 'type': "felt"},
+                    {'name': "chainId", 'type': "felt"},
+                    {'name': "version", 'type': "felt"},
+                ],
+            }, messageTypes),
+            'message': messageData,
+        }
+        typedDataClass = TypedDataDataclass.from_dict(request)
+        msgHash = typedDataClass.message_hash(int(address, 16))
+        return msgHash
+
+    @staticmethod
+    def starknet_sign (hash, pri):
+        # // TODO: unify to ecdsa
+        r, s = message_signature(hash, pri)
+        return Exchange.json([hex(r), hex(s)])
+
+    @staticmethod
     def packb(o):
         return packb(o)
 
@@ -2116,6 +2173,11 @@ class Exchange(object):
 
     def handle_delta(self, bookside, delta):
         raise NotSupported(self.id + ' handleDelta not supported yet')
+
+    def handle_deltas_with_keys(self, bookSide: Any, deltas, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
+        for i in range(0, len(deltas)):
+            bidAsk = self.parse_bid_ask(deltas[i], priceKey, amountKey, countOrIdKey)
+            bookSide.storeArray(bidAsk)
 
     def get_cache_index(self, orderbook, deltas):
         # return the first index of the cache that can be applied to the orderbook or -1 if not possible

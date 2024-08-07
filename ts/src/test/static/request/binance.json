@@ -861,7 +861,7 @@
             {
                 "description": "Swap fetchBalance",
                 "method": "fetchBalance",
-                "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1699385163596&recvWindow=10000&signature=f8a952f41e186866660fa44ef11e22e69fd54145638964c6e79034e2fa83eb58",
+                "url": "https://testnet.binancefuture.com/fapi/v3/account?timestamp=1699385163596&recvWindow=10000&signature=f8a952f41e186866660fa44ef11e22e69fd54145638964c6e79034e2fa83eb58",
                 "input": [
                     {
                         "type": "swap"
@@ -1557,7 +1557,7 @@
             {
                 "description": "fetch default positions",
                 "method": "fetchPositions",
-                "url": "https://testnet.binancefuture.com/fapi/v2/positionRisk?timestamp=1699381878017&recvWindow=10000&signature=f654a95fde9ee5ee6004b1ded1adb3671333ac84eeab7f3b11c27b12848a28c2",
+                "url": "https://testnet.binancefuture.com/fapi/v3/positionRisk?timestamp=1699381878017&recvWindow=10000&signature=f654a95fde9ee5ee6004b1ded1adb3671333ac84eeab7f3b11c27b12848a28c2",
                 "input": []
             },
             {
@@ -1574,7 +1574,7 @@
             {
                 "description": "fetch account positions",
                 "method": "fetchPositions",
-                "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1706118171133&recvWindow=10000&signature=6c1048179b4cfc725c45991f61b13da9321ba96f5149ac359ca956a4e8dd33ea",
+                "url": "https://testnet.binancefuture.com/fapi/v3/account?timestamp=1706118171133&recvWindow=10000&signature=6c1048179b4cfc725c45991f61b13da9321ba96f5149ac359ca956a4e8dd33ea",
                 "input": [
                     null,
                     {
@@ -2153,7 +2153,7 @@
             {
                 "description": "Fetch Trading Fees - linear",
                 "method": "fetchTradingFees",
-                "url": "https://api.binance.com/fapi/v2/account?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
+                "url": "https://api.binance.com/fapi/v1/accountConfig?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
                 "input": [
                     {
                         "type": "swap",
@@ -2403,7 +2403,7 @@
             {
                 "description": "Fetch Positions Risk - linear",
                 "method": "fetchPositionsRisk",
-                "url": "https://fapi.binance.com/fapi/v2/positionRisk?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
+                "url": "https://fapi.binance.com/fapi/v3/positionRisk?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
                 "input": [
                     null,
                     {
@@ -2455,11 +2455,23 @@
             {
                 "description": "Fetch Account Positions - linear",
                 "method": "fetchAccountPositions",
-                "url": "https://fapi.binance.com/fapi/v2/account?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
+                "url": "https://fapi.binance.com/fapi/v3/account?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
                 "input": [
                     null,
                     {
                         "subType": "linear"
+                    }
+                ]
+            },
+            {
+                "description": "Fetch Account Positions - linear",
+                "method": "fetchAccountPositions",
+                "url": "https://fapi.binance.com/fapi/v2/account?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
+                "input": [
+                    null,
+                    {
+                        "subType": "linear",
+                        "useV2": true
                     }
                 ]
             },
@@ -2501,7 +2513,7 @@
             {
                 "description": "account positions with filterClosed option",
                 "method": "fetchAccountPositions",
-                "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1711968805532&filterClosed=true&recvWindow=10000&signature=d70e7146e12dff30106d51e77574cda0b75aa353c505746b1a78a5c086a7ac19",
+                "url": "https://testnet.binancefuture.com/fapi/v3/account?timestamp=1711968805532&filterClosed=true&recvWindow=10000&signature=d70e7146e12dff30106d51e77574cda0b75aa353c505746b1a78a5c086a7ac19",
                 "input": [
                   null,
                   {
@@ -3073,7 +3085,7 @@
             {
                 "description": "fetch leverage",
                 "method": "fetchLeverage",
-                "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1709136468103&recvWindow=10000&signature=b24aa2014e8f5e24af708947eac62196161221c58f303a67e6755f725a7ab650",
+                "url": "https://testnet.binancefuture.com/fapi/v1/symbolConfig?timestamp=1709136468103&recvWindow=10000&signature=b24aa2014e8f5e24af708947eac62196161221c58f303a67e6755f725a7ab650",
                 "input": [
                     "BTC/USDT:USDT"
                 ]
@@ -3083,7 +3095,7 @@
             {
                 "description": "Linear swap fetch all set leverages",
                 "method": "fetchLeverages",
-                "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1709365967532&recvWindow=10000&signature=0ba690bc39cc0f098fc8adfab9a10e991a239b02b59e92c7cc88281c74b7ec1e",
+                "url": "https://testnet.binancefuture.com/fapi/v1/symbolConfig?timestamp=1709365967532&recvWindow=10000&signature=0ba690bc39cc0f098fc8adfab9a10e991a239b02b59e92c7cc88281c74b7ec1e",
                 "input": []
             }
         ],
@@ -3091,7 +3103,7 @@
             {
                 "description": "Fetch Margin Modes with linear subType and symbol list",
                 "method": "fetchMarginModes",
-                "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1709152197362&recvWindow=10000&signature=e03e51e9eaf6ccadbe8171e52d588d13e389861804104ee7948d768609713aaf",
+                "url": "https://testnet.binancefuture.com/fapi/v1/symbolConfig?timestamp=1709152197362&recvWindow=10000&signature=e03e51e9eaf6ccadbe8171e52d588d13e389861804104ee7948d768609713aaf",
                 "input": [
                     [
                         "BTC/USDT:USDT"

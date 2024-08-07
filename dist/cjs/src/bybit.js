@@ -7264,8 +7264,8 @@ class bybit extends bybit$1 {
         let currency = undefined;
         let request = {};
         if (code !== undefined) {
-            currency = this.safeCurrencyCode(code);
-            request['coin'] = currency;
+            currency = this.safeCurrency(code);
+            request['coin'] = currency['id'];
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -8198,7 +8198,7 @@ class bybit extends bybit$1 {
         const quoteValueString = Precise["default"].stringMul(baseValueString, priceString);
         return this.safeLiquidation({
             'info': liquidation,
-            'symbol': this.safeSymbol(marketId, market),
+            'symbol': this.safeSymbol(marketId, market, undefined, 'contract'),
             'contracts': this.parseNumber(contractsString),
             'contractSize': this.parseNumber(contractSizeString),
             'price': this.parseNumber(priceString),

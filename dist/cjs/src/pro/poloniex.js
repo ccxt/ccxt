@@ -1176,15 +1176,7 @@ class poloniex extends poloniex$1 {
             this.handleAuthenticate(client, message);
         }
         else if (type === undefined) {
-            const data = this.safeValue(message, 'data');
-            const item = this.safeValue(data, 0);
-            const orderId = this.safeString(item, 'orderId');
-            if (orderId === '0') {
-                this.handleErrorMessage(client, item);
-            }
-            else {
-                this.handleOrderRequest(client, message);
-            }
+            this.handleOrderRequest(client, message);
         }
         else {
             const data = this.safeValue(message, 'data', []);
@@ -1212,12 +1204,45 @@ class poloniex extends poloniex$1 {
         //       "event": "error",
         //       "message": "Platform in maintenance mode"
         //    }
+        //    {
+        //       "id":"1722386782048",
+        //       "data":[
+        //          {
+        //             "orderId":0,
+        //             "clientOrderId":null,
+        //             "message":"available insufficient",
+        //             "code":21721
+        //          }
+        //       ]
+        //    }
         //
+        const id = this.safeString(message, 'id');
         const event = this.safeString(message, 'event');
-        const orderId = this.safeString(message, 'orderId');
+        const data = this.safeList(message, 'data');
+        const first = this.safeDict(data, 0);
+        const orderId = this.safeString(first, 'orderId');
         if ((event === 'error') || (orderId === '0')) {
-            const error = this.safeString(message, 'message');
-            throw new errors.ExchangeError(this.id + ' error: ' + this.json(error));
+            try {
+                const error = this.safeString(first, 'message');
+                const code = this.safeString(first, 'code');
+                const feedback = this.id + ' ' + this.json(message);
+                this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+                this.throwBroadlyMatchedException(this.exceptions['broad'], error, feedback);
+                throw new errors.ExchangeError(feedback);
+            }
+            catch (e) {
+                if (e instanceof errors.AuthenticationError) {
+                    const messageHash = 'authenticated';
+                    client.reject(e, messageHash);
+                    if (messageHash in client.subscriptions) {
+                        delete client.subscriptions[messageHash];
+                    }
+                }
+                else {
+                    client.reject(e, id);
+                }
+                return true;
+            }
         }
         return false;
     }

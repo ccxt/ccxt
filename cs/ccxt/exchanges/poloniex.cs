@@ -322,6 +322,7 @@ public partial class poloniex : Exchange
                     { "21350", typeof(InvalidOrder) },
                     { "21355", typeof(ExchangeError) },
                     { "21356", typeof(BadRequest) },
+                    { "21721", typeof(InsufficientFunds) },
                     { "24101", typeof(BadSymbol) },
                     { "24102", typeof(InvalidOrder) },
                     { "24103", typeof(InvalidOrder) },
