@@ -630,10 +630,10 @@ export default class valr extends valrRest {
         const tradeMessage = this.safeDict (message, 'data');
         const timestamp = this.parse8601 (this.safeString (tradeMessage, 'tradedAt'));
         let takerOrMaker = undefined;
-        let feeCost = this.safeNumber2 (message, 'fee', 'makerReward');
-        const feeCurrecyCode = this.safeString2 (message, 'feeCurrency', 'makerRewardCurrency');
+        let feeCost = this.safeNumber2 (tradeMessage, 'fee', 'makerReward');
+        const feeCurrecyCode = this.safeString2 (tradeMessage, 'feeCurrency', 'makerRewardCurrency');
         const feeCurrency = this.safeCurrencyCode (feeCurrecyCode);
-        if ('makerReward' in message) {
+        if ('makerReward' in tradeMessage) {
             takerOrMaker = 'maker';
             feeCost = (feeCost) ? -feeCost : feeCost;
         } else if (feeCost === 0) {
