@@ -9631,8 +9631,6 @@ export default class binance extends Exchange {
         const contracts = this.parseNumber (contractsAbs);
         const unrealizedPnlString = this.safeString (position, 'unRealizedProfit');
         const unrealizedPnl = this.parseNumber (unrealizedPnlString);
-        const leverageString = this.safeString (position, 'leverage');
-        const leverage = parseInt (leverageString);
         const liquidationPriceString = this.omitZero (this.safeString (position, 'liquidationPrice'));
         const liquidationPrice = this.parseNumber (liquidationPriceString);
         let collateralString = undefined;
@@ -9703,8 +9701,15 @@ export default class binance extends Exchange {
         const maintenanceMarginPercentage = this.parseNumber (maintenanceMarginPercentageString);
         const maintenanceMarginString = Precise.stringMul (maintenanceMarginPercentageString, notionalStringAbs);
         const maintenanceMargin = this.parseNumber (maintenanceMarginString);
+        const leverageString = this.safeString (position, 'leverage');
+        let leverage = undefined;
+        let rational = undefined;
+        if (leverageString !== undefined) {
+            // could be undefined in v2/account.position
+            leverage = parseInt (leverageString);
+            rational = this.isRoundNumber (1000 % leverage);
+        }
         let initialMarginPercentageString = Precise.stringDiv ('1', leverageString, 8);
-        const rational = this.isRoundNumber (1000 % leverage);
         if (!rational) {
             initialMarginPercentageString = Precise.stringAdd (initialMarginPercentageString, '1e-8');
         }
