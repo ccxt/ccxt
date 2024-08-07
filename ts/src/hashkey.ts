@@ -3608,9 +3608,9 @@ export default class hashkey extends Exchange {
 
     parseOrderTypeTimeInForceAndPostOnly (type, timeInForce) {
         let postOnly: Bool = undefined;
-        if (type === 'LIMIT_MAKER') { // for spot markets
+        if (type === 'LIMIT_MAKER') {
             postOnly = true;
-        } else if (timeInForce === 'LIMIT_MAKER') { // for swap markets
+        } else if ((timeInForce === 'LIMIT_MAKER') || (timeInForce === 'MAKER')) {
             postOnly = true;
             timeInForce = 'PO';
         }
