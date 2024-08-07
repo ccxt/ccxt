@@ -17,7 +17,7 @@ export default class hashkey extends hashkeyRest {
                 'watchMyTrades': false,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
-                'watchOrders': false,
+                'watchOrders': true,
                 'watchTicker': true,
                 'watchTrades': true,
                 'watchPositions': false,
@@ -67,6 +67,7 @@ export default class hashkey extends hashkeyRest {
          * @method
          * @name hashkey#watchOHLCV
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -167,6 +168,7 @@ export default class hashkey extends hashkeyRest {
          * @method
          * @name hahskey#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.binary] true or false - default false
@@ -222,6 +224,7 @@ export default class hashkey extends hashkeyRest {
          * @method
          * @name hashkey#watchTrades
          * @description watches information on multiple trades made in a market
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
          * @param {string} symbol unified market symbol of the market trades were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -284,18 +287,12 @@ export default class hashkey extends hashkeyRest {
         client.resolve (stored, messageHash);
     }
 
-    parseWsTrade (trade: Dict, market: Market = undefined): Trade {
-        const parsed = this.parseTrade (trade, market);
-        const id = this.safeString (trade, 'v');
-        parsed['id'] = id;
-        return parsed;
-    }
-
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name alpaca#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#public-stream
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return.
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -361,8 +358,8 @@ export default class hashkey extends hashkeyRest {
         /**
          * @method
          * @name hashkey#watchOrders
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-orders
          * @description watches information on multiple orders made by the user
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -372,6 +369,7 @@ export default class hashkey extends hashkeyRest {
         await this.loadMarkets ();
         let messageHash = 'orders';
         if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
             messageHash = messageHash + ':' + symbol;
         }
         const orders = await this.watchPrivate (messageHash);
@@ -385,7 +383,7 @@ export default class hashkey extends hashkeyRest {
         //
         // swap
         //     {
-        //         *"e": "contractExecutionReport",
+        //         "e": "contractExecutionReport",
         //         "E": "1723037391181",
         //         "s": "ETHUSDT-PERPETUAL",
         //         "c": "1723037389677",
@@ -396,39 +394,37 @@ export default class hashkey extends hashkeyRest {
         //         "p": "2561.75",
         //         "X": "FILLED",
         //         "i": "1747358716129257216",
-        //         *"l": "1",
+        //         "l": "1",
         //         "z": "1",
-        //         *"L": "2463.36",
+        //         "L": "2463.36",
         //         "n": "0.001478016",
         //         "N": "USDT",
-        //         *"u": true,
-        //         *"w": true,
-        //         *"m": false,
+        //         "u": true,
+        //         "w": true,
+        //         "m": false,
         //         "O": "1723037391140",
         //         "Z": "2463.36",
-        //         *"C": false,
-        //         *"v": "5",
-        //         *"reqAmt": "0",
-        //         *"d": "1747358716255075840",
+        //         "C": false,
+        //         "v": "5",
+        //         "reqAmt": "0",
+        //         "d": "1747358716255075840",
         //         "r": "0",
         //         "V": "2463.36",
-        //         *"P": "0",
-        //         *"lo": false,
-        //         *"lt": ""
+        //         "P": "0",
+        //         "lo": false,
+        //         "lt": ""
         //     }
         //
-        const messageHash = 'orders';
-        const marketId = this.safeString (message, 's');
-        const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
-        const parsed = this.parseWsOrder (message, market);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
         }
+        const parsed = this.parseWsOrder (message);
         const orders = this.orders;
         orders.append (parsed);
+        const messageHash = 'orders';
         client.resolve (orders, messageHash);
+        const symbol = parsed['symbol'];
         const symbolSpecificMessageHash = messageHash + ':' + symbol;
         client.resolve (orders, symbolSpecificMessageHash);
     }
@@ -437,7 +433,7 @@ export default class hashkey extends hashkeyRest {
         const marketId = this.safeString (order, 's');
         market = this.safeMarket (marketId, market);
         const timestamp = this.safeInteger (order, 'O');
-        let side = this.safeStringLower (order, 'side');
+        let side = this.safeStringLower (order, 'S');
         let reduceOnly: Bool = undefined;
         [ side, reduceOnly ] = this.parseOrderSideAndReduceOnly (side);
         let type = this.parseOrderType (this.safeString (order, 'o'));
@@ -453,7 +449,7 @@ export default class hashkey extends hashkeyRest {
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
-            'lastUpdateTimestamp': this.safeInteger (order, 'updateTime'),
+            'lastUpdateTimestamp': undefined,
             'status': this.parseOrderStatus (this.safeString (order, 'X')),
             'symbol': market['symbol'],
             'type': type,
@@ -480,11 +476,125 @@ export default class hashkey extends hashkeyRest {
         }, market);
     }
 
+    async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name hashkey#watchMyTrades
+         * @description watches information on multiple trades made by the user
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {int} [since] the earliest time in ms to fetch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         */
+        let messageHash = 'myTrades';
+        await this.loadMarkets ();
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+            messageHash += ':' + symbol;
+        }
+        const trades = await this.watchPrivate (messageHash);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    handleMyTrade (client: Client, message, subscription = {}) {
+        //
+        //     {
+        //         "e": "ticketInfo",
+        //         "E": "1723037391156",
+        //         "s": "ETHUSDT-PERPETUAL",
+        //         "q": "1.00",
+        //         "t": "1723037391147",
+        //         "p": "2463.36",
+        //         "T": "1747358716187197441",
+        //         "o": "1747358716129257216",
+        //         "c": "1723037389677",
+        //         "a": "1735619524953226496",
+        //         "m": false,
+        //         "S": "BUY"
+        //     }
+        //
+        if (this.myTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.myTrades = new ArrayCacheBySymbolById (limit);
+        }
+        const tradesArray = this.myTrades;
+        const parsed = this.parseWsTrade (message);
+        tradesArray.append (parsed);
+        this.myTrades = tradesArray;
+        const messageHash = 'myTrades';
+        client.resolve (tradesArray, messageHash);
+        const symbol = parsed['symbol'];
+        const symbolSpecificMessageHash = messageHash + ':' + symbol;
+        client.resolve (tradesArray, symbolSpecificMessageHash);
+    }
+
+    parseWsTrade (trade, market = undefined): Trade {
+        //
+        // watchTrades
+        //     {
+        //         "v": "1745922896272048129",
+        //         "t": 1722866228075,
+        //         "p": "2340.41",
+        //         "q": "0.0132",
+        //         "m": true
+        //     }
+        //
+        // watchMyTrades
+        //     {
+        //         "e": "ticketInfo",
+        //         "E": "1723037391156",
+        //         "s": "ETHUSDT-PERPETUAL",
+        //         "q": "1.00",
+        //         "t": "1723037391147",
+        //         "p": "2463.36",
+        //         "T": "1747358716187197441",
+        //         "o": "1747358716129257216",
+        //         "c": "1723037389677",
+        //         "a": "1735619524953226496",
+        //         "m": false,
+        //         "S": "BUY"
+        //     }
+        //
+        const marketId = this.safeString (trade, 's');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (trade, 't');
+        const isMaker = this.safeBool (trade, 'm');
+        let takerOrMaker: Str = undefined;
+        if (isMaker !== undefined) {
+            if (isMaker) {
+                takerOrMaker = 'maker';
+            } else {
+                takerOrMaker = 'taker';
+            }
+        }
+        return this.safeTrade ({
+            'id': this.safeString2 (trade, 'v', 'T'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'side': this.safeStringLower (trade, 'S'),
+            'price': this.safeString (trade, 'p'),
+            'amount': this.safeString (trade, 'q'),
+            'cost': undefined,
+            'takerOrMaker': takerOrMaker,
+            'type': undefined,
+            'order': this.safeString (trade, 'o'),
+            'fee': undefined,
+            'info': trade,
+        }, market);
+    }
+
     async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name hashkey#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -553,7 +663,7 @@ export default class hashkey extends hashkeyRest {
         if (Array.isArray (message)) {
             message = this.safeDict (message, 0, {});
         }
-        const topic = this.safeString (message, 'topic', 'e');
+        const topic = this.safeString2 (message, 'topic', 'e');
         if (topic === 'kline') {
             this.handleOHLCV (client, message);
         } else if (topic === 'realtimes') {
@@ -562,6 +672,10 @@ export default class hashkey extends hashkeyRest {
             this.handleTrades (client, message);
         } else if (topic === 'depth') {
             this.handleOrderBook (client, message);
+        } else if ((topic === 'contractExecutionReport') || (topic === 'executionReport')) {
+            this.handleOrder (client, message);
+        } else if (topic === 'ticketInfo') {
+            this.handleMyTrade (client, message);
         }
     }
 }
