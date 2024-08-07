@@ -3396,10 +3396,6 @@ export default class Exchange {
         let fees = this.safeList (container, 'fees');
         const feeDefined = fee !== undefined;
         const feesDefined = fees !== undefined;
-        // in case `fee & fees` are undefined, set `fees` as empty array
-        if (fees === undefined) {
-            fees = [];
-        }
         // parsing only if at least one of them is defined
         const shouldParseFees = (feeDefined || feesDefined);
         if (shouldParseFees) {
@@ -3422,6 +3418,16 @@ export default class Exchange {
             } else if (reducedLength === 0) {
                 fee = undefined;
             }
+        }
+        // in case `fee & fees` are undefined, set `fees` as empty array
+        if (fee === undefined) {
+            fee = {
+                'cost': undefined,
+                'currency': undefined,
+            };
+        }
+        if (fees === undefined) {
+            fees = [];
         }
         return [ fee, fees ];
     }
