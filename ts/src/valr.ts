@@ -1461,6 +1461,8 @@ export default class valr extends Exchange {
         if ('makerReward' in trade) {
             takerOrMaker = 'maker';
             feeCost = (feeCost) ? -feeCost : feeCost;
+        } else if (feeCost === 0) {
+            takerOrMaker = 'maker';
         } else {
             takerOrMaker = 'taker';
         }

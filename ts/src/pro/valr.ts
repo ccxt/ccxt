@@ -636,6 +636,8 @@ export default class valr extends valrRest {
         if ('makerReward' in message) {
             takerOrMaker = 'maker';
             feeCost = (feeCost) ? -feeCost : feeCost;
+        } else if (feeCost === 0) {
+            takerOrMaker = 'maker';
         } else {
             takerOrMaker = 'taker';
         }
