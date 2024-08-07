@@ -396,6 +396,7 @@ export default class valr extends Exchange {
                 'broad': {
                     'Internal transfer did not succeed From account does not have sufficient balance for transfer': InsufficientFunds,
                     'Internal transfer did not succeed A subaccount can only transfer funds from itself': BadRequest,
+                    'Invalid Request, please check your request and try again': BadRequest,
                 },
             },
         });
@@ -1457,7 +1458,6 @@ export default class valr extends Exchange {
         const timestamp = this.parse8601 (this.safeString (trade, 'tradedAt'));
         let takerOrMaker = undefined;
         let feeCost = this.safeNumber2 (trade, 'fee', 'makerReward');
-        // let tradeType = undefined;
         if ('makerReward' in trade) {
             takerOrMaker = 'maker';
             feeCost = (feeCost) ? -feeCost : feeCost;
@@ -1465,7 +1465,7 @@ export default class valr extends Exchange {
             takerOrMaker = 'taker';
         }
         const fee = {
-            'currency': this.safeString2 (trade, 'feeCurrency', 'makerRewardCurrency'),
+            'currency': this.safeCurrencyCode (this.safeString2 (trade, 'feeCurrency', 'makerRewardCurrency')),
             'cost': feeCost,
             'rate': undefined,
         };
@@ -1838,7 +1838,7 @@ export default class valr extends Exchange {
             'after': 0,
             'status': 'ok',
             'fee': {
-                'currency': this.safeString (item, 'feeCurrency'),
+                'currency': this.safeCurrencyCode (this.safeString (item, 'feeCurrency')),
                 'cost': this.safeNumber (item, 'feeValue'),
                 'rate': undefined,
             },

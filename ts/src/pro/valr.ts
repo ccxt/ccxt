@@ -629,6 +629,21 @@ export default class valr extends valrRest {
         const symbol = this.safeSymbol (marketId);
         const tradeMessage = this.safeDict (message, 'data');
         const timestamp = this.parse8601 (this.safeString (tradeMessage, 'tradedAt'));
+        let takerOrMaker = undefined;
+        let feeCost = this.safeNumber2 (message, 'fee', 'makerReward');
+        const feeCurrecyCode = this.safeString2 (message, 'feeCurrency', 'makerRewardCurrency');
+        const feeCurrency = this.safeCurrencyCode (feeCurrecyCode);
+        if ('makerReward' in message) {
+            takerOrMaker = 'maker';
+            feeCost = (feeCost) ? -feeCost : feeCost;
+        } else {
+            takerOrMaker = 'taker';
+        }
+        const fee = {
+            'cost': feeCost,
+            'currency': feeCurrency,
+            'rate': undefined,
+        };
         const myTrade = this.safeTrade ({
             'info': tradeMessage,
             'timestamp': timestamp,
@@ -639,6 +654,8 @@ export default class valr extends valrRest {
             'side': this.safeString (tradeMessage, 'side'),
             'amount': this.safeNumber (tradeMessage, 'quantity'),
             'price': this.safeNumber (tradeMessage, 'price'),
+            'fee': fee,
+            'takerOrMaker': takerOrMaker,
         });
         // watch All symbols
         if (this.myTrades === undefined) {
