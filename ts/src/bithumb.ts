@@ -202,9 +202,9 @@ export default class bithumb extends Exchange {
     async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
-         * @name binance#fetchCurrencies
+         * @name bithumb#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
+         * @see https://apidocs.bithumb.com/v1.2.0/reference/%EC%9E%85%EC%B6%9C%EA%B8%88-%EC%A7%80%EC%9B%90-%ED%98%84%ED%99%A9
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
