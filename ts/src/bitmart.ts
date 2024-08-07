@@ -112,7 +112,8 @@ export default class bitmart extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg',
                 'api': {
-                    'rest': 'https://api-cloud-v2.{hostname}', // bitmart.info for Hong Kong users
+                    'spot': 'https://api-cloud.{hostname}',
+                    'swap': 'https://api-cloud-v2.{hostname}', // bitmart.info for Hong Kong users
                 },
                 'www': 'https://www.bitmart.com/',
                 'doc': 'https://developer-pro.bitmart.com/',
@@ -4700,7 +4701,11 @@ export default class bitmart extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        const baseUrl = this.implodeHostname (this.urls['api']['rest']);
+        const parts = path.split ('/');
+        // to do: refactor api endpoints with spot/swap sections
+        const category = this.safeString (parts, 0, 'spot');
+        const market = (category === 'spot' || category === 'account') ? 'spot' : 'swap';
+        const baseUrl = this.implodeHostname (this.urls['api'][market]);
         let url = baseUrl + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         let queryString = '';
