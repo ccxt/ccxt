@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, AuthenticationError, BadRequest, P
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES, SIGNIFICANT_DIGITS, TRUNCATE } from './base/functions/number.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { Balances, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, MarketInterface, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -41,6 +41,7 @@ export default class bithumb extends Exchange {
                 'fetchBorrowRateHistory': false,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
+                'fetchCurrencies': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -198,6 +199,80 @@ export default class bithumb extends Exchange {
         return this.decimalToPrecision (amount, TRUNCATE, this.markets[symbol]['precision']['amount'], DECIMAL_PLACES);
     }
 
+    async fetchCurrencies (params = {}): Promise<Currencies> {
+        /**
+         * @method
+         * @name binance#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @see https://developers.binance.com/docs/wallet/capital/all-coins-info
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        const response = await this.publicGetAssetsstatusMultichainALL (params);
+        //
+        //     {
+        //         "status": "0000",
+        //         "data": [
+        //             {
+        //                 "currency": "BTC",
+        //                 "net_type": "BTC",
+        //                 "deposit_status": 1,
+        //                 "withdrawal_status": 1
+        //             }
+        //         ]
+        //     }
+        //
+        const result: Dict = {};
+        const data = this.safeList (response, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const id = this.safeString (entry, 'currency');
+            const code = this.safeCurrencyCode (id);
+            const withdrawalStatus = this.safeNumber (entry, 'withdrawal_status');
+            const depositStatus = this.safeNumber (entry, 'deposit_status');
+            const isWithdrawEnabled = withdrawalStatus === 1;
+            const isDepositEnabled = depositStatus === 1;
+            const active = (isWithdrawEnabled && isDepositEnabled);
+            const network = this.safeString (entry, 'net_type');
+            const networkCode = this.networkIdToCode (network);
+            const networks: Dict = {};
+            networks[networkCode] = {
+                'id': network,
+                'network': networkCode,
+                'active': active,
+                'deposit': isDepositEnabled,
+                'withdraw': isWithdrawEnabled,
+                'fee': undefined,
+                'precision': undefined,
+                'limits': {
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            };
+            result[code] = {
+                'id': id,
+                'name': id,
+                'code': code,
+                'precision': undefined,
+                'info': entry,
+                'active': active,
+                'deposit': isDepositEnabled,
+                'withdraw': isWithdrawEnabled,
+                'networks': networks,
+                'fee': undefined,
+                'fees': undefined,
+                'limits': this.limits,
+            };
+        }
+        return result;
+    }
+
     async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
@@ -299,8 +374,8 @@ export default class bithumb extends Exchange {
                     'strike': undefined,
                     'optionType': undefined,
                     'precision': {
-                        'amount': this.parsePrecision ('8'),
-                        'price': this.parsePrecision ('8'),
+                        'amount': undefined,
+                        'price': undefined,
                     },
                     'limits': {
                         'leverage': {
