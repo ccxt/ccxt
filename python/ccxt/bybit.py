@@ -3046,9 +3046,23 @@ class bybit(Exchange):
         feeCostString = self.safe_string(order, 'cumExecFee')
         feeCurrency = self.safe_string(order, 'feeCurrency')  # ws
         if feeCostString is not None:
+            feeCurrencyCode = None
+            if market['spot']:
+                if Precise.string_gt(feeCostString, '0'):
+                    if side == 'buy':
+                        feeCurrencyCode = market['base']
+                    else:
+                        feeCurrencyCode = market['quote']
+                else:
+                    if side == 'buy':
+                        feeCurrencyCode = market['quote']
+                    else:
+                        feeCurrencyCode = market['base']
+            else:
+                feeCurrencyCode = market['base'] if market['inverse'] else market['settle']
             fee = {
                 'cost': feeCostString,
-                'currency': feeCurrency or market['settle'],
+                'currency': feeCurrency or feeCurrencyCode,
             }
         clientOrderId = self.safe_string(order, 'orderLinkId')
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
