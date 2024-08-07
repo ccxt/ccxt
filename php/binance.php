@@ -9557,7 +9557,7 @@ class binance extends Exchange {
         $liquidationPrice = $this->parse_number($liquidationPriceString);
         $collateralString = null;
         $marginMode = $this->safe_string($position, 'marginType');
-        if ($marginMode === null && $isolatedMarginString) {
+        if ($marginMode === null && $isolatedMarginString !== null) {
             $marginMode = Precise::string_eq($isolatedMarginString, '0') ? 'cross' : 'isolated';
         }
         $side = null;

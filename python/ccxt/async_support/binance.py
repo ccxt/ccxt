@@ -9123,7 +9123,7 @@ class binance(Exchange, ImplicitAPI):
         liquidationPrice = self.parse_number(liquidationPriceString)
         collateralString = None
         marginMode = self.safe_string(position, 'marginType')
-        if marginMode is None and isolatedMarginString:
+        if marginMode is None and isolatedMarginString is not None:
             marginMode = 'cross' if Precise.string_eq(isolatedMarginString, '0') else 'isolated'
         side = None
         if Precise.string_gt(notionalString, '0'):
