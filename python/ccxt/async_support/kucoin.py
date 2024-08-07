@@ -1680,45 +1680,67 @@ class kucoin(Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         #
         # the v2 URL is https://openapi-v2.kucoin.com/api/v1/endpoint
-        #                                †                 ↑
+        #                                ↑                 ↑
+        #                                ↑                 ↑
         #
-        versions = self.safe_value(self.options, 'versions', {})
-        apiVersions = self.safe_value(versions, api)
-        methodVersions = self.safe_value(apiVersions, method, {})
+        versions = self.safe_dict(self.options, 'versions', {})
+        apiVersions = self.safe_dict(versions, api, {})
+        methodVersions = self.safe_dict(apiVersions, method, {})
         defaultVersion = self.safe_string(methodVersions, path, self.options['version'])
         version = self.safe_string(params, 'version', defaultVersion)
         params = self.omit(params, 'version')
         endpoint = '/api/' + version + '/' + self.implode_params(path, params)
+        if api == 'webExchange':
+            endpoint = '/' + self.implode_params(path, params)
+        if api == 'earn':
+            endpoint = '/api/v1/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         endpart = ''
         headers = headers if (headers is not None) else {}
-        if query:
-            if method != 'GET':
+        url = self.urls['api'][api]
+        if not self.is_empty(query):
+            if (method == 'GET') or (method == 'DELETE'):
+                endpoint += '?' + self.rawencode(query)
+            else:
                 body = self.json(query)
                 endpart = body
                 headers['Content-Type'] = 'application/json'
-            else:
-                endpoint += '?' + self.urlencode(query)
-        url = self.urls['api'][api] + endpoint
-        if api == 'private':
+        url = url + endpoint
+        isFuturePrivate = (api == 'futuresPrivate')
+        isPrivate = (api == 'private')
+        isBroker = (api == 'broker')
+        isEarn = (api == 'earn')
+        if isPrivate or isFuturePrivate or isBroker or isEarn:
             self.check_required_credentials()
             timestamp = str(self.nonce())
             headers = self.extend({
+                'KC-API-KEY-VERSION': '2',
                 'KC-API-KEY': self.apiKey,
                 'KC-API-TIMESTAMP': timestamp,
-                'KC-API-PASSPHRASE': self.password,
             }, headers)
+            apiKeyVersion = self.safe_string(headers, 'KC-API-KEY-VERSION')
+            if apiKeyVersion == '2':
+                passphrase = self.hmac(self.encode(self.password), self.encode(self.secret), hashlib.sha256, 'base64').decode('utf-8')
+                headers['KC-API-PASSPHRASE'] = passphrase
+            else:
+                headers['KC-API-PASSPHRASE'] = self.password
             payload = timestamp + method + endpoint + endpart
             signature = self.hmac(self.encode(payload), self.encode(self.secret), hashlib.sha256, 'base64')
-            headers['KC-API-SIGN'] = self.decode(signature)
-            partner = self.safe_value(self.options, 'partner', {})
+            headers['KC-API-SIGN'] = signature.decode('utf-8')
+            partner = self.safe_dict(self.options, 'partner', {})
+            partner = self.safe_value(partner, 'future', partner) if isFuturePrivate else self.safe_value(partner, 'spot', partner)
             partnerId = self.safe_string(partner, 'id')
-            partnerSecret = self.safe_string(partner, 'secret')
+            partnerSecret = self.safe_string_2(partner, 'secret', 'key')
             if (partnerId is not None) and (partnerSecret is not None):
                 partnerPayload = timestamp + partnerId + self.apiKey
-                partnerSignature = self.hmac(self.encode(partnerPayload), self.encode(partnerSecret), hashlib.sha256, 'base64')
-                headers['KC-API-PARTNER-SIGN'] = self.decode(partnerSignature)
+                partnerSignature = self.hmac(self.encode(partnerPayload), self.encode(partnerSecret), hashlib.sha256, 'base64').decode('utf-8')
+                headers['KC-API-PARTNER-SIGN'] = partnerSignature
                 headers['KC-API-PARTNER'] = partnerId
+                headers['KC-API-PARTNER-VERIFY'] = 'true'
+            if isBroker:
+                brokerName = self.safe_string(partner, 'name')
+                if brokerName is not None:
+                    headers['KC-BROKER-NAME'] = brokerName
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
