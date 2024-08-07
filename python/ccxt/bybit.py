@@ -14,7 +14,7 @@ from ccxt.base.types import OrderSide
 from ccxt.base.types import OrderType
 from typing import Optional
 from typing import List
-from ccxt.base.errors import ExchangeError, NotChanged, OrderCancelled, PositionNotFound, TradesNotFound, \
+from ccxt.base.errors import ExchangeError, NotChanged, OrderCancelled, PositionNotFound, \
     AccountRateLimitExceeded, MaxStopAllowed
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
@@ -3136,34 +3136,6 @@ class bybit(Exchange):
             else:
                 raise Exception("Missing executedOrderId / orderLinkId")
 
-    def parse_trades_cost_fee(self, symbol, trades):
-        cost, fees, fee = 0., defaultdict(lambda: {'cost': 0.}), None
-        for trade in trades:
-            trade_cost = self.safe_float(trade, 'cost')
-            if trade_cost:
-                cost += trade_cost
-            trade_fee = trade['fee']
-            _fee_cost = self.safe_string(trade_fee, 'cost')
-            if _fee_cost is not None:
-                _fee_currency = trade_fee['currency']
-                fees[_fee_currency]['currency'] = _fee_currency
-                fees[_fee_currency]['cost'] = float(Precise.string_add(str(fees[_fee_currency]['cost']), _fee_cost))
-
-        if fees:
-            base_currency = self.get_currency(symbol)
-            pair = self.get_pair(symbol)
-            fee = fees.get(base_currency) or fees.get(pair)
-            if fee is None:
-                fee = list(fees.values())[0]
-        return cost, fee
-
-    def fetch_order_fee(self, _id, symbol, validate_filled=True):
-        order_trades = self.fetch_my_trades(symbol, params={"orderId": _id})
-        if validate_filled and not order_trades:
-            raise TradesNotFound("Couldn't get order's trades for external_order_id: %s" % _id)
-        _, fee = self.parse_trades_cost_fee(symbol, order_trades)
-        return fee
-
     def fetch_order(self, id: str, symbol: Optional[str] = None, params={}):
         """
         fetches information on an order made by the user
@@ -3196,9 +3168,6 @@ class bybit(Exchange):
         if parsed_order:
             return parsed_order
 
-        if self.is_spot() and (result['fee']['cost'] is None or result['fee']['currency'] is None) \
-                and result['filled'] and result['filled'] > 0:
-            result['fee'] = self.fetch_order_fee(result["id"], symbol, validate_filled=True)
         return result
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount, price=None, params={}):

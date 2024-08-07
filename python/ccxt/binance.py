@@ -8,7 +8,7 @@ from uuid import uuid4
 from ccxt.base.exchange import Exchange
 import math
 import json
-from ccxt.base.errors import ExchangeError, TradesNotFound
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
@@ -1873,7 +1873,7 @@ class binance(Exchange):
         side = self.safe_string_lower(order, 'side')
         fee = None
         trades = None
-        fills = self.safe_value(order, 'fills')
+        fills = self.safe_value(order, 'fills')  # happens on Create Order market/limit
         if fills is not None:
             trades = self.parse_trades(fills, market)
             numTrades = len(trades)
@@ -2039,13 +2039,6 @@ class binance(Exchange):
         response = getattr(self, method)(self.extend(request, params))
         return self.parse_order(response, market)
 
-    def fetch_order_fee(self, _id, symbol, validate_filled=True):
-        order_trades = self.fetch_my_trades(symbol, params={"order_id": _id})
-        if validate_filled and not order_trades:
-            raise TradesNotFound("Couldn't get order's trades for external_order_id: %s" % _id)
-        _, fee = self.parse_trades_cost_fee(symbol, order_trades)
-        return fee
-
     def fetch_order(self, _id, symbol=None, params={}):
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder requires a symbol argument')
@@ -2074,11 +2067,7 @@ class binance(Exchange):
         query = self.omit(params, ['type', 'clientOrderId', 'origClientOrderId'])
         response = getattr(self, method)(self.extend(request, query))
 
-        parsed_order = self.parse_order(response, market)
-
-        if type == "spot" and parsed_order['fee'] is None and parsed_order['filled'] > 0:
-            parsed_order['fee'] = self.fetch_order_fee(_id, symbol, validate_filled=True)
-        return parsed_order
+        return self.parse_order(response, market)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         if symbol is None:
