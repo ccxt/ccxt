@@ -1458,7 +1458,7 @@
                 }
             },
             {
-                "description": "Fill this with a description of the method call",
+                "description": "Spot limit sell with post only set to true",
                 "method": "createOrder",
                 "input": [
                     "ETH/USDT",
