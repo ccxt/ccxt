@@ -1784,7 +1784,7 @@
                         "price": 51444.4,
                         "amount": 0.972,
                         "cost": 50003.9568,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     }
                 ]

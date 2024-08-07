@@ -524,7 +524,7 @@
                         "amount": 100,
                         "cost": 61.824,
                         "type": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     },
                     {
@@ -547,7 +547,7 @@
                         "amount": 100,
                         "cost": 61.84,
                         "type": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     },
                     {
@@ -570,7 +570,7 @@
                         "amount": 48,
                         "cost": 29.688,
                         "type": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     },
                     {
@@ -593,7 +593,7 @@
                         "amount": 1,
                         "cost": 0.61853,
                         "type": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     },
                     {
@@ -616,7 +616,7 @@
                         "amount": 1,
                         "cost": 0.61856,
                         "type": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     },
                     {
@@ -639,7 +639,7 @@
                         "amount": 1,
                         "cost": 0.61853,
                         "type": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     },
                     {
@@ -662,7 +662,7 @@
                         "amount": 1,
                         "cost": 0.61854,
                         "type": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     },
                     {
@@ -685,7 +685,7 @@
                         "amount": 57,
                         "cost": 35.2602,
                         "type": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     },
                     {
@@ -708,7 +708,7 @@
                         "amount": 100,
                         "cost": 61.86,
                         "type": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     },
                     {
@@ -731,7 +731,7 @@
                         "amount": 1,
                         "cost": 0.61859,
                         "type": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     },
                     {
@@ -754,7 +754,7 @@
                         "amount": 99,
                         "cost": 61.24041,
                         "type": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     },
                     {
@@ -777,7 +777,7 @@
                         "amount": 100,
                         "cost": 61.852,
                         "type": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     },
                     {
@@ -800,7 +800,7 @@
                         "amount": 14,
                         "cost": 8.65368,
                         "type": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     },
                     {
@@ -823,7 +823,7 @@
                         "amount": 1,
                         "cost": 0.61812,
                         "type": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     },
                     {
@@ -846,7 +846,7 @@
                         "amount": 1167,
                         "cost": 720.9726,
                         "type": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     },
                     {
@@ -869,7 +869,7 @@
                         "amount": 484,
                         "cost": 299.0152,
                         "type": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     },
                     {
@@ -892,7 +892,7 @@
                         "amount": 1,
                         "cost": 0.61755,
                         "type": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     },
                     {
@@ -915,7 +915,7 @@
                         "amount": 1,
                         "cost": 0.61764,
                         "type": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     },
                     {
@@ -938,7 +938,7 @@
                         "amount": 183,
                         "cost": 113.03361,
                         "type": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     },
                     {
@@ -961,7 +961,7 @@
                         "amount": 100,
                         "cost": 61.782,
                         "type": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     },
                     {
@@ -984,7 +984,7 @@
                         "amount": 1,
                         "cost": 0.61777,
                         "type": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     },
                     {
@@ -1007,7 +1007,7 @@
                         "amount": 3,
                         "cost": 1.85334,
                         "type": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     },
                     {
@@ -1030,7 +1030,7 @@
                         "amount": 100,
                         "cost": 61.778,
                         "type": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     },
                     {
@@ -1053,7 +1053,7 @@
                         "amount": 95,
                         "cost": 58.6891,
                         "type": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     },
                     {
@@ -1076,7 +1076,7 @@
                         "amount": 100,
                         "cost": 61.778,
                         "type": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     }
                 ]

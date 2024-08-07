@@ -286,9 +286,7 @@
                             "amount": null,
                             "price": null,
                             "cost": null,
-                            "fee": {
-                                "cost": null
-                            }
+                            "fee": {"cost": null, "currency": null }
                         }
                     ],
                     "fees": [
@@ -786,7 +784,7 @@
                         "price": 73324.4,
                         "amount": 0.010309,
                         "cost": 755.9012396,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     }
                 ]
