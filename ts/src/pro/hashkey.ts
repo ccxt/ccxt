@@ -2,8 +2,8 @@
 //  ---------------------------------------------------------------------------
 
 import hashkeyRest from '../hashkey.js';
-import type { Dict, Int, Market, OHLCV, OrderBook, Ticker, Trade } from '../base/types.js';
-import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import type { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -26,12 +26,12 @@ export default class hashkey extends hashkeyRest {
                 'api': {
                     'ws': {
                         'public': 'wss://stream-glb.hashkey.com/quote/ws/v1',
-                        'private': 'wss://stream-glb.hashkey.com/api/v1/ws/{listenKey}',
+                        'private': 'wss://stream-glb.hashkey.com/api/v1/ws',
                     },
                     'test': {
                         'ws': {
                             'public': 'wss://stream-glb.sim.hashkeydev.com/quote/ws/v1',
-                            'private': 'wss://stream-glb.sim.hashkeydev.com/api/v1/ws/{listenKey}',
+                            'private': 'wss://stream-glb.sim.hashkeydev.com/api/v1/ws',
                         },
                     },
                 },
@@ -54,6 +54,12 @@ export default class hashkey extends hashkeyRest {
         };
         const url = this.urls['api']['ws']['public'];
         return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+    }
+
+    async watchPrivate (messageHash) {
+        const listenKey = await this.authenticate ();
+        const url = this.urls['api']['ws']['private'] + '/' + listenKey;
+        return await this.watch (url, messageHash, undefined, messageHash);
     }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -351,8 +357,203 @@ export default class hashkey extends hashkeyRest {
         client.resolve (orderbook, messageHash);
     }
 
+    async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name hashkey#watchOrders
+         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-orders
+         * @description watches information on multiple orders made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        let messageHash = 'orders';
+        if (symbol !== undefined) {
+            messageHash = messageHash + ':' + symbol;
+        }
+        const orders = await this.watchPrivate (messageHash);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
+        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+    }
+
+    handleOrder (client: Client, message) {
+        //
+        // swap
+        //     {
+        //         *"e": "contractExecutionReport",
+        //         "E": "1723037391181",
+        //         "s": "ETHUSDT-PERPETUAL",
+        //         "c": "1723037389677",
+        //         "S": "BUY_OPEN",
+        //         "o": "LIMIT",
+        //         "f": "IOC",
+        //         "q": "1",
+        //         "p": "2561.75",
+        //         "X": "FILLED",
+        //         "i": "1747358716129257216",
+        //         *"l": "1",
+        //         "z": "1",
+        //         *"L": "2463.36",
+        //         "n": "0.001478016",
+        //         "N": "USDT",
+        //         *"u": true,
+        //         *"w": true,
+        //         *"m": false,
+        //         "O": "1723037391140",
+        //         "Z": "2463.36",
+        //         *"C": false,
+        //         *"v": "5",
+        //         *"reqAmt": "0",
+        //         *"d": "1747358716255075840",
+        //         "r": "0",
+        //         "V": "2463.36",
+        //         *"P": "0",
+        //         *"lo": false,
+        //         *"lt": ""
+        //     }
+        //
+        const messageHash = 'orders';
+        const marketId = this.safeString (message, 's');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const parsed = this.parseWsOrder (message, market);
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
+        const orders = this.orders;
+        orders.append (parsed);
+        client.resolve (orders, messageHash);
+        const symbolSpecificMessageHash = messageHash + ':' + symbol;
+        client.resolve (orders, symbolSpecificMessageHash);
+    }
+
+    parseWsOrder (order: Dict, market: Market = undefined): Order {
+        const marketId = this.safeString (order, 's');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (order, 'O');
+        let side = this.safeStringLower (order, 'side');
+        let reduceOnly: Bool = undefined;
+        [ side, reduceOnly ] = this.parseOrderSideAndReduceOnly (side);
+        let type = this.parseOrderType (this.safeString (order, 'o'));
+        let timeInForce = this.safeString (order, 'f');
+        let postOnly: Bool = undefined;
+        [ type, timeInForce, postOnly ] = this.parseOrderTypeTimeInForceAndPostOnly (type, timeInForce);
+        if (market['contract']) { // swap orders are always have type 'LIMIT', thus we can not define the correct type
+            type = undefined;
+        }
+        return this.safeOrder ({
+            'id': this.safeString (order, 'i'),
+            'clientOrderId': this.safeString (order, 'c'),
+            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': this.safeInteger (order, 'updateTime'),
+            'status': this.parseOrderStatus (this.safeString (order, 'X')),
+            'symbol': market['symbol'],
+            'type': type,
+            'timeInForce': timeInForce,
+            'side': side,
+            'price': this.safeString (order, 'p'),
+            'average': this.safeString (order, 'V'),
+            'amount': this.omitZero (this.safeString (order, 'q')),
+            'filled': this.safeString (order, 'z'),
+            'remaining': this.safeString (order, 'r'),
+            'stopPrice': undefined,
+            'triggerPrice': undefined,
+            'takeProfitPrice': undefined,
+            'stopLossPrice': undefined,
+            'cost': this.omitZero (this.safeString (order, 'Z')),
+            'trades': undefined,
+            'fee': {
+                'currency': this.safeCurrencyCode (this.safeString (order, 'N')),
+                'amount': this.omitZero (this.safeString (order, 'n')),
+            },
+            'reduceOnly': reduceOnly,
+            'postOnly': postOnly,
+            'info': order,
+        }, market);
+    }
+
+    async watchBalance (params = {}): Promise<Balances> {
+        /**
+         * @method
+         * @name hashkey#watchBalance
+         * @description watch balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        const messageHash = 'balance';
+        return await this.watchPrivate (messageHash);
+    }
+
+    async authenticate (params = {}) {
+        let listenKey = this.safeString (this.options, 'listenKey');
+        if (listenKey !== undefined) {
+            return listenKey;
+        }
+        const response = await this.privatePostApiV1UserDataStream (params);
+        //
+        //    {
+        //        "listenKey": "atbNEcWnBqnmgkfmYQeTuxKTpTStlZzgoPLJsZhzAOZTbAlxbHqGNWiYaUQzMtDz"
+        //    }
+        //
+        listenKey = this.safeString (response, 'listenKey');
+        this.options['listenKey'] = listenKey;
+        const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 3600000);
+        this.delay (listenKeyRefreshRate, this.keepAliveListenKey, listenKey, params);
+        return listenKey;
+    }
+
+    async keepAliveListenKey (listenKey, params = {}) {
+        if (listenKey === undefined) {
+            return;
+        }
+        const request: Dict = {
+            'listenKey': listenKey,
+        };
+        try {
+            await this.privatePutApiV1UserDataStreamListenKey (this.extend (request, params));
+            const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
+            this.delay (listenKeyRefreshRate, this.keepAliveListenKey, listenKey, params);
+        } catch (error) {
+            const url = this.urls['api']['ws']['private'] + '/' + listenKey;
+            const client = this.client (url);
+            this.options['listenKey'] = undefined;
+            client.reject (error);
+            delete this.clients[url];
+        }
+    }
+
     handleMessage (client: Client, message) {
-        const topic = this.safeString (message, 'topic');
+        //
+        // private
+        //     [
+        //         {
+        //             "e": "outboundAccountInfo",
+        //             "E": 1499405658849,
+        //             "T": true,
+        //             "W": true,
+        //             "D": true,
+        //             "B": [
+        //                 {
+        //                     "a": "LTC",
+        //                     "f": "17366.18538083",
+        //                     "l": "0.00000000"
+        //                 }
+        //             ]
+        //         }
+        //     ]
+        //
+        if (Array.isArray (message)) {
+            message = this.safeDict (message, 0, {});
+        }
+        const topic = this.safeString (message, 'topic', 'e');
         if (topic === 'kline') {
             this.handleOHLCV (client, message);
         } else if (topic === 'realtimes') {
