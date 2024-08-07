@@ -213,6 +213,9 @@ export default class hashkey extends Exchange {
                         'api/v1/account/authAddress': 1, // todo ask about it
                         'api/v1/account/withdraw': 1,
                     },
+                    'put': {
+                        'api/v1/userDataStream/{listenKey}': 1,
+                    },
                     'delete': {
                         'api/v1/spot/order': 1,
                         'api/v1/spot/openOrders': 5,
@@ -220,6 +223,7 @@ export default class hashkey extends Exchange {
                         'api/v1/futures/order': 1,
                         'api/v1/futures/batchOrders': 1,
                         'api/v1/futures/cancelOrderByIds': 1,
+                        'api/v1/userDataStream/{listenKey}': 1,
                     },
                 },
             },
@@ -921,7 +925,7 @@ export default class hashkey extends Exchange {
             const riskLimits = this.safeList (market, 'riskLimits');
             if (riskLimits !== undefined) {
                 const first = this.safeDict (riskLimits, 0);
-                const last = this.safeDict (riskLimits, riskLimits.length - 1);
+                const last = this.safeDict (riskLimits, riskLimits.length - 1); // todo check - 1
                 let minInitialMargin = this.safeString (first, 'initialMargin');
                 let maxInitialMargin = this.safeString (last, 'initialMargin');
                 if (Precise.stringGt (minInitialMargin, maxInitialMargin)) {
@@ -3523,31 +3527,17 @@ export default class hashkey extends Exchange {
             } else {
                 type = 'limit';
             }
-        } else {
-            type = this.parseOrderType (type);
         }
+        let timeInForce = this.safeString (order, 'timeInForce');
+        let postOnly: Bool = undefined;
+        [ type, timeInForce, postOnly ] = this.parseOrderTypeTimeInForceAndPostOnly (type, timeInForce);
         const average = this.omitZero (this.safeString (order, 'avgPrice'));
         if (price === undefined) {
             price = average;
         }
         let side = this.safeStringLower (order, 'side');
-        const parts = side.split ('_');
-        side = parts[0];
         let reduceOnly: Bool = undefined;
-        const secondPart = this.safeString (parts, 1);
-        if (secondPart !== undefined) {
-            if (secondPart === 'open') {
-                reduceOnly = false;
-            } else if ((secondPart === 'close')) {
-                reduceOnly = true;
-            }
-        }
-        let postOnly = type === 'LIMIT_MAKER'; // for spot markets
-        let timeInForce = this.safeString (order, 'timeInForce');
-        if (timeInForce === 'LIMIT_MAKER') { // for swap markets
-            postOnly = true;
-            timeInForce = 'PO';
-        }
+        [ side, reduceOnly ] = this.parseOrderSideAndReduceOnly (side);
         let feeCurrncyId = this.safeString (order, 'feeCoin');
         if (feeCurrncyId === '') {
             feeCurrncyId = undefined;
@@ -3586,6 +3576,21 @@ export default class hashkey extends Exchange {
         }, market);
     }
 
+    parseOrderSideAndReduceOnly (unparsed) {
+        const parts = unparsed.split ('_');
+        const side = parts[0];
+        let reduceOnly: Bool = undefined;
+        const secondPart = this.safeString (parts, 1);
+        if (secondPart !== undefined) {
+            if (secondPart === 'open') {
+                reduceOnly = false;
+            } else if ((secondPart === 'close')) {
+                reduceOnly = true;
+            }
+        }
+        return [ side, reduceOnly ];
+    }
+
     parseOrderStatus (status) {
         const statuses = {
             'NEW': 'open',
@@ -3599,6 +3604,18 @@ export default class hashkey extends Exchange {
             'ORDER_NEW': 'open',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    parseOrderTypeTimeInForceAndPostOnly (type, timeInForce) {
+        let postOnly: Bool = undefined;
+        if (type === 'LIMIT_MAKER') { // for spot markets
+            postOnly = true;
+        } else if (timeInForce === 'LIMIT_MAKER') { // for swap markets
+            postOnly = true;
+            timeInForce = 'PO';
+        }
+        type = this.parseOrderType (type);
+        return [ type, timeInForce, postOnly ];
     }
 
     parseOrderType (type) {
