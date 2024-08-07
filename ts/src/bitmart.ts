@@ -1236,8 +1236,8 @@ export default class bitmart extends Exchange {
         let marketId = this.safeString2 (ticker, 'symbol', 'contract_symbol');
         let timestamp = this.safeInteger2 (ticker, 'timestamp', 'ts');
         let last = this.safeString2 (ticker, 'last_price', 'last');
-        let percentage = this.safeString (ticker, 'price_change_percent_24h');
-        let change = this.safeString2 (ticker, 'fluctuation', 'change_24h');
+        let percentage = this.safeString2 (ticker, 'price_change_percent_24h', 'change_24h');
+        let change = this.safeString (ticker, 'fluctuation');
         let high = this.safeString2 (ticker, 'high_24h', 'high_price');
         let low = this.safeString2 (ticker, 'low_24h', 'low_price');
         let bid = this.safeString2 (ticker, 'best_bid', 'bid_px');
