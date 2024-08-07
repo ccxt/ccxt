@@ -64,12 +64,14 @@ interface Exchange {
     privatePostApiV1AccountAssetTransfer (params?: {}): Promise<implicitReturnType>;
     privatePostApiV1AccountAuthAddress (params?: {}): Promise<implicitReturnType>;
     privatePostApiV1AccountWithdraw (params?: {}): Promise<implicitReturnType>;
+    privatePutApiV1UserDataStreamListenKey (params?: {}): Promise<implicitReturnType>;
     privateDeleteApiV1SpotOrder (params?: {}): Promise<implicitReturnType>;
     privateDeleteApiV1SpotOpenOrders (params?: {}): Promise<implicitReturnType>;
     privateDeleteApiV1SpotCancelOrderByIds (params?: {}): Promise<implicitReturnType>;
     privateDeleteApiV1FuturesOrder (params?: {}): Promise<implicitReturnType>;
     privateDeleteApiV1FuturesBatchOrders (params?: {}): Promise<implicitReturnType>;
     privateDeleteApiV1FuturesCancelOrderByIds (params?: {}): Promise<implicitReturnType>;
+    privateDeleteApiV1UserDataStreamListenKey (params?: {}): Promise<implicitReturnType>;
 }
 abstract class Exchange extends _Exchange {}
 
