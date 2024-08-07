@@ -103,6 +103,7 @@ class baseMainTestClass {
     public $request_tests_failed = false;
     public $response_tests_failed = false;
     public $id_tests = false;
+    public $base_tests = false;
     public $response_tests = false;
     public $request_tests = false;
     public $load_keys = false;
@@ -144,6 +145,15 @@ function convert_to_snake_case($input) {
     return str_replace('o_h_l_c_v', 'ohlcv', $res);
 }
 
+function convert_to_camel_case($input) {
+    $words = explode('_', $input);
+    $camelCase = $words[0];
+    for ($i = 1; $i < count($words); $i++) {
+        $camelCase .= ucfirst($words[$i]);
+    }
+    return $camelCase;
+}
+
 function get_test_name($methodName) {
     return 'test_' . convert_to_snake_case($methodName);
 }
@@ -176,7 +186,9 @@ function call_method_sync($testFiles, $methodName, $exchange, $skippedProperties
 }
 
 function call_method($testFiles, $methodName, $exchange, $skippedProperties, $args) {
-    return call_method_sync($testFiles, $methodName, $exchange, $skippedProperties, $args);
+    return \React\Async\async( function() use ($testFiles, $methodName, $exchange, $skippedProperties, $args){
+        return call_method_sync($testFiles, $methodName, $exchange, $skippedProperties, $args);
+    })();
 }
 
 function call_overriden_method($exchange, $methodName, $args) {
@@ -291,9 +303,29 @@ function init_exchange ($exchangeId, $args, $is_ws = false) {
     return $newClass;
 }
 
-function get_test_files_sync ($properties, $ws = false) {
-    $func = function() use ($properties, $ws){
+function get_test_files_sync ($properties = null, $ws = false, $is_base_tests = false) {
+    $func = function() use ($properties, $ws, $is_base_tests){
         $tests = array();
+        if ($is_base_tests) {
+            $basePath = $ws ? __DIR__ . '../pro/test/base/' : __DIR__ . '/base/';
+            $files = io_dir_read ($basePath);
+            for ($i = 0; $i < count($files); $i++) {
+                $filename = $files[$i];
+                $filenameWoExt = str_replace('.' . ext, '', $filename);
+                $testName = str_replace('test_', '', $filenameWoExt);
+                $methodName = convert_to_camel_case($testName);
+                $filePathWithExt = $basePath . $filenameWoExt . '.' . ext;
+                if (io_file_exists ($filePathWithExt)) {
+                    if (!in_array($testName, [ 'custom', 'errors', 'languageSpecific' ])) {
+                        include_once $filePathWithExt;
+                        $tests[$methodName] = 'test_' . $testName;
+                    }
+                }
+            }
+            include_once $basePath . '/custom/test_language_specific.php';
+            $tests['languageSpecific'] = 'test_language_specific';
+            return $tests;
+        }
         $finalPropList = array_merge ($properties, [proxyTestFileName]);
         for ($i = 0; $i < count($finalPropList); $i++) {
             $methodName = $finalPropList[$i];
@@ -315,8 +347,8 @@ function get_test_files_sync ($properties, $ws = false) {
     }
 }
 
-function get_test_files ($properties, $ws = false) {
-    return get_test_files_sync($properties, $ws);
+function get_test_files ($properties = null, $ws = false, $is_base_tests = false) {
+    return get_test_files_sync($properties, $ws, $is_base_tests);
 }
 
 function is_null_value($value) {

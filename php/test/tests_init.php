@@ -2,6 +2,7 @@
 
 namespace ccxt;
 use Exception; // a common import
+use function \React\Async\await;
 require_once (__DIR__ . '/tests_helpers.php');
 if (is_synchronous) {
     require_once __DIR__ . '/tests_sync.php';
@@ -20,11 +21,8 @@ if ($isBaseTests) {
         require_once (__DIR__ . '/../pro/test/base/tests_init.php');
         \ccxt\pro\base_tests_init_ws();
     } else {
-        // test base things
-        require_once (__DIR__ . '/base/tests_init.php');
-        base_tests_init();
+        await((new testMainClass ())->init());
     }
-    print('base tests passed!');
     if (!$isAllTest) {
         exit(0);
     }

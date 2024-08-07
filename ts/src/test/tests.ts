@@ -45,6 +45,7 @@ class testMainClass extends baseMainTestClass {
     parseCliArgs () {
         this.responseTests = getCliArgValue ('--responseTests');
         this.idTests = getCliArgValue ('--idTests');
+        this.baseTests = getCliArgValue ('--baseTests');
         this.requestTests = getCliArgValue ('--requestTests');
         this.info = getCliArgValue ('--info');
         this.verbose = getCliArgValue ('--verbose');
@@ -56,7 +57,7 @@ class testMainClass extends baseMainTestClass {
         this.wsTests = getCliArgValue ('--ws');
     }
 
-    async init (exchangeId, symbolArgv, methodArgv) {
+    async init (exchangeId = undefined, symbolArgv = undefined, methodArgv = undefined) {
         this.parseCliArgs ();
 
         if (this.requestTests && this.responseTests) {
@@ -76,6 +77,10 @@ class testMainClass extends baseMainTestClass {
             await this.runBrokerIdTests ();
             return;
         }
+        if (this.baseTests) {
+            await this.runBaseTests ();
+            return;
+        }
         dump (this.newLine + '' + this.newLine + '' + '[INFO] TESTING ', this.ext, { 'exchange': exchangeId, 'symbol': symbolArgv, 'method': methodArgv, 'isWs': this.wsTests }, this.newLine);
         const exchangeArgs = {
             'verbose': this.verbose,
@@ -93,6 +98,22 @@ class testMainClass extends baseMainTestClass {
         this.checkIfSpecificTestIsChosen (methodArgv);
         await this.startTest (exchange, symbolArgv);
         exitScript (0); // needed to be explicitly finished for WS tests
+    }
+
+    async runBaseTests () {
+        if (this.isSynchronous) {
+            this.testFiles = getTestFilesSync (undefined, this.wsTests, true);
+        } else {
+            this.testFiles = await getTestFiles (undefined, this.wsTests, true);
+        }
+        assert (Object.keys (this.testFiles).length > 0, 'Test files were not loaded'); // ensure test files are found & filled
+        const keys = Object.keys (this.testFiles);
+        const length = keys.length;
+        for (let i = 0; i < length; i++) {
+            const methodName = keys[i];
+            await callMethod (this.testFiles, methodName, undefined, undefined, []);
+        }
+        dump (this.addPadding ('[INFO] Base ' + length.toString () + ' tests completed', 25));
     }
 
     checkIfSpecificTestIsChosen (methodArgv) {

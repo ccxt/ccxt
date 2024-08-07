@@ -139,6 +139,7 @@ class baseMainTestClass():
     check_public_tests = {}
     test_files = {}
     public_tests = {}
+    base_tests = False
     new_line = '\n'
     root_dir = rootDir
     env_vars = envVars
@@ -168,6 +169,10 @@ def convert_to_snake_case(content):
     res = re.sub(r'(?<!^)(?=[A-Z])', '_', content).lower()
     return res.replace('o_h_l_c_v', 'ohlcv')
 
+def convert_to_camel_case(content):
+    """Converts snake_case to camelCase."""
+    words = content.split('_')
+    return words[0] + ''.join(word.capitalize() for word in words[1:])
 
 def get_test_name(methodName):
     # stub
@@ -197,7 +202,11 @@ def call_method_sync(test_files, methodName, exchange, skippedProperties, args):
 
 async def call_method(test_files, methodName, exchange, skippedProperties, args):
     methodNameToCall = 'test_' + convert_to_snake_case(methodName)
-    return await getattr(test_files[methodName], methodNameToCall)(exchange, skippedProperties, *args)
+    if (exchange is None):
+        # if base tests
+        return getattr(test_files[methodName], methodNameToCall)()
+    else:
+        return await getattr(test_files[methodName], methodNameToCall)(exchange, skippedProperties, *args)
 
 
 async def call_exchange_method_dynamically(exchange, methodName, args):
@@ -247,8 +256,28 @@ def init_exchange(exchangeId, args, is_ws=False):
     return getattr(ccxt, exchangeId)(args)
 
 
-def get_test_files_sync(properties, ws=False):
+def get_test_files_sync(properties, ws=False, is_base_tests=False):
     tests = {}
+    if (is_base_tests):
+        namespace = 'pro.' if ws else ''
+        path = DIR_NAME + '../pro/test/base/' if ws else DIR_NAME + '/base/'
+        files = io_dir_read(path)
+        for i in range(0, len(files)):
+            filename = files[i]
+            filenameWoExt = filename.replace('.' + ext, '')
+            filePathWoExt = path + filenameWoExt
+            if (io_file_exists(filePathWoExt + '.' + ext)):
+                testName = filenameWoExt.replace('test_', '')
+                testName = convert_to_camel_case(testName)
+                name_snake_case = convert_to_snake_case(testName)
+                if (testName not in ['custom', 'errors', 'language_specific']):
+                    module_string = 'ccxt.' + namespace + 'test.base.test_' + name_snake_case
+                    imp = importlib.import_module(module_string)
+                    tests[testName] = imp
+        module_string = 'ccxt.' + namespace + 'test.base.custom.test_language_specific'
+        imp = importlib.import_module(module_string)
+        tests['languageSpecific'] = imp
+        return tests
     finalPropList = properties + [proxyTestFileName]
     for i in range(0, len(finalPropList)):
         methodName = finalPropList[i]
@@ -266,8 +295,8 @@ def get_test_files_sync(properties, ws=False):
             tests[methodName] = imp  # getattr(imp, finalName)
     return tests
 
-async def get_test_files(properties, ws=False):
-    return get_test_files_sync(properties, ws)
+async def get_test_files(properties, ws=False, is_base_tests=False):
+    return get_test_files_sync(properties, ws, is_base_tests)
 
 async def close(exchange):
     if (not is_synchronous and hasattr(exchange, 'close')):

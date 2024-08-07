@@ -39,6 +39,7 @@ public partial class testMainClass : BaseTest
     public bool staticTests = false;
     public bool wsTests = false;
     public bool idTests = false;
+    public bool baseTests = false;
 
     public bool isSynchronous = false;
 
@@ -77,16 +78,39 @@ public partial class testMainClass : BaseTest
 
     }
 
-    dict getTestFilesSync(object properties, bool ws = false)
-    {
-        return null; // empty in c#
+
+    public static List<string> GetBaseTestNames(){
+        // read files from tests\Generated\Base dir
+        var baseDir = Tests.ccxtBaseDir + "/cs/tests/Generated/Base";
+        var files = Directory.GetFiles(baseDir);
+        var baseNames = new List<string>();
+        foreach (var file in files)
+        {
+            var name = Path.GetFileNameWithoutExtension(file);
+            baseNames.Add(name);
+        }
+        return baseNames;
     }
 
-    async Task<dict> getTestFiles(object properties, bool ws = false)
+    string Capitalize(string input) {
+        return input[0].ToString().ToUpper() + input.Substring(1);
+    }
+
+    dict getTestFilesSync(object properties, bool ws = false, bool isBaseTests = false)
     {
         // var hasDict = properties as dict;
         // var hasKeys = hasDict.Keys;
         var testFiles = new dict();
+        if (isBaseTests) 
+        {
+            var testNames = GetBaseTestNames();
+            foreach (var key in testNames)
+            {
+                var methodName = Capitalize(key.Replace ("test.", ""));
+                testFiles[key] = this.GetType().GetMethod("test" + methodName);
+            }
+            return testFiles;
+        }
         var hasKeys = properties as List<object>;
         foreach (var key2 in hasKeys)
         {
@@ -108,6 +132,11 @@ public partial class testMainClass : BaseTest
             }
         }
         return testFiles;
+    }
+
+    async Task<dict> getTestFiles(object properties, bool ws = false, bool isBaseTests = false)
+    {
+        return getTestFilesSync(properties, ws, isBaseTests);
     }
 
     public object jsonStringify(object a)
@@ -194,6 +223,7 @@ public partial class testMainClass : BaseTest
         var argsWithExchange = new List<object> { exchange };
         foreach (var arg in args)
         {
+            if (arg == null) continue;
             // emulate ... spread operator in c#
             if (arg.GetType() == typeof(List<object>))
             {
@@ -204,8 +234,18 @@ public partial class testMainClass : BaseTest
         }
         var testFiles = testFiles2 as dict;
         var method = testFiles[methodName as string] as MethodInfo;
-        var res = method.Invoke(exchange, argsWithExchange.ToArray());
-        await ((Task)res);
+        object res = null;
+        if (exchange != null)
+        {
+            res = method.Invoke(exchange, argsWithExchange.ToArray());
+            await ((Task)res);
+        }
+        else
+        {
+            // if base tests
+            res = method.Invoke(this, new object[] { });
+            if (res != null) await ((Task)res);
+        }
         return null;
     }
 
@@ -354,5 +394,11 @@ public partial class testMainClass : BaseTest
     public partial class SharedMethods
     {
         // stub, the actual content is generated inside Generated/Exchange
+
+        // this method is needed because of ast-transpiler
+        public object json(object a)
+        {
+            return Exchange.Json(a);
+        }        
     }
 }

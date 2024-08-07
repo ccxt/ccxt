@@ -1001,7 +1001,7 @@ class NewTranspiler {
     transpileWsOrderbookTestsToCSharp (outDir: string) {
 
         const jsFile = './ts/src/pro/test/base/test.OrderBook.ts';
-        const csharpFile = `${outDir}/Orderbook.cs`;
+        const csharpFile = `${outDir}/Ws/test.OrderBook.cs`;
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
 
@@ -1041,7 +1041,7 @@ class NewTranspiler {
     transpileWsCacheTestsToCSharp (outDir: string) {
 
         const jsFile = './ts/src/pro/test/base/test.Cache.ts';
-        const csharpFile = `${outDir}/Cache.cs`;
+        const csharpFile = `${outDir}/Ws/test.Cache.cs`;
 
         log.magenta ('Transpiling from', (jsFile as any).yellow)
 
@@ -1082,7 +1082,7 @@ class NewTranspiler {
     transpileCryptoTestsToCSharp (outDir: string) {
 
         const jsFile = './ts/src/test/base/test.cryptography.ts';
-        const csharpFile = `${outDir}/Cryptography.cs`;
+        const csharpFile = `${outDir}/test.cryptography.cs`;
 
         log.magenta ('[csharp] Transpiling from', (jsFile as any).yellow)
 
@@ -1177,16 +1177,11 @@ class NewTranspiler {
         };
 
         let baseFunctionTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
+        baseFunctionTests = baseFunctionTests.filter (filename => filename !== 'test.cryptography');
 
         for (const testName of baseFunctionTests) {
             const tsFile = baseFolders.ts + testName + '.ts';
-            const tsContent = fs.readFileSync(tsFile).toString();
-            if (!tsContent.includes ('// AUTO_TRANSPILE_ENABLED')) {
-                continue;
-            }
-                
-            const csFileName = this.capitalize(testName.replace ('test.', ''));
-            const csharpFile = `${outDir}/${csFileName}.cs`;
+            const csharpFile = `${outDir}/${testName}.cs`;
 
             log.magenta ('Transpiling from', (tsFile as any).yellow)
 
@@ -1196,6 +1191,7 @@ class NewTranspiler {
                 [/object  = functions;/g, '' ], // tmp fix
                 [/assert/g, 'Assert'],
                 [ /\s*public\sobject\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
+                [ /testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual' ], // remove equals
 
             ]).trim ()
 

@@ -82,6 +82,7 @@ class baseMainTestClass {
     checkedPublicTests = {};
     testFiles = {};
     publicTests = {};
+    baseTests = false;
     newLine = '\n';
     rootDir = DIR_NAME + '/../../../';
     rootDirForSkips = DIR_NAME + '/../../../';
@@ -129,8 +130,7 @@ function ioDirRead (path) {
 }
 
 async function callMethodSync (testFiles, methodName, exchange, skippedProperties: object, args) {
-    // empty in js
-    return {};
+    throw new Error ("This function shouldn't be called, only async functions apply here");
 }
 
 async function callMethod (testFiles, methodName, exchange, skippedProperties: object, args) {
@@ -186,15 +186,33 @@ async function importTestFile (filePath) {
     return (await import (pathToFileURL (filePath + '.js') as any) as any)['default'];
 }
 
-function getTestFilesSync (properties, ws = false) {
+function getTestFilesSync (properties, ws = false, isBaseTests = false) {
     // empty in js
     return {};
 }
 
-async function getTestFiles (properties, ws = false) {
+async function getTestFiles (properties, ws = false, isBaseTests = false) {
     const path = ws ? DIR_NAME + '../pro/test/' : DIR_NAME;
-    // exchange tests
     const tests = {};
+    if (isBaseTests) {
+        const basePath = path + 'base/';
+        const files = ioDirRead (basePath);
+        for (let i = 0; i < files.length; i++) {
+            const filename = files[i];
+            const filenameWoExt = filename.replace ('.' + ext, '');
+            const filePathWoExt = basePath + filenameWoExt;
+            if (ioFileExists (filePathWoExt + '.' + ext)) {
+                let testName = filenameWoExt.replace ('test.', '');
+                testName = filenameWoExt.replace ('test_', '');
+                if (![ 'custom', 'errors', 'languageSpecific' ].includes (testName)) {
+                    tests[testName] = await importTestFile (filePathWoExt);
+                }
+            }
+        }
+        tests['languageSpecific'] = await importTestFile (basePath + '/custom/test.languageSpecific');
+        return tests;
+    }
+    // exchange tests
     const finalPropList = properties.concat ([ proxyTestFileName ]);
     for (let i = 0; i < finalPropList.length; i++) {
         const name = finalPropList[i];
