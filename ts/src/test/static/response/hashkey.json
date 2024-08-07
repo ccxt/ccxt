@@ -1046,7 +1046,7 @@
         ],
         "createOrder": [
             {
-                "description": "Fill this with a description of the method call",
+                "description": "Create market order",
                 "method": "createOrder",
                 "input": [
                     "ETH/USDT",
@@ -1458,14 +1458,14 @@
                 }
             },
             {
-                "description": "Spot limit sell with post only set to true",
+                "description": "Fill this with a description of the method call",
                 "method": "createOrder",
                 "input": [
                     "ETH/USDT",
                     "limit",
                     "sell",
                     0.001,
-                    2500,
+                    2400,
                     {
                         "postOnly": true
                     }
@@ -1474,10 +1474,10 @@
                     "accountId": "1732885739589466112",
                     "symbol": "ETHUSDT",
                     "symbolName": "ETHUSDT",
-                    "clientOrderId": "1722865599301659",
-                    "orderId": "1745917621792999936",
-                    "transactTime": "1722865599308",
-                    "price": "2500",
+                    "clientOrderId": "1723073095502488",
+                    "orderId": "1747658226101454080",
+                    "transactTime": "1723073095512",
+                    "price": "2400",
                     "origQty": "0.001",
                     "executedQty": "0",
                     "status": "NEW",
@@ -1488,10 +1488,10 @@
                     "concentration": ""
                 },
                 "parsedResponse": {
-                    "id": "1745917621792999936",
-                    "clientOrderId": "1722865599301659",
-                    "datetime": "2024-08-05T13:46:39.308Z",
-                    "timestamp": 1722865599308,
+                    "id": "1747658226101454080",
+                    "clientOrderId": "1723073095502488",
+                    "datetime": "2024-08-07T23:24:55.512Z",
+                    "timestamp": 1723073095512,
                     "lastTradeTimestamp": null,
                     "lastUpdateTimestamp": null,
                     "status": "open",
@@ -1499,7 +1499,7 @@
                     "type": "limit",
                     "timeInForce": "GTC",
                     "side": "sell",
-                    "price": 2500,
+                    "price": 2400,
                     "average": null,
                     "amount": 0.001,
                     "filled": 0,
@@ -1520,10 +1520,10 @@
                         "accountId": "1732885739589466112",
                         "symbol": "ETHUSDT",
                         "symbolName": "ETHUSDT",
-                        "clientOrderId": "1722865599301659",
-                        "orderId": "1745917621792999936",
-                        "transactTime": "1722865599308",
-                        "price": "2500",
+                        "clientOrderId": "1723073095502488",
+                        "orderId": "1747658226101454080",
+                        "transactTime": "1723073095512",
+                        "price": "2400",
                         "origQty": "0.001",
                         "executedQty": "0",
                         "status": "NEW",
