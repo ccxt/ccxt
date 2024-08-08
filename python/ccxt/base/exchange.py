@@ -110,6 +110,14 @@ from ccxt.base.types import Int
 
 # -----------------------------------------------------------------------------
 
+class SafeJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Exception):
+            return {"name": obj.__class__.__name__}
+        try:
+            return super().default(obj)
+        except TypeError:
+            return f"TypeError: Object of type {type(obj).__name__} is not JSON serializable"
 
 class Exchange(object):
     """Base exchange class"""
@@ -1419,7 +1427,7 @@ class Exchange(object):
 
     @staticmethod
     def json(data, params=None):
-        return json.dumps(data, separators=(',', ':'))
+        return json.dumps(data, separators=(',', ':'), cls=SafeJSONEncoder)
 
     @staticmethod
     def is_json_encoded_object(input):
