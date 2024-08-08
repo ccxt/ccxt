@@ -515,6 +515,7 @@ export default class Exchange {
         this.handleContentTypeApplicationZip = false
         // do not delete this line, it is needed for users to be able to define their own fetchImplementation (JS only)
         this.fetchImplementation = undefined
+
         // camelCase and snake_notation support
         const unCamelCaseProperties = (obj = this) => {
             if (obj !== null) {
@@ -527,6 +528,7 @@ export default class Exchange {
             }
         }
         unCamelCaseProperties ()
+
         // merge constructor overrides to this instance
         const configEntries = Object.entries (this.describe ()).concat (Object.entries (userConfig))
         for (let i = 0; i < configEntries.length; i++) {
@@ -537,6 +539,7 @@ export default class Exchange {
                 this[property] = value
             }
         }
+
         // http client options
         const agentOptions = {
             'keepAlive': true,
@@ -545,29 +548,25 @@ export default class Exchange {
         if (!this.validateServerSsl) {
             agentOptions['rejectUnauthorized'] = false;
         }
+
         // generate old metainfo interface
         const hasKeys = Object.keys (this.has)
         for (let i = 0; i < hasKeys.length; i++) {
             const k = hasKeys[i]
             this['has' + this.capitalize (k)] = !!this.has[k] // converts 'emulated' to true
         }
+
         // generate implicit api
         if (this.api) {
             this.defineRestApi (this.api, 'request')
         }
+
         // init the request rate limiter
         this.initRestRateLimiter ()
-        // init predefined markets if any
-        if (this.markets) {
-            this.setMarkets (this.markets)
-        }
+
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
 
         this.afterConstruct ();
-        const isSandbox = this.safeBool2 (this.options, 'sandbox', 'testnet', false);
-        if (isSandbox) {
-            this.setSandboxMode (isSandbox);
-        }
     }
 
     encodeURIComponent (...args) {
@@ -2602,7 +2601,17 @@ export default class Exchange {
     }
 
     afterConstruct () {
+        // init predefined markets if any
+        if (this.markets) {
+            this.setMarkets (this.markets)
+        }
+        // networks
         this.createNetworksByIdObject ();
+        // sanbox mode
+        const isSandbox = this.safeBool2 (this.options, 'sandbox', 'testnet', false);
+        if (isSandbox) {
+            this.setSandboxMode (isSandbox);
+        }
     }
 
     initProperties () {
