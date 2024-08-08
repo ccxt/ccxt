@@ -189,12 +189,12 @@ export default class hashkey extends Exchange {
                         'api/v1/account/type': 5,
                         'api/v1/account/checkApiKey': 1, // not unified
                         'api/v1/account/balanceFlow': 5,
-                        'api/v1/spot/subAccount/openOrders': 1, // update fetchOpenOrders
-                        'api/v1/spot/subAccount/tradeOrders': 1, // update fetchCanceledAndClosedOrders
-                        'api/v1/subAccount/trades': 1, // update fetchTrades
-                        'api/v1/futures/subAccount/openOrders': 1, // update fetchOpenOrders
-                        'api/v1/futures/subAccount/historyOrders': 1, // update fetchCanceledAndClosedOrders
-                        'api/v1/futures/subAccount/userTrades': 1, // update fetchTrades
+                        'api/v1/spot/subAccount/openOrders': 1,
+                        'api/v1/spot/subAccount/tradeOrders': 1, // not unified
+                        'api/v1/subAccount/trades': 1, // not unifieds
+                        'api/v1/futures/subAccount/openOrders': 1,
+                        'api/v1/futures/subAccount/historyOrders': 1,
+                        'api/v1/futures/subAccount/userTrades': 1,
                         'api/v1/account/deposit/address': 1,
                         'api/v1/account/depositOrders': 1,
                         'api/v1/account/withdrawOrders': 1,
@@ -3041,6 +3041,7 @@ export default class hashkey extends Exchange {
          * @description fetch all unfilled currently open orders
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-current-open-orders
          * @see https://hashkeyglobal-apidoc.readme.io/reference/query-open-futures-orders
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/sub
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-open-orders
          * @param {string} [symbol] unified market symbol of the market orders were made in - is mandatory for swap markets
          * @param {int} [since] the earliest time in ms to fetch orders for
@@ -3080,6 +3081,7 @@ export default class hashkey extends Exchange {
          * @name hashkey#fetchOpenSpotOrders
          * @description fetch all unfilled currently open orders for spot markets
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-current-open-orders
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/sub
          * @param {string} [symbol] unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve - default 500, maximum 1000
@@ -3093,52 +3095,60 @@ export default class hashkey extends Exchange {
         [ methodName, params ] = this.handleParamString (params, 'methodName', methodName);
         let market: Market = undefined;
         const request: Dict = {};
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
+        let response = undefined;
+        let accountId: Str = undefined;
+        [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
+        if (accountId !== undefined) {
+            request['subAccountId'] = accountId;
+            response = await this.privateGetApiV1SpotSubAccountOpenOrders (this.extend (request, params));
+        } else {
+            if (symbol !== undefined) {
+                market = this.market (symbol);
+                request['symbol'] = market['id'];
+            }
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+            let orderId: Str = undefined;
+            [ orderId, params ] = this.handleOptionAndParams (params, methodName, 'orderId');
+            if (orderId !== undefined) {
+                request['orderId'] = orderId;
+            }
+            let side: Str = undefined;
+            [ side, params ] = this.handleOptionAndParams (params, methodName, 'side');
+            if (side !== undefined) {
+                request['side'] = side.toUpperCase ();
+            }
+            response = await this.privateGetApiV1SpotOpenOrders (this.extend (request, params));
+            //
+            //     [
+            //         {
+            //             "accountId": "1732885739589466112",
+            //             "exchangeId": "301",
+            //             "symbol": "ETHUSDT",
+            //             "symbolName": "ETHUSDT",
+            //             "clientOrderId": "1",
+            //             "orderId": "1739491435386897152",
+            //             "price": "2000",
+            //             "origQty": "0.001",
+            //             "executedQty": "0",
+            //             "cummulativeQuoteQty": "0",
+            //             "cumulativeQuoteQty": "0",
+            //             "avgPrice": "0",
+            //             "status": "NEW",
+            //             "timeInForce": "GTC",
+            //             "type": "LIMIT",
+            //             "side": "BUY",
+            //             "stopPrice": "0.0",
+            //             "icebergQty": "0.0",
+            //             "time": "1722099538193",
+            //             "updateTime": "1722099538197",
+            //             "isWorking": true,
+            //             "reqAmount": "0"
+            //         }
+            //     ]
+            //
         }
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        let orderId: Str = undefined;
-        [ orderId, params ] = this.handleOptionAndParams (params, methodName, 'orderId');
-        if (orderId !== undefined) {
-            request['orderId'] = orderId;
-        }
-        let side: Str = undefined;
-        [ side, params ] = this.handleOptionAndParams (params, methodName, 'side');
-        if (side !== undefined) {
-            request['side'] = side.toUpperCase ();
-        }
-        const response = await this.privateGetApiV1SpotOpenOrders (this.extend (request, params));
-        //
-        //     [
-        //         {
-        //             "accountId": "1732885739589466112",
-        //             "exchangeId": "301",
-        //             "symbol": "ETHUSDT",
-        //             "symbolName": "ETHUSDT",
-        //             "clientOrderId": "1",
-        //             "orderId": "1739491435386897152",
-        //             "price": "2000",
-        //             "origQty": "0.001",
-        //             "executedQty": "0",
-        //             "cummulativeQuoteQty": "0",
-        //             "cumulativeQuoteQty": "0",
-        //             "avgPrice": "0",
-        //             "status": "NEW",
-        //             "timeInForce": "GTC",
-        //             "type": "LIMIT",
-        //             "side": "BUY",
-        //             "stopPrice": "0.0",
-        //             "icebergQty": "0.0",
-        //             "time": "1722099538193",
-        //             "updateTime": "1722099538197",
-        //             "isWorking": true,
-        //             "reqAmount": "0"
-        //         }
-        //     ]
-        //
         return this.parseOrders (response, market, since, limit);
     }
 
