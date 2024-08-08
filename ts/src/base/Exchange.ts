@@ -2599,6 +2599,8 @@ export default class Exchange {
         if (this.markets) {
             this.setMarkets (this.markets)
         }
+        // init the request rate limiter
+        this.initRestRateLimiter ();
         // networks
         this.createNetworksByIdObject ();
         // sanbox mode
@@ -2606,8 +2608,6 @@ export default class Exchange {
         if (isSandbox) {
             this.setSandboxMode (isSandbox);
         }
-        // init the request rate limiter
-        this.initRestRateLimiter ();
     }
 
     initProperties () {
@@ -2671,7 +2671,7 @@ export default class Exchange {
     }
 
     initRestRateLimiter () {
-        if (this.rateLimit === undefined) {
+        if (this.rateLimit === undefined || (this.id !== undefined && this.rateLimit == -1)) {
             throw new ExchangeError (this.id + '.rateLimit property is not configured');
         }
         const existingBucket = (this.tokenBucket === undefined) ? {} : this.tokenBucket;
