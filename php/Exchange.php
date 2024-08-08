@@ -117,6 +117,7 @@ class Exchange {
     );
     public $headers = array();
     public $origin = '*'; // CORS origin
+    public $MAX_VALUE = PHP_INT_MAX;
     //
 
     public $hostname = null; // in case of inaccessibility of the "main" domain
@@ -1135,8 +1136,6 @@ class Exchange {
             }
         }
 
-        $this->init_rest_rate_limiter();
-
         if ($this->urlencode_glue !== '&') {
             if ($this->urlencode_glue_warning) {
                 throw new ExchangeError($this->id . ' warning! The glue symbol for HTTP queries ' .
@@ -1148,19 +1147,6 @@ class Exchange {
         }
 
         $this->after_construct();
-    }
-
-    public function init_rest_rate_limiter() {
-        if ($this->rateLimit === null) {
-            throw new ExchangeError ($this->id + '.rateLimit property is not configured');
-        }
-        $this->tokenBucket = array(
-            'delay' => 0.001,
-            'capacity' => 1.0,
-            'cost' => 1.0,
-            'maxCapacity' => 1000,
-            'refillRate' => ($this->rateLimit > 0) ? 1.0 / $this->rateLimit : PHP_INT_MAX,
-        );
     }
 
     public static function underscore($camelcase) {
