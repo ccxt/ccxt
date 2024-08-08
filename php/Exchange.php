@@ -1119,10 +1119,12 @@ class Exchange {
         //     }
         // }
 
+        $this->init_properties();
         $this->options = $this->get_default_options();
 
         $this->urlencode_glue = ini_get('arg_separator.output'); // can be overrided by exchange constructor params
 
+        // merge constructor overrides to this instance
         $options = array_replace_recursive($this->describe(), $options);
         if ($options) {
             foreach ($options as $key => $value) {
@@ -1133,13 +1135,7 @@ class Exchange {
             }
         }
 
-        $this->tokenBucket = array(
-            'delay' => 0.001,
-            'capacity' => 1.0,
-            'cost' => 1.0,
-            'maxCapacity' => 1000,
-            'refillRate' => ($this->rateLimit > 0) ? 1.0 / $this->rateLimit : PHP_INT_MAX,
-        );
+        $this->init_rest_rate_limiter();
 
         if ($this->urlencode_glue !== '&') {
             if ($this->urlencode_glue_warning) {
@@ -1151,16 +1147,20 @@ class Exchange {
             }
         }
 
-        if ($this->markets) {
-            $this->set_markets($this->markets);
-        }
-
         $this->after_construct();
+    }
 
-        $is_sandbox = $this->safe_bool_2($this->options, 'sandbox', 'testnet', False);
-        if ($is_sandbox) {
-            $this->set_sandbox_mode($is_sandbox);
+    public function init_rest_rate_limiter() {
+        if ($this->rateLimit === null) {
+            throw new ExchangeError ($this->id + '.rateLimit property is not configured');
         }
+        $this->tokenBucket = array(
+            'delay' => 0.001,
+            'capacity' => 1.0,
+            'cost' => 1.0,
+            'maxCapacity' => 1000,
+            'refillRate' => ($this->rateLimit > 0) ? 1.0 / $this->rateLimit : PHP_INT_MAX,
+        );
     }
 
     public static function underscore($camelcase) {
