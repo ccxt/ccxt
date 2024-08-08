@@ -113,7 +113,11 @@
                   "filled": 0,
                   "remaining": 0.1,
                   "status": "open",
-                  "fee": null,
+                  "fee": {
+                    "cost": null,
+                    "currency": null,
+                    "rate": null
+                  },
                   "trades": [],
                   "fees": [],
                   "lastUpdateTimestamp": null,
@@ -223,7 +227,11 @@
                         "filled": 0,
                         "remaining": 0.1,
                         "status": "canceled",
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "trades": [],
                         "fees": [],
                         "lastUpdateTimestamp": null,
@@ -334,7 +342,11 @@
                         "filled": 0,
                         "remaining": 0.1,
                         "status": "open",
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "trades": [],
                         "fees": [],
                         "lastUpdateTimestamp": null,
@@ -385,7 +397,8 @@
                         "cost": 8.7583,
                         "fee": {
                             "cost": 0.0175166,
-                            "currency": "USDT"
+                            "currency": "USDT",
+                            "rate": null
                         },
                         "info": [
                             1284511023,
@@ -404,7 +417,8 @@
                         "fees": [
                             {
                                 "cost": 0.0175166,
-                                "currency": "USDT"
+                                "currency": "USDT",
+                                "rate": null
                             }
                         ]
                     }
@@ -516,7 +530,11 @@
                     "filled": 0,
                     "remaining": 0.1,
                     "status": "open",
-                    "fee": null,
+                    "fee": {
+                        "cost": null,
+                        "currency": null,
+                        "rate": null
+                    },
                     "trades": [],
                     "fees": [],
                     "lastUpdateTimestamp": null,

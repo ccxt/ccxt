@@ -51,7 +51,8 @@
                         "type": null,
                         "fee": {
                             "cost": 0.00354069,
-                            "currency": "USDT"
+                            "currency": "USDT",
+                            "rate": null
                         },
                         "info": {
                             "id": "696230218",
@@ -146,7 +147,8 @@
                         "trades": [],
                         "fee": {
                             "cost": "0.00354069",
-                            "currency": "USDT"
+                            "currency": "USDT",
+                            "rate": null
                         },
                         "info": {
                             "symbol": "SPOT_LTC_USDT",
@@ -249,7 +251,8 @@
                     "trades": [],
                     "fee": {
                       "cost": "0.0038305",
-                      "currency": "USDT"
+                      "currency": "USDT",
+                      "rate": null
                     },
                     "info": {
                       "symbol": "PERP_LTC_USDT",
@@ -332,7 +335,8 @@
                     "trades": [],
                     "fee": {
                         "cost": null,
-                        "currency": null
+                        "currency": null,
+                        "rate": null
                     },
                     "info": {
                         "success": true,
@@ -347,7 +351,8 @@
                     "fees": [
                         {
                             "cost": null,
-                            "currency": null
+                            "currency": null,
+                            "rate": null
                         }
                     ]
                 }
@@ -402,7 +407,8 @@
                     "trades": [],
                     "fee": {
                         "cost": null,
-                        "currency": null
+                        "currency": null,
+                        "rate": null
                     },
                     "info": {
                         "success": true,
@@ -417,7 +423,8 @@
                     "fees": [
                         {
                             "cost": null,
-                            "currency": null
+                            "currency": null,
+                            "rate": null
                         }
                     ]
                 }
@@ -472,7 +479,8 @@
                     "trades": [],
                     "fee": {
                         "cost": null,
-                        "currency": null
+                        "currency": null,
+                        "rate": null
                     },
                     "info": {
                         "success": true,
@@ -487,7 +495,8 @@
                     "fees": [
                         {
                             "cost": null,
-                            "currency": null
+                            "currency": null,
+                            "rate": null
                         }
                     ]
                 }
@@ -615,7 +624,11 @@
                         "order": null,
                         "takerOrMaker": null,
                         "type": null,
-                        "fee": null,
+                        "fee": {
+                          "cost": null,
+                          "currency": null,
+                          "rate": null
+                        },
                         "info": {
                             "symbol": "SPOT_BTC_USDT",
                             "side": "SELL",
@@ -733,7 +746,8 @@
                     "trades": [],
                     "fee": {
                       "cost": 0,
-                      "currency": "LTC"
+                      "currency": "LTC",
+                      "rate": null
                     },
                     "info": {
                       "symbol": "SPOT_LTC_USDT",
@@ -851,7 +865,8 @@
                       "type": null,
                       "fee": {
                         "cost": 0.00354069,
-                        "currency": "USDT"
+                        "currency": "USDT",
+                        "rate": null
                       },
                       "info": {
                         "id": "696230218",
@@ -876,7 +891,8 @@
                   ],
                   "fee": {
                     "cost": "0.00354069",
-                    "currency": "USDT"
+                    "currency": "USDT",
+                    "rate": null
                   },
                   "info": {
                     "success": true,
@@ -1008,7 +1024,8 @@
                       "type": null,
                       "fee": {
                         "cost": 0.0001,
-                        "currency": "LTC"
+                        "currency": "LTC",
+                        "rate": null
                       },
                       "info": {
                         "id": "1143013282",
@@ -1033,7 +1050,8 @@
                   ],
                   "fee": {
                     "cost": "0.0001",
-                    "currency": "LTC"
+                    "currency": "LTC",
+                    "rate": null
                   },
                   "info": {
                     "success": true,
@@ -1169,7 +1187,8 @@
                       "type": null,
                       "fee": {
                         "cost": 0.00006723,
-                        "currency": "LTC"
+                        "currency": "LTC",
+                        "rate": null
                       },
                       "info": {
                         "id": "1143033770",
@@ -1187,14 +1206,16 @@
                       "fees": [
                         {
                           "cost": 0.00006723,
-                          "currency": "LTC"
+                          "currency": "LTC",
+                          "rate": null
                         }
                       ]
                     }
                   ],
                   "fee": {
                     "cost": "0.00006723",
-                    "currency": "LTC"
+                    "currency": "LTC",
+                    "rate": null
                   },
                   "info": {
                     "success": true,

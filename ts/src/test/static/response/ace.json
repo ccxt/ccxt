@@ -450,7 +450,11 @@
                     "filled": null,
                     "remaining": null,
                     "status": null,
-                    "fee": null,
+                    "fee": {
+                        "cost": null,
+                        "currency": null,
+                        "rate": null
+                    },
                     "trades": [],
                     "info": {
                         "orderNo": "17212032439241780067851100275773",
@@ -534,7 +538,11 @@
                     "filled": 0,
                     "remaining": 0.0007,
                     "status": "open",
-                    "fee": null,
+                    "fee": {
+                        "cost": null,
+                        "currency": null,
+                        "rate": null
+                    },
                     "trades": [],
                     "info": {
                         "buyOrSell": 1,
@@ -617,7 +625,11 @@
                         "filled": 0,
                         "remaining": 0.0007,
                         "status": "open",
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "trades": [],
                         "info": {
                             "uid": 135637,
@@ -709,7 +721,11 @@
                         "price": 55000,
                         "amount": 0.0007,
                         "cost": 38.5,
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "timestamp": 1669717945789,
                         "datetime": "2022-11-29T10:32:25.789Z",
                         "fees": []
@@ -786,14 +802,16 @@
                         "cost": 16895,
                         "fee": {
                             "cost": 0,
-                            "currency": "USDT"
+                            "currency": "USDT",
+                            "rate": null
                         },
                         "timestamp": 1670818639508,
                         "datetime": "2022-12-12T04:17:19.508Z",
                         "fees": [
                             {
                                 "cost": 0,
-                                "currency": "USDT"
+                                "currency": "USDT",
+                                "rate": null
                             }
                         ]
                     }

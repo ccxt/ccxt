@@ -54,7 +54,8 @@
                         "type": null,
                         "fee": {
                             "cost": 0.00354069,
-                            "currency": "USDC"
+                            "currency": "USDC",
+                            "rate": null
                         },
                         "info": {
                             "id": "696230218",
@@ -149,7 +150,8 @@
                         "trades": [],
                         "fee": {
                             "cost": "0.5",
-                            "currency": "USDC"
+                            "currency": "USDC",
+                            "rate": null
                         },
                         "info": {
                             "order_id": 78151,
@@ -232,7 +234,8 @@
                     "trades": [],
                     "fee": {
                         "cost": null,
-                        "currency": null
+                        "currency": null,
+                        "rate": null
                     },
                     "info": {
                         "timestamp": "1706704671049",
@@ -385,7 +388,11 @@
                         "order": null,
                         "takerOrMaker": null,
                         "type": null,
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "info": {
                             "symbol": "PERP_BTC_USDC",
                             "side": "SELL",
@@ -507,7 +514,8 @@
                     "trades": [],
                     "fee": {
                       "cost": 0,
-                      "currency": "USDC"
+                      "currency": "USDC",
+                      "rate": null
                     },
                     "info": {
                         "order_id": 78151,
@@ -603,7 +611,8 @@
                   "trades": [],
                   "fee": {
                     "cost": "0.5",
-                    "currency": "USDC"
+                    "currency": "USDC",
+                    "rate": null
                   },
                   "info": {
                     "order_id": 78151,

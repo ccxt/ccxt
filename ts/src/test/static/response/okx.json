@@ -253,14 +253,16 @@
                         "status": "open",
                         "fee": {
                             "cost": 0,
-                            "currency": "USDT"
+                            "currency": "USDT",
+                            "rate": null
                         },
                         "trades": [],
                         "reduceOnly": false,
                         "fees": [
                             {
                                 "cost": 0,
-                                "currency": "USDT"
+                                "currency": "USDT",
+                                "rate": null
                             }
                         ]
                     }

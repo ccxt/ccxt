@@ -738,7 +738,11 @@
                     "updated": 1721828373926,
                     "internal": null,
                     "comment": null,
-                    "fee": null
+                    "fee": {
+                        "cost": null,
+                        "currency": null,
+                        "rate": null
+                    }
                   }
                 ]
             }
@@ -808,7 +812,8 @@
                     "trades": [],
                     "fee": {
                       "cost": null,
-                      "currency": null
+                      "currency": null,
+                      "rate": null
                     },
                     "info": {
                       "id": "1721903808500201709220290000",
@@ -837,7 +842,8 @@
                     "fees": [
                       {
                         "cost": null,
-                        "currency": null
+                        "currency": null,
+                        "rate": null
                       }
                     ]
                   }

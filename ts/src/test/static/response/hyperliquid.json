@@ -63,12 +63,14 @@
                         "cost": 66.155,
                         "fee": {
                             "cost": 0.023154,
-                            "currency": "USDC"
+                            "currency": "USDC",
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "cost": 0.023154,
-                                "currency": "USDC"
+                                "currency": "USDC",
+                                "rate": null
                             }
                         ]
                     }
@@ -152,7 +154,11 @@
                         "filled": null,
                         "remaining": null,
                         "status": "open",
-                        "fee": null,
+                        "fee": {
+                          "cost": null,
+                          "currency": null,
+                          "rate": null
+                        },
                         "trades": [],
                         "fees": [],
                         "stopPrice": null,
@@ -213,7 +219,11 @@
                         "filled": null,
                         "remaining": null,
                         "status": null,
-                        "fee": null,
+                        "fee": {
+                          "cost": null,
+                          "currency": null,
+                          "rate": null
+                        },
                         "trades": [],
                         "fees": [],
                         "stopPrice": null,
@@ -288,7 +298,11 @@
                   "filled": null,
                   "remaining": null,
                   "status": null,
-                  "fee": null,
+                  "fee": {
+                    "cost": null,
+                    "currency": null,
+                    "rate": null
+                  },
                   "trades": [],
                   "fees": [],
                   "stopPrice": 0.6,
@@ -373,7 +387,11 @@
                     "filled": null,
                     "remaining": 0,
                     "status": "closed",
-                    "fee": null,
+                    "fee": {
+                      "cost": null,
+                      "currency": null,
+                      "rate": null
+                    },
                     "trades": [],
                     "fees": [],
                     "stopPrice": null,
@@ -456,7 +474,11 @@
                   "filled": null,
                   "remaining": 0,
                   "status": "closed",
-                  "fee": null,
+                  "fee": {
+                    "cost": null,
+                    "currency": null,
+                    "rate": null
+                  },
                   "trades": [],
                   "fees": [],
                   "stopPrice": null,

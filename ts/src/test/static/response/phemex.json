@@ -841,13 +841,15 @@
                     "status": "closed",
                     "fee": {
                       "cost": "0.00000671",
-                      "currency": "ETH"
+                      "currency": "ETH",
+                      "rate": null
                     },
                     "trades": [],
                     "fees": [
                       {
                         "cost": 0.00000671,
-                        "currency": "ETH"
+                        "currency": "ETH",
+                        "rate": null
                       }
                     ],
                     "lastUpdateTimestamp": null,
@@ -956,7 +958,11 @@
                         "cost": 0,
                         "average": null,
                         "status": "open",
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "trades": [],
                         "fees": [],
                         "lastUpdateTimestamp": null
@@ -1057,7 +1063,11 @@
                         "cost": 0,
                         "average": null,
                         "status": "open",
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "trades": [],
                         "fees": [],
                         "lastUpdateTimestamp": null
@@ -1495,7 +1505,11 @@
                         "cost": 0,
                         "average": null,
                         "status": "open",
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "trades": [],
                         "fees": [],
                         "lastUpdateTimestamp": null
@@ -1600,13 +1614,15 @@
                     "status": "closed",
                     "fee": {
                       "cost": "0.36615535",
-                      "currency": "USDT"
+                      "currency": "USDT",
+                      "rate": null
                     },
                     "trades": [],
                     "fees": [
                       {
                         "cost": 0.36615535,
-                        "currency": "USDT"
+                        "currency": "USDT",
+                        "rate": null
                       }
                     ],
                     "lastUpdateTimestamp": null
@@ -8654,7 +8670,11 @@
                         "price": 73252.44,
                         "amount": 0.007,
                         "cost": 512.76708,
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "fees": []
                     }
                 ]

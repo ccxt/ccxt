@@ -61,7 +61,11 @@
                         "price": 0.50008,
                         "amount": 1,
                         "cost": 0.50008,
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "fees": []
                     },
                     {
@@ -86,7 +90,11 @@
                         "price": 68.54,
                         "amount": 0.1,
                         "cost": 6.854,
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "fees": []
                     }
                 ]
@@ -172,7 +180,11 @@
                         "filled": 0.1,
                         "remaining": 0,
                         "status": "closed",
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "fees": [],
                         "trades": [],
                         "takeProfitPrice": null,
@@ -241,7 +253,11 @@
                         "filled": 0,
                         "remaining": 0.1,
                         "status": "open",
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "fees": [],
                         "trades": [],
                         "takeProfitPrice": null,
@@ -330,7 +346,11 @@
                         "filled": 0,
                         "remaining": 0.1,
                         "status": "canceled",
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "fees": [],
                         "trades": [],
                         "takeProfitPrice": null,

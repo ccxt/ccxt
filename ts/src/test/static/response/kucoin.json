@@ -103,7 +103,8 @@
                         "datetime": "2023-11-16T12:18:09.012Z",
                         "fee": {
                             "currency": "USDT",
-                            "cost": 0
+                            "cost": 0,
+                            "rate": null
                         },
                         "status": "open",
                         "lastTradeTimestamp": null,
@@ -314,7 +315,8 @@
                         "datetime": "2024-01-31T12:40:36.933Z",
                         "fee": {
                             "currency": "USDT",
-                            "cost": 0.00681
+                            "cost": 0.00681,
+                            "rate": null
                         },
                         "status": "closed",
                         "lastTradeTimestamp": null,
@@ -323,7 +325,8 @@
                         "fees": [
                             {
                                 "currency": "USDT",
-                                "cost": 0.00681
+                                "cost": 0.00681,
+                                "rate": null
                             }
                         ],
                         "lastUpdateTimestamp": null,
@@ -447,7 +450,11 @@
                         "before": null,
                         "after": null,
                         "status": null,
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "info": {
                             "id": "65ca404f77c7250007b8ddd7",
                             "currency": "USDT",
@@ -558,7 +565,8 @@
                     "datetime": "2024-03-02T18:37:17.667Z",
                     "fee": {
                         "currency": "USDT",
-                        "cost": 0.00091937
+                        "cost": 0.00091937,
+                        "rate": null
                     },
                     "status": "closed",
                     "lastTradeTimestamp": null,
@@ -567,7 +575,8 @@
                     "fees": [
                         {
                             "currency": "USDT",
-                            "cost": 0.00091937
+                            "cost": 0.00091937,
+                            "rate": null
                         }
                     ],
                     "lastUpdateTimestamp": null,
@@ -618,7 +627,11 @@
                         "price": 67347.4,
                         "amount": 0.0045303,
                         "cost": 305.10392622,
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "fees": []
                     }
                 ]

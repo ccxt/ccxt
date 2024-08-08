@@ -53,12 +53,14 @@
                         "cost": 5.696328,
                         "fee": {
                             "cost": 0.01424082,
-                            "currency": "USDT"
+                            "currency": "USDT",
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "cost": 0.01424082,
-                                "currency": "USDT"
+                                "currency": "USDT",
+                                "rate": null
                             }
                         ]
                     }
@@ -119,12 +121,14 @@
                         "cost": 0.1009391,
                         "fee": {
                             "cost": 0.00007065737,
-                            "currency": "USDT"
+                            "currency": "USDT",
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "cost": 0.00007065737,
-                                "currency": "USDT"
+                                "currency": "USDT",
+                                "rate": null
                             }
                         ]
                     }
@@ -194,7 +198,11 @@
                         "status": "closed",
                         "average": 0.1035696,
                         "trades": [],
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "stopPrice": null,
                         "triggerPrice": null,
                         "takeProfitPrice": null,
@@ -266,7 +274,11 @@
                     "status": "open",
                     "average": null,
                     "trades": [],
-                    "fee": null,
+                    "fee": {
+                        "cost": null,
+                        "currency": null,
+                        "rate": null
+                    },
                     "stopPrice": null,
                     "triggerPrice": null,
                     "takeProfitPrice": null,
@@ -338,7 +350,11 @@
                         "status": "open",
                         "average": null,
                         "trades": [],
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "stopPrice": null,
                         "triggerPrice": null,
                         "takeProfitPrice": null,
@@ -386,7 +402,11 @@
                         "price": 73265.87,
                         "amount": 0.05094,
                         "cost": 3732.1634178,
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "fees": []
                     }
                 ]

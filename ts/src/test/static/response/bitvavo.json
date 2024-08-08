@@ -83,13 +83,15 @@
                     "status": "open",
                     "fee": {
                         "cost": 0,
-                        "currency": "EUR"
+                        "currency": "EUR",
+                        "rate": null
                     },
                     "trades": [],
                     "fees": [
                         {
                             "cost": 0,
-                            "currency": "EUR"
+                            "currency": "EUR",
+                            "rate": null
                         }
                     ],
                     "lastUpdateTimestamp": null,
@@ -179,13 +181,15 @@
                     "status": "open",
                     "fee": {
                         "cost": 0,
-                        "currency": "EUR"
+                        "currency": "EUR",
+                        "rate": null
                     },
                     "trades": [],
                     "fees": [
                         {
                             "cost": 0,
-                            "currency": "EUR"
+                            "currency": "EUR",
+                            "rate": null
                         }
                     ],
                     "lastUpdateTimestamp": null,
@@ -229,7 +233,11 @@
                     "filled": null,
                     "remaining": null,
                     "status": null,
-                    "fee": null,
+                    "fee": {
+                        "cost": null,
+                        "currency": null,
+                        "rate": null
+                    },
                     "trades": [],
                     "fees": [],
                     "lastUpdateTimestamp": null,
@@ -505,7 +513,8 @@
                         "status": "closed",
                         "fee": {
                             "cost": 0.0228,
-                            "currency": "EUR"
+                            "currency": "EUR",
+                            "rate": null
                         },
                         "trades": [
                             {
@@ -532,12 +541,14 @@
                                 "cost": 6.8928,
                                 "fee": {
                                     "cost": 0.0228,
-                                    "currency": "EUR"
+                                    "currency": "EUR",
+                                    "rate": null
                                 },
                                 "fees": [
                                     {
                                         "cost": "0.0228",
-                                        "currency": "EUR"
+                                        "currency": "EUR",
+                                        "rate": null
                                     }
                                 ]
                             }
@@ -612,7 +623,8 @@
                         "status": "closed",
                         "fee": {
                             "cost": 0.0224,
-                            "currency": "EUR"
+                            "currency": "EUR",
+                            "rate": null
                         },
                         "trades": [
                             {
@@ -639,12 +651,14 @@
                                 "cost": 6.8976,
                                 "fee": {
                                     "cost": 0.0224,
-                                    "currency": "EUR"
+                                    "currency": "EUR",
+                                    "rate": null
                                 },
                                 "fees": [
                                     {
                                         "cost": "0.0224",
-                                        "currency": "EUR"
+                                        "currency": "EUR",
+                                        "rate": null
                                     }
                                 ]
                             }
@@ -715,7 +729,8 @@
                         "status": "closed",
                         "fee": {
                             "cost": 0.02448938,
-                            "currency": "EUR"
+                            "currency": "EUR",
+                            "rate": null
                         },
                         "trades": [
                             {
@@ -742,12 +757,14 @@
                                 "cost": 6.89448938,
                                 "fee": {
                                     "cost": 0.02448938,
-                                    "currency": "EUR"
+                                    "currency": "EUR",
+                                    "rate": null
                                 },
                                 "fees": [
                                     {
                                         "cost": "0.02448938",
-                                        "currency": "EUR"
+                                        "currency": "EUR",
+                                        "rate": null
                                     }
                                 ]
                             }
@@ -823,7 +840,8 @@
                         "updated": null,
                         "fee": {
                             "cost": 0,
-                            "currency": "USDT"
+                            "currency": "USDT",
+                            "rate": null
                         },
                         "network": null,
                         "comment": null,
@@ -856,7 +874,8 @@
                         "updated": null,
                         "fee": {
                             "cost": 0,
-                            "currency": "USDT"
+                            "currency": "USDT",
+                            "rate": null
                         },
                         "network": null,
                         "comment": null,

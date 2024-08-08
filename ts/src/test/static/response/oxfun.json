@@ -58,7 +58,11 @@
                     "stopLossPrice": null,
                     "cost": null,
                     "trades": [],
-                    "fee": null,
+                    "fee": {
+                        "cost": null,
+                        "currency": null,
+                        "rate": null
+                    },
                     "info": {
                         "notice": "OrderOpened",
                         "accountId": "106464",
@@ -182,7 +186,11 @@
                     "stopLossPrice": null,
                     "cost": 0,
                     "trades": [],
-                    "fee": null,
+                    "fee": {
+                        "cost": null,
+                        "currency": null,
+                        "rate": null
+                    },
                     "info": {
                     "orderId": "1000117918630",
                     "clientOrderId": "0",
@@ -252,7 +260,8 @@
                         "cost": 37.947,
                         "fee": {
                             "cost": 2.65629,
-                            "currency": "OX"
+                            "currency": "OX",
+                            "rate": null
                         },
                         "info": {
                             "orderId": "1000117638529",
@@ -272,7 +281,8 @@
                         "fees": [
                             {
                             "cost": 2.65629,
-                            "currency": "OX"
+                            "currency": "OX",
+                            "rate": null
                             }
                         ]
                     }
@@ -324,7 +334,8 @@
                         "cost": 37.947,
                         "fee": {
                             "cost": 2.65629,
-                            "currency": "OX"
+                            "currency": "OX",
+                            "rate": null
                         },
                         "info": {
                             "orderId": "1000117638529",
@@ -344,7 +355,8 @@
                         "fees": [
                             {
                                 "cost": 2.65629,
-                                "currency": "OX"
+                                "currency": "OX",
+                                "rate": null
                             }
                         ]
                     }
@@ -815,7 +827,11 @@
                         "updated": null,
                         "internal": null,
                         "comment": null,
-                        "fee": null
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        }
                     }
                 ]
             }

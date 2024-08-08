@@ -54,7 +54,11 @@
                         "price": 57464.04,
                         "amount": 0.00010087,
                         "cost": 5.7963977148,
-                        "fee": null,
+                        "fee": {
+                          "cost": null,
+                          "currency": null,
+                          "rate": null
+                        },
                         "fees": []
                     }
                 ]
@@ -110,7 +114,11 @@
                         "price": 64376,
                         "amount": 0.0001,
                         "cost": 6.4376,
-                        "fee": null,
+                        "fee": {
+                          "cost": null,
+                          "currency": null,
+                          "rate": null
+                        },
                         "fees": []
                     }
                 ]
@@ -182,7 +190,8 @@
                     "trades": [],
                     "fee": {
                       "currency": "USDT",
-                      "cost": "0.0119896"
+                      "cost": "0.0119896",
+                      "rate": null
                     },
                     "info": {
                       "order_id": "117193263933",
@@ -278,7 +287,8 @@
                         "trades": [],
                         "fee": {
                             "currency": "USDT",
-                            "cost": "0.003221"
+                            "cost": "0.003221",
+                            "rate": null
                         },
                         "info": {
                             "order_id": 136915813578,
@@ -302,7 +312,8 @@
                         "fees": [
                             {
                                 "currency": "USDT",
-                                "cost": 0.003221
+                                "cost": 0.003221,
+                                "rate": null
                             }
                         ],
                         "lastUpdateTimestamp": null
@@ -379,7 +390,8 @@
                         "trades": [],
                         "fee": {
                             "currency": "USDT",
-                            "cost": "0"
+                            "cost": "0",
+                            "rate": null
                         },
                         "info": {
                             "order_id": 117660874760,
@@ -481,7 +493,8 @@
                         "trades": [],
                         "fee": {
                             "currency": "USDT",
-                            "cost": "0"
+                            "cost": "0",
+                            "rate": null
                         },
                         "info": {
                             "order_id": 137612164968,
@@ -558,7 +571,11 @@
                         "price": 66567.15,
                         "amount": 0.00132336,
                         "cost": 88.092303624,
-                        "fee": null,
+                        "fee": {
+                          "cost": null,
+                          "currency": null,
+                          "rate": null
+                        },
                         "fees": []
                     }
                 ]

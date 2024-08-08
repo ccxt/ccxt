@@ -46,13 +46,15 @@
                     "cost": null,
                     "fee": {
                         "currency": null,
-                        "cost": null
+                        "cost": null,
+                        "rate": null
                     },
                     "trades": [],
                     "fees": [
                         {
                             "currency": null,
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         }
                     ],
                     "lastUpdateTimestamp": null,
@@ -105,13 +107,15 @@
                     "cost": null,
                     "fee": {
                         "currency": null,
-                        "cost": null
+                        "cost": null,
+                        "rate": null
                     },
                     "trades": [],
                     "fees": [
                         {
                             "currency": null,
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         }
                     ],
                     "lastUpdateTimestamp": null,
@@ -164,13 +168,15 @@
                     "cost": null,
                     "fee": {
                         "currency": null,
-                        "cost": null
+                        "cost": null,
+                        "rate": null
                     },
                     "trades": [],
                     "fees": [
                         {
                             "currency": null,
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         }
                     ],
                     "lastUpdateTimestamp": null,
@@ -269,13 +275,15 @@
                     "cost": 0.61877,
                     "fee": {
                         "currency": "XRP",
-                        "cost": 0.00075
+                        "cost": 0.00075,
+                        "rate": null
                     },
                     "trades": [],
                     "fees": [
                         {
                             "currency": "XRP",
-                            "cost": 0.00075
+                            "cost": 0.00075,
+                            "rate": null
                         }
                     ],
                     "lastUpdateTimestamp": null,
@@ -526,12 +534,14 @@
                         "type": null,
                         "fee": {
                             "currency": null,
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "currency": null,
-                                "cost": null
+                                "cost": null,
+                                "rate": null
                             }
                         ]
                     },
@@ -557,12 +567,14 @@
                         "type": null,
                         "fee": {
                             "currency": null,
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "currency": null,
-                                "cost": null
+                                "cost": null,
+                                "rate": null
                             }
                         ]
                     },
@@ -588,12 +600,14 @@
                         "type": null,
                         "fee": {
                             "currency": null,
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "currency": null,
-                                "cost": null
+                                "cost": null,
+                                "rate": null
                             }
                         ]
                     },
@@ -619,12 +633,14 @@
                         "type": null,
                         "fee": {
                             "currency": null,
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "currency": null,
-                                "cost": null
+                                "cost": null,
+                                "rate": null
                             }
                         ]
                     },
@@ -650,12 +666,14 @@
                         "type": null,
                         "fee": {
                             "currency": null,
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "currency": null,
-                                "cost": null
+                                "cost": null,
+                                "rate": null
                             }
                         ]
                     },
@@ -681,12 +699,14 @@
                         "type": null,
                         "fee": {
                             "currency": null,
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "currency": null,
-                                "cost": null
+                                "cost": null,
+                                "rate": null
                             }
                         ]
                     },
@@ -712,12 +732,14 @@
                         "type": null,
                         "fee": {
                             "currency": null,
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "currency": null,
-                                "cost": null
+                                "cost": null,
+                                "rate": null
                             }
                         ]
                     },
@@ -743,12 +765,14 @@
                         "type": null,
                         "fee": {
                             "currency": null,
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "currency": null,
-                                "cost": null
+                                "cost": null,
+                                "rate": null
                             }
                         ]
                     },
@@ -774,12 +798,14 @@
                         "type": null,
                         "fee": {
                             "currency": null,
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "currency": null,
-                                "cost": null
+                                "cost": null,
+                                "rate": null
                             }
                         ]
                     },
@@ -805,12 +831,14 @@
                         "type": null,
                         "fee": {
                             "currency": null,
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "currency": null,
-                                "cost": null
+                                "cost": null,
+                                "rate": null
                             }
                         ]
                     },
@@ -836,12 +864,14 @@
                         "type": null,
                         "fee": {
                             "currency": null,
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "currency": null,
-                                "cost": null
+                                "cost": null,
+                                "rate": null
                             }
                         ]
                     },
@@ -867,12 +897,14 @@
                         "type": null,
                         "fee": {
                             "currency": null,
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "currency": null,
-                                "cost": null
+                                "cost": null,
+                                "rate": null
                             }
                         ]
                     },
@@ -898,12 +930,14 @@
                         "type": null,
                         "fee": {
                             "currency": null,
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "currency": null,
-                                "cost": null
+                                "cost": null,
+                                "rate": null
                             }
                         ]
                     },
@@ -929,12 +963,14 @@
                         "type": null,
                         "fee": {
                             "currency": null,
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "currency": null,
-                                "cost": null
+                                "cost": null,
+                                "rate": null
                             }
                         ]
                     },
@@ -960,12 +996,14 @@
                         "type": null,
                         "fee": {
                             "currency": null,
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "currency": null,
-                                "cost": null
+                                "cost": null,
+                                "rate": null
                             }
                         ]
                     },
@@ -991,12 +1029,14 @@
                         "type": null,
                         "fee": {
                             "currency": null,
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "currency": null,
-                                "cost": null
+                                "cost": null,
+                                "rate": null
                             }
                         ]
                     },
@@ -1022,12 +1062,14 @@
                         "type": null,
                         "fee": {
                             "currency": null,
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "currency": null,
-                                "cost": null
+                                "cost": null,
+                                "rate": null
                             }
                         ]
                     },
@@ -1053,12 +1095,14 @@
                         "type": null,
                         "fee": {
                             "currency": null,
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "currency": null,
-                                "cost": null
+                                "cost": null,
+                                "rate": null
                             }
                         ]
                     },
@@ -1084,12 +1128,14 @@
                         "type": null,
                         "fee": {
                             "currency": null,
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "currency": null,
-                                "cost": null
+                                "cost": null,
+                                "rate": null
                             }
                         ]
                     },
@@ -1115,12 +1161,14 @@
                         "type": null,
                         "fee": {
                             "currency": null,
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "currency": null,
-                                "cost": null
+                                "cost": null,
+                                "rate": null
                             }
                         ]
                     },
@@ -1146,12 +1194,14 @@
                         "type": null,
                         "fee": {
                             "currency": null,
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "currency": null,
-                                "cost": null
+                                "cost": null,
+                                "rate": null
                             }
                         ]
                     },
@@ -1177,12 +1227,14 @@
                         "type": null,
                         "fee": {
                             "currency": null,
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "currency": null,
-                                "cost": null
+                                "cost": null,
+                                "rate": null
                             }
                         ]
                     },
@@ -1208,12 +1260,14 @@
                         "type": null,
                         "fee": {
                             "currency": null,
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "currency": null,
-                                "cost": null
+                                "cost": null,
+                                "rate": null
                             }
                         ]
                     },
@@ -1239,12 +1293,14 @@
                         "type": null,
                         "fee": {
                             "currency": null,
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "currency": null,
-                                "cost": null
+                                "cost": null,
+                                "rate": null
                             }
                         ]
                     },
@@ -1270,12 +1326,14 @@
                         "type": null,
                         "fee": {
                             "currency": null,
-                            "cost": null
+                            "cost": null,
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "currency": null,
-                                "cost": null
+                                "cost": null,
+                                "rate": null
                             }
                         ]
                     }
@@ -1411,13 +1469,15 @@
                         "cost": 0.61877,
                         "fee": {
                             "currency": "XRP",
-                            "cost": 0.00075
+                            "cost": 0.00075,
+                            "rate": null
                         },
                         "trades": [],
                         "fees": [
                             {
                                 "currency": "XRP",
-                                "cost": 0.00075
+                                "cost": 0.00075,
+                                "rate": null
                             }
                         ],
                         "lastUpdateTimestamp": null,
@@ -1495,12 +1555,14 @@
                         "type": null,
                         "fee": {
                             "currency": "XRP",
-                            "cost": 0.00075
+                            "cost": 0.00075,
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "currency": "XRP",
-                                "cost": 0.00075
+                                "cost": 0.00075,
+                                "rate": null
                             }
                         ]
                     }

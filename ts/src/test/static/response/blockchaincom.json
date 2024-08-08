@@ -72,7 +72,8 @@
                         "cost": 0,
                         "fee": {
                             "cost": 0.083705652,
-                            "currency": "USD"
+                            "currency": "USD",
+                            "rate": null
                         },
                         "info": {
                             "exOrdId": "562965361006079",
@@ -106,7 +107,8 @@
                         "cost": 15.5637154212,
                         "fee": {
                             "cost": 0.070036719,
-                            "currency": "USD"
+                            "currency": "USD",
+                            "rate": null
                         },
                         "info": {
                             "exOrdId": "844439434710384",
@@ -194,7 +196,11 @@
                     "triggerPrice": null,
                     "takeProfitPrice": null,
                     "stopLossPrice": null,
-                    "fee": null
+                    "fee": {
+                        "cost": null,
+                        "currency": null,
+                        "rate": null
+                    }
                 }
             }
         ],

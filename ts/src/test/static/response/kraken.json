@@ -54,7 +54,11 @@
                   "filled": null,
                   "average": null,
                   "remaining": null,
-                  "fee": null,
+                  "fee": {
+                    "cost": null,
+                    "currency": null,
+                    "rate": null
+                  },
                   "trades": [],
                   "fees": [],
                   "lastUpdateTimestamp": null,
@@ -287,7 +291,9 @@
                             "price": null,
                             "cost": null,
                             "fee": {
-                                "cost": null
+                                "cost": null,
+                                "currency": null,
+                                "rate": null
                             }
                         }
                     ],
@@ -786,7 +792,11 @@
                         "price": 73324.4,
                         "amount": 0.010309,
                         "cost": 755.9012396,
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "fees": []
                     }
                 ]
@@ -1031,7 +1041,8 @@
                     "internal": null,
                     "fee": {
                       "currency": "USDT",
-                      "cost": 0
+                      "cost": 0,
+                      "rate": null
                     }
                   }
                 ]
@@ -1102,7 +1113,8 @@
                     "internal": null,
                     "fee": {
                       "currency": "USDT",
-                      "cost": 3
+                      "cost": 3,
+                      "rate": null
                     }
                   }
                 ]

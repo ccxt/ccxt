@@ -50,7 +50,11 @@
                     "takeProfitPrice": null,
                     "stopLossPrice": null,
                     "status": null,
-                    "fee": null,
+                    "fee": {
+                        "cost": null,
+                        "currency": null,
+                        "rate": null
+                    },
                     "trades": [],
                     "fees": []
                 }
@@ -127,12 +131,14 @@
                         "datetime": "2023-11-17T15:30:36.970Z",
                         "fee": {
                             "currency": "LTC",
-                            "cost": 0.0000794
+                            "cost": 0.0000794,
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "currency": "LTC",
-                                "cost": 0.0000794
+                                "cost": 0.0000794,
+                                "rate": null
                             }
                         ]
                     }
@@ -217,12 +223,14 @@
                         "datetime": "2023-12-05T16:14:23.926Z",
                         "fee": {
                             "currency": "USDT",
-                            "cost": 0.004335
+                            "cost": 0.004335,
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "currency": "USDT",
-                                "cost": 0.004335
+                                "cost": 0.004335,
+                                "rate": null
                             }
                         ]
                     }
@@ -333,13 +341,15 @@
                         "status": "closed",
                         "fee": {
                             "cost": 0.004335,
-                            "currency": "USDT"
+                            "currency": "USDT",
+                            "rate": null
                         },
                         "trades": [],
                         "fees": [
                             {
                                 "cost": 0.004335,
-                                "currency": "USDT"
+                                "currency": "USDT",
+                                "rate": null
                             }
                         ]
                     }
@@ -400,13 +410,15 @@
                         "status": "closed",
                         "fee": {
                             "cost": 0.0000794,
-                            "currency": "LTC"
+                            "currency": "LTC",
+                            "rate": null
                         },
                         "trades": [],
                         "fees": [
                             {
                                 "cost": 0.0000794,
-                                "currency": "LTC"
+                                "currency": "LTC",
+                                "rate": null
                             }
                         ]
                     }
@@ -488,7 +500,11 @@
                         "takeProfitPrice": null,
                         "stopLossPrice": null,
                         "status": "open",
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "trades": [],
                         "fees": []
                     }
@@ -1002,13 +1018,15 @@
                     "status": "closed",
                     "fee": {
                         "cost": 0.0041244,
-                        "currency": "USDT"
+                        "currency": "USDT",
+                        "rate": null
                     },
                     "trades": [],
                     "fees": [
                         {
                             "cost": 0.0041244,
-                            "currency": "USDT"
+                            "currency": "USDT",
+                            "rate": null
                         }
                     ]
                 }
@@ -1109,13 +1127,15 @@
                     "status": "closed",
                     "fee": {
                         "cost": 0.008238,
-                        "currency": "USDT"
+                        "currency": "USDT",
+                        "rate": null
                     },
                     "trades": [],
                     "fees": [
                         {
                             "cost": 0.008238,
-                            "currency": "USDT"
+                            "currency": "USDT",
+                            "rate": null
                         }
                     ]
                 }
@@ -1216,13 +1236,15 @@
                     "status": "closed",
                     "fee": {
                         "cost": 0.0041202,
-                        "currency": "USDT"
+                        "currency": "USDT",
+                        "rate": null
                     },
                     "trades": [],
                     "fees": [
                         {
                             "cost": 0.0041202,
-                            "currency": "USDT"
+                            "currency": "USDT",
+                            "rate": null
                         }
                     ]
                 }
@@ -1280,13 +1302,15 @@
                   "status": "closed",
                   "fee": {
                     "cost": 0.0000915,
-                    "currency": "LTC"
+                    "currency": "LTC",
+                    "rate": null
                   },
                   "trades": [],
                   "fees": [
                     {
                       "cost": 0.0000915,
-                      "currency": "LTC"
+                      "currency": "LTC",
+                      "rate": null
                     }
                   ]
                 }
@@ -1337,7 +1361,11 @@
                         "cost": 4237.08452964,
                         "timestamp": 1710327601000,
                         "datetime": "2024-03-13T11:00:01.000Z",
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "fees": []
                     }
                 ]

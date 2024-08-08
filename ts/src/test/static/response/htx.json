@@ -84,13 +84,15 @@
                         "reduceOnly": null,
                         "fee": {
                             "cost": "0.026804",
-                            "currency": "USDT"
+                            "currency": "USDT",
+                            "rate": null
                         },
                         "trades": [],
                         "fees": [
                             {
                                 "cost": 0.026804,
-                                "currency": "USDT"
+                                "currency": "USDT",
+                                "rate": null
                             }
                         ],
                         "lastUpdateTimestamp": null,
@@ -167,12 +169,14 @@
                         "cost": 13.402,
                         "fee": {
                             "cost": 0.026804,
-                            "currency": "USDT"
+                            "currency": "USDT",
+                            "rate": null
                         },
                         "fees": [
                             {
                                 "cost": 0.026804,
-                                "currency": "USDT"
+                                "currency": "USDT",
+                                "rate": null
                             }
                         ]
                     }
@@ -379,13 +383,15 @@
                     "reduceOnly": null,
                     "fee": {
                         "cost": "0.026804",
-                        "currency": "USDT"
+                        "currency": "USDT",
+                        "rate": null
                     },
                     "trades": [],
                     "fees": [
                         {
                             "cost": 0.026804,
-                            "currency": "USDT"
+                            "currency": "USDT",
+                            "rate": null
                         }
                     ],
                     "lastUpdateTimestamp": null,
@@ -533,7 +539,11 @@
                         "price": 73236.97,
                         "amount": 0.007856,
                         "cost": 575.34963632,
-                        "fee": null,
+                        "fee": {
+                            "cost": null,
+                            "currency": null,
+                            "rate": null
+                        },
                         "fees": []
                     }
                 ]
