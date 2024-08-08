@@ -216,6 +216,7 @@ export default class Exchange {
     };
     headers: any = {};
     origin = '*' // CORS origin
+    MAX_VALUE: Num = Number.MAX_VALUE;
     //
     agent = undefined; // maintained for backwards compatibility
     nodeHttpModuleLoaded: boolean = false;
@@ -370,7 +371,6 @@ export default class Exchange {
     commonCurrencies: Dictionary<string> = undefined
 
     hostname: Str = undefined;
-
     precisionMode: Num = undefined;
     paddingMode: Num = undefined
 
@@ -561,12 +561,10 @@ export default class Exchange {
             this.defineRestApi (this.api, 'request')
         }
 
-        // init the request rate limiter
-        this.initRestRateLimiter ()
-
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
 
         this.afterConstruct ();
+        this.throttler = new Throttler (this.tokenBucket);
     }
 
     encodeURIComponent (...args) {
@@ -613,20 +611,6 @@ export default class Exchange {
             throw new InvalidAddress (this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString () + ' characters: "' + this.json (address) + '"')
         }
         return address
-    }
-
-    initRestRateLimiter () {
-        if (this.rateLimit === undefined) {
-            throw new Error (this.id + '.rateLimit property is not configured');
-        }
-        this.tokenBucket = this.extend ({
-            delay: 0.001,
-            capacity: 1,
-            cost: 1,
-            maxCapacity: 1000,
-            refillRate: (this.rateLimit > 0) ? 1 / this.rateLimit : Number.MAX_VALUE,
-        }, this.tokenBucket);
-        this.throttler = new Throttler (this.tokenBucket);
     }
 
     throttle (cost = undefined) {
@@ -2622,6 +2606,8 @@ export default class Exchange {
         if (isSandbox) {
             this.setSandboxMode (isSandbox);
         }
+        // init the request rate limiter
+        this.initRestRateLimiter ();
     }
 
     initProperties () {
@@ -2682,6 +2668,20 @@ export default class Exchange {
         this.last_request_body     = undefined;
         this.last_request_url      = undefined;
         this.last_request_path     = undefined;
+    }
+
+    initRestRateLimiter () {
+        if (this.rateLimit === undefined) {
+            throw new ExchangeError (this.id + '.rateLimit property is not configured');
+        }
+        const existingBucket = (this.tokenBucket === undefined) ? {} : this.tokenBucket;
+        this.tokenBucket = this.extend ({
+            'delay': 0.001,
+            'capacity': 1,
+            'cost': 1,
+            'maxCapacity': 1000,
+            'refillRate': (this.rateLimit > 0) ? 1 / this.rateLimit : this.MAX_VALUE,
+        }, existingBucket);
     }
 
     orderbookChecksumMessage (symbol:Str) {
