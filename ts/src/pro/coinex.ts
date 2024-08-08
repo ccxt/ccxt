@@ -16,6 +16,7 @@ export default class coinex extends coinexRest {
             'has': {
                 'ws': true,
                 'watchBalance': true,
+                'watchBidsAsks': true,
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
@@ -1055,6 +1056,94 @@ export default class coinex extends coinexRest {
         return this.safeString (statuses, status, status);
     }
 
+    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name coinex#watchBidsAsks
+         * @description watches best bid & ask for symbols
+         * @see https://docs.coinex.com/api/v2/spot/market/ws/market-bbo
+         * @see https://docs.coinex.com/api/v2/futures/market/ws/market-bbo
+         * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false, true, false);
+        const marketIds = this.marketIds (symbols);
+        const messageHashes = [];
+        let market = undefined;
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            market = this.market (symbol);
+            messageHashes.push ('bidsasks:' + market['symbol']);
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchBidsAsks', market, params);
+        const url = this.urls['api']['ws'][type];
+        const subscribe: Dict = {
+            'method': 'bbo.subscribe',
+            'params': { 'market_list': marketIds },
+            'id': this.requestId (),
+        };
+        const request = this.deepExtend (subscribe, params);
+        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        if (this.newUpdates) {
+            const tickers: Dict = {};
+            tickers[ticker['symbol']] = ticker;
+            return tickers;
+        }
+        return this.filterByArray (this.bidsasks, 'symbol', symbols);
+    }
+
+    handleBidAsk (client: Client, message) {
+        //
+        //     {
+        //         "method": "bbo.update",
+        //         "data": {
+        //             "market": "BTCUSDT",
+        //             "updated_at": 1656660154,
+        //             "best_bid_price": "20000",
+        //             "best_bid_size": "0.1",
+        //             "best_ask_price": "20001",
+        //             "best_ask_size": "0.15"
+        //         },
+        //         "id": null
+        //     }
+        //
+        const data = this.safeDict (message, 'data', {});
+        const parsedTicker = this.parseWsBidAsk (data);
+        const symbol = parsedTicker['symbol'];
+        this.bidsasks[symbol] = parsedTicker;
+        client.resolve (this.bidsasks[symbol], 'bidsasks');
+    }
+
+    parseWsBidAsk (ticker, market = undefined) {
+        //
+        //     {
+        //         "market": "BTCUSDT",
+        //         "updated_at": 1656660154,
+        //         "best_bid_price": "20000",
+        //         "best_bid_size": "0.1",
+        //         "best_ask_price": "20001",
+        //         "best_ask_size": "0.15"
+        //     }
+        //
+        const defaultType = this.safeString (this.options, 'defaultType');
+        const marketId = this.safeString (ticker, 'market');
+        market = this.safeMarket (marketId, market, undefined, defaultType);
+        const timestamp = this.safeTimestamp (ticker, 'updated_at');
+        return this.safeTicker ({
+            'symbol': this.safeSymbol (marketId, market, undefined, defaultType),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'ask': this.safeNumber (ticker, 'best_ask_price'),
+            'askVolume': this.safeNumber (ticker, 'best_ask_size'),
+            'bid': this.safeNumber (ticker, 'best_bid_price'),
+            'bidVolume': this.safeNumber (ticker, 'best_bid_size'),
+            'info': ticker,
+        }, market);
+    }
+
     handleMessage (client: Client, message) {
         const error = this.safeValue (message, 'error');
         if (error !== undefined) {
@@ -1069,6 +1158,7 @@ export default class coinex extends coinexRest {
             'depth.update': this.handleOrderBook,
             'order.update': this.handleOrders,
             'stop.update': this.handleOrders,
+            'bbo.update': this.handleBidAsk,
         };
         const handler = this.safeValue (handlers, method);
         if (handler !== undefined) {
