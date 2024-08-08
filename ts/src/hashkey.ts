@@ -133,7 +133,7 @@ export default class hashkey extends Exchange {
                 '1M': '1M',
             },
             'urls': {
-                'logo': '',
+                'logo': '', // todo add
                 'api': {
                     'public': 'https://api-glb.hashkey.com',
                     'private': 'https://api-glb.hashkey.com',
@@ -163,7 +163,7 @@ export default class hashkey extends Exchange {
                         'quote/v1/index': 1, // not unified todo ask
                         'api/v1/futures/fundingRate': 1,
                         'api/v1/futures/historyFundingRate': 1,
-                        'api/v1/ping': 1, // todo check
+                        'api/v1/ping': 1, // todo ask
                         'api/v1/time': 1,
                     },
                 },
@@ -200,7 +200,7 @@ export default class hashkey extends Exchange {
                         'api/v1/account/withdrawOrders': 1,
                     },
                     'post': {
-                        'api/v1/userDataStream': 1, // todo check
+                        'api/v1/userDataStream': 1,
                         'api/v1/spot/orderTest': 1,
                         'api/v1/spot/order': 1,
                         'api/v1.1/spot/order': 1,
@@ -924,7 +924,7 @@ export default class hashkey extends Exchange {
             const riskLimits = this.safeList (market, 'riskLimits');
             if (riskLimits !== undefined) {
                 const first = this.safeDict (riskLimits, 0);
-                const last = this.safeDict (riskLimits, riskLimits.length - 1); // todo check - 1
+                const last = this.safeDict (riskLimits, riskLimits.length - 1); // todo handle with error on php
                 let minInitialMargin = this.safeString (first, 'initialMargin');
                 let maxInitialMargin = this.safeString (last, 'initialMargin');
                 if (Precise.stringGt (minInitialMargin, maxInitialMargin)) {
@@ -1045,7 +1045,7 @@ export default class hashkey extends Exchange {
                 const network = networks[j];
                 const networkId = this.safeString (network, 'chainType');
                 const networkName = this.safeString (networksById, networkId, networkId);
-                const maxWithdrawQuantity = this.omitZero (this.safeString (network, 'maxWithdrawQuantity')); // todo check
+                const maxWithdrawQuantity = this.omitZero (this.safeString (network, 'maxWithdrawQuantity'));
                 const networkDeposit = this.safeBool (network, 'allowDeposit');
                 const networkWithdraw = this.safeBool (network, 'allowWithdraw');
                 parsedNetworks[networkName] = {
@@ -2945,7 +2945,7 @@ export default class hashkey extends Exchange {
         const request = {};
         let orderIds = '';
         for (let i = 0; i < ids.length; i++) {
-            orderIds += this.safeString (ids, i) + ','; // todo comma is url encoded
+            orderIds += this.safeString (ids, i) + ',';
         }
         orderIds = orderIds.slice (0, -1);
         request['ids'] = orderIds;
@@ -3630,8 +3630,8 @@ export default class hashkey extends Exchange {
             'cost': this.omitZero (this.safeString2 (order, 'cumulativeQuoteQty', 'cummulativeQuoteQty')),
             'trades': undefined,
             'fee': {
-                'currency': this.safeCurrencyCode (feeCurrncyId), // todo check - orders return empty field
-                'amount': this.omitZero (this.safeString (order, 'feeAmount')), // todo check - orders return 0
+                'currency': this.safeCurrencyCode (feeCurrncyId),
+                'amount': this.omitZero (this.safeString (order, 'feeAmount')),
             },
             'reduceOnly': reduceOnly,
             'postOnly': postOnly,
@@ -3730,7 +3730,7 @@ export default class hashkey extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const request: Dict = {
-            'timestamp': this.milliseconds (), // todo the exchange accepts any integer
+            'timestamp': this.milliseconds (), // todo report the exchange accepts any integer
         };
         const response = await this.publicGetApiV1FuturesFundingRate (this.extend (request, params));
         //
@@ -3812,7 +3812,7 @@ export default class hashkey extends Exchange {
         if (endId !== undefined) {
             request['endId'] = endId;
         }
-        // todo timestamp is not mandatory
+        // todo report timestamp is not mandatory
         const response = await this.publicGetApiV1FuturesHistoryFundingRate (this.extend (request, params));
         //
         //     [
@@ -4248,8 +4248,8 @@ export default class hashkey extends Exchange {
             'symbol': market['symbol'],
             'maker': this.safeNumber2 (fee, 'openMakerFee', 'actualMakerRate'),
             'taker': this.safeNumber2 (fee, 'openTakerFee', 'actualTakerRate'),
-            'percentage': true, // todo check
-            'tierBased': true, // todo check
+            'percentage': true,
+            'tierBased': true,
         };
     }
 
