@@ -924,11 +924,8 @@ export default class hashkey extends Exchange {
             const riskLimits = this.safeList (market, 'riskLimits');
             if (riskLimits !== undefined) {
                 const first = this.safeDict (riskLimits, 0);
-                let riskLimitElements = -1;
-                for (let i = 0; i < riskLimits.length; i++) {
-                    riskLimitElements += 1;
-                }
-                const last = this.safeDict (riskLimits, riskLimitElements); // todo handle with error on php
+                const arrayLength = riskLimits.length;
+                const last = this.safeDict (riskLimits, arrayLength - 1);
                 let minInitialMargin = this.safeString (first, 'initialMargin');
                 let maxInitialMargin = this.safeString (last, 'initialMargin');
                 if (Precise.stringGt (minInitialMargin, maxInitialMargin)) {
