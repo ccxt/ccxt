@@ -13,7 +13,7 @@ export default class hashkey extends hashkeyRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchBalance': false,
+                'watchBalance': true,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
@@ -39,6 +39,10 @@ export default class hashkey extends hashkeyRest {
             'options': {
                 'listenKeyRefreshRate': 3600000,
                 'listenKey': undefined,
+                'watchBalance': {
+                    'fetchBalanceSnapshot': true, // or false
+                    'awaitBalanceSnapshot': false, // whether to wait for the balance snapshot before providing updates
+                },
             },
             'streaming': {
                 'keepAlive': 10000,
@@ -58,8 +62,12 @@ export default class hashkey extends hashkeyRest {
 
     async watchPrivate (messageHash) {
         const listenKey = await this.authenticate ();
-        const url = this.urls['api']['ws']['private'] + '/' + listenKey;
+        const url = this.getPrivateUrl (listenKey);
         return await this.watch (url, messageHash, undefined, messageHash);
+    }
+
+    getPrivateUrl (listenKey) {
+        return this.urls['api']['ws']['private'] + '/' + listenKey;
     }
 
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
@@ -612,7 +620,7 @@ export default class hashkey extends hashkeyRest {
                 messageHashes.push (messageHash + ':' + symbol);
             }
         }
-        const url = this.urls['api']['ws']['private'] + '/' + listenKey;
+        const url = this.getPrivateUrl (listenKey);
         const positions = await this.watchMultiple (url, messageHashes, undefined, messageHashes);
         if (this.newUpdates) {
             return positions;
@@ -693,14 +701,91 @@ export default class hashkey extends hashkeyRest {
     async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
-         * @name hashkey#watchBalance
+         * @name bitmart#watchBalance
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'spot' or 'swap' - the type of the market to watch balance for (default 'spot')
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
-        const messageHash = 'balance';
-        return await this.watchPrivate (messageHash);
+        const listenKey = await this.authenticate ();
+        await this.loadMarkets ();
+        let type = 'spot';
+        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params, type);
+        const messageHash = 'balance:' + type;
+        const url = this.getPrivateUrl (listenKey);
+        const client = this.client (url);
+        this.setBalanceCache (client, type, messageHash);
+        let fetchBalanceSnapshot = undefined;
+        let awaitBalanceSnapshot = undefined;
+        [ fetchBalanceSnapshot, params ] = this.handleOptionAndParams (this.options, 'watchBalance', 'fetchBalanceSnapshot', true);
+        [ awaitBalanceSnapshot, params ] = this.handleOptionAndParams (this.options, 'watchBalance', 'awaitBalanceSnapshot', false);
+        if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
+            await client.future (type + ':fetchBalanceSnapshot');
+        }
+        return await this.watch (url, messageHash, undefined, messageHash);
+    }
+
+    setBalanceCache (client: Client, type, subscribeHash) {
+        if (subscribeHash in client.subscriptions) {
+            return;
+        }
+        const options = this.safeDict (this.options, 'watchBalance');
+        const snapshot = this.safeBool (options, 'fetchBalanceSnapshot', true);
+        if (snapshot) {
+            const messageHash = type + ':' + 'fetchBalanceSnapshot';
+            if (!(messageHash in client.futures)) {
+                client.future (messageHash);
+                this.spawn (this.loadBalanceSnapshot, client, messageHash, type);
+            }
+        }
+        this.balance[type] = {};
+        // without this comment, transpilation breaks for some reason...
+    }
+
+    async loadBalanceSnapshot (client, messageHash, type) {
+        const response = await this.fetchBalance ({ 'type': type });
+        this.balance[type] = this.extend (response, this.safeValue (this.balance, type, {}));
+        // don't remove the future from the .futures cache
+        const future = client.futures[messageHash];
+        future.resolve ();
+        client.resolve (this.balance[type], 'balance:' + type);
+    }
+
+    handleBalance (client: Client, message) {
+        //
+        //     {
+        //         "e": "outboundContractAccountInfo",        // event type
+        //                                                    // outboundContractAccountInfo
+        //         "E": "1714717314118",                      // event time
+        //         "T": true,                                 // can trade
+        //         "W": true,                                 // can withdraw
+        //         "D": true,                                 // can deposit
+        //         "B": [                                     // balances changed
+        //             {
+        //                 "a": "USDT",                       // asset
+        //                 "f": "474960.65",                  // free amount
+        //                 "l": "24835.178056020383226869",   // locked amount
+        //                 "r": ""                            // to be released
+        //             }
+        //         ]
+        //     }
+        //
+        const event = this.safeString (message, 'e');
+        const data = this.safeList (message, 'B', []);
+        const balanceUpdate = this.safeDict (data, 0);
+        const isSpot = event === 'outboundAccountInfo';
+        const type = isSpot ? 'spot' : 'swap';
+        this.balance[type]['info'] = message;
+        const currencyId = this.safeString (balanceUpdate, 'a');
+        const code = this.safeCurrencyCode (currencyId);
+        const account = this.account ();
+        account['free'] = this.safeString (balanceUpdate, 'f');
+        account['used'] = this.safeString (balanceUpdate, 'l');
+        this.balance[type][code] = account;
+        this.balance[type] = this.safeBalance (this.balance[type]);
+        const messageHash = 'balance:' + type;
+        client.resolve (this.balance[type], messageHash);
     }
 
     async authenticate (params = {}) {
@@ -729,11 +814,11 @@ export default class hashkey extends hashkeyRest {
             'listenKey': listenKey,
         };
         try {
-            await this.privatePutApiV1UserDataStreamListenKey (this.extend (request, params));
+            await this.privatePutApiV1UserDataStream (this.extend (request, params));
             const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
             this.delay (listenKeyRefreshRate, this.keepAliveListenKey, listenKey, params);
         } catch (error) {
-            const url = this.urls['api']['ws']['private'] + '/' + listenKey;
+            const url = this.getPrivateUrl (listenKey);
             const client = this.client (url);
             this.options['listenKey'] = undefined;
             client.reject (error);
@@ -742,25 +827,6 @@ export default class hashkey extends hashkeyRest {
     }
 
     handleMessage (client: Client, message) {
-        //
-        // private
-        //     [
-        //         {
-        //             "e": "outboundAccountInfo",
-        //             "E": 1499405658849,
-        //             "T": true,
-        //             "W": true,
-        //             "D": true,
-        //             "B": [
-        //                 {
-        //                     "a": "LTC",
-        //                     "f": "17366.18538083",
-        //                     "l": "0.00000000"
-        //                 }
-        //             ]
-        //         }
-        //     ]
-        //
         if (Array.isArray (message)) {
             message = this.safeDict (message, 0, {});
         }
@@ -779,6 +845,8 @@ export default class hashkey extends hashkeyRest {
             this.handleMyTrade (client, message);
         } else if (topic === 'outboundContractPositionInfo') {
             this.handlePosition (client, message);
+        } else if ((topic === 'outboundAccountInfo') || (topic === 'outboundContractAccountInfo')) {
+            this.handleBalance (client, message);
         }
     }
 }
