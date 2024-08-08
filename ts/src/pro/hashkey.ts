@@ -2,8 +2,8 @@
 //  ---------------------------------------------------------------------------
 
 import hashkeyRest from '../hashkey.js';
-import type { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Str, Ticker, Trade } from '../base/types.js';
-import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import type { Balances, Bool, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -488,8 +488,8 @@ export default class hashkey extends hashkeyRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
-        let messageHash = 'myTrades';
         await this.loadMarkets ();
+        let messageHash = 'myTrades';
         if (symbol !== undefined) {
             symbol = this.symbol (symbol);
             messageHash += ':' + symbol;
@@ -589,6 +589,107 @@ export default class hashkey extends hashkeyRest {
         }, market);
     }
 
+    async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+        /**
+         * @method
+         * @name hashkey#watchPositions
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/websocket-api#private-stream
+         * @description watch all open positions
+         * @param {string[]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets ();
+        const listenKey = await this.authenticate ();
+        symbols = this.marketSymbols (symbols);
+        const messageHash = 'positions';
+        const messageHashes = [];
+        if (symbols === undefined) {
+            messageHashes.push (messageHash);
+        } else {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                messageHashes.push (messageHash + ':' + symbol);
+            }
+        }
+        const url = this.urls['api']['ws']['private'] + '/' + listenKey;
+        const positions = await this.watchMultiple (url, messageHashes, undefined, messageHashes);
+        if (this.newUpdates) {
+            return positions;
+        }
+        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+    }
+
+    handlePosition (client: Client, message) {
+        //
+        //     {
+        //         "e": "outboundContractPositionInfo",
+        //         "E": "1723084699801",
+        //         "A": "1735619524953226496",
+        //         "s": "ETHUSDT-PERPETUAL",
+        //         "S": "LONG",
+        //         "p": "2429.6",
+        //         "P": "2",
+        //         "a": "2",
+        //         "f": "10760.14",
+        //         "m": "1.0085",
+        //         "r": "-0.0029",
+        //         "up": "0.0478",
+        //         "pr": "0.0492",
+        //         "pv": "4.8592",
+        //         "v": "5.00",
+        //         "mt": "CROSS",
+        //         "mm": "0.0367"
+        //     }
+        //
+        if (this.positions === undefined) {
+            this.positions = new ArrayCacheBySymbolBySide ();
+        }
+        const positions = this.positions;
+        const parsed = this.parseWsPosition (message);
+        positions.append (parsed);
+        const messageHash = 'positions';
+        client.resolve (parsed, messageHash);
+        const symbol = parsed['symbol'];
+        client.resolve (parsed, messageHash + ':' + symbol);
+    }
+
+    parseWsPosition (position, market: Market = undefined): Position {
+        const marketId = this.safeString (position, 's');
+        market = this.safeMarket (marketId);
+        const timestamp = this.safeInteger (position, 'E');
+        return this.safePosition ({
+            'symbol': market['symbol'],
+            'id': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'contracts': this.safeNumber (position, 'P'),
+            'contractSize': undefined,
+            'side': this.safeStringLower (position, 'S'),
+            'notional': this.safeNumber (position, 'pv'),
+            'leverage': this.safeInteger (position, 'v'),
+            'unrealizedPnl': this.safeNumber (position, 'up'),
+            'realizedPnl': this.safeNumber (position, 'r'),
+            'collateral': undefined,
+            'entryPrice': this.safeNumber (position, 'p'),
+            'markPrice': undefined,
+            'liquidationPrice': this.safeNumber (position, 'f'),
+            'marginMode': this.safeStringLower (position, 'mt'),
+            'hedged': true,
+            'maintenanceMargin': this.safeNumber (position, 'mm'),
+            'maintenanceMarginPercentage': undefined,
+            'initialMargin': this.safeNumber (position, 'm'), // todo check
+            'initialMarginPercentage': undefined,
+            'marginRatio': undefined,
+            'lastUpdateTimestamp': undefined,
+            'lastPrice': undefined,
+            'stopLossPrice': undefined,
+            'takeProfitPrice': undefined,
+            'percentage': undefined,
+            'info': position,
+        });
+    }
+
     async watchBalance (params = {}): Promise<Balances> {
         /**
          * @method
@@ -676,6 +777,8 @@ export default class hashkey extends hashkeyRest {
             this.handleOrder (client, message);
         } else if (topic === 'ticketInfo') {
             this.handleMyTrade (client, message);
+        } else if (topic === 'outboundContractPositionInfo') {
+            this.handlePosition (client, message);
         }
     }
 }
