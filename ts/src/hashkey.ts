@@ -2384,7 +2384,8 @@ export default class hashkey extends Exchange {
         if (!market['spot']) {
             throw new NotSupported (this.id + ' createMarketBuyOrderWithCost() is supported for spot markets only');
         }
-        return await this.createOrder (symbol, 'market', 'buy', undefined, undefined, this.extend ({ 'cost': cost }, params));
+        params['cost'] = cost;
+        return await this.createOrder (symbol, 'market', 'buy', cost, undefined, params);
     }
 
     async createSpotOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
