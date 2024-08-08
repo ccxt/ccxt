@@ -354,7 +354,7 @@ export default class hashkey extends hashkeyRest {
         const orderbook = this.orderbooks[symbol];
         const data = this.safeList (message, 'data', []);
         const dataEntry = this.safeDict (data, 0);
-        const timestamp = this.safeInteger (dataEntry, 'timestamp');
+        const timestamp = this.safeInteger (dataEntry, 't');
         const snapshot = this.parseOrderBook (dataEntry, symbol, timestamp, 'b', 'a');
         orderbook.reset (snapshot);
         orderbook['nonce'] = this.safeInteger (message, 'id');
