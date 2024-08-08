@@ -1198,7 +1198,7 @@ export default class hashkey extends Exchange {
          * @param {string} [params.fromId] srarting trade id
          * @param {string} [params.toId] ending trade id
          * @param {string} [params.clientOrderId] *spot markets only* filter trades by orderId
-         * @param {string} [params.accountId] filter trades by account id
+         * @param {string} [params.accountId] account id to fetch the orders from
          * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
          */
         const methodName = 'fetchMyTrades';
@@ -1231,6 +1231,8 @@ export default class hashkey extends Exchange {
         if (toId !== undefined) {
             request['toId'] = toId;
         }
+        let accountId: Str = undefined;
+        [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
         let response = undefined;
         if (marketType === 'spot') {
             if (market !== undefined) {
@@ -1241,8 +1243,6 @@ export default class hashkey extends Exchange {
             if (clientOrderId !== undefined) {
                 request['clientOrderId'] = clientOrderId;
             }
-            let accountId: Str = undefined;
-            [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
             if (accountId !== undefined) {
                 request['accountId'] = accountId;
             }
@@ -1281,8 +1281,6 @@ export default class hashkey extends Exchange {
                 throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a symbol argument for swap markets');
             }
             request['symbol'] = market['id'];
-            let accountId: Str = undefined;
-            [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
             if (accountId !== undefined) {
                 request['subAccountId'] = accountId;
                 response = await this.privateGetApiV1FuturesSubAccountUserTrades (this.extend (request, params));
@@ -3040,9 +3038,9 @@ export default class hashkey extends Exchange {
          * @name hashkey#fetchOpenOrders
          * @description fetch all unfilled currently open orders
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-current-open-orders
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/query-open-futures-orders
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/sub
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-sub-account-open-orders
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/sub
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/query-open-futures-orders
          * @param {string} [symbol] unified market symbol of the market orders were made in - is mandatory for swap markets
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve - default 500, maximum 1000
@@ -3053,6 +3051,7 @@ export default class hashkey extends Exchange {
          * @param {string} [params.fromOrderId] *swap markets only* the id of the order to start from
          * @param {bool} [params.trigger] *swap markets only* true for fetching trigger orders (default false)
          * @param {bool} [params.stop] *swap markets only* an alternative for trigger param
+         * @param {string} [params.accountId] account id to fetch the orders from
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const methodName = 'fetchOpenOrders';
@@ -3088,6 +3087,7 @@ export default class hashkey extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.orderId] the id of the order to fetch
          * @param {string} [params.side] 'buy' or 'sell' - the side of the orders to fetch
+         * @param {string} [params.accountId] account id to fetch the orders from
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -3167,7 +3167,7 @@ export default class hashkey extends Exchange {
          * @param {string} [params.fromOrderId] the id of the order to start from
          * @param {bool} [params.trigger] true for fetching trigger orders (default false)
          * @param {bool} [params.stop] an alternative for trigger param
-         * @param {string} [params.accountId] account id to fetch the order from
+         * @param {string} [params.accountId] account id to fetch the orders from
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         let methodName = 'fetchOpenSwapOrders';
@@ -3268,7 +3268,7 @@ export default class hashkey extends Exchange {
          * @param {string} [params.fromOrderId] *swap markets only* the id of the order to start from
          * @param {bool} [params.trigger] *swap markets only* the id of the order to start from true for fetching trigger orders (default false)
          * @param {bool} [params.stop] *swap markets only* the id of the order to start from an alternative for trigger param
-         * @param {string} [params.accountId] account id to fetch the order from
+         * @param {string} [params.accountId] account id to fetch the orders from
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const methodName = 'fetchCanceledAndClosedOrders';
@@ -3286,6 +3286,8 @@ export default class hashkey extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
         }
+        let accountId: Str = undefined;
+        [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
         let market: Market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -3306,6 +3308,9 @@ export default class hashkey extends Exchange {
             [ side, params ] = this.handleOptionAndParams (params, methodName, 'side');
             if (side !== undefined) {
                 request['side'] = side.toUpperCase ();
+            }
+            if (accountId !== undefined) {
+                request['accountId'] = accountId;
             }
             response = await this.privateGetApiV1SpotTradeOrders (this.extend (request, params));
             //
@@ -3354,8 +3359,6 @@ export default class hashkey extends Exchange {
             if (fromOrderId !== undefined) {
                 request['fromOrderId'] = fromOrderId;
             }
-            let accountId: Str = undefined;
-            [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
             if (accountId !== undefined) {
                 request['subAccountId'] = accountId;
                 response = await this.privateGetApiV1FuturesSubAccountHistoryOrders (this.extend (request, params));
