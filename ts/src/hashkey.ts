@@ -2,7 +2,7 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/hashkey.js';
-import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ContractUnavailable, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidNonce, InvalidOrder, NetworkError, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
+import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ContractUnavailable, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidNonce, InvalidOrder, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -334,7 +334,7 @@ export default class hashkey extends Exchange {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
-                    '-0001': ArgumentsRequired, // Required field '%s' missing or invalid.
+                    '-0001': BadRequest, // Required field '%s' missing or invalid.
                     '-0002': AuthenticationError, // Incorrect signature
                     '-0003': RateLimitExceeded, // Rate limit exceeded
                     '-0102': AuthenticationError, // Invalid APIKey
@@ -349,18 +349,21 @@ export default class hashkey extends Exchange {
                     '-0211': OrderNotFound, // Order not found
                     '-0401': InsufficientFunds, // Insufficient asset
                     '-0402': BadRequest, // Invalid asset
-                    '-1000': NetworkError, // An unknown error occurred while processing the request
+                    '-1000': ExchangeError, // An unknown error occurred while processing the request
+                    '-1001': ExchangeError, // Internal error
                     '-100010': BadSymbol, // Invalid Symbols!
                     '-100012': BadSymbol, // Parameter symbol [String] missing!
                     '-1002': AuthenticationError, // Unauthorized operation
                     '-1004': BadRequest, // Bad request
                     '-1005': PermissionDenied, // No permission
+                    '-1006': ExchangeError, // Execution status unknown
                     '-1007': RequestTimeout, // Timeout waiting for response from server
                     '-1014': InvalidOrder, // Unsupported order combination
                     '-1015': InvalidOrder, // Too many new orders
                     '-1020': OperationRejected, // Unsupported operation
                     '-1021': InvalidNonce, // Timestamp for this request is outside of the recvWindow
                     '-1024': BadRequest, // Duplicate request
+                    '-1101': ExchangeNotAvailable, // Feature has been offline
                     '-1115': BadRequest, // Invalid timeInForce
                     '-1117': BadRequest, // Invalid order side
                     '-1123': BadRequest, // Invalid client order id
@@ -496,11 +499,7 @@ export default class hashkey extends Exchange {
                     '-4012': ExchangeError, // Parameter error
                     '-4013': OperationFailed, // Withdraw repeatly
                 },
-                'broad': {
-                    '-1001': NetworkError, // Internal error
-                    '-1006': ExchangeNotAvailable, // Execution status unknown
-                    '-1101': NetworkError, // Feature has been offline
-                },
+                'broad': {},
             },
             'precisionMode': TICK_SIZE,
         });
@@ -2873,6 +2872,9 @@ export default class hashkey extends Exchange {
             //
         } else if (market['swap']) {
             return await this.privateDeleteApiV1FuturesBatchOrders (this.extend (request, params));
+            //
+            //     { "message": "success", "timestamp": "1723127222198", "code": "0000" }
+            //
         } else {
             throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + market['type'] + ' type of markets');
         }
@@ -4257,11 +4259,26 @@ export default class hashkey extends Exchange {
         if (response === undefined) {
             return undefined;
         }
-        if (code !== 200) {
-            const responseCode = this.safeString (response, 'code', undefined);
-            const feedback = this.id + ' ' + body;
-            this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
-            this.throwExactlyMatchedException (this.exceptions['exact'], responseCode, feedback);
+        let message = this.safeString (body, 'msg', '');
+        let errorInArray = false;
+        let responseCodeString = this.safeString (response, 'code', undefined);
+        const responseCodeInteger = this.safeInteger (response, 'code', undefined); // some codes in response are returned as '0000' others as 0
+        if (responseCodeInteger === 0) {
+            const result = this.safeList (response, 'result', []); // for batch methods
+            for (let i = 0; i < result.length; i++) {
+                const entry = this.safeDict (result, i);
+                const entryCodeInteger = this.safeInteger (entry, 'code');
+                if (entryCodeInteger !== 0) {
+                    errorInArray = true;
+                    message = this.safeString (entry, 'msg', '');
+                    responseCodeString = this.safeString (entry, 'code');
+                }
+            }
+        }
+        if ((code !== 200) || (responseCodeInteger !== 0) || errorInArray) {
+            const feedback = this.id + ' ' + message;
+            this.throwBroadlyMatchedException (this.exceptions['broad'], responseCodeString, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], responseCodeString, feedback);
             throw new ExchangeError (feedback);
         }
         return undefined;
