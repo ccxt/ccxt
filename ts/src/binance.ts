@@ -2806,7 +2806,7 @@ export default class binance extends Exchange {
                             'max': this.safeNumber (networkItem, 'withdrawMax'),
                         },
                         'deposit': {
-                            'min': undefined,
+                            'min': this.safeNumber (networkItem, 'depositDust'),
                             'max': undefined,
                         },
                     },
