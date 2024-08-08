@@ -5250,7 +5250,7 @@ public partial class mexc : Exchange
         object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         object network = this.safeString2(parameters, "network", "netWork"); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
-        network = this.networkCodeToId(network);
+        network = this.networkIdToCode(network);
         this.checkAddress(address);
         await this.loadMarkets();
         object currency = this.currency(code);

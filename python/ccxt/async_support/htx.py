@@ -5751,6 +5751,7 @@ class htx(Exchange, ImplicitAPI):
 
     async def fetch_deposit_addresses_by_network(self, code: str, params={}):
         """
+        :see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003
         fetch a dictionary of addresses for a currency, indexed by network
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -5781,6 +5782,7 @@ class htx(Exchange, ImplicitAPI):
 
     async def fetch_deposit_address(self, code: str, params={}):
         """
+        :see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -5827,6 +5829,7 @@ class htx(Exchange, ImplicitAPI):
 
     async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
+        :see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec4f050-7773-11ed-9966-0242ac110003
         fetch all deposits made to an account
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
@@ -6046,6 +6049,7 @@ class htx(Exchange, ImplicitAPI):
 
     async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
+        :see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec4cc41-7773-11ed-9966-0242ac110003
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw

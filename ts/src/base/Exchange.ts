@@ -2437,7 +2437,7 @@ export default class Exchange {
 
     async watchLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         if (this.has['watchLiquidationsForSymbols']) {
-            return this.watchLiquidationsForSymbols ([ symbol ], since, limit, params);
+            return await this.watchLiquidationsForSymbols ([ symbol ], since, limit, params);
         }
         throw new NotSupported (this.id + ' watchLiquidations() is not supported yet');
     }

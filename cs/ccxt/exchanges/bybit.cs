@@ -220,6 +220,7 @@ public partial class bybit : Exchange
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
+                        { "v5/market/instruments-info", 5 },
                         { "v2/private/wallet/fund/records", 25 },
                         { "spot/v3/private/order", 2.5 },
                         { "spot/v3/private/open-orders", 2.5 },
@@ -924,6 +925,7 @@ public partial class bybit : Exchange
             } },
             { "precisionMode", TICK_SIZE },
             { "options", new Dictionary<string, object>() {
+                { "usePrivateInstrumentsInfo", false },
                 { "sandboxMode", false },
                 { "enableDemoTrading", false },
                 { "fetchMarkets", new List<object>() {"spot", "linear", "inverse", "option"} },
@@ -1482,7 +1484,15 @@ public partial class bybit : Exchange
         object request = new Dictionary<string, object>() {
             { "category", "spot" },
         };
-        object response = await this.publicGetV5MarketInstrumentsInfo(this.extend(request, parameters));
+        object usePrivateInstrumentsInfo = this.safeBool(this.options, "usePrivateInstrumentsInfo", false);
+        object response = null;
+        if (isTrue(usePrivateInstrumentsInfo))
+        {
+            response = await this.privateGetV5MarketInstrumentsInfo(this.extend(request, parameters));
+        } else
+        {
+            response = await this.publicGetV5MarketInstrumentsInfo(this.extend(request, parameters));
+        }
         //
         //     {
         //         "retCode": 0,
@@ -1595,7 +1605,15 @@ public partial class bybit : Exchange
     {
         parameters = this.extend(parameters);
         ((IDictionary<string,object>)parameters)["limit"] = 1000; // minimize number of requests
-        object response = await this.publicGetV5MarketInstrumentsInfo(parameters);
+        object usePrivateInstrumentsInfo = this.safeBool(this.options, "usePrivateInstrumentsInfo", false);
+        object response = null;
+        if (isTrue(usePrivateInstrumentsInfo))
+        {
+            response = await this.privateGetV5MarketInstrumentsInfo(parameters);
+        } else
+        {
+            response = await this.publicGetV5MarketInstrumentsInfo(parameters);
+        }
         object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object markets = this.safeList(data, "list", new List<object>() {});
         object paginationCursor = this.safeString(data, "nextPageCursor");
@@ -1604,7 +1622,14 @@ public partial class bybit : Exchange
             while (!isEqual(paginationCursor, null))
             {
                 ((IDictionary<string,object>)parameters)["cursor"] = paginationCursor;
-                object responseInner = await this.publicGetV5MarketInstrumentsInfo(parameters);
+                object responseInner = null;
+                if (isTrue(usePrivateInstrumentsInfo))
+                {
+                    responseInner = await this.privateGetV5MarketInstrumentsInfo(parameters);
+                } else
+                {
+                    responseInner = await this.publicGetV5MarketInstrumentsInfo(parameters);
+                }
                 object dataNew = this.safeDict(responseInner, "result", new Dictionary<string, object>() {});
                 object rawMarkets = this.safeList(dataNew, "list", new List<object>() {});
                 object rawMarketsLength = getArrayLength(rawMarkets);
@@ -1783,7 +1808,15 @@ public partial class bybit : Exchange
         object request = new Dictionary<string, object>() {
             { "category", "option" },
         };
-        object response = await this.publicGetV5MarketInstrumentsInfo(this.extend(request, parameters));
+        object usePrivateInstrumentsInfo = this.safeBool(this.options, "usePrivateInstrumentsInfo", false);
+        object response = null;
+        if (isTrue(usePrivateInstrumentsInfo))
+        {
+            response = await this.privateGetV5MarketInstrumentsInfo(this.extend(request, parameters));
+        } else
+        {
+            response = await this.publicGetV5MarketInstrumentsInfo(this.extend(request, parameters));
+        }
         object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object markets = this.safeList(data, "list", new List<object>() {});
         if (isTrue(getValue(this.options, "loadAllOptions")))
@@ -1795,7 +1828,14 @@ public partial class bybit : Exchange
                 while (!isEqual(paginationCursor, null))
                 {
                     ((IDictionary<string,object>)request)["cursor"] = paginationCursor;
-                    object responseInner = await this.publicGetV5MarketInstrumentsInfo(this.extend(request, parameters));
+                    object responseInner = null;
+                    if (isTrue(usePrivateInstrumentsInfo))
+                    {
+                        responseInner = await this.privateGetV5MarketInstrumentsInfo(this.extend(request, parameters));
+                    } else
+                    {
+                        responseInner = await this.publicGetV5MarketInstrumentsInfo(this.extend(request, parameters));
+                    }
                     object dataNew = this.safeDict(responseInner, "result", new Dictionary<string, object>() {});
                     object rawMarkets = this.safeList(dataNew, "list", new List<object>() {});
                     object rawMarketsLength = getArrayLength(rawMarkets);
@@ -3917,7 +3957,13 @@ public partial class bybit : Exchange
         {
             if (isTrue(!isTrue(isTrailingAmountOrder) && !isTrue(isAlternativeEndpoint)))
             {
-                ((IDictionary<string,object>)request)["qty"] = this.amountToPrecision(symbol, amount);
+                if (isTrue(getValue(market, "option")))
+                {
+                    ((IDictionary<string,object>)request)["qty"] = this.numberToString(amount);
+                } else
+                {
+                    ((IDictionary<string,object>)request)["qty"] = this.amountToPrecision(symbol, amount);
+                }
             }
         }
         if (isTrue(isTrailingAmountOrder))
@@ -7803,8 +7849,8 @@ public partial class bybit : Exchange
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(code, null)))
         {
-            currency = this.safeCurrencyCode(code);
-            ((IDictionary<string,object>)request)["coin"] = currency;
+            currency = this.safeCurrency(code);
+            ((IDictionary<string,object>)request)["coin"] = getValue(currency, "id");
         }
         if (isTrue(!isEqual(since, null)))
         {

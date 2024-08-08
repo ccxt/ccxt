@@ -10,6 +10,7 @@ public partial class woo
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.woo.org/#orderbookupdate"/>  <br/>
     /// See <see href="https://docs.woo.org/#orderbook"/>  <br/>
     /// <list type="table">
     /// <item>
@@ -22,6 +23,12 @@ public partial class woo
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.method</term>
+    /// <description>
+    /// string : either (default) 'orderbook' or 'orderbookupdate', default is 'orderbook'
     /// </description>
     /// </item>
     /// </list>

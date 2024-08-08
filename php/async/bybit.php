@@ -246,6 +246,7 @@ class bybit extends Exchange {
                 ),
                 'private' => array(
                     'get' => array(
+                        'v5/market/instruments-info' => 5,
                         // Legacy inverse swap
                         'v2/private/wallet/fund/records' => 25, // 120 per minute = 2 per second => cost = 50 / 2 = 25
                         // spot
@@ -991,6 +992,7 @@ class bybit extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'options' => array(
+                'usePrivateInstrumentsInfo' => false,
                 'sandboxMode' => false,
                 'enableDemoTrading' => false,
                 'fetchMarkets' => array( 'spot', 'linear', 'inverse', 'option' ),
@@ -1491,7 +1493,13 @@ class bybit extends Exchange {
             $request = array(
                 'category' => 'spot',
             );
-            $response = Async\await($this->publicGetV5MarketInstrumentsInfo ($this->extend($request, $params)));
+            $usePrivateInstrumentsInfo = $this->safe_bool($this->options, 'usePrivateInstrumentsInfo', false);
+            $response = null;
+            if ($usePrivateInstrumentsInfo) {
+                $response = Async\await($this->privateGetV5MarketInstrumentsInfo ($this->extend($request, $params)));
+            } else {
+                $response = Async\await($this->publicGetV5MarketInstrumentsInfo ($this->extend($request, $params)));
+            }
             //
             //     {
             //         "retCode" => 0,
@@ -1604,14 +1612,25 @@ class bybit extends Exchange {
         return Async\async(function () use ($params) {
             $params = $this->extend($params);
             $params['limit'] = 1000; // minimize number of requests
-            $response = Async\await($this->publicGetV5MarketInstrumentsInfo ($params));
+            $usePrivateInstrumentsInfo = $this->safe_bool($this->options, 'usePrivateInstrumentsInfo', false);
+            $response = null;
+            if ($usePrivateInstrumentsInfo) {
+                $response = Async\await($this->privateGetV5MarketInstrumentsInfo ($params));
+            } else {
+                $response = Async\await($this->publicGetV5MarketInstrumentsInfo ($params));
+            }
             $data = $this->safe_dict($response, 'result', array());
             $markets = $this->safe_list($data, 'list', array());
             $paginationCursor = $this->safe_string($data, 'nextPageCursor');
             if ($paginationCursor !== null) {
                 while ($paginationCursor !== null) {
                     $params['cursor'] = $paginationCursor;
-                    $responseInner = Async\await($this->publicGetV5MarketInstrumentsInfo ($params));
+                    $responseInner = null;
+                    if ($usePrivateInstrumentsInfo) {
+                        $responseInner = Async\await($this->privateGetV5MarketInstrumentsInfo ($params));
+                    } else {
+                        $responseInner = Async\await($this->publicGetV5MarketInstrumentsInfo ($params));
+                    }
                     $dataNew = $this->safe_dict($responseInner, 'result', array());
                     $rawMarkets = $this->safe_list($dataNew, 'list', array());
                     $rawMarketsLength = count($rawMarkets);
@@ -1781,7 +1800,13 @@ class bybit extends Exchange {
             $request = array(
                 'category' => 'option',
             );
-            $response = Async\await($this->publicGetV5MarketInstrumentsInfo ($this->extend($request, $params)));
+            $usePrivateInstrumentsInfo = $this->safe_bool($this->options, 'usePrivateInstrumentsInfo', false);
+            $response = null;
+            if ($usePrivateInstrumentsInfo) {
+                $response = Async\await($this->privateGetV5MarketInstrumentsInfo ($this->extend($request, $params)));
+            } else {
+                $response = Async\await($this->publicGetV5MarketInstrumentsInfo ($this->extend($request, $params)));
+            }
             $data = $this->safe_dict($response, 'result', array());
             $markets = $this->safe_list($data, 'list', array());
             if ($this->options['loadAllOptions']) {
@@ -1790,7 +1815,12 @@ class bybit extends Exchange {
                 if ($paginationCursor !== null) {
                     while ($paginationCursor !== null) {
                         $request['cursor'] = $paginationCursor;
-                        $responseInner = Async\await($this->publicGetV5MarketInstrumentsInfo ($this->extend($request, $params)));
+                        $responseInner = null;
+                        if ($usePrivateInstrumentsInfo) {
+                            $responseInner = Async\await($this->privateGetV5MarketInstrumentsInfo ($this->extend($request, $params)));
+                        } else {
+                            $responseInner = Async\await($this->publicGetV5MarketInstrumentsInfo ($this->extend($request, $params)));
+                        }
                         $dataNew = $this->safe_dict($responseInner, 'result', array());
                         $rawMarkets = $this->safe_list($dataNew, 'list', array());
                         $rawMarketsLength = count($rawMarkets);
@@ -3736,7 +3766,11 @@ class bybit extends Exchange {
             }
         } else {
             if (!$isTrailingAmountOrder && !$isAlternativeEndpoint) {
-                $request['qty'] = $this->amount_to_precision($symbol, $amount);
+                if ($market['option']) {
+                    $request['qty'] = $this->number_to_string($amount);
+                } else {
+                    $request['qty'] = $this->amount_to_precision($symbol, $amount);
+                }
             }
         }
         if ($isTrailingAmountOrder) {
@@ -7276,8 +7310,8 @@ class bybit extends Exchange {
             $currency = null;
             $request = array();
             if ($code !== null) {
-                $currency = $this->safe_currency_code($code);
-                $request['coin'] = $currency;
+                $currency = $this->safe_currency($code);
+                $request['coin'] = $currency['id'];
             }
             if ($since !== null) {
                 $request['startTime'] = $since;

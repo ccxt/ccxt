@@ -866,7 +866,7 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(getValue(this.has, "watchLiquidationsForSymbols")))
         {
-            return this.watchLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
+            return await this.watchLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
         }
         throw new NotSupported ((string)add(this.id, " watchLiquidations() is not supported yet")) ;
     }

@@ -7,6 +7,11 @@ export default class woo extends wooRest {
     watchPublic(messageHash: any, message: any): Promise<any>;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleOrderBook(client: Client, message: any): void;
+    handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
+    fetchOrderBookSnapshot(client: any, message: any, subscription: any): Promise<void>;
+    handleOrderBookMessage(client: Client, message: any, orderbook: any): any;
+    handleDelta(bookside: any, delta: any): void;
+    handleDeltas(bookside: any, deltas: any): void;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseWsTicker(ticker: any, market?: any): Ticker;
     handleTicker(client: Client, message: any): any;
