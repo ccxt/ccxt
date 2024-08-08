@@ -211,6 +211,7 @@ public partial class Exchange
 
     void initializeProperties(dict userConfig = null)
     {
+        this.initProperties();
         var properties = this.describe();
 
         var extendedProperties = this.deepExtend(properties, userConfig);
