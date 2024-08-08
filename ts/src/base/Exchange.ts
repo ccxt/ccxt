@@ -157,7 +157,6 @@ export type { Market, Trade, Fee, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balan
 // ----------------------------------------------------------------------------
 // move this elsewhere
 import Stream from './ws/Stream.js'
-import { sleep } from './functions.js'
 
 // move this elsewhere.
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from './ws/Cache.js'
@@ -496,7 +495,6 @@ export default class Exchange {
     ymd = ymd
     base64ToString = base64ToString
     crc32 = crc32
-    sleep = sleep
     stream: Stream = new Stream ();
     packb = packb
     urlencodeBase64 = urlencodeBase64
@@ -1676,6 +1674,8 @@ export default class Exchange {
             tasks.push (future);
         }
         return Promise.all (tasks);
+    }
+
     describe () {
         return {
             'id': undefined,

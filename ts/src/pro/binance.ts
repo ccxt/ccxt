@@ -255,7 +255,7 @@ export default class binance extends binanceRest {
             type = 'delivery';
         }
         const numSubscriptions = subscriptionHashes.length;
-        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, streamHash, numSubscriptions);
+        const url = this.urls['api']['ws'][type] + '/' + this.streamId (type, streamHash, numSubscriptions);
         const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
@@ -1295,6 +1295,7 @@ export default class binance extends binanceRest {
             messageHashes.push ('ohlcv::' + symbolString + '::' + timeframeString);
         }
         const url = this.urls['api']['ws'][type] + '/' + this.streamId (type, 'multipleOHLCV');
+        const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
             'params': rawHashes,
@@ -1629,7 +1630,7 @@ export default class binance extends binanceRest {
         if (symbolsDefined) {
             streamHash = channelName + '::' + symbols.join (',');
         }
-        const url = this.urls['api']['ws'][rawMarketType] + '/' + this.stream (rawMarketType, streamHash);
+        const url = this.urls['api']['ws'][rawMarketType] + '/' + this.streamId (rawMarketType, streamHash);
         const requestId = this.requestId (url);
         const request: Dict = {
             'method': 'SUBSCRIBE',

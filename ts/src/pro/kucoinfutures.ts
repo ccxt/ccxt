@@ -244,9 +244,9 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const market = this.safeMarket (marketId, undefined, '-');
         const ticker = this.parseTicker (data, market);
         this.tickers[market['symbol']] = ticker;
-        const messageHash = 'ticker:' + market['symbol'];
-        this.streamProduce ('tickers', ticker);
-        client.resolve (ticker, this.getMessageHash ('ticker', market['symbol']));
+        const messageHash = this.getMessageHash ('ticker', market['symbol']);
+        this.streamProduce (messageHash, ticker);
+        client.resolve (ticker, messageHash);
         return message;
     }
 
