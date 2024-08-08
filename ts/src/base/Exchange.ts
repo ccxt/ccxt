@@ -507,63 +507,14 @@ export default class Exchange {
         //         }
         //     }
         //
+        this.initProperties ();
         this.options = this.getDefaultOptions(); // exchange-specific options if any
-        // fetch implementation options (JS only)
         // http properties
-        this.headers = {}
         this.origin = '*' // CORS origin
-        // underlying properties
-        this.minFundingAddressLength = 1 // used in checkAddress
-        this.substituteCommonCurrencyCodes = true  // reserved
-        this.quoteJsonNumbers = true // treat numbers in json as quoted precise strings
         this.number = Number // or String (a pointer to a function)
         this.handleContentTypeApplicationZip = false
-        // whether fees should be summed by currency code
-        this.reduceFees = true
-        // do not delete this line, it is needed for users to be able to define their own fetchImplementation
+        // do not delete this line, it is needed for users to be able to define their own fetchImplementation (JS only)
         this.fetchImplementation = undefined
-        this.validateServerSsl = true
-        this.validateClientSsl = false
-        // default property values
-        this.timeout       = 10000 // milliseconds
-        this.verbose       = false
-        this.twofa         = undefined // two-factor authentication (2FA)
-        // default credentials
-        this.apiKey        = undefined
-        this.secret        = undefined
-        this.uid           = undefined
-        this.login         = undefined
-        this.password      = undefined
-        this.privateKey    = undefined // a "0x"-prefixed hexstring private key for a wallet
-        this.walletAddress = undefined // a wallet address "0x"-prefixed hexstring
-        this.token         = undefined // reserved for HTTP auth in some cases
-        // placeholders for cached data
-        this.balance      = {}
-        this.orderbooks   = {}
-        this.tickers      = {}
-        this.liquidations = {}
-        this.orders       = undefined
-        this.trades       = {}
-        this.transactions = {}
-        this.ohlcvs       = {}
-        this.myLiquidations = {}
-        this.myTrades     = undefined
-        this.positions    = undefined
-        // web3 and cryptography flags
-        this.requiresWeb3 = false
-        this.requiresEddsa = false
-        // response handling flags and properties
-        this.lastRestRequestTimestamp = 0
-        this.enableLastJsonResponse = true
-        this.enableLastHttpResponse = true
-        this.enableLastResponseHeaders = true
-        this.last_http_response    = undefined
-        this.last_json_response    = undefined
-        this.last_response_headers = undefined
-        this.last_request_headers  = undefined
-        this.last_request_body     = undefined
-        this.last_request_url      = undefined
-        this.last_request_path     = undefined
         // camelCase and snake_notation support
         const unCamelCaseProperties = (obj = this) => {
             if (obj !== null) {
@@ -2652,6 +2603,66 @@ export default class Exchange {
 
     afterConstruct () {
         this.createNetworksByIdObject ();
+    }
+
+    initProperties () {
+        // placeholders for cached data
+        this.precision    = (this.precision === undefined) ? { 'amount': undefined, price: undefined } : this.precision;
+        this.limits       = (this.limits === undefined) ? {} : this.limits;
+        this.exceptions   = (this.exceptions === undefined) ? {} : this.exceptions;
+        this.headers      = (this.headers === undefined) ? {} : this.headers;
+        this.balance      = (this.balance === undefined) ? {} : this.balance;
+        this.orderbooks   = (this.orderbooks === undefined) ? {} : this.orderbooks;
+        this.fundingRates = (this.fundingRates === undefined) ? {} : this.fundingRates;
+        this.tickers      = (this.tickers === undefined) ? {} : this.tickers;
+        this.bidsasks     = (this.bidsasks === undefined) ? {} : this.bidsasks;
+        this.trades       = (this.trades === undefined) ? {} : this.trades;
+        this.transactions = (this.transactions === undefined) ? {} : this.transactions;
+        this.ohlcvs       = (this.ohlcvs === undefined) ? {} : this.ohlcvs;
+        this.liquidations = (this.liquidations === undefined) ? {} : this.liquidations;
+        this.myLiquidations = (this.myLiquidations === undefined) ? {} : this.myLiquidations;
+        this.currencies   = (this.currencies === undefined) ? {} : this.currencies;
+        this.orders       = undefined;
+        this.myTrades     = undefined;
+        this.positions    = undefined;
+        //
+        // underlying properties
+        //
+        this.minFundingAddressLength = 1; // used in checkAddress
+        this.substituteCommonCurrencyCodes = true;  // reserved
+        this.quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
+        // whether fees should be summed by currency code
+        this.reduceFees = true;
+        this.validateServerSsl = true;
+        this.validateClientSsl = false;
+        // default property values
+        this.timeout       = 10000; // milliseconds
+        this.verbose       = false;
+        this.twofa         = undefined; // two-factor authentication (2FA)
+        // default credentials
+        this.apiKey        = undefined;
+        this.secret        = undefined;
+        this.uid           = undefined;
+        this.login         = undefined;
+        this.password      = undefined;
+        this.privateKey    = undefined; // a "0x"-prefixed hexstring private key for a wallet
+        this.walletAddress = undefined; // a wallet address "0x"-prefixed hexstring
+        this.token         = undefined;  // reserved for HTTP auth in some cases
+        // web3 and cryptography flags
+        this.requiresWeb3 = false;
+        this.requiresEddsa = false;
+        // response handling flags and properties
+        this.lastRestRequestTimestamp = 0;
+        this.enableLastJsonResponse = true;
+        this.enableLastHttpResponse = true;
+        this.enableLastResponseHeaders = true;
+        this.last_http_response    = undefined;
+        this.last_json_response    = undefined;
+        this.last_response_headers = undefined;
+        this.last_request_headers  = undefined;
+        this.last_request_body     = undefined;
+        this.last_request_url      = undefined;
+        this.last_request_path     = undefined;
     }
 
     orderbookChecksumMessage (symbol:Str) {
