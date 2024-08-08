@@ -2366,6 +2366,7 @@ class bitmart(Exchange, ImplicitAPI):
         :see: https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
         :see: https://developer-pro.bitmart.com/en/futures/#submit-order-signed
         :see: https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
+        :see: https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market', 'limit' or 'trailing' for swap markets only
         :param str side: 'buy' or 'sell'
@@ -2582,6 +2583,8 @@ class bitmart(Exchange, ImplicitAPI):
         params = self.omit(params, ['timeInForce', 'postOnly', 'reduceOnly', 'leverage', 'trailingTriggerPrice', 'trailingPercent', 'triggerPrice', 'stopPrice'])
         if leverage is not None:
             request['leverage'] = self.number_to_string(leverage)
+        elif isTriggerOrder:
+            request['leverage'] = '1'  # for plan orders leverage is required, if not available default to 1
         return self.extend(request, params)
 
     def create_spot_order_request(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
