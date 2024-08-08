@@ -22,6 +22,6 @@ declare function numberToString(x: any): string | undefined;
 declare const truncate_to_string: (num: number | string, precision?: number) => string;
 declare const truncate: (num: number | string, precision?: number) => number;
 declare function precisionFromString(str: string): number;
-declare const decimalToPrecision: (x: any, roundingMode: any, numPrecisionDigits: any, countingMode?: number, paddingMode?: number) => any;
+declare const decimalToPrecision: (x: string, roundingMode: number, numPrecisionDigits: any, countingMode?: number, paddingMode?: number) => string;
 declare function omitZero(stringNumber: string): string;
 export { numberToString, precisionFromString, decimalToPrecision, truncate_to_string, truncate, omitZero, precisionConstants, ROUND, TRUNCATE, ROUND_UP, ROUND_DOWN, DECIMAL_PLACES, SIGNIFICANT_DIGITS, TICK_SIZE, NO_PADDING, PAD_WITH_ZERO, };

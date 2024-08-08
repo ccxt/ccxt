@@ -266,7 +266,7 @@ public partial class independentreserve
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -288,6 +288,7 @@ public partial class independentreserve
     /// cancels an open order
     /// </summary>
     /// <remarks>
+    /// See <see href="https://www.independentreserve.com/features/api#CancelOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -298,10 +299,10 @@ public partial class independentreserve
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<Order> CancelOrder(string id, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrder(id, symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return new Order(res);
     }
     /// <summary>
     /// fetch the deposit address for a currency associated with this account
@@ -322,5 +323,31 @@ public partial class independentreserve
     {
         var res = await this.fetchDepositAddress(code, parameters);
         return ((Dictionary<string, object>)res);
+    }
+    /// <summary>
+    /// make a withdrawal
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.independentreserve.com/features/api#WithdrawDigitalCurrency"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.comment</term>
+    /// <description>
+    /// object : withdrawal comment, should not exceed 500 characters
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
+    public async Task<Transaction> Withdraw(string code, double amount, string address, object tag = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.withdraw(code, amount, address, tag, parameters);
+        return new Transaction(res);
     }
 }

@@ -212,17 +212,56 @@ class bithumb(Exchange, ImplicitAPI):
         :returns dict[]: an array of objects representing market data
         """
         result = []
-        quoteCurrencies = self.safe_value(self.options, 'quoteCurrencies', {})
+        quoteCurrencies = self.safe_dict(self.options, 'quoteCurrencies', {})
         quotes = list(quoteCurrencies.keys())
+        promises = []
+        for i in range(0, len(quotes)):
+            request = {
+                'quoteId': quotes[i],
+            }
+            promises.append(self.publicGetTickerALLQuoteId(self.extend(request, params)))
+            #
+            #    {
+            #        "status": "0000",
+            #        "data": {
+            #            "ETH": {
+            #                "opening_price": "0.05153399",
+            #                "closing_price": "0.05145144",
+            #                "min_price": "0.05145144",
+            #                "max_price": "0.05160781",
+            #                "units_traded": "6.541124172077830855",
+            #                "acc_trade_value": "0.33705472498492329997697755",
+            #                "prev_closing_price": "0.0515943",
+            #                "units_traded_24H": "43.368879902677400513",
+            #                "acc_trade_value_24H": "2.24165339555398079994373342",
+            #                "fluctate_24H": "-0.00018203",
+            #                "fluctate_rate_24H": "-0.35"
+            #            },
+            #            "XRP": {
+            #                "opening_price": "0.00000918",
+            #                "closing_price": "0.0000092",
+            #                "min_price": "0.00000918",
+            #                "max_price": "0.0000092",
+            #                "units_traded": "6516.949363",
+            #                "acc_trade_value": "0.0598792533602796",
+            #                "prev_closing_price": "0.00000916",
+            #                "units_traded_24H": "229161.50354738",
+            #                "acc_trade_value_24H": "2.0446589371637117",
+            #                "fluctate_24H": "0.00000049",
+            #                "fluctate_rate_24H": "5.63"
+            #            },
+            #            ...
+            #            "date": "1721675913145"
+            #        }
+            #    }
+            #
+        results = promises
         for i in range(0, len(quotes)):
             quote = quotes[i]
             quoteId = quote
-            extension = self.safe_value(quoteCurrencies, quote, {})
-            request = {
-                'quoteId': quoteId,
-            }
-            response = self.publicGetTickerALLQuoteId(self.extend(request, params))
-            data = self.safe_value(response, 'data')
+            response = results[i]
+            data = self.safe_dict(response, 'data')
+            extension = self.safe_dict(quoteCurrencies, quote, {})
             currencyIds = list(data.keys())
             for j in range(0, len(currencyIds)):
                 currencyId = currencyIds[j]
@@ -285,8 +324,8 @@ class bithumb(Exchange, ImplicitAPI):
         return result
 
     def parse_balance(self, response) -> Balances:
-        result = {'info': response}
-        balances = self.safe_value(response, 'data')
+        result: dict = {'info': response}
+        balances = self.safe_dict(response, 'data')
         codes = list(self.currencies.keys())
         for i in range(0, len(codes)):
             code = codes[i]
@@ -307,7 +346,7 @@ class bithumb(Exchange, ImplicitAPI):
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         self.load_markets()
-        request = {
+        request: dict = {
             'currency': 'ALL',
         }
         response = self.privatePostInfoBalance(self.extend(request, params))
@@ -324,7 +363,7 @@ class bithumb(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
         }
@@ -351,11 +390,11 @@ class bithumb(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         timestamp = self.safe_integer(data, 'timestamp')
         return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'quantity')
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         # fetchTicker, fetchTickers
         #
@@ -412,16 +451,19 @@ class bithumb(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         self.load_markets()
-        result = {}
-        quoteCurrencies = self.safe_value(self.options, 'quoteCurrencies', {})
+        result: dict = {}
+        quoteCurrencies = self.safe_dict(self.options, 'quoteCurrencies', {})
         quotes = list(quoteCurrencies.keys())
+        promises = []
+        for i in range(0, len(quotes)):
+            request: dict = {
+                'quoteId': quotes[i],
+            }
+            promises.append(self.publicGetTickerALLQuoteId(self.extend(request, params)))
+        responses = promises
         for i in range(0, len(quotes)):
             quote = quotes[i]
-            quoteId = quote
-            request = {
-                'quoteId': quoteId,
-            }
-            response = self.publicGetTickerALLQuoteId(self.extend(request, params))
+            response = responses[i]
             #
             #     {
             #         "status":"0000",
@@ -443,7 +485,7 @@ class bithumb(Exchange, ImplicitAPI):
             #         }
             #     }
             #
-            data = self.safe_value(response, 'data', {})
+            data = self.safe_dict(response, 'data', {})
             timestamp = self.safe_integer(data, 'date')
             tickers = self.omit(data, 'date')
             currencyIds = list(tickers.keys())
@@ -467,7 +509,7 @@ class bithumb(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
         }
@@ -527,7 +569,7 @@ class bithumb(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),
@@ -559,7 +601,7 @@ class bithumb(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -643,7 +685,7 @@ class bithumb(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'baseId': market['baseId'],
             'quoteId': market['quoteId'],
         }
@@ -677,13 +719,13 @@ class bithumb(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'order_currency': market['id'],
             'payment_currency': market['quote'],
             'units': amount,
@@ -718,7 +760,7 @@ class bithumb(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'order_id': id,
             'count': 1,
             'order_currency': market['base'],
@@ -755,15 +797,15 @@ class bithumb(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return self.parse_order(self.extend(data, {'order_id': id}), market)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'Pending': 'open',
             'Completed': 'closed',
             'Cancel': 'canceled',
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         #
         # fetchOrder
@@ -805,7 +847,7 @@ class bithumb(Exchange, ImplicitAPI):
         #     }
         #
         timestamp = self.safe_integer_product(order, 'order_date', 0.001)
-        sideProperty = self.safe_value_2(order, 'type', 'side')
+        sideProperty = self.safe_string_2(order, 'type', 'side')
         side = 'buy' if (sideProperty == 'bid') else 'sell'
         status = self.parse_order_status(self.safe_string(order, 'order_status'))
         price = self.safe_string_2(order, 'order_price', 'price')
@@ -830,7 +872,7 @@ class bithumb(Exchange, ImplicitAPI):
             market = self.safe_market(None, market)
             symbol = market['symbol']
         id = self.safe_string(order, 'order_id')
-        rawTrades = self.safe_value(order, 'contract', [])
+        rawTrades = self.safe_list(order, 'contract', [])
         return self.safe_order({
             'info': order,
             'id': id,
@@ -872,7 +914,7 @@ class bithumb(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if limit is None:
             limit = 100
-        request = {
+        request: dict = {
             'count': limit,
             'order_currency': market['base'],
             'payment_currency': market['quote'],
@@ -918,16 +960,24 @@ class bithumb(Exchange, ImplicitAPI):
         side = 'bid' if (params['side'] == 'buy') else 'ask'
         params = self.omit(params, ['side', 'currency'])
         # https://github.com/ccxt/ccxt/issues/6771
-        request = {
+        request: dict = {
             'order_id': id,
             'type': side,
             'order_currency': market['base'],
             'payment_currency': market['quote'],
         }
-        return self.privatePostTradeCancel(self.extend(request, params))
+        response = self.privatePostTradeCancel(self.extend(request, params))
+        #
+        #    {
+        #       'status': 'string',
+        #    }
+        #
+        return self.safe_order({
+            'info': response,
+        })
 
     def cancel_unified_order(self, order, params={}):
-        request = {
+        request: dict = {
             'side': order['side'],
         }
         return self.cancel_order(order['id'], order['symbol'], self.extend(request, params))
@@ -947,7 +997,7 @@ class bithumb(Exchange, ImplicitAPI):
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'units': amount,
             'address': address,
             'currency': currency['id'],
@@ -964,7 +1014,7 @@ class bithumb(Exchange, ImplicitAPI):
         #
         return self.parse_transaction(response, currency)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # withdraw
         #
@@ -1031,7 +1081,7 @@ class bithumb(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         if response is None:
             return None  # fallback to default error handler
         if 'status' in response:

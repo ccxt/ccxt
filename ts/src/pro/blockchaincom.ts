@@ -3,7 +3,7 @@
 import blockchaincomRest from '../blockchaincom.js';
 import { NotSupported, AuthenticationError, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -64,7 +64,7 @@ export default class blockchaincom extends blockchaincomRest {
         await this.authenticate (params);
         const messageHash = 'balance';
         const url = this.urls['api']['ws'];
-        const subscribe = {
+        const subscribe: Dict = {
             'action': 'subscribe',
             'channel': 'balances',
         };
@@ -106,7 +106,7 @@ export default class blockchaincom extends blockchaincomRest {
         if (event === 'subscribed') {
             return;
         }
-        const result = { 'info': message };
+        const result: Dict = { 'info': message };
         const balances = this.safeValue (message, 'balances', []);
         for (let i = 0; i < balances.length; i++) {
             const entry = balances[i];
@@ -432,7 +432,7 @@ export default class blockchaincom extends blockchaincomRest {
             symbol = market['symbol'];
         }
         const url = this.urls['api']['ws'];
-        const message = {
+        const message: Dict = {
             'action': 'subscribe',
             'channel': 'trading',
         };
@@ -616,7 +616,7 @@ export default class blockchaincom extends blockchaincomRest {
     }
 
     parseWsOrderStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             'pending': 'open',
             'open': 'open',
             'rejected': 'rejected',
@@ -646,7 +646,7 @@ export default class blockchaincom extends blockchaincomRest {
         const type = this.safeString (params, 'type', 'l2');
         params = this.omit (params, 'type');
         const messageHash = 'orderbook:' + symbol + ':' + type;
-        const subscribe = {
+        const subscribe: Dict = {
             'action': 'subscribe',
             'channel': type,
             'symbol': market['id'],
@@ -709,8 +709,8 @@ export default class blockchaincom extends blockchaincomRest {
             const snapshot = this.parseOrderBook (message, symbol, timestamp, 'bids', 'asks', 'px', 'qty', 'num');
             orderbook.reset (snapshot);
         } else if (event === 'updated') {
-            const asks = this.safeValue (message, 'asks', []);
-            const bids = this.safeValue (message, 'bids', []);
+            const asks = this.safeList (message, 'asks', []);
+            const bids = this.safeList (message, 'bids', []);
             this.handleDeltas (orderbook['asks'], asks);
             this.handleDeltas (orderbook['bids'], bids);
             orderbook['timestamp'] = timestamp;
@@ -735,7 +735,7 @@ export default class blockchaincom extends blockchaincomRest {
     handleMessage (client: Client, message) {
         this.streamProduce ('raw', message);
         const channel = this.safeString (message, 'channel');
-        const handlers = {
+        const handlers: Dict = {
             'ticker': this.handleTicker,
             'trades': this.handleTrades,
             'prices': this.handleOHLCV,
@@ -780,7 +780,7 @@ export default class blockchaincom extends blockchaincomRest {
         const isAuthenticated = this.safeValue (client.subscriptions, messageHash);
         if (isAuthenticated === undefined) {
             this.checkRequiredCredentials ();
-            const request = {
+            const request: Dict = {
                 'action': 'subscribe',
                 'channel': 'auth',
                 'token': this.secret,

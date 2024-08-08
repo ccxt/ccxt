@@ -7,6 +7,11 @@ export default class woo extends wooRest {
     watchPublic(messageHash: any, message: any): Promise<any>;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     handleOrderBook(client: Client, message: any): void;
+    handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
+    fetchOrderBookSnapshot(client: any, message: any, subscription: any): Promise<void>;
+    handleOrderBookMessage(client: Client, message: any, orderbook: any): any;
+    handleDelta(bookside: any, delta: any): void;
+    handleDeltas(bookside: any, deltas: any): void;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseWsTicker(ticker: any, market?: any): Ticker;
     handleTicker(client: Client, message: any): any;
@@ -20,11 +25,12 @@ export default class woo extends wooRest {
     checkRequiredUid(error?: boolean): boolean;
     authenticate(params?: {}): Promise<any>;
     watchPrivate(messageHash: any, message: any, params?: {}): Promise<any>;
+    watchPrivateMultiple(messageHashes: any, message: any, params?: {}): Promise<any>;
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     parseWsOrder(order: any, market?: any): Order;
     handleOrderUpdate(client: Client, message: any): void;
-    handleOrder(client: Client, message: any): void;
+    handleOrder(client: Client, message: any, topic: any): void;
     handleMyTrade(client: Client, message: any): void;
     watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     setPositionsCache(client: Client, type: any, symbols?: Strings): void;

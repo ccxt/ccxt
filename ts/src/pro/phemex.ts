@@ -5,7 +5,7 @@ import phemexRest from '../phemex.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, Ticker, OHLCV, Balances, Dict } from '../base/types.js';
 import { AuthenticationError } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
 
@@ -42,7 +42,7 @@ export default class phemex extends phemexRest {
                 'OHLCVLimit': 1000,
             },
             'streaming': {
-                'keepAlive': 10000,
+                'keepAlive': 9000,
             },
         });
     }
@@ -119,7 +119,7 @@ export default class phemex extends phemexRest {
             average = this.parseNumber (Precise.stringDiv (Precise.stringAdd (lastString, openString), '2'));
             percentage = this.parseNumber (Precise.stringMul (Precise.stringSub (Precise.stringDiv (lastString, openString), '1'), '100'));
         }
-        const result = {
+        const result: Dict = {
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -178,7 +178,7 @@ export default class phemex extends phemexRest {
             average = this.parseNumber (Precise.stringDiv (Precise.stringAdd (lastString, openString), '2'));
             percentage = this.parseNumber (Precise.stringMul (Precise.stringSub (Precise.stringDiv (lastString, openString), '1'), '100'));
         }
-        const result = {
+        const result: Dict = {
             'symbol': symbol,
             'timestamp': undefined,
             'datetime': undefined,
@@ -530,7 +530,7 @@ export default class phemex extends phemexRest {
         const requestId = this.requestId ();
         const subscriptionHash = name + '.subscribe';
         const messageHash = 'ticker:' + symbol;
-        const subscribe = {
+        const subscribe: Dict = {
             'method': subscriptionHash,
             'id': requestId,
             'params': [],
@@ -563,7 +563,7 @@ export default class phemex extends phemexRest {
         const name = (isSwap && settleIsUSDT) ? 'trade_p' : 'trade';
         const messageHash = 'trade:' + symbol;
         const method = name + '.subscribe';
-        const subscribe = {
+        const subscribe: Dict = {
             'method': method,
             'id': requestId,
             'params': [
@@ -602,7 +602,7 @@ export default class phemex extends phemexRest {
         const name = (isSwap && settleIsUSDT) ? 'orderbook_p' : 'orderbook';
         const messageHash = 'orderbook:' + symbol;
         const method = name + '.subscribe';
-        const subscribe = {
+        const subscribe: Dict = {
             'method': method,
             'id': requestId,
             'params': [
@@ -639,7 +639,7 @@ export default class phemex extends phemexRest {
         const name = (isSwap && settleIsUSDT) ? 'kline_p' : 'kline';
         const messageHash = 'kline:' + timeframe + ':' + symbol;
         const method = name + '.subscribe';
-        const subscribe = {
+        const subscribe: Dict = {
             'method': method,
             'id': requestId,
             'params': [
@@ -727,11 +727,11 @@ export default class phemex extends phemexRest {
             this.orderbooks[symbol] = orderbook;
             client.resolve (orderbook, messageHash);
         } else {
-            const orderbook = this.safeValue (this.orderbooks, symbol);
-            if (orderbook !== undefined) {
-                const changes = this.safeValue2 (message, 'book', 'orderbook_p', {});
-                const asks = this.safeValue (changes, 'asks', []);
-                const bids = this.safeValue (changes, 'bids', []);
+            if (symbol in this.orderbooks) {
+                const orderbook = this.orderbooks[symbol];
+                const changes = this.safeDict2 (message, 'book', 'orderbook_p', {});
+                const asks = this.safeList (changes, 'asks', []);
+                const bids = this.safeList (changes, 'bids', []);
                 this.customHandleDeltas (orderbook['asks'], asks, market);
                 this.customHandleDeltas (orderbook['bids'], bids, market);
                 orderbook['nonce'] = nonce;
@@ -752,7 +752,7 @@ export default class phemex extends phemexRest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
@@ -883,7 +883,7 @@ export default class phemex extends phemexRest {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             cachedTrades = new ArrayCacheBySymbolById (limit);
         }
-        const marketIds = {};
+        const marketIds: Dict = {};
         let type = undefined;
         for (let i = 0; i < message.length; i++) {
             const rawTrade = message[i];
@@ -1133,7 +1133,7 @@ export default class phemex extends phemexRest {
         }
         this.handleMyTrades (client, trades);
         const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
-        const marketIds = {};
+        const marketIds: Dict = {};
         if (this.orders === undefined) {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
@@ -1527,7 +1527,7 @@ export default class phemex extends phemexRest {
             const payload = this.apiKey + expiration.toString ();
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256);
             const method = 'user.auth';
-            const request = {
+            const request: Dict = {
                 'method': method,
                 'params': [ 'API', this.apiKey, signature, expiration ],
                 'id': requestId,

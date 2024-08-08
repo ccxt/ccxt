@@ -5,7 +5,7 @@ import ascendexRest from '../ascendex.js';
 import { AuthenticationError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Str, OrderBook, Order, Trade, OHLCV, Balances } from '../base/types.js';
+import type { Int, Str, OrderBook, Order, Trade, OHLCV, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -52,7 +52,7 @@ export default class ascendex extends ascendexRest {
     async watchPublic (messageHash, params = {}) {
         const url = this.urls['api']['ws']['public'];
         const id = this.nonce ();
-        const request = {
+        const request: Dict = {
             'id': id.toString (),
             'op': 'sub',
         };
@@ -66,7 +66,7 @@ export default class ascendex extends ascendexRest {
         let url = this.urls['api']['ws']['private'];
         url = this.implodeParams (url, { 'accountGroup': accountGroup });
         const id = this.nonce ();
-        const request = {
+        const request: Dict = {
             'id': id.toString (),
             'op': 'sub',
             'ch': channel,
@@ -308,10 +308,10 @@ export default class ascendex extends ascendexRest {
         const marketId = this.safeString (message, 'symbol');
         const symbol = this.safeSymbol (marketId);
         const messageHash = channel + ':' + marketId;
-        let orderbook = this.safeValue (this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook ({});
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook ({});
         }
+        const orderbook = this.orderbooks[symbol];
         if (orderbook['nonce'] === undefined) {
             orderbook.cache.push (message);
         } else {
@@ -891,7 +891,7 @@ export default class ascendex extends ascendexRest {
         // }
         //
         const subject = this.safeString (message, 'm');
-        const methods = {
+        const methods: Dict = {
             'ping': this.handlePing,
             'auth': this.handleAuthenticate,
             'sub': this.handleSubscriptionStatus,
@@ -977,7 +977,7 @@ export default class ascendex extends ascendexRest {
             const auth = timestamp + '+' + version + '/' + path;
             const secret = this.base64ToBinary (this.secret);
             const signature = this.hmac (this.encode (auth), secret, sha256, 'base64');
-            const request = {
+            const request: Dict = {
                 'op': 'auth',
                 'id': this.nonce ().toString (),
                 't': timestamp,

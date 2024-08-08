@@ -696,7 +696,7 @@ class ascendex extends Exchange {
         $request = array(
             'requestTime' => $this->milliseconds(),
         );
-        $response = $this->v1PublicGetExchangeInfo (array_merge($request, $params));
+        $response = $this->v1PublicGetExchangeInfo ($this->extend($request, $params));
         //
         //    {
         //        "code" => 0,
@@ -844,9 +844,9 @@ class ascendex extends Exchange {
         }
         $response = null;
         if (($marketType === 'spot') || ($marketType === 'margin')) {
-            $response = $this->v1PrivateAccountCategoryGetBalance (array_merge($request, $params));
+            $response = $this->v1PrivateAccountCategoryGetBalance ($this->extend($request, $params));
         } elseif ($marketType === 'swap') {
-            $response = $this->v2PrivateAccountGroupGetFuturesPosition (array_merge($request, $params));
+            $response = $this->v2PrivateAccountGroupGetFuturesPosition ($this->extend($request, $params));
         } else {
             throw new NotSupported($this->id . ' fetchBalance() is not currently supported for ' . $marketType . ' markets');
         }
@@ -915,7 +915,7 @@ class ascendex extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->v1PublicGetDepth (array_merge($request, $params));
+        $response = $this->v1PublicGetDepth ($this->extend($request, $params));
         //
         //     {
         //         "code":0,
@@ -947,7 +947,7 @@ class ascendex extends Exchange {
         return $result;
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
         //         "symbol":"QTUM/BTC",
@@ -1006,7 +1006,7 @@ class ascendex extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->v1PublicGetTicker (array_merge($request, $params));
+        $response = $this->v1PublicGetTicker ($this->extend($request, $params));
         //
         //     {
         //         "code":0,
@@ -1049,9 +1049,9 @@ class ascendex extends Exchange {
         list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         $response = null;
         if ($type === 'spot') {
-            $response = $this->v1PublicGetTicker (array_merge($request, $params));
+            $response = $this->v1PublicGetTicker ($this->extend($request, $params));
         } else {
-            $response = $this->v2PublicGetFuturesTicker (array_merge($request, $params));
+            $response = $this->v2PublicGetFuturesTicker ($this->extend($request, $params));
         }
         //
         //     {
@@ -1137,7 +1137,7 @@ class ascendex extends Exchange {
         } elseif ($limit !== null) {
             $request['n'] = $limit; // max 500
         }
-        $response = $this->v1PublicGetBarhist (array_merge($request, $params));
+        $response = $this->v1PublicGetBarhist ($this->extend($request, $params));
         //
         //     {
         //         "code":0,
@@ -1162,7 +1162,7 @@ class ascendex extends Exchange {
         return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // public fetchTrades
         //
@@ -1215,7 +1215,7 @@ class ascendex extends Exchange {
         if ($limit !== null) {
             $request['n'] = $limit; // max 100
         }
-        $response = $this->v1PublicGetTrades (array_merge($request, $params));
+        $response = $this->v1PublicGetTrades ($this->extend($request, $params));
         //
         //     {
         //         "code":0,
@@ -1235,7 +1235,7 @@ class ascendex extends Exchange {
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'PendingNew' => 'open',
             'New' => 'open',
@@ -1247,7 +1247,7 @@ class ascendex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -1392,7 +1392,7 @@ class ascendex extends Exchange {
                 'currency' => $feeCurrencyCode,
             );
         }
-        $stopPrice = $this->safe_number($order, 'stopPrice');
+        $stopPrice = $this->omit_zero($this->safe_string($order, 'stopPrice'));
         $reduceOnly = null;
         $execInst = $this->safe_string($order, 'execInst');
         if ($execInst === 'reduceOnly') {
@@ -1442,7 +1442,7 @@ class ascendex extends Exchange {
         $request = array(
             'account-group' => $accountGroup,
         );
-        $response = $this->v1PrivateAccountGroupGetSpotFee (array_merge($request, $params));
+        $response = $this->v1PrivateAccountGroupGetSpotFee ($this->extend($request, $params));
         //
         //      {
         //         "code" => "0",
@@ -1487,7 +1487,7 @@ class ascendex extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much you want to trade in units of the base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {bool} [$params->postOnly] true or false
@@ -1561,7 +1561,7 @@ class ascendex extends Exchange {
             }
         }
         $params = $this->omit($params, array( 'reduceOnly', 'triggerPrice' ));
-        return array_merge($request, $params);
+        return $this->extend($request, $params);
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
@@ -1573,7 +1573,7 @@ class ascendex extends Exchange {
          * @param {string} $type "limit" or "market"
          * @param {string} $side "buy" or "sell"
          * @param {float} $amount the $amount of currency to trade
-         * @param {float} [$price] *ignored in "market" orders* the $price at which the $order is to be fullfilled at in units of the quote currency
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {bool} [$params->postOnly] true or false
@@ -1784,10 +1784,10 @@ class ascendex extends Exchange {
         );
         $response = null;
         if (($type === 'spot') || ($type === 'margin')) {
-            $response = $this->v1PrivateAccountCategoryGetOrderStatus (array_merge($request, $query));
+            $response = $this->v1PrivateAccountCategoryGetOrderStatus ($this->extend($request, $query));
         } elseif ($type === 'swap') {
             $request['account-category'] = $accountCategory;
-            $response = $this->v2PrivateAccountGroupGetFuturesOrderStatus (array_merge($request, $query));
+            $response = $this->v2PrivateAccountGroupGetFuturesOrderStatus ($this->extend($request, $query));
         } else {
             throw new NotSupported($this->id . ' fetchOrder() is not currently supported for ' . $type . ' markets');
         }
@@ -1891,10 +1891,10 @@ class ascendex extends Exchange {
         );
         $response = null;
         if (($type === 'spot') || ($type === 'margin')) {
-            $response = $this->v1PrivateAccountCategoryGetOrderOpen (array_merge($request, $query));
+            $response = $this->v1PrivateAccountCategoryGetOrderOpen ($this->extend($request, $query));
         } elseif ($type === 'swap') {
             $request['account-category'] = $accountCategory;
-            $response = $this->v2PrivateAccountGroupGetFuturesOrderOpen (array_merge($request, $query));
+            $response = $this->v2PrivateAccountGroupGetFuturesOrderOpen ($this->extend($request, $query));
         } else {
             throw new NotSupported($this->id . ' fetchOpenOrders() is not currently supported for ' . $type . ' markets');
         }
@@ -2034,20 +2034,20 @@ class ascendex extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = $this->v1PrivateAccountCategoryGetOrderHistCurrent (array_merge($request, $query));
+            $response = $this->v1PrivateAccountCategoryGetOrderHistCurrent ($this->extend($request, $query));
         } elseif ($method === 'v2PrivateDataGetOrderHist') {
             $request['account'] = $accountCategory;
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = $this->v2PrivateDataGetOrderHist (array_merge($request, $query));
+            $response = $this->v2PrivateDataGetOrderHist ($this->extend($request, $query));
         } elseif ($method === 'v2PrivateAccountGroupGetFuturesOrderHistCurrent') {
             $request['account-group'] = $accountGroup;
             $request['account-category'] = $accountCategory;
             if ($limit !== null) {
                 $request['pageSize'] = $limit;
             }
-            $response = $this->v2PrivateAccountGroupGetFuturesOrderHistCurrent (array_merge($request, $query));
+            $response = $this->v2PrivateAccountGroupGetFuturesOrderHistCurrent ($this->extend($request, $query));
         } else {
             throw new NotSupported($this->id . ' fetchClosedOrders() is not currently supported for ' . $type . ' markets');
         }
@@ -2187,10 +2187,10 @@ class ascendex extends Exchange {
         }
         $response = null;
         if (($type === 'spot') || ($type === 'margin')) {
-            $response = $this->v1PrivateAccountCategoryDeleteOrder (array_merge($request, $query));
+            $response = $this->v1PrivateAccountCategoryDeleteOrder ($this->extend($request, $query));
         } elseif ($type === 'swap') {
             $request['account-category'] = $accountCategory;
-            $response = $this->v2PrivateAccountGroupDeleteFuturesOrder (array_merge($request, $query));
+            $response = $this->v2PrivateAccountGroupDeleteFuturesOrder ($this->extend($request, $query));
         } else {
             throw new NotSupported($this->id . ' cancelOrder() is not currently supported for ' . $type . ' markets');
         }
@@ -2269,7 +2269,7 @@ class ascendex extends Exchange {
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-all-open-orders
          * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {array[]} a list with a single ~@link https://docs.ccxt.com/#/?id=order-structure order structure~ with the $response assigned to the info property
          */
         $this->load_markets();
         $this->load_accounts();
@@ -2292,10 +2292,10 @@ class ascendex extends Exchange {
         }
         $response = null;
         if (($type === 'spot') || ($type === 'margin')) {
-            $response = $this->v1PrivateAccountCategoryDeleteOrderAll (array_merge($request, $query));
+            $response = $this->v1PrivateAccountCategoryDeleteOrderAll ($this->extend($request, $query));
         } elseif ($type === 'swap') {
             $request['account-category'] = $accountCategory;
-            $response = $this->v2PrivateAccountGroupDeleteFuturesOrderAll (array_merge($request, $query));
+            $response = $this->v2PrivateAccountGroupDeleteFuturesOrderAll ($this->extend($request, $query));
         } else {
             throw new NotSupported($this->id . ' cancelAllOrders() is not currently supported for ' . $type . ' markets');
         }
@@ -2333,7 +2333,9 @@ class ascendex extends Exchange {
         //         }
         //     }
         //
-        return $response;
+        return $this->safe_order(array(
+            'info' => $response,
+        ));
     }
 
     public function parse_deposit_address($depositAddress, ?array $currency = null) {
@@ -2389,7 +2391,7 @@ class ascendex extends Exchange {
             'asset' => $currency['id'],
             'blockchain' => $networkId,
         );
-        $response = $this->v1PrivateGetWalletDepositAddress (array_merge($request, $params));
+        $response = $this->v1PrivateGetWalletDepositAddress ($this->extend($request, $params));
         //
         //     {
         //         "code":0,
@@ -2440,7 +2442,7 @@ class ascendex extends Exchange {
             $address = $this->safe_dict($addresses, 0, array());
         }
         $result = $this->parse_deposit_address($address, $currency);
-        return array_merge($result, array(
+        return $this->extend($result, array(
             'info' => $response,
         ));
     }
@@ -2457,7 +2459,7 @@ class ascendex extends Exchange {
         $request = array(
             'txType' => 'deposit',
         );
-        return $this->fetch_transactions($code, $since, $limit, array_merge($request, $params));
+        return $this->fetch_transactions($code, $since, $limit, $this->extend($request, $params));
     }
 
     public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -2472,7 +2474,7 @@ class ascendex extends Exchange {
         $request = array(
             'txType' => 'withdrawal',
         );
-        return $this->fetch_transactions($code, $since, $limit, array_merge($request, $params));
+        return $this->fetch_transactions($code, $since, $limit, $this->extend($request, $params));
     }
 
     public function fetch_deposits_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -2504,7 +2506,7 @@ class ascendex extends Exchange {
         if ($limit !== null) {
             $request['pageSize'] = $limit;
         }
-        $response = $this->v1PrivateGetWalletTransactions (array_merge($request, $params));
+        $response = $this->v1PrivateGetWalletTransactions ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -2535,7 +2537,7 @@ class ascendex extends Exchange {
         return $this->parse_transactions($transactions, $currency, $since, $limit);
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'reviewing' => 'pending',
             'pending' => 'pending',
@@ -2545,7 +2547,7 @@ class ascendex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //     {
         //         "requestId" => "wuzd1Ojsqtz4bCA3UXwtUnnJDmU8PiyB",
@@ -2615,7 +2617,7 @@ class ascendex extends Exchange {
         $request = array(
             'account-group' => $accountGroup,
         );
-        $response = $this->v2PrivateAccountGroupGetFuturesPosition (array_merge($request, $params));
+        $response = $this->v2PrivateAccountGroupGetFuturesPosition ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -2665,7 +2667,7 @@ class ascendex extends Exchange {
         return $this->filter_by_array_positions($result, 'symbol', $symbols, false);
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         //     array(
         //         "symbol" => "BTC-PERP",
@@ -2821,7 +2823,7 @@ class ascendex extends Exchange {
             'symbol' => $market['id'],
             'amount' => $amount, // positive value for adding margin, negative for reducing
         );
-        $response = $this->v2PrivateAccountGroupPostFuturesIsolatedPositionMargin (array_merge($request, $params));
+        $response = $this->v2PrivateAccountGroupPostFuturesIsolatedPositionMargin ($this->extend($request, $params));
         //
         // Can only change margin for perpetual futures isolated margin positions
         //
@@ -2832,13 +2834,13 @@ class ascendex extends Exchange {
         if ($type === 'reduce') {
             $amount = Precise::string_abs($amount);
         }
-        return array_merge($this->parse_margin_modification($response, $market), array(
+        return $this->extend($this->parse_margin_modification($response, $market), array(
             'amount' => $this->parse_number($amount),
             'type' => $type,
         ));
     }
 
-    public function parse_margin_modification($data, ?array $market = null): array {
+    public function parse_margin_modification(array $data, ?array $market = null): array {
         //
         // addMargin/reduceMargin
         //
@@ -2912,7 +2914,7 @@ class ascendex extends Exchange {
             'symbol' => $market['id'],
             'leverage' => $leverage,
         );
-        return $this->v2PrivateAccountGroupPostFuturesLeverage (array_merge($request, $params));
+        return $this->v2PrivateAccountGroupPostFuturesLeverage ($this->extend($request, $params));
     }
 
     public function set_margin_mode(string $marginMode, ?string $symbol = null, $params = array ()) {
@@ -2947,10 +2949,10 @@ class ascendex extends Exchange {
         if (!$market['swap']) {
             throw new BadSymbol($this->id . ' setMarginMode() supports swap contracts only');
         }
-        return $this->v2PrivateAccountGroupPostFuturesMarginType (array_merge($request, $params));
+        return $this->v2PrivateAccountGroupPostFuturesMarginType ($this->extend($request, $params));
     }
 
-    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()) {
+    public function fetch_leverage_tiers(?array $symbols = null, $params = array ()): array {
         /**
          * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
          * @param {string[]|null} $symbols list of unified market $symbols
@@ -2992,7 +2994,7 @@ class ascendex extends Exchange {
         return $this->parse_leverage_tiers($data, $symbols, 'symbol');
     }
 
-    public function parse_market_leverage_tiers($info, ?array $market = null) {
+    public function parse_market_leverage_tiers($info, ?array $market = null): array {
         /**
          * @param {array} $info Exchange $market response for 1 $market
          * @param {array} $market CCXT $market
@@ -3120,7 +3122,6 @@ class ascendex extends Exchange {
         $account = $this->safe_value($this->accounts, 0, array());
         $accountGroup = $this->safe_string($account, 'id');
         $currency = $this->currency($code);
-        $amount = $this->currency_to_precision($code, $amount);
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
         $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
         $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
@@ -3129,12 +3130,12 @@ class ascendex extends Exchange {
         }
         $request = array(
             'account-group' => $accountGroup,
-            'amount' => $amount,
+            'amount' => $this->currency_to_precision($code, $amount),
             'asset' => $currency['id'],
             'fromAccount' => $fromId,
             'toAccount' => $toId,
         );
-        $response = $this->v1PrivateAccountGroupPostTransfer (array_merge($request, $params));
+        $response = $this->v1PrivateAccountGroupPostTransfer ($this->extend($request, $params));
         //
         //    array( "code" => "0" )
         //
@@ -3150,11 +3151,11 @@ class ascendex extends Exchange {
         return $transfer;
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //    array( "code" => "0" )
         //
-        $status = $this->safe_integer($transfer, 'code');
+        $status = $this->safe_string($transfer, 'code');
         $currencyCode = $this->safe_currency_code(null, $currency);
         return array(
             'info' => $transfer,
@@ -3169,8 +3170,8 @@ class ascendex extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
-        if ($status === 0) {
+    public function parse_transfer_status(?string $status): ?string {
+        if ($status === '0') {
             return 'ok';
         }
         return 'failed';
@@ -3207,7 +3208,7 @@ class ascendex extends Exchange {
         if ($limit !== null) {
             $request['pageSize'] = $limit;
         }
-        $response = $this->v2PrivateAccountGroupGetFuturesFundingPayments (array_merge($request, $params));
+        $response = $this->v2PrivateAccountGroupGetFuturesFundingPayments ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -3268,7 +3269,7 @@ class ascendex extends Exchange {
         $request = array(
             'account-group' => $accountGroup,
         );
-        $response = $this->v2PrivateAccountGroupGetFuturesPosition (array_merge($request, $params));
+        $response = $this->v2PrivateAccountGroupGetFuturesPosition ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -3313,7 +3314,7 @@ class ascendex extends Exchange {
         return $this->parse_margin_modes($marginModes, $symbols, 'symbol');
     }
 
-    public function parse_margin_mode($marginMode, $market = null): array {
+    public function parse_margin_mode(array $marginMode, $market = null): array {
         $marketId = $this->safe_string($marginMode, 'symbol');
         $marginType = $this->safe_string($marginMode, 'marginType');
         $margin = ($marginType === 'crossed') ? 'cross' : 'isolated';
@@ -3339,7 +3340,7 @@ class ascendex extends Exchange {
         $request = array(
             'account-group' => $accountGroup,
         );
-        $response = $this->v2PrivateAccountGroupGetFuturesPosition (array_merge($request, $params));
+        $response = $this->v2PrivateAccountGroupGetFuturesPosition ($this->extend($request, $params));
         //
         //     {
         //         "code" => 0,
@@ -3384,7 +3385,7 @@ class ascendex extends Exchange {
         return $this->parse_leverages($leverages, $symbols, 'symbol');
     }
 
-    public function parse_leverage($leverage, $market = null): array {
+    public function parse_leverage(array $leverage, ?array $market = null): array {
         $marketId = $this->safe_string($leverage, 'symbol');
         $leverageValue = $this->safe_integer($leverage, 'leverage');
         $marginType = $this->safe_string($leverage, 'marginType');
@@ -3462,7 +3463,7 @@ class ascendex extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to default $error handler
         }

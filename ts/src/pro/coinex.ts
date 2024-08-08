@@ -7,7 +7,7 @@ import { AuthenticationError, BadRequest, ExchangeNotAvailable, NotSupported, Re
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import { md5 } from '../static_dependencies/noble-hashes/md5.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -242,7 +242,7 @@ export default class coinex extends coinexRest {
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const url = this.urls['api']['ws'][type];
         const currencies = Object.keys (this.currencies_by_id);
-        const subscribe = {
+        const subscribe: Dict = {
             'method': 'asset.subscribe',
             'params': currencies,
             'id': this.requestId (),
@@ -447,7 +447,7 @@ export default class coinex extends coinexRest {
         if (symbols !== undefined) {
             messageHash = 'tickers::' + symbols.join (',');
         }
-        const subscribe = {
+        const subscribe: Dict = {
             'method': 'state.subscribe',
             'id': this.requestId (),
             'params': [],
@@ -482,7 +482,7 @@ export default class coinex extends coinexRest {
         const subscriptionHash = 'trades';
         const subscribedSymbols = this.safeValue (this.options, 'watchTradesSubscriptions', []);
         subscribedSymbols.push (market['id']);
-        const message = {
+        const message: Dict = {
             'method': 'deals.subscribe',
             'params': subscribedSymbols,
             'id': this.requestId (),
@@ -530,7 +530,7 @@ export default class coinex extends coinexRest {
         params = this.omit (params, 'aggregation');
         const watchOrderBookSubscriptions = this.safeValue (this.options, 'watchOrderBookSubscriptions', {});
         watchOrderBookSubscriptions[symbol] = [ market['id'], limit, aggregation, true ];
-        const subscribe = {
+        const subscribe: Dict = {
             'method': 'depth.subscribe_multi',
             'id': this.requestId (),
             'params': Object.values (watchOrderBookSubscriptions),
@@ -576,7 +576,7 @@ export default class coinex extends coinexRest {
             throw new ExchangeError (this.id + ' watchOHLCV() can only watch one symbol and timeframe at a time. To supress this warning set watchOHLCVWarning to false in options');
         }
         const timeframes = this.safeValue (this.options, 'timeframes', {});
-        const subscribe = {
+        const subscribe: Dict = {
             'method': 'kline.subscribe',
             'id': this.requestId (),
             'params': [
@@ -584,7 +584,7 @@ export default class coinex extends coinexRest {
                 this.safeInteger (timeframes, timeframe),
             ],
         };
-        const subscription = {
+        const subscription: Dict = {
             'symbol': symbol,
             'timeframe': timeframe,
         };
@@ -622,7 +622,7 @@ export default class coinex extends coinexRest {
             since = 1640995200;  // January 1, 2022
         }
         const id = this.requestId ();
-        const subscribe = {
+        const subscribe: Dict = {
             'method': 'kline.query',
             'params': [
                 market['id'],
@@ -632,7 +632,7 @@ export default class coinex extends coinexRest {
             ],
             'id': id,
         };
-        const subscription = {
+        const subscription: Dict = {
             'id': id,
             'future': messageHash,
         };
@@ -677,12 +677,13 @@ export default class coinex extends coinexRest {
         //         "id": null
         //     }
         //
+        const isSwap = client.url.indexOf ('perpetual') >= 0;
+        const marketType = isSwap ? 'swap' : 'spot';
         const params = this.safeValue (message, 'params', []);
         const fullOrderBook = this.safeValue (params, 0);
         let orderbook = this.safeValue (params, 1);
         const marketId = this.safeString (params, 2);
-        const defaultType = this.safeString (this.options, 'defaultType');
-        const market = this.safeMarket (marketId, undefined, undefined, defaultType);
+        const market = this.safeMarket (marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
         const name = 'orderbook';
         const messageHash = name + ':' + symbol;
@@ -717,7 +718,7 @@ export default class coinex extends coinexRest {
         let messageHash = 'orders';
         let market = undefined;
         const [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
-        const message = {
+        const message: Dict = {
             'method': 'order.subscribe',
             'id': this.requestId (),
         };
@@ -1000,7 +1001,7 @@ export default class coinex extends coinexRest {
     }
 
     parseWsOrderStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             '0': 'pending',
             '1': 'ok',
         };
@@ -1014,7 +1015,7 @@ export default class coinex extends coinexRest {
             throw new ExchangeError (this.id + ' ' + this.json (error));
         }
         const method = this.safeString (message, 'method');
-        const handlers = {
+        const handlers: Dict = {
             'state.update': this.handleTicker,
             'asset.update': this.handleBalance,
             'deals.update': this.handleTrades,
@@ -1086,13 +1087,13 @@ export default class coinex extends coinexRest {
                 return await future;
             }
             const requestId = this.requestId ();
-            const subscribe = {
+            const subscribe: Dict = {
                 'id': requestId,
                 'future': spotMessageHash,
             };
             const signData = 'access_id=' + this.apiKey + '&tonce=' + this.numberToString (time) + '&secret_key=' + this.secret;
             const hash = this.hash (this.encode (signData), md5);
-            const request = {
+            const request: Dict = {
                 'method': 'server.sign',
                 'params': [
                     this.apiKey,
@@ -1109,13 +1110,13 @@ export default class coinex extends coinexRest {
                 return await future;
             }
             const requestId = this.requestId ();
-            const subscribe = {
+            const subscribe: Dict = {
                 'id': requestId,
                 'future': swapMessageHash,
             };
             const signData = 'access_id=' + this.apiKey + '&timestamp=' + this.numberToString (time) + '&secret_key=' + this.secret;
             const hash = this.hash (this.encode (signData), sha256, 'hex');
-            const request = {
+            const request: Dict = {
                 'method': 'server.sign',
                 'params': [
                     this.apiKey,

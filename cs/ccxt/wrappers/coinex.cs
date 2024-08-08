@@ -329,7 +329,7 @@ public partial class coinex
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -447,7 +447,7 @@ public partial class coinex
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -533,10 +533,10 @@ public partial class coinex
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
-    public async Task<Dictionary<string, object>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Order>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
     /// <summary>
     /// fetches information on an order made by the user
@@ -750,8 +750,8 @@ public partial class coinex
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http013_user_deals"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot003_trade014_user_deals"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/spot/deal/http/list-user-deals"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/deal/http/list-user-deals"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -762,13 +762,25 @@ public partial class coinex
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum number of trades structures to retrieve
+    /// int : the maximum number of trade structures to retrieve
     /// </description>
     /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest trades
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.side</term>
+    /// <description>
+    /// string : the side of the trades, either 'buy' or 'sell', required for swap
     /// </description>
     /// </item>
     /// </list>
@@ -785,8 +797,8 @@ public partial class coinex
     /// fetch all open positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033_pending_position"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033-0_finished_position"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/position/http/list-pending-position"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/position/http/list-finished-position"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -797,13 +809,7 @@ public partial class coinex
     /// <item>
     /// <term>params.method</term>
     /// <description>
-    /// string : the method to use 'perpetualPrivateGetPositionPending' or 'perpetualPrivateGetPositionFinished' default is 'perpetualPrivateGetPositionPending'
-    /// </description>
-    /// </item>
-    /// <item>
-    /// <term>params.side</term>
-    /// <description>
-    /// int : *history endpoint only* 0: All, 1: Sell, 2: Buy, default is 0
+    /// string : the method to use 'v2PrivateGetFuturesPendingPosition' or 'v2PrivateGetFuturesFinishedPosition' default is 'v2PrivateGetFuturesPendingPosition'
     /// </description>
     /// </item>
     /// </list>
@@ -818,7 +824,7 @@ public partial class coinex
     /// fetch data on a single open contract trade position
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033_pending_position"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/position/http/list-pending-position"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -838,7 +844,7 @@ public partial class coinex
     /// set margin mode to 'cross' or 'isolated'
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http014_adjust_leverage"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/position/http/adjust-position-leverage"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -858,7 +864,7 @@ public partial class coinex
     /// set the level of leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http014_adjust_leverage"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/position/http/adjust-position-leverage"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -884,7 +890,7 @@ public partial class coinex
     /// retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http007_market_limit"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/market/http/list-market-position-level"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -895,16 +901,16 @@ public partial class coinex
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/#/?id=leverage-tiers-structure}, indexed by market symbols.</returns>
-    public async Task<Dictionary<string, object>> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<LeverageTiers> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverageTiers(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new LeverageTiers(res);
     }
     /// <summary>
-    /// fetch the history of funding payments paid and received on this account
+    /// fetch the history of funding fee payments paid and received on this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http034_funding_position"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/position/http/list-position-funding-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -938,7 +944,7 @@ public partial class coinex
     /// fetch the current funding rate
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http008_market_ticker"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -958,7 +964,7 @@ public partial class coinex
     /// fetch the current funding rates
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -978,7 +984,7 @@ public partial class coinex
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account015_submit_withdraw"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/withdrawal"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1004,7 +1010,7 @@ public partial class coinex
     /// fetches historical funding rate prices
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http038_funding_history"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/market/http/list-market-funding-rate-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1027,7 +1033,7 @@ public partial class coinex
     /// <item>
     /// <term>params.paginate</term>
     /// <description>
-    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
     /// </description>
     /// </item>
     /// <item>
@@ -1050,13 +1056,18 @@ public partial class coinex
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account014_balance_contract_transfer"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account013_margin_transfer"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/transfer/http/transfer"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.symbol</term>
+    /// <description>
+    /// string : unified ccxt symbol, required when either the fromAccount or toAccount is margin
     /// </description>
     /// </item>
     /// </list>
@@ -1071,8 +1082,7 @@ public partial class coinex
     /// fetch a history of internal transfers made on an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account025_margin_transfer_history"/>  <br/>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account024_contract_transfer_history"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/transfer/http/list-transfer-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1083,7 +1093,7 @@ public partial class coinex
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum number of  transfers structures to retrieve
+    /// int : the maximum number of transfer structures to retrieve
     /// </description>
     /// </item>
     /// <item>
@@ -1092,22 +1102,34 @@ public partial class coinex
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.marginMode</term>
+    /// <description>
+    /// string : 'cross' or 'isolated' for fetching transfers to and from your margin account
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<TransferEntry>> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTransfers(code, since, limit, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new TransferEntry(item)).ToList<TransferEntry>();
     }
     /// <summary>
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account026_withdraw_list"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-withdrawal-history"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>since</term>
     /// <description>
@@ -1117,7 +1139,7 @@ public partial class coinex
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum number of withdrawals structures to retrieve
+    /// int : the maximum number of withdrawal structures to retrieve
     /// </description>
     /// </item>
     /// <item>
@@ -1140,8 +1162,14 @@ public partial class coinex
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account009_deposit_list"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/list-deposit-history"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>since</term>
     /// <description>
@@ -1151,7 +1179,7 @@ public partial class coinex
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum number of deposits structures to retrieve
+    /// int : the maximum number of deposit structures to retrieve
     /// </description>
     /// </item>
     /// <item>
@@ -1174,7 +1202,7 @@ public partial class coinex
     /// fetch the rate of interest to borrow a currency for margin trading
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-interest-limit"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1191,11 +1219,35 @@ public partial class coinex
         return new IsolatedBorrowRate(res);
     }
     /// <summary>
-    /// fetch the borrow interest rates of all currencies
+    /// fetch the interest owed by the user for borrowing currency for margin trading
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-borrow-history"/>  <br/>
     /// <list type="table">
+    /// <item>
+    /// <term>code</term>
+    /// <description>
+    /// string : unified currency code
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol when fetch interest in isolated markets
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch borrrow interest for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of structures to retrieve
+    /// </description>
+    /// </item>
     /// <item>
     /// <term>params</term>
     /// <description>
@@ -1204,12 +1256,7 @@ public partial class coinex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a list of [isolated borrow rate structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#isolated-borrow-rate-structure}.</returns>
-    public async Task<IsolatedBorrowRates> FetchIsolatedBorrowRates(Dictionary<string, object> parameters = null)
-    {
-        var res = await this.fetchIsolatedBorrowRates(parameters);
-        return new IsolatedBorrowRates(res);
-    }
+    /// <returns> <term>object[]</term> a list of [borrow interest structures]{@link https://docs.ccxt.com/#/?id=borrow-interest-structure}.</returns>
     public async Task<Dictionary<string, object>> FetchBorrowInterest(string code = null, string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -1218,10 +1265,10 @@ public partial class coinex
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
-    /// fetch deposit and withdraw fees
+    /// fetch the fee for deposits and withdrawals
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market010_asset_config"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/deposit-withdrawal/http/get-deposit-withdrawal-config"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1231,17 +1278,17 @@ public partial class coinex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [fees structures]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
-    public async Task<Dictionary<string, object>> FetchDepositWithdrawFees(List<String> codes = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}.</returns>
+    public async Task<Dictionary<string, object>> FetchDepositWithdrawFee(string code, Dictionary<string, object> parameters = null)
     {
-        var res = await this.fetchDepositWithdrawFees(codes, parameters);
+        var res = await this.fetchDepositWithdrawFee(code, parameters);
         return ((Dictionary<string, object>)res);
     }
     /// <summary>
-    /// fetch the set leverage for all contract and margin markets
+    /// fetch the set leverage for a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot002_account007_margin_account_settings"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/assets/loan-flat/http/list-margin-interest-limit"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1251,34 +1298,40 @@ public partial class coinex
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object</term> a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
-    public async Task<Leverages> FetchLeverages(List<string> symbols = null, Dictionary<string, object> parameters = null)
+    /// <returns> <term>object</term> a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}.</returns>
+    public async Task<Leverage> FetchLeverage(string symbol, Dictionary<string, object> parameters = null)
     {
-        var res = await this.fetchLeverages(symbols, parameters);
-        return new Leverages(res);
+        var res = await this.fetchLeverage(symbol, parameters);
+        return new Leverage(res);
     }
     /// <summary>
     /// fetches historical positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http033-0_finished_position"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/position/http/list-finished-position"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
     /// <description>
-    /// int : not used by coinex fetchPositionHistory
+    /// int : the earliest time in ms to fetch positions for
     /// </description>
     /// </item>
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum amount of records to fetch, default=1000
+    /// int : the maximum amount of records to fetch, default is 10
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.side</term>
+    /// <term>params</term>
     /// <description>
-    /// int : 0: all 1: sell, 2: buy
+    /// object : extra parameters specific to the exchange api endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : the latest time in ms to fetch positions for
     /// </description>
     /// </item>
     /// </list>
@@ -1295,14 +1348,8 @@ public partial class coinex
     /// fetches the history of margin added or reduced from contract isolated positions
     /// </summary>
     /// <remarks>
-    /// See <see href="https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http046_position_margin_history"/>  <br/>
+    /// See <see href="https://docs.coinex.com/api/v2/futures/position/http/list-position-margin-history"/>  <br/>
     /// <list type="table">
-    /// <item>
-    /// <term>symbol</term>
-    /// <description>
-    /// string : unified market symbol
-    /// </description>
-    /// </item>
     /// <item>
     /// <term>type</term>
     /// <description>
@@ -1318,7 +1365,7 @@ public partial class coinex
     /// <item>
     /// <term>limit</term>
     /// <description>
-    /// int : the maximum amount of changes to fetch, default=100, max=100
+    /// int : the maximum amount of changes to fetch, default is 10
     /// </description>
     /// </item>
     /// <item>
@@ -1328,9 +1375,9 @@ public partial class coinex
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.offset</term>
+    /// <term>params.positionId</term>
     /// <description>
-    /// int : offset
+    /// int : the id of the position that you want to retrieve margin adjustment history for
     /// </description>
     /// </item>
     /// </list>

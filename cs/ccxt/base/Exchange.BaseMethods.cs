@@ -6,6 +6,334 @@ public partial class Exchange
 {
 
 
+    public virtual object describe()
+    {
+        return new Dictionary<string, object>() {
+            { "id", null },
+            { "name", null },
+            { "countries", null },
+            { "enableRateLimit", true },
+            { "rateLimit", 2000 },
+            { "timeout", this.timeout },
+            { "certified", false },
+            { "pro", false },
+            { "alias", false },
+            { "dex", false },
+            { "has", new Dictionary<string, object>() {
+                { "publicAPI", true },
+                { "privateAPI", true },
+                { "CORS", null },
+                { "sandbox", null },
+                { "spot", null },
+                { "margin", null },
+                { "swap", null },
+                { "future", null },
+                { "option", null },
+                { "addMargin", null },
+                { "borrowCrossMargin", null },
+                { "borrowIsolatedMargin", null },
+                { "borrowMargin", null },
+                { "cancelAllOrders", null },
+                { "cancelAllOrdersWs", null },
+                { "cancelOrder", true },
+                { "cancelOrderWs", null },
+                { "cancelOrders", null },
+                { "cancelOrdersWs", null },
+                { "closeAllPositions", null },
+                { "closePosition", null },
+                { "createDepositAddress", null },
+                { "createLimitBuyOrder", null },
+                { "createLimitBuyOrderWs", null },
+                { "createLimitOrder", true },
+                { "createLimitOrderWs", null },
+                { "createLimitSellOrder", null },
+                { "createLimitSellOrderWs", null },
+                { "createMarketBuyOrder", null },
+                { "createMarketBuyOrderWs", null },
+                { "createMarketBuyOrderWithCost", null },
+                { "createMarketBuyOrderWithCostWs", null },
+                { "createMarketOrder", true },
+                { "createMarketOrderWs", true },
+                { "createMarketOrderWithCost", null },
+                { "createMarketOrderWithCostWs", null },
+                { "createMarketSellOrder", null },
+                { "createMarketSellOrderWs", null },
+                { "createMarketSellOrderWithCost", null },
+                { "createMarketSellOrderWithCostWs", null },
+                { "createOrder", true },
+                { "createOrderWs", null },
+                { "createOrders", null },
+                { "createOrderWithTakeProfitAndStopLoss", null },
+                { "createOrderWithTakeProfitAndStopLossWs", null },
+                { "createPostOnlyOrder", null },
+                { "createPostOnlyOrderWs", null },
+                { "createReduceOnlyOrder", null },
+                { "createReduceOnlyOrderWs", null },
+                { "createStopLimitOrder", null },
+                { "createStopLimitOrderWs", null },
+                { "createStopLossOrder", null },
+                { "createStopLossOrderWs", null },
+                { "createStopMarketOrder", null },
+                { "createStopMarketOrderWs", null },
+                { "createStopOrder", null },
+                { "createStopOrderWs", null },
+                { "createTakeProfitOrder", null },
+                { "createTakeProfitOrderWs", null },
+                { "createTrailingAmountOrder", null },
+                { "createTrailingAmountOrderWs", null },
+                { "createTrailingPercentOrder", null },
+                { "createTrailingPercentOrderWs", null },
+                { "createTriggerOrder", null },
+                { "createTriggerOrderWs", null },
+                { "deposit", null },
+                { "editOrder", "emulated" },
+                { "editOrderWs", null },
+                { "fetchAccounts", null },
+                { "fetchBalance", true },
+                { "fetchBalanceWs", null },
+                { "fetchBidsAsks", null },
+                { "fetchBorrowInterest", null },
+                { "fetchBorrowRate", null },
+                { "fetchBorrowRateHistories", null },
+                { "fetchBorrowRateHistory", null },
+                { "fetchBorrowRates", null },
+                { "fetchBorrowRatesPerSymbol", null },
+                { "fetchCanceledAndClosedOrders", null },
+                { "fetchCanceledOrders", null },
+                { "fetchClosedOrder", null },
+                { "fetchClosedOrders", null },
+                { "fetchClosedOrdersWs", null },
+                { "fetchConvertCurrencies", null },
+                { "fetchConvertQuote", null },
+                { "fetchConvertTrade", null },
+                { "fetchConvertTradeHistory", null },
+                { "fetchCrossBorrowRate", null },
+                { "fetchCrossBorrowRates", null },
+                { "fetchCurrencies", "emulated" },
+                { "fetchCurrenciesWs", "emulated" },
+                { "fetchDeposit", null },
+                { "fetchDepositAddress", null },
+                { "fetchDepositAddresses", null },
+                { "fetchDepositAddressesByNetwork", null },
+                { "fetchDeposits", null },
+                { "fetchDepositsWithdrawals", null },
+                { "fetchDepositsWs", null },
+                { "fetchDepositWithdrawFee", null },
+                { "fetchDepositWithdrawFees", null },
+                { "fetchFundingHistory", null },
+                { "fetchFundingRate", null },
+                { "fetchFundingRateHistory", null },
+                { "fetchFundingRates", null },
+                { "fetchGreeks", null },
+                { "fetchIndexOHLCV", null },
+                { "fetchIsolatedBorrowRate", null },
+                { "fetchIsolatedBorrowRates", null },
+                { "fetchMarginAdjustmentHistory", null },
+                { "fetchIsolatedPositions", null },
+                { "fetchL2OrderBook", true },
+                { "fetchL3OrderBook", null },
+                { "fetchLastPrices", null },
+                { "fetchLedger", null },
+                { "fetchLedgerEntry", null },
+                { "fetchLeverage", null },
+                { "fetchLeverages", null },
+                { "fetchLeverageTiers", null },
+                { "fetchLiquidations", null },
+                { "fetchMarginMode", null },
+                { "fetchMarginModes", null },
+                { "fetchMarketLeverageTiers", null },
+                { "fetchMarkets", true },
+                { "fetchMarketsWs", null },
+                { "fetchMarkOHLCV", null },
+                { "fetchMyLiquidations", null },
+                { "fetchMySettlementHistory", null },
+                { "fetchMyTrades", null },
+                { "fetchMyTradesWs", null },
+                { "fetchOHLCV", null },
+                { "fetchOHLCVWs", null },
+                { "fetchOpenInterest", null },
+                { "fetchOpenInterestHistory", null },
+                { "fetchOpenOrder", null },
+                { "fetchOpenOrders", null },
+                { "fetchOpenOrdersWs", null },
+                { "fetchOption", null },
+                { "fetchOptionChain", null },
+                { "fetchOrder", null },
+                { "fetchOrderBook", true },
+                { "fetchOrderBooks", null },
+                { "fetchOrderBookWs", null },
+                { "fetchOrders", null },
+                { "fetchOrdersByStatus", null },
+                { "fetchOrdersWs", null },
+                { "fetchOrderTrades", null },
+                { "fetchOrderWs", null },
+                { "fetchPermissions", null },
+                { "fetchPosition", null },
+                { "fetchPositionHistory", null },
+                { "fetchPositionsHistory", null },
+                { "fetchPositionWs", null },
+                { "fetchPositionMode", null },
+                { "fetchPositions", null },
+                { "fetchPositionsWs", null },
+                { "fetchPositionsForSymbol", null },
+                { "fetchPositionsForSymbolWs", null },
+                { "fetchPositionsRisk", null },
+                { "fetchPremiumIndexOHLCV", null },
+                { "fetchSettlementHistory", null },
+                { "fetchStatus", null },
+                { "fetchTicker", true },
+                { "fetchTickerWs", null },
+                { "fetchTickers", null },
+                { "fetchTickersWs", null },
+                { "fetchTime", null },
+                { "fetchTrades", true },
+                { "fetchTradesWs", null },
+                { "fetchTradingFee", null },
+                { "fetchTradingFees", null },
+                { "fetchTradingFeesWs", null },
+                { "fetchTradingLimits", null },
+                { "fetchTransactionFee", null },
+                { "fetchTransactionFees", null },
+                { "fetchTransactions", null },
+                { "fetchTransfer", null },
+                { "fetchTransfers", null },
+                { "fetchUnderlyingAssets", null },
+                { "fetchVolatilityHistory", null },
+                { "fetchWithdrawAddresses", null },
+                { "fetchWithdrawal", null },
+                { "fetchWithdrawals", null },
+                { "fetchWithdrawalsWs", null },
+                { "fetchWithdrawalWhitelist", null },
+                { "reduceMargin", null },
+                { "repayCrossMargin", null },
+                { "repayIsolatedMargin", null },
+                { "setLeverage", null },
+                { "setMargin", null },
+                { "setMarginMode", null },
+                { "setPositionMode", null },
+                { "signIn", null },
+                { "transfer", null },
+                { "watchBalance", null },
+                { "watchMyTrades", null },
+                { "watchOHLCV", null },
+                { "watchOHLCVForSymbols", null },
+                { "watchOrderBook", null },
+                { "watchOrderBookForSymbols", null },
+                { "watchOrders", null },
+                { "watchOrdersForSymbols", null },
+                { "watchPosition", null },
+                { "watchPositions", null },
+                { "watchStatus", null },
+                { "watchTicker", null },
+                { "watchTickers", null },
+                { "watchTrades", null },
+                { "watchTradesForSymbols", null },
+                { "watchLiquidations", null },
+                { "watchLiquidationsForSymbols", null },
+                { "watchMyLiquidations", null },
+                { "watchMyLiquidationsForSymbols", null },
+                { "withdraw", null },
+                { "ws", null },
+            } },
+            { "urls", new Dictionary<string, object>() {
+                { "logo", null },
+                { "api", null },
+                { "www", null },
+                { "doc", null },
+                { "fees", null },
+            } },
+            { "api", null },
+            { "requiredCredentials", new Dictionary<string, object>() {
+                { "apiKey", true },
+                { "secret", true },
+                { "uid", false },
+                { "accountId", false },
+                { "login", false },
+                { "password", false },
+                { "twofa", false },
+                { "privateKey", false },
+                { "walletAddress", false },
+                { "token", false },
+            } },
+            { "markets", null },
+            { "currencies", new Dictionary<string, object>() {} },
+            { "timeframes", null },
+            { "fees", new Dictionary<string, object>() {
+                { "trading", new Dictionary<string, object>() {
+                    { "tierBased", null },
+                    { "percentage", null },
+                    { "taker", null },
+                    { "maker", null },
+                } },
+                { "funding", new Dictionary<string, object>() {
+                    { "tierBased", null },
+                    { "percentage", null },
+                    { "withdraw", new Dictionary<string, object>() {} },
+                    { "deposit", new Dictionary<string, object>() {} },
+                } },
+            } },
+            { "status", new Dictionary<string, object>() {
+                { "status", "ok" },
+                { "updated", null },
+                { "eta", null },
+                { "url", null },
+            } },
+            { "exceptions", null },
+            { "httpExceptions", new Dictionary<string, object>() {
+                { "422", typeof(ExchangeError) },
+                { "418", typeof(DDoSProtection) },
+                { "429", typeof(RateLimitExceeded) },
+                { "404", typeof(ExchangeNotAvailable) },
+                { "409", typeof(ExchangeNotAvailable) },
+                { "410", typeof(ExchangeNotAvailable) },
+                { "451", typeof(ExchangeNotAvailable) },
+                { "500", typeof(ExchangeNotAvailable) },
+                { "501", typeof(ExchangeNotAvailable) },
+                { "502", typeof(ExchangeNotAvailable) },
+                { "520", typeof(ExchangeNotAvailable) },
+                { "521", typeof(ExchangeNotAvailable) },
+                { "522", typeof(ExchangeNotAvailable) },
+                { "525", typeof(ExchangeNotAvailable) },
+                { "526", typeof(ExchangeNotAvailable) },
+                { "400", typeof(ExchangeNotAvailable) },
+                { "403", typeof(ExchangeNotAvailable) },
+                { "405", typeof(ExchangeNotAvailable) },
+                { "503", typeof(ExchangeNotAvailable) },
+                { "530", typeof(ExchangeNotAvailable) },
+                { "408", typeof(RequestTimeout) },
+                { "504", typeof(RequestTimeout) },
+                { "401", typeof(AuthenticationError) },
+                { "407", typeof(AuthenticationError) },
+                { "511", typeof(AuthenticationError) },
+            } },
+            { "commonCurrencies", new Dictionary<string, object>() {
+                { "XBT", "BTC" },
+                { "BCC", "BCH" },
+                { "BCHSV", "BSV" },
+            } },
+            { "precisionMode", TICK_SIZE },
+            { "paddingMode", NO_PADDING },
+            { "limits", new Dictionary<string, object>() {
+                { "leverage", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "amount", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "price", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+                { "cost", new Dictionary<string, object>() {
+                    { "min", null },
+                    { "max", null },
+                } },
+            } },
+        };
+    }
+
     public virtual object safeBoolN(object dictionaryOrList, object keys, object defaultValue = null)
     {
         /**
@@ -57,9 +385,12 @@ public partial class Exchange
         {
             return defaultValue;
         }
-        if (isTrue((value is IDictionary<string, object>)))
+        if (isTrue(((value is IDictionary<string, object>))))
         {
-            return value;
+            if (!isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            {
+                return value;
+            }
         }
         return defaultValue;
     }
@@ -141,6 +472,18 @@ public partial class Exchange
         throw new NotSupported ((string)add(this.id, " handleDelta not supported yet")) ;
     }
 
+    public virtual void handleDeltasWithKeys(object bookSide, object deltas, object priceKey = null, object amountKey = null, object countOrIdKey = null)
+    {
+        priceKey ??= 0;
+        amountKey ??= 1;
+        countOrIdKey ??= 2;
+        for (object i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        {
+            object bidAsk = this.parseBidAsk(getValue(deltas, i), priceKey, amountKey, countOrIdKey);
+            (bookSide as ccxt.pro.IOrderBookSide).storeArray(bidAsk);
+        }
+    }
+
     public virtual object getCacheIndex(object orderbook, object deltas)
     {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
@@ -205,7 +548,7 @@ public partial class Exchange
         if (isTrue(isGreaterThan(length, 1)))
         {
             object joinedProxyNames = String.Join(",", ((IList<object>)usedProxies).ToArray());
-            throw new ProxyError ((string)add(add(add(this.id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback")) ;
+            throw new InvalidProxySettings ((string)add(add(add(this.id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback")) ;
         }
         return proxyUrl;
     }
@@ -284,7 +627,7 @@ public partial class Exchange
         if (isTrue(isGreaterThan(length, 1)))
         {
             object joinedProxyNames = String.Join(",", ((IList<object>)usedProxies).ToArray());
-            throw new ProxyError ((string)add(add(add(this.id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback")) ;
+            throw new InvalidProxySettings ((string)add(add(add(this.id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback")) ;
         }
         return new List<object>() {httpProxy, httpsProxy, socksProxy};
     }
@@ -333,7 +676,7 @@ public partial class Exchange
         if (isTrue(isGreaterThan(length, 1)))
         {
             object joinedProxyNames = String.Join(",", ((IList<object>)usedProxies).ToArray());
-            throw new ProxyError ((string)add(add(add(this.id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from: wsProxy, wssProxy, wsSocksProxy")) ;
+            throw new InvalidProxySettings ((string)add(add(add(this.id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from: wsProxy, wssProxy, wsSocksProxy")) ;
         }
         return new List<object>() {wsProxy, wssProxy, wsSocksProxy};
     }
@@ -342,7 +685,7 @@ public partial class Exchange
     {
         if (isTrue(isTrue(proxyAgentSet) && isTrue(proxyUrlSet)))
         {
-            throw new ProxyError ((string)add(this.id, " you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy")) ;
+            throw new InvalidProxySettings ((string)add(this.id, " you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy")) ;
         }
     }
 
@@ -516,6 +859,38 @@ public partial class Exchange
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((string)add(this.id, " fetchTradesWs() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> watchLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.has, "watchLiquidationsForSymbols")))
+        {
+            return await this.watchLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
+        }
+        throw new NotSupported ((string)add(this.id, " watchLiquidations() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> watchLiquidationsForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " watchLiquidationsForSymbols() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> watchMyLiquidations(object symbol, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        if (isTrue(getValue(this.has, "watchMyLiquidationsForSymbols")))
+        {
+            return this.watchMyLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
+        }
+        throw new NotSupported ((string)add(this.id, " watchMyLiquidations() is not supported yet")) ;
+    }
+
+    public async virtual Task<object> watchMyLiquidationsForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " watchMyLiquidationsForSymbols() is not supported yet")) ;
     }
 
     public async virtual Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
@@ -907,9 +1282,24 @@ public partial class Exchange
         return isEqual(res, 0);
     }
 
+    public virtual object safeIntegerOmitZero(object obj, object key, object defaultValue = null)
+    {
+        object timestamp = this.safeInteger(obj, key, defaultValue);
+        if (isTrue(isTrue(isEqual(timestamp, null)) || isTrue(isEqual(timestamp, 0))))
+        {
+            return null;
+        }
+        return timestamp;
+    }
+
     public virtual void afterConstruct()
     {
         this.createNetworksByIdObject();
+    }
+
+    public virtual object orderbookChecksumMessage(object symbol)
+    {
+        return add(add(symbol, " : "), "orderbook data checksum validation failed. You can reconnect by calling watchOrderBook again or you can mute the error by setting exchange.options[\"watchOrderBook\"][\"checksum\"] = false");
     }
 
     public virtual void createNetworksByIdObject()
@@ -1300,6 +1690,7 @@ public partial class Exchange
         object shouldParseFees = isTrue(parseFee) || isTrue(parseFees);
         object fees = this.safeList(order, "fees", new List<object>() {});
         object trades = new List<object>() {};
+        object isTriggerOrSLTpOrder = (isTrue((isTrue(!isEqual(this.safeString(order, "triggerPrice"), null)) || isTrue((!isEqual(this.safeString(order, "stopLossPrice"), null))))) || isTrue((!isEqual(this.safeString(order, "takeProfitPrice"), null))));
         if (isTrue(isTrue(isTrue(parseFilled) || isTrue(parseCost)) || isTrue(shouldParseFees)))
         {
             object rawTrades = this.safeValue(order, "trades", trades);
@@ -1546,7 +1937,7 @@ public partial class Exchange
         // timeInForceHandling
         if (isTrue(isEqual(timeInForce, null)))
         {
-            if (isTrue(isEqual(this.safeString(order, "type"), "market")))
+            if (isTrue(!isTrue(isTriggerOrSLTpOrder) && isTrue((isEqual(this.safeString(order, "type"), "market")))))
             {
                 timeInForce = "IOC";
             }
@@ -1810,6 +2201,21 @@ public partial class Exchange
         ((IDictionary<string,object>)trade)["price"] = this.parseNumber(price);
         ((IDictionary<string,object>)trade)["cost"] = this.parseNumber(cost);
         return trade;
+    }
+
+    public virtual object findNearestCeiling(object arr, object providedValue)
+    {
+        //  i.e. findNearestCeiling ([ 10, 30, 50],  23) returns 30
+        object length = getArrayLength(arr);
+        for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
+        {
+            object current = getValue(arr, i);
+            if (isTrue(isLessThanOrEqual(providedValue, current)))
+            {
+                return current;
+            }
+        }
+        return getValue(arr, subtract(length, 1));
     }
 
     public virtual object invertFlatStringDictionary(object dict)
@@ -2401,7 +2807,7 @@ public partial class Exchange
         return networkId;
     }
 
-    public virtual object networkIdToCode(object networkId, object currencyCode = null)
+    public virtual object networkIdToCode(object networkId = null, object currencyCode = null)
     {
         /**
          * @ignore
@@ -2453,7 +2859,7 @@ public partial class Exchange
         } else
         {
             // otherwise, try to use the global-scope 'defaultNetwork' value (even if that network is not supported by currency, it doesn't make any problem, this will be just used "at first" if currency supports this network at all)
-            object defaultNetwork = this.safeDict(this.options, "defaultNetwork");
+            object defaultNetwork = this.safeString(this.options, "defaultNetwork");
             if (isTrue(!isEqual(defaultNetwork, null)))
             {
                 defaultNetworkCode = defaultNetwork;
@@ -2776,12 +3182,52 @@ public partial class Exchange
         return new List<object>() {value, parameters};
     }
 
+    public virtual object handleParamString2(object parameters, object paramName1, object paramName2, object defaultValue = null)
+    {
+        object value = this.safeString2(parameters, paramName1, paramName2, defaultValue);
+        if (isTrue(!isEqual(value, null)))
+        {
+            parameters = this.omit(parameters, new List<object>() {paramName1, paramName2});
+        }
+        return new List<object>() {value, parameters};
+    }
+
     public virtual object handleParamInteger(object parameters, object paramName, object defaultValue = null)
     {
         object value = this.safeInteger(parameters, paramName, defaultValue);
         if (isTrue(!isEqual(value, null)))
         {
             parameters = this.omit(parameters, paramName);
+        }
+        return new List<object>() {value, parameters};
+    }
+
+    public virtual object handleParamInteger2(object parameters, object paramName1, object paramName2, object defaultValue = null)
+    {
+        object value = this.safeInteger2(parameters, paramName1, paramName2, defaultValue);
+        if (isTrue(!isEqual(value, null)))
+        {
+            parameters = this.omit(parameters, new List<object>() {paramName1, paramName2});
+        }
+        return new List<object>() {value, parameters};
+    }
+
+    public virtual object handleParamBool(object parameters, object paramName, object defaultValue = null)
+    {
+        object value = this.safeBool(parameters, paramName, defaultValue);
+        if (isTrue(!isEqual(value, null)))
+        {
+            parameters = this.omit(parameters, paramName);
+        }
+        return new List<object>() {value, parameters};
+    }
+
+    public virtual object handleParamBool2(object parameters, object paramName1, object paramName2, object defaultValue = null)
+    {
+        object value = this.safeBool2(parameters, paramName1, paramName2, defaultValue);
+        if (isTrue(!isEqual(value, null)))
+        {
+            parameters = this.omit(parameters, new List<object>() {paramName1, paramName2});
         }
         return new List<object>() {value, parameters};
     }
@@ -2865,7 +3311,40 @@ public partial class Exchange
         this.last_request_headers = getValue(request, "headers");
         this.last_request_body = getValue(request, "body");
         this.last_request_url = getValue(request, "url");
-        return await this.fetch(getValue(request, "url"), getValue(request, "method"), getValue(request, "headers"), getValue(request, "body"));
+        object retries = null;
+        var retriesparametersVariable = this.handleOptionAndParams(parameters, path, "maxRetriesOnFailure", 0);
+        retries = ((IList<object>)retriesparametersVariable)[0];
+        parameters = ((IList<object>)retriesparametersVariable)[1];
+        object retryDelay = null;
+        var retryDelayparametersVariable = this.handleOptionAndParams(parameters, path, "maxRetriesOnFailureDelay", 0);
+        retryDelay = ((IList<object>)retryDelayparametersVariable)[0];
+        parameters = ((IList<object>)retryDelayparametersVariable)[1];
+        for (object i = 0; isLessThan(i, add(retries, 1)); postFixIncrement(ref i))
+        {
+            try
+            {
+                return await this.fetch(getValue(request, "url"), getValue(request, "method"), getValue(request, "headers"), getValue(request, "body"));
+            } catch(Exception e)
+            {
+                if (isTrue(e is NetworkError))
+                {
+                    if (isTrue(isLessThan(i, retries)))
+                    {
+                        if (isTrue(this.verbose))
+                        {
+                            this.log(add(add(add(add(add(add("Request failed with the error: ", ((object)e).ToString()), ", retrying "), ((object)(add(i, 1))).ToString()), " of "), ((object)retries).ToString()), "..."));
+                        }
+                        if (isTrue(isTrue((!isEqual(retryDelay, null))) && isTrue((!isEqual(retryDelay, 0)))))
+                        {
+                            await this.sleep(retryDelay);
+                        }
+                        continue;
+                    }
+                }
+                throw e;
+            }
+        }
+        return null;  // this line is never reached, but exists for c# value return requirement
     }
 
     public async virtual Task<object> request(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null, object config = null)
@@ -2980,7 +3459,7 @@ public partial class Exchange
         return await this.createOrder(symbol, type, side, amount, price, parameters);
     }
 
-    public async virtual Task<object> editOrderWs(object id, object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public async virtual Task<object> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.cancelOrderWs(id, symbol);
@@ -3380,33 +3859,18 @@ public partial class Exchange
         return new List<object>() {value, parameters};
     }
 
-    public virtual object handleOptionAndParams2(object parameters, object methodName, object methodName2, object optionName, object defaultValue = null)
+    public virtual object handleOptionAndParams2(object parameters, object methodName1, object optionName1, object optionName2, object defaultValue = null)
     {
-        // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
-        object defaultOptionName = add("default", this.capitalize(optionName)); // we also need to check the 'defaultXyzWhatever'
-        // check if params contain the key
-        object value = this.safeValue2(parameters, optionName, defaultOptionName);
-        if (isTrue(!isEqual(value, null)))
-        {
-            parameters = this.omit(parameters, new List<object>() {optionName, defaultOptionName});
-        } else
-        {
-            // check if exchange has properties for this method
-            object exchangeWideMethodOptions = this.safeValue2(this.options, methodName, methodName2);
-            if (isTrue(!isEqual(exchangeWideMethodOptions, null)))
-            {
-                // check if the option is defined inside this method's props
-                value = this.safeValue2(exchangeWideMethodOptions, optionName, defaultOptionName);
-            }
-            if (isTrue(isEqual(value, null)))
-            {
-                // if it's still undefined, check if global exchange-wide option exists
-                value = this.safeValue2(this.options, optionName, defaultOptionName);
-            }
-            // if it's still undefined, use the default value
-            value = ((bool) isTrue((!isEqual(value, null)))) ? value : defaultValue;
-        }
-        return new List<object>() {value, parameters};
+        object value = null;
+        var valueparametersVariable = this.handleOptionAndParams(parameters, methodName1, optionName1, defaultValue);
+        value = ((IList<object>)valueparametersVariable)[0];
+        parameters = ((IList<object>)valueparametersVariable)[1];
+        // if still undefined, try optionName2
+        object value2 = null;
+        var value2parametersVariable = this.handleOptionAndParams(parameters, methodName1, optionName2, value);
+        value2 = ((IList<object>)value2parametersVariable)[0];
+        parameters = ((IList<object>)value2parametersVariable)[1];
+        return new List<object>() {value2, parameters};
     }
 
     public virtual object handleOption(object methodName, object optionName, object defaultValue = null)
@@ -3585,18 +4049,18 @@ public partial class Exchange
             await this.loadMarkets();
             object market = this.market(symbol);
             symbol = getValue(market, "symbol");
-            object tickers = await this.fetchTickerWs(symbol, parameters);
+            object tickers = await this.fetchTickersWs(new List<object>() {symbol}, parameters);
             object ticker = this.safeDict(tickers, symbol);
             if (isTrue(isEqual(ticker, null)))
             {
-                throw new NullResponse ((string)add(add(this.id, " fetchTickers() could not find a ticker for "), symbol)) ;
+                throw new NullResponse ((string)add(add(this.id, " fetchTickerWs() could not find a ticker for "), symbol)) ;
             } else
             {
                 return ticker;
             }
         } else
         {
-            throw new NotSupported ((string)add(this.id, " fetchTicker() is not supported yet")) ;
+            throw new NotSupported ((string)add(this.id, " fetchTickerWs() is not supported yet")) ;
         }
     }
 
@@ -5018,6 +5482,7 @@ public partial class Exchange
         //
         // the value of tickers is either a dict or a list
         //
+        //
         // dict
         //
         //     {
@@ -5140,7 +5605,7 @@ public partial class Exchange
         return result;
     }
 
-    public virtual object isTriggerOrder(object parameters)
+    public virtual object handleTriggerAndParams(object parameters)
     {
         object isTrigger = this.safeBool2(parameters, "trigger", "stop");
         if (isTrue(isTrigger))
@@ -5148,6 +5613,12 @@ public partial class Exchange
             parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         }
         return new List<object>() {isTrigger, parameters};
+    }
+
+    public virtual object isTriggerOrder(object parameters)
+    {
+        // for backwards compatibility
+        return this.handleTriggerAndParams(parameters);
     }
 
     public virtual object isPostOnly(object isMarketOrder, object exchangeSpecificParam, object parameters = null)
@@ -5912,6 +6383,9 @@ public partial class Exchange
                 if (isTrue(isEqual(method, "fetchAccounts")))
                 {
                     response = await ((Task<object>)callDynamically(this, method, new object[] { parameters }));
+                } else if (isTrue(isEqual(method, "getLeverageTiersPaginated")))
+                {
+                    response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, parameters }));
                 } else
                 {
                     response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, since, maxEntriesPerRequest, parameters }));
@@ -5920,8 +6394,9 @@ public partial class Exchange
                 object responseLength = getArrayLength(response);
                 if (isTrue(this.verbose))
                 {
-                    object iteration = ((object)(add(i, 1))).ToString();
-                    object cursorMessage = add(add(add(add(add(add(add("Cursor pagination call ", iteration), " method "), method), " response length "), ((object)responseLength).ToString()), " cursor "), cursorValue);
+                    object cursorString = ((bool) isTrue((isEqual(cursorValue, null)))) ? "" : cursorValue;
+                    object iteration = (add(i, 1));
+                    object cursorMessage = add(add(add(add(add(add(add("Cursor pagination call ", ((object)iteration).ToString()), " method "), method), " response length "), ((object)responseLength).ToString()), " cursor "), cursorString);
                     this.log(cursorMessage);
                 }
                 if (isTrue(isEqual(responseLength, 0)))
@@ -6071,8 +6546,13 @@ public partial class Exchange
 
     public virtual object safeOpenInterest(object interest, object market = null)
     {
+        object symbol = this.safeString(interest, "symbol");
+        if (isTrue(isEqual(symbol, null)))
+        {
+            symbol = this.safeString(market, "symbol");
+        }
         return this.extend(interest, new Dictionary<string, object>() {
-            { "symbol", this.safeString(market, "symbol") },
+            { "symbol", symbol },
             { "baseVolume", this.safeNumber(interest, "baseVolume") },
             { "quoteVolume", this.safeNumber(interest, "quoteVolume") },
             { "openInterestAmount", this.safeNumber(interest, "openInterestAmount") },
@@ -6140,6 +6620,10 @@ public partial class Exchange
     public virtual object parseMarginModes(object response, object symbols = null, object symbolKey = null, object marketType = null)
     {
         object marginModeStructures = new Dictionary<string, object>() {};
+        if (isTrue(isEqual(marketType, null)))
+        {
+            marketType = "swap"; // default to swap
+        }
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object info = getValue(response, i);
@@ -6161,6 +6645,10 @@ public partial class Exchange
     public virtual object parseLeverages(object response, object symbols = null, object symbolKey = null, object marketType = null)
     {
         object leverageStructures = new Dictionary<string, object>() {};
+        if (isTrue(isEqual(marketType, null)))
+        {
+            marketType = "swap"; // default to swap
+        }
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object info = getValue(response, i);
@@ -6360,6 +6848,18 @@ public partial class Exchange
             }
         }
         return marginModifications;
+    }
+
+    public async virtual Task<object> fetchTransfer(object id, object code = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchTransfer () is not supported yet")) ;
+    }
+
+    public async virtual Task<object> fetchTransfers(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        throw new NotSupported ((string)add(this.id, " fetchTransfers () is not supported yet")) ;
     }
 }
 

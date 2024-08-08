@@ -788,7 +788,7 @@ class currencycom extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000, 5000
             }
-            $response = Async\await($this->publicGetV2Depth (array_merge($request, $params)));
+            $response = Async\await($this->publicGetV2Depth ($this->extend($request, $params)));
             //
             //     {
             //         "lastUpdateId":1590999849037,
@@ -810,7 +810,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // fetchTicker
         //
@@ -903,7 +903,7 @@ class currencycom extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetV2Ticker24hr (array_merge($request, $params)));
+            $response = Async\await($this->publicGetV2Ticker24hr ($this->extend($request, $params)));
             //
             //     {
             //         "symbol":"ETH/BTC",
@@ -1006,7 +1006,7 @@ class currencycom extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = min ($limit, 1000); // default 500, max 1000
             }
-            $response = Async\await($this->publicGetV2Klines (array_merge($request, $params)));
+            $response = Async\await($this->publicGetV2Klines ($this->extend($request, $params)));
             //
             //     [
             //         [1590971040000,"0.02454","0.02456","0.02452","0.02456",249],
@@ -1018,7 +1018,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public aggregate trades)
         //
@@ -1119,7 +1119,7 @@ class currencycom extends Exchange {
             if ($since !== null) {
                 $request['startTime'] = $since;
             }
-            $response = Async\await($this->publicGetV2AggTrades (array_merge($request, $params)));
+            $response = Async\await($this->publicGetV2AggTrades ($this->extend($request, $params)));
             //
             // array(
             //     array(
@@ -1135,7 +1135,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -1240,7 +1240,7 @@ class currencycom extends Exchange {
         ), $market);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'NEW' => 'open',
             'CREATED' => 'open',
@@ -1296,7 +1296,7 @@ class currencycom extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
@@ -1339,7 +1339,7 @@ class currencycom extends Exchange {
                     }
                 }
             }
-            $response = Async\await($this->privatePostV2Order (array_merge($request, $params)));
+            $response = Async\await($this->privatePostV2Order ($this->extend($request, $params)));
             //
             // limit
             //
@@ -1401,7 +1401,7 @@ class currencycom extends Exchange {
                 'orderId' => $id,
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->privateGetV2FetchOrder (array_merge($request, $params)));
+            $response = Async\await($this->privateGetV2FetchOrder ($this->extend($request, $params)));
             //
             //    {
             //        "accountId" => "109698017413125316",
@@ -1451,7 +1451,7 @@ class currencycom extends Exchange {
                 $fetchOpenOrdersRateLimit = $this->parse_to_int($numSymbols / 2);
                 throw new ExchangeError($this->id . ' fetchOpenOrders() WARNING => fetching open orders without specifying a $symbol is rate-limited to one call per ' . (string) $fetchOpenOrdersRateLimit . ' seconds. Do not call this method frequently to avoid ban. Set ' . $this->id . '.options["warnOnFetchOpenOrdersWithoutSymbol"] = false to suppress this warning message.');
             }
-            $response = Async\await($this->privateGetV2OpenOrders (array_merge($request, $params)));
+            $response = Async\await($this->privateGetV2OpenOrders ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -1501,7 +1501,7 @@ class currencycom extends Exchange {
             } else {
                 $request['origClientOrderId'] = $origClientOrderId;
             }
-            $response = Async\await($this->privateDeleteV2Order (array_merge($request, $params)));
+            $response = Async\await($this->privateDeleteV2Order ($this->extend($request, $params)));
             //
             //     {
             //         "symbol" => "DOGE/USD",
@@ -1541,7 +1541,7 @@ class currencycom extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetV2MyTrades (array_merge($request, $params)));
+            $response = Async\await($this->privateGetV2MyTrades ($this->extend($request, $params)));
             //
             //     array(
             //         array(
@@ -1625,11 +1625,11 @@ class currencycom extends Exchange {
             }
             $response = null;
             if ($method === 'privateGetV2Deposits') {
-                $response = Async\await($this->privateGetV2Deposits (array_merge($request, $params)));
+                $response = Async\await($this->privateGetV2Deposits ($this->extend($request, $params)));
             } elseif ($method === 'privateGetV2Withdrawals') {
-                $response = Async\await($this->privateGetV2Withdrawals (array_merge($request, $params)));
+                $response = Async\await($this->privateGetV2Withdrawals ($this->extend($request, $params)));
             } elseif ($method === 'privateGetV2Transactions') {
-                $response = Async\await($this->privateGetV2Transactions (array_merge($request, $params)));
+                $response = Async\await($this->privateGetV2Transactions ($this->extend($request, $params)));
             } else {
                 throw new NotSupported($this->id . ' fetchTransactionsByMethod() not support this method');
             }
@@ -1653,7 +1653,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         //    {
         //        "id" => "616769213",
@@ -1705,7 +1705,7 @@ class currencycom extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'APPROVAL' => 'pending',
             'PROCESSED' => 'ok',
@@ -1744,7 +1744,7 @@ class currencycom extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privateGetV2Ledger (array_merge($request, $params)));
+            $response = Async\await($this->privateGetV2Ledger ($this->extend($request, $params)));
             // in the below example, first item expresses withdrawal/deposit type, second example expresses trade
             //
             // array(
@@ -1776,7 +1776,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_ledger_entry($item, ?array $currency = null) {
+    public function parse_ledger_entry(array $item, ?array $currency = null) {
         $id = $this->safe_string($item, 'id');
         $amountString = $this->safe_string($item, 'amount');
         $amount = Precise::string_abs($amountString);
@@ -1841,7 +1841,7 @@ class currencycom extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->privateGetV2LeverageSettings (array_merge($request, $params)));
+            $response = Async\await($this->privateGetV2LeverageSettings ($this->extend($request, $params)));
             //
             //     {
             //         "values" => array( 1, 2, 5, 10, ),
@@ -1852,7 +1852,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_leverage($leverage, $market = null): array {
+    public function parse_leverage(array $leverage, ?array $market = null): array {
         $leverageValue = $this->safe_integer($leverage, 'value');
         return array(
             'info' => $leverage,
@@ -1877,7 +1877,7 @@ class currencycom extends Exchange {
             $request = array(
                 'coin' => $currency['id'],
             );
-            $response = Async\await($this->privateGetV2DepositAddress (array_merge($request, $params)));
+            $response = Async\await($this->privateGetV2DepositAddress ($this->extend($request, $params)));
             //
             //     array( "address":"0x97d64eb014ac779194991e7264f01c74c90327f0" )
             //
@@ -1907,7 +1907,7 @@ class currencycom extends Exchange {
         }
         if ($api === 'private') {
             $this->check_required_credentials();
-            $query = $this->urlencode(array_merge(array(
+            $query = $this->urlencode($this->extend(array(
                 'timestamp' => $this->nonce(),
                 'recvWindow' => $this->options['recvWindow'],
             ), $params));
@@ -1979,7 +1979,7 @@ class currencycom extends Exchange {
         }) ();
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         //    {
         //        "accountId" => "109698017416453793",
@@ -2051,7 +2051,7 @@ class currencycom extends Exchange {
         ));
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if (($httpCode === 418) || ($httpCode === 429)) {
             throw new DDoSProtection($this->id . ' ' . (string) $httpCode . ' ' . $reason . ' ' . $body);
         }

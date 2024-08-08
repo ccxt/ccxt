@@ -92,7 +92,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         if authenticated is None:
             timestamp = self.milliseconds()
             signature = self.hmac(self.encode(self.number_to_string(timestamp)), self.encode(self.secret), hashlib.sha256, 'hex')
-            request = {
+            request: dict = {
                 'method': 'login',
                 'params': {
                     'type': 'HS256',
@@ -133,7 +133,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         messageHash = messageHashPrefix
         if symbols is not None:
             messageHash = messageHash + '::' + ','.join(symbols)
-        subscribe = {
+        subscribe: dict = {
             'method': 'subscribe',
             'id': self.nonce(),
             'ch': name,
@@ -155,7 +155,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         messageHash = self.safe_string(splitName, 0)
         if symbol is not None:
             messageHash = messageHash + '::' + symbol
-        subscribe = {
+        subscribe: dict = {
             'method': name,
             'params': params,
             'id': self.nonce(),
@@ -173,7 +173,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         await self.authenticate()
         url = self.urls['api']['ws']['private']
         messageHash = str(self.nonce())
-        subscribe = {
+        subscribe: dict = {
             'method': name,
             'params': params,
             'id': messageHash,
@@ -210,7 +210,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         elif name == 'orderbook/top/{speed}/batch':
             name = 'orderbook/top/' + speed + 'ms/batch'
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'params': {
                 'symbols': [market['id']],
             },
@@ -304,7 +304,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         name = self.implode_params(method, {'speed': speed})
         params = self.omit(params, ['method', 'speed'])
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'params': {
                 'symbols': [market['id']],
             },
@@ -335,7 +335,7 @@ class hitbtc(ccxt.async_support.hitbtc):
             for i in range(0, len(symbols)):
                 marketId = self.market_id(symbols[i])
                 marketIds.append(marketId)
-        request = {
+        request: dict = {
             'params': {
                 'symbols': marketIds,
             },
@@ -386,7 +386,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         #
         data = self.safe_value(message, 'data', {})
         marketIds = list(data.keys())
-        newTickers = {}
+        newTickers: dict = {}
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             market = self.safe_market(marketId)
@@ -475,7 +475,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'params': {
                 'symbols': [market['id']],
             },
@@ -597,7 +597,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         period = self.safe_string(self.timeframes, timeframe, timeframe)
         name = 'candles/' + period
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'params': {
                 'symbols': [market['id']],
             },
@@ -939,7 +939,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         })
         mode = self.safe_string(params, 'mode', 'batches')
         params = self.omit(params, 'mode')
-        request = {
+        request: dict = {
             'mode': mode,
         }
         return await self.subscribe_private(name, None, self.extend(request, params))
@@ -954,7 +954,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
         :param bool [params.margin]: True for creating a margin order
@@ -1052,7 +1052,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         """
         await self.load_markets()
         market = None
-        request = {}
+        request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1137,12 +1137,13 @@ class hitbtc(ccxt.async_support.hitbtc):
         return message
 
     def handle_message(self, client: Client, message):
-        self.handle_error(client, message)
+        if self.handle_error(client, message):
+            return
         channel = self.safe_string_2(message, 'ch', 'method')
         if channel is not None:
             splitChannel = channel.split('/')
             channel = self.safe_string(splitChannel, 0)
-            methods = {
+            methods: dict = {
                 'candles': self.handle_ohlcv,
                 'ticker': self.handle_ticker,
                 'trades': self.handle_trades,
@@ -1206,11 +1207,22 @@ class hitbtc(ccxt.async_support.hitbtc):
         #
         error = self.safe_value(message, 'error')
         if error is not None:
-            code = self.safe_value(error, 'code')
-            errorMessage = self.safe_string(error, 'message')
-            description = self.safe_string(error, 'description')
-            feedback = self.id + ' ' + description
-            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
-            self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
-            raise ExchangeError(feedback)  # unknown message
+            try:
+                code = self.safe_value(error, 'code')
+                errorMessage = self.safe_string(error, 'message')
+                description = self.safe_string(error, 'description')
+                feedback = self.id + ' ' + description
+                self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+                self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
+                raise ExchangeError(feedback)  # unknown message
+            except Exception as e:
+                if isinstance(e, AuthenticationError):
+                    messageHash = 'authenticated'
+                    client.reject(e, messageHash)
+                    if messageHash in client.subscriptions:
+                        del client.subscriptions[messageHash]
+                else:
+                    id = self.safe_string(message, 'id')
+                    client.reject(e, id)
+                return True
         return None

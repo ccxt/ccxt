@@ -1,0 +1,1030 @@
+{
+    "BTC": {
+        "info": {
+            "id": "2",
+            "currency": "btc",
+            "displayName": "BTC",
+            "type": "FT",
+            "nominalValue": null,
+            "fullName": "Bitcoin",
+            "logo": "https://a.static-global.com/1/currency/btc.png",
+            "cmcLink": "https://coinmarketcap.com/currencies/bitcoin/",
+            "weight": "99999",
+            "maxPrecision": "10",
+            "depositStatus": "1",
+            "withdrawStatus": "1",
+            "convertEnabled": "1",
+            "transferEnabled": "1",
+            "isChainExist": "1",
+            "plates": [
+                152
+            ]
+        },
+        "id": "btc",
+        "code": "BTC",
+        "name": "Bitcoin",
+        "active": true,
+        "fee": 0.00001,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "BTC": {
+                "info": {
+                    "chain": "Bitcoin",
+                    "depositEnabled": true,
+                    "withdrawEnabled": true,
+                    "withdrawFeeAmount": "0.0009",
+                    "withdrawMinAmount": "0.00174",
+                    "depositFeeRate": "0"
+                },
+                "id": "Bitcoin",
+                "network": "BTC",
+                "active": true,
+                "fee": 0.0009,
+                "precision": 1e-10,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 0.00174
+                    },
+                    "deposit": {}
+                }
+            },
+            "BEP20": {
+                "info": {
+                    "chain": "BNB Smart Chain",
+                    "depositEnabled": true,
+                    "withdrawEnabled": true,
+                    "withdrawFeeAmount": "0.000010000000000000",
+                    "withdrawMinAmount": "0.00015",
+                    "depositFeeRate": "0"
+                },
+                "id": "BNB Smart Chain",
+                "network": "BEP20",
+                "active": true,
+                "fee": 0.00001,
+                "precision": 1e-10,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 0.00015
+                    },
+                    "deposit": {}
+                }
+            },
+            "ERC20": {
+                "info": {
+                    "chain": "Ethereum",
+                    "depositEnabled": true,
+                    "withdrawEnabled": true,
+                    "withdrawFeeAmount": "0.007082628000000000",
+                    "withdrawMinAmount": "0.00015",
+                    "depositFeeRate": "0"
+                },
+                "id": "Ethereum",
+                "network": "ERC20",
+                "active": true,
+                "fee": 0.007082628,
+                "precision": 1e-10,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 0.00015
+                    },
+                    "deposit": {}
+                }
+            }
+        },
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 0.00015
+            },
+            "deposit": {}
+        }
+    },
+    "ETH": {
+        "info": {
+            "id": "5",
+            "currency": "eth",
+            "displayName": "ETH",
+            "type": "FT",
+            "nominalValue": null,
+            "fullName": "Ethereum",
+            "logo": "https://a.static-global.com/1/currency/eth.png",
+            "cmcLink": "https://coinmarketcap.com/currencies/ethereum/",
+            "weight": "99998",
+            "maxPrecision": "8",
+            "depositStatus": "1",
+            "withdrawStatus": "1",
+            "convertEnabled": "1",
+            "transferEnabled": "1",
+            "isChainExist": "1",
+            "plates": []
+        },
+        "id": "eth",
+        "code": "ETH",
+        "name": "Ethereum",
+        "active": true,
+        "fee": 0.00001,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "ERC20": {
+                "info": {
+                    "chain": "Ethereum",
+                    "depositEnabled": true,
+                    "withdrawEnabled": true,
+                    "withdrawFeeAmount": "0.0042",
+                    "withdrawMinAmount": "0.0124",
+                    "depositFeeRate": "0"
+                },
+                "id": "Ethereum",
+                "network": "ERC20",
+                "active": true,
+                "fee": 0.0042,
+                "precision": 1e-8,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 0.0124
+                    },
+                    "deposit": {}
+                }
+            },
+            "XT": {
+                "info": {
+                    "chain": "XT Smart Chain",
+                    "depositEnabled": true,
+                    "withdrawEnabled": true,
+                    "withdrawFeeAmount": "0.001000000000000000",
+                    "withdrawMinAmount": "0.02",
+                    "depositFeeRate": "0"
+                },
+                "id": "XT Smart Chain",
+                "network": "XT",
+                "active": true,
+                "fee": 0.001,
+                "precision": 1e-8,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 0.02
+                    },
+                    "deposit": {}
+                }
+            },
+            "ZkSync Era": {
+                "info": {
+                    "chain": "ZkSync Era",
+                    "depositEnabled": true,
+                    "withdrawEnabled": true,
+                    "withdrawFeeAmount": "0.0028282",
+                    "withdrawMinAmount": "0.0027508",
+                    "depositFeeRate": "0"
+                },
+                "id": "ZkSync Era",
+                "network": "ZkSync Era",
+                "active": true,
+                "fee": 0.0028282,
+                "precision": 1e-8,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 0.0027508
+                    },
+                    "deposit": {}
+                }
+            },
+            "ARB": {
+                "info": {
+                    "chain": "ARB",
+                    "depositEnabled": true,
+                    "withdrawEnabled": true,
+                    "withdrawFeeAmount": "0.00057",
+                    "withdrawMinAmount": "0.00276",
+                    "depositFeeRate": "0"
+                },
+                "id": "ARB",
+                "network": "ARB",
+                "active": true,
+                "fee": 0.00057,
+                "precision": 1e-8,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 0.00276
+                    },
+                    "deposit": {}
+                }
+            },
+            "Arbitrum Nova": {
+                "info": {
+                    "chain": "Arbitrum Nova",
+                    "depositEnabled": false,
+                    "withdrawEnabled": false,
+                    "withdrawFeeAmount": "0.100000000000000000",
+                    "withdrawMinAmount": "0",
+                    "depositFeeRate": "0"
+                },
+                "id": "Arbitrum Nova",
+                "network": "Arbitrum Nova",
+                "active": false,
+                "fee": 0.1,
+                "precision": 1e-8,
+                "deposit": false,
+                "withdraw": false,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 0
+                    },
+                    "deposit": {}
+                }
+            },
+            "PolygonZkEvm": {
+                "info": {
+                    "chain": "PolygonZkEvm",
+                    "depositEnabled": false,
+                    "withdrawEnabled": false,
+                    "withdrawFeeAmount": "0.00057",
+                    "withdrawMinAmount": "0.00276",
+                    "depositFeeRate": "0"
+                },
+                "id": "PolygonZkEvm",
+                "network": "PolygonZkEvm",
+                "active": false,
+                "fee": 0.00057,
+                "precision": 1e-8,
+                "deposit": false,
+                "withdraw": false,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 0.00276
+                    },
+                    "deposit": {}
+                }
+            },
+            "BASE": {
+                "info": {
+                    "chain": "BASE",
+                    "depositEnabled": true,
+                    "withdrawEnabled": true,
+                    "withdrawFeeAmount": "0.00057",
+                    "withdrawMinAmount": "0.00276",
+                    "depositFeeRate": "0"
+                },
+                "id": "BASE",
+                "network": "BASE",
+                "active": true,
+                "fee": 0.00057,
+                "precision": 1e-8,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 0.00276
+                    },
+                    "deposit": {}
+                }
+            },
+            "LINEA": {
+                "info": {
+                    "chain": "LINEA",
+                    "depositEnabled": false,
+                    "withdrawEnabled": false,
+                    "withdrawFeeAmount": "1.000000000000000000",
+                    "withdrawMinAmount": "1",
+                    "depositFeeRate": "0"
+                },
+                "id": "LINEA",
+                "network": "LINEA",
+                "active": false,
+                "fee": 1,
+                "precision": 1e-8,
+                "deposit": false,
+                "withdraw": false,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 1
+                    },
+                    "deposit": {}
+                }
+            },
+            "ETH_MODE": {
+                "info": {
+                    "chain": "ETH_MODE",
+                    "depositEnabled": false,
+                    "withdrawEnabled": false,
+                    "withdrawFeeAmount": "0.000010000000000000",
+                    "withdrawMinAmount": "0.00001",
+                    "depositFeeRate": "0"
+                },
+                "id": "ETH_MODE",
+                "network": "ETH_MODE",
+                "active": false,
+                "fee": 0.00001,
+                "precision": 1e-8,
+                "deposit": false,
+                "withdraw": false,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 0.00001
+                    },
+                    "deposit": {}
+                }
+            }
+        },
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 0
+            },
+            "deposit": {}
+        }
+    },
+    "USDT": {
+        "info": {
+            "id": "11",
+            "currency": "usdt",
+            "displayName": "USDT",
+            "type": "FT",
+            "nominalValue": null,
+            "fullName": "Tether",
+            "logo": "https://a.static-global.com/1/currency/usdt.png",
+            "cmcLink": "https://coinmarketcap.com/currencies/tether/",
+            "weight": "99997",
+            "maxPrecision": "8",
+            "depositStatus": "1",
+            "withdrawStatus": "1",
+            "convertEnabled": "1",
+            "transferEnabled": "1",
+            "isChainExist": "1",
+            "plates": [
+                251
+            ]
+        },
+        "id": "usdt",
+        "code": "USDT",
+        "name": "Tether",
+        "active": true,
+        "fee": 0.1,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "TRC20": {
+                "info": {
+                    "chain": "Tron",
+                    "depositEnabled": true,
+                    "withdrawEnabled": true,
+                    "withdrawFeeAmount": "1.000000000000000000",
+                    "withdrawMinAmount": "1E+1",
+                    "depositFeeRate": "0"
+                },
+                "id": "Tron",
+                "network": "TRC20",
+                "active": true,
+                "fee": 1,
+                "precision": 1e-8,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {}
+                }
+            },
+            "ERC20": {
+                "info": {
+                    "chain": "Ethereum",
+                    "depositEnabled": true,
+                    "withdrawEnabled": true,
+                    "withdrawFeeAmount": "7",
+                    "withdrawMinAmount": "1E+1",
+                    "depositFeeRate": "0"
+                },
+                "id": "Ethereum",
+                "network": "ERC20",
+                "active": true,
+                "fee": 7,
+                "precision": 1e-8,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {}
+                }
+            },
+            "BEP20": {
+                "info": {
+                    "chain": "BNB Smart Chain",
+                    "depositEnabled": true,
+                    "withdrawEnabled": true,
+                    "withdrawFeeAmount": "0.500000000000000000",
+                    "withdrawMinAmount": "1E+1",
+                    "depositFeeRate": "0"
+                },
+                "id": "BNB Smart Chain",
+                "network": "BEP20",
+                "active": true,
+                "fee": 0.5,
+                "precision": 1e-8,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {}
+                }
+            },
+            "MATIC": {
+                "info": {
+                    "chain": "Polygon",
+                    "depositEnabled": true,
+                    "withdrawEnabled": true,
+                    "withdrawFeeAmount": "2.000000000000000000",
+                    "withdrawMinAmount": "1E+1",
+                    "depositFeeRate": "0"
+                },
+                "id": "Polygon",
+                "network": "MATIC",
+                "active": true,
+                "fee": 2,
+                "precision": 1e-8,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {}
+                }
+            },
+            "XT": {
+                "info": {
+                    "chain": "XT Smart Chain",
+                    "depositEnabled": true,
+                    "withdrawEnabled": true,
+                    "withdrawFeeAmount": "2.000000000000000000",
+                    "withdrawMinAmount": "1E+1",
+                    "depositFeeRate": "0"
+                },
+                "id": "XT Smart Chain",
+                "network": "XT",
+                "active": true,
+                "fee": 2,
+                "precision": 1e-8,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {}
+                }
+            },
+            "AVAX": {
+                "info": {
+                    "chain": "AVAX C-Chain",
+                    "depositEnabled": true,
+                    "withdrawEnabled": true,
+                    "withdrawFeeAmount": "2.000000000000000000",
+                    "withdrawMinAmount": "1E+1",
+                    "depositFeeRate": "0"
+                },
+                "id": "AVAX C-Chain",
+                "network": "AVAX",
+                "active": true,
+                "fee": 2,
+                "precision": 1e-8,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {}
+                }
+            },
+            "ARB": {
+                "info": {
+                    "chain": "ARB",
+                    "depositEnabled": true,
+                    "withdrawEnabled": true,
+                    "withdrawFeeAmount": "2.000000000000000000",
+                    "withdrawMinAmount": "1E+1",
+                    "depositFeeRate": "0"
+                },
+                "id": "ARB",
+                "network": "ARB",
+                "active": true,
+                "fee": 2,
+                "precision": 1e-8,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {}
+                }
+            },
+            "OP": {
+                "info": {
+                    "chain": "OPT",
+                    "depositEnabled": true,
+                    "withdrawEnabled": true,
+                    "withdrawFeeAmount": "1.000000000000000000",
+                    "withdrawMinAmount": "10",
+                    "depositFeeRate": "0"
+                },
+                "id": "OPT",
+                "network": "OP",
+                "active": true,
+                "fee": 1,
+                "precision": 1e-8,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {}
+                }
+            },
+            "SOL": {
+                "info": {
+                    "chain": "SOL-SOL",
+                    "depositEnabled": true,
+                    "withdrawEnabled": true,
+                    "withdrawFeeAmount": "2.000000000000000000",
+                    "withdrawMinAmount": "1E+1",
+                    "depositFeeRate": "0"
+                },
+                "id": "SOL-SOL",
+                "network": "SOL",
+                "active": true,
+                "fee": 2,
+                "precision": 1e-8,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {}
+                }
+            },
+            "GateChain": {
+                "info": {
+                    "chain": "GateChain",
+                    "depositEnabled": true,
+                    "withdrawEnabled": true,
+                    "withdrawFeeAmount": "1.00",
+                    "withdrawMinAmount": "10.00",
+                    "depositFeeRate": "0"
+                },
+                "id": "GateChain",
+                "network": "GateChain",
+                "active": true,
+                "fee": 1,
+                "precision": 1e-8,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {}
+                }
+            },
+            "TON": {
+                "info": {
+                    "chain": "TON",
+                    "depositEnabled": false,
+                    "withdrawEnabled": false,
+                    "withdrawFeeAmount": "0.100000000000000000",
+                    "withdrawMinAmount": "0.1",
+                    "depositFeeRate": "0"
+                },
+                "id": "TON",
+                "network": "TON",
+                "active": false,
+                "fee": 0.1,
+                "precision": 1e-8,
+                "deposit": false,
+                "withdraw": false,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 0.1
+                    },
+                    "deposit": {}
+                }
+            }
+        },
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 0.1
+            },
+            "deposit": {}
+        }
+    },
+    "USDC": {
+        "info": {
+            "id": "564",
+            "currency": "usdc",
+            "displayName": "USDC",
+            "type": "FT",
+            "nominalValue": null,
+            "fullName": "USDC",
+            "logo": "https://a.static-global.com/1/currency/usdc.png",
+            "cmcLink": "https://coinmarketcap.com/currencies/usd-coin/",
+            "weight": "99994",
+            "maxPrecision": "8",
+            "depositStatus": "1",
+            "withdrawStatus": "1",
+            "convertEnabled": "1",
+            "transferEnabled": "1",
+            "isChainExist": "1",
+            "plates": [
+                251
+            ]
+        },
+        "id": "usdc",
+        "code": "USDC",
+        "name": "USDC",
+        "active": true,
+        "fee": 0.5,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "ERC20": {
+                "info": {
+                    "chain": "Ethereum",
+                    "depositEnabled": true,
+                    "withdrawEnabled": true,
+                    "withdrawFeeAmount": "35",
+                    "withdrawMinAmount": "35",
+                    "depositFeeRate": "0"
+                },
+                "id": "Ethereum",
+                "network": "ERC20",
+                "active": true,
+                "fee": 35,
+                "precision": 1e-8,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 35
+                    },
+                    "deposit": {}
+                }
+            },
+            "BEP20": {
+                "info": {
+                    "chain": "BNB Smart Chain",
+                    "depositEnabled": true,
+                    "withdrawEnabled": true,
+                    "withdrawFeeAmount": "0.5",
+                    "withdrawMinAmount": "1E+1",
+                    "depositFeeRate": "0"
+                },
+                "id": "BNB Smart Chain",
+                "network": "BEP20",
+                "active": true,
+                "fee": 0.5,
+                "precision": 1e-8,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {}
+                }
+            },
+            "SOL": {
+                "info": {
+                    "chain": "SOL-SOL",
+                    "depositEnabled": true,
+                    "withdrawEnabled": true,
+                    "withdrawFeeAmount": "5.000000000000000000",
+                    "withdrawMinAmount": "1E+1",
+                    "depositFeeRate": "0"
+                },
+                "id": "SOL-SOL",
+                "network": "SOL",
+                "active": true,
+                "fee": 5,
+                "precision": 1e-8,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {}
+                }
+            },
+            "MATIC": {
+                "info": {
+                    "chain": "Polygon",
+                    "depositEnabled": true,
+                    "withdrawEnabled": false,
+                    "withdrawFeeAmount": "1.0",
+                    "withdrawMinAmount": "10.0",
+                    "depositFeeRate": "0"
+                },
+                "id": "Polygon",
+                "network": "MATIC",
+                "active": false,
+                "fee": 1,
+                "precision": 1e-8,
+                "deposit": true,
+                "withdraw": false,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {}
+                }
+            },
+            "XT": {
+                "info": {
+                    "chain": "XT Smart Chain",
+                    "depositEnabled": true,
+                    "withdrawEnabled": true,
+                    "withdrawFeeAmount": "5.000000000000000000",
+                    "withdrawMinAmount": "1E+1",
+                    "depositFeeRate": "0"
+                },
+                "id": "XT Smart Chain",
+                "network": "XT",
+                "active": true,
+                "fee": 5,
+                "precision": 1e-8,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 10
+                    },
+                    "deposit": {}
+                }
+            }
+        },
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 10
+            },
+            "deposit": {}
+        }
+    },
+    "LTC": {
+        "info": {
+            "id": "21",
+            "currency": "ltc",
+            "displayName": "LTC",
+            "type": "FT",
+            "nominalValue": null,
+            "fullName": "Litecoin",
+            "logo": "https://a.static-global.com/1/currency/ltc.png",
+            "cmcLink": "https://coinmarketcap.com/currencies/litecoin/",
+            "weight": "99981",
+            "maxPrecision": "8",
+            "depositStatus": "1",
+            "withdrawStatus": "1",
+            "convertEnabled": "1",
+            "transferEnabled": "1",
+            "isChainExist": "1",
+            "plates": []
+        },
+        "id": "ltc",
+        "code": "LTC",
+        "name": "Litecoin",
+        "active": true,
+        "fee": 0.013,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "LTC": {
+                "info": {
+                    "chain": "Litecoin",
+                    "depositEnabled": true,
+                    "withdrawEnabled": true,
+                    "withdrawFeeAmount": "0.013",
+                    "withdrawMinAmount": "0.128",
+                    "depositFeeRate": "0"
+                },
+                "id": "Litecoin",
+                "network": "LTC",
+                "active": true,
+                "fee": 0.013,
+                "precision": 1e-8,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 0.128
+                    },
+                    "deposit": {}
+                }
+            }
+        },
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 0.128
+            },
+            "deposit": {}
+        }
+    },
+    "DOGE": {
+        "info": {
+            "id": "131",
+            "currency": "doge",
+            "displayName": "DOGE",
+            "type": "FT",
+            "nominalValue": null,
+            "fullName": "Dogecoin",
+            "logo": "https://a.static-global.com/1/currency/doge.png",
+            "cmcLink": "https://coinmarketcap.com/currencies/dogecoin/",
+            "weight": "99992",
+            "maxPrecision": "8",
+            "depositStatus": "1",
+            "withdrawStatus": "1",
+            "convertEnabled": "1",
+            "transferEnabled": "1",
+            "isChainExist": "1",
+            "plates": [
+                140
+            ]
+        },
+        "id": "doge",
+        "code": "DOGE",
+        "name": "Dogecoin",
+        "active": true,
+        "fee": 7,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "DOGE": {
+                "info": {
+                    "chain": "dogecoin",
+                    "depositEnabled": true,
+                    "withdrawEnabled": true,
+                    "withdrawFeeAmount": "7",
+                    "withdrawMinAmount": "69",
+                    "depositFeeRate": "0"
+                },
+                "id": "dogecoin",
+                "network": "DOGE",
+                "active": true,
+                "fee": 7,
+                "precision": 1e-8,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 69
+                    },
+                    "deposit": {}
+                }
+            }
+        },
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 69
+            },
+            "deposit": {}
+        }
+    },
+    "ADA": {
+        "info": {
+            "id": "101",
+            "currency": "ada",
+            "displayName": "ADA",
+            "type": "FT",
+            "nominalValue": null,
+            "fullName": "Cardano",
+            "logo": "https://a.static-global.com/1/currency/ada.png",
+            "cmcLink": "https://coinmarketcap.com/currencies/cardano/",
+            "weight": "99990",
+            "maxPrecision": "8",
+            "depositStatus": "1",
+            "withdrawStatus": "1",
+            "convertEnabled": "1",
+            "transferEnabled": "1",
+            "isChainExist": "1",
+            "plates": []
+        },
+        "id": "ada",
+        "code": "ADA",
+        "name": "Cardano",
+        "active": true,
+        "fee": 2.3,
+        "deposit": true,
+        "withdraw": true,
+        "networks": {
+            "ADA": {
+                "info": {
+                    "chain": "Cardano",
+                    "depositEnabled": true,
+                    "withdrawEnabled": false,
+                    "withdrawFeeAmount": "2.3",
+                    "withdrawMinAmount": "22.8",
+                    "depositFeeRate": "0"
+                },
+                "id": "Cardano",
+                "network": "ADA",
+                "active": false,
+                "fee": 2.3,
+                "precision": 1e-8,
+                "deposit": true,
+                "withdraw": false,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 22.8
+                    },
+                    "deposit": {}
+                }
+            },
+            "XT": {
+                "info": {
+                    "chain": "XT Smart Chain",
+                    "depositEnabled": true,
+                    "withdrawEnabled": true,
+                    "withdrawFeeAmount": "5",
+                    "withdrawMinAmount": "25",
+                    "depositFeeRate": "0"
+                },
+                "id": "XT Smart Chain",
+                "network": "XT",
+                "active": true,
+                "fee": 5,
+                "precision": 1e-8,
+                "deposit": true,
+                "withdraw": true,
+                "limits": {
+                    "amount": {},
+                    "withdraw": {
+                        "min": 25
+                    },
+                    "deposit": {}
+                }
+            }
+        },
+        "limits": {
+            "amount": {},
+            "withdraw": {
+                "min": 22.8
+            },
+            "deposit": {}
+        }
+    }
+}

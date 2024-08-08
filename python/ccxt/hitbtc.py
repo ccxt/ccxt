@@ -837,7 +837,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #       }
         #     }
         #
-        result = {}
+        result: dict = {}
         currencies = list(response.keys())
         for i in range(0, len(currencies)):
             currencyId = currencies[i]
@@ -850,7 +850,7 @@ class hitbtc(Exchange, ImplicitAPI):
             transferEnabled = self.safe_bool(entry, 'transfer_enabled', False)
             active = payinEnabled and payoutEnabled and transferEnabled
             rawNetworks = self.safe_value(entry, 'networks', [])
-            networks = {}
+            networks: dict = {}
             fee = None
             depositEnabled = None
             withdrawEnabled = None
@@ -860,8 +860,8 @@ class hitbtc(Exchange, ImplicitAPI):
                 network = self.safe_network(networkId)
                 fee = self.safe_number(rawNetwork, 'payout_fee')
                 networkPrecision = self.safe_number(rawNetwork, 'precision_payout')
-                payinEnabledNetwork = self.safe_bool(entry, 'payin_enabled', False)
-                payoutEnabledNetwork = self.safe_bool(entry, 'payout_enabled', False)
+                payinEnabledNetwork = self.safe_bool(rawNetwork, 'payin_enabled', False)
+                payoutEnabledNetwork = self.safe_bool(rawNetwork, 'payout_enabled', False)
                 activeNetwork = payinEnabledNetwork and payoutEnabledNetwork
                 if payinEnabledNetwork and not depositEnabled:
                     depositEnabled = True
@@ -925,7 +925,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         network = self.safe_string_upper(params, 'network')
@@ -958,7 +958,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
         }
         network = self.safe_string_upper(params, 'network')
@@ -987,7 +987,7 @@ class hitbtc(Exchange, ImplicitAPI):
         }
 
     def parse_balance(self, response) -> Balances:
-        result = {'info': response}
+        result: dict = {'info': response}
         for i in range(0, len(response)):
             entry = response[i]
             currencyId = self.safe_string(entry, 'currency')
@@ -1044,7 +1044,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = self.publicGetPublicTickerSymbol(self.extend(request, params))
@@ -1073,7 +1073,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
-        request = {}
+        request: dict = {}
         if symbols is not None:
             marketIds = self.market_ids(symbols)
             delimited = ','.join(marketIds)
@@ -1094,7 +1094,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #       }
         #     }
         #
-        result = {}
+        result: dict = {}
         keys = list(response.keys())
         for i in range(0, len(keys)):
             marketId = keys[i]
@@ -1104,7 +1104,7 @@ class hitbtc(Exchange, ImplicitAPI):
             result[symbol] = self.parse_ticker(entry, market)
         return self.filter_by_array_tickers(result, 'symbol', symbols)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #     {
         #       "ask": "62756.01",
@@ -1159,7 +1159,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = None
-        request = {}
+        request: dict = {}
         if limit is not None:
             request['limit'] = min(limit, 1000)
         if since is not None:
@@ -1199,7 +1199,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = None
-        request = {}
+        request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1226,7 +1226,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 raise NotSupported(self.id + ' fetchMyTrades() not support self market type')
         return self.parse_trades(response, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # createOrder(market)
         #
@@ -1329,7 +1329,7 @@ class hitbtc(Exchange, ImplicitAPI):
 
     def fetch_transactions_helper(self, types, code, since, limit, params):
         self.load_markets()
-        request = {
+        request: dict = {
             'types': types,
         }
         currency = None
@@ -1367,8 +1367,8 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(response, currency, since, limit, params)
 
-    def parse_transaction_status(self, status):
-        statuses = {
+    def parse_transaction_status(self, status: Str):
+        statuses: dict = {
             'PENDING': 'pending',
             'FAILED': 'failed',
             'SUCCESS': 'ok',
@@ -1376,13 +1376,13 @@ class hitbtc(Exchange, ImplicitAPI):
         return self.safe_string(statuses, status, status)
 
     def parse_transaction_type(self, type):
-        types = {
+        types: dict = {
             'DEPOSIT': 'deposit',
             'WITHDRAW': 'withdrawal',
         }
         return self.safe_string(types, type, type)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         # transaction
         #
@@ -1512,14 +1512,14 @@ class hitbtc(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbol
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         if symbols is not None:
             marketIdsInner = self.market_ids(symbols)
             request['symbols'] = ','.join(marketIdsInner)
         if limit is not None:
             request['depth'] = limit
         response = self.publicGetPublicOrderbook(self.extend(request, params))
-        result = {}
+        result: dict = {}
         marketIds = list(response.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
@@ -1540,7 +1540,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         if limit is not None:
@@ -1549,7 +1549,7 @@ class hitbtc(Exchange, ImplicitAPI):
         timestamp = self.parse8601(self.safe_string(response, 'timestamp'))
         return self.parse_order_book(response, symbol, timestamp, 'bid', 'ask')
 
-    def parse_trading_fee(self, fee, market: Market = None) -> TradingFeeInterface:
+    def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
         #
         #     {
         #         "symbol":"ARVUSDT",  # returned from fetchTradingFees only
@@ -1581,7 +1581,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = None
@@ -1625,7 +1625,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        result = {}
+        result: dict = {}
         for i in range(0, len(response)):
             fee = self.parse_trading_fee(response[i])
             symbol = fee['symbol']
@@ -1654,7 +1654,7 @@ class hitbtc(Exchange, ImplicitAPI):
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, params, 1000)
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'period': self.safe_string(self.timeframes, timeframe, timeframe),
         }
@@ -1752,7 +1752,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = None
-        request = {}
+        request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1796,7 +1796,7 @@ class hitbtc(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {
+        request: dict = {
             'client_order_id': id,
         }
         marketType = None
@@ -1857,7 +1857,7 @@ class hitbtc(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {
+        request: dict = {
             'order_id': id,  # exchange assigned order id to the client order id
         }
         marketType = None
@@ -1933,7 +1933,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = None
-        request = {}
+        request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -1992,7 +1992,7 @@ class hitbtc(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {
+        request: dict = {
             'client_order_id': id,
         }
         marketType = None
@@ -2028,7 +2028,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = None
-        request = {}
+        request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
@@ -2066,7 +2066,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = None
-        request = {
+        request: dict = {
             'client_order_id': id,
         }
         if symbol is not None:
@@ -2093,7 +2093,7 @@ class hitbtc(Exchange, ImplicitAPI):
     def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         self.load_markets()
         market = None
-        request = {
+        request: dict = {
             'client_order_id': id,
             'quantity': self.amount_to_precision(symbol, amount),
         }
@@ -2132,7 +2132,7 @@ class hitbtc(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
         :param bool [params.margin]: True for creating a margin order
@@ -2164,7 +2164,7 @@ class hitbtc(Exchange, ImplicitAPI):
         timeInForce = self.safe_string(params, 'timeInForce')
         triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'stop_price'])
         isPostOnly = self.is_post_only(type == 'market', None, params)
-        request = {
+        request: dict = {
             'type': type,
             'side': side,
             'quantity': self.amount_to_precision(market['symbol'], amount),
@@ -2214,8 +2214,8 @@ class hitbtc(Exchange, ImplicitAPI):
             request['margin_mode'] = marginMode
         return [request, params]
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'new': 'open',
             'suspended': 'open',
             'partiallyFilled': 'open',
@@ -2225,7 +2225,7 @@ class hitbtc(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # limit
         #     {
@@ -2404,7 +2404,7 @@ class hitbtc(Exchange, ImplicitAPI):
         config = self.safe_list(response, 'config', [])
         return self.parse_margin_modes(config, symbols, 'symbol')
 
-    def parse_margin_mode(self, marginMode, market=None) -> MarginMode:
+    def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
         marketId = self.safe_string(marginMode, 'symbol')
         return {
             'info': marginMode,
@@ -2434,7 +2434,7 @@ class hitbtc(Exchange, ImplicitAPI):
         toId = self.safe_string(accountsByType, toAccount, toAccount)
         if fromId == toId:
             raise BadRequest(self.id + ' transfer() fromAccount and toAccount arguments cannot be the same account')
-        request = {
+        request: dict = {
             'currency': currency['id'],
             'amount': requestAmount,
             'source': fromId,
@@ -2448,7 +2448,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_transfer(response, currency)
 
-    def parse_transfer(self, transfer, currency: Currency = None):
+    def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
         # transfer
         #
@@ -2482,7 +2482,7 @@ class hitbtc(Exchange, ImplicitAPI):
         if (fromNetwork is None) or (toNetwork is None):
             keys = list(networks.keys())
             raise ArgumentsRequired(self.id + ' convertCurrencyNetwork() requires a fromNetwork parameter and a toNetwork parameter, supported networks are ' + ', '.join(keys))
-        request = {
+        request: dict = {
             'from_currency': fromNetwork,
             'to_currency': toNetwork,
             'amount': self.currency_to_precision(code, amount),
@@ -2508,7 +2508,7 @@ class hitbtc(Exchange, ImplicitAPI):
         self.load_markets()
         self.check_address(address)
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'currency': currency['id'],
             'amount': amount,
             'address': address,
@@ -2544,7 +2544,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = None
-        request = {}
+        request: dict = {}
         if symbols is not None:
             symbols = self.market_symbols(symbols)
             market = self.market(symbols[0])
@@ -2573,7 +2573,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #     }
         #
         marketIds = list(response.keys())
-        fundingRates = {}
+        fundingRates: dict = {}
         for i in range(0, len(marketIds)):
             marketId = self.safe_string(marketIds, i)
             rawFundingRate = self.safe_value(response, marketId)
@@ -2601,7 +2601,7 @@ class hitbtc(Exchange, ImplicitAPI):
         if paginate:
             return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', params, 1000)
         market = None
-        request = {
+        request: dict = {
             # all arguments are optional
             # 'symbols': Comma separated list of symbol codes,
             # 'sort': 'DESC' or 'ASC'
@@ -2668,7 +2668,7 @@ class hitbtc(Exchange, ImplicitAPI):
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         self.load_markets()
-        request = {}
+        request: dict = {}
         marketType = None
         marginMode = None
         marketType, params = self.handle_market_type_and_params('fetchPositions', None, params)
@@ -2736,7 +2736,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         marketType = None
@@ -2788,7 +2788,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_position(response, market)
 
-    def parse_position(self, position, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None):
         #
         #     [
         #         {
@@ -2911,7 +2911,7 @@ class hitbtc(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['swap']:
             raise BadSymbol(self.id + ' fetchOpenInterest() supports swap contracts only')
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = self.publicGetPublicFuturesInfoSymbol(self.extend(request, params))
@@ -2944,7 +2944,7 @@ class hitbtc(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if not market['swap']:
             raise BadSymbol(self.id + ' fetchFundingRate() supports swap contracts only')
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         response = self.publicGetPublicFuturesInfoSymbol(self.extend(request, params))
@@ -3015,7 +3015,7 @@ class hitbtc(Exchange, ImplicitAPI):
             amount = self.amount_to_precision(symbol, stringAmount)
         else:
             amount = '0'
-        request = {
+        request: dict = {
             'symbol': market['id'],  # swap and margin
             'margin_balance': amount,  # swap and margin
             # "leverage": "10",  # swap only required
@@ -3057,7 +3057,7 @@ class hitbtc(Exchange, ImplicitAPI):
             'type': type,
         })
 
-    def parse_margin_modification(self, data, market: Market = None) -> MarginModification:
+    def parse_margin_modification(self, data: dict, market: Market = None) -> MarginModification:
         #
         # addMargin/reduceMargin
         #
@@ -3137,7 +3137,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
         }
         marginMode = None
@@ -3187,7 +3187,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #
         return self.parse_leverage(response, market)
 
-    def parse_leverage(self, leverage, market=None) -> Leverage:
+    def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         marketId = self.safe_string(leverage, 'symbol')
         leverageValue = self.safe_integer(leverage, 'leverage')
         return {
@@ -3219,7 +3219,7 @@ class hitbtc(Exchange, ImplicitAPI):
             raise BadSymbol(self.id + ' setLeverage() supports swap contracts only')
         if (leverage < 1) or (leverage > maxLeverage):
             raise BadRequest(self.id + ' setLeverage() leverage should be between 1 and ' + str(maxLeverage) + ' for ' + symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'leverage': str(leverage),
             'margin_balance': self.amount_to_precision(symbol, amount),
@@ -3296,7 +3296,7 @@ class hitbtc(Exchange, ImplicitAPI):
             networkCode = self.network_id_to_code(networkId)
             withdrawFee = self.safe_number(networkEntry, 'payout_fee')
             isDefault = self.safe_value(networkEntry, 'default')
-            withdrawResult = {
+            withdrawResult: dict = {
                 'fee': withdrawFee,
                 'percentage': False if (withdrawFee is not None) else None,
             }
@@ -3324,7 +3324,7 @@ class hitbtc(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('closePosition', params, 'cross')
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'symbol': market['id'],
             'margin_mode': marginMode,
         }
@@ -3362,7 +3362,7 @@ class hitbtc(Exchange, ImplicitAPI):
                 marginMode = 'isolated'
         return [marginMode, params]
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         #
         #     {
         #       "error": {

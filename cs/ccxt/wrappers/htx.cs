@@ -226,7 +226,7 @@ public partial class htx
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -264,7 +264,7 @@ public partial class htx
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -335,15 +335,15 @@ public partial class htx
         var res = await this.cancelOrder(id, symbol, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Dictionary<string, object>> CancelOrders(object ids, string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Dictionary<string, object>>> CancelOrders(object ids, string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelOrders(ids, symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
-    public async Task<Dictionary<string, object>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
+    public async Task<List<Dictionary<string, object>>> CancelAllOrders(string symbol = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrders(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();
     }
     public async Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64 timeout, Dictionary<string, object> parameters = null)
     {
@@ -461,15 +461,15 @@ public partial class htx
         var res = await this.fetchLedger(code, since, limit, parameters);
         return ((Dictionary<string, object>)res);
     }
-    public async Task<Dictionary<string, object>> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    public async Task<LeverageTiers> FetchLeverageTiers(List<String> symbols = null, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchLeverageTiers(symbols, parameters);
-        return ((Dictionary<string, object>)res);
+        return new LeverageTiers(res);
     }
-    public async Task<Dictionary<string, object>> FetchMarketLeverageTiers(string symbol, Dictionary<string, object> parameters = null)
+    public async Task<List<LeverageTier>> FetchMarketLeverageTiers(string symbol, Dictionary<string, object> parameters = null)
     {
         var res = await this.fetchMarketLeverageTiers(symbol, parameters);
-        return ((Dictionary<string, object>)res);
+        return ((IList<object>)res).Select(item => new LeverageTier(item)).ToList<LeverageTier>();
     }
     public async Task<List<OpenInterest>> FetchOpenInterestHistory(string symbol, string timeframe = "1h", Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {

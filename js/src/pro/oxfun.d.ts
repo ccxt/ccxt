@@ -1,0 +1,38 @@
+import oxfunRest from '../oxfun.js';
+import type { Balances, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade } from '../base/types.js';
+import Client from '../base/ws/Client.js';
+export default class oxfun extends oxfunRest {
+    describe(): any;
+    subscribeMultiple(messageHashes: any, argsArray: any, params?: {}): Promise<any>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    handleTrades(client: Client, message: any): void;
+    parseWsTrade(trade: any, market?: any): Trade;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
+    handleOHLCV(client: Client, message: any): void;
+    parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
+    handleOrderBook(client: Client, message: any): void;
+    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    handleTicker(client: Client, message: any): void;
+    watchBalance(params?: {}): Promise<Balances>;
+    handleBalance(client: any, message: any): void;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    handlePositions(client: Client, message: any): void;
+    parseWsPosition(position: any, market?: Market): Position;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    handleOrders(client: Client, message: any): void;
+    createOrderWs(symbol: string, type: OrderType, side: OrderSide, amount: number, price?: Num, params?: {}): Promise<Order>;
+    editOrderWs(id: string, symbol: string, type: OrderType, side: OrderSide, amount?: Num, price?: Num, params?: {}): Promise<Order>;
+    handlePlaceOrders(client: Client, message: any): void;
+    cancelOrderWs(id: string, symbol?: Str, params?: {}): Promise<Order>;
+    cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<any>;
+    authenticate(params?: {}): Promise<any>;
+    handleAuthenticationMessage(client: Client, message: any): void;
+    ping(client: Client): string;
+    handlePong(client: Client, message: any): any;
+    handleMessage(client: Client, message: any): void;
+}

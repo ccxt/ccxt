@@ -1907,7 +1907,7 @@ class bitrue extends bitrue$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] *spot only* the price at which a trigger order is triggered at
          * @param {string} [params.clientOrderId] a unique id for the order, automatically generated if not sent
@@ -3142,6 +3142,11 @@ class bitrue extends bitrue$1 {
                 signPath = signPath + '/' + version + '/' + path;
                 let signMessage = timestamp + method + signPath;
                 if (method === 'GET') {
+                    const keys = Object.keys(params);
+                    const keysLength = keys.length;
+                    if (keysLength > 0) {
+                        signMessage += '?' + this.urlencode(params);
+                    }
                     const signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256.sha256);
                     headers = {
                         'X-CH-APIKEY': this.apiKey,
@@ -3155,7 +3160,7 @@ class bitrue extends bitrue$1 {
                         'recvWindow': recvWindow,
                     }, params);
                     body = this.json(query);
-                    signMessage = signMessage + JSON.stringify(body);
+                    signMessage += body;
                     const signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256.sha256);
                     headers = {
                         'Content-Type': 'application/json',

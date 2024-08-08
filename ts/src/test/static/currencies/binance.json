@@ -3,7 +3,7 @@
         "id": "BTC",
         "name": "Bitcoin",
         "code": "BTC",
-        "precision": 8,
+        "precision": 0.00000001,
         "info": {
             "coin": "BTC",
             "depositAllEnable": true,
@@ -382,7 +382,7 @@
         "id": "USDT",
         "name": "TetherUS",
         "code": "USDT",
-        "precision": 8,
+        "precision": 0.00000001,
         "info": {
             "coin": "USDT",
             "depositAllEnable": true,
@@ -1245,7 +1245,7 @@
         "id": "EUR",
         "name": "Euro",
         "code": "EUR",
-        "precision": 8,
+        "precision": 0.00000001,
         "info": {
             "coin": "EUR",
             "depositAllEnable": true,
@@ -1335,7 +1335,7 @@
         "id": "LTC",
         "name": "Litecoin",
         "code": "LTC",
-        "precision": 8,
+        "precision": 0.00000001,
         "info": {
             "coin": "LTC",
             "depositAllEnable": true,
@@ -1545,7 +1545,7 @@
         "id": "ETH",
         "name": "Ethereum",
         "code": "ETH",
-        "precision": 8,
+        "precision": 0.00000001,
         "info": {
             "coin": "ETH",
             "depositAllEnable": true,
@@ -1985,7 +1985,7 @@
         "id": "ADA",
         "name": "Cardano",
         "code": "ADA",
-        "precision": 8,
+        "precision": 0.00000001,
         "info": {
             "coin": "ADA",
             "depositAllEnable": true,
@@ -2191,7 +2191,7 @@
         "id": "XRP",
         "name": "Ripple",
         "code": "XRP",
-        "precision": 8,
+        "precision": 0.00000001,
         "info": {
             "coin": "XRP",
             "depositAllEnable": true,
@@ -2458,7 +2458,7 @@
         "id": "USDC",
         "name": "USD Coin",
         "code": "USDC",
-        "precision": 8,
+        "precision": 0.00000001,
         "info": {
             "coin": "USDC",
             "depositAllEnable": true,
@@ -3197,7 +3197,7 @@
         "id": "BUSD",
         "name": "BUSD",
         "code": "BUSD",
-        "precision": 8,
+        "precision": 0.00000001,
         "info": {
             "coin": "BUSD",
             "depositAllEnable": true,
@@ -3433,7 +3433,7 @@
                 "deposit": true,
                 "withdraw": true,
                 "fee": 0.7,
-                "precision": "0.00000001",
+                "precision": 0.00000001,
                 "limits": {
                     "withdraw": {
                         "min": 3,
@@ -3475,7 +3475,7 @@
                 "deposit": true,
                 "withdraw": false,
                 "fee": 0.7,
-                "precision": "0.00000001",
+                "precision": 0.00000001,
                 "limits": {
                     "withdraw": {
                         "min": 0.26,
@@ -3517,7 +3517,7 @@
                 "deposit": true,
                 "withdraw": false,
                 "fee": 0.7,
-                "precision": "0.00000001",
+                "precision": 0.00000001,
                 "limits": {
                     "withdraw": {
                         "min": 10,
@@ -3558,7 +3558,7 @@
                 "deposit": true,
                 "withdraw": true,
                 "fee": 10.5,
-                "precision": "0.00000001",
+                "precision": 0.00000001,
                 "limits": {
                     "withdraw": {
                         "min": 18,
@@ -3600,7 +3600,7 @@
                 "deposit": true,
                 "withdraw": false,
                 "fee": 10.5,
-                "precision": "0.00000001",
+                "precision": 0.00000001,
                 "limits": {
                     "withdraw": {
                         "min": 10,
@@ -3642,7 +3642,7 @@
                 "deposit": true,
                 "withdraw": false,
                 "fee": 10.5,
-                "precision": "0.00000001",
+                "precision": 0.00000001,
                 "limits": {
                     "withdraw": {
                         "min": 10,
@@ -3684,7 +3684,7 @@
                 "deposit": true,
                 "withdraw": false,
                 "fee": 10.5,
-                "precision": "0.00000001",
+                "precision": 0.00000001,
                 "limits": {
                     "withdraw": {
                         "min": 10,

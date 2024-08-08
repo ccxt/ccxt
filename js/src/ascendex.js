@@ -1406,7 +1406,7 @@ export default class ascendex extends Exchange {
                 'currency': feeCurrencyCode,
             };
         }
-        const stopPrice = this.safeNumber(order, 'stopPrice');
+        const stopPrice = this.omitZero(this.safeString(order, 'stopPrice'));
         let reduceOnly = undefined;
         const execInst = this.safeString(order, 'execInst');
         if (execInst === 'reduceOnly') {
@@ -1503,7 +1503,7 @@ export default class ascendex extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {bool} [params.postOnly] true or false
@@ -1592,7 +1592,7 @@ export default class ascendex extends Exchange {
          * @param {string} type "limit" or "market"
          * @param {string} side "buy" or "sell"
          * @param {float} amount the amount of currency to trade
-         * @param {float} [price] *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
          * @param {bool} [params.postOnly] true or false
@@ -2308,7 +2308,7 @@ export default class ascendex extends Exchange {
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-all-open-orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         * @returns {object[]} a list with a single [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} with the response assigned to the info property
          */
         await this.loadMarkets();
         await this.loadAccounts();
@@ -2374,7 +2374,9 @@ export default class ascendex extends Exchange {
         //         }
         //     }
         //
-        return response;
+        return this.safeOrder({
+            'info': response,
+        });
     }
     parseDepositAddress(depositAddress, currency = undefined) {
         //
@@ -3165,7 +3167,6 @@ export default class ascendex extends Exchange {
         const account = this.safeValue(this.accounts, 0, {});
         const accountGroup = this.safeString(account, 'id');
         const currency = this.currency(code);
-        amount = this.currencyToPrecision(code, amount);
         const accountsByType = this.safeValue(this.options, 'accountsByType', {});
         const fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         const toId = this.safeString(accountsByType, toAccount, toAccount);
@@ -3174,7 +3175,7 @@ export default class ascendex extends Exchange {
         }
         const request = {
             'account-group': accountGroup,
-            'amount': amount,
+            'amount': this.currencyToPrecision(code, amount),
             'asset': currency['id'],
             'fromAccount': fromId,
             'toAccount': toId,
@@ -3198,7 +3199,7 @@ export default class ascendex extends Exchange {
         //
         //    { "code": "0" }
         //
-        const status = this.safeInteger(transfer, 'code');
+        const status = this.safeString(transfer, 'code');
         const currencyCode = this.safeCurrencyCode(undefined, currency);
         return {
             'info': transfer,
@@ -3213,7 +3214,7 @@ export default class ascendex extends Exchange {
         };
     }
     parseTransferStatus(status) {
-        if (status === 0) {
+        if (status === '0') {
             return 'ok';
         }
         return 'failed';
@@ -3298,7 +3299,7 @@ export default class ascendex extends Exchange {
     async fetchMarginModes(symbols = undefined, params = {}) {
         /**
          * @method
-         * @name ascendex#fetchMarginMode
+         * @name ascendex#fetchMarginModes
          * @description fetches the set margin mode of the user
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
          * @param {string[]} [symbols] a list of unified market symbols

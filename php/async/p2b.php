@@ -279,7 +279,7 @@ class p2b extends Exchange {
         }) ();
     }
 
-    public function parse_market($market): array {
+    public function parse_market(array $market): array {
         $marketId = $this->safe_string($market, 'name');
         $baseId = $this->safe_string($market, 'stock');
         $quoteId = $this->safe_string($market, 'money');
@@ -394,7 +394,7 @@ class p2b extends Exchange {
             $request = array(
                 'market' => $market['id'],
             );
-            $response = Async\await($this->publicGetTicker (array_merge($request, $params)));
+            $response = Async\await($this->publicGetTicker ($this->extend($request, $params)));
             //
             //    {
             //        success => true,
@@ -417,7 +417,7 @@ class p2b extends Exchange {
             //
             $result = $this->safe_value($response, 'result', array());
             $timestamp = $this->safe_integer_product($response, 'cache_time', 1000);
-            return array_merge(
+            return $this->extend(
                 array( 'timestamp' => $timestamp, 'datetime' => $this->iso8601($timestamp) ),
                 $this->parse_ticker($result, $market)
             );
@@ -506,7 +506,7 @@ class p2b extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->publicGetDepthResult (array_merge($request, $params)));
+            $response = Async\await($this->publicGetDepthResult ($this->extend($request, $params)));
             //
             //    {
             //        "success" => true,
@@ -563,7 +563,7 @@ class p2b extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->publicGetHistory (array_merge($request, $params)));
+            $response = Async\await($this->publicGetHistory ($this->extend($request, $params)));
             //
             //    {
             //        success => true,
@@ -588,7 +588,7 @@ class p2b extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null) {
+    public function parse_trade(array $trade, ?array $market = null) {
         //
         // fetchTrades
         //
@@ -678,7 +678,7 @@ class p2b extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->publicGetMarketKline (array_merge($request, $params)));
+            $response = Async\await($this->publicGetMarketKline ($this->extend($request, $params)));
             //
             //    {
             //        success => true,
@@ -802,7 +802,7 @@ class p2b extends Exchange {
              * @param {string} $type must be 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} $price the $price at which the order is to be fullfilled, in units of the quote currency
+             * @param {float} $price the $price at which the order is to be fulfilled, in units of the quote currency
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
@@ -817,7 +817,7 @@ class p2b extends Exchange {
                 'amount' => $this->amount_to_precision($symbol, $amount),
                 'price' => $this->price_to_precision($symbol, $price),
             );
-            $response = Async\await($this->privatePostOrderNew (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrderNew ($this->extend($request, $params)));
             //
             //    {
             //        "success" => true,
@@ -864,7 +864,7 @@ class p2b extends Exchange {
                 'market' => $market['id'],
                 'orderId' => $id,
             );
-            $response = Async\await($this->privatePostOrderCancel (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrderCancel ($this->extend($request, $params)));
             //
             //    {
             //        "success" => true,
@@ -917,7 +917,7 @@ class p2b extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privatePostOrders (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrders ($this->extend($request, $params)));
             //
             //    {
             //        "success" => true,
@@ -971,7 +971,7 @@ class p2b extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privatePostAccountOrder (array_merge($request, $params)));
+            $response = Async\await($this->privatePostAccountOrder ($this->extend($request, $params)));
             //
             //    {
             //        "success" => true,
@@ -1044,7 +1044,7 @@ class p2b extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privatePostAccountMarketDealHistory (array_merge($request, $params)));
+            $response = Async\await($this->privatePostAccountMarketDealHistory ($this->extend($request, $params)));
             //
             //    {
             //        "success" => true,
@@ -1122,7 +1122,7 @@ class p2b extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->privatePostAccountOrderHistory (array_merge($request, $params)));
+            $response = Async\await($this->privatePostAccountOrderHistory ($this->extend($request, $params)));
             //
             //    {
             //        "success" => true,
@@ -1162,7 +1162,7 @@ class p2b extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // cancelOrder, fetchOpenOrders, createOrder
         //
@@ -1254,7 +1254,7 @@ class p2b extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }
