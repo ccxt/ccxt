@@ -1732,13 +1732,16 @@
                 "currencyIdAndCode": "broken currencies"
 	          }
 	      }
-    },   
+    },
     "hashkey": {
         "skipMethods": {
             "fetchCurrencies": {
                 "precision": "not provided"
             },
             "fetchTrades": {
+                "side": "not provided"
+            },
+            "watchTrades": {
                 "side": "not provided"
             }
         }
