@@ -214,7 +214,7 @@ export default class hashkey extends Exchange {
                         'api/v1/account/withdraw': 1,
                     },
                     'put': {
-                        'api/v1/userDataStream/{listenKey}': 1,
+                        'api/v1/userDataStream': 1,
                     },
                     'delete': {
                         'api/v1/spot/order': 1,
@@ -223,7 +223,7 @@ export default class hashkey extends Exchange {
                         'api/v1/futures/order': 1,
                         'api/v1/futures/batchOrders': 1,
                         'api/v1/futures/cancelOrderByIds': 1,
-                        'api/v1/userDataStream/{listenKey}': 1,
+                        'api/v1/userDataStream': 1,
                     },
                 },
             },
