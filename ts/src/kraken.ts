@@ -1864,7 +1864,7 @@ export default class kraken extends Exchange {
             const extendedPostFlags = (flags !== undefined) ? flags + ',post' : 'post';
             request['oflags'] = extendedPostFlags;
         }
-        if ((flags !== undefined) && (request['flags'] === undefined)) {
+        if ((flags !== undefined) && (request['oflags'] === undefined)) {
             request['oflags'] = flags;
         }
         params = this.omit (params, [ 'timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingLimitAmount', 'offset' ]);
