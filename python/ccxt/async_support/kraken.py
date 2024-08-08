@@ -1750,6 +1750,8 @@ class kraken(Exchange, ImplicitAPI):
         if postOnly:
             extendedPostFlags = flags + ',post' if (flags is not None) else 'post'
             request['oflags'] = extendedPostFlags
+        if (flags is not None) and (request['oflags'] is None):
+            request['oflags'] = flags
         params = self.omit(params, ['timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingLimitAmount', 'offset'])
         return [request, params]
 

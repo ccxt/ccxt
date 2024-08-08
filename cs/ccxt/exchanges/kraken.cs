@@ -1980,6 +1980,10 @@ public partial class kraken : Exchange
             object extendedPostFlags = ((bool) isTrue((!isEqual(flags, null)))) ? add(flags, ",post") : "post";
             ((IDictionary<string,object>)request)["oflags"] = extendedPostFlags;
         }
+        if (isTrue(isTrue((!isEqual(flags, null))) && isTrue((isEqual(getValue(request, "oflags"), null)))))
+        {
+            ((IDictionary<string,object>)request)["oflags"] = flags;
+        }
         parameters = this.omit(parameters, new List<object>() {"timeInForce", "reduceOnly", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingLimitAmount", "offset"});
         return new List<object>() {request, parameters};
     }
