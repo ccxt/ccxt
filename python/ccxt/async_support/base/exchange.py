@@ -537,9 +537,9 @@ class Exchange(BaseExchange):
                 try:
                     self.stream_reconnect()
                 except Exception as e:
-                    self.log ("Stream failed to reconnect") 
+                    self.log("Stream failed to reconnect")
         return callback
-    
+
     def stream_to_symbol(self, topic):
         def callback(message):
             payload = message.payload
@@ -590,9 +590,9 @@ class Exchange(BaseExchange):
 
     async def stream_reconnect(self):
         if self.verbose:
-            self.log('reconnecting active watch functions')
+            self.log('Stream reconnecting active watch functions')
         stream = self.stream
-        activeFunctions = stream.active_watch_functions
+        activeFunctions = stream.activeWatchFunctions
         tasks = []
         for i in range(0, len(activeFunctions)):
             activeFunction = activeFunctions[i]
@@ -642,8 +642,8 @@ class Exchange(BaseExchange):
         stream = self.stream
         if callback is not None:
             stream.subscribe('trades::' + symbol, callback, synchronous)
-        stream.add_watch_function('watchTrades', [symbol, None, None, params])
-        await self.watchTrades(symbol, None, None, params)
+        stream.addWatchFunction('watchTrades', [symbol, None, None, params])
+        await self.watch_trades(symbol, None, None, params)
 
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchTradesForSymbols() is not supported yet')
@@ -664,8 +664,8 @@ class Exchange(BaseExchange):
                 stream.subscribe('trades::' + symbols[i], callback, synchronous)
             if self.is_empty(symbols):
                 stream.subscribe('trades', callback, synchronous)
-        stream.add_watch_function('watchTradesForSymbols', [symbols, None, None, params])
-        await self.watchTradesForSymbols(symbols, None, None, params)
+        stream.addWatchFunction('watchTradesForSymbols', [symbols, None, None, params])
+        await self.watch_trades_for_symbols(symbols, None, None, params)
 
     async def watch_my_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchMyTradesForSymbols() is not supported yet')
@@ -687,8 +687,8 @@ class Exchange(BaseExchange):
             else:
                 for i in range(0, len(symbols)):
                     stream.subscribe('myTrades::' + symbols[i], callback, synchronous)
-        stream.add_watch_function('watchMyTradesForSymbols', [symbols, None, None, params])
-        await self.watchMyTradesForSymbols(symbols, None, None, params)
+        stream.addWatchFunction('watchMyTradesForSymbols', [symbols, None, None, params])
+        await self.watch_my_trades_for_symbols(symbols, None, None, params)
 
     async def watch_orders_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchOrdersForSymbols() is not supported yet')
@@ -709,8 +709,8 @@ class Exchange(BaseExchange):
                 stream.subscribe('orders::' + symbols[i], callback, synchronous)
             if self.is_empty(symbols):
                 stream.subscribe('orders', callback, synchronous)
-        stream.add_watch_function('watchOrdersForSymbols', [symbols, None, None, params])
-        await self.watchOrdersForSymbols(symbols, None, None, params)
+        stream.addWatchFunction('watchOrdersForSymbols', [symbols, None, None, params])
+        await self.watch_orders_for_symbols(symbols, None, None, params)
 
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchOHLCVForSymbols() is not supported yet')
@@ -732,8 +732,8 @@ class Exchange(BaseExchange):
                 stream.subscribe('ohlcv' + '::' + symbol + '::' + timeframe, callback, synchronous)
             if self.is_empty(symbolsAndTimeframes):
                 stream.subscribe('ohlcv', callback, synchronous)
-        stream.add_watch_function('watchOHLCVForSymbols', [symbolsAndTimeframes, None, None, params])
-        await self.watchOHLCVForSymbols(symbolsAndTimeframes, None, None, params)
+        stream.addWatchFunction('watchOHLCVForSymbols', [symbolsAndTimeframes, None, None, params])
+        await self.watch_ohlcv_for_symbols(symbolsAndTimeframes, None, None, params)
 
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchOrderBookForSymbols() is not supported yet')
@@ -755,8 +755,8 @@ class Exchange(BaseExchange):
                 stream.subscribe('orderbooks::' + symbols[i], callback, synchronous)
             if self.is_empty(symbols):
                 stream.subscribe('orderbooks', callback, synchronous)
-        stream.add_watch_function('watchOrderBookForSymbols', [symbols, None, params])
-        await self.watchOrderBookForSymbols(symbols, None, params)
+        stream.addWatchFunction('watchOrderBookForSymbols', [symbols, None, params])
+        await self.watch_order_book_for_symbols(symbols, None, params)
 
     async def fetch_deposit_addresses(self, codes: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchDepositAddresses() is not supported yet')
@@ -796,7 +796,7 @@ class Exchange(BaseExchange):
         :param boolean synchronous: if set to True, the callback will wait to finish before passing next message
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
         """
-        await self.subscribeOrderBookForSymbols([symbol], callback, synchronous, params)
+        await self.subscribe_order_book_for_symbols([symbol], callback, synchronous, params)
 
     async def fetch_time(self, params={}):
         raise NotSupported(self.id + ' fetchTime() is not supported yet')
@@ -940,8 +940,8 @@ class Exchange(BaseExchange):
         stream = self.stream
         if callback is not None:
             stream.subscribe('ohlcv::' + symbol + '::' + timeframe, callback, synchronous)
-        stream.add_watch_function('watchOHLCV', [symbol, timeframe, None, None, params])
-        await self.watchOHLCV(symbol, timeframe, None, None, params)
+        stream.addWatchFunction('watchOHLCV', [symbol, timeframe, None, None, params])
+        await self.watch_ohlcv(symbol, timeframe, None, None, params)
 
     async def fetch_web_endpoint(self, method, endpointMethod, returnAsJson, startRegex=None, endRegex=None):
         errorMessage = ''
@@ -1021,7 +1021,7 @@ class Exchange(BaseExchange):
                 if isinstance(e, NetworkError):
                     if i < retries:
                         if self.verbose:
-                            self.log('Request failed with the error: ' + str(e) + ', retrying ' + (i + str(1)) + ' of ' + str(retries) + '...')
+                            self.log('Request failed with the error: ' + str(e) + ', retrying ' + (i + str(1)) + ' of ' + str(retries) + '*')
                         if (retryDelay is not None) and (retryDelay != 0):
                             await self.sleep(retryDelay)
                         continue
@@ -1077,8 +1077,8 @@ class Exchange(BaseExchange):
         stream = self.stream
         if callback is not None:
             stream.subscribe('positions::' + symbol, callback, synchronous)
-        stream.add_watch_function('watchPosition', [symbol, None, params])
-        await self.watchPosition(symbol, params)
+        stream.addWatchFunction('watchPosition', [symbol, None, params])
+        await self.watch_position(symbol, params)
 
     async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchPositions() is not supported yet')
@@ -1093,13 +1093,13 @@ class Exchange(BaseExchange):
             else:
                 for i in range(0, len(symbols)):
                     stream.subscribe('positions::' + symbols[i], callback, synchronous)
-        await self.watchPositions(symbols, None, None, params)
+        await self.watch_positions(symbols, None, None, params)
 
     async def watch_position_for_symbols(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
-        return await self.watchPositions(symbols, since, limit, params)
+        return await self.watch_positions(symbols, since, limit, params)
 
     async def subscribe_position_for_symbols(self, symbols: List[str] = None, callback: ConsumerFunction = None, synchronous: bool = True, params={}):
-        await self.subscribePositions(symbols, callback, synchronous, params)
+        await self.subscribe_positions(symbols, callback, synchronous, params)
 
     async def fetch_positions_for_symbol(self, symbol: str, params={}):
         """
@@ -1153,8 +1153,8 @@ class Exchange(BaseExchange):
         stream = self.stream
         if callback is not None:
             stream.subscribe('balances', callback, synchronous)
-        stream.add_watch_function('watchBalance', [params])
-        await self.watchBalance(params)
+        stream.addWatchFunction('watchBalance', [params])
+        await self.watch_balance(params)
 
     async def fetch_partial_balance(self, part, params={}):
         balance = await self.fetch_balance(params)
@@ -1253,8 +1253,8 @@ class Exchange(BaseExchange):
         stream = self.stream
         if callback is not None:
             stream.subscribe('tickers::' + symbol, callback, synchronous)
-        stream.add_watch_function('watchTicker', [symbol, params])
-        await self.watchTicker(symbol, params)
+        stream.addWatchFunction('watchTicker', [symbol, params])
+        await self.watch_ticker(symbol, params)
 
     async def fetch_tickers(self, symbols: Strings = None, params={}):
         raise NotSupported(self.id + ' fetchTickers() is not supported yet')
@@ -1288,8 +1288,8 @@ class Exchange(BaseExchange):
             else:
                 for i in range(0, len(symbols)):
                     stream.subscribe('tickers::' + symbols[i], callback, synchronous)
-        stream.add_watch_function('watchTickers', [symbols, params])
-        await self.watchTickers(symbols, params)
+        stream.addWatchFunction('watchTickers', [symbols, params])
+        await self.watch_tickers(symbols, params)
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
         raise NotSupported(self.id + ' fetchOrder() is not supported yet')
@@ -1673,8 +1673,8 @@ class Exchange(BaseExchange):
                 stream.subscribe('orders', callback, synchronous)
             else:
                 stream.subscribe('orders::' + symbol, callback, synchronous)
-        stream.add_watch_function('watchOrders', [symbol, None, None, params])
-        await self.watchOrders(symbol, None, None, params)
+        stream.addWatchFunction('watchOrders', [symbol, None, None, params])
+        await self.watch_orders(symbol, None, None, params)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         if self.has['fetchOrders']:
@@ -1731,8 +1731,8 @@ class Exchange(BaseExchange):
         stream = self.stream
         if callback is not None:
             stream.subscribe('myTrades::' + symbol, callback, synchronous)
-        stream.add_watch_function('watchMyTrades', [symbol, None, None, params])
-        await self.watchMyTrades(symbol, None, None, params)
+        stream.addWatchFunction('watchMyTrades', [symbol, None, None, params])
+        await self.watch_my_trades(symbol, None, None, params)
 
     async def fetch_greeks(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchGreeks() is not supported yet')
