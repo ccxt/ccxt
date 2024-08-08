@@ -80,6 +80,25 @@ export default class bybit extends bybitRest {
                         },
                     },
                 },
+                'demotrading': {
+                    'ws': {
+                        'public': {
+                            'spot': '',
+                            'inverse': '',
+                            'linear': '',
+                            'option': '',
+                        },
+                        'private': {
+                            'spot': {
+                                'unified': 'wss://stream-demo.{hostname}/v5/private',
+                                'nonUnified': '',
+                            },
+                            'contract': 'wss://stream-demo.{hostname}/v5/private',
+                            'usdc': '',
+                            'trade': '',
+                        },
+                    },
+                },
             },
             'options': {
                 'watchTicker': {
