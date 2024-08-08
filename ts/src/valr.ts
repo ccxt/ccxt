@@ -1053,10 +1053,18 @@ export default class valr extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {object} [params.skip] number of items to skip to skip from list
          * @returns {object} a list of [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        const query = {};
+        if (since !== undefined) {
+            query['startTime'] = this.iso8601 (since);
+        }
+        if (limit !== undefined) {
+            query['limit'] = limit;
+        }
         await this.loadMarkets ();
-        const response = await this.privateGetOrdersHistory (params);
+        const response = await this.privateGetOrdersHistory (this.extend (query, params));
         // [{'orderId': 'aa6dce9a-6acb-477f-9da8-223127e6b32d',
         //   'orderStatusType': 'Cancelled',
         //   'currencyPair': 'BTCZAR',
