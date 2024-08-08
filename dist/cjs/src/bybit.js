@@ -3786,7 +3786,12 @@ class bybit extends bybit$1 {
         }
         else {
             if (!isTrailingAmountOrder && !isAlternativeEndpoint) {
-                request['qty'] = this.amountToPrecision(symbol, amount);
+                if (market['option']) {
+                    request['qty'] = this.numberToString(amount);
+                }
+                else {
+                    request['qty'] = this.amountToPrecision(symbol, amount);
+                }
             }
         }
         if (isTrailingAmountOrder) {

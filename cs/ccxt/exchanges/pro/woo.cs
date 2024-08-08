@@ -715,7 +715,7 @@ public partial class woo : ccxt.woo
                 } },
             };
             object message = this.extend(request, parameters);
-            this.watch(url, messageHash, message, messageHash);
+            this.watch(url, messageHash, message, messageHash, message);
         }
         return await (future as Exchange.Future);
     }

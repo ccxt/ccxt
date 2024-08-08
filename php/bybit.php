@@ -3718,7 +3718,11 @@ class bybit extends Exchange {
             }
         } else {
             if (!$isTrailingAmountOrder && !$isAlternativeEndpoint) {
-                $request['qty'] = $this->amount_to_precision($symbol, $amount);
+                if ($market['option']) {
+                    $request['qty'] = $this->number_to_string($amount);
+                } else {
+                    $request['qty'] = $this->amount_to_precision($symbol, $amount);
+                }
             }
         }
         if ($isTrailingAmountOrder) {

@@ -8,6 +8,10 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+/**
+ * @class xt
+ * @augments Exchange
+ */
 class xt extends xt$1 {
     describe() {
         return this.deepExtend(super.describe(), {
