@@ -1635,34 +1635,57 @@ export default class hashkey extends Exchange {
          * @see https://hashkeyglobal-apidoc.readme.io/reference/get-account-information
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.accountId] account ID, for Master Key only
+         * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch balance for (default 'spot')
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
         const request: Dict = {};
         const methodName = 'fetchBalance';
-        let accountId: Str = undefined;
-        [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
-        if (accountId !== undefined) {
-            request['accountId'] = accountId;
+        let marketType = 'spot';
+        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, undefined, params, marketType);
+        if (marketType === 'swap') {
+            const response = await this.privateGetApiV1FuturesBalance (params);
+            //
+            //     [
+            //         {
+            //             "balance": "30.63364672",
+            //             "availableBalance": "28.85635534",
+            //             "positionMargin": "4.3421",
+            //             "orderMargin": "0",
+            //             "asset": "USDT",
+            //             "crossUnRealizedPnl": "2.5649"
+            //         }
+            //     ]
+            //
+            const balance = this.safeDict (response, 0, {});
+            return this.parseSwapBalance (balance);
+        } else if (marketType === 'spot') {
+            let accountId: Str = undefined;
+            [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
+            if (accountId !== undefined) {
+                request['accountId'] = accountId;
+            }
+            const response = await this.privateGetApiV1Account (this.extend (request, params));
+            //
+            //     {
+            //         "balances": [
+            //             {
+            //                 "asset":"USDT",
+            //                 "assetId":"USDT",
+            //                 "assetName":"USDT",
+            //                 "total":"40",
+            //                 "free":"40",
+            //                 "locked":"0"
+            //             },
+            //             ...
+            //         ],
+            //         "userId": "1732885739572845312"
+            //     }
+            //
+            return this.parseBalance (response);
+        } else {
+            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
-        const response = await this.privateGetApiV1Account (this.extend (request, params));
-        //
-        //     {
-        //         "balances": [
-        //             {
-        //                 "asset":"USDT",
-        //                 "assetId":"USDT",
-        //                 "assetName":"USDT",
-        //                 "total":"40",
-        //                 "free":"40",
-        //                 "locked":"0"
-        //             },
-        //             ...
-        //         ],
-        //         "userId": "1732885739572845312"
-        //     }
-        //
-        return this.parseBalance (response);
     }
 
     parseBalance (balance): Balances {
@@ -1696,6 +1719,31 @@ export default class hashkey extends Exchange {
             account['used'] = this.safeString (balanceEntry, 'locked');
             result[code] = account;
         }
+        return this.safeBalance (result);
+    }
+
+    parseSwapBalance (balance): Balances {
+        //
+        //     {
+        //         "balance": "30.63364672",
+        //         "availableBalance": "28.85635534",
+        //         "positionMargin": "4.3421",
+        //         "orderMargin": "0",
+        //         "asset": "USDT",
+        //         "crossUnRealizedPnl": "2.5649"
+        //     }
+        //
+        const currencyId = this.safeString (balance, 'asset');
+        const code = this.safeCurrencyCode (currencyId);
+        const account = this.account ();
+        account['total'] = this.safeString (balance, 'balance');
+        const positionMargin = this.safeString (balance, 'positionMargin');
+        const orderMargin = this.safeString (balance, 'orderMargin');
+        account['used'] = Precise.stringAdd (positionMargin, orderMargin);
+        const result: Dict = {
+            'info': balance,
+        };
+        result[code] = account;
         return this.safeBalance (result);
     }
 
@@ -4275,7 +4323,7 @@ export default class hashkey extends Exchange {
                 }
             }
         }
-        if ((code !== 200) || (responseCodeInteger !== 0) || errorInArray) {
+        if ((code !== 200) || errorInArray) {
             const feedback = this.id + ' ' + message;
             this.throwBroadlyMatchedException (this.exceptions['broad'], responseCodeString, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], responseCodeString, feedback);
