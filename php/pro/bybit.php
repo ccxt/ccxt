@@ -85,6 +85,25 @@ class bybit extends \ccxt\async\bybit {
                         ),
                     ),
                 ),
+                'demotrading' => array(
+                    'ws' => array(
+                        'public' => array(
+                            'spot' => 'wss://stream.{hostname}/v5/public/spot',
+                            'inverse' => 'wss://stream.{hostname}/v5/public/inverse',
+                            'option' => 'wss://stream.{hostname}/v5/public/option',
+                            'linear' => 'wss://stream.{hostname}/v5/public/linear',
+                        ),
+                        'private' => array(
+                            'spot' => array(
+                                'unified' => 'wss://stream-demo.{hostname}/v5/private',
+                                'nonUnified' => 'wss://stream-demo.{hostname}/spot/private/v3',
+                            ),
+                            'contract' => 'wss://stream-demo.{hostname}/v5/private',
+                            'usdc' => 'wss://stream-demo.{hostname}/trade/option/usdc/private/v1',
+                            'trade' => 'wss://stream-demo.bybit.com/v5/trade',
+                        ),
+                    ),
+                ),
             ),
             'options' => array(
                 'watchTicker' => array(

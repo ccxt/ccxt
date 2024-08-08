@@ -2747,7 +2747,7 @@ public partial class binance : Exchange
                     { "active", isTrue(depositEnable) && isTrue(withdrawEnable) },
                     { "deposit", depositEnable },
                     { "withdraw", withdrawEnable },
-                    { "fee", this.parseNumber(fee) },
+                    { "fee", withdrawFee },
                     { "precision", this.parseNumber(precisionTick) },
                     { "limits", new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
@@ -2755,7 +2755,7 @@ public partial class binance : Exchange
                             { "max", this.safeNumber(networkItem, "withdrawMax") },
                         } },
                         { "deposit", new Dictionary<string, object>() {
-                            { "min", null },
+                            { "min", this.safeNumber(networkItem, "depositDust") },
                             { "max", null },
                         } },
                     } },

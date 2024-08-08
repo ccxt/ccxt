@@ -668,7 +668,7 @@ class woo extends \ccxt\async\woo {
                     ),
                 );
                 $message = $this->extend($request, $params);
-                $this->watch($url, $messageHash, $message, $messageHash);
+                $this->watch($url, $messageHash, $message, $messageHash, $message);
             }
             return Async\await($future);
         }) ();

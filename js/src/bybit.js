@@ -3789,7 +3789,12 @@ export default class bybit extends Exchange {
         }
         else {
             if (!isTrailingAmountOrder && !isAlternativeEndpoint) {
-                request['qty'] = this.amountToPrecision(symbol, amount);
+                if (market['option']) {
+                    request['qty'] = this.numberToString(amount);
+                }
+                else {
+                    request['qty'] = this.amountToPrecision(symbol, amount);
+                }
             }
         }
         if (isTrailingAmountOrder) {

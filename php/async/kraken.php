@@ -1876,6 +1876,9 @@ class kraken extends Exchange {
             $extendedPostFlags = ($flags !== null) ? $flags . ',post' : 'post';
             $request['oflags'] = $extendedPostFlags;
         }
+        if (($flags !== null) && ($request['oflags'] === null)) {
+            $request['oflags'] = $flags;
+        }
         $params = $this->omit($params, array( 'timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingLimitAmount', 'offset' ));
         return array( $request, $params );
     }

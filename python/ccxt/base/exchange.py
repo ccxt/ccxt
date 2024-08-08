@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.75'
+__version__ = '4.3.77'
 
 # -----------------------------------------------------------------------------
 
@@ -110,6 +110,14 @@ from ccxt.base.types import Int
 
 # -----------------------------------------------------------------------------
 
+class SafeJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Exception):
+            return {"name": obj.__class__.__name__}
+        try:
+            return super().default(obj)
+        except TypeError:
+            return f"TypeError: Object of type {type(obj).__name__} is not JSON serializable"
 
 class Exchange(object):
     """Base exchange class"""
@@ -360,6 +368,7 @@ class Exchange(object):
         self.trades = dict() if self.trades is None else self.trades
         self.transactions = dict() if self.transactions is None else self.transactions
         self.ohlcvs = dict() if self.ohlcvs is None else self.ohlcvs
+        self.liquidations = dict() if self.liquidations is None else self.liquidations
         self.currencies = dict() if self.currencies is None else self.currencies
         self.options = self.get_default_options() if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
         self.decimal_to_precision = decimal_to_precision
@@ -1418,7 +1427,7 @@ class Exchange(object):
 
     @staticmethod
     def json(data, params=None):
-        return json.dumps(data, separators=(',', ':'))
+        return json.dumps(data, separators=(',', ':'), cls=SafeJSONEncoder)
 
     @staticmethod
     def is_json_encoded_object(input):
