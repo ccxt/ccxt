@@ -73,7 +73,7 @@ class Exchange extends \ccxt\Exchange {
         $this->set_request_browser($this->default_connector);
     }
 
-    public function newThrottler() {
+    public function new_throttler() {
         return new Throttler($this->tokenBucket);
     }
 

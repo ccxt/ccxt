@@ -1366,7 +1366,7 @@ class Exchange {
         }
     }
 
-    public function newThrottler() {
+    public function new_throttler() {
         // stub
         return null;
     }
