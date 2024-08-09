@@ -515,7 +515,7 @@ public partial class Exchange
     {
         return obj.Distinct().ToArray();
     }
- 
+
     public int parseTimeframe(object timeframe2)
     {
         var timeframe = (string)timeframe2;
