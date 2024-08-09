@@ -309,6 +309,7 @@ class Exchange {
     public $last_request_headers = null;
     public $last_request_body = null;
     public $last_request_url = null;
+    public $last_request_path = null;
 
     public $requiresWeb3 = false;
     public $requiresEddsa = false;
