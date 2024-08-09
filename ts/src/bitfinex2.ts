@@ -4,7 +4,7 @@ import { Precise } from './base/Precise.js';
 import Exchange from './abstract/bitfinex2.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
 import { sha384 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, OrderBook, Str, Transaction, Ticker, Balances, Tickers, Strings, Currency, Market, OpenInterest, Liquidation, OrderRequest, Num, MarginModification, Currencies, TradingFees, Dict, FundingRate, FundingRates } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -3092,7 +3092,7 @@ export default class bitfinex2 extends Exchange {
         //       ]
         //   ]
         //
-        return this.parseFundingRates (response);
+        return this.parseFundingRateLists (response);
     }
 
     async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
@@ -3160,7 +3160,7 @@ export default class bitfinex2 extends Exchange {
         const rates = [];
         for (let i = 0; i < response.length; i++) {
             const fr = response[i];
-            const rate = this.parseFundingRateHistory (fr, market);
+            const rate = this.parseFundingRateHistoryList (fr, market);
             rates.push (rate);
         }
         const reversedArray = [];
@@ -3174,7 +3174,16 @@ export default class bitfinex2 extends Exchange {
         return reversedArray as FundingRateHistory[];
     }
 
-    parseFundingRate (contract, market: Market = undefined) {
+    parseFundingRateLists (response: any[][], market: Market = undefined): FundingRates {
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const parsed = this.parseFundingRateList (response[i], market);
+            result[parsed['symbol']] = parsed;
+        }
+        return result;
+    }
+
+    parseFundingRateList (contract: any[], market: Market = undefined): FundingRate {
         //
         //       [
         //          "tBTCF0:USTF0",
@@ -3227,7 +3236,7 @@ export default class bitfinex2 extends Exchange {
         };
     }
 
-    parseFundingRateHistory (contract, market: Market = undefined) {
+    parseFundingRateHistoryList (info: any[], market: Market = undefined): FundingRateHistory {
         //
         // [
         //     1691165494000,
@@ -3255,26 +3264,13 @@ export default class bitfinex2 extends Exchange {
         //     0.0025
         // ]
         //
-        const timestamp = this.safeInteger (contract, 0);
-        const nextFundingTimestamp = this.safeInteger (contract, 7);
+        const timestamp = this.safeInteger (info, 0);
         return {
-            'info': contract,
+            'info': info,
             'symbol': this.safeSymbol (undefined, market),
-            'markPrice': this.safeNumber (contract, 14),
-            'indexPrice': this.safeNumber (contract, 2),
-            'interestRate': undefined,
-            'estimatedSettlePrice': undefined,
+            'fundingRate': this.safeNumber (info, 11),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'fundingRate': this.safeNumber (contract, 11),
-            'fundingTimestamp': undefined,
-            'fundingDatetime': undefined,
-            'nextFundingRate': this.safeNumber (contract, 8),
-            'nextFundingTimestamp': nextFundingTimestamp,
-            'nextFundingDatetime': this.iso8601 (nextFundingTimestamp),
-            'previousFundingRate': undefined,
-            'previousFundingTimestamp': undefined,
-            'previousFundingDatetime': undefined,
         };
     }
 

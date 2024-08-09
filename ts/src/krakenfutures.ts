@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, BadRequest, ContractUnavailable
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
-import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Dict, Ticker, OrderBook, Tickers, Strings, Market, Currency, Leverage, Leverages, Num, LeverageTier, LeverageTiers, int } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, OHLCV, Trade, FundingRateHistory, OrderRequest, Order, Balances, Str, Dict, Ticker, OrderBook, Tickers, Strings, Market, Currency, Leverage, Leverages, Num, LeverageTier, LeverageTiers, int, FundingRate } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2194,44 +2194,46 @@ export default class krakenfutures extends Exchange {
         return this.indexBy (fundingRates, 'symbol') as any;
     }
 
-    parseFundingRate (ticker, market: Market = undefined) {
+    parseFundingRate (contract: Dict, market: Market = undefined): FundingRate {
         //
-        // {"ask": 26.283,
-        //  "askSize": 4.6,
-        //  "bid": 26.201,
-        //  "bidSize": 190,
-        //  "fundingRate": -0.000944642727438883,
-        //  "fundingRatePrediction": -0.000872671532340275,
-        //  "indexPrice": 26.253,
-        //  "last": 26.3,
-        //  "lastSize": 0.1,
-        //  "lastTime": "2023-06-11T18:55:28.958Z",
-        //  "markPrice": 26.239,
-        //  "open24h": 26.3,
-        //  "openInterest": 641.1,
-        //  "pair": "COMP:USD",
-        //  "postOnly": False,
-        //  "suspended": False,
-        //  "symbol": "pf_compusd",
-        //  "tag": "perpetual",
-        //  "vol24h": 0.1,
-        //  "volumeQuote": 2.63}
+        //    {
+        //        "ask": 26.283,
+        //        "askSize": 4.6,
+        //        "bid": 26.201,
+        //        "bidSize": 190,
+        //        "fundingRate": -0.000944642727438883,
+        //        "fundingRatePrediction": -0.000872671532340275,
+        //        "indexPrice": 26.253,
+        //        "last": 26.3,
+        //        "lastSize": 0.1,
+        //        "lastTime": "2023-06-11T18:55:28.958Z",
+        //        "markPrice": 26.239,
+        //        "open24h": 26.3,
+        //        "openInterest": 641.1,
+        //        "pair": "COMP:USD",
+        //        "postOnly": False,
+        //        "suspended": False,
+        //        "symbol": "pf_compusd",
+        //        "tag": "perpetual",
+        //        "vol24h": 0.1,
+        //        "volumeQuote": 2.63
+        //    }
         //
         const fundingRateMultiplier = '8';  // https://support.kraken.com/hc/en-us/articles/9618146737172-Perpetual-Contracts-Funding-Rate-Method-Prior-to-September-29-2022
-        const marketId = this.safeString (ticker, 'symbol');
+        const marketId = this.safeString (contract, 'symbol');
         const symbol = this.symbol (marketId);
-        const timestamp = this.parse8601 (this.safeString (ticker, 'lastTime'));
-        const indexPrice = this.safeNumber (ticker, 'indexPrice');
-        const markPriceString = this.safeString (ticker, 'markPrice');
+        const timestamp = this.parse8601 (this.safeString (contract, 'lastTime'));
+        const indexPrice = this.safeNumber (contract, 'indexPrice');
+        const markPriceString = this.safeString (contract, 'markPrice');
         const markPrice = this.parseNumber (markPriceString);
-        const fundingRateString = this.safeString (ticker, 'fundingRate');
+        const fundingRateString = this.safeString (contract, 'fundingRate');
         const fundingRateResult = Precise.stringDiv (Precise.stringMul (fundingRateString, fundingRateMultiplier), markPriceString);
         const fundingRate = this.parseNumber (fundingRateResult);
-        const nextFundingRateString = this.safeString (ticker, 'fundingRatePrediction');
+        const nextFundingRateString = this.safeString (contract, 'fundingRatePrediction');
         const nextFundingRateResult = Precise.stringDiv (Precise.stringMul (nextFundingRateString, fundingRateMultiplier), markPriceString);
         const nextFundingRate = this.parseNumber (nextFundingRateResult);
         return {
-            'info': ticker,
+            'info': contract,
             'symbol': symbol,
             'markPrice': markPrice,
             'indexPrice': indexPrice,
