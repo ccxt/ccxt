@@ -3558,8 +3558,12 @@ export default class Exchange {
             }
             if (average === undefined) {
                 let precision = 18;
-                if (this.isTickPrecision () && market !== undefined && market['precision'] !== undefined && market['precision']['price'] !== undefined) {
-                    precision = this.precisionFromString (this.safeString (market['precision'], 'price'));
+                if (market !== undefined && this.isTickPrecision ()) {
+                    const marketPrecision = this.safeDict (market, 'precision');
+                    const precisionPrice = this.safeString (marketPrecision, 'price');
+                    if (precisionPrice !== undefined) {
+                        precision = this.precisionFromString (precisionPrice);
+                    }
                 }
                 average = Precise.stringDiv (Precise.stringAdd (last, open), '2', precision);
             }
