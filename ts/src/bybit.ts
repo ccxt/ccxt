@@ -3579,7 +3579,10 @@ export default class bybit extends Exchange {
          */
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (market['option']) {
+        const isOption = market['option'];
+        const undefinedPrecisionAmount = (market['precision']['amount'] === undefined);
+        const undefinedPrecisionPrice = (market['precision']['price'] === undefined);
+        if (isOption && (undefinedPrecisionAmount || undefinedPrecisionPrice)) {
             this.options['loadAllOptions'] = true;
             await this.loadMarkets (true);
             market = this.market (symbol);
@@ -4204,7 +4207,10 @@ export default class bybit extends Exchange {
          */
         await this.loadMarkets ();
         let market = this.market (symbol);
-        if (market['option']) {
+        const isOption = market['option'];
+        const undefinedPrecisionAmount = (market['precision']['amount'] === undefined);
+        const undefinedPrecisionPrice = (market['precision']['price'] === undefined);
+        if (isOption && (undefinedPrecisionAmount || undefinedPrecisionPrice)) {
             this.options['loadAllOptions'] = true;
             await this.loadMarkets (true);
             market = this.market (symbol);
