@@ -151,6 +151,7 @@ class Exchange(object):
     codes = None
     timeframes = {}
     throttler = None
+    tokenBucket = None
 
     fees = {
         'trading': {
@@ -427,7 +428,8 @@ class Exchange(object):
             delay = sleep_time - elapsed
             time.sleep(delay / 1000.0)
 
-    def newThrottler(self):
+    def new_throttler(self):
+        # stub for async
         pass
 
     @staticmethod
