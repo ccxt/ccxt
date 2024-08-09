@@ -2144,7 +2144,8 @@ export default class Exchange {
             throw new InvalidAddress (this.id + ' address is undefined');
         }
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
-        const length = (this.unique (this.stringToCharsArray (address))).length;
+        const uniqChars = (this.unique (this.stringToCharsArray (address)));
+        const length = uniqChars.length; // py transpiler trick
         if (length === 1 || address.length < this.minFundingAddressLength || (address.toString ().indexOf (' ') > -1)) {
             throw new InvalidAddress (this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString () + ' characters: "' + this.json (address) + '"');
         }
