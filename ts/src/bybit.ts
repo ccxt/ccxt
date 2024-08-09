@@ -1216,6 +1216,19 @@ export default class bybit extends Exchange {
         const optionType = this.safeString (optionParts, 3);
         const datetime = this.convertExpireDate (expiry);
         const timestamp = this.parse8601 (datetime);
+        let amountPrecision = undefined;
+        let pricePrecision = undefined;
+        // hard coded amount and price precisions from fetchOptionMarkets
+        if (base === 'BTC') {
+            amountPrecision = this.parseNumber ('0.01');
+            pricePrecision = this.parseNumber ('5');
+        } else if (base === 'ETH') {
+            amountPrecision = this.parseNumber ('0.1');
+            pricePrecision = this.parseNumber ('0.1');
+        } else if (base === 'SOL') {
+            amountPrecision = this.parseNumber ('1');
+            pricePrecision = this.parseNumber ('0.01');
+        }
         return {
             'id': base + '-' + this.convertExpireDateToMarketIdDate (expiry) + '-' + strike + '-' + optionType,
             'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
@@ -1235,14 +1248,14 @@ export default class bybit extends Exchange {
             'option': true,
             'margin': false,
             'contract': true,
-            'contractSize': undefined,
+            'contractSize': this.parseNumber ('1'),
             'expiry': timestamp,
             'expiryDatetime': datetime,
             'optionType': (optionType === 'C') ? 'call' : 'put',
             'strike': this.parseNumber (strike),
             'precision': {
-                'amount': undefined,
-                'price': undefined,
+                'amount': amountPrecision,
+                'price': pricePrecision,
             },
             'limits': {
                 'amount': {
