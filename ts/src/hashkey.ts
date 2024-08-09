@@ -937,7 +937,7 @@ export default class hashkey extends Exchange {
         }
         const tradingFees = this.safeDict (this.fees, 'trading');
         const fees = isSpot ? this.safeDict (tradingFees, 'spot') : this.safeDict (tradingFees, 'swap');
-        return {
+        return this.safeMarketStructure ({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -991,7 +991,7 @@ export default class hashkey extends Exchange {
             },
             'created': undefined,
             'info': market,
-        };
+        });
     }
 
     async fetchCurrencies (params = {}): Promise<Currencies> {
