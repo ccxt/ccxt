@@ -565,7 +565,7 @@
         ],
         "fetchTicker": [
             {
-                "description": "Fill this with a description of the method call",
+                "description": "Fetch ticker for spot",
                 "method": "fetchTicker",
                 "input": [
                     "BTC/USDT"
@@ -622,53 +622,53 @@
                 "description": "Fetch ticker for swap",
                 "method": "fetchTicker",
                 "input": [
-                    "BTC/USDT:USDT"
+                    "ETH/USDT:USDT"
                 ],
                 "httpResponse": [
                     {
-                        "t": "1721910215199",
-                        "s": "BTCUSDT-PERPETUAL",
-                        "c": "64278.5",
-                        "h": "67105.8",
-                        "l": "63850",
-                        "o": "66392",
-                        "b": "64278.5",
-                        "a": "64278.6",
-                        "v": "800511",
-                        "qv": "52198570.8553"
+                        "t": "1723212900000",
+                        "s": "ETHUSDT-PERPETUAL",
+                        "c": "2632.25",
+                        "h": "2714.21",
+                        "l": "2450.43",
+                        "o": "2450.43",
+                        "b": "2627.51",
+                        "a": "2627.78",
+                        "v": "1561096",
+                        "qv": "4138307.86688"
                     }
                 ],
                 "parsedResponse": {
-                    "symbol": "BTC/USDT:USDT",
-                    "timestamp": 1721910215199,
-                    "datetime": "2024-07-25T12:23:35.199Z",
-                    "high": 67105.8,
-                    "low": 63850,
-                    "bid": 64278.5,
+                    "symbol": "ETH/USDT:USDT",
+                    "timestamp": 1723212900000,
+                    "datetime": "2024-08-09T14:15:00.000Z",
+                    "high": 2714.21,
+                    "low": 2450.43,
+                    "bid": 2627.51,
                     "bidVolume": null,
-                    "ask": 64278.6,
+                    "ask": 2627.78,
                     "askVolume": null,
-                    "vwap": 65.20656287708726,
-                    "open": 66392,
-                    "close": 64278.5,
-                    "last": 64278.5,
+                    "vwap": 2.650899026632571,
+                    "open": 2450.43,
+                    "close": 2632.25,
+                    "last": 2632.25,
                     "previousClose": null,
-                    "change": -2113.5,
-                    "percentage": -3.183365465718761,
-                    "average": 65335.25,
-                    "baseVolume": 800511,
-                    "quoteVolume": 52198570.8553,
+                    "change": 181.82,
+                    "percentage": 7.419922217733214,
+                    "average": 2541.34,
+                    "baseVolume": 1561096,
+                    "quoteVolume": 4138307.86688,
                     "info": {
-                        "t": "1721910215199",
-                        "s": "BTCUSDT-PERPETUAL",
-                        "c": "64278.5",
-                        "h": "67105.8",
-                        "l": "63850",
-                        "o": "66392",
-                        "b": "64278.5",
-                        "a": "64278.6",
-                        "v": "800511",
-                        "qv": "52198570.8553"
+                        "t": "1723212900000",
+                        "s": "ETHUSDT-PERPETUAL",
+                        "c": "2632.25",
+                        "h": "2714.21",
+                        "l": "2450.43",
+                        "o": "2450.43",
+                        "b": "2627.51",
+                        "a": "2627.78",
+                        "v": "1561096",
+                        "qv": "4138307.86688"
                     }
                 }
             }
