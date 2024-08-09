@@ -6,7 +6,7 @@ import { ExchangeError, ArgumentsRequired, BadRequest, InvalidOrder, PermissionD
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory, Currencies, Dict, int, OHLCV } from './base/types.js';
+import type { Int, OrderSide, OrderType, Order, Trade, Ticker, Str, Transaction, Balances, Tickers, Strings, Market, Currency, TransferEntry, Position, FundingRateHistory, Currencies, Dict, int, OHLCV, FundingHistory, List } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -559,11 +559,11 @@ export default class coinbaseinternational extends Exchange {
             request['result_limit'] = 100;
         }
         const response = await this.v1PrivateGetTransfers (this.extend (request, params));
-        const fundings = this.safeList (response, 'results', []);
+        const fundings = this.safeList (response, 'results', []) as List;
         return this.parseIncomes (fundings, market, since, limit);
     }
 
-    parseIncome (income, market: Market = undefined) {
+    parseIncome (income: Dict, market: Market = undefined): FundingHistory {
         //
         // {
         //     "amount":"0.0008",
