@@ -347,6 +347,12 @@ export default class coinex extends coinexRest {
         if (market !== undefined) {
             messageHash += ':' + symbol;
             subscribedSymbols.push (market['id']);
+        } else {
+            if (type === 'spot') {
+                messageHash += ':spot';
+            } else {
+                messageHash += ':swap';
+            }
         }
         const message: Dict = {
             'method': 'user_deals.subscribe',
@@ -703,7 +709,7 @@ export default class coinex extends coinexRest {
         //
         const defaultType = this.safeString (this.options, 'defaultType');
         const data = this.safeDict (message, 'data', {});
-        const depth = this.safeValue (data, 'depth', {});
+        const depth = this.safeDict (data, 'depth', {});
         const marketId = this.safeString (data, 'market');
         const market = this.safeMarket (marketId, undefined, undefined, defaultType);
         const symbol = market['symbol'];
@@ -747,12 +753,12 @@ export default class coinex extends coinexRest {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [params.stop] if the orders to watch are stop orders or not
+         * @param {bool} [params.trigger] if the orders to watch are trigger orders or not
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const stop = this.safeBool (params, 'stop');
-        params = this.omit (params, 'stop');
+        const stop = this.safeBool2 (params, 'trigger', 'stop');
+        params = this.omit (params, [ 'trigger', 'stop' ]);
         await this.authenticate (params);
         let messageHash = 'orders';
         let market = undefined;
@@ -765,6 +771,11 @@ export default class coinex extends coinexRest {
             messageHash += ':' + symbol;
         } else {
             marketList = [];
+            if (type === 'spot') {
+                messageHash += ':spot';
+            } else {
+                messageHash += ':swap';
+            }
         }
         let method = undefined;
         if (stop) {
