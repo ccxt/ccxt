@@ -30,7 +30,8 @@ export default class bingx extends bingxRest {
                 'api': {
                     'ws': {
                         'spot': 'wss://open-api-ws.bingx.com/market',
-                        'swap': 'wss://open-api-swap.bingx.com/swap-market',
+                        'linear': 'wss://open-api-swap.bingx.com/swap-market',
+                        'inverse': 'wss://open-api-cswap-ws.bingx.com/market',
                     },
                 },
             },
@@ -91,17 +92,24 @@ export default class bingx extends bingxRest {
          * @method
          * @name bingx#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#Subscribe%20to%2024-hour%20Price%20Change
          * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20to%2024-hour%20price%20changes
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%2024-Hour%20Price%20Change
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('watchTicker', market, params);
-        const url = this.safeValue (this.urls['api']['ws'], marketType);
-        if (url === undefined) {
-            throw new BadRequest (this.id + ' watchTicker is not supported for ' + marketType + ' markets.');
+        let marketType = undefined;
+        let subType = undefined;
+        let url = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchTicker', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('watchTicker', market, params, 'linear');
+        if (marketType === 'swap') {
+            url = this.safeString (this.urls['api']['ws'], subType);
+        } else {
+            url = this.safeString (this.urls['api']['ws'], marketType);
         }
         const subscriptionHash = market['id'] + '@ticker';
         const messageHash = this.getMessageHash ('ticker', market['symbol']);
@@ -113,7 +121,7 @@ export default class bingx extends bingxRest {
         if (marketType === 'swap') {
             request['reqType'] = 'sub';
         }
-        return await this.watch (url, messageHash, this.extend (request, query), subscriptionHash);
+        return await this.watch (url, messageHash, this.extend (request, params), subscriptionHash);
     }
 
     handleTicker (client: Client, message) {
@@ -251,13 +259,18 @@ export default class bingx extends bingxRest {
         symbols = this.marketSymbols (symbols, undefined, true, true, false);
         let firstMarket = undefined;
         let marketType = undefined;
+        let subType = undefined;
         const symbolsDefined = (symbols !== undefined);
         if (symbolsDefined) {
             firstMarket = this.market (symbols[0]);
         }
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchTickers', firstMarket, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('watchTickers', firstMarket, params, 'linear');
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' watchTickers is not supported for spot markets yet');
+        }
+        if (subType === 'inverse') {
+            throw new NotSupported (this.id + ' watchTickers is not supported for inverse markets yet');
         }
         const messageHashes = [];
         const subscriptionHashes = [ 'all@ticker' ];
@@ -270,7 +283,7 @@ export default class bingx extends bingxRest {
         } else {
             messageHashes.push (this.getMessageHash ('ticker'));
         }
-        const url = this.safeString (this.urls['api']['ws'], marketType);
+        const url = this.safeString (this.urls['api']['ws'], subType);
         const uuid = this.uuid ();
         const request: Dict = {
             'id': uuid,
@@ -302,13 +315,18 @@ export default class bingx extends bingxRest {
         symbols = this.marketSymbols (symbols, undefined, true, true, false);
         let firstMarket = undefined;
         let marketType = undefined;
+        let subType = undefined;
         const symbolsDefined = (symbols !== undefined);
         if (symbolsDefined) {
             firstMarket = this.market (symbols[0]);
         }
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchOrderBookForSymbols', firstMarket, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('watchOrderBookForSymbols', firstMarket, params, 'linear');
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' watchOrderBookForSymbols is not supported for spot markets yet');
+        }
+        if (subType === 'inverse') {
+            throw new NotSupported (this.id + ' watchOrderBookForSymbols is not supported for inverse markets yet');
         }
         limit = this.getOrderBookLimitByMarketType (marketType, limit);
         let interval = undefined;
@@ -326,7 +344,7 @@ export default class bingx extends bingxRest {
         } else {
             messageHashes.push (this.getMessageHash ('orderbook'));
         }
-        const url = this.safeString (this.urls['api']['ws'], marketType);
+        const url = this.safeString (this.urls['api']['ws'], subType);
         const uuid = this.uuid ();
         const request: Dict = {
             'id': uuid,
@@ -350,6 +368,7 @@ export default class bingx extends bingxRest {
          * @method
          * @name bingx#watchOHLCVForSymbols
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20K-Line%20Data%20of%20all%20trading%20pairs
          * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
          * @param {int} [limit] the maximum amount of candles to fetch
@@ -363,15 +382,21 @@ export default class bingx extends bingxRest {
         await this.loadMarkets ();
         const messageHashes = [];
         let marketType = undefined;
+        let subType = undefined;
         let chosenTimeframe = undefined;
+        let firstMarket = undefined;
         if (symbolsLength !== 0) {
             let symbols = this.getListFromObjectValues (symbolsAndTimeframes, 0);
             symbols = this.marketSymbols (symbols, undefined, true, true, false);
-            const firstMarket = this.market (symbols[0]);
-            [ marketType, params ] = this.handleMarketTypeAndParams ('watchOrderBookForSymbols', firstMarket, params);
-            if (marketType === 'spot') {
-                throw new NotSupported (this.id + ' watchOrderBookForSymbols is not supported for spot markets yet');
-            }
+            firstMarket = this.market (symbols[0]);
+        }
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchOHLCVForSymbols', firstMarket, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('watchOHLCVForSymbols', firstMarket, params, 'linear');
+        if (marketType === 'spot') {
+            throw new NotSupported (this.id + ' watchOHLCVForSymbols is not supported for spot markets yet');
+        }
+        if (subType === 'inverse') {
+            throw new NotSupported (this.id + ' watchOHLCVForSymbols is not supported for inverse markets yet');
         }
         const marketOptions = this.safeDict (this.options, marketType);
         const timeframes = this.safeDict (marketOptions, 'timeframes', {});
@@ -389,7 +414,7 @@ export default class bingx extends bingxRest {
             messageHashes.push (this.getMessageHash ('ohlcv', market['symbol'], chosenTimeframe));
         }
         const subscriptionHash = 'all@kline_' + chosenTimeframe;
-        const url = this.safeString (this.urls['api']['ws'], marketType);
+        const url = this.safeString (this.urls['api']['ws'], subType);
         const uuid = this.uuid ();
         const request: Dict = {
             'id': uuid,
@@ -443,6 +468,7 @@ export default class bingx extends bingxRest {
          * @description watches information on multiple trades made in a market
          * @see https://bingx-api.github.io/docs/#/spot/socket/market.html#Subscribe%20to%20tick-by-tick
          * @see https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20the%20Latest%20Trade%20Detail
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscription%20transaction%20by%20transaction
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -452,10 +478,14 @@ export default class bingx extends bingxRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         let marketType = undefined;
+        let subType = undefined;
+        let url = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('watchTrades', market, params);
-        const url = this.safeValue (this.urls['api']['ws'], marketType);
-        if (url === undefined) {
-            throw new BadRequest (this.id + ' watchTrades is not supported for ' + marketType + ' markets.');
+        [ subType, params ] = this.handleSubTypeAndParams ('watchTrades', market, params, 'linear');
+        if (marketType === 'swap') {
+            url = this.safeString (this.urls['api']['ws'], subType);
+        } else {
+            url = this.safeString (this.urls['api']['ws'], marketType);
         }
         const rawHash = market['id'] + '@trade';
         const messageHash = 'trade::' + symbol;
@@ -476,8 +506,7 @@ export default class bingx extends bingxRest {
 
     handleTrades (client: Client, message) {
         //
-        // spot
-        // first snapshot
+        // spot: first snapshot
         //
         //    {
         //      "id": "d83b78ce-98be-4dc2-b847-12fe471b5bc5",
@@ -486,7 +515,7 @@ export default class bingx extends bingxRest {
         //      "timestamp": 1690214699854
         //    }
         //
-        // subsequent updates
+        // spot: subsequent updates
         //
         //     {
         //         "code": 0,
@@ -504,9 +533,7 @@ export default class bingx extends bingxRest {
         //         "success": true
         //     }
         //
-        //
-        // swap
-        // first snapshot
+        // linear swap: first snapshot
         //
         //    {
         //        "id": "2aed93b1-6e1e-4038-aeba-f5eeaec2ca48",
@@ -516,8 +543,7 @@ export default class bingx extends bingxRest {
         //        "data": null
         //    }
         //
-        // subsequent updates
-        //
+        // linear swap: subsequent updates
         //
         //    {
         //        "code": 0,
@@ -533,6 +559,32 @@ export default class bingx extends bingxRest {
         //            ...
         //        ]
         //    }
+        //
+        // inverse swap: first snapshot
+        //
+        //     {
+        //         "code": 0,
+        //         "id": "a2e482ca-f71b-42f8-a83a-8ff85a713e64",
+        //         "msg": "SUCCESS",
+        //         "timestamp": 1722920589426
+        //     }
+        //
+        // inverse swap: subsequent updates
+        //
+        //     {
+        //         "code": 0,
+        //         "dataType": "BTC-USD@trade",
+        //         "data": {
+        //             "e": "trade",
+        //             "E": 1722920589665,
+        //             "s": "BTC-USD",
+        //             "t": "39125001",
+        //             "p": "55360.0",
+        //             "q": "1",
+        //             "T": 1722920589582,
+        //             "m": false
+        //         }
+        //     }
         //
         const data = this.safeValue (message, 'data', []);
         const rawHash = this.safeString (message, 'dataType');
