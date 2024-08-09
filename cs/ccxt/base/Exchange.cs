@@ -511,9 +511,9 @@ public partial class Exchange
         return "";
     }
 
-    public bool checkAddress(object address)
+    public char[] unique(object obj)
     {
-        return true;
+        return (obj as char[]).Distinct().ToArray();
     }
 
     public int parseTimeframe(object timeframe2)
