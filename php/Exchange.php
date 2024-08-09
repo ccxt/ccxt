@@ -1363,6 +1363,11 @@ class Exchange {
         }
     }
 
+    public function newThrottler() {
+        // stub
+        return null;
+    }
+
     public function parse_json($json_string, $as_associative_array = true) {
         return json_decode($this->on_json_response($json_string), $as_associative_array);
     }
