@@ -261,7 +261,7 @@ export default class btcbox extends Exchange {
         };
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         const result: Dict = { 'info': response };
         const codes = Object.keys (this.currencies);
         for (let i = 0; i < codes.length; i++) {
@@ -291,6 +291,29 @@ export default class btcbox extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privatePostBalance (params);
+        //
+        //    {
+        //        "uid":8,
+        //        "nameauth":0,
+        //        "moflag":0,
+        //        "btc_balance":4.234234,
+        //        "btc_lock":0,
+        //        "bch_balance":234,
+        //        "bch_lock":15,
+        //        "ltc_balance":32429.6,
+        //        "ltc_lock":2.4,
+        //        "eth_balance":0,
+        //        "eth_lock":0,
+        //        "doge_balance":0,
+        //        "doge_lock":0,
+        //        "dot_balance":0,
+        //        "dot_lock":0,
+        //        "trx_balance":0,
+        //        "trx_lock":0,
+        //        "jpy_balance":2344581.519,
+        //        "jpy_lock":868862.481
+        //    }
+        //
         return this.parseBalance (response);
     }
 

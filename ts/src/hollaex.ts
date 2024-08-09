@@ -842,7 +842,7 @@ export default class hollaex extends Exchange {
         ];
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         const timestamp = this.parse8601 (this.safeString (response, 'updated_at'));
         const result: Dict = {
             'info': response,

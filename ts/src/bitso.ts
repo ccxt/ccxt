@@ -488,7 +488,7 @@ export default class bitso extends Exchange {
         return result;
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         const payload = this.safeValue (response, 'payload', {});
         const balances = this.safeValue (payload, 'balances', []);
         const result: Dict = {

@@ -489,7 +489,7 @@ export default class upbit extends Exchange {
         });
     }
 
-    parseBalance (response): Balances {
+    parseBalanceList (response: any[]): Balances {
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
@@ -530,7 +530,7 @@ export default class upbit extends Exchange {
         //         "avg_krw_buy_price": "250000",
         //                  "modified":  false    }   ]
         //
-        return this.parseBalance (response);
+        return this.parseBalanceList (response);
     }
 
     async fetchOrderBooks (symbols: Strings = undefined, limit: Int = undefined, params = {}) {

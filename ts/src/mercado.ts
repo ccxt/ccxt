@@ -410,7 +410,7 @@ export default class mercado extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         const data = this.safeValue (response, 'response_data', {});
         const balances = this.safeValue (data, 'balance', {});
         const result: Dict = { 'info': response };

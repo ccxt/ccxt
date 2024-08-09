@@ -1001,7 +1001,7 @@ export default class onetrading extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         const balances = this.safeValue (response, 'balances', []);
         const result: Dict = { 'info': response };
         for (let i = 0; i < balances.length; i++) {

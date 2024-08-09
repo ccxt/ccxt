@@ -115,7 +115,36 @@ export default class paymium extends Exchange {
         });
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
+        //
+        //    {
+        //        "name": "BC-U123456",
+        //        "email": "string",
+        //        "locale": "en",
+        //        "channel_id": "string",
+        //        "meta_state": "string",
+        //        "balance_eur": "1893.96",
+        //        "locked_eur": "300.00743886",
+        //        "balance_btc": "25.78866278",
+        //        "locked_btc": "1.0",
+        //        "balance_lbtc": "0.8",
+        //        "locked_lbtc": "0.5",
+        //        "balance_bch": "0.0",
+        //        "locked_bch": "0.0",
+        //        "balance_eth": "0.0",
+        //        "locked_eth": "0.0",
+        //        "balance_ltc": "0.0",
+        //        "locked_ltc": "0.0",
+        //        "balance_bcio": "0.0",
+        //        "locked_bcio": "0.0",
+        //        "balance_bat": "0.0",
+        //        "locked_bat": "0.0",
+        //        "balance_dai": "0.0",
+        //        "locked_dai": "0.0",
+        //        "balance_etc": "0.0",
+        //        "locked_etc": "0.0"
+        //    }
+        //
         const result: Dict = { 'info': response };
         const currencies = Object.keys (this.currencies);
         for (let i = 0; i < currencies.length; i++) {
@@ -145,6 +174,35 @@ export default class paymium extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privateGetUser (params);
+        //
+        //    {
+        //        "name": "BC-U123456",
+        //        "email": "string",
+        //        "locale": "en",
+        //        "channel_id": "string",
+        //        "meta_state": "string",
+        //        "balance_eur": "1893.96",
+        //        "locked_eur": "300.00743886",
+        //        "balance_btc": "25.78866278",
+        //        "locked_btc": "1.0",
+        //        "balance_lbtc": "0.8",
+        //        "locked_lbtc": "0.5",
+        //        "balance_bch": "0.0",
+        //        "locked_bch": "0.0",
+        //        "balance_eth": "0.0",
+        //        "locked_eth": "0.0",
+        //        "balance_ltc": "0.0",
+        //        "locked_ltc": "0.0",
+        //        "balance_bcio": "0.0",
+        //        "locked_bcio": "0.0",
+        //        "balance_bat": "0.0",
+        //        "locked_bat": "0.0",
+        //        "balance_dai": "0.0",
+        //        "locked_dai": "0.0",
+        //        "balance_etc": "0.0",
+        //        "locked_etc": "0.0"
+        //    }
+        //
         return this.parseBalance (response);
     }
 

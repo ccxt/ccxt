@@ -1571,7 +1571,7 @@ export default class oxfun extends Exchange {
         return this.parseBalance (balance);
     }
 
-    parseBalance (balance): Balances {
+    parseBalance (response: Dict): Balances {
         //
         //     {
         //         "accountId": "106490",
@@ -1596,9 +1596,9 @@ export default class oxfun extends Exchange {
         //     }
         //
         const result: Dict = {
-            'info': balance,
+            'info': response,
         };
-        const balances = this.safeList (balance, 'balances', []);
+        const balances = this.safeList (response, 'balances', []);
         for (let i = 0; i < balances.length; i++) {
             const balanceEntry = balances[i];
             const currencyId = this.safeString (balanceEntry, 'asset');

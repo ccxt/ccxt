@@ -954,10 +954,10 @@ export default class coinmetro extends Exchange {
         await this.loadMarkets ();
         const response = await this.privateGetUsersWallets (params);
         const list = this.safeList (response, 'list', []);
-        return this.parseBalance (list);
+        return this.parseBalanceList (list);
     }
 
-    parseBalance (balances): Balances {
+    parseBalanceList (response: any[]): Balances {
         //
         //     [
         //         {
@@ -981,10 +981,10 @@ export default class coinmetro extends Exchange {
         //     ]
         //
         const result: Dict = {
-            'info': balances,
+            'info': response,
         };
-        for (let i = 0; i < balances.length; i++) {
-            const balanceEntry = this.safeDict (balances, i, {});
+        for (let i = 0; i < response.length; i++) {
+            const balanceEntry = this.safeDict (response, i, {});
             const currencyId = this.safeString (balanceEntry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();

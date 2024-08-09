@@ -1082,7 +1082,7 @@ export default class coinsph extends Exchange {
         return this.parseBalance (response);
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         const balances = this.safeValue (response, 'balances', []);
         const result: Dict = {
             'info': response,

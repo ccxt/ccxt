@@ -534,7 +534,7 @@ export default class zonda extends Exchange {
         return this.filterBySymbol (result, symbol) as Trade[];
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         const balances = this.safeValue (response, 'balances');
         if (balances === undefined) {
             throw new ExchangeError (this.id + ' empty balance response ' + this.json (response));

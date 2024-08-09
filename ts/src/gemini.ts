@@ -1113,7 +1113,19 @@ export default class gemini extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
-    parseBalance (response): Balances {
+    parseBalanceList (response: any[]): Balances {
+        //
+        //    [
+        //        {
+        //            "type": "exchange",
+        //            "currency": "BTC",
+        //            "amount": "1154.62034001",
+        //            "available": "1129.10517279",
+        //            "availableForWithdrawal": "1129.10517279"
+        //        },
+        //        ...
+        //    ]
+        //
         const result: Dict = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
@@ -1198,7 +1210,19 @@ export default class gemini extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privatePostV1Balances (params);
-        return this.parseBalance (response);
+        //
+        //    [
+        //        {
+        //            "type": "exchange",
+        //            "currency": "BTC",
+        //            "amount": "1154.62034001",
+        //            "available": "1129.10517279",
+        //            "availableForWithdrawal": "1129.10517279"
+        //        },
+        //        ...
+        //    ]
+        //
+        return this.parseBalanceList (response);
     }
 
     parseOrder (order: Dict, market: Market = undefined): Order {

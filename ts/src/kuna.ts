@@ -903,7 +903,7 @@ export default class kuna extends Exchange {
         }, market);
     }
 
-    parseBalance (response): Balances {
+    parseBalanceList (response: any[]): Balances {
         //
         //    [
         //        {
@@ -947,7 +947,7 @@ export default class kuna extends Exchange {
         //    }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseBalance (data);
+        return this.parseBalanceList (data);
     }
 
     async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {

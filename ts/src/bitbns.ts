@@ -432,7 +432,7 @@ export default class bitbns extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         const timestamp = undefined;
         const result: Dict = {
             'info': response,

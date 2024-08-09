@@ -326,7 +326,7 @@ export default class bithumb extends Exchange {
         return result;
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         const result: Dict = { 'info': response };
         const balances = this.safeDict (response, 'data');
         const codes = Object.keys (this.currencies);

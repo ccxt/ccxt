@@ -934,7 +934,7 @@ export default class exmo extends Exchange {
         ];
     }
 
-    parseBalance (response): Balances {
+    parseBalance (response: Dict): Balances {
         const result: Dict = { 'info': response };
         const wallets = this.safeValue (response, 'wallets');
         if (wallets !== undefined) {
