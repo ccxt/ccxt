@@ -176,7 +176,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         return await this.watch (url, messageHash, request, name, subscriptionRequest);
     }
 
-    onClose (client, error) {
+    onClose (client: Client, error: Error) {
         this.options['streamBySubscriptionsHash'] = {};
         super.onClose (client, error);
     }
