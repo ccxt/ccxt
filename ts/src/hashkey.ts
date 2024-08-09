@@ -3989,10 +3989,7 @@ export default class hashkey extends Exchange {
     }
 
     parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
-        let marginMode = this.safeString (leverage, 'marginType');
-        if (marginMode !== undefined) {
-            marginMode = marginMode.toLowerCase ();
-        }
+        const marginMode = this.safeStringLower (leverage, 'marginType');
         const leverageValue = this.safeNumber (leverage, 'leverage');
         return {
             'info': leverage,
