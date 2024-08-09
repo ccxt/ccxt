@@ -1347,7 +1347,7 @@
             "loadMarkets": {
                 "currencyIdAndCode": "messed https://app.travis-ci.com/github/ccxt/ccxt/builds/270314325"
             },
-            "orderBook": { 
+            "orderBook": {
                 "spread": "bid ask crossing, https://app.travis-ci.com/github/ccxt/ccxt/builds/270991459#L5901"
             }
         }
@@ -1730,6 +1730,19 @@
             "loadMarkets" : {
                 "active":"not provided",
                 "currencyIdAndCode": "broken currencies"
+	          }
+	      }
+    },
+    "hashkey": {
+        "skipMethods": {
+            "fetchCurrencies": {
+                "precision": "not provided"
+            },
+            "fetchTrades": {
+                "side": "not provided"
+            },
+            "watchTrades": {
+                "side": "not provided"
             }
         }
     }
