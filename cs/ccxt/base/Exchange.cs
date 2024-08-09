@@ -27,7 +27,7 @@ public partial class Exchange
         this.afterConstruct();
     }
 
-    private void newThrottler()
+    private Throttler newThrottler()
     {
         return new Throttler(this.tokenBucket);
     }

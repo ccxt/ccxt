@@ -133,7 +133,7 @@ public partial class Exchange
     public bool enableLastJsonResponse { get; set; }
     public bool enableLastHttpResponse { get; set; }
     public bool enableLastResponseHeaders { get; set; }
-    public int MAX_VALUE = float.MaxValue;
+    public float MAX_VALUE = float.MaxValue;
 
     public object name { get; set; }
 
