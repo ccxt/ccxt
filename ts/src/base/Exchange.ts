@@ -3557,7 +3557,15 @@ export default class Exchange {
                 change = Precise.stringSub (last, open);
             }
             if (average === undefined) {
-                average = Precise.stringDiv (Precise.stringAdd (last, open), '2');
+                let precision = 18;
+                if (market !== undefined && this.isTickPrecision ()) {
+                    const marketPrecision = this.safeDict (market, 'precision');
+                    const precisionPrice = this.safeString (marketPrecision, 'price');
+                    if (precisionPrice !== undefined) {
+                        precision = this.precisionFromString (precisionPrice);
+                    }
+                }
+                average = Precise.stringDiv (Precise.stringAdd (last, open), '2', precision);
             }
         }
         if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && Precise.stringGt (open, '0')) {
