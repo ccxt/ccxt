@@ -334,21 +334,21 @@ export default class hashkey extends Exchange {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
-                    '-0001': BadRequest, // Required field '%s' missing or invalid.
-                    '-0002': AuthenticationError, // Incorrect signature
-                    '-0003': RateLimitExceeded, // Rate limit exceeded
-                    '-0102': AuthenticationError, // Invalid APIKey
-                    '-0103': AuthenticationError, // APIKey expired
-                    '-0104': PermissionDenied,  // The accountId defined is not permissible
-                    '-0201': ExchangeError, // Instrument not found
-                    '-0202': PermissionDenied, // Invalid IP
-                    '-0206': BadRequest, // Unsupported order type
-                    '-0207': BadRequest, // Invalid price
-                    '-0209': BadRequest, // Invalid price precision
-                    '-0210': BadRequest, // Price outside of allowed range
-                    '-0211': OrderNotFound, // Order not found
-                    '-0401': InsufficientFunds, // Insufficient asset
-                    '-0402': BadRequest, // Invalid asset
+                    '0001': BadRequest, // Required field '%s' missing or invalid.
+                    '0002': AuthenticationError, // Incorrect signature
+                    '0003': RateLimitExceeded, // Rate limit exceeded
+                    '0102': AuthenticationError, // Invalid APIKey
+                    '0103': AuthenticationError, // APIKey expired
+                    '0104': PermissionDenied,  // The accountId defined is not permissible
+                    '0201': ExchangeError, // Instrument not found
+                    '0202': PermissionDenied, // Invalid IP
+                    '0206': BadRequest, // Unsupported order type
+                    '0207': BadRequest, // Invalid price
+                    '0209': BadRequest, // Invalid price precision
+                    '0210': BadRequest, // Price outside of allowed range
+                    '0211': OrderNotFound, // Order not found
+                    '0401': InsufficientFunds, // Insufficient asset
+                    '0402': BadRequest, // Invalid asset
                     '-1000': ExchangeError, // An unknown error occurred while processing the request
                     '-1001': ExchangeError, // Internal error
                     '-100010': BadSymbol, // Invalid Symbols!
@@ -1379,10 +1379,13 @@ export default class hashkey extends Exchange {
             feeCost = this.safeString (feeInfo, 'fee');
             feeCurrncyId = this.safeString (feeInfo, 'feeCoinId');
         }
-        const fee = {
-            'cost': feeCost,
-            'currency': this.safeCurrencyCode (feeCurrncyId),
-        };
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': this.safeCurrencyCode (feeCurrncyId),
+            };
+        }
         return this.safeTrade ({
             'id': this.safeString2 (trade, 'id', 'tradeId'),
             'timestamp': timestamp,
@@ -4287,7 +4290,6 @@ export default class hashkey extends Exchange {
         if (response === undefined) {
             return undefined;
         }
-        let message = this.safeString (body, 'msg', '');
         let errorInArray = false;
         let responseCodeString = this.safeString (response, 'code', undefined);
         const responseCodeInteger = this.safeInteger (response, 'code', undefined); // some codes in response are returned as '0000' others as 0
@@ -4298,13 +4300,12 @@ export default class hashkey extends Exchange {
                 const entryCodeInteger = this.safeInteger (entry, 'code');
                 if (entryCodeInteger !== 0) {
                     errorInArray = true;
-                    message = this.safeString (entry, 'msg', '');
                     responseCodeString = this.safeString (entry, 'code');
                 }
             }
         }
         if ((code !== 200) || errorInArray) {
-            const feedback = this.id + ' ' + message;
+            const feedback = this.id + ' ' + body;
             this.throwBroadlyMatchedException (this.exceptions['broad'], responseCodeString, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], responseCodeString, feedback);
             throw new ExchangeError (feedback);
