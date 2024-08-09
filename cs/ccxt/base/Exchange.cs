@@ -22,10 +22,13 @@ public partial class Exchange
         var empty = new List<string>();
         transformApiNew(this.api);
 
-        this.initRestRateLimiter();
         this.initHttpClient();
 
         this.afterConstruct();
+    }
+
+    private void initThrottler()
+    {
         this.throttler = new Throttler(this.tokenBucket);
     }
 
