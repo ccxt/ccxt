@@ -4133,9 +4133,6 @@ export default class bybit extends Exchange {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        if (amount !== undefined) {
-            request['qty'] = this.amountToPrecision (symbol, amount);
-        }
         let triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLossTriggerPrice = this.safeString (params, 'stopLossPrice');
         const takeProfitTriggerPrice = this.safeString (params, 'takeProfitPrice');
@@ -4206,10 +4203,15 @@ export default class bybit extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
+        let market = this.market (symbol);
+        if (market['option']) {
+            this.options['loadAllOptions'] = true;
+            await this.loadMarkets (true);
+            market = this.market (symbol);
+        }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires a symbol argument');
         }
-        const market = this.market (symbol);
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         const isUsdcSettled = market['settle'] === 'USDC';
