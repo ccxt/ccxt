@@ -150,6 +150,7 @@ class Exchange(object):
     symbols = None
     codes = None
     timeframes = {}
+    throttler = None
 
     fees = {
         'trading': {

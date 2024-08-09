@@ -566,8 +566,8 @@ export default class Exchange {
         this.afterConstruct ();
     }
 
-    initThrottler () {
-        this.throttler = new Throttler (this.tokenBucket);
+    newThrottler () {
+        return new Throttler (this.tokenBucket);
     }
 
     encodeURIComponent (...args) {
@@ -2689,7 +2689,7 @@ export default class Exchange {
         };
         const existingBucket = (this.tokenBucket === undefined) ? {} : this.tokenBucket;
         this.tokenBucket = this.extend (defaultBucket, existingBucket);
-        this.initThrottler ();
+        this.throttler = this.newThrottler ();
     }
 
     orderbookChecksumMessage (symbol:Str) {
