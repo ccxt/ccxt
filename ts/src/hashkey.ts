@@ -3000,9 +3000,9 @@ export default class hashkey extends Exchange {
         const request: Dict = {};
         let clientOrderId: Str = undefined;
         [ clientOrderId, params ] = this.handleParamString (params, 'clientOrderId');
-        if (id !== undefined) {
-            request['orderId'] = id;
-        } else if (clientOrderId === undefined) {
+        if (clientOrderId !== undefined) {
+            request['origClientOrderId'] = clientOrderId;
+        } else if (id === undefined) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires an id argument or clientOrderId parameter');
         }
         let market: Market = undefined;
@@ -3013,8 +3013,8 @@ export default class hashkey extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
         let response = undefined;
         if (marketType === 'spot') {
-            if (clientOrderId !== undefined) {
-                request['origClientOrderId'] = clientOrderId;
+            if (id !== undefined) {
+                request['orderId'] = id;
             }
             let accountId: Str = undefined;
             [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
