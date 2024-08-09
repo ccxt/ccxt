@@ -1450,6 +1450,9 @@ export default class Exchange {
     }
 
     arraySlice(array, first, second = undefined) {
+        if ((first === 0 && !second)) {
+            return [];
+        }
         if (second === undefined) {
             return array.slice(first);
         }
@@ -2227,6 +2230,9 @@ export default class Exchange {
 
     filterByLimit (array: object[], limit: Int = undefined, key: IndexType = 'timestamp', fromStart: boolean = false): any {
         if (this.valueIsDefined (limit)) {
+            if (limit = 0) {
+                return [];
+            }
             const arrayLength = array.length;
             if (arrayLength > 0) {
                 let ascending = true;
