@@ -39,19 +39,9 @@
                         "side": "buy",
                         "price": 73271.63,
                         "amount": 0.00007448,
-                        "fee": {
-                            "cost": null,
-                            "currency": "USDT",
-                            "rate": null
-                        },
+                        "fee": {"cost": null, "currency": null },
                         "cost": 5.4572710024,
-                        "fees": [
-                            {
-                                "cost": null,
-                                "currency": "USDT",
-                                "rate": null
-                            }
-                        ]
+                        "fees": []
                     }
                 ]
             }

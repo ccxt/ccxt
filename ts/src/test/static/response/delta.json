@@ -37,7 +37,7 @@
                         "amount": 0.000635,
                         "cost": 46.5204175,
                         "takerOrMaker": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "info": {
                             "buyer_role": "taker",
                             "price": "73260.5",
