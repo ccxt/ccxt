@@ -1328,7 +1328,7 @@ class Exchange(object):
     def starknet_encode_structured_data (domain, messageTypes, messageData, address):
         types = list(messageTypes.keys())
         if len(types) > 1:
-            raise NotSupported(this.id + 'starknetEncodeStructuredData only support single type')
+            raise NotSupported('starknetEncodeStructuredData only support single type')
 
         request = {
             'domain': domain,
