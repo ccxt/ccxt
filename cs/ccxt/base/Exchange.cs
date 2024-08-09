@@ -25,8 +25,18 @@ public partial class Exchange
         this.initRestLimiter();
         this.initHttpClient();
 
+        if (this.markets != null)
+        {
+            this.setMarkets(this.markets);
+        }
         this.afterConstruct();
-        this.throttler = new Throttler(this.tokenBucket);
+
+        var isSandbox2 = this.safeBool2(this.options, "sandbox", "testnet", false);
+        var isSandbox = (isSandbox2 != null) ? (bool)isSandbox2 : false;
+        if (isSandbox)
+        {
+            this.setSandboxMode(isSandbox);
+        }
     }
 
     private void initHttpClient()
@@ -501,9 +511,22 @@ public partial class Exchange
         return "";
     }
 
-    public List<string> unique(object obj)
+    public char[] unique(char[] obj)
     {
-        return (obj as List<string>).ToList();
+        return obj.Distinct().ToArray();
+    }
+ 
+    public bool checkAddress(object address)
+    {
+        if (address == null) {
+            throw new InvalidAddress (this.id + " address is undefined");
+        }
+        // check the address is not the same letter like 'aaaaa' nor too short nor has a space
+        var addressStr = address.ToString ();
+        if ((this.unique (addressStr.ToCharArray()).Length == 1) || addressStr.Length < this.minFundingAddressLength || addressStr.Contains (' ')) {
+            throw new InvalidAddress (this.id + " address is invalid or has less than " + this.minFundingAddressLength.ToString () + " characters: '" + this.json (address) + "'");
+        }
+        return true;
     }
 
     public int parseTimeframe(object timeframe2)
@@ -550,6 +573,22 @@ public partial class Exchange
     public async Task throttle(object cost)
     {
         await (await this.throttler.throttle(cost));
+    }
+
+    public void initRestLimiter()
+    {
+        if (this.id != null && this.rateLimit == -1)
+        {
+            throw new Exception(this.id + ".rateLimit property is not configured'");
+        }
+        this.tokenBucket = (dict)this.extend(new dict() {
+            {"delay" , 0.001},
+            {"capacity" , 1},
+            {"cost" , 1},
+            {"maxCapacity", 1000},
+            {"refillRate", (this.rateLimit > 0) ? 1 / this.rateLimit : float.MaxValue},
+        }, this.tokenBucket);
+        this.throttler = new Throttler(this.tokenBucket);
     }
 
     public object clone(object o)
