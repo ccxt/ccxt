@@ -80,6 +80,7 @@ public partial class Exchange
     public string password { get; set; }
     public string uid { get; set; }
     public string accountId { get; set; }
+    public int minFundingAddressLength { get; set; }
 
     public dict userAgents { get; set; } = new dict(){
         {"chrome", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36"},
@@ -121,6 +122,18 @@ public partial class Exchange
         }
     }
     public object last_request_url { get; set; }
+    public object last_request_path { get; set; }
+
+    public bool quoteJsonNumbers { get; set; }
+
+    public bool validateServerSsl { get; set; }
+    public bool validateClientSsl { get; set; }
+    public bool requiresWeb3 { get; set; }
+    public bool requiresEddsa { get; set; }
+    public bool enableLastJsonResponse { get; set; }
+    public bool enableLastHttpResponse { get; set; }
+    public bool enableLastResponseHeaders { get; set; }
+    public int MAX_VALUE = float.MaxValue;
 
     public object name { get; set; }
 
@@ -211,6 +224,7 @@ public partial class Exchange
 
     void initializeProperties(dict userConfig = null)
     {
+        this.initProperties();
         var properties = this.describe();
 
         var extendedProperties = this.deepExtend(properties, userConfig);

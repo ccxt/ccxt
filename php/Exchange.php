@@ -117,6 +117,7 @@ class Exchange {
     );
     public $headers = array();
     public $origin = '*'; // CORS origin
+    public $MAX_VALUE = PHP_INT_MAX;
     //
 
     public $hostname = null; // in case of inaccessibility of the "main" domain
@@ -140,6 +141,8 @@ class Exchange {
     public $pro = false; // if it is integrated with CCXT Pro for WebSocket support
     public $alias = false; // whether this exchange is an alias to another exchange
     public $dex = false;
+    
+    public $throttler;
 
     public $debug = false;
 
@@ -306,6 +309,7 @@ class Exchange {
     public $last_request_headers = null;
     public $last_request_body = null;
     public $last_request_url = null;
+    public $last_request_path = null;
 
     public $requiresWeb3 = false;
     public $requiresEddsa = false;
@@ -1101,20 +1105,6 @@ class Exchange {
         return $input;
     }
 
-    public function check_address($address) {
-        if (empty($address) || !is_string($address)) {
-            throw new InvalidAddress($this->id . ' address is null');
-        }
-
-        if ((count(array_unique(str_split($address))) === 1) ||
-            (strlen($address) < $this->minFundingAddressLength) ||
-            (strpos($address, ' ') !== false)) {
-            throw new InvalidAddress($this->id . ' address is invalid or has less than ' . strval($this->minFundingAddressLength) . ' characters: "' . strval($address) . '"');
-        }
-
-        return $address;
-    }
-
     public function __construct($options = array()) {
 
         // todo auto-camelcasing for methods in PHP
@@ -1133,10 +1123,12 @@ class Exchange {
         //     }
         // }
 
+        $this->init_properties();
         $this->options = $this->get_default_options();
 
         $this->urlencode_glue = ini_get('arg_separator.output'); // can be overrided by exchange constructor params
 
+        // merge constructor overrides to this instance
         $options = array_replace_recursive($this->describe(), $options);
         if ($options) {
             foreach ($options as $key => $value) {
@@ -1146,14 +1138,6 @@ class Exchange {
                         $value;
             }
         }
-
-        $this->tokenBucket = array(
-            'delay' => 0.001,
-            'capacity' => 1.0,
-            'cost' => 1.0,
-            'maxCapacity' => 1000,
-            'refillRate' => ($this->rateLimit > 0) ? 1.0 / $this->rateLimit : PHP_INT_MAX,
-        );
 
         if ($this->urlencode_glue !== '&') {
             if ($this->urlencode_glue_warning) {
@@ -1165,16 +1149,7 @@ class Exchange {
             }
         }
 
-        if ($this->markets) {
-            $this->set_markets($this->markets);
-        }
-
         $this->after_construct();
-
-        $is_sandbox = $this->safe_bool_2($this->options, 'sandbox', 'testnet', False);
-        if ($is_sandbox) {
-            $this->set_sandbox_mode($is_sandbox);
-        }
     }
 
     public static function underscore($camelcase) {
@@ -1389,6 +1364,11 @@ class Exchange {
             $delay = $sleep_time - $elapsed;
             usleep((int) ($delay * 1000.0));
         }
+    }
+
+    public function new_throttler() {
+        // stub
+        return null;
     }
 
     public function parse_json($json_string, $as_associative_array = true) {

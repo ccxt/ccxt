@@ -143,12 +143,14 @@ class Exchange(object):
     verify = True  # SSL verification
     validateServerSsl = True
     validateClientSsl = False
+    requiresWeb3 = False
     logger = None  # logging.getLogger(__name__) by default
     verbose = False
     markets = None
     symbols = None
     codes = None
     timeframes = {}
+    throttler = None
 
     fees = {
         'trading': {
@@ -212,6 +214,7 @@ class Exchange(object):
     }
     headers = None
     origin = '*'  # CORS origin
+    MAX_VALUE = float('inf')
     #
     proxies = None
 
@@ -356,20 +359,7 @@ class Exchange(object):
         self.aiohttp_trust_env = self.aiohttp_trust_env or self.trust_env
         self.requests_trust_env = self.requests_trust_env or self.trust_env
 
-        self.precision = dict() if self.precision is None else self.precision
-        self.limits = dict() if self.limits is None else self.limits
-        self.exceptions = dict() if self.exceptions is None else self.exceptions
-        self.headers = dict() if self.headers is None else self.headers
-        self.balance = dict() if self.balance is None else self.balance
-        self.orderbooks = dict() if self.orderbooks is None else self.orderbooks
-        self.fundingRates = dict() if self.fundingRates is None else self.fundingRates
-        self.tickers = dict() if self.tickers is None else self.tickers
-        self.bidsasks = dict() if self.bidsasks is None else self.bidsasks
-        self.trades = dict() if self.trades is None else self.trades
-        self.transactions = dict() if self.transactions is None else self.transactions
-        self.ohlcvs = dict() if self.ohlcvs is None else self.ohlcvs
-        self.liquidations = dict() if self.liquidations is None else self.liquidations
-        self.currencies = dict() if self.currencies is None else self.currencies
+        self.init_properties()
         self.options = self.get_default_options() if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
         self.decimal_to_precision = decimal_to_precision
         self.number_to_string = number_to_string
@@ -390,14 +380,7 @@ class Exchange(object):
             else:
                 setattr(self, key, settings[key])
 
-        if self.markets:
-            self.set_markets(self.markets)
-
         self.after_construct()
-
-        is_sandbox = self.safe_bool_2(self.options, 'sandbox', 'testnet', False)
-        if is_sandbox:
-            self.set_sandbox_mode(is_sandbox)
 
         # convert all properties from underscore notation foo_bar to camelcase notation fooBar
         cls = type(self)
@@ -416,13 +399,6 @@ class Exchange(object):
                             setattr(self, camelcase, attr)
                     else:
                         setattr(self, camelcase, attr)
-
-        self.tokenBucket = self.extend({
-            'refillRate': 1.0 / self.rateLimit if self.rateLimit > 0 else float('inf'),
-            'delay': 0.001,
-            'capacity': 1.0,
-            'defaultCost': 1.0,
-        }, getattr(self, 'tokenBucket', {}))
 
         if not self.session and self.synchronous:
             self.session = Session()
@@ -450,6 +426,9 @@ class Exchange(object):
         if elapsed < sleep_time:
             delay = sleep_time - elapsed
             time.sleep(delay / 1000.0)
+
+    def newThrottler(self):
+        pass
 
     @staticmethod
     def gzip_deflate(response, text):
@@ -1471,14 +1450,6 @@ class Exchange(object):
             else:
                 return error
         return result
-
-    def check_address(self, address):
-        """Checks an address is not the same character repeated or an empty sequence"""
-        if address is None:
-            raise InvalidAddress(self.id + ' address is None')
-        if all(letter == address[0] for letter in address) or len(address) < self.minFundingAddressLength or ' ' in address:
-            raise InvalidAddress(self.id + ' address is invalid or has less than ' + str(self.minFundingAddressLength) + ' characters: "' + str(address) + '"')
-        return address
 
     def precision_from_string(self, str):
         # support string formats like '1e-4'
