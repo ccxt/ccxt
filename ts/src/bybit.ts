@@ -1216,6 +1216,19 @@ export default class bybit extends Exchange {
         const optionType = this.safeString (optionParts, 3);
         const datetime = this.convertExpireDate (expiry);
         const timestamp = this.parse8601 (datetime);
+        let amountPrecision = undefined;
+        let pricePrecision = undefined;
+        // hard coded amount and price precisions from fetchOptionMarkets
+        if (base === 'BTC') {
+            amountPrecision = this.parseNumber ('0.01');
+            pricePrecision = this.parseNumber ('5');
+        } else if (base === 'ETH') {
+            amountPrecision = this.parseNumber ('0.1');
+            pricePrecision = this.parseNumber ('0.1');
+        } else if (base === 'SOL') {
+            amountPrecision = this.parseNumber ('1');
+            pricePrecision = this.parseNumber ('0.01');
+        }
         return {
             'id': base + '-' + this.convertExpireDateToMarketIdDate (expiry) + '-' + strike + '-' + optionType,
             'symbol': base + '/' + quote + ':' + settle + '-' + expiry + '-' + strike + '-' + optionType,
@@ -1235,14 +1248,14 @@ export default class bybit extends Exchange {
             'option': true,
             'margin': false,
             'contract': true,
-            'contractSize': undefined,
+            'contractSize': this.parseNumber ('1'),
             'expiry': timestamp,
             'expiryDatetime': datetime,
             'optionType': (optionType === 'C') ? 'call' : 'put',
             'strike': this.parseNumber (strike),
             'precision': {
-                'amount': undefined,
-                'price': undefined,
+                'amount': amountPrecision,
+                'price': pricePrecision,
             },
             'limits': {
                 'amount': {
@@ -1900,7 +1913,7 @@ export default class bybit extends Exchange {
                     'inverse': undefined,
                     'taker': this.safeNumber (market, 'takerFee', this.parseNumber ('0.0006')),
                     'maker': this.safeNumber (market, 'makerFee', this.parseNumber ('0.0001')),
-                    'contractSize': this.safeNumber (lotSizeFilter, 'minOrderQty'),
+                    'contractSize': this.parseNumber ('1'),
                     'expiry': expiry,
                     'expiryDatetime': this.iso8601 (expiry),
                     'strike': this.parseNumber (strike),
@@ -3565,7 +3578,12 @@ export default class bybit extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        let market = this.market (symbol);
+        if (market['option']) {
+            this.options['loadAllOptions'] = true;
+            await this.loadMarkets (true);
+            market = this.market (symbol);
+        }
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         const isUsdcSettled = market['settle'] === 'USDC';
@@ -3758,11 +3776,7 @@ export default class bybit extends Exchange {
             }
         } else {
             if (!isTrailingAmountOrder && !isAlternativeEndpoint) {
-                if (market['option']) {
-                    request['qty'] = this.numberToString (amount);
-                } else {
-                    request['qty'] = this.amountToPrecision (symbol, amount);
-                }
+                request['qty'] = this.amountToPrecision (symbol, amount);
             }
         }
         if (isTrailingAmountOrder) {
@@ -4119,9 +4133,6 @@ export default class bybit extends Exchange {
         if (price !== undefined) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        if (amount !== undefined) {
-            request['qty'] = this.amountToPrecision (symbol, amount);
-        }
         let triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLossTriggerPrice = this.safeString (params, 'stopLossPrice');
         const takeProfitTriggerPrice = this.safeString (params, 'takeProfitPrice');
@@ -4192,10 +4203,15 @@ export default class bybit extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
+        let market = this.market (symbol);
+        if (market['option']) {
+            this.options['loadAllOptions'] = true;
+            await this.loadMarkets (true);
+            market = this.market (symbol);
+        }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires a symbol argument');
         }
-        const market = this.market (symbol);
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         const isUsdcSettled = market['settle'] === 'USDC';
