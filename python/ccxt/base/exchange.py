@@ -426,6 +426,9 @@ class Exchange(object):
             delay = sleep_time - elapsed
             time.sleep(delay / 1000.0)
 
+    def newThrottler(self):
+        pass
+
     @staticmethod
     def gzip_deflate(response, text):
         encoding = response.info().get('Content-Encoding')
