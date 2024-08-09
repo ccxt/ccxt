@@ -2153,7 +2153,7 @@
             {
                 "description": "Fetch Trading Fees - linear",
                 "method": "fetchTradingFees",
-                "url": "https://api.binance.com/fapi/v2/account?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
+                "url": "https://api.binance.com/fapi/v1/accountConfig?timestamp=1702887258875&recvWindow=10000&signature=a9795caccb458e83f728210d51abeb6c51d5e6b67ced6562a9f4839910e189fd",
                 "input": [
                     {
                         "type": "swap",
@@ -3085,7 +3085,7 @@
             {
                 "description": "fetch leverage",
                 "method": "fetchLeverage",
-                "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1709136468103&recvWindow=10000&signature=b24aa2014e8f5e24af708947eac62196161221c58f303a67e6755f725a7ab650",
+                "url": "https://testnet.binancefuture.com/fapi/v1/symbolConfig?timestamp=1709136468103&recvWindow=10000&signature=b24aa2014e8f5e24af708947eac62196161221c58f303a67e6755f725a7ab650",
                 "input": [
                     "BTC/USDT:USDT"
                 ]
@@ -3095,7 +3095,7 @@
             {
                 "description": "Linear swap fetch all set leverages",
                 "method": "fetchLeverages",
-                "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1709365967532&recvWindow=10000&signature=0ba690bc39cc0f098fc8adfab9a10e991a239b02b59e92c7cc88281c74b7ec1e",
+                "url": "https://testnet.binancefuture.com/fapi/v1/symbolConfig?timestamp=1709365967532&recvWindow=10000&signature=0ba690bc39cc0f098fc8adfab9a10e991a239b02b59e92c7cc88281c74b7ec1e",
                 "input": []
             }
         ],
@@ -3103,7 +3103,7 @@
             {
                 "description": "Fetch Margin Modes with linear subType and symbol list",
                 "method": "fetchMarginModes",
-                "url": "https://testnet.binancefuture.com/fapi/v2/account?timestamp=1709152197362&recvWindow=10000&signature=e03e51e9eaf6ccadbe8171e52d588d13e389861804104ee7948d768609713aaf",
+                "url": "https://testnet.binancefuture.com/fapi/v1/symbolConfig?timestamp=1709152197362&recvWindow=10000&signature=e03e51e9eaf6ccadbe8171e52d588d13e389861804104ee7948d768609713aaf",
                 "input": [
                     [
                         "BTC/USDT:USDT"
