@@ -65,6 +65,22 @@ class Client {
     // ratchet/pawl/reactphp stuff
     public $connector = null;
 
+    private $allowedConfig = [
+        'logs',
+        'verbose',
+        'throttle',
+        'options',
+        'connectionTimeout',
+        'keepAlive',
+        'maxPingPongMisses',
+        'ping',
+        'gunzip',
+        'inflate',
+        'noOriginHeader',
+        'heartbeat',
+        'cost',
+    ];
+
 
     // ------------------------------------------------------------------------
 
@@ -155,6 +171,9 @@ class Client {
         $this->on_connected_callback = $on_connected_callback;
 
         foreach ($config as $key => $value) {
+            if (!in_array($key, $this->allowedConfig)) {
+                continue;
+            }
             $this->{$key} =
                 (property_exists($this, $key) && is_array($this->{$key}) && is_array($value)) ?
                     array_replace_recursive($this->{$key}, $value) :
