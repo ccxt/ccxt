@@ -1340,12 +1340,9 @@ export default class coinbaseexchange extends Exchange {
             // 'product_id': market['id'], // the request will be more performant if you include it
         };
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_oid');
-        let method = undefined;
         if (clientOrderId === undefined) {
-            method = 'privateDeleteOrdersId';
             request['id'] = id;
         } else {
-            method = 'privateDeleteOrdersClientClientOid';
             request['client_oid'] = clientOrderId;
             params = this.omit (params, [ 'clientOrderId', 'client_oid' ]);
         }
@@ -1354,7 +1351,19 @@ export default class coinbaseexchange extends Exchange {
             market = this.market (symbol);
             request['product_id'] = market['symbol']; // the request will be more performant if you include it
         }
-        return await this[method] (this.extend (request, params));
+        let response = undefined;
+        if (clientOrderId === undefined) {
+            response = await this.privateDeleteOrdersId (this.extend (request, params));
+        } else {
+            response = await this.privateDeleteOrdersClientClientOid (this.extend (request, params));
+        }
+        //
+        //    '503271075309127'
+        //
+        return this.safeOrder ({
+            'info': response,
+            'id': response,
+        });
     }
 
     async cancelAllOrders (symbol: Str = undefined, params = {}) {
@@ -1374,7 +1383,20 @@ export default class coinbaseexchange extends Exchange {
             market = this.market (symbol);
             request['product_id'] = market['symbol']; // the request will be more performant if you include it
         }
-        return await this.privateDeleteOrders (this.extend (request, params));
+        const response = await this.privateDeleteOrders (this.extend (request, params));
+        //
+        //    [
+        //        '503271075309127'
+        //    ]
+        //
+        const orders = [];
+        for (let i = 0; i < response.length; i++) {
+            orders.push (this.safeOrder ({
+                'id': response[i],
+                'info': response[i],
+            }));
+        }
+        return orders;
     }
 
     async fetchPaymentMethods (params = {}) {
