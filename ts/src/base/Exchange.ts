@@ -2147,7 +2147,7 @@ export default class Exchange {
         const uniqChars = (this.unique (this.stringToCharsArray (address)));
         const length = uniqChars.length; // py transpiler trick
         if (length === 1 || address.length < this.minFundingAddressLength || (address.toString ().indexOf (' ') > -1)) {
-            throw new InvalidAddress (this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString () + ' characters: "' + this.json (address) + '"');
+            throw new InvalidAddress (this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString () + ' characters: "' + address.toString () + '"');
         }
         return address;
     }
