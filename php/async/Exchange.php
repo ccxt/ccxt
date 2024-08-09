@@ -53,7 +53,7 @@ class Exchange extends \ccxt\Exchange {
     public $marketsLoading = null;
     public $reloadingMarkets = null;
     public $tokenBucket;
-    public Throttler $throttler;
+    public $throttler;
     public $default_connector = null;
 
     public $streaming = array(
