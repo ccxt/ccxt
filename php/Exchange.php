@@ -79,7 +79,6 @@ class Exchange {
 
     public $validateServerSsl = true;
     public $validateClientSsl = false;
-    public $requiresWeb3 = false;
     public $curlopt_interface = null;
     public $timeout = 10000; // in milliseconds
 
