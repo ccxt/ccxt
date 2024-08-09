@@ -143,6 +143,7 @@ class Exchange(object):
     verify = True  # SSL verification
     validateServerSsl = True
     validateClientSsl = False
+    requiresWeb3 = False
     logger = None  # logging.getLogger(__name__) by default
     verbose = False
     markets = None

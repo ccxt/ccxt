@@ -22,7 +22,7 @@ public partial class Exchange
         var empty = new List<string>();
         transformApiNew(this.api);
 
-        this.initRestLimiter();
+        this.initRestRateLimiter();
         this.initHttpClient();
 
         if (this.markets != null)
