@@ -564,6 +564,9 @@ export default class Exchange {
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
 
         this.afterConstruct ();
+    }
+
+    initThrottler () {
         this.throttler = new Throttler (this.tokenBucket);
     }
 
@@ -2141,7 +2144,7 @@ export default class Exchange {
             throw new InvalidAddress (this.id + ' address is undefined');
         }
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
-        const length = this.unique (this.stringToCharsArray (address)).length;
+        const length = (this.unique (this.stringToCharsArray (address))).length;
         if (length === 1 || address.length < this.minFundingAddressLength || (address.toString ().indexOf (' ') > -1)) {
             throw new InvalidAddress (this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString () + ' characters: "' + this.json (address) + '"');
         }
@@ -2613,7 +2616,8 @@ export default class Exchange {
 
     initProperties () {
         // placeholders for cached data
-        this.precision = (this.precision === undefined) ? { 'amount': undefined, 'price': undefined } : this.precision;
+        const defaultPrecision = { 'amount': undefined, 'price': undefined };
+        this.precision = (this.precision === undefined) ? defaultPrecision : this.precision;
         this.limits = (this.limits === undefined) ? {} : this.limits;
         this.exceptions = (this.exceptions === undefined) ? {} : this.exceptions;
         this.headers = (this.headers === undefined) ? {} : this.headers;
@@ -2675,14 +2679,17 @@ export default class Exchange {
         if (this.rateLimit === undefined || (this.id !== undefined && this.rateLimit === -1)) {
             throw new ExchangeError (this.id + '.rateLimit property is not configured');
         }
-        const existingBucket = (this.tokenBucket === undefined) ? {} : this.tokenBucket;
-        this.tokenBucket = this.extend ({
+        const refillRate = (this.rateLimit > 0) ? (1 / this.rateLimit) : this.MAX_VALUE;
+        const defaultBucket = {
             'delay': 0.001,
             'capacity': 1,
             'cost': 1,
             'maxCapacity': 1000,
-            'refillRate': (this.rateLimit > 0) ? 1 / this.rateLimit : this.MAX_VALUE,
-        }, existingBucket);
+            'refillRate': refillRate,
+        };
+        const existingBucket = (this.tokenBucket === undefined) ? {} : this.tokenBucket;
+        this.tokenBucket = this.extend (defaultBucket, existingBucket);
+        this.initThrottler ();
     }
 
     orderbookChecksumMessage (symbol:Str) {
