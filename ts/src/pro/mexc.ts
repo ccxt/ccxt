@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import mexcRest from '../mexc.js';
-import { AuthenticationError } from '../base/errors.js';
+import { AuthenticationError, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import type { Int, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances, Dict } from '../base/types.js';
@@ -362,25 +362,37 @@ export default class mexc extends mexcRest {
          * @method
          * @name mexc#watchOrderBook
          * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#depth
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {int} [limit] 5, 10, or 20
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const messageHash = 'orderbook:' + symbol;
+        let messageHash = 'orderbook:' + symbol;
         let orderbook = undefined;
         if (market['spot']) {
-            const channel = 'spot@public.increase.depth.v3.api@' + market['id'];
+            let channel = 'spot@public.increase.depth.v3.api@' + market['id'];
+            if (limit !== undefined) {
+                if ((limit !== 5) && (limit !== 10) && (limit !== 20)) {
+                    throw new BadRequest (this.id + ' watchOrderBook () limit argument can only be 5, 10 or 20');
+                }
+                const limitString = this.numberToString (limit);
+                messageHash += ':' + limitString;
+                channel = 'spot@public.limit.depth.v3.api@' + market['id'] + '@' + limitString;
+            }
             orderbook = await this.watchSpotPublic (channel, messageHash, params);
         } else {
             const channel = 'sub.depth';
             const requestParams: Dict = {
                 'symbol': market['id'],
             };
+            if (limit !== undefined) {
+                requestParams['limit'] = limit;
+            }
             orderbook = await this.watchSwapPublic (channel, messageHash, requestParams, params);
         }
         return orderbook.limit ();
@@ -418,8 +430,9 @@ export default class mexc extends mexcRest {
     handleOrderBook (client: Client, message) {
         //
         // spot
+        //
         //    {
-        //        "c": "spot@public.increase.depth.v3.api@BTCUSDT",
+        //        "c": "spot@public.increase.depth.v3.api@BTCUSDT@10",
         //        "d": {
         //            "asks": [{
         //                "p": "20290.89",
@@ -432,9 +445,8 @@ export default class mexc extends mexcRest {
         //        "t": 1661932660144
         //    }
         //
-        //
-        //
         // swap
+        //
         //  {
         //      "channel":"push.depth",
         //      "data":{
@@ -462,7 +474,15 @@ export default class mexc extends mexcRest {
         const data = this.safeValue2 (message, 'd', 'data');
         const marketId = this.safeString2 (message, 's', 'symbol');
         const symbol = this.safeSymbol (marketId);
-        const messageHash = 'orderbook:' + symbol;
+        let messageHash = 'orderbook:' + symbol;
+        const channel = this.safeString (message, 'c');
+        if (channel !== undefined) {
+            const splitChannel = channel.split ('@');
+            const depth = this.safeString (splitChannel, 3);
+            if (depth !== undefined) {
+                messageHash += ':' + depth;
+            }
+        }
         const subscription = this.safeValue (client.subscriptions, messageHash);
         const limit = this.safeInteger (subscription, 'limit');
         if (subscription === true) {
@@ -1158,6 +1178,7 @@ export default class mexc extends mexcRest {
             const channel = this.safeString (parts, 1);
             const methods: Dict = {
                 'public.increase.depth.v3.api': this.handleOrderBookSubscription,
+                'public.limit.depth.v3.api': this.handleOrderBookSubscription,
             };
             const method = this.safeValue (methods, channel);
             if (method !== undefined) {
@@ -1194,6 +1215,7 @@ export default class mexc extends mexcRest {
             'public.bookTicker.v3.api': this.handleTicker,
             'push.ticker': this.handleTicker,
             'public.increase.depth.v3.api': this.handleOrderBook,
+            'public.limit.depth.v3.api': this.handleOrderBook,
             'push.depth': this.handleOrderBook,
             'private.orders.v3.api': this.handleOrder,
             'push.personal.order': this.handleOrder,
