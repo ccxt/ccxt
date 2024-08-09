@@ -298,6 +298,7 @@ export default class coinbase extends coinbaseRest {
                 }
                 const messageHash = channel + '::' + wsMarketId;
                 newTickers.push (result);
+                this.streamProduce ('tickers', result);
                 client.resolve (result, messageHash);
                 if (messageHash.endsWith ('USD')) {
                     client.resolve (result, messageHash + 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
@@ -511,7 +512,9 @@ export default class coinbase extends coinbaseRest {
             const currentTrades = this.safeValue (currentEvent, 'trades');
             for (let j = 0; j < currentTrades.length; j++) {
                 const item = currentTrades[i];
-                tradesArray.append (this.parseTrade (item));
+                const parsedTrade = this.parseTrade (item);
+                tradesArray.append (parsedTrade);
+                this.streamProduce ('trades', parsedTrade);
             }
         }
         client.resolve (tradesArray, messageHash);
@@ -745,6 +748,7 @@ export default class coinbase extends coinbaseRest {
     }
 
     handleMessage (client, message) {
+        this.streamProduce ('raw', message);
         const channel = this.safeString (message, 'channel');
         const methods: Dict = {
             'subscriptions': this.handleSubscriptionStatus,

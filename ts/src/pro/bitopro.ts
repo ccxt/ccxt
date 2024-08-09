@@ -177,6 +177,7 @@ export default class bitopro extends bitoproRest {
         }
         for (let i = 0; i < trades.length; i++) {
             tradesCache.append (trades[i]);
+            this.streamProduce ('trades', trades[i]);
         }
         this.trades[symbol] = tradesCache;
         client.resolve (tradesCache, messageHash);
@@ -374,6 +375,7 @@ export default class bitopro extends bitoproRest {
         result['timestamp'] = timestamp;
         result['datetime'] = datetime;
         this.tickers[symbol] = result;
+        this.streamProduce ('tickers', result);
         client.resolve (result, messageHash);
     }
 
@@ -470,6 +472,7 @@ export default class bitopro extends bitoproRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const methods: Dict = {
             'TRADE': this.handleTrade,
             'TICKER': this.handleTicker,

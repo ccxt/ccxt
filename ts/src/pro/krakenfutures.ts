@@ -538,10 +538,12 @@ export default class krakenfutures extends krakenfuturesRest {
                     const item = trades[index];
                     const trade = this.parseWsTrade (item);
                     tradesArray.append (trade);
+                    this.streamProduce ('trades', trade);
                 }
             } else {
                 const trade = this.parseWsTrade (message);
                 tradesArray.append (trade);
+                this.streamProduce ('trades', trade);
             }
             client.resolve (tradesArray, messageHash);
         }
@@ -1005,8 +1007,10 @@ export default class krakenfutures extends krakenfuturesRest {
         if (marketId !== undefined) {
             const ticker = this.parseWsTicker (message);
             const symbol = ticker['symbol'];
-            this.bidsasks[symbol] = ticker;
+            this.tickers[symbol] = ticker;
             const messageHash = this.getMessageHash ('bidask', undefined, symbol);
+            this.streamProduce ('tickers', ticker);
+            this.bidsasks[symbol] = ticker;
             client.resolve (ticker, messageHash);
         }
     }
@@ -1545,6 +1549,7 @@ export default class krakenfutures extends krakenfuturesRest {
     }
 
     handleMessage (client, message) {
+        this.streamProduce ('raw', message);
         const event = this.safeString (message, 'event');
         if (event === 'challenge') {
             this.handleAuthenticate (client, message);

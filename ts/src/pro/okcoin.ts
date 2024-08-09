@@ -217,6 +217,7 @@ export default class okcoin extends okcoinRest {
                 this.trades[symbol] = stored;
             }
             stored.append (trade);
+            this.streamProduce ('trades', trade);
             client.resolve (stored, messageHash);
         }
         return message;
@@ -253,6 +254,7 @@ export default class okcoin extends okcoinRest {
             const marketId = this.safeString (ticker['info'], 'instrument_id');
             const messageHash = table + ':' + marketId;
             this.tickers[symbol] = ticker;
+            this.streamProduce ('tickers', ticker);
             client.resolve (ticker, messageHash);
         }
         return message;
@@ -673,6 +675,7 @@ export default class okcoin extends okcoinRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         if (!this.handleErrorMessage (client, message)) {
             return;
         }

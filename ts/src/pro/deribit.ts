@@ -231,6 +231,7 @@ export default class deribit extends deribitRest {
         const ticker = this.parseTicker (data);
         const messageHash = this.safeString (params, 'channel');
         this.tickers[symbol] = ticker;
+        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, messageHash);
     }
 
@@ -316,6 +317,7 @@ export default class deribit extends deribitRest {
             const trade = trades[i];
             const parsed = this.parseTrade (trade, market);
             stored.append (parsed);
+            this.streamProduce ('trades', parsed);
         }
         this.trades[symbol] = stored;
         const messageHash = 'trades|' + symbol + '|' + interval;
@@ -876,6 +878,7 @@ export default class deribit extends deribitRest {
         //         }
         //     }
         //
+        this.streamProduce ('raw', message);
         const error = this.safeValue (message, 'error');
         if (error !== undefined) {
             throw new ExchangeError (this.id + ' ' + this.json (error));

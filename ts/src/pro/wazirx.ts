@@ -244,6 +244,7 @@ export default class wazirx extends wazirxRest {
             const symbol = parsedTicker['symbol'];
             this.tickers[symbol] = parsedTicker;
             const messageHash = 'ticker:' + symbol;
+            this.streamProduce ('tickers', parsedTicker);
             client.resolve (parsedTicker, messageHash);
         }
         client.resolve (this.tickers, 'tickers');
@@ -355,6 +356,7 @@ export default class wazirx extends wazirxRest {
         for (let i = 0; i < rawTrades.length; i++) {
             const parsedTrade = this.parseWsTrade (rawTrades[i], market);
             trades.append (parsedTrade);
+            this.streamProduce ('trades', parsedTrade);
         }
         client.resolve (trades, messageHash);
     }
@@ -746,6 +748,7 @@ export default class wazirx extends wazirxRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const status = this.safeString (message, 'status');
         if (status === 'error') {
             this.handleError (client, message);

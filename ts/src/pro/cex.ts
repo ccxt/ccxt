@@ -188,6 +188,7 @@ export default class cex extends cexRest {
             const rawTrade = data[index];
             const parsed = this.parseWsOldTrade (rawTrade, market);
             stored.append (parsed);
+            this.streamProduce ('trades', parsed);
         }
         const messageHash = 'trades';
         this.trades = stored as any; // trades don't have symbol
@@ -243,6 +244,7 @@ export default class cex extends cexRest {
             const rawTrade = data[index];
             const parsed = this.parseWsOldTrade (rawTrade);
             stored.append (parsed);
+            this.streamProduce ('trades', parsed);
         }
         const messageHash = 'trades';
         this.trades = stored;
@@ -368,6 +370,7 @@ export default class cex extends cexRest {
         client.resolve (ticker, messageHash);
         client.resolve (ticker, 'tickers');
         messageHash = this.safeString (message, 'oid');
+        this.streamProduce ('tickers', ticker);
         if (messageHash !== undefined) {
             client.resolve (ticker, messageHash);
         }
@@ -1498,6 +1501,7 @@ export default class cex extends cexRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const ok = this.safeString (message, 'ok');
         if (ok === 'error') {
             this.handleErrorMessage (client, message);

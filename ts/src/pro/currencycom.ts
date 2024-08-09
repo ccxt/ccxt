@@ -151,6 +151,7 @@ export default class currencycom extends currencycomRest {
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
             const messageHash = destination + ':' + symbol;
+            this.streamProduce ('tickers', ticker);
             client.resolve (ticker, messageHash);
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions[messageHash];
@@ -230,6 +231,7 @@ export default class currencycom extends currencycomRest {
             this.trades[symbol] = stored;
         }
         stored.append (parsed);
+        this.streamProduce ('trades', parsed);
         client.resolve (stored, messageHash);
     }
 
@@ -541,6 +543,7 @@ export default class currencycom extends currencycomRest {
         //         }
         //     }
         //
+        this.streamProduce ('raw', message);
         const requestId = this.safeString (message, 'correlationId');
         if (requestId !== undefined) {
             const subscriptionsById = this.indexBy (client.subscriptions, 'correlationId');

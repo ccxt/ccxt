@@ -338,6 +338,7 @@ export default class bitfinex2 extends bitfinex2Rest {
                 const index = length - i - 1;
                 const parsed = this.parseWsTrade (trades[index], market);
                 stored.append (parsed);
+                this.streamProduce ('trades', parsed);
             }
         } else {
             // update
@@ -349,6 +350,7 @@ export default class bitfinex2 extends bitfinex2Rest {
             }
             const trade = this.safeValue (message, 2, []);
             const parsed = this.parseWsTrade (trade, market);
+            this.streamProduce ('trades', parsed);
             stored.append (parsed);
         }
         client.resolve (stored, messageHash);
@@ -482,6 +484,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         const channel = 'ticker';
         const messageHash = channel + ':' + marketId;
         this.tickers[symbol] = parsed;
+        this.streamProduce ('tickers', parsed);
         client.resolve (parsed, messageHash);
     }
 
@@ -1102,6 +1105,7 @@ export default class bitfinex2 extends bitfinex2Rest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const channelId = this.safeString (message, 0);
         //
         //     [

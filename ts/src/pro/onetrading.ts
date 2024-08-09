@@ -222,6 +222,7 @@ export default class onetrading extends onetradingRest {
             const timestamp = this.parse8601 (datetime);
             this.tickers[symbol]['timestamp'] = timestamp;
             this.tickers[symbol]['datetime'] = this.iso8601 (timestamp);
+            this.streamProduce ('tickers', this.tickers[symbol]);
             client.resolve (this.tickers[symbol], 'ticker.' + symbol);
         }
         client.resolve (this.tickers, 'tickers');
@@ -1235,6 +1236,7 @@ export default class onetrading extends onetradingRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const error = this.safeValue (message, 'error');
         if (error !== undefined) {
             this.handleErrorMessage (client, message);

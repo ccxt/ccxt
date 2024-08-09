@@ -244,7 +244,10 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const market = this.safeMarket (marketId, undefined, '-');
         const ticker = this.parseTicker (data, market);
         this.tickers[market['symbol']] = ticker;
+        const messageHash = 'ticker:' + market['symbol'];
+        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, this.getMessageHash ('ticker', market['symbol']));
+        return message;
     }
 
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -602,6 +605,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
             this.trades[symbol] = trades;
         }
         trades.append (trade);
+        this.streamProduce ('trades', trade);
         const messageHash = 'trades:' + symbol;
         client.resolve (trades, messageHash);
         return message;
@@ -1176,6 +1180,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const type = this.safeString (message, 'type');
         const methods: Dict = {
             // 'heartbeat': this.handleHeartbeat,

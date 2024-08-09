@@ -143,6 +143,7 @@ export default class coinex extends coinexRest {
             const market = this.safeMarket (marketId, undefined, undefined, defaultType);
             const parsedTicker = this.parseWSTicker (rawTicker, market);
             this.tickers[symbol] = parsedTicker;
+            this.streamProduce ('tickers', parsedTicker);
             newTickers.push (parsedTicker);
         }
         const messageHashes = this.findMessageHashes (client, 'tickers::');
@@ -318,6 +319,7 @@ export default class coinex extends coinexRest {
             const trade = trades[i];
             const parsed = this.parseWsTrade (trade, market);
             stored.append (parsed);
+            this.streamProduce ('trades', parsed);
         }
         this.trades[symbol] = stored;
         client.resolve (this.trades[symbol], messageHash);
@@ -1007,6 +1009,7 @@ export default class coinex extends coinexRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const error = this.safeValue (message, 'error');
         if (error !== undefined) {
             throw new ExchangeError (this.id + ' ' + this.json (error));

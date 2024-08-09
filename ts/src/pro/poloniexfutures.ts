@@ -154,7 +154,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
             name += ':' + marketId;
         }
         const messageHash = name;
-        const tunnelId = await this.stream (url, messageHash);
+        const tunnelId = await this.streamId (url, messageHash);
         const requestId = this.requestId ();
         const subscribe: Dict = {
             'id': requestId,
@@ -181,7 +181,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         super.onClose (client, error);
     }
 
-    async stream (url, subscriptionHash) {
+    async streamId (url, subscriptionHash) {
         const streamBySubscriptionsHash = this.safeValue (this.options, 'streamBySubscriptionsHash', {});
         let stream = this.safeString (streamBySubscriptionsHash, subscriptionHash);
         if (stream === undefined) {
@@ -390,6 +390,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
                 this.trades[symbol] = stored;
             }
             stored.append (trade);
+            this.streamProduce ('trades', trade);
             client.resolve (stored, messageHash);
         }
         return message;
@@ -682,6 +683,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
         if (symbol !== undefined) {
             const ticker = this.parseTicker (data);
             this.tickers[symbol] = ticker;
+            this.streamProduce ('tickers', ticker);
             client.resolve (ticker, messageHash);
         }
         return message;
@@ -1032,6 +1034,7 @@ export default class poloniexfutures extends poloniexfuturesRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const type = this.safeString (message, 'type');
         const methods: Dict = {
             'welcome': this.handleSystemStatus,

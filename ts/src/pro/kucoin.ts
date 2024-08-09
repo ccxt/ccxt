@@ -302,6 +302,7 @@ export default class kucoin extends kucoinRest {
         const symbol = ticker['symbol'];
         this.tickers[symbol] = ticker;
         const messageHash = 'ticker:' + symbol;
+        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, messageHash);
         // watchTickers
         const allTickers: Dict = {};
@@ -554,6 +555,7 @@ export default class kucoin extends kucoinRest {
             this.trades[symbol] = trades;
         }
         trades.append (trade);
+        this.streamProduce ('trades', trade);
         client.resolve (trades, messageHash);
     }
 
@@ -1310,6 +1312,7 @@ export default class kucoin extends kucoinRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const type = this.safeString (message, 'type');
         const methods: Dict = {
             // 'heartbeat': this.handleHeartbeat,

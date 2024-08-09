@@ -87,6 +87,7 @@ export default class alpaca extends alpacaRest {
         const symbol = ticker['symbol'];
         const messageHash = 'ticker:' + symbol;
         this.tickers[symbol] = ticker;
+        this.streamProduce ('tickers', ticker);
         client.resolve (this.tickers[symbol], messageHash);
     }
 
@@ -321,6 +322,7 @@ export default class alpaca extends alpacaRest {
         }
         const parsed = this.parseTrade (message);
         stored.append (parsed);
+        this.streamProduce ('myTrades', parsed);
         const messageHash = 'trade' + ':' + symbol;
         client.resolve (stored, messageHash);
     }
@@ -680,6 +682,7 @@ export default class alpaca extends alpacaRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         if (Array.isArray (message)) {
             this.handleCryptoMessage (client, message);
             return;

@@ -29,6 +29,7 @@ use ccxt\BadSymbol;
 use ccxt\ArgumentsRequired;
 use ccxt\NetworkError;
 use ccxt\pro\ClientTrait;
+use ccxt\pro\Stream;
 use ccxt\RateLimitExceeded;
 use ccxt\NullResponse;
 use ccxt\InvalidAddress;
@@ -61,6 +62,7 @@ class Exchange extends \ccxt\Exchange {
         'heartbeat' => true,
         'ping' => null,
         'maxPingPongMisses' => 2.0,
+        'maxMessagesPerTopic' => 10000,
     );
 
     public $proxy_files_dir = __DIR__ . '/../static_dependencies/proxies/';
@@ -72,6 +74,9 @@ class Exchange extends \ccxt\Exchange {
         $this->default_connector = $this->create_connector();
         $this->set_request_browser($this->default_connector);
         $this->throttler = new Throttler($this->tokenBucket);
+        $maxMessagesPerTopic = $this->safe_integer($this->streaming, 'maxMessagesPerTopic', 10000);
+        $verbose = $this->safe_bool($this->streaming, 'verbose', $this->verbose);
+        $this->stream = new Stream ($maxMessagesPerTopic,  $verbose);
     }
 
     public function set_request_browser($connector) {
@@ -339,6 +344,21 @@ class Exchange extends \ccxt\Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function setup_stream() {
+        $stream = $this->stream;
+        if ($this->stream !== null) {
+            $stream->subscribe ('tickers', $this->stream_to_symbol('tickers'), true);
+            $stream->subscribe ('orderbooks', $this->stream_to_symbol('orderbooks'), true);
+            $stream->subscribe ('orders', $this->stream_to_symbol('orders'), true);
+            $stream->subscribe ('positions', $this->stream_to_symbol('positions'), true);
+            $stream->subscribe ('trades', $this->stream_to_symbol('trades'), true);
+            $stream->subscribe ('myTrades', $this->stream_to_symbol('myTrades'), true);
+        }
+    }
+
+    public function stream_produce(string $topic, mixed $payload = null, mixed $error = null) {
+        $stream = $this->stream;
+        $stream->produce ($topic, $payload, $error);
     public function describe() {
         return array(
             'id' => null,
@@ -1093,24 +1113,165 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' watchTrades() is not supported yet');
     }
 
+    public function subscribe_trades(string $symbol, mixed $callback = null, bool $synchronous = true, $params = array ()) {
+        return Async\async(function () use ($symbol, $callback, $synchronous, $params) {
+            /**
+             * subscribe $callback to be called with each trade
+             * @param {string[]} symbols unified $symbol of the market to fetch trades for
+             * @param {Function} $callback Consumer function to be called with each update
+             * @param {boolean} $synchronous if set to true, the $callback will wait to finish before passing next message
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             */
+            Async\await($this->load_markets());
+            if ($callback !== null) {
+                $stream = $this->stream;
+                $stream->subscribe ('trades::' . $symbol, $callback, $synchronous);
+            }
+            Async\await($this->watchTrades ($symbol, null, null, $params));
+        }) ();
+    }
+
     public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchTradesForSymbols() is not supported yet');
+    }
+
+    public function subscribe_trades_for_symbols(array $symbols, mixed $callback = null, bool $synchronous = true, $params = array ()) {
+        return Async\async(function () use ($symbols, $callback, $synchronous, $params) {
+            /**
+             * subscribe $callback to be called with each trade
+             * @param {string[]} $symbols unified symbol of the market to fetch trades for
+             * @param {Function} $callback Consumer function to be called with each update
+             * @param {boolean} $synchronous if set to true, the $callback will wait to finish before passing next message
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true);
+            if ($callback !== null) {
+                $stream = $this->stream;
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $stream->subscribe ('trades::' . $symbols[$i], $callback, $synchronous);
+                }
+                if ($this->is_empty($symbols)) {
+                    $stream->subscribe ('trades', $callback, $synchronous);
+                }
+            }
+            Async\await($this->watchTradesForSymbols ($symbols, null, null, $params));
+        }) ();
     }
 
     public function watch_my_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchMyTradesForSymbols() is not supported yet');
     }
 
+    public function subscribe_my_trades_for_symbols(array $symbols, mixed $callback = null, bool $synchronous = true, $params = array ()) {
+        return Async\async(function () use ($symbols, $callback, $synchronous, $params) {
+            /**
+             * subscribe $callback to be called with each user trade
+             * @param {string[]} $symbols unified symbol of the market to fetch trades for
+             * @param {Function} $callback Consumer function to be called with each update
+             * @param {boolean} $synchronous if set to true, the $callback will wait to finish before passing next message
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true);
+            if ($callback !== null) {
+                $stream = $this->stream;
+                if ($this->is_empty($symbols)) {
+                    $stream->subscribe ('myTrades', $callback, $synchronous);
+                } else {
+                    for ($i = 0; $i < count($symbols); $i++) {
+                        $stream->subscribe ('myTrades::' . $symbols[$i], $callback, $synchronous);
+                    }
+                }
+            }
+            Async\await($this->watchMyTradesForSymbols ($symbols, null, null, $params));
+        }) ();
+    }
+
     public function watch_orders_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchOrdersForSymbols() is not supported yet');
+    }
+
+    public function subscribe_orders_for_symbols(array $symbols, mixed $callback = null, bool $synchronous = true, $params = array ()) {
+        return Async\async(function () use ($symbols, $callback, $synchronous, $params) {
+            /**
+             * subscribe $callback to be called with order
+             * @param {string[]} $symbols unified symbol of the market to fetch orders for
+             * @param {Function} $callback Consumer function to be called with each update
+             * @param {boolean} $synchronous if set to true, the $callback will wait to finish before passing next message
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true);
+            if ($callback !== null) {
+                $stream = $this->stream;
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $stream->subscribe ('orders::' . $symbols[$i], $callback, $synchronous);
+                }
+                if ($this->is_empty($symbols)) {
+                    $stream->subscribe ('orders', $callback, $synchronous);
+                }
+            }
+            Async\await($this->watchOrdersForSymbols ($symbols, null, null, $params));
+        }) ();
     }
 
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchOHLCVForSymbols() is not supported yet');
     }
 
+    public function subscribe_ohlcv_for_symbols(array $symbolsAndTimeframes, mixed $callback = null, bool $synchronous = true, $params = array ()) {
+        return Async\async(function () use ($symbolsAndTimeframes, $callback, $synchronous, $params) {
+            /**
+             * subscribe $callback to be called with order
+             * @param {string[]} symbols unified $symbol of the market to fetch orders for
+             * @param {Function} $callback Consumer function to be called with each update
+             * @param {boolean} $synchronous if set to true, the $callback will wait to finish before passing next message
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             */
+            Async\await($this->load_markets());
+            if ($callback !== null) {
+                $stream = $this->stream;
+                for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
+                    $symbol = $this->symbol ($symbolsAndTimeframes[$i][0]);
+                    $timeframe = $symbolsAndTimeframes[$i][1];
+                    $stream->subscribe ('ohlcv' . '::' . $symbol . '::' . $timeframe, $callback, $synchronous);
+                }
+                if ($this->is_empty($symbolsAndTimeframes)) {
+                    $stream->subscribe ('ohlcv', $callback, $synchronous);
+                }
+            }
+            Async\await($this->watchOHLCVForSymbols ($symbolsAndTimeframes, null, null, $params));
+        }) ();
+    }
+
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchOrderBookForSymbols() is not supported yet');
+    }
+
+    public function subscribe_order_book_for_symbols(array $symbols, mixed $callback = null, bool $synchronous = true, $params = array ()) {
+        return Async\async(function () use ($symbols, $callback, $synchronous, $params) {
+            /**
+             * subscribes to information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string[]} $symbols unified array of $symbols
+             * @param {Function} $callback function to call when receiving an update
+             * @param {boolean} $synchronous if set to true, the $callback will wait to finish before passing next message
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market $symbols
+             */
+            Async\await($this->load_markets());
+            $stream = $this->stream;
+            $symbols = $this->market_symbols($symbols, null, true);
+            if ($callback !== null) {
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $stream->subscribe ('orderbooks::' . $symbols[$i], $callback, $synchronous);
+                }
+                if ($this->is_empty($symbols)) {
+                    $stream->subscribe ('orderbooks', $callback, $synchronous);
+                }
+            }
+            Async\await($this->watchOrderBookForSymbols ($symbols, null, $params));
+        }) ();
     }
 
     public function fetch_deposit_addresses(?array $codes = null, $params = array ()) {
@@ -1155,6 +1316,19 @@ class Exchange extends \ccxt\Exchange {
 
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchOrderBook() is not supported yet');
+    }
+
+    public function subscribe_order_book(string $symbol, mixed $callback = null, bool $synchronous = true, $params = array ()) {
+        return Async\async(function () use ($symbol, $callback, $synchronous, $params) {
+            /**
+             * subscribe to information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified $symbol of the market to fetch the order book for
+             * @param {Function} $callback Consumer function to be called with each update
+             * @param {boolean} $synchronous if set to true, the $callback will wait to finish before passing next message
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
+             */
+            Async\await($this->subscribeOrderBookForSymbols (array( $symbol ), $callback, $synchronous, $params));
+        }) ();
     }
 
     public function fetch_time($params = array ()) {
@@ -1396,6 +1570,7 @@ class Exchange extends \ccxt\Exchange {
 
     public function after_construct() {
         $this->create_networks_by_id_object();
+        $this->setup_stream();
     }
 
     public function orderbook_checksum_message(?string $symbol) {
@@ -2395,6 +2570,27 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' watchOHLCV() is not supported yet');
     }
 
+    public function subscribe_ohlcv(string $symbol, $timeframe = '1m', mixed $callback = null, bool $synchronous = true, $params = array ()) {
+        return Async\async(function () use ($symbol, $timeframe, $callback, $synchronous, $params) {
+            /**
+             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+             * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {Function} $callback Consumer function to be called with each update
+             * @param {boolean} $synchronous if set to true, the $callback will wait to finish before passing next message
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $symbol = $this->symbol ($symbol);
+            if ($callback !== null) {
+                $stream = $this->stream;
+                $stream->subscribe ('ohlcv::' . $symbol . '::' . $timeframe, $callback, $synchronous);
+            }
+            Async\await($this->watchOHLCV ($symbol, $timeframe, null, null, $params));
+        }) ();
+    }
+
     public function convert_trading_view_to_ohlcv(array $ohlcvs, $timestamp = 't', $open = 'o', $high = 'h', $low = 'l', $close = 'c', $volume = 'v', $ms = false) {
         $result = array();
         $timestamps = $this->safe_list($ohlcvs, $timestamp, array());
@@ -3219,13 +3415,49 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' watchPosition() is not supported yet');
     }
 
+    public function subscribe_position(string $symbol, mixed $callback = null, bool $synchronous = true, $params = array ()) {
+        return Async\async(function () use ($symbol, $callback, $synchronous, $params) {
+            Async\await($this->load_markets());
+            $symbol = $this->symbol ($symbol);
+            $stream = $this->stream;
+            if ($callback !== null) {
+                $stream->subscribe ('positions::' . $symbol, $callback, $synchronous);
+            }
+            Async\await($this->watchPosition ($symbol, $params));
+        }) ();
+    }
+
     public function watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchPositions() is not supported yet');
+    }
+
+    public function subscribe_positions(?array $symbols = null, mixed $callback = null, bool $synchronous = true, $params = array ()) {
+        return Async\async(function () use ($symbols, $callback, $synchronous, $params) {
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true);
+            if ($callback !== null) {
+                $stream = $this->stream;
+                if ($this->is_empty($symbols)) {
+                    $stream->subscribe ('positions', $callback, $synchronous);
+                } else {
+                    for ($i = 0; $i < count($symbols); $i++) {
+                        $stream->subscribe ('positions::' . $symbols[$i], $callback, $synchronous);
+                    }
+                }
+            }
+            Async\await($this->watchPositions ($symbols, null, null, $params));
+        }) ();
     }
 
     public function watch_position_for_symbols(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             return Async\await($this->watch_positions($symbols, $since, $limit, $params));
+        }) ();
+    }
+
+    public function subscribe_position_for_symbols(?array $symbols = null, mixed $callback = null, bool $synchronous = true, $params = array ()) {
+        return Async\async(function () use ($symbols, $callback, $synchronous, $params) {
+            return Async\await($this->subscribePositions ($symbols, $callback, $synchronous, $params));
         }) ();
     }
 
@@ -3395,6 +3627,16 @@ class Exchange extends \ccxt\Exchange {
 
     public function watch_balance($params = array ()) {
         throw new NotSupported($this->id . ' watchBalance() is not supported yet');
+    }
+
+    public function subscribe_balance(mixed $callback = null, bool $synchronous = true, $params = array ()) {
+        return Async\async(function () use ($callback, $synchronous, $params) {
+            $stream = $this->stream;
+            if ($callback !== null) {
+                $stream->subscribe ('balances', $callback, $synchronous);
+            }
+            Async\await($this->watchBalance ($params));
+        }) ();
     }
 
     public function fetch_partial_balance($part, $params = array ()) {
@@ -3679,6 +3921,25 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' watchTicker() is not supported yet');
     }
 
+    public function subscribe_ticker(string $symbol, mixed $callback = null, bool $synchronous = true, $params = array ()) {
+        return Async\async(function () use ($symbol, $callback, $synchronous, $params) {
+            /**
+             * subscribe to watchTicker
+             * @param {string} $symbol unified $symbol of the market to watch ticker
+             * @param {Function} $callback function to call when receiving an update
+             * @param {boolean} $synchronous if set to true, the $callback will wait to finish before passing next message
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             */
+            Async\await($this->load_markets());
+            $symbol = $this->symbol ($symbol);
+            $stream = $this->stream;
+            if ($callback !== null) {
+                $stream->subscribe ('tickers::' . $symbol, $callback, $synchronous);
+            }
+            Async\await($this->watchTicker ($symbol, $params));
+        }) ();
+    }
+
     public function fetch_tickers(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchTickers() is not supported yet');
     }
@@ -3697,6 +3958,31 @@ class Exchange extends \ccxt\Exchange {
 
     public function watch_tickers(?array $symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchTickers() is not supported yet');
+    }
+
+    public function subscribe_tickers(?array $symbols = null, mixed $callback = null, bool $synchronous = true, $params = array ()) {
+        return Async\async(function () use ($symbols, $callback, $synchronous, $params) {
+            /**
+             * subscribe to watchTickers
+             * @param {string[]} $symbols unified $symbols of the market to watch tickers
+             * @param {Function} $callback function to call when receiving an update
+             * @param {boolean} $synchronous if set to true, the $callback will wait to finish before passing next message
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true);
+            if ($callback !== null) {
+                $stream = $this->stream;
+                if ($this->is_empty($symbols)) {
+                    $stream->subscribe ('tickers', $callback, $synchronous);
+                } else {
+                    for ($i = 0; $i < count($symbols); $i++) {
+                        $stream->subscribe ('tickers::' . $symbols[$i], $callback, $synchronous);
+                    }
+                }
+            }
+            Async\await($this->watchTickers ($symbols, $params));
+        }) ();
     }
 
     public function fetch_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -4217,6 +4503,51 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' watchOrders() is not supported yet');
     }
 
+    public function subscribe_raw(mixed $callback, bool $synchronous = true) {
+        /**
+         * subscribe to all raw messages received from websocket
+         * @param {string[]} symbols unified symbols of the market to watch tickers
+         * @param {Function} $callback function to call when receiving an update
+         * @param {boolean} $synchronous if set to true, the $callback will wait to finish before passing next message
+         */
+        $stream = $this->stream;
+        $stream->subscribe ('raw', $callback, $synchronous);
+    }
+
+    public function subscribe_errors(mixed $callback, bool $synchronous = true) {
+        /**
+         * subscribe to all errors thrown by $stream
+         * @param {string[]} symbols unified symbols of the market to watch tickers
+         * @param {Function} $callback function to call when receiving an update
+         * @param {boolean} $synchronous if set to true, the $callback will wait to finish before passing next message
+         */
+        $stream = $this->stream;
+        $stream->subscribe ('errors', $callback, $synchronous);
+    }
+
+    public function subscribe_orders(?string $symbol = null, mixed $callback = null, bool $synchronous = true, $params = array ()) {
+        return Async\async(function () use ($symbol, $callback, $synchronous, $params) {
+            /**
+             * subscribes information on multiple orders made by the user
+             * @param {string} $symbol unified market $symbol of the market the orders were made in
+             * @param {Function} $callback function to call when receiving an update
+             * @param {boolean} $synchronous if set to true, the $callback will wait to finish before passing next message
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             */
+            Async\await($this->load_markets());
+            $symbol = $this->symbol ($symbol);
+            if ($callback !== null) {
+                $stream = $this->stream;
+                if ($symbol === null) {
+                    $stream->subscribe ('orders', $callback, $synchronous);
+                } else {
+                    $stream->subscribe ('orders::' . $symbol, $callback, $synchronous);
+                }
+            }
+            Async\await($this->watchOrders ($symbol, null, null, $params));
+        }) ();
+    }
+
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             if ($this->has['fetchOrders']) {
@@ -4279,6 +4610,25 @@ class Exchange extends \ccxt\Exchange {
 
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchMyTrades() is not supported yet');
+    }
+
+    public function subscribe_my_trades(?string $symbol = null, mixed $callback = null, bool $synchronous = true, $params = array ()) {
+        return Async\async(function () use ($symbol, $callback, $synchronous, $params) {
+            /**
+             * watches information on multiple trades made by the user
+             * @param {string} $symbol unified market $symbol of the market orders were made in
+             * @param {Function} $callback function to call when receiving an update
+             * @param {boolean} $synchronous if set to true, the $callback will wait to finish before passing next message
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             */
+            Async\await($this->load_markets());
+            $symbol = $this->symbol ($symbol);
+            if ($callback !== null) {
+                $stream = $this->stream;
+                $stream->subscribe ('myTrades::' . $symbol, $callback, $synchronous);
+            }
+            Async\await($this->watchMyTrades ($symbol, null, null, $params));
+        }) ();
     }
 
     public function fetch_greeks(string $symbol, $params = array ()) {

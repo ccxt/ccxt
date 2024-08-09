@@ -140,6 +140,7 @@ export default class idex extends idexRest {
             'quoteVolume': this.safeString (data, 'q'),
             'info': message,
         });
+        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, messageHash);
     }
 
@@ -184,6 +185,7 @@ export default class idex extends idexRest {
         }
         const trades = this.trades as any;
         trades.append (trade);
+        this.streamProduce ('trades', trade);
         client.resolve (trades, messageHash);
     }
 
@@ -714,6 +716,7 @@ export default class idex extends idexRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         const type = this.safeString (message, 'type');
         const methods: Dict = {
             'tickers': this.handleTicker,

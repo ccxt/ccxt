@@ -606,6 +606,7 @@ export default class poloniex extends poloniexRest {
                     this.trades[symbol] = tradesArray;
                 }
                 tradesArray.append (trade);
+                this.streamProduce ('trades', trade);
                 client.resolve (tradesArray, messageHash);
             }
         }
@@ -970,6 +971,7 @@ export default class poloniex extends poloniexRest {
                 const symbol = ticker['symbol'];
                 this.tickers[symbol] = ticker;
                 newTickers[symbol] = ticker;
+                this.streamProduce ('tickers', ticker);
             }
         }
         const messageHashes = this.findMessageHashes (client, 'ticker::');
@@ -1164,6 +1166,7 @@ export default class poloniex extends poloniexRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         if (this.handleErrorMessage (client, message)) {
             return;
         }
