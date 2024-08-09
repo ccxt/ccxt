@@ -1368,7 +1368,7 @@ export default class hashkey extends Exchange {
             side = isBuyer ? 'buy' : 'sell';
         }
         let takerOrMaker = undefined;
-        const isMaker = this.safeBool2 (trade, 'isMaker', 'isMarker');
+        const isMaker = this.safeBoolN (trade, [ 'isMaker', 'isMarker', 'ibm' ]);
         if (isMaker !== undefined) {
             takerOrMaker = isMaker ? 'maker' : 'taker';
         }
@@ -1379,8 +1379,10 @@ export default class hashkey extends Exchange {
         if (feeInfo !== undefined) {
             feeCost = this.safeString (feeInfo, 'fee');
             feeCurrncyId = this.safeString (feeInfo, 'feeCoinId');
+        }
+        if (feeCost !== undefined) {
             fee = {
-                'cost': feeCost,
+                'cost': this.parseNumber (feeCost),
                 'currency': this.safeCurrencyCode (feeCurrncyId),
             };
         }
