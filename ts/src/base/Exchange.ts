@@ -654,17 +654,6 @@ export default class Exchange {
         return result
     }
 
-    checkAddress (address) {
-        if (address === undefined) {
-            throw new InvalidAddress (this.id + ' address is undefined')
-        }
-        // check the address is not the same letter like 'aaaaa' nor too short nor has a space
-        if ((this.unique (address).length === 1) || address.length < this.minFundingAddressLength || address.includes (' ')) {
-            throw new InvalidAddress (this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString () + ' characters: "' + this.json (address) + '"')
-        }
-        return address
-    }
-
     initRestRateLimiter () {
         if (this.rateLimit === undefined) {
             throw new Error (this.id + '.rateLimit property is not configured');
@@ -2210,6 +2199,17 @@ export default class Exchange {
     checkConflictingProxies (proxyAgentSet, proxyUrlSet) {
         if (proxyAgentSet && proxyUrlSet) {
             throw new InvalidProxySettings (this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
+        }
+    }
+
+    checkAddress (address: Str = undefined) {
+        if (address === undefined) {
+            throw new InvalidAddress (this.id + ' address is undefined');
+        }
+        // check the address is not the same letter like 'aaaaa' nor too short nor has a space
+        const length = this.unique (this.stringToCharsArray (address)).length;
+        if (length === 1 || address.length < this.minFundingAddressLength || (address.toString ().indexOf (' ') > -1)) {
+            throw new InvalidAddress (this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString () + ' characters: "' + this.json (address) + '"');
         }
     }
 
