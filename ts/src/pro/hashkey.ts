@@ -776,6 +776,9 @@ export default class hashkey extends hashkeyRest {
         const balanceUpdate = this.safeDict (data, 0);
         const isSpot = event === 'outboundAccountInfo';
         const type = isSpot ? 'spot' : 'swap';
+        if (!(type in this.balance)) {
+            this.balance[type] = {};
+        }
         this.balance[type]['info'] = message;
         const currencyId = this.safeString (balanceUpdate, 'a');
         const code = this.safeCurrencyCode (currencyId);
