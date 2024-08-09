@@ -1221,16 +1221,6 @@ export default class hashkey extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        let fromId: Str = undefined;
-        [ fromId, params ] = this.handleOptionAndParams (params, methodName, 'fromId');
-        if (fromId !== undefined) {
-            request['fromId'] = fromId;
-        }
-        let toId: Str = undefined;
-        [ toId, params ] = this.handleOptionAndParams (params, methodName, 'toId');
-        if (toId !== undefined) {
-            request['toId'] = toId;
-        }
         let accountId: Str = undefined;
         [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
         let response = undefined;
@@ -1419,7 +1409,7 @@ export default class hashkey extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [limit] the maximum amount of candles to fetch (max 1000)
+         * @param {int} [limit] the maximum amount of candles to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -1855,11 +1845,6 @@ export default class hashkey extends Exchange {
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        let fromId: Str = undefined;
-        [ fromId, params ] = this.handleOptionAndParams (params, methodName, 'fromId');
-        if (fromId !== undefined) {
-            request['fromId'] = fromId;
-        }
         const response = await this.privateGetApiV1AccountDepositOrders (this.extend (request, params));
         //
         //     [
@@ -1975,7 +1960,7 @@ export default class hashkey extends Exchange {
         let platform: Str = undefined;
         [ platform, params ] = this.handleOptionAndParams (params, 'withdraw', 'platform');
         if (platform !== undefined) {
-            request['fromId'] = platform;
+            request['platform'] = platform;
         }
         const response = await this.privatePostApiV1AccountWithdraw (this.extend (request, params));
         //
@@ -3809,16 +3794,6 @@ export default class hashkey extends Exchange {
         };
         if (limit !== undefined) {
             request['limit'] = limit;
-        }
-        let fromId: Int = undefined;
-        [ fromId, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'fromId');
-        if (fromId !== undefined) {
-            request['fromId'] = fromId;
-        }
-        let endId: Int = undefined;
-        [ endId, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'endId');
-        if (endId !== undefined) {
-            request['endId'] = endId;
         }
         // todo report timestamp is not mandatory
         const response = await this.publicGetApiV1FuturesHistoryFundingRate (this.extend (request, params));
