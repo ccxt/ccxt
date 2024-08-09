@@ -2747,7 +2747,7 @@ public partial class binance : Exchange
                     { "active", isTrue(depositEnable) && isTrue(withdrawEnable) },
                     { "deposit", depositEnable },
                     { "withdraw", withdrawEnable },
-                    { "fee", this.parseNumber(fee) },
+                    { "fee", withdrawFee },
                     { "precision", this.parseNumber(precisionTick) },
                     { "limits", new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
@@ -2755,7 +2755,7 @@ public partial class binance : Exchange
                             { "max", this.safeNumber(networkItem, "withdrawMax") },
                         } },
                         { "deposit", new Dictionary<string, object>() {
-                            { "min", null },
+                            { "min", this.safeNumber(networkItem, "depositDust") },
                             { "max", null },
                         } },
                     } },
@@ -10085,7 +10085,7 @@ public partial class binance : Exchange
         object liquidationPrice = this.parseNumber(liquidationPriceString);
         object collateralString = null;
         object marginMode = this.safeString(position, "marginType");
-        if (isTrue(isTrue(isEqual(marginMode, null)) && isTrue(isolatedMarginString)))
+        if (isTrue(isTrue(isEqual(marginMode, null)) && isTrue(!isEqual(isolatedMarginString, null))))
         {
             marginMode = ((bool) isTrue(Precise.stringEq(isolatedMarginString, "0"))) ? "cross" : "isolated";
         }

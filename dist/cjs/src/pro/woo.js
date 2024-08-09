@@ -643,7 +643,7 @@ class woo extends woo$1 {
                 },
             };
             const message = this.extend(request, params);
-            this.watch(url, messageHash, message, messageHash);
+            this.watch(url, messageHash, message, messageHash, message);
         }
         return await future;
     }

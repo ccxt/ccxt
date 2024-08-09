@@ -730,8 +730,23 @@ public partial class whitebit : Exchange
         //        "change": "2.12" // in percent
         //    }
         //
+        // WS market_update
+        //
+        //     {
+        //         "open": "52853.04",
+        //         "close": "55913.88",
+        //         "high": "56272",
+        //         "low": "49549.67",
+        //         "volume": "57331.067185",
+        //         "deal": "3063860382.42985338",
+        //         "last": "55913.88",
+        //         "period": 86400
+        //     }
         market = this.safeMarket(null, market);
-        object last = this.safeString(ticker, "last_price");
+        // last price is provided as "last" or "last_price"
+        object last = this.safeString2(ticker, "last", "last_price");
+        // if "close" is provided, use it, otherwise use <last>
+        object close = this.safeString(ticker, "close", last);
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },
             { "timestamp", null },
@@ -744,7 +759,7 @@ public partial class whitebit : Exchange
             { "askVolume", null },
             { "vwap", null },
             { "open", this.safeString(ticker, "open") },
-            { "close", last },
+            { "close", close },
             { "last", last },
             { "previousClose", null },
             { "change", null },

@@ -545,6 +545,12 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#watchOrderBook
+         * @see https://binance-docs.github.io/apidocs/spot/en/#partial-book-depth-streams
+         * @see https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream
+         * @see https://binance-docs.github.io/apidocs/futures/en/#partial-book-depth-streams
+         * @see https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#partial-book-depth-streams
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
@@ -595,6 +601,12 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#watchOrderBookForSymbols
+         * @see https://binance-docs.github.io/apidocs/spot/en/#partial-book-depth-streams
+         * @see https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream
+         * @see https://binance-docs.github.io/apidocs/futures/en/#partial-book-depth-streams
+         * @see https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#partial-book-depth-streams
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string[]} symbols unified array of symbols
          * @param {int} [limit] the maximum amount of order book entries to return
@@ -1499,6 +1511,12 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#watchTicker
+         * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-mini-ticker-stream
+         * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-ticker-streams
+         * @see https://binance-docs.github.io/apidocs/futures/en/#all-market-mini-tickers-stream
+         * @see https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-ticker-streams
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#all-market-mini-tickers-stream
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-ticker-streams
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1515,6 +1533,12 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#watchTickers
+         * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-mini-ticker-stream
+         * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-ticker-streams
+         * @see https://binance-docs.github.io/apidocs/futures/en/#all-market-mini-tickers-stream
+         * @see https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-ticker-streams
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#all-market-mini-tickers-stream
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-ticker-streams
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint

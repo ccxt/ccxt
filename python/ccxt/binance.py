@@ -2784,7 +2784,7 @@ class binance(Exchange, ImplicitAPI):
                     'active': depositEnable and withdrawEnable,
                     'deposit': depositEnable,
                     'withdraw': withdrawEnable,
-                    'fee': self.parse_number(fee),
+                    'fee': withdrawFee,
                     'precision': self.parse_number(precisionTick),
                     'limits': {
                         'withdraw': {
@@ -2792,7 +2792,7 @@ class binance(Exchange, ImplicitAPI):
                             'max': self.safe_number(networkItem, 'withdrawMax'),
                         },
                         'deposit': {
-                            'min': None,
+                            'min': self.safe_number(networkItem, 'depositDust'),
                             'max': None,
                         },
                     },
@@ -9122,7 +9122,7 @@ class binance(Exchange, ImplicitAPI):
         liquidationPrice = self.parse_number(liquidationPriceString)
         collateralString = None
         marginMode = self.safe_string(position, 'marginType')
-        if marginMode is None and isolatedMarginString:
+        if marginMode is None and isolatedMarginString is not None:
             marginMode = 'cross' if Precise.string_eq(isolatedMarginString, '0') else 'isolated'
         side = None
         if Precise.string_gt(notionalString, '0'):

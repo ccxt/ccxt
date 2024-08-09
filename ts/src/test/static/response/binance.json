@@ -507,7 +507,6 @@
         "fetchPositions": [
             {
                 "description": "Fetch linear positions without symbols",
-                "disabledPHP": true,
                 "method": "fetchPositions",
                 "input": [],
                 "httpResponse": [
@@ -588,7 +587,6 @@
             },
             {
                 "description": "Fetch linear positions with symbols",
-                "disabledPHP": true,
                 "method": "fetchPositions",
                 "input": [
                   [

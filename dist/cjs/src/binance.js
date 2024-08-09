@@ -2797,7 +2797,7 @@ class binance extends binance$1 {
                     'active': depositEnable && withdrawEnable,
                     'deposit': depositEnable,
                     'withdraw': withdrawEnable,
-                    'fee': this.parseNumber(fee),
+                    'fee': withdrawFee,
                     'precision': this.parseNumber(precisionTick),
                     'limits': {
                         'withdraw': {
@@ -2805,7 +2805,7 @@ class binance extends binance$1 {
                             'max': this.safeNumber(networkItem, 'withdrawMax'),
                         },
                         'deposit': {
-                            'min': undefined,
+                            'min': this.safeNumber(networkItem, 'depositDust'),
                             'max': undefined,
                         },
                     },
@@ -9803,7 +9803,7 @@ class binance extends binance$1 {
         const liquidationPrice = this.parseNumber(liquidationPriceString);
         let collateralString = undefined;
         let marginMode = this.safeString(position, 'marginType');
-        if (marginMode === undefined && isolatedMarginString) {
+        if (marginMode === undefined && isolatedMarginString !== undefined) {
             marginMode = Precise["default"].stringEq(isolatedMarginString, '0') ? 'cross' : 'isolated';
         }
         let side = undefined;

@@ -2786,7 +2786,7 @@ class binance extends Exchange {
                     'active' => $depositEnable && $withdrawEnable,
                     'deposit' => $depositEnable,
                     'withdraw' => $withdrawEnable,
-                    'fee' => $this->parse_number($fee),
+                    'fee' => $withdrawFee,
                     'precision' => $this->parse_number($precisionTick),
                     'limits' => array(
                         'withdraw' => array(
@@ -2794,7 +2794,7 @@ class binance extends Exchange {
                             'max' => $this->safe_number($networkItem, 'withdrawMax'),
                         ),
                         'deposit' => array(
-                            'min' => null,
+                            'min' => $this->safe_number($networkItem, 'depositDust'),
                             'max' => null,
                         ),
                     ),
@@ -9557,7 +9557,7 @@ class binance extends Exchange {
         $liquidationPrice = $this->parse_number($liquidationPriceString);
         $collateralString = null;
         $marginMode = $this->safe_string($position, 'marginType');
-        if ($marginMode === null && $isolatedMarginString) {
+        if ($marginMode === null && $isolatedMarginString !== null) {
             $marginMode = Precise::string_eq($isolatedMarginString, '0') ? 'cross' : 'isolated';
         }
         $side = null;
