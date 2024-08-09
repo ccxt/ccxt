@@ -63,7 +63,7 @@
         ],
         "fetchTrades": [
             {
-                "description": "Fetch trades with a limit argument",
+                "description": "Fetch trades with a limit argument for spot",
                 "method": "fetchTrades",
                 "input": [
                     "BTC/USDT",
@@ -72,28 +72,28 @@
                 ],
                 "httpResponse": [
                     {
-                        "t": "1722860048522",
-                        "p": "50941.49",
-                        "q": "0.00735",
+                        "t": "1723213664893",
+                        "p": "60609.83",
+                        "q": "0.01911",
                         "ibm": true
                     },
                     {
-                        "t": "1722860048556",
-                        "p": "50981.1",
-                        "q": "0.00058",
+                        "t": "1723213664931",
+                        "p": "60609.83",
+                        "q": "0.00049",
                         "ibm": false
                     }
                 ],
                 "parsedResponse": [
                     {
                         "id": null,
-                        "timestamp": 1722860048522,
-                        "datetime": "2024-08-05T12:14:08.522Z",
+                        "timestamp": 1723213664893,
+                        "datetime": "2024-08-09T14:27:44.893Z",
                         "symbol": "BTC/USDT",
                         "side": null,
-                        "price": 50941.49,
-                        "amount": 0.00735,
-                        "cost": 374.4199515,
+                        "price": 60609.83,
+                        "amount": 0.01911,
+                        "cost": 1158.2538513,
                         "takerOrMaker": null,
                         "type": null,
                         "order": null,
@@ -102,27 +102,27 @@
                             "currency": null
                         },
                         "info": {
-                            "t": "1722860048522",
-                            "p": "50941.49",
-                            "q": "0.00735",
+                            "t": "1723213664893",
+                            "p": "60609.83",
+                            "q": "0.01911",
                             "ibm": true
                         },
                         "fees": [
-                            {
-                                "cost": null,
-                                "currency": null
-                            }
+                        {
+                            "cost": null,
+                            "currency": null
+                        }
                         ]
                     },
                     {
                         "id": null,
-                        "timestamp": 1722860048556,
-                        "datetime": "2024-08-05T12:14:08.556Z",
+                        "timestamp": 1723213664931,
+                        "datetime": "2024-08-09T14:27:44.931Z",
                         "symbol": "BTC/USDT",
                         "side": null,
-                        "price": 50981.1,
-                        "amount": 0.00058,
-                        "cost": 29.569038,
+                        "price": 60609.83,
+                        "amount": 0.00049,
+                        "cost": 29.6988167,
                         "takerOrMaker": null,
                         "type": null,
                         "order": null,
@@ -131,9 +131,9 @@
                             "currency": null
                         },
                         "info": {
-                            "t": "1722860048556",
-                            "p": "50981.1",
-                            "q": "0.00058",
+                            "t": "1723213664931",
+                            "p": "60609.83",
+                            "q": "0.00049",
                             "ibm": false
                         },
                         "fees": [
@@ -155,28 +155,28 @@
                 ],
                 "httpResponse": [
                     {
-                        "t": "1722860271093",
-                        "p": "50592",
+                        "t": "1723213799421",
+                        "p": "60310.4",
                         "q": "1",
-                        "ibm": true
+                        "ibm": false
                     },
                     {
-                        "t": "1722860271183",
-                        "p": "50596",
-                        "q": "184",
-                        "ibm": true
+                        "t": "1723213799537",
+                        "p": "60310.4",
+                        "q": "2",
+                        "ibm": false
                     }
                 ],
                 "parsedResponse": [
                     {
                         "id": null,
-                        "timestamp": 1722860271093,
-                        "datetime": "2024-08-05T12:17:51.093Z",
+                        "timestamp": 1723213799421,
+                        "datetime": "2024-08-09T14:29:59.421Z",
                         "symbol": "BTC/USDT:USDT",
                         "side": null,
-                        "price": 50592,
+                        "price": 60310.4,
                         "amount": 1,
-                        "cost": 50.592,
+                        "cost": 60.3104,
                         "takerOrMaker": null,
                         "type": null,
                         "order": null,
@@ -185,10 +185,10 @@
                             "currency": null
                         },
                         "info": {
-                            "t": "1722860271093",
-                            "p": "50592",
+                            "t": "1723213799421",
+                            "p": "60310.4",
                             "q": "1",
-                            "ibm": true
+                            "ibm": false
                         },
                         "fees": [
                             {
@@ -199,13 +199,13 @@
                     },
                     {
                         "id": null,
-                        "timestamp": 1722860271183,
-                        "datetime": "2024-08-05T12:17:51.183Z",
+                        "timestamp": 1723213799537,
+                        "datetime": "2024-08-09T14:29:59.537Z",
                         "symbol": "BTC/USDT:USDT",
                         "side": null,
-                        "price": 50596,
-                        "amount": 184,
-                        "cost": 9309.664,
+                        "price": 60310.4,
+                        "amount": 2,
+                        "cost": 120.6208,
                         "takerOrMaker": null,
                         "type": null,
                         "order": null,
@@ -214,10 +214,10 @@
                             "currency": null
                         },
                         "info": {
-                            "t": "1722860271183",
-                            "p": "50596",
-                            "q": "184",
-                            "ibm": true
+                            "t": "1723213799537",
+                            "p": "60310.4",
+                            "q": "2",
+                            "ibm": false
                         },
                         "fees": [
                             {
