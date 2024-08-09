@@ -1379,13 +1379,10 @@ export default class hashkey extends Exchange {
             feeCost = this.safeString (feeInfo, 'fee');
             feeCurrncyId = this.safeString (feeInfo, 'feeCoinId');
         }
-        let fee = undefined;
-        if (feeCost !== undefined) {
-            fee = {
-                'cost': feeCost,
-                'currency': this.safeCurrencyCode (feeCurrncyId),
-            };
-        }
+        const fee = {
+            'cost': feeCost,
+            'currency': this.safeCurrencyCode (feeCurrncyId),
+        };
         return this.safeTrade ({
             'id': this.safeString2 (trade, 'id', 'tradeId'),
             'timestamp': timestamp,
