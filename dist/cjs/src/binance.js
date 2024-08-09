@@ -2797,7 +2797,7 @@ class binance extends binance$1 {
                     'active': depositEnable && withdrawEnable,
                     'deposit': depositEnable,
                     'withdraw': withdrawEnable,
-                    'fee': this.parseNumber(fee),
+                    'fee': withdrawFee,
                     'precision': this.parseNumber(precisionTick),
                     'limits': {
                         'withdraw': {
@@ -2805,7 +2805,7 @@ class binance extends binance$1 {
                             'max': this.safeNumber(networkItem, 'withdrawMax'),
                         },
                         'deposit': {
-                            'min': undefined,
+                            'min': this.safeNumber(networkItem, 'depositDust'),
                             'max': undefined,
                         },
                     },

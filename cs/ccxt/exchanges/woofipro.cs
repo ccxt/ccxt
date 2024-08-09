@@ -691,6 +691,11 @@ public partial class woofipro : Exchange
         object amount = this.safeString(trade, "executed_quantity");
         object order_id = this.safeString(trade, "order_id");
         object fee = this.parseTokenAndFeeTemp(trade, "fee_asset", "fee");
+        object feeCost = this.safeString(fee, "cost");
+        if (isTrue(!isEqual(feeCost, null)))
+        {
+            ((IDictionary<string,object>)fee)["cost"] = feeCost;
+        }
         object cost = Precise.stringMul(price, amount);
         object side = this.safeStringLower(trade, "side");
         object id = this.safeString(trade, "id");

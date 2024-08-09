@@ -33,7 +33,7 @@
                         "price": 73243.3,
                         "amount": 0,
                         "cost": 0,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "info": {
                             "a": "1972588234",
                             "p": "73243.3",

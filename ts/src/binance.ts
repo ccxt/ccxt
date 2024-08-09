@@ -2798,7 +2798,7 @@ export default class binance extends Exchange {
                     'active': depositEnable && withdrawEnable,
                     'deposit': depositEnable,
                     'withdraw': withdrawEnable,
-                    'fee': this.parseNumber (fee),
+                    'fee': withdrawFee,
                     'precision': this.parseNumber (precisionTick),
                     'limits': {
                         'withdraw': {
@@ -2806,7 +2806,7 @@ export default class binance extends Exchange {
                             'max': this.safeNumber (networkItem, 'withdrawMax'),
                         },
                         'deposit': {
-                            'min': undefined,
+                            'min': this.safeNumber (networkItem, 'depositDust'),
                             'max': undefined,
                         },
                     },

@@ -3566,7 +3566,10 @@ class bybit(Exchange, ImplicitAPI):
                 request['qty'] = self.cost_to_precision(symbol, amount)
         else:
             if not isTrailingAmountOrder and not isAlternativeEndpoint:
-                request['qty'] = self.amount_to_precision(symbol, amount)
+                if market['option']:
+                    request['qty'] = self.number_to_string(amount)
+                else:
+                    request['qty'] = self.amount_to_precision(symbol, amount)
         if isTrailingAmountOrder:
             if trailingTriggerPrice is not None:
                 request['activePrice'] = self.price_to_precision(symbol, trailingTriggerPrice)

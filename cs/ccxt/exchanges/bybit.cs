@@ -3957,7 +3957,13 @@ public partial class bybit : Exchange
         {
             if (isTrue(!isTrue(isTrailingAmountOrder) && !isTrue(isAlternativeEndpoint)))
             {
-                ((IDictionary<string,object>)request)["qty"] = this.amountToPrecision(symbol, amount);
+                if (isTrue(getValue(market, "option")))
+                {
+                    ((IDictionary<string,object>)request)["qty"] = this.numberToString(amount);
+                } else
+                {
+                    ((IDictionary<string,object>)request)["qty"] = this.amountToPrecision(symbol, amount);
+                }
             }
         }
         if (isTrue(isTrailingAmountOrder))

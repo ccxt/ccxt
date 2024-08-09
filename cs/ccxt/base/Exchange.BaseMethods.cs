@@ -866,7 +866,7 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         if (isTrue(getValue(this.has, "watchLiquidationsForSymbols")))
         {
-            return this.watchLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
+            return await this.watchLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
         }
         throw new NotSupported ((string)add(this.id, " watchLiquidations() is not supported yet")) ;
     }
@@ -2150,57 +2150,75 @@ public partial class Exchange
             }
             cost = Precise.stringMul(multiplyPrice, amount);
         }
-        object parseFee = isEqual(this.safeValue(trade, "fee"), null);
-        object parseFees = isEqual(this.safeValue(trade, "fees"), null);
-        object shouldParseFees = isTrue(parseFee) || isTrue(parseFees);
-        object fees = new List<object>() {};
-        object fee = this.safeValue(trade, "fee");
-        if (isTrue(shouldParseFees))
-        {
-            object reducedFees = ((bool) isTrue(this.reduceFees)) ? this.reduceFeesByCurrency(fees) : fees;
-            object reducedLength = getArrayLength(reducedFees);
-            for (object i = 0; isLessThan(i, reducedLength); postFixIncrement(ref i))
-            {
-                ((IDictionary<string,object>)getValue(reducedFees, i))["cost"] = this.safeNumber(getValue(reducedFees, i), "cost");
-                if (isTrue(inOp(getValue(reducedFees, i), "rate")))
-                {
-                    ((IDictionary<string,object>)getValue(reducedFees, i))["rate"] = this.safeNumber(getValue(reducedFees, i), "rate");
-                }
-            }
-            if (isTrue(!isTrue(parseFee) && isTrue((isEqual(reducedLength, 0)))))
-            {
-                // copy fee to avoid modification by reference
-                object feeCopy = this.deepExtend(fee);
-                ((IDictionary<string,object>)feeCopy)["cost"] = this.safeNumber(feeCopy, "cost");
-                if (isTrue(inOp(feeCopy, "rate")))
-                {
-                    ((IDictionary<string,object>)feeCopy)["rate"] = this.safeNumber(feeCopy, "rate");
-                }
-                ((IList<object>)reducedFees).Add(feeCopy);
-            }
-            if (isTrue(parseFees))
-            {
-                ((IDictionary<string,object>)trade)["fees"] = reducedFees;
-            }
-            if (isTrue(isTrue(parseFee) && isTrue((isEqual(reducedLength, 1)))))
-            {
-                ((IDictionary<string,object>)trade)["fee"] = getValue(reducedFees, 0);
-            }
-            object tradeFee = this.safeValue(trade, "fee");
-            if (isTrue(!isEqual(tradeFee, null)))
-            {
-                ((IDictionary<string,object>)tradeFee)["cost"] = this.safeNumber(tradeFee, "cost");
-                if (isTrue(inOp(tradeFee, "rate")))
-                {
-                    ((IDictionary<string,object>)tradeFee)["rate"] = this.safeNumber(tradeFee, "rate");
-                }
-                ((IDictionary<string,object>)trade)["fee"] = tradeFee;
-            }
-        }
+        var resultFeeresultFeesVariable = this.parsedFeeAndFees(trade);
+        var resultFee = ((IList<object>) resultFeeresultFeesVariable)[0];
+        var resultFees = ((IList<object>) resultFeeresultFeesVariable)[1];
+        ((IDictionary<string,object>)trade)["fee"] = resultFee;
+        ((IDictionary<string,object>)trade)["fees"] = resultFees;
         ((IDictionary<string,object>)trade)["amount"] = this.parseNumber(amount);
         ((IDictionary<string,object>)trade)["price"] = this.parseNumber(price);
         ((IDictionary<string,object>)trade)["cost"] = this.parseNumber(cost);
         return trade;
+    }
+
+    public virtual object parsedFeeAndFees(object container)
+    {
+        object fee = this.safeDict(container, "fee");
+        object fees = this.safeList(container, "fees");
+        object feeDefined = !isEqual(fee, null);
+        object feesDefined = !isEqual(fees, null);
+        // parsing only if at least one of them is defined
+        object shouldParseFees = (isTrue(feeDefined) || isTrue(feesDefined));
+        if (isTrue(shouldParseFees))
+        {
+            if (isTrue(feeDefined))
+            {
+                fee = this.parseFeeNumeric(fee);
+            }
+            if (!isTrue(feesDefined))
+            {
+                // just set it directly, no further processing needed
+                fees = new List<object>() {fee};
+            }
+            // 'fees' were set, so reparse them
+            object reducedFees = ((bool) isTrue(this.reduceFees)) ? this.reduceFeesByCurrency(fees) : fees;
+            object reducedLength = getArrayLength(reducedFees);
+            for (object i = 0; isLessThan(i, reducedLength); postFixIncrement(ref i))
+            {
+                ((List<object>)reducedFees)[Convert.ToInt32(i)] = this.parseFeeNumeric(getValue(reducedFees, i));
+            }
+            fees = reducedFees;
+            if (isTrue(isEqual(reducedLength, 1)))
+            {
+                fee = getValue(reducedFees, 0);
+            } else if (isTrue(isEqual(reducedLength, 0)))
+            {
+                fee = null;
+            }
+        }
+        // in case `fee & fees` are undefined, set `fees` as empty array
+        if (isTrue(isEqual(fee, null)))
+        {
+            fee = new Dictionary<string, object>() {
+                { "cost", null },
+                { "currency", null },
+            };
+        }
+        if (isTrue(isEqual(fees, null)))
+        {
+            fees = new List<object>() {};
+        }
+        return new List<object>() {fee, fees};
+    }
+
+    public virtual object parseFeeNumeric(object fee)
+    {
+        ((IDictionary<string,object>)fee)["cost"] = this.safeNumber(fee, "cost"); // ensure numeric
+        if (isTrue(inOp(fee, "rate")))
+        {
+            ((IDictionary<string,object>)fee)["rate"] = this.safeNumber(fee, "rate");
+        }
+        return fee;
     }
 
     public virtual object findNearestCeiling(object arr, object providedValue)
@@ -2285,12 +2303,13 @@ public partial class Exchange
         for (object i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
         {
             object fee = getValue(fees, i);
-            object feeCurrencyCode = this.safeString(fee, "currency");
+            object code = this.safeString(fee, "currency");
+            object feeCurrencyCode = ((bool) isTrue(!isEqual(code, null))) ? code : ((object)i).ToString();
             if (isTrue(!isEqual(feeCurrencyCode, null)))
             {
                 object rate = this.safeString(fee, "rate");
-                object cost = this.safeValue(fee, "cost");
-                if (isTrue(Precise.stringEq(cost, "0")))
+                object cost = this.safeString(fee, "cost");
+                if (isTrue(isEqual(cost, null)))
                 {
                     continue;
                 }
@@ -2305,7 +2324,7 @@ public partial class Exchange
                 } else
                 {
                     ((IDictionary<string,object>)getValue(reduced, feeCurrencyCode))[(string)rateKey] = new Dictionary<string, object>() {
-                        { "currency", feeCurrencyCode },
+                        { "currency", code },
                         { "cost", cost },
                     };
                     if (isTrue(!isEqual(rate, null)))
@@ -2355,7 +2374,17 @@ public partial class Exchange
             }
             if (isTrue(isEqual(average, null)))
             {
-                average = Precise.stringDiv(Precise.stringAdd(last, open), "2");
+                object precision = 18;
+                if (isTrue(isTrue(!isEqual(market, null)) && isTrue(this.isTickPrecision())))
+                {
+                    object marketPrecision = this.safeDict(market, "precision");
+                    object precisionPrice = this.safeString(marketPrecision, "price");
+                    if (isTrue(!isEqual(precisionPrice, null)))
+                    {
+                        precision = this.precisionFromString(precisionPrice);
+                    }
+                }
+                average = Precise.stringDiv(Precise.stringAdd(last, open), "2", precision);
             }
         }
         if (isTrue(isTrue(isTrue(isTrue((isEqual(percentage, null))) && isTrue((!isEqual(change, null)))) && isTrue((!isEqual(open, null)))) && isTrue(Precise.stringGt(open, "0"))))

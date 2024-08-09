@@ -281,4 +281,9 @@ public partial class gemini : Exchange
         return await this.callAsync ("privatePostV1Heartbeat",parameters);
     }
 
+    public async Task<object> privatePostV1Roles (object parameters = null)
+    {
+        return await this.callAsync ("privatePostV1Roles",parameters);
+    }
+
 }

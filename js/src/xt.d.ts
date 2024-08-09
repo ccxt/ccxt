@@ -1,5 +1,9 @@
 import Exchange from './abstract/xt.js';
 import { Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, LeverageTier, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry } from './base/types.js';
+/**
+ * @class xt
+ * @augments Exchange
+ */
 export default class xt extends Exchange {
     describe(): any;
     nonce(): number;

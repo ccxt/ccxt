@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.75'
+__version__ = '4.3.78'
 
 # -----------------------------------------------------------------------------
 
@@ -110,6 +110,14 @@ from ccxt.base.types import Int
 
 # -----------------------------------------------------------------------------
 
+class SafeJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Exception):
+            return {"name": obj.__class__.__name__}
+        try:
+            return super().default(obj)
+        except TypeError:
+            return f"TypeError: Object of type {type(obj).__name__} is not JSON serializable"
 
 class Exchange(object):
     """Base exchange class"""
@@ -360,6 +368,7 @@ class Exchange(object):
         self.trades = dict() if self.trades is None else self.trades
         self.transactions = dict() if self.transactions is None else self.transactions
         self.ohlcvs = dict() if self.ohlcvs is None else self.ohlcvs
+        self.liquidations = dict() if self.liquidations is None else self.liquidations
         self.currencies = dict() if self.currencies is None else self.currencies
         self.options = self.get_default_options() if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
         self.decimal_to_precision = decimal_to_precision
@@ -1418,7 +1427,7 @@ class Exchange(object):
 
     @staticmethod
     def json(data, params=None):
-        return json.dumps(data, separators=(',', ':'))
+        return json.dumps(data, separators=(',', ':'), cls=SafeJSONEncoder)
 
     @staticmethod
     def is_json_encoded_object(input):
@@ -3267,39 +3276,52 @@ class Exchange(object):
                     multiplyPrice = Precise.string_div('1', price)
                 multiplyPrice = Precise.string_mul(multiplyPrice, contractSize)
             cost = Precise.string_mul(multiplyPrice, amount)
-        parseFee = self.safe_value(trade, 'fee') is None
-        parseFees = self.safe_value(trade, 'fees') is None
-        shouldParseFees = parseFee or parseFees
-        fees = []
-        fee = self.safe_value(trade, 'fee')
-        if shouldParseFees:
-            reducedFees = self.reduce_fees_by_currency(fees) if self.reduceFees else fees
-            reducedLength = len(reducedFees)
-            for i in range(0, reducedLength):
-                reducedFees[i]['cost'] = self.safe_number(reducedFees[i], 'cost')
-                if 'rate' in reducedFees[i]:
-                    reducedFees[i]['rate'] = self.safe_number(reducedFees[i], 'rate')
-            if not parseFee and (reducedLength == 0):
-                # copy fee to avoid modification by reference
-                feeCopy = self.deep_extend(fee)
-                feeCopy['cost'] = self.safe_number(feeCopy, 'cost')
-                if 'rate' in feeCopy:
-                    feeCopy['rate'] = self.safe_number(feeCopy, 'rate')
-                reducedFees.append(feeCopy)
-            if parseFees:
-                trade['fees'] = reducedFees
-            if parseFee and (reducedLength == 1):
-                trade['fee'] = reducedFees[0]
-            tradeFee = self.safe_value(trade, 'fee')
-            if tradeFee is not None:
-                tradeFee['cost'] = self.safe_number(tradeFee, 'cost')
-                if 'rate' in tradeFee:
-                    tradeFee['rate'] = self.safe_number(tradeFee, 'rate')
-                trade['fee'] = tradeFee
+        resultFee, resultFees = self.parsed_fee_and_fees(trade)
+        trade['fee'] = resultFee
+        trade['fees'] = resultFees
         trade['amount'] = self.parse_number(amount)
         trade['price'] = self.parse_number(price)
         trade['cost'] = self.parse_number(cost)
         return trade
+
+    def parsed_fee_and_fees(self, container: Any):
+        fee = self.safe_dict(container, 'fee')
+        fees = self.safe_list(container, 'fees')
+        feeDefined = fee is not None
+        feesDefined = fees is not None
+        # parsing only if at least one of them is defined
+        shouldParseFees = (feeDefined or feesDefined)
+        if shouldParseFees:
+            if feeDefined:
+                fee = self.parse_fee_numeric(fee)
+            if not feesDefined:
+                # just set it directly, no further processing needed
+                fees = [fee]
+            # 'fees' were set, so reparse them
+            reducedFees = self.reduce_fees_by_currency(fees) if self.reduceFees else fees
+            reducedLength = len(reducedFees)
+            for i in range(0, reducedLength):
+                reducedFees[i] = self.parse_fee_numeric(reducedFees[i])
+            fees = reducedFees
+            if reducedLength == 1:
+                fee = reducedFees[0]
+            elif reducedLength == 0:
+                fee = None
+        # in case `fee & fees` are None, set `fees` array
+        if fee is None:
+            fee = {
+                'cost': None,
+                'currency': None,
+            }
+        if fees is None:
+            fees = []
+        return [fee, fees]
+
+    def parse_fee_numeric(self, fee: Any):
+        fee['cost'] = self.safe_number(fee, 'cost')  # ensure numeric
+        if 'rate' in fee:
+            fee['rate'] = self.safe_number(fee, 'rate')
+        return fee
 
     def find_nearest_ceiling(self, arr: List[float], providedValue: float):
         #  i.e. findNearestCeiling([10, 30, 50],  23) returns 30
@@ -3369,12 +3391,13 @@ class Exchange(object):
         reduced = {}
         for i in range(0, len(fees)):
             fee = fees[i]
-            feeCurrencyCode = self.safe_string(fee, 'currency')
+            code = self.safe_string(fee, 'currency')
+            feeCurrencyCode = code is not code if None else str(i)
             if feeCurrencyCode is not None:
                 rate = self.safe_string(fee, 'rate')
-                cost = self.safe_value(fee, 'cost')
-                if Precise.string_eq(cost, '0'):
-                    # omit zero cost fees
+                cost = self.safe_string(fee, 'cost')
+                if cost is None:
+                    # omit None cost, does not make sense, however, don't omit '0' costs, still make sense
                     continue
                 if not (feeCurrencyCode in reduced):
                     reduced[feeCurrencyCode] = {}
@@ -3383,7 +3406,7 @@ class Exchange(object):
                     reduced[feeCurrencyCode][rateKey]['cost'] = Precise.string_add(reduced[feeCurrencyCode][rateKey]['cost'], cost)
                 else:
                     reduced[feeCurrencyCode][rateKey] = {
-                        'currency': feeCurrencyCode,
+                        'currency': code,
                         'cost': cost,
                     }
                     if rate is not None:
@@ -3415,7 +3438,13 @@ class Exchange(object):
             if change is None:
                 change = Precise.string_sub(last, open)
             if average is None:
-                average = Precise.string_div(Precise.string_add(last, open), '2')
+                precision = 18
+                if market is not None and self.is_tick_precision():
+                    marketPrecision = self.safe_dict(market, 'precision')
+                    precisionPrice = self.safe_string(marketPrecision, 'price')
+                    if precisionPrice is not None:
+                        precision = self.precision_from_string(precisionPrice)
+                average = Precise.string_div(Precise.string_add(last, open), '2', precision)
         if (percentage is None) and (change is not None) and (open is not None) and Precise.string_gt(open, '0'):
             percentage = Precise.string_mul(Precise.string_div(change, open), '100')
         if (change is None) and (percentage is not None) and (open is not None):
