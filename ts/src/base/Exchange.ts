@@ -2136,7 +2136,7 @@ export default class Exchange {
         }
     }
 
-    checkAddress (address: Str = undefined) {
+    checkAddress (address: Str = undefined): Str {
         if (address === undefined) {
             throw new InvalidAddress (this.id + ' address is undefined');
         }
@@ -2145,6 +2145,7 @@ export default class Exchange {
         if (length === 1 || address.length < this.minFundingAddressLength || (address.toString ().indexOf (' ') > -1)) {
             throw new InvalidAddress (this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString () + ' characters: "' + this.json (address) + '"');
         }
+        return address;
     }
 
     findMessageHashes (client, element: string): string[] {
