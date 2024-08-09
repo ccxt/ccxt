@@ -416,7 +416,7 @@ export default class kraken extends krakenRest {
         //     ]
         //
         const info = this.safeValue (subscription, 'subscription', {});
-        const interval = this.safeInteger (info, 'interval');
+        const interval = this.safeInteger (info, 'interval').toString ();
         const name = this.safeString (info, 'name');
         const wsName = this.safeString (message, 3);
         const market = this.safeValue (this.options['marketsByWsName'], wsName);
