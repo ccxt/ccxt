@@ -12,6 +12,8 @@
 //
 //          decimalToPrecision ('123.456', ROUND, 2, DECIMAL_PLACES)
 
+import { Str } from "../types";
+
 const TRUNCATE = 0;                // rounding mode
 const ROUND = 1;
 const ROUND_UP = 2;
@@ -295,7 +297,7 @@ const _decimalToPrecision = (
     return String.fromCharCode (...out);
 };
 
-function omitZero (stringNumber: string) {
+function omitZero (stringNumber: Str) {
     try {
         if (stringNumber === undefined || stringNumber === '') {
             return undefined;

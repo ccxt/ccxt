@@ -5,10 +5,10 @@ export type Strings = string[] | undefined;
 export type Num = number | undefined;
 export type Bool = boolean | undefined;
 // must be an integer in other langs
-export type IndexType = number | string;
+export type IndexType = number | string | undefined;
 export type OrderSide = 'buy' | 'sell' | string;
 export type OrderType = 'limit' | 'market' | string;
-export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option' | 'delivery' | 'index';
+export type MarketType = 'spot' | 'margin' | 'swap' | 'future' | 'option' | 'delivery' | 'index' | undefined;
 export type SubType = 'linear' | 'inverse' | undefined;
 
 export interface Dictionary<T> {
