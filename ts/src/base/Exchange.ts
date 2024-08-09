@@ -216,6 +216,7 @@ export default class Exchange {
     };
     headers: any = {};
     origin = '*' // CORS origin
+    MAX_VALUE: Num = Number.MAX_VALUE;
     //
     agent = undefined; // maintained for backwards compatibility
     nodeHttpModuleLoaded: boolean = false;
@@ -370,7 +371,6 @@ export default class Exchange {
     commonCurrencies: Dictionary<string> = undefined
 
     hostname: Str = undefined;
-
     precisionMode: Num = undefined;
     paddingMode: Num = undefined
 
@@ -507,63 +507,15 @@ export default class Exchange {
         //         }
         //     }
         //
+        this.initProperties ();
         this.options = this.getDefaultOptions(); // exchange-specific options if any
-        // fetch implementation options (JS only)
         // http properties
-        this.headers = {}
         this.origin = '*' // CORS origin
-        // underlying properties
-        this.minFundingAddressLength = 1 // used in checkAddress
-        this.substituteCommonCurrencyCodes = true  // reserved
-        this.quoteJsonNumbers = true // treat numbers in json as quoted precise strings
         this.number = Number // or String (a pointer to a function)
         this.handleContentTypeApplicationZip = false
-        // whether fees should be summed by currency code
-        this.reduceFees = true
-        // do not delete this line, it is needed for users to be able to define their own fetchImplementation
+        // do not delete this line, it is needed for users to be able to define their own fetchImplementation (JS only)
         this.fetchImplementation = undefined
-        this.validateServerSsl = true
-        this.validateClientSsl = false
-        // default property values
-        this.timeout       = 10000 // milliseconds
-        this.verbose       = false
-        this.twofa         = undefined // two-factor authentication (2FA)
-        // default credentials
-        this.apiKey        = undefined
-        this.secret        = undefined
-        this.uid           = undefined
-        this.login         = undefined
-        this.password      = undefined
-        this.privateKey    = undefined // a "0x"-prefixed hexstring private key for a wallet
-        this.walletAddress = undefined // a wallet address "0x"-prefixed hexstring
-        this.token         = undefined // reserved for HTTP auth in some cases
-        // placeholders for cached data
-        this.balance      = {}
-        this.orderbooks   = {}
-        this.tickers      = {}
-        this.liquidations = {}
-        this.orders       = undefined
-        this.trades       = {}
-        this.transactions = {}
-        this.ohlcvs       = {}
-        this.myLiquidations = {}
-        this.myTrades     = undefined
-        this.positions    = undefined
-        // web3 and cryptography flags
-        this.requiresWeb3 = false
-        this.requiresEddsa = false
-        // response handling flags and properties
-        this.lastRestRequestTimestamp = 0
-        this.enableLastJsonResponse = true
-        this.enableLastHttpResponse = true
-        this.enableLastResponseHeaders = true
-        this.last_http_response    = undefined
-        this.last_json_response    = undefined
-        this.last_response_headers = undefined
-        this.last_request_headers  = undefined
-        this.last_request_body     = undefined
-        this.last_request_url      = undefined
-        this.last_request_path     = undefined
+
         // camelCase and snake_notation support
         const unCamelCaseProperties = (obj = this) => {
             if (obj !== null) {
@@ -576,6 +528,7 @@ export default class Exchange {
             }
         }
         unCamelCaseProperties ()
+
         // merge constructor overrides to this instance
         const configEntries = Object.entries (this.describe ()).concat (Object.entries (userConfig))
         for (let i = 0; i < configEntries.length; i++) {
@@ -586,6 +539,7 @@ export default class Exchange {
                 this[property] = value
             }
         }
+
         // http client options
         const agentOptions = {
             'keepAlive': true,
@@ -594,29 +548,26 @@ export default class Exchange {
         if (!this.validateServerSsl) {
             agentOptions['rejectUnauthorized'] = false;
         }
+
         // generate old metainfo interface
         const hasKeys = Object.keys (this.has)
         for (let i = 0; i < hasKeys.length; i++) {
             const k = hasKeys[i]
             this['has' + this.capitalize (k)] = !!this.has[k] // converts 'emulated' to true
         }
+
         // generate implicit api
         if (this.api) {
             this.defineRestApi (this.api, 'request')
         }
-        // init the request rate limiter
-        this.initRestRateLimiter ()
-        // init predefined markets if any
-        if (this.markets) {
-            this.setMarkets (this.markets)
-        }
+
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
 
         this.afterConstruct ();
-        const isSandbox = this.safeBool2 (this.options, 'sandbox', 'testnet', false);
-        if (isSandbox) {
-            this.setSandboxMode (isSandbox);
-        }
+    }
+
+    initThrottler () {
+        this.throttler = new Throttler (this.tokenBucket);
     }
 
     encodeURIComponent (...args) {
@@ -652,20 +603,6 @@ export default class Exchange {
             }
         }
         return result
-    }
-
-    initRestRateLimiter () {
-        if (this.rateLimit === undefined) {
-            throw new Error (this.id + '.rateLimit property is not configured');
-        }
-        this.tokenBucket = this.extend ({
-            delay: 0.001,
-            capacity: 1,
-            cost: 1,
-            maxCapacity: 1000,
-            refillRate: (this.rateLimit > 0) ? 1 / this.rateLimit : Number.MAX_VALUE,
-        }, this.tokenBucket);
-        this.throttler = new Throttler (this.tokenBucket);
     }
 
     throttle (cost = undefined) {
@@ -2207,7 +2144,7 @@ export default class Exchange {
             throw new InvalidAddress (this.id + ' address is undefined');
         }
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
-        const length = this.unique (this.stringToCharsArray (address)).length;
+        const length = (this.unique (this.stringToCharsArray (address))).length;
         if (length === 1 || address.length < this.minFundingAddressLength || (address.toString ().indexOf (' ') > -1)) {
             throw new InvalidAddress (this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString () + ' characters: "' + this.json (address) + '"');
         }
@@ -2662,7 +2599,97 @@ export default class Exchange {
     }
 
     afterConstruct () {
+        // init predefined markets if any
+        if (this.markets) {
+            this.setMarkets (this.markets);
+        }
+        // init the request rate limiter
+        this.initRestRateLimiter ();
+        // networks
         this.createNetworksByIdObject ();
+        // sanbox mode
+        const isSandbox = this.safeBool2 (this.options, 'sandbox', 'testnet', false);
+        if (isSandbox) {
+            this.setSandboxMode (isSandbox);
+        }
+    }
+
+    initProperties () {
+        // placeholders for cached data
+        const defaultPrecision = { 'amount': undefined, 'price': undefined };
+        this.precision = (this.precision === undefined) ? defaultPrecision : this.precision;
+        this.limits = (this.limits === undefined) ? {} : this.limits;
+        this.exceptions = (this.exceptions === undefined) ? {} : this.exceptions;
+        this.headers = (this.headers === undefined) ? {} : this.headers;
+        this.balance = (this.balance === undefined) ? {} : this.balance;
+        this.orderbooks = (this.orderbooks === undefined) ? {} : this.orderbooks;
+        this.fundingRates = (this.fundingRates === undefined) ? {} : this.fundingRates;
+        this.tickers = (this.tickers === undefined) ? {} : this.tickers;
+        this.bidsasks = (this.bidsasks === undefined) ? {} : this.bidsasks;
+        this.trades = (this.trades === undefined) ? {} : this.trades;
+        this.transactions = (this.transactions === undefined) ? {} : this.transactions;
+        this.ohlcvs = (this.ohlcvs === undefined) ? {} : this.ohlcvs;
+        this.liquidations = (this.liquidations === undefined) ? {} : this.liquidations;
+        this.myLiquidations = (this.myLiquidations === undefined) ? {} : this.myLiquidations;
+        this.currencies = (this.currencies === undefined) ? {} : this.currencies;
+        this.orders = undefined;
+        this.myTrades = undefined;
+        this.positions = undefined;
+        //
+        // underlying properties
+        //
+        this.minFundingAddressLength = 1; // used in checkAddress
+        this.substituteCommonCurrencyCodes = true;  // reserved
+        this.quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
+        // whether fees should be summed by currency code
+        this.reduceFees = true;
+        this.validateServerSsl = true;
+        this.validateClientSsl = false;
+        // default property values
+        this.timeout = 10000; // milliseconds
+        this.verbose = false;
+        this.twofa = undefined; // two-factor authentication (2FA)
+        // default credentials
+        this.apiKey = undefined;
+        this.secret = undefined;
+        this.uid = undefined;
+        this.login = undefined;
+        this.password = undefined;
+        this.privateKey = undefined; // a "0x"-prefixed hexstring private key for a wallet
+        this.walletAddress = undefined; // a wallet address "0x"-prefixed hexstring
+        this.token = undefined;  // reserved for HTTP auth in some cases
+        // web3 and cryptography flags
+        this.requiresWeb3 = false;
+        this.requiresEddsa = false;
+        // response handling flags and properties
+        this.lastRestRequestTimestamp = 0;
+        this.enableLastJsonResponse = true;
+        this.enableLastHttpResponse = true;
+        this.enableLastResponseHeaders = true;
+        this.last_http_response = undefined;
+        this.last_json_response = undefined;
+        this.last_response_headers = undefined;
+        this.last_request_headers = undefined;
+        this.last_request_body = undefined;
+        this.last_request_url = undefined;
+        this.last_request_path = undefined;
+    }
+
+    initRestRateLimiter () {
+        if (this.rateLimit === undefined || (this.id !== undefined && this.rateLimit === -1)) {
+            throw new ExchangeError (this.id + '.rateLimit property is not configured');
+        }
+        const refillRate = (this.rateLimit > 0) ? (1 / this.rateLimit) : this.MAX_VALUE;
+        const defaultBucket = {
+            'delay': 0.001,
+            'capacity': 1,
+            'cost': 1,
+            'maxCapacity': 1000,
+            'refillRate': refillRate,
+        };
+        const existingBucket = (this.tokenBucket === undefined) ? {} : this.tokenBucket;
+        this.tokenBucket = this.extend (defaultBucket, existingBucket);
+        this.initThrottler ();
     }
 
     orderbookChecksumMessage (symbol:Str) {
