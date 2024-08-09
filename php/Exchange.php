@@ -141,6 +141,8 @@ class Exchange {
     public $pro = false; // if it is integrated with CCXT Pro for WebSocket support
     public $alias = false; // whether this exchange is an alias to another exchange
     public $dex = false;
+    
+    public $throttler;
 
     public $debug = false;
 
