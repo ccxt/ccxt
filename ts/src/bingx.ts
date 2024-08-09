@@ -6,7 +6,7 @@ import { AuthenticationError, PermissionDenied, AccountSuspended, ExchangeError,
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num, MarginModification, Currencies, int, TradingFeeInterface } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OHLCV, FundingRateHistory, Order, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Market, Strings, Currency, Position, Dict, Leverage, MarginMode, Num, MarginModification, Currencies, int, TradingFeeInterface, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -524,11 +524,11 @@ export default class bingx extends Exchange {
          * @returns {object} an associative dictionary of currencies
          */
         if (!this.checkRequiredCredentials (false)) {
-            return undefined;
+            return {};
         }
         const isSandbox = this.safeBool (this.options, 'sandboxMode', false);
         if (isSandbox) {
-            return undefined;
+            return {};
         }
         const response = await this.walletsV1PrivateGetCapitalConfigGetall (params);
         //
@@ -569,14 +569,14 @@ export default class bingx extends Exchange {
         //      ]
         //    }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data', []) as List;
         const result: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const currencyId = this.safeString (entry, 'coin');
             const code = this.safeCurrencyCode (currencyId);
             const name = this.safeString (entry, 'name');
-            const networkList = this.safeList (entry, 'networkList');
+            const networkList = this.safeList (entry, 'networkList', []) as List;
             const networks: Dict = {};
             let fee = undefined;
             let active = undefined;
