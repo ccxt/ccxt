@@ -1900,7 +1900,7 @@ export default class bybit extends Exchange {
                     'inverse': undefined,
                     'taker': this.safeNumber (market, 'takerFee', this.parseNumber ('0.0006')),
                     'maker': this.safeNumber (market, 'makerFee', this.parseNumber ('0.0001')),
-                    'contractSize': this.safeNumber (lotSizeFilter, 'minOrderQty'),
+                    'contractSize': this.parseNumber ('1'),
                     'expiry': expiry,
                     'expiryDatetime': this.iso8601 (expiry),
                     'strike': this.parseNumber (strike),
@@ -3565,7 +3565,12 @@ export default class bybit extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        let market = this.market (symbol);
+        if (market['option']) {
+            this.options['loadAllOptions'] = true;
+            await this.loadMarkets (true);
+            market = this.market (symbol);
+        }
         const [ enableUnifiedMargin, enableUnifiedAccount ] = await this.isUnifiedEnabled ();
         const isUnifiedAccount = (enableUnifiedMargin || enableUnifiedAccount);
         const isUsdcSettled = market['settle'] === 'USDC';
@@ -3758,11 +3763,7 @@ export default class bybit extends Exchange {
             }
         } else {
             if (!isTrailingAmountOrder && !isAlternativeEndpoint) {
-                if (market['option']) {
-                    request['qty'] = this.numberToString (amount);
-                } else {
-                    request['qty'] = this.amountToPrecision (symbol, amount);
-                }
+                request['qty'] = this.amountToPrecision (symbol, amount);
             }
         }
         if (isTrailingAmountOrder) {
