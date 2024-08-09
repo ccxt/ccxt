@@ -516,19 +516,6 @@ public partial class Exchange
         return obj.Distinct().ToArray();
     }
  
-    public bool checkAddress(object address)
-    {
-        if (address == null) {
-            throw new InvalidAddress (this.id + " address is undefined");
-        }
-        // check the address is not the same letter like 'aaaaa' nor too short nor has a space
-        var addressStr = address.ToString ();
-        if ((this.unique (addressStr.ToCharArray()).Length == 1) || addressStr.Length < this.minFundingAddressLength || addressStr.Contains (' ')) {
-            throw new InvalidAddress (this.id + " address is invalid or has less than " + this.minFundingAddressLength.ToString () + " characters: '" + this.json (address) + "'");
-        }
-        return true;
-    }
-
     public int parseTimeframe(object timeframe2)
     {
         var timeframe = (string)timeframe2;
