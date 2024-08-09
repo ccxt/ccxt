@@ -85,7 +85,7 @@ export default class huobijp extends huobijpRest {
         //         "ch": "market.btcusdt.detail",
         //         "ts": 1583494163784,
         //         "tick": {
-        //             "id": 209988464418,
+        //             "id": 209988464419,
         //             "low": 8988,
         //             "high": 9155.41,
         //             "open": 9078.91,
