@@ -562,25 +562,31 @@ export default class coinex extends coinexRest {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        let marketIds = this.marketIds (symbols);
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', undefined, params);
-        const url = this.urls['api']['ws'][type];
-        let messageHash = 'tickers';
-        if (marketIds !== undefined) {
-            messageHash = 'tickers::' + symbols.join (',');
+        const marketIds = this.marketIds (symbols);
+        let market = undefined;
+        const messageHashes = [];
+        const symbolsDefined = (symbols !== undefined);
+        if (symbolsDefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                market = this.market (symbol);
+                messageHashes.push ('tickers::' + market['symbol']);
+            }
         } else {
-            marketIds = [];
+            messageHashes.push ('tickers');
         }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchTickers', market, params);
+        const url = this.urls['api']['ws'][type];
+        const subscriptionHashes = [ 'all@ticker' ];
         const subscribe: Dict = {
             'method': 'state.subscribe',
             'params': { 'market_list': marketIds },
             'id': this.requestId (),
         };
-        const request = this.deepExtend (subscribe, params);
-        const newTickers = await this.watch (url, messageHash, request, messageHash);
+        const result = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), subscriptionHashes);
         if (this.newUpdates) {
-            return newTickers;
+            return result;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
     }
@@ -1079,29 +1085,31 @@ export default class coinex extends coinexRest {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols, undefined, false, true, false);
         const marketIds = this.marketIds (symbols);
         const messageHashes = [];
         let market = undefined;
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
-            market = this.market (symbol);
-            messageHashes.push ('bidsasks:' + market['symbol']);
+        const symbolsDefined = (symbols !== undefined);
+        if (symbolsDefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                market = this.market (symbol);
+                messageHashes.push ('bidsasks:' + market['symbol']);
+            }
+        } else {
+            messageHashes.push ('bidsasks');
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBidsAsks', market, params);
         const url = this.urls['api']['ws'][type];
+        const subscriptionHashes = [ 'all@bidsasks' ];
         const subscribe: Dict = {
             'method': 'bbo.subscribe',
             'params': { 'market_list': marketIds },
             'id': this.requestId (),
         };
-        const request = this.deepExtend (subscribe, params);
-        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        const result = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), subscriptionHashes);
         if (this.newUpdates) {
-            const tickers: Dict = {};
-            tickers[ticker['symbol']] = ticker;
-            return tickers;
+            return result;
         }
         return this.filterByArray (this.bidsasks, 'symbol', symbols);
     }
@@ -1125,7 +1133,8 @@ export default class coinex extends coinexRest {
         const parsedTicker = this.parseWsBidAsk (data);
         const symbol = parsedTicker['symbol'];
         this.bidsasks[symbol] = parsedTicker;
-        client.resolve (this.bidsasks[symbol], 'bidsasks');
+        const messageHash = 'bidsasks:' + symbol;
+        client.resolve (parsedTicker, messageHash);
     }
 
     parseWsBidAsk (ticker, market = undefined) {
