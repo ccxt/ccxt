@@ -1031,9 +1031,32 @@ export default class Exchange {
         let currencies = undefined
         // only call if exchange API provides endpoint (true), thus avoid emulated versions ('emulated')
         if (this.has['fetchCurrencies'] === true) {
-            currencies = await this.fetchCurrencies ()
+            const currenciesFromOutside = this.safeValue (params, 'currenciesFromOutside', undefined);
+            if (!currenciesFromOutside || reload) {
+                currencies = await this.fetchCurrencies ()
+                const fetchCurrenciesCallback = this.safeValue (params, 'fetchCurrenciesCallback', undefined);
+                if (fetchCurrenciesCallback) {
+                    currencies = fetchCurrenciesCallback (currencies)
+                    this.omit(params, 'fetchCurrenciesCallback')
+                }
+            } else {
+                currencies = currenciesFromOutside
+                this.omit(params, 'currenciesFromOutside')
+            }
         }
-        const markets = await this.fetchMarkets (params)
+        let markets
+        const loadFromOutside = this.safeValue(params, 'loadFromOutside', undefined);
+        if (!loadFromOutside || reload) {
+            markets = await this.fetchMarkets (params)
+            const loadedMarketCallback = this.safeValue (params, 'loadedMarketCallback', undefined);
+            if (loadedMarketCallback) {
+                loadedMarketCallback (markets)
+                this.omit(params, 'loadedMarketCallback')
+            }
+        } else {
+            markets = this.fetchMarketsFromOutside (loadFromOutside)
+            this.omit(params, 'loadFromOutside')
+        }
         return this.setMarkets (markets, currencies)
     }
 
@@ -1082,6 +1105,10 @@ export default class Exchange {
         // this is for historical reasons
         // and may be changed for consistency later
         return new Promise ((resolve, reject) => resolve (Object.values (this.markets)))
+    }
+
+    fetchMarketsFromOutside (markets: {}) {
+        return markets
     }
 
     checkRequiredDependencies () {
