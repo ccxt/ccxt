@@ -511,9 +511,9 @@ public partial class Exchange
         return "";
     }
 
-    public char[] unique(char[] obj)
+    public char[] unique(object obj)
     {
-        return obj.Distinct().ToArray();
+        return (obj as char[]).Distinct().ToArray();
     }
 
     public int parseTimeframe(object timeframe2)
