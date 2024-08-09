@@ -63,47 +63,7 @@
         ],
         "fetchTrades": [
             {
-                "description": "Fetch trades for swap",
-                "method": "fetchTrades",
-                "input": [
-                    "BTC/USDT:USDT",
-                    null,
-                    1
-                ],
-                "httpResponse": [
-                    {
-                        "t": "1723226229160",
-                        "p": "60203.4",
-                        "q": "2",
-                        "ibm": false
-                    }
-                ],
-                "parsedResponse": [
-                    {
-                        "id": null,
-                        "timestamp": 1723226229160,
-                        "datetime": "2024-08-09T17:57:09.160Z",
-                        "symbol": "BTC/USDT:USDT",
-                        "side": null,
-                        "price": 60203.4,
-                        "amount": 2,
-                        "cost": 120.4068,
-                        "takerOrMaker": null,
-                        "type": null,
-                        "order": null,
-                        "fee": null,
-                        "info": {
-                            "t": "1723226229160",
-                            "p": "60203.4",
-                            "q": "2",
-                            "ibm": false
-                        },
-                        "fees": []
-                    }
-                ]
-            },
-            {
-                "description": "Fetch trades for swap",
+                "description": "Fetch trades for spot",
                 "method": "fetchTrades",
                 "input": [
                     "BTC/USDT",
@@ -112,30 +72,70 @@
                 ],
                 "httpResponse": [
                     {
-                        "t": "1723226507338",
-                        "p": "60277.3",
-                        "q": "0.00016",
+                        "t": "1723228261453",
+                        "p": "60064.04",
+                        "q": "0.00024",
                         "ibm": false
                     }
                 ],
                 "parsedResponse": [
                     {
                         "id": null,
-                        "timestamp": 1723226507338,
-                        "datetime": "2024-08-09T18:01:47.338Z",
+                        "timestamp": 1723228261453,
+                        "datetime": "2024-08-09T18:31:01.453Z",
                         "symbol": "BTC/USDT",
                         "side": null,
-                        "price": 60277.3,
-                        "amount": 0.00016,
-                        "cost": 9.644368,
-                        "takerOrMaker": null,
+                        "price": 60064.04,
+                        "amount": 0.00024,
+                        "cost": 14.4153696,
+                        "takerOrMaker": "taker",
                         "type": null,
                         "order": null,
                         "fee": null,
                         "info": {
-                            "t": "1723226507338",
-                            "p": "60277.3",
-                            "q": "0.00016",
+                            "t": "1723228261453",
+                            "p": "60064.04",
+                            "q": "0.00024",
+                            "ibm": false
+                        },
+                        "fees": []
+                    }
+                ]
+            },
+            {
+                "description": "Fetch ticker for swap",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USDT:USDT",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                    {
+                        "t": "1723228382236",
+                        "p": "60125.7",
+                        "q": "2",
+                        "ibm": false
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": null,
+                        "timestamp": 1723228382236,
+                        "datetime": "2024-08-09T18:33:02.236Z",
+                        "symbol": "BTC/USDT:USDT",
+                        "side": null,
+                        "price": 60125.7,
+                        "amount": 2,
+                        "cost": 120.2514,
+                        "takerOrMaker": "taker",
+                        "type": null,
+                        "order": null,
+                        "fee": null,
+                        "info": {
+                            "t": "1723228382236",
+                            "p": "60125.7",
+                            "q": "2",
                             "ibm": false
                         },
                         "fees": []
