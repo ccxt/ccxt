@@ -1270,6 +1270,7 @@ public partial class bitget : Exchange
                 { "JADE", "Jade Protocol" },
                 { "DEGEN", "DegenReborn" },
                 { "TONCOIN", "TON" },
+                { "OMNI", "omni" },
             } },
             { "options", new Dictionary<string, object>() {
                 { "timeframes", new Dictionary<string, object>() {

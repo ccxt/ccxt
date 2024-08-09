@@ -207,7 +207,7 @@ public partial class binance : ccxt.binance
         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        return this.watchLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
+        return await this.watchLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
     }
 
     public async override Task<object> watchLiquidationsForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
