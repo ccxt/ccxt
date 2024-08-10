@@ -671,22 +671,6 @@ public partial class Exchange
         }
     }
 
-    public virtual object checkAddress(object address = null)
-    {
-        if (isTrue(isEqual(address, null)))
-        {
-            throw new InvalidAddress ((string)add(this.id, " address is undefined")) ;
-        }
-        // check the address is not the same letter like 'aaaaa' nor too short nor has a space
-        object uniqChars = (this.unique(this.stringToCharsArray(address)));
-        object length = getArrayLength(uniqChars); // py transpiler trick
-        if (isTrue(isTrue(isTrue(isEqual(length, 1)) || isTrue(isLessThan(((string)address).Length, this.minFundingAddressLength))) || isTrue(isGreaterThan(getIndexOf(address, " "), -1))))
-        {
-            throw new InvalidAddress ((string)add(add(add(add(add(this.id, " address is invalid or has less than "), ((object)this.minFundingAddressLength).ToString()), " characters: \""), ((object)address).ToString()), "\"")) ;
-        }
-        return address;
-    }
-
     public virtual object findMessageHashes(WebSocketClient client, object element)
     {
         object result = new List<object>() {};

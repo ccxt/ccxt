@@ -930,19 +930,6 @@ class Exchange extends \ccxt\Exchange {
         }
     }
 
-    public function check_address(?string $address = null) {
-        if ($address === null) {
-            throw new InvalidAddress($this->id . ' $address is null');
-        }
-        // check the $address is not the same letter like 'aaaaa' nor too short nor has a space
-        $uniqChars = ($this->unique($this->string_to_chars_array($address)));
-        $length = count($uniqChars); // py transpiler trick
-        if ($length === 1 || strlen($address) < $this->minFundingAddressLength || mb_strpos($address, ' ') > -1) {
-            throw new InvalidAddress($this->id . ' $address is invalid or has less than ' . (string) $this->minFundingAddressLength . ' characters => "' . (string) $address . '"');
-        }
-        return $address;
-    }
-
     public function find_message_hashes($client, string $element) {
         $result = array();
         $messageHashes = is_array($client->futures) ? array_keys($client->futures) : array();
@@ -3157,7 +3144,7 @@ class Exchange extends \ccxt\Exchange {
         return Async\async(function () use ($path, $api, $method, $params, $headers, $body, $config) {
             if ($this->enableRateLimit) {
                 $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config);
-                Async\await($this->throttler($cost));
+                Async\await($this->throttle($cost));
             }
             $this->lastRestRequestTimestamp = $this->milliseconds();
             $request = $this->sign($path, $api, $method, $params, $headers, $body);

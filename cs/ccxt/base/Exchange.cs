@@ -504,6 +504,11 @@ public partial class Exchange
         return (obj as List<string>).ToList();
     }
 
+    public bool checkAddress(object address)
+    {
+        return true;
+    }
+
     public int parseTimeframe(object timeframe2)
     {
         var timeframe = (string)timeframe2;

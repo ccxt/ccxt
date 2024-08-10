@@ -818,7 +818,7 @@ class Exchange(BaseExchange):
     async def fetch2(self, path, api: Any = 'public', method='GET', params={}, headers: Any = None, body: Any = None, config={}):
         if self.enableRateLimit:
             cost = self.calculate_rate_limiter_cost(api, method, path, params, config)
-            await self.throttler(cost)
+            await self.throttle(cost)
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
         self.last_request_headers = request['headers']

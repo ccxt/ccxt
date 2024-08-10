@@ -562,7 +562,6 @@ export default class Exchange {
         this.afterConstruct ();
     }
 
-
     encodeURIComponent (...args) {
         // @ts-expect-error
         return encodeURIComponent (...args)

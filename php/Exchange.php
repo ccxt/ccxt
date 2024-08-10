@@ -1103,6 +1103,20 @@ class Exchange {
         return $input;
     }
 
+    public function check_address($address) {	
+        if (empty($address) || !is_string($address)) {	
+            throw new InvalidAddress($this->id . ' address is null');	
+        }	
+
+        if ((count(array_unique(str_split($address))) === 1) ||	
+            (strlen($address) < $this->minFundingAddressLength) ||	
+            (strpos($address, ' ') !== false)) {	
+            throw new InvalidAddress($this->id . ' address is invalid or has less than ' . strval($this->minFundingAddressLength) . ' characters: "' . strval($address) . '"');	
+        }	
+
+        return $address;	
+    }
+
     public function __construct($options = array()) {
 
         // todo auto-camelcasing for methods in PHP
@@ -2821,19 +2835,6 @@ class Exchange {
         if ($proxyAgentSet && $proxyUrlSet) {
             throw new InvalidProxySettings($this->id . ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
         }
-    }
-
-    public function check_address(?string $address = null) {
-        if ($address === null) {
-            throw new InvalidAddress($this->id . ' $address is null');
-        }
-        // check the $address is not the same letter like 'aaaaa' nor too short nor has a space
-        $uniqChars = ($this->unique($this->string_to_chars_array($address)));
-        $length = count($uniqChars); // py transpiler trick
-        if ($length === 1 || strlen($address) < $this->minFundingAddressLength || mb_strpos($address, ' ') > -1) {
-            throw new InvalidAddress($this->id . ' $address is invalid or has less than ' . (string) $this->minFundingAddressLength . ' characters => "' . (string) $address . '"');
-        }
-        return $address;
     }
 
     public function find_message_hashes($client, string $element) {
@@ -5033,7 +5034,7 @@ class Exchange {
     public function fetch2($path, mixed $api = 'public', $method = 'GET', $params = array (), mixed $headers = null, mixed $body = null, $config = array ()) {
         if ($this->enableRateLimit) {
             $cost = $this->calculate_rate_limiter_cost($api, $method, $path, $params, $config);
-            $this->throttler($cost);
+            $this->throttle($cost);
         }
         $this->lastRestRequestTimestamp = $this->milliseconds();
         $request = $this->sign($path, $api, $method, $params, $headers, $body);
