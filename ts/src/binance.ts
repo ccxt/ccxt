@@ -12721,7 +12721,7 @@ export default class binance extends Exchange {
         }
         const marginTypeRaw = this.safeStringLower (marginMode, 'marginType');
         if (marginTypeRaw !== undefined) {
-            reMarginMode = marginTypeRaw;
+            reMarginMode = (marginTypeRaw === 'crossed') ? 'cross' : 'isolated';
         }
         return {
             'info': marginMode,
