@@ -150,7 +150,6 @@ class Exchange(object):
     symbols = None
     codes = None
     timeframes = {}
-    throttler = None
     tokenBucket = None
 
     fees = {
@@ -427,10 +426,6 @@ class Exchange(object):
         if elapsed < sleep_time:
             delay = sleep_time - elapsed
             time.sleep(delay / 1000.0)
-
-    def new_throttler(self):
-        # stub for async
-        pass
 
     @staticmethod
     def gzip_deflate(response, text):
@@ -2637,7 +2632,91 @@ class Exchange(object):
         return timestamp
 
     def after_construct(self):
+        # init predefined markets if any
+        if self.markets:
+            self.set_markets(self.markets)
+        # init the request rate limiter
+        self.init_rest_rate_limiter()
+        # networks
         self.create_networks_by_id_object()
+        # sanbox mode
+        isSandbox = self.safe_bool_2(self.options, 'sandbox', 'testnet', False)
+        if isSandbox:
+            self.set_sandbox_mode(isSandbox)
+
+    def init_properties(self):
+        # placeholders for cached data
+        defaultPrecision = {'amount': None, 'price': None}
+        self.precision = defaultPrecision if (self.precision is None) else self.precision
+        self.limits = {} if (self.limits is None) else self.limits
+        self.exceptions = {} if (self.exceptions is None) else self.exceptions
+        self.headers = {} if (self.headers is None) else self.headers
+        self.balance = {} if (self.balance is None) else self.balance
+        self.orderbooks = {} if (self.orderbooks is None) else self.orderbooks
+        self.fundingRates = {} if (self.fundingRates is None) else self.fundingRates
+        self.tickers = {} if (self.tickers is None) else self.tickers
+        self.bidsasks = {} if (self.bidsasks is None) else self.bidsasks
+        self.trades = {} if (self.trades is None) else self.trades
+        self.transactions = {} if (self.transactions is None) else self.transactions
+        self.ohlcvs = {} if (self.ohlcvs is None) else self.ohlcvs
+        self.liquidations = {} if (self.liquidations is None) else self.liquidations
+        self.myLiquidations = {} if (self.myLiquidations is None) else self.myLiquidations
+        self.currencies = {} if (self.currencies is None) else self.currencies
+        self.orders = None
+        self.myTrades = None
+        self.positions = None
+        #
+        # underlying properties
+        #
+        self.minFundingAddressLength = 1  # used in checkAddress
+        self.substituteCommonCurrencyCodes = True  # reserved
+        self.quoteJsonNumbers = True  # treat numbers in json precise strings
+        # whether fees should be summed by currency code
+        self.reduceFees = True
+        self.validateServerSsl = True
+        self.validateClientSsl = False
+        # default property values
+        self.timeout = 10000  # milliseconds
+        self.verbose = False
+        self.twofa = None  # two-factor authentication(2FA)
+        # default credentials
+        self.apiKey = None
+        self.secret = None
+        self.uid = None
+        self.login = None
+        self.password = None
+        self.privateKey = None  # a "0x"-prefixed hexstring private key for a wallet
+        self.walletAddress = None  # a wallet address "0x"-prefixed hexstring
+        self.token = None  # reserved for HTTP auth in some cases
+        # web3 and cryptography flags
+        self.requiresWeb3 = False
+        self.requiresEddsa = False
+        # response handling flags and properties
+        self.lastRestRequestTimestamp = 0
+        self.enableLastJsonResponse = True
+        self.enableLastHttpResponse = True
+        self.enableLastResponseHeaders = True
+        self.last_http_response = None
+        self.last_json_response = None
+        self.last_response_headers = None
+        self.last_request_headers = None
+        self.last_request_body = None
+        self.last_request_url = None
+        self.last_request_path = None
+
+    def init_rest_rate_limiter(self):
+        if self.rateLimit is None or (self.id is not None and self.rateLimit == -1):
+            raise ExchangeError(self.id + '.rateLimit property is not configured')
+        refillRate = (1 / self.rateLimit) if (self.rateLimit > 0) else self.MAX_VALUE
+        defaultBucket = {
+            'delay': 0.001,
+            'capacity': 1,
+            'cost': 1,
+            'maxCapacity': 1000,
+            'refillRate': refillRate,
+        }
+        existingBucket = {} if (self.tokenBucket is None) else self.tokenBucket
+        self.tokenBucket = self.extend(defaultBucket, existingBucket)
 
     def orderbook_checksum_message(self, symbol: Str):
         return symbol + '  = False'
@@ -4012,7 +4091,7 @@ class Exchange(object):
     def fetch2(self, path, api: Any = 'public', method='GET', params={}, headers: Any = None, body: Any = None, config={}):
         if self.enableRateLimit:
             cost = self.calculate_rate_limiter_cost(api, method, path, params, config)
-            self.throttle(cost)
+            self.throttler(cost)
         self.lastRestRequestTimestamp = self.milliseconds()
         request = self.sign(path, api, method, params, headers, body)
         self.last_request_headers = request['headers']
