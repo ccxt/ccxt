@@ -1442,6 +1442,9 @@ export default class valr extends Exchange {
         if (limit !== undefined) {
             queryParams['limit'] = limit;
         }
+        if (since !== undefined) {
+            queryParams['startTime'] = this.iso8601 (since);
+        }
         const response = await this.privateGetAccountPairTradehistory (this.extend (queryParams, params));
         // [
         //     {
