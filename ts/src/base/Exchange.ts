@@ -371,6 +371,7 @@ export default class Exchange {
     commonCurrencies: Dictionary<string> = undefined
 
     hostname: Str = undefined;
+
     precisionMode: Num = undefined;
     paddingMode: Num = undefined
 
@@ -528,7 +529,6 @@ export default class Exchange {
             }
         }
         unCamelCaseProperties ()
-
         // merge constructor overrides to this instance
         const configEntries = Object.entries (this.describe ()).concat (Object.entries (userConfig))
         for (let i = 0; i < configEntries.length; i++) {
@@ -539,7 +539,6 @@ export default class Exchange {
                 this[property] = value
             }
         }
-
         // http client options
         const agentOptions = {
             'keepAlive': true,
@@ -548,14 +547,12 @@ export default class Exchange {
         if (!this.validateServerSsl) {
             agentOptions['rejectUnauthorized'] = false;
         }
-
         // generate old metainfo interface
         const hasKeys = Object.keys (this.has)
         for (let i = 0; i < hasKeys.length; i++) {
             const k = hasKeys[i]
             this['has' + this.capitalize (k)] = !!this.has[k] // converts 'emulated' to true
         }
-
         // generate implicit api
         if (this.api) {
             this.defineRestApi (this.api, 'request')
@@ -564,8 +561,8 @@ export default class Exchange {
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
 
         this.afterConstruct ();
-        this.throttler = new Throttler (this.tokenBucket);
     }
+
 
     encodeURIComponent (...args) {
         // @ts-expect-error
@@ -604,6 +601,10 @@ export default class Exchange {
 
     throttle (cost = undefined) {
         return this.throttler.throttle (cost)
+    }
+
+    initThrottler () {
+        this.throttler = new Throttler (this.tokenBucket);
     }
 
     defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config = {}) {
@@ -2688,6 +2689,7 @@ export default class Exchange {
         const existingBucket = (this.tokenBucket === undefined) ? {} : this.tokenBucket;
         const extended = this.extend (defaultBucket, existingBucket);
         this.tokenBucket = extended; // tranpsiler trick
+        this.initThrottler ();
     }
 
     orderbookChecksumMessage (symbol:Str) {
