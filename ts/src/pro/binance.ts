@@ -2077,7 +2077,7 @@ export default class binance extends binanceRest {
          * @param {string|undefined} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
          * @param {string|undefined} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
          * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
-         * @param {string|undefined} [params.method] method to use. Can be account.balance or account.status
+         * @param {string|undefined} [params.method] method to use. Can be account.balance, account.status, v2/account.balance or v2/account.status
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
@@ -2110,8 +2110,15 @@ export default class binance extends binanceRest {
         //
         //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeDict (message, 'result', {});
-        const rawBalance = this.safeList (result, 0, []);
+        let rawBalance = undefined;
+        if (Array.isArray (message['result'])) {
+            // account.balance
+            rawBalance = this.safeList (message, 'result', []);
+        } else {
+            // account.status
+            const result = this.safeDict (message, 'result', {});
+            rawBalance = this.safeList (result, 'assets', []);
+        }
         const parsedBalances = this.parseBalanceCustom (rawBalance);
         client.resolve (parsedBalances, messageHash);
     }
@@ -2191,6 +2198,7 @@ export default class binance extends binanceRest {
          * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.returnRateLimits] set to true to return rate limit informations, defaults to false.
+         * @param {string|undefined} [params.method] method to use. Can be account.position or v2/account.position
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
@@ -2208,9 +2216,11 @@ export default class binance extends binanceRest {
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchPositionsWs', 'returnRateLimits', false);
         payload['returnRateLimits'] = returnRateLimits;
+        let method = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'fetchPositionsWs', 'method', 'account.position');
         const message: Dict = {
             'id': messageHash,
-            'method': 'account.position',
+            'method': method,
             'params': this.signParams (this.extend (payload, params)),
         };
         const subscription: Dict = {
