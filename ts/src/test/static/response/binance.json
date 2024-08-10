@@ -2447,7 +2447,7 @@
                         "price": 73238.7,
                         "amount": 0.00109,
                         "cost": 79.830183,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     }
                 ]
@@ -2500,7 +2500,7 @@
                     "previousClose": 72180.93,
                     "change": 1188.75,
                     "percentage": 1.647,
-                    "average": 72775.465,
+                    "average": 72775.46,
                     "baseVolume": 72140.348628,
                     "quoteVolume": 5167027510.687287,
                     "info": {

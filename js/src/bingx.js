@@ -1212,7 +1212,6 @@ export default class bingx extends Exchange {
             'fee': {
                 'cost': this.parseNumber(Precise.stringAbs(this.safeString2(trade, 'commission', 'n'))),
                 'currency': currencyCode,
-                'rate': undefined,
             },
         }, market);
     }

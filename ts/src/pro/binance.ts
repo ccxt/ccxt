@@ -209,7 +209,7 @@ export default class binance extends binanceRest {
          * @param {object} [params] exchange specific parameters for the bitmex api endpoint
          * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
          */
-        return this.watchLiquidationsForSymbols ([ symbol ], since, limit, params);
+        return await this.watchLiquidationsForSymbols ([ symbol ], since, limit, params);
     }
 
     async watchLiquidationsForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {

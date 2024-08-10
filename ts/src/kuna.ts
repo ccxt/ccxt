@@ -899,7 +899,6 @@ export default class kuna extends Exchange {
             'fee': {
                 'cost': this.safeString (trade, 'fee'),
                 'currency': this.safeCurrencyCode (this.safeString (trade, 'feeCurrency')),
-                'rate': undefined,
             },
         }, market);
     }
