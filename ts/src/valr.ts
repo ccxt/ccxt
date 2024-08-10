@@ -1110,13 +1110,14 @@ export default class valr extends Exchange {
                 postOnly = (orderType.indexOf ('post-only') >= 0);
             }
         }
-        const totalFee = this.safeString2 (order, 'totalFee', 'executedFee');
+        const totalFee = this.safeNumber2 (order, 'totalFee', 'executedFee');
         const feeCurrency = this.safeString (order, 'feeCurrency');
         let fee = undefined;
-        if (totalFee !== undefined && feeCurrency !== undefined) {
+        if (totalFee !== undefined) {
             fee = {
-                'fee': totalFee,
+                'cost': totalFee,
                 'currency': this.safeCurrencyCode (feeCurrency),
+                'rate': undefined,
             };
         }
         const executedPrice = this.safeNumber (order, 'executedPrice');
@@ -1956,11 +1957,9 @@ export default class valr extends Exchange {
             amount = this.safeNumber2 (transaction, 'creditValue', 'debitValue');
             status = 'ok';
             currency = this.safeCurrencyCode (this.safeString2 (transaction, 'creditCurrency', 'debitCurrency'));
-            const feeValueCurrency = this.safeString (transaction, 'feeCurrency');
-            const feeValue = this.safeNumber (transaction, 'feeValue');
             fee = {
-                'currency': this.safeCurrencyCode (feeValueCurrency),
-                'cost': feeValue,
+                'currency': this.safeCurrencyCode (this.safeString (transaction, 'feeCurrency')),
+                'cost': this.safeNumber (transaction, 'feeValue'),
                 'rate': undefined,
             };
             if (parseType === 'withdrawal') {

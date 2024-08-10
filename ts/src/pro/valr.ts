@@ -888,13 +888,14 @@ export default class valr extends valrRest {
         const amount = this.safeString (order, 'originalQuantity');
         let filled = undefined;
         const filledPercentage = this.safeString (order, 'filledPercentage');
-        const totalFee = this.safeString (order, 'executedFee');
+        const totalFee = this.safeNumber (order, 'executedFee');
         const feeCurrency = this.safeString (order, 'feeCurrency');
         let fee = undefined;
         if (totalFee !== undefined && feeCurrency !== undefined) {
             fee = {
-                'fee': totalFee,
+                'cost': totalFee,
                 'currency': this.safeCurrencyCode (feeCurrency),
+                'rate': undefined,
             };
         }
         if (remaining === undefined && filledPercentage !== undefined) {
