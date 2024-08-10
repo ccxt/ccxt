@@ -557,7 +557,6 @@ export default class Exchange {
         if (this.api) {
             this.defineRestApi (this.api, 'request')
         }
-
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
 
         this.afterConstruct ();
@@ -599,12 +598,23 @@ export default class Exchange {
         return result
     }
 
-    throttle (cost = undefined) {
-        return this.throttler.throttle (cost)
+    checkAddress (address) {
+        if (address === undefined) {
+            throw new InvalidAddress (this.id + ' address is undefined')	
+        }	
+        // check the address is not the same letter like 'aaaaa' nor too short nor has a space	
+        if ((this.unique (address).length === 1) || address.length < this.minFundingAddressLength || address.includes (' ')) {	
+            throw new InvalidAddress (this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString () + ' characters: "' + this.json (address) + '"')	
+        }	
+        return address	
     }
 
     initThrottler () {
         this.throttler = new Throttler (this.tokenBucket);
+    }
+
+    throttle (cost = undefined) {
+        return this.throttler.throttle (cost)
     }
 
     defineRestApiEndpoint (methodName, uppercaseMethod, lowercaseMethod, camelcaseMethod, path, paths, config = {}) {
@@ -2135,19 +2145,6 @@ export default class Exchange {
         if (proxyAgentSet && proxyUrlSet) {
             throw new InvalidProxySettings (this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
         }
-    }
-
-    checkAddress (address: Str = undefined): Str {
-        if (address === undefined) {
-            throw new InvalidAddress (this.id + ' address is undefined');
-        }
-        // check the address is not the same letter like 'aaaaa' nor too short nor has a space
-        const uniqChars = (this.unique (this.stringToCharsArray (address)));
-        const length = uniqChars.length; // py transpiler trick
-        if (length === 1 || address.length < this.minFundingAddressLength || address.indexOf (' ') > -1) {
-            throw new InvalidAddress (this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString () + ' characters: "' + address.toString () + '"');
-        }
-        return address;
     }
 
     findMessageHashes (client, element: string): string[] {
@@ -4331,7 +4328,7 @@ export default class Exchange {
     async fetch2 (path, api: any = 'public', method = 'GET', params = {}, headers: any = undefined, body: any = undefined, config = {}) {
         if (this.enableRateLimit) {
             const cost = this.calculateRateLimiterCost (api, method, path, params, config);
-            await this.throttler (cost);
+            await this.throttle (cost);
         }
         this.lastRestRequestTimestamp = this.milliseconds ();
         const request = this.sign (path, api, method, params, headers, body);
