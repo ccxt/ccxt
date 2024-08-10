@@ -3580,9 +3580,9 @@ export default class bybit extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         const isOption = market['option'];
-        const undefinedPrecisionAmount = (market['precision']['amount'] === undefined);
-        const undefinedPrecisionPrice = (market['precision']['price'] === undefined);
-        if (isOption && (undefinedPrecisionAmount || undefinedPrecisionPrice)) {
+        const emptyPrecisionAmount = (market['precision']['amount'] === undefined);
+        const emptyPrecisionPrice = (market['precision']['price'] === undefined);
+        if (isOption && (emptyPrecisionAmount || emptyPrecisionPrice)) {
             this.options['loadAllOptions'] = true;
             await this.loadMarkets (true);
             market = this.market (symbol);
@@ -4208,9 +4208,9 @@ export default class bybit extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         const isOption = market['option'];
-        const undefinedPrecisionAmount = (market['precision']['amount'] === undefined);
-        const undefinedPrecisionPrice = (market['precision']['price'] === undefined);
-        if (isOption && (undefinedPrecisionAmount || undefinedPrecisionPrice)) {
+        const emptyPrecisionAmount = (market['precision']['amount'] === undefined);
+        const emptyPrecisionPrice = (market['precision']['price'] === undefined);
+        if (isOption && (emptyPrecisionAmount || emptyPrecisionPrice)) {
             this.options['loadAllOptions'] = true;
             await this.loadMarkets (true);
             market = this.market (symbol);
