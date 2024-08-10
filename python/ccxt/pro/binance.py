@@ -1888,7 +1888,7 @@ class binance(ccxt.async_support.binance):
         :param str|None [params.type]: 'future', 'delivery', 'savings', 'funding', or 'spot'
         :param str|None [params.marginMode]: 'cross' or 'isolated', for margin trading, uses self.options.defaultMarginMode if not passed, defaults to None/None/None
         :param str[]|None [params.symbols]: unified market symbols, only used in isolated margin mode
-        :param str|None [params.method]: method to use. Can be account.balance or account.status
+        :param str|None [params.method]: method to use. Can be account.balance, account.status, v2/account.balance or v2/account.status
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
@@ -1919,8 +1919,14 @@ class binance(ccxt.async_support.binance):
         #
         #
         messageHash = self.safe_string(message, 'id')
-        result = self.safe_dict(message, 'result', {})
-        rawBalance = self.safe_list(result, 0, [])
+        rawBalance = None
+        if isinstance(message['result'], list):
+            # account.balance
+            rawBalance = self.safe_list(message, 'result', [])
+        else:
+            # account.status
+            result = self.safe_dict(message, 'result', {})
+            rawBalance = self.safe_list(result, 'assets', [])
         parsedBalances = self.parseBalanceCustom(rawBalance)
         client.resolve(parsedBalances, messageHash)
 
@@ -1993,6 +1999,7 @@ class binance(ccxt.async_support.binance):
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.returnRateLimits]: set to True to return rate limit informations, defaults to False.
+        :param str|None [params.method]: method to use. Can be account.position or v2/account.position
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
@@ -2008,9 +2015,11 @@ class binance(ccxt.async_support.binance):
         returnRateLimits = False
         returnRateLimits, params = self.handle_option_and_params(params, 'fetchPositionsWs', 'returnRateLimits', False)
         payload['returnRateLimits'] = returnRateLimits
+        method = None
+        method, params = self.handle_option_and_params(params, 'fetchPositionsWs', 'method', 'account.position')
         message: dict = {
             'id': messageHash,
-            'method': 'account.position',
+            'method': method,
             'params': self.sign_params(self.extend(payload, params)),
         }
         subscription: dict = {
