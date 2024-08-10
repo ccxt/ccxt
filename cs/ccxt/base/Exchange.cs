@@ -25,11 +25,7 @@ public partial class Exchange
         this.initHttpClient();
 
         this.afterConstruct();
-    }
-
-    private Throttler newThrottler()
-    {
-        return new Throttler(this.tokenBucket);
+        this.throttler = new Throttler(this.tokenBucket);
     }
 
     private void initHttpClient()
