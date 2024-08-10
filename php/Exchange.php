@@ -1103,18 +1103,18 @@ class Exchange {
         return $input;
     }
 
-    public function check_address($address) {	
-        if (empty($address) || !is_string($address)) {	
-            throw new InvalidAddress($this->id . ' address is null');	
-        }	
+    public function check_address($address) {
+        if (empty($address) || !is_string($address)) {
+            throw new InvalidAddress($this->id . ' address is null');
+        }
 
-        if ((count(array_unique(str_split($address))) === 1) ||	
-            (strlen($address) < $this->minFundingAddressLength) ||	
-            (strpos($address, ' ') !== false)) {	
-            throw new InvalidAddress($this->id . ' address is invalid or has less than ' . strval($this->minFundingAddressLength) . ' characters: "' . strval($address) . '"');	
-        }	
+        if ((count(array_unique(str_split($address))) === 1) ||
+            (strlen($address) < $this->minFundingAddressLength) ||
+            (strpos($address, ' ') !== false)) {
+            throw new InvalidAddress($this->id . ' address is invalid or has less than ' . strval($this->minFundingAddressLength) . ' characters: "' . strval($address) . '"');
+        }
 
-        return $address;	
+        return $address;
     }
 
     public function __construct($options = array()) {

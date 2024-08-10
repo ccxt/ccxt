@@ -599,13 +599,13 @@ export default class Exchange {
 
     checkAddress (address) {
         if (address === undefined) {
-            throw new InvalidAddress (this.id + ' address is undefined')	
-        }	
-        // check the address is not the same letter like 'aaaaa' nor too short nor has a space	
-        if ((this.unique (address).length === 1) || address.length < this.minFundingAddressLength || address.includes (' ')) {	
-            throw new InvalidAddress (this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString () + ' characters: "' + this.json (address) + '"')	
-        }	
-        return address	
+            throw new InvalidAddress (this.id + ' address is undefined')
+        }
+        // check the address is not the same letter like 'aaaaa' nor too short nor has a space
+        if ((this.unique (address).length === 1) || address.length < this.minFundingAddressLength || address.includes (' ')) {
+            throw new InvalidAddress (this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString () + ' characters: "' + this.json (address) + '"')
+        }
+        return address
     }
 
     initThrottler () {
