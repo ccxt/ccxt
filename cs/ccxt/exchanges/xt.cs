@@ -2141,7 +2141,6 @@ public partial class xt : Exchange
             { "fee", new Dictionary<string, object>() {
                 { "currency", this.safeCurrencyCode(this.safeString2(trade, "feeCurrency", "feeCoin")) },
                 { "cost", this.safeString(trade, "fee") },
-                { "rate", null },
             } },
         }, market);
     }

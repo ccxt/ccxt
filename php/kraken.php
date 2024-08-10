@@ -1373,7 +1373,7 @@ class kraken extends Exchange {
     public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array ()) {
         /**
          * create a market order by providing the $symbol, $side and $cost
-         * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
+         * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
          * @param {string} $symbol unified $symbol of the market to create an order in (only USD markets are supported)
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $cost how much you want to trade in units of the quote currency
@@ -1389,7 +1389,7 @@ class kraken extends Exchange {
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
          * create a market buy order by providing the $symbol, side and $cost
-         * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
+         * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1401,7 +1401,7 @@ class kraken extends Exchange {
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
-         * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
+         * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
@@ -1543,6 +1543,8 @@ class kraken extends Exchange {
         //         "status" => "ok",
         //         "txid" => "OAW2BO-7RWEK-PZY5UO",
         //         "originaltxid" => "OXL6SS-UPNMC-26WBE7",
+        //         "newuserref" => 1234,
+        //         "olduserref" => 123,
         //         "volume" => "0.00075000",
         //         "price" => "13500.0",
         //         "orders_cancelled" => 1,
@@ -1682,7 +1684,7 @@ class kraken extends Exchange {
             $txid = $this->safe_list($order, 'txid');
             $id = $this->safe_string($txid, 0);
         }
-        $clientOrderId = $this->safe_string($order, 'userref');
+        $clientOrderId = $this->safe_string_2($order, 'userref', 'newuserref');
         $rawTrades = $this->safe_value($order, 'trades', array());
         $trades = array();
         for ($i = 0; $i < count($rawTrades); $i++) {
@@ -1829,6 +1831,9 @@ class kraken extends Exchange {
             $extendedPostFlags = ($flags !== null) ? $flags . ',post' : 'post';
             $request['oflags'] = $extendedPostFlags;
         }
+        if (($flags !== null) && !(is_array($request) && array_key_exists('oflags', $request))) {
+            $request['oflags'] = $flags;
+        }
         $params = $this->omit($params, array( 'timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingLimitAmount', 'offset' ));
         return array( $request, $params );
     }
@@ -1836,7 +1841,7 @@ class kraken extends Exchange {
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         /**
          * edit a trade order
-         * @see https://docs.kraken.com/rest/#tag/Trading/operation/editOrder
+         * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/editOrder
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
@@ -1898,15 +1903,13 @@ class kraken extends Exchange {
         $clientOrderId = $this->safe_value_2($params, 'userref', 'clientOrderId');
         $request = array(
             'trades' => true, // whether or not to include trades in output (optional, default false)
-            // 'txid' => $id, // do not comma separate a list of ids - use fetchOrdersByIds instead
+            'txid' => $id, // do not comma separate a list of ids - use fetchOrdersByIds instead
             // 'userref' => 'optional', // restrict results to given user reference $id (optional)
         );
         $query = $params;
         if ($clientOrderId !== null) {
             $request['userref'] = $clientOrderId;
             $query = $this->omit($params, array( 'userref', 'clientOrderId' ));
-        } else {
-            $request['txid'] = $id;
         }
         $response = $this->privatePostQueryOrders ($this->extend($request, $query));
         //

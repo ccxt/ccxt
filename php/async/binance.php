@@ -2802,7 +2802,7 @@ class binance extends Exchange {
                         'active' => $depositEnable && $withdrawEnable,
                         'deposit' => $depositEnable,
                         'withdraw' => $withdrawEnable,
-                        'fee' => $this->parse_number($fee),
+                        'fee' => $withdrawFee,
                         'precision' => $this->parse_number($precisionTick),
                         'limits' => array(
                             'withdraw' => array(
@@ -2810,7 +2810,7 @@ class binance extends Exchange {
                                 'max' => $this->safe_number($networkItem, 'withdrawMax'),
                             ),
                             'deposit' => array(
-                                'min' => null,
+                                'min' => $this->safe_number($networkItem, 'depositDust'),
                                 'max' => null,
                             ),
                         ),

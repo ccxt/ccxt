@@ -1316,6 +1316,7 @@ class bitget extends Exchange {
                 'JADE' => 'Jade Protocol',
                 'DEGEN' => 'DegenReborn',
                 'TONCOIN' => 'TON',
+                'OMNI' => 'omni', // conflict with Omni Network
             ),
             'options' => array(
                 'timeframes' => array(

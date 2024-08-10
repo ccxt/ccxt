@@ -418,6 +418,7 @@ public partial class bitmart
     /// See <see href="https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futures/#submit-order-signed"/>  <br/>
     /// See <see href="https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed"/>  <br/>
+    /// See <see href="https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>

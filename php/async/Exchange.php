@@ -43,11 +43,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.3.76';
+$version = '4.3.78';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.3.76';
+    const VERSION = '4.3.78';
 
     public $browser;
     public $marketsLoading = null;
@@ -2115,48 +2115,62 @@ class Exchange extends \ccxt\Exchange {
             }
             $cost = Precise::string_mul($multiplyPrice, $amount);
         }
-        $parseFee = $this->safe_value($trade, 'fee') === null;
-        $parseFees = $this->safe_value($trade, 'fees') === null;
-        $shouldParseFees = $parseFee || $parseFees;
-        $fees = array();
-        $fee = $this->safe_value($trade, 'fee');
-        if ($shouldParseFees) {
-            $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees) : $fees;
-            $reducedLength = count($reducedFees);
-            for ($i = 0; $i < $reducedLength; $i++) {
-                $reducedFees[$i]['cost'] = $this->safe_number($reducedFees[$i], 'cost');
-                if (is_array($reducedFees[$i]) && array_key_exists('rate', $reducedFees[$i])) {
-                    $reducedFees[$i]['rate'] = $this->safe_number($reducedFees[$i], 'rate');
-                }
-            }
-            if (!$parseFee && ($reducedLength === 0)) {
-                // copy $fee to avoid modification by reference
-                $feeCopy = $this->deep_extend($fee);
-                $feeCopy['cost'] = $this->safe_number($feeCopy, 'cost');
-                if (is_array($feeCopy) && array_key_exists('rate', $feeCopy)) {
-                    $feeCopy['rate'] = $this->safe_number($feeCopy, 'rate');
-                }
-                $reducedFees[] = $feeCopy;
-            }
-            if ($parseFees) {
-                $trade['fees'] = $reducedFees;
-            }
-            if ($parseFee && ($reducedLength === 1)) {
-                $trade['fee'] = $reducedFees[0];
-            }
-            $tradeFee = $this->safe_value($trade, 'fee');
-            if ($tradeFee !== null) {
-                $tradeFee['cost'] = $this->safe_number($tradeFee, 'cost');
-                if (is_array($tradeFee) && array_key_exists('rate', $tradeFee)) {
-                    $tradeFee['rate'] = $this->safe_number($tradeFee, 'rate');
-                }
-                $trade['fee'] = $tradeFee;
-            }
-        }
+        list($resultFee, $resultFees) = $this->parsed_fee_and_fees($trade);
+        $trade['fee'] = $resultFee;
+        $trade['fees'] = $resultFees;
         $trade['amount'] = $this->parse_number($amount);
         $trade['price'] = $this->parse_number($price);
         $trade['cost'] = $this->parse_number($cost);
         return $trade;
+    }
+
+    public function parsed_fee_and_fees(mixed $container) {
+        $fee = $this->safe_dict($container, 'fee');
+        $fees = $this->safe_list($container, 'fees');
+        $feeDefined = $fee !== null;
+        $feesDefined = $fees !== null;
+        // parsing only if at least one of them is defined
+        $shouldParseFees = ($feeDefined || $feesDefined);
+        if ($shouldParseFees) {
+            if ($feeDefined) {
+                $fee = $this->parse_fee_numeric($fee);
+            }
+            if (!$feesDefined) {
+                // just set it directly, no further processing needed
+                $fees = array( $fee );
+            }
+            // 'fees' were set, so reparse them
+            $reducedFees = $this->reduceFees ? $this->reduce_fees_by_currency($fees) : $fees;
+            $reducedLength = count($reducedFees);
+            for ($i = 0; $i < $reducedLength; $i++) {
+                $reducedFees[$i] = $this->parse_fee_numeric($reducedFees[$i]);
+            }
+            $fees = $reducedFees;
+            if ($reducedLength === 1) {
+                $fee = $reducedFees[0];
+            } elseif ($reducedLength === 0) {
+                $fee = null;
+            }
+        }
+        // in case `$fee & $fees` are null, set `$fees` array
+        if ($fee === null) {
+            $fee = array(
+                'cost' => null,
+                'currency' => null,
+            );
+        }
+        if ($fees === null) {
+            $fees = array();
+        }
+        return array( $fee, $fees );
+    }
+
+    public function parse_fee_numeric(mixed $fee) {
+        $fee['cost'] = $this->safe_number($fee, 'cost'); // ensure numeric
+        if (is_array($fee) && array_key_exists('rate', $fee)) {
+            $fee['rate'] = $this->safe_number($fee, 'rate');
+        }
+        return $fee;
     }
 
     public function find_nearest_ceiling(array $arr, float $providedValue) {
@@ -2233,12 +2247,13 @@ class Exchange extends \ccxt\Exchange {
         $reduced = array();
         for ($i = 0; $i < count($fees); $i++) {
             $fee = $fees[$i];
-            $feeCurrencyCode = $this->safe_string($fee, 'currency');
+            $code = $this->safe_string($fee, 'currency');
+            $feeCurrencyCode = $code !== null ? $code : (string) $i;
             if ($feeCurrencyCode !== null) {
                 $rate = $this->safe_string($fee, 'rate');
-                $cost = $this->safe_value($fee, 'cost');
-                if (Precise::string_eq($cost, '0')) {
-                    // omit zero $cost $fees
+                $cost = $this->safe_string($fee, 'cost');
+                if ($cost === null) {
+                    // omit null $cost, does not make sense, however, don't omit '0' costs, still make sense
                     continue;
                 }
                 if (!(is_array($reduced) && array_key_exists($feeCurrencyCode, $reduced))) {
@@ -2249,7 +2264,7 @@ class Exchange extends \ccxt\Exchange {
                     $reduced[$feeCurrencyCode][$rateKey]['cost'] = Precise::string_add($reduced[$feeCurrencyCode][$rateKey]['cost'], $cost);
                 } else {
                     $reduced[$feeCurrencyCode][$rateKey] = array(
-                        'currency' => $feeCurrencyCode,
+                        'currency' => $code,
                         'cost' => $cost,
                     );
                     if ($rate !== null) {
@@ -2290,7 +2305,15 @@ class Exchange extends \ccxt\Exchange {
                 $change = Precise::string_sub($last, $open);
             }
             if ($average === null) {
-                $average = Precise::string_div(Precise::string_add($last, $open), '2');
+                $precision = 18;
+                if ($market !== null && $this->is_tick_precision()) {
+                    $marketPrecision = $this->safe_dict($market, 'precision');
+                    $precisionPrice = $this->safe_string($marketPrecision, 'price');
+                    if ($precisionPrice !== null) {
+                        $precision = $this->precision_from_string($precisionPrice);
+                    }
+                }
+                $average = Precise::string_div(Precise::string_add($last, $open), '2', $precision);
             }
         }
         if (($percentage === null) && ($change !== null) && ($open !== null) && Precise::string_gt($open, '0')) {

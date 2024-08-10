@@ -2785,7 +2785,7 @@ class binance(Exchange, ImplicitAPI):
                     'active': depositEnable and withdrawEnable,
                     'deposit': depositEnable,
                     'withdraw': withdrawEnable,
-                    'fee': self.parse_number(fee),
+                    'fee': withdrawFee,
                     'precision': self.parse_number(precisionTick),
                     'limits': {
                         'withdraw': {
@@ -2793,7 +2793,7 @@ class binance(Exchange, ImplicitAPI):
                             'max': self.safe_number(networkItem, 'withdrawMax'),
                         },
                         'deposit': {
-                            'min': None,
+                            'min': self.safe_number(networkItem, 'depositDust'),
                             'max': None,
                         },
                     },

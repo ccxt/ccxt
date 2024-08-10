@@ -2466,6 +2466,7 @@ export default class bitmart extends Exchange {
          * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
          * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
          * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market', 'limit' or 'trailing' for swap markets only
          * @param {string} side 'buy' or 'sell'
@@ -2718,6 +2719,9 @@ export default class bitmart extends Exchange {
         params = this.omit(params, ['timeInForce', 'postOnly', 'reduceOnly', 'leverage', 'trailingTriggerPrice', 'trailingPercent', 'triggerPrice', 'stopPrice']);
         if (leverage !== undefined) {
             request['leverage'] = this.numberToString(leverage);
+        }
+        else if (isTriggerOrder) {
+            request['leverage'] = '1'; // for plan orders leverage is required, if not available default to 1
         }
         return this.extend(request, params);
     }
