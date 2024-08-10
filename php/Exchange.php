@@ -1352,6 +1352,10 @@ class Exchange {
         return MessagePack::pack($data);
     }
 
+    public function init_throttler() {
+        // stub in sync
+    }
+
     public function throttle($cost = null) {
         // TODO: use a token bucket here
         $now = $this->milliseconds();
@@ -3291,7 +3295,6 @@ class Exchange {
         if ($isSandbox) {
             $this->set_sandbox_mode($isSandbox);
         }
-        $this->throttler = new Throttler ($this->tokenBucket);
     }
 
     public function init_properties() {
@@ -3367,10 +3370,10 @@ class Exchange {
             'maxCapacity' => 1000,
             'refillRate' => $refillRate,
         );
-        $tb = $this->tokenBucket;
-        $emptyDict = array();
-        $tbUndefined = ($tb === null);
-        $existingBucket = $tbUndefined ? $emptyDict  = $this->extend($defaultBucket, $existingBucket);
+        $existingBucket = ($this->tokenBucket === null) ? array() : $this->tokenBucket;
+        $extended = $this->extend($defaultBucket, $existingBucket);
+        $this->tokenBucket = $extended; // tranpsiler trick
+        $this->initThrottler ();
     }
 
     public function orderbook_checksum_message(?string $symbol) {

@@ -71,6 +71,9 @@ class Exchange extends \ccxt\Exchange {
         parent::__construct($options);
         $this->default_connector = $this->create_connector();
         $this->set_request_browser($this->default_connector);
+    }
+
+    public function init_throttler() {
         $this->throttler = new Throttler($this->tokenBucket);
     }
 
@@ -1409,7 +1412,6 @@ class Exchange extends \ccxt\Exchange {
         if ($isSandbox) {
             $this->set_sandbox_mode($isSandbox);
         }
-        $this->throttler = new Throttler ($this->tokenBucket);
     }
 
     public function init_properties() {
@@ -1485,10 +1487,10 @@ class Exchange extends \ccxt\Exchange {
             'maxCapacity' => 1000,
             'refillRate' => $refillRate,
         );
-        $tb = $this->tokenBucket;
-        $emptyDict = array();
-        $tbUndefined = ($tb === null);
-        $existingBucket = $tbUndefined ? $emptyDict  = $this->extend($defaultBucket, $existingBucket);
+        $existingBucket = ($this->tokenBucket === null) ? array() : $this->tokenBucket;
+        $extended = $this->extend($defaultBucket, $existingBucket);
+        $this->tokenBucket = $extended; // tranpsiler trick
+        $this->initThrottler ();
     }
 
     public function orderbook_checksum_message(?string $symbol) {

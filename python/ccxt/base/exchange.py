@@ -418,6 +418,10 @@ class Exchange(object):
     def __str__(self):
         return self.name
 
+    def init_throttler(self, cost=None):
+        # stub in sync
+        pass
+
     def throttle(self, cost=None):
         now = float(self.milliseconds())
         elapsed = now - self.lastRestRequestTimestamp
@@ -2643,7 +2647,6 @@ class Exchange(object):
         isSandbox = self.safe_bool_2(self.options, 'sandbox', 'testnet', False)
         if isSandbox:
             self.set_sandbox_mode(isSandbox)
-        self.throttler = Throttler(self.tokenBucket)
 
     def init_properties(self):
         # placeholders for cached data
@@ -2716,10 +2719,10 @@ class Exchange(object):
             'maxCapacity': 1000,
             'refillRate': refillRate,
         }
-        tb = self.tokenBucket
-        emptyDict = {}
-        tbUndefined = (tb is None)
-        existingBucket = tbUndefined ? emptyDict  = self.extend(defaultBucket, existingBucket)
+        existingBucket = {} if (self.tokenBucket is None) else self.tokenBucket
+        extended = self.extend(defaultBucket, existingBucket)
+        self.tokenBucket = extended  # tranpsiler trick
+        self.initThrottler()
 
     def orderbook_checksum_message(self, symbol: Str):
         return symbol + '  = False'

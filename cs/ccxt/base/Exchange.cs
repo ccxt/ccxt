@@ -25,7 +25,6 @@ public partial class Exchange
         this.initHttpClient();
 
         this.afterConstruct();
-        this.throttler = new Throttler(this.tokenBucket);
     }
 
     private void initHttpClient()
@@ -544,6 +543,10 @@ public partial class Exchange
             throw new Exception("Invalid timeframe: " + timeframe);
         }
         return amount * scale;
+    }
+
+    public void initThrottler() {
+        this.throttler = new Throttler(this.tokenBucket);
     }
 
     public async Task throttle(object cost)
