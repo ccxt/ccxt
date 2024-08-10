@@ -948,20 +948,20 @@ export default class valr extends Exchange {
          * @param {string} id order id (order customer order id)
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.clientOrderId] ID is for clientOrderId field and associate API call (default is false)
+         * @param {boolean} [params.useClientId] ID is for clientOrderId field and associate API call (default is false)
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
         this.checkRequiredSymbolArgument ('fetchOrder', symbol);
         const marketId = this.marketId (symbol);
-        const useClientOrderId = this.safeBool (params, 'clientOrderId', false);
+        const useClientOrderId = this.safeBool (params, 'useClientId', false);
         const request = {
             'id': id,
             'pair': marketId,
         };
         let response = undefined;
         if (useClientOrderId) {
-            params = this.omit (params, 'clientOrderId');
+            params = this.omit (params, 'useClientId');
             response = await this.privateGetOrdersPairCustomerorderidId (this.extend (request, params));
         } else {
             response = await this.privateGetOrdersPairOrderidId (this.extend (request, params));
@@ -1025,17 +1025,17 @@ export default class valr extends Exchange {
          * @see https://docs.valr.com/#112c551e-4ee3-46a3-8fcf-0db07d3f48f2
          * @param {string} [symbol] unified symbol of the market the order was made in - Note used
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [params.clientOrderId] ID is for clientOrderId field and associate API call (default is false)
+         * @param {boolean} [params.useClientId] ID is for clientOrderId field and associate API call (default is false)
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const useClientOrderId = this.safeBool (params, 'clientOrderId', false);
+        const useClientOrderId = this.safeBool (params, 'useClientId', false);
         const request = {
             'id': id,
         };
         let response = undefined;
         if (useClientOrderId) {
-            params = this.omit (params, 'clientOrderId');
+            params = this.omit (params, 'useClientId');
             response = await this.privateGetOrdersHistorySummaryCustomerorderidId (this.extend (request, params));
         } else {
             response = await this.privateGetOrdersHistorySummaryOrderidId (this.extend (request, params));
@@ -1110,7 +1110,7 @@ export default class valr extends Exchange {
                 postOnly = (orderType.indexOf ('post-only') >= 0);
             }
         }
-        const totalFee = this.safeString (order, 'totalFee');
+        const totalFee = this.safeString2 (order, 'totalFee', 'executedFee');
         const feeCurrency = this.safeString (order, 'feeCurrency');
         let fee = undefined;
         if (totalFee !== undefined && feeCurrency !== undefined) {
@@ -1118,6 +1118,14 @@ export default class valr extends Exchange {
                 'fee': totalFee,
                 'currency': this.safeCurrencyCode (feeCurrency),
             };
+        }
+        const executedPrice = this.safeNumber (order, 'executedPrice');
+        const orderPrice = this.safeNumber2 (order, 'price', 'originalPrice');
+        let finalPrice = undefined;
+        if ((executedPrice !== undefined) && (executedPrice !== 0)) {
+            finalPrice = executedPrice;
+        } else {
+            finalPrice = orderPrice;
         }
         const datetime = this.safeString2 (order, 'createdAt', 'orderCreatedAt');
         const updateDatetime = this.safeString2 (order, 'updatedAt', 'orderUpdatedAt');
@@ -1131,8 +1139,8 @@ export default class valr extends Exchange {
             'side': this.safeString2 (order, 'side', 'orderSide'),
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': this.parse8601 (updateDatetime),
-            'price': this.safeString2 (order, 'price', 'originalPrice'),
-            'amount': this.safeString (order, 'originalQuantity'),
+            'price': finalPrice,
+            'amount': this.safeString2 (order, 'executedQuantity', 'originalQuantity'),
             'cost': undefined,
             'average': this.safeString (order, 'averagePrice'),
             'filled': undefined,

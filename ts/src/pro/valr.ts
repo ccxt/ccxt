@@ -872,7 +872,10 @@ export default class valr extends valrRest {
         let typeOrder = undefined;
         let postOnly = undefined;
         if (orderTypeReceived !== undefined) {
-            if (orderTypeReceived.indexOf ('limit') >= 0) {
+            if (orderTypeReceived === 'market') {
+                typeOrder = 'market';
+                postOnly = false;
+            } else if (orderTypeReceived.indexOf ('limit') >= 0) {
                 typeOrder = 'limit';
                 if (orderTypeReceived.indexOf ('post-only') >= 0) {
                     postOnly = true;
@@ -897,6 +900,14 @@ export default class valr extends valrRest {
         if (remaining === undefined && filledPercentage !== undefined) {
             filled = Precise.stringDiv (Precise.stringMul (amount, filledPercentage), '100');
         }
+        const executedPrice = this.safeNumber (order, 'executedPrice');
+        const orderPrice = this.safeNumber2 (order, 'price', 'originalPrice');
+        let finalPrice = undefined;
+        if ((executedPrice !== undefined) && (executedPrice !== 0)) {
+            finalPrice = executedPrice;
+        } else {
+            finalPrice = orderPrice;
+        }
         return this.safeOrder ({
             'timestamp': this.parse8601 (this.safeString2 (order, 'createdAt', 'orderCreatedAt')),
             'datetime': this.safeString2 (order, 'createdAt', 'orderCreatedAt'),
@@ -906,7 +917,7 @@ export default class valr extends valrRest {
             'status': status,
             'type': typeOrder,
             'side': this.safeString2 (order, 'side', 'orderSide'),
-            'price': this.safeString2 (order, 'price', 'originalPrice'),
+            'price': finalPrice,
             'amount': amount,
             'average': this.safeString (order, 'averagePrice'),
             'filled': filled,
