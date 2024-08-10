@@ -2685,12 +2685,9 @@ export default class Exchange {
             'maxCapacity': 1000,
             'refillRate': refillRate,
         };
-        const tb = this.tokenBucket;
-        const emptyDict = {};
-        const tbUndefined = (tb === undefined);
-        const existingBucket = tbUndefined ? emptyDict : tb;
-        // tranpsiler trick
-        this.tokenBucket = this.extend (defaultBucket, existingBucket);
+        const existingBucket = (this.tokenBucket === undefined) ? {} : this.tokenBucket;
+        const extended = this.extend (defaultBucket, existingBucket);
+        this.tokenBucket = extended; // tranpsiler trick
     }
 
     orderbookChecksumMessage (symbol:Str) {
