@@ -566,10 +566,6 @@ export default class Exchange {
         this.afterConstruct ();
     }
 
-    newThrottler () {
-        return new Throttler (this.tokenBucket);
-    }
-
     encodeURIComponent (...args) {
         // @ts-expect-error
         return encodeURIComponent (...args)
@@ -2613,6 +2609,7 @@ export default class Exchange {
         if (isSandbox) {
             this.setSandboxMode (isSandbox);
         }
+        this.throttler = new Throttler (this.tokenBucket);
     }
 
     initProperties () {
@@ -2690,7 +2687,6 @@ export default class Exchange {
         };
         const existingBucket = (this.tokenBucket === undefined) ? {} : this.tokenBucket;
         this.tokenBucket = this.extend (defaultBucket, existingBucket);
-        this.throttler = this.newThrottler ();
     }
 
     orderbookChecksumMessage (symbol:Str) {
