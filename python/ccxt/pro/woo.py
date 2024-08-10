@@ -611,7 +611,7 @@ class woo(ccxt.async_support.woo):
                 },
             }
             message = self.extend(request, params)
-            self.watch(url, messageHash, message, messageHash)
+            self.watch(url, messageHash, message, messageHash, message)
         return await future
 
     async def watch_private(self, messageHash, message, params={}):

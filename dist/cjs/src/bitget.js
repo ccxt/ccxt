@@ -1309,6 +1309,7 @@ class bitget extends bitget$1 {
                 'JADE': 'Jade Protocol',
                 'DEGEN': 'DegenReborn',
                 'TONCOIN': 'TON',
+                'OMNI': 'omni', // conflict with Omni Network
             },
             'options': {
                 'timeframes': {

@@ -3293,8 +3293,8 @@ class gate(Exchange, ImplicitAPI):
         side = self.safe_string_2(trade, 'side', 'type', contractSide)
         orderId = self.safe_string(trade, 'order_id')
         feeAmount = self.safe_string(trade, 'fee')
-        gtFee = self.safe_string(trade, 'gt_fee')
-        pointFee = self.safe_string(trade, 'point_fee')
+        gtFee = self.omit_zero(self.safe_string(trade, 'gt_fee'))
+        pointFee = self.omit_zero(self.safe_string(trade, 'point_fee'))
         fees = []
         if feeAmount is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_currency')

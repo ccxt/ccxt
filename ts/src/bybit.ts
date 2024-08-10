@@ -242,6 +242,7 @@ export default class bybit extends Exchange {
                 },
                 'private': {
                     'get': {
+                        'v5/market/instruments-info': 5,
                         // Legacy inverse swap
                         'v2/private/wallet/fund/records': 25, // 120 per minute = 2 per second => cost = 50 / 2 = 25
                         // spot
@@ -987,6 +988,7 @@ export default class bybit extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'usePrivateInstrumentsInfo': false,
                 'sandboxMode': false,
                 'enableDemoTrading': false,
                 'fetchMarkets': [ 'spot', 'linear', 'inverse', 'option' ],
@@ -1488,7 +1490,13 @@ export default class bybit extends Exchange {
         const request: Dict = {
             'category': 'spot',
         };
-        const response = await this.publicGetV5MarketInstrumentsInfo (this.extend (request, params));
+        const usePrivateInstrumentsInfo = this.safeBool (this.options, 'usePrivateInstrumentsInfo', false);
+        let response: Dict = undefined;
+        if (usePrivateInstrumentsInfo) {
+            response = await this.privateGetV5MarketInstrumentsInfo (this.extend (request, params));
+        } else {
+            response = await this.publicGetV5MarketInstrumentsInfo (this.extend (request, params));
+        }
         //
         //     {
         //         "retCode": 0,
@@ -1599,14 +1607,25 @@ export default class bybit extends Exchange {
     async fetchFutureMarkets (params) {
         params = this.extend (params);
         params['limit'] = 1000; // minimize number of requests
-        const response = await this.publicGetV5MarketInstrumentsInfo (params);
+        const usePrivateInstrumentsInfo = this.safeBool (this.options, 'usePrivateInstrumentsInfo', false);
+        let response: Dict = undefined;
+        if (usePrivateInstrumentsInfo) {
+            response = await this.privateGetV5MarketInstrumentsInfo (params);
+        } else {
+            response = await this.publicGetV5MarketInstrumentsInfo (params);
+        }
         const data = this.safeDict (response, 'result', {});
         let markets = this.safeList (data, 'list', []);
         let paginationCursor = this.safeString (data, 'nextPageCursor');
         if (paginationCursor !== undefined) {
             while (paginationCursor !== undefined) {
                 params['cursor'] = paginationCursor;
-                const responseInner = await this.publicGetV5MarketInstrumentsInfo (params);
+                let responseInner: Dict = undefined;
+                if (usePrivateInstrumentsInfo) {
+                    responseInner = await this.privateGetV5MarketInstrumentsInfo (params);
+                } else {
+                    responseInner = await this.publicGetV5MarketInstrumentsInfo (params);
+                }
                 const dataNew = this.safeDict (responseInner, 'result', {});
                 const rawMarkets = this.safeList (dataNew, 'list', []);
                 const rawMarketsLength = rawMarkets.length;
@@ -1774,7 +1793,13 @@ export default class bybit extends Exchange {
         const request: Dict = {
             'category': 'option',
         };
-        const response = await this.publicGetV5MarketInstrumentsInfo (this.extend (request, params));
+        const usePrivateInstrumentsInfo = this.safeBool (this.options, 'usePrivateInstrumentsInfo', false);
+        let response: Dict = undefined;
+        if (usePrivateInstrumentsInfo) {
+            response = await this.privateGetV5MarketInstrumentsInfo (this.extend (request, params));
+        } else {
+            response = await this.publicGetV5MarketInstrumentsInfo (this.extend (request, params));
+        }
         const data = this.safeDict (response, 'result', {});
         let markets = this.safeList (data, 'list', []);
         if (this.options['loadAllOptions']) {
@@ -1783,7 +1808,12 @@ export default class bybit extends Exchange {
             if (paginationCursor !== undefined) {
                 while (paginationCursor !== undefined) {
                     request['cursor'] = paginationCursor;
-                    const responseInner = await this.publicGetV5MarketInstrumentsInfo (this.extend (request, params));
+                    let responseInner: Dict = undefined;
+                    if (usePrivateInstrumentsInfo) {
+                        responseInner = await this.privateGetV5MarketInstrumentsInfo (this.extend (request, params));
+                    } else {
+                        responseInner = await this.publicGetV5MarketInstrumentsInfo (this.extend (request, params));
+                    }
                     const dataNew = this.safeDict (responseInner, 'result', {});
                     const rawMarkets = this.safeList (dataNew, 'list', []);
                     const rawMarketsLength = rawMarkets.length;
@@ -3728,7 +3758,11 @@ export default class bybit extends Exchange {
             }
         } else {
             if (!isTrailingAmountOrder && !isAlternativeEndpoint) {
-                request['qty'] = this.amountToPrecision (symbol, amount);
+                if (market['option']) {
+                    request['qty'] = this.numberToString (amount);
+                } else {
+                    request['qty'] = this.amountToPrecision (symbol, amount);
+                }
             }
         }
         if (isTrailingAmountOrder) {
@@ -7251,8 +7285,8 @@ export default class bybit extends Exchange {
         let currency = undefined;
         let request: Dict = {};
         if (code !== undefined) {
-            currency = this.safeCurrencyCode (code);
-            request['coin'] = currency;
+            currency = this.safeCurrency (code);
+            request['coin'] = currency['id'];
         }
         if (since !== undefined) {
             request['startTime'] = since;

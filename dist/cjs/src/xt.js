@@ -8,6 +8,10 @@ var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
+/**
+ * @class xt
+ * @augments Exchange
+ */
 class xt extends xt$1 {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -2102,7 +2106,6 @@ class xt extends xt$1 {
             'fee': {
                 'currency': this.safeCurrencyCode(this.safeString2(trade, 'feeCurrency', 'feeCoin')),
                 'cost': this.safeString(trade, 'fee'),
-                'rate': undefined,
             },
         }, market);
     }

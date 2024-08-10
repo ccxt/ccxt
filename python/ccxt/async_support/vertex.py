@@ -658,6 +658,12 @@ class vertex(Exchange, ImplicitAPI):
         amount = None
         side = None
         fee = None
+        feeCost = self.convert_from_x18(self.safe_string(trade, 'fee'))
+        if feeCost is not None:
+            fee = {
+                'cost': feeCost,
+                'currency': None,
+            }
         id = self.safe_string_2(trade, 'trade_id', 'submission_idx')
         order = self.safe_string(trade, 'digest')
         timestamp = self.safe_timestamp(trade, 'timestamp')
@@ -673,10 +679,6 @@ class vertex(Exchange, ImplicitAPI):
             subOrder = self.safe_dict(trade, 'order', {})
             price = self.convert_from_x18(self.safe_string(subOrder, 'priceX18'))
             amount = self.convert_from_x18(self.safe_string(trade, 'base_filled'))
-            fee = {
-                'cost': self.convert_from_x18(self.safe_string(trade, 'fee')),
-                'currency': None,
-            }
             if Precise.string_lt(amount, '0'):
                 side = 'sell'
             else:

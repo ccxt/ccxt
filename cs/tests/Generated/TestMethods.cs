@@ -387,8 +387,9 @@ public partial class testMainClass : BaseTest
             {
                 await this.testMethod(methodName, exchange, args, isPublic);
                 return true;
-            } catch(Exception e)
+            } catch(Exception ex)
             {
+                object e = getRootException(ex);
                 object isLoadMarkets = (isEqual(methodName, "loadMarkets"));
                 object isAuthError = (e is AuthenticationError);
                 object isNotSupported = (e is NotSupported);

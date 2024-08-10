@@ -332,7 +332,8 @@ class testMainClass extends baseMainTestClass {
                 try {
                     Async\await($this->test_method($method_name, $exchange, $args, $is_public));
                     return true;
-                } catch(\Throwable $e) {
+                } catch(\Throwable $ex) {
+                    $e = get_root_exception($ex);
                     $is_load_markets = ($method_name === 'loadMarkets');
                     $is_auth_error = ($e instanceof AuthenticationError);
                     $is_not_supported = ($e instanceof NotSupported);

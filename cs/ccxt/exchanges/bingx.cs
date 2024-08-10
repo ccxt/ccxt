@@ -1250,7 +1250,6 @@ public partial class bingx : Exchange
             { "fee", new Dictionary<string, object>() {
                 { "cost", this.parseNumber(Precise.stringAbs(this.safeString2(trade, "commission", "n"))) },
                 { "currency", currencyCode },
-                { "rate", null },
             } },
         }, market);
     }

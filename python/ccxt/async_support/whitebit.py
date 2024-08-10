@@ -794,8 +794,23 @@ class whitebit(Exchange, ImplicitAPI):
         #        "change": "2.12"  # in percent
         #    }
         #
+        # WS market_update
+        #
+        #     {
+        #         "open": "52853.04",
+        #         "close": "55913.88",
+        #         "high": "56272",
+        #         "low": "49549.67",
+        #         "volume": "57331.067185",
+        #         "deal": "3063860382.42985338",
+        #         "last": "55913.88",
+        #         "period": 86400
+        #     }
         market = self.safe_market(None, market)
-        last = self.safe_string(ticker, 'last_price')
+        # last price is provided as "last" or "last_price"
+        last = self.safe_string_2(ticker, 'last', 'last_price')
+        # if "close" is provided, use it, otherwise use <last>
+        close = self.safe_string(ticker, 'close', last)
         return self.safe_ticker({
             'symbol': market['symbol'],
             'timestamp': None,
@@ -808,7 +823,7 @@ class whitebit(Exchange, ImplicitAPI):
             'askVolume': None,
             'vwap': None,
             'open': self.safe_string(ticker, 'open'),
-            'close': last,
+            'close': close,
             'last': last,
             'previousClose': None,
             'change': None,

@@ -3634,8 +3634,8 @@ public partial class gate : Exchange
         object side = this.safeString2(trade, "side", "type", contractSide);
         object orderId = this.safeString(trade, "order_id");
         object feeAmount = this.safeString(trade, "fee");
-        object gtFee = this.safeString(trade, "gt_fee");
-        object pointFee = this.safeString(trade, "point_fee");
+        object gtFee = this.omitZero(this.safeString(trade, "gt_fee"));
+        object pointFee = this.omitZero(this.safeString(trade, "point_fee"));
         object fees = new List<object>() {};
         if (isTrue(!isEqual(feeAmount, null)))
         {

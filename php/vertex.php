@@ -662,6 +662,13 @@ class vertex extends Exchange {
         $amount = null;
         $side = null;
         $fee = null;
+        $feeCost = $this->convert_from_x18($this->safe_string($trade, 'fee'));
+        if ($feeCost !== null) {
+            $fee = array(
+                'cost' => $feeCost,
+                'currency' => null,
+            );
+        }
         $id = $this->safe_string_2($trade, 'trade_id', 'submission_idx');
         $order = $this->safe_string($trade, 'digest');
         $timestamp = $this->safe_timestamp($trade, 'timestamp');
@@ -678,10 +685,6 @@ class vertex extends Exchange {
             $subOrder = $this->safe_dict($trade, 'order', array());
             $price = $this->convert_from_x18($this->safe_string($subOrder, 'priceX18'));
             $amount = $this->convert_from_x18($this->safe_string($trade, 'base_filled'));
-            $fee = array(
-                'cost' => $this->convert_from_x18($this->safe_string($trade, 'fee')),
-                'currency' => null,
-            );
             if (Precise::string_lt($amount, '0')) {
                 $side = 'sell';
             } else {

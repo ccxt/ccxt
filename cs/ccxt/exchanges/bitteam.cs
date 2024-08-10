@@ -2007,7 +2007,6 @@ public partial class bitteam : Exchange
         object fee = new Dictionary<string, object>() {
             { "currency", this.safeCurrencyCode(feeCurrencyId) },
             { "cost", feeCost },
-            { "rate", null },
         };
         object intTs = this.parseToInt(timestamp);
         return this.safeTrade(new Dictionary<string, object>() {

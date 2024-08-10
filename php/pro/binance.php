@@ -198,17 +198,19 @@ class binance extends \ccxt\async\binance {
     }
 
     public function watch_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
-        /**
-         * watch the public liquidations of a trading pair
-         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Liquidation-Order-Streams
-         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Liquidation-Order-Streams
-         * @param {string} $symbol unified CCXT market $symbol
-         * @param {int} [$since] the earliest time in ms to fetch liquidations for
-         * @param {int} [$limit] the maximum number of liquidation structures to retrieve
-         * @param {array} [$params] exchange specific parameters for the bitmex api endpoint
-         * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
-         */
-        return $this->watch_liquidations_for_symbols(array( $symbol ), $since, $limit, $params);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * watch the public liquidations of a trading pair
+             * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Liquidation-Order-Streams
+             * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/websocket-market-streams/Liquidation-Order-Streams
+             * @param {string} $symbol unified CCXT market $symbol
+             * @param {int} [$since] the earliest time in ms to fetch liquidations for
+             * @param {int} [$limit] the maximum number of liquidation structures to retrieve
+             * @param {array} [$params] exchange specific parameters for the bitmex api endpoint
+             * @return {array} an array of {@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure liquidation structures}
+             */
+            return Async\await($this->watch_liquidations_for_symbols(array( $symbol ), $since, $limit, $params));
+        }) ();
     }
 
     public function watch_liquidations_for_symbols(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
@@ -541,6 +543,12 @@ class binance extends \ccxt\async\binance {
     public function watch_order_book(string $symbol, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
+             * @see https://binance-docs.github.io/apidocs/spot/en/#partial-book-depth-streams
+             * @see https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream
+             * @see https://binance-docs.github.io/apidocs/futures/en/#partial-book-depth-streams
+             * @see https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#partial-book-depth-streams
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
@@ -591,6 +599,12 @@ class binance extends \ccxt\async\binance {
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
+             * @see https://binance-docs.github.io/apidocs/spot/en/#partial-book-depth-streams
+             * @see https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream
+             * @see https://binance-docs.github.io/apidocs/futures/en/#partial-book-depth-streams
+             * @see https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#partial-book-depth-streams
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string[]} $symbols unified array of $symbols
              * @param {int} [$limit] the maximum amount of order book entries to return
@@ -942,10 +956,15 @@ class binance extends \ccxt\async\binance {
         return Async\async(function () use ($symbols, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a list of $symbols
+             * @see https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
+             * @see https://binance-docs.github.io/apidocs/spot/en/#trade-streams
+             * @see https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
              * @param {string[]} $symbols unified $symbol of the $market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->name] the $name of the method to call, 'trade' or 'aggTrade', default is 'trade'
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
@@ -958,8 +977,9 @@ class binance extends \ccxt\async\binance {
                 }
                 $streamHash .= '::' . implode(',', $symbols);
             }
-            $options = $this->safe_value($this->options, 'watchTradesForSymbols', array());
-            $name = $this->safe_string($options, 'name', 'trade');
+            $name = null;
+            list($name, $params) = $this->handle_option_and_params($params, 'watchTradesForSymbols', 'name', 'trade');
+            $params = $this->omit($params, 'callerMethodName');
             $firstMarket = $this->market($symbols[0]);
             $type = $firstMarket['type'];
             if ($firstMarket['contract']) {
@@ -1000,12 +1020,18 @@ class binance extends \ccxt\async\binance {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             * @see https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
+             * @see https://binance-docs.github.io/apidocs/spot/en/#trade-streams
+             * @see https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
              * @param {string} $symbol unified $symbol of the market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string} [$params->name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
+            $params['callerMethodName'] = 'watchTrades';
             return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
         }) ();
     }
@@ -1271,6 +1297,7 @@ class binance extends \ccxt\async\binance {
             $subscribe = array(
                 'id' => $requestId,
             );
+            $params = $this->omit($params, 'callerMethodName');
             list($symbol, $timeframe, $candles) = Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes, $subscribe));
             if ($this->newUpdates) {
                 $limit = $candles->getLimit ($symbol, $limit);
@@ -1484,6 +1511,12 @@ class binance extends \ccxt\async\binance {
     public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
+             * @see https://binance-docs.github.io/apidocs/spot/en/#individual-$symbol-mini-ticker-stream
+             * @see https://binance-docs.github.io/apidocs/spot/en/#individual-$symbol-ticker-streams
+             * @see https://binance-docs.github.io/apidocs/futures/en/#all-market-mini-$tickers-stream
+             * @see https://binance-docs.github.io/apidocs/futures/en/#individual-$symbol-ticker-streams
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#all-market-mini-$tickers-stream
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#individual-$symbol-ticker-streams
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1500,6 +1533,12 @@ class binance extends \ccxt\async\binance {
     public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
+             * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-mini-ticker-stream
+             * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-ticker-streams
+             * @see https://binance-docs.github.io/apidocs/futures/en/#all-market-mini-tickers-stream
+             * @see https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-ticker-streams
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#all-market-mini-tickers-stream
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-ticker-streams
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint

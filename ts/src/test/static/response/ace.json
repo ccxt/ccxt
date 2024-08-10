@@ -709,7 +709,7 @@
                         "price": 55000,
                         "amount": 0.0007,
                         "cost": 38.5,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "timestamp": 1669717945789,
                         "datetime": "2022-11-29T10:32:25.789Z",
                         "fees": []

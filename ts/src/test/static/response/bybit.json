@@ -1784,7 +1784,7 @@
                         "price": 51444.4,
                         "amount": 0.972,
                         "cost": 50003.9568,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     }
                 ]
@@ -1851,7 +1851,7 @@
                     "previousClose": null,
                     "change": 1296.9,
                     "percentage": 2.5861,
-                    "average": 50795.95,
+                    "average": 50795.9,
                     "baseVolume": 47293.887,
                     "quoteVolume": 2352063794.0035,
                     "info": {
@@ -2506,6 +2506,58 @@
                     "id": "89102b18-96c4-42d2-bc26-131699036635",
                     "amount": 0.1,
                     "rate": -0.000881
+                  }
+                ]
+            }
+        ],
+        "fetchTransfers": [
+            {
+                "description": "fetchTransfers",
+                "method": "fetchTransfers",
+                "input": [
+                  "USDT"
+                ],
+                "httpResponse": {
+                  "retCode": "0",
+                  "retMsg": "success",
+                  "result": {
+                    "list": [
+                      {
+                        "transferId": "f26122f3-da92-4bef-b7cf-74f876568db9",
+                        "coin": "USDT",
+                        "amount": "10",
+                        "fromAccountType": "UNIFIED",
+                        "toAccountType": "FUND",
+                        "timestamp": "1722865698000",
+                        "status": "SUCCESS",
+                        "nextPageCursor": "eyJtaW5JRCI6MTM3ODAyMDU2LCJtYXhJRCI6MTM3ODAyMDU2fQ=="
+                      }
+                    ],
+                    "nextPageCursor": "eyJtaW5JRCI6MTM3ODAyMDU2LCJtYXhJRCI6MTM3ODAyMDU2fQ=="
+                  },
+                  "retExtInfo": {},
+                  "time": "1722866135254"
+                },
+                "parsedResponse": [
+                  {
+                    "info": {
+                      "transferId": "f26122f3-da92-4bef-b7cf-74f876568db9",
+                      "coin": "USDT",
+                      "amount": "10",
+                      "fromAccountType": "UNIFIED",
+                      "toAccountType": "FUND",
+                      "timestamp": "1722865698000",
+                      "status": "SUCCESS",
+                      "nextPageCursor": "eyJtaW5JRCI6MTM3ODAyMDU2LCJtYXhJRCI6MTM3ODAyMDU2fQ=="
+                    },
+                    "id": "f26122f3-da92-4bef-b7cf-74f876568db9",
+                    "timestamp": 1722865698000,
+                    "datetime": "2024-08-05T13:48:18.000Z",
+                    "currency": "USDT",
+                    "amount": 10,
+                    "fromAccount": "unified",
+                    "toAccount": "fund",
+                    "status": "ok"
                   }
                 ]
             }
