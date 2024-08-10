@@ -2722,7 +2722,7 @@ class Exchange(object):
         existingBucket = {} if (self.tokenBucket is None) else self.tokenBucket
         extended = self.extend(defaultBucket, existingBucket)
         self.tokenBucket = extended  # tranpsiler trick
-        self.initThrottler()
+        self.init_throttler()
 
     def orderbook_checksum_message(self, symbol: Str):
         return symbol + '  = False'

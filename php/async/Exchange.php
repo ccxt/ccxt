@@ -1490,7 +1490,7 @@ class Exchange extends \ccxt\Exchange {
         $existingBucket = ($this->tokenBucket === null) ? array() : $this->tokenBucket;
         $extended = $this->extend($defaultBucket, $existingBucket);
         $this->tokenBucket = $extended; // tranpsiler trick
-        $this->initThrottler ();
+        $this->init_throttler();
     }
 
     public function orderbook_checksum_message(?string $symbol) {
