@@ -2643,6 +2643,7 @@ class Exchange(object):
         isSandbox = self.safe_bool_2(self.options, 'sandbox', 'testnet', False)
         if isSandbox:
             self.set_sandbox_mode(isSandbox)
+        self.throttler = Throttler(self.tokenBucket)
 
     def init_properties(self):
         # placeholders for cached data
@@ -2715,8 +2716,10 @@ class Exchange(object):
             'maxCapacity': 1000,
             'refillRate': refillRate,
         }
-        existingBucket = {} if (self.tokenBucket is None) else self.tokenBucket
-        self.tokenBucket = self.extend(defaultBucket, existingBucket)
+        tb = self.tokenBucket
+        emptyDict = {}
+        tbUndefined = (tb is None)
+        existingBucket = tbUndefined ? emptyDict  = self.extend(defaultBucket, existingBucket)
 
     def orderbook_checksum_message(self, symbol: Str):
         return symbol + '  = False'

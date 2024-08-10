@@ -1409,6 +1409,7 @@ class Exchange extends \ccxt\Exchange {
         if ($isSandbox) {
             $this->set_sandbox_mode($isSandbox);
         }
+        $this->throttler = new Throttler ($this->tokenBucket);
     }
 
     public function init_properties() {
@@ -1484,8 +1485,10 @@ class Exchange extends \ccxt\Exchange {
             'maxCapacity' => 1000,
             'refillRate' => $refillRate,
         );
-        $existingBucket = ($this->tokenBucket === null) ? array() : $this->tokenBucket;
-        $this->tokenBucket = $this->extend($defaultBucket, $existingBucket);
+        $tb = $this->tokenBucket;
+        $emptyDict = array();
+        $tbUndefined = ($tb === null);
+        $existingBucket = $tbUndefined ? $emptyDict  = $this->extend($defaultBucket, $existingBucket);
     }
 
     public function orderbook_checksum_message(?string $symbol) {

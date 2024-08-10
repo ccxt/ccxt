@@ -564,6 +564,7 @@ export default class Exchange {
         this.newUpdates = ((this.options as any).newUpdates !== undefined) ? (this.options as any).newUpdates : true;
 
         this.afterConstruct ();
+        this.throttler = new Throttler (this.tokenBucket);
     }
 
     encodeURIComponent (...args) {
@@ -2609,7 +2610,6 @@ export default class Exchange {
         if (isSandbox) {
             this.setSandboxMode (isSandbox);
         }
-        this.throttler = new Throttler (this.tokenBucket);
     }
 
     initProperties () {
@@ -2685,7 +2685,11 @@ export default class Exchange {
             'maxCapacity': 1000,
             'refillRate': refillRate,
         };
-        const existingBucket = (this.tokenBucket === undefined) ? {} : this.tokenBucket;
+        const tb = this.tokenBucket;
+        const emptyDict = {};
+        const tbUndefined = (tb === undefined);
+        const existingBucket = tbUndefined ? emptyDict : tb;
+        // tranpsiler trick
         this.tokenBucket = this.extend (defaultBucket, existingBucket);
     }
 
