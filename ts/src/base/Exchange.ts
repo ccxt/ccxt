@@ -2109,7 +2109,7 @@ export default class Exchange {
         // httpProxy
         const isHttpProxyDefined = this.valueIsDefined (this.httpProxy);
         const isHttp_proxy_defined = this.valueIsDefined (this.http_proxy);
-        if (isHttpProxyDefined && isHttp_proxy_defined) {
+        if (isHttpProxyDefined || isHttp_proxy_defined) {
             usedProxies.push ('httpProxy');
             httpProxy = isHttpProxyDefined ? this.httpProxy : this.http_proxy;
         }
