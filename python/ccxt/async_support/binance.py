@@ -75,7 +75,7 @@ class binance(Exchange, ImplicitAPI):
                 'createMarketSellOrderWithCost': True,
                 'createOrder': True,
                 'createOrders': True,
-                'createOrderWithTakeProfitAndStopLoss': True,
+                'createOrderWithTakeProfitAndStopLoss': False,
                 'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
