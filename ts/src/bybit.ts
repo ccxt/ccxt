@@ -1295,7 +1295,7 @@ export default class bybit extends Exchange {
         return [ subType, params ];
     }
 
-    getAmount (symbol, amount) {
+    getAmount (symbol: string, amount: number) {
         const market = this.market (symbol);
         const emptyPrecisionAmount = (market['precision']['amount'] === undefined);
         let amountString = undefined;
@@ -1307,7 +1307,7 @@ export default class bybit extends Exchange {
         return amountString;
     }
 
-    getPrice (symbol, price) {
+    getPrice (symbol: string, price: number) {
         const market = this.market (symbol);
         const emptyPrecisionPrice = (market['precision']['price'] === undefined);
         let priceString = undefined;
@@ -1319,12 +1319,12 @@ export default class bybit extends Exchange {
         return priceString;
     }
 
-    getCost (symbol, cost) {
+    getCost (symbol: string, cost: string) {
         const market = this.market (symbol);
         const emptyPrecisionPrice = (market['precision']['price'] === undefined);
         let costString = undefined;
         if (emptyPrecisionPrice) {
-            costString = this.numberToString (cost);
+            costString = cost;
         } else {
             costString = this.costToPrecision (symbol, cost);
         }
@@ -3801,7 +3801,7 @@ export default class bybit extends Exchange {
                     request['qty'] = this.getCost (symbol, costRequest);
                 }
             } else {
-                request['qty'] = this.getCost (symbol, amount);
+                request['qty'] = this.getCost (symbol, this.numberToString (amount));
             }
         } else {
             if (!isTrailingAmountOrder && !isAlternativeEndpoint) {
