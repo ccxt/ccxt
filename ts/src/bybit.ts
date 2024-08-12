@@ -1296,13 +1296,13 @@ export default class bybit extends Exchange {
     }
 
     getAmount (symbol: string, amount: number) {
+        // some markets like options might not have the precision available
+        // and we shouldn't crash in those cases
         const market = this.market (symbol);
         const emptyPrecisionAmount = (market['precision']['amount'] === undefined);
-        let amountString = undefined;
-        if (emptyPrecisionAmount) {
-            amountString = this.numberToString (amount);
-        } else {
-            amountString = this.amountToPrecision (symbol, amount);
+        const amountString = this.numberToString (amount);
+        if (!emptyPrecisionAmount && (amountString !== '0')) {
+            return this.amountToPrecision (symbol, amount);
         }
         return amountString;
     }
