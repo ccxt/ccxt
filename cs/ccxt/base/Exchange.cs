@@ -545,8 +545,9 @@ public partial class Exchange
         return amount * scale;
     }
 
-    public void initThrottler() {
-        this.throttler = new Throttler(this.tokenBucket);
+    public async Task throttle(object cost)
+    {
+        await (await this.throttler.throttle(cost));
     }
 
     public object clone(object o)
@@ -727,14 +728,13 @@ public partial class Exchange
         return res;
     }
 
-    public async Task throttle(object cost)
-    {
-        await (await this.throttler.throttle(cost));
-    }
-
     public Task sleep(object ms)
     {
         return Task.Delay(Convert.ToInt32(ms));
+    }
+
+    public void initThrottler() {
+        this.throttler = new Throttler(this.tokenBucket);
     }
 
     public bool isEmpty(object a)

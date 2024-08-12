@@ -1294,25 +1294,6 @@ public partial class Exchange
     {
         this.createNetworksByIdObject();
     }
-    public virtual void initRestRateLimiter()
-    {
-        if (isTrue(isTrue(isEqual(this.rateLimit, null)) || isTrue((isTrue(!isEqual(this.id, null)) && isTrue(isEqual(this.rateLimit, -1))))))
-        {
-            throw new ExchangeError ((string)add(this.id, ".rateLimit property is not configured")) ;
-        }
-        object refillRate = ((bool) isTrue((isGreaterThan(this.rateLimit, 0)))) ? (divide(1, this.rateLimit)) : this.MAX_VALUE;
-        object defaultBucket = new Dictionary<string, object>() {
-            { "delay", 0.001 },
-            { "capacity", 1 },
-            { "cost", 1 },
-            { "maxCapacity", 1000 },
-            { "refillRate", refillRate },
-        };
-        object existingBucket = ((bool) isTrue((isEqual(this.tokenBucket, null)))) ? new Dictionary<string, object>() {} : this.tokenBucket;
-        object extended = this.extend(defaultBucket, existingBucket);
-        this.tokenBucket = extended; // tranpsiler trick
-        this.initThrottler();
-    }
 
     public virtual object orderbookChecksumMessage(object symbol)
     {
