@@ -5784,10 +5784,12 @@ class bybit extends Exchange {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @see https://bybit-exchange.github.io/docs/v5/account/transaction-log
+         * @see https://bybit-exchange.github.io/docs/v5/account/contract-transaction-log
          * @param {string} $code unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
          * @param {int} [$limit] max number of ledger entrys to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subType] if inverse will use v5/account/contract-transaction-log
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
          */
         $this->load_markets();
@@ -5830,9 +5832,15 @@ class bybit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchLedger', null, $params);
         $response = null;
         if ($enableUnified[1]) {
-            $response = $this->privateGetV5AccountTransactionLog ($this->extend($request, $params));
+            if ($subType === 'inverse') {
+                $response = $this->privateGetV5AccountContractTransactionLog ($this->extend($request, $params));
+            } else {
+                $response = $this->privateGetV5AccountTransactionLog ($this->extend($request, $params));
+            }
         } else {
             $response = $this->privateGetV2PrivateWalletFundRecords ($this->extend($request, $params));
         }

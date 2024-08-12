@@ -246,6 +246,22 @@
                   }
                 ],
                 "output": "{\"symbol\":\"LTCUSDT\",\"type\":\"limit\",\"size\":1,\"price\":\"50\",\"executive_price\":\"50\",\"trigger_price\":\"55\",\"price_type\":1,\"price_way\":1,\"side\":1,\"open_type\":\"cross\",\"leverage\":\"1\"}"
+            },
+            {
+                "description": "swap market trigger order",
+                "method": "createOrder",
+                "url": "https://api-cloud-v2.bitmart.com/contract/private/submit-plan-order",
+                "input": [
+                  "LTC/USDT:USDT",
+                  "market",
+                  "buy",
+                  1,
+                  null,
+                  {
+                    "triggerPrice": 55
+                  }
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"type\":\"market\",\"size\":1,\"trigger_price\":\"55\",\"price_type\":1,\"price_way\":1,\"side\":1,\"open_type\":\"cross\",\"leverage\":\"1\"}"
             }
         ],
         "createOrders": [

@@ -2396,8 +2396,6 @@ public partial class bitmart : Exchange
         * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
         * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
         * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
-        * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
-        * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
         * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market', 'limit' or 'trailing' for swap markets only
@@ -2560,6 +2558,7 @@ public partial class bitmart : Exchange
         * @description create a trade order
         * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
         * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
+        * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market', 'limit' or 'trailing'
         * @param {string} side 'buy' or 'sell'
@@ -2626,7 +2625,10 @@ public partial class bitmart : Exchange
         }
         if (isTrue(isTriggerOrder))
         {
-            ((IDictionary<string,object>)request)["executive_price"] = this.priceToPrecision(symbol, price);
+            if (isTrue(isTrue(isLimitOrder) || isTrue(!isEqual(price, null))))
+            {
+                ((IDictionary<string,object>)request)["executive_price"] = this.priceToPrecision(symbol, price);
+            }
             ((IDictionary<string,object>)request)["trigger_price"] = this.priceToPrecision(symbol, triggerPrice);
             ((IDictionary<string,object>)request)["price_type"] = this.safeInteger(parameters, "price_type", 1);
             if (isTrue(isEqual(side, "buy")))
