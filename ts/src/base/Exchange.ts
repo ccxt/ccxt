@@ -509,6 +509,21 @@ export default class Exchange {
         //     }
         //
         this.initProperties ();
+        // manual initizalization
+        this.balance = (this.balance === undefined) ? {} : this.balance;
+        this.orderbooks = (this.orderbooks === undefined) ? {} : this.orderbooks;
+        this.fundingRates = (this.fundingRates === undefined) ? {} : this.fundingRates;
+        this.tickers = (this.tickers === undefined) ? {} : this.tickers;
+        this.bidsasks = (this.bidsasks === undefined) ? {} : this.bidsasks;
+        this.trades = (this.trades === undefined) ? {} : this.trades;
+        this.transactions = (this.transactions === undefined) ? {} : this.transactions;
+        this.ohlcvs = (this.ohlcvs === undefined) ? {} : this.ohlcvs;
+        this.liquidations = (this.liquidations === undefined) ? {} : this.liquidations;
+        this.myLiquidations = (this.myLiquidations === undefined) ? {} : this.myLiquidations;
+        this.orders = undefined;
+        this.myTrades = undefined;
+        this.positions = undefined;
+        //
         this.options = this.getDefaultOptions(); // exchange-specific options if any
         // http properties
         this.origin = '*' // CORS origin
@@ -595,17 +610,6 @@ export default class Exchange {
             }
         }
         return result
-    }
-
-    checkAddress (address) {
-        if (address === undefined) {
-            throw new InvalidAddress (this.id + ' address is undefined')
-        }
-        // check the address is not the same letter like 'aaaaa' nor too short nor has a space
-        if ((this.unique (address).length === 1) || address.length < this.minFundingAddressLength || address.includes (' ')) {
-            throw new InvalidAddress (this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString () + ' characters: "' + this.json (address) + '"')
-        }
-        return address
     }
 
     initThrottler () {
@@ -2040,55 +2044,43 @@ export default class Exchange {
         let httpsProxy = undefined;
         let socksProxy = undefined;
         // httpProxy
-        if (this.valueIsDefined (this.httpProxy)) {
+        const isHttpProxyDefined = this.valueIsDefined (this.httpProxy);
+        const isHttp_proxy_defined = this.valueIsDefined (this.http_proxy);
+        if (isHttpProxyDefined || isHttp_proxy_defined) {
             usedProxies.push ('httpProxy');
-            httpProxy = this.httpProxy;
+            httpProxy = isHttpProxyDefined ? this.httpProxy : this.http_proxy;
         }
-        if (this.valueIsDefined (this.http_proxy)) {
-            usedProxies.push ('http_proxy');
-            httpProxy = this.http_proxy;
-        }
-        if (this.httpProxyCallback !== undefined) {
+        const ishttpProxyCallbackDefined = this.valueIsDefined (this.httpProxyCallback);
+        const ishttp_proxy_callback_defined = this.valueIsDefined (this.http_proxy_callback);
+        if (ishttpProxyCallbackDefined || ishttp_proxy_callback_defined) {
             usedProxies.push ('httpProxyCallback');
-            httpProxy = this.httpProxyCallback (url, method, headers, body);
-        }
-        if (this.http_proxy_callback !== undefined) {
-            usedProxies.push ('http_proxy_callback');
-            httpProxy = this.http_proxy_callback (url, method, headers, body);
+            httpProxy = ishttpProxyCallbackDefined ? this.httpProxyCallback (url, method, headers, body) : this.http_proxy_callback (url, method, headers, body);
         }
         // httpsProxy
-        if (this.valueIsDefined (this.httpsProxy)) {
+        const isHttpsProxyDefined = this.valueIsDefined (this.httpsProxy);
+        const isHttps_proxy_defined = this.valueIsDefined (this.https_proxy);
+        if (isHttpsProxyDefined || isHttps_proxy_defined) {
             usedProxies.push ('httpsProxy');
-            httpsProxy = this.httpsProxy;
+            httpsProxy = isHttpsProxyDefined ? this.httpsProxy : this.https_proxy;
         }
-        if (this.valueIsDefined (this.https_proxy)) {
-            usedProxies.push ('https_proxy');
-            httpsProxy = this.https_proxy;
-        }
-        if (this.httpsProxyCallback !== undefined) {
+        const ishttpsProxyCallbackDefined = this.valueIsDefined (this.httpsProxyCallback);
+        const ishttps_proxy_callback_defined = this.valueIsDefined (this.https_proxy_callback);
+        if (ishttpsProxyCallbackDefined || ishttps_proxy_callback_defined) {
             usedProxies.push ('httpsProxyCallback');
-            httpsProxy = this.httpsProxyCallback (url, method, headers, body);
-        }
-        if (this.https_proxy_callback !== undefined) {
-            usedProxies.push ('https_proxy_callback');
-            httpsProxy = this.https_proxy_callback (url, method, headers, body);
+            httpsProxy = ishttpsProxyCallbackDefined ? this.httpsProxyCallback (url, method, headers, body) : this.https_proxy_callback (url, method, headers, body);
         }
         // socksProxy
-        if (this.valueIsDefined (this.socksProxy)) {
+        const isSocksProxyDefined = this.valueIsDefined (this.socksProxy);
+        const isSocks_proxy_defined = this.valueIsDefined (this.socks_proxy);
+        if (isSocksProxyDefined || isSocks_proxy_defined) {
             usedProxies.push ('socksProxy');
-            socksProxy = this.socksProxy;
+            socksProxy = isSocksProxyDefined ? this.socksProxy : this.socks_proxy;
         }
-        if (this.valueIsDefined (this.socks_proxy)) {
-            usedProxies.push ('socks_proxy');
-            socksProxy = this.socks_proxy;
-        }
-        if (this.socksProxyCallback !== undefined) {
+        const issocksProxyCallbackDefined = this.valueIsDefined (this.socksProxyCallback);
+        const issocks_proxy_callback_defined = this.valueIsDefined (this.socks_proxy_callback);
+        if (issocksProxyCallbackDefined || issocks_proxy_callback_defined) {
             usedProxies.push ('socksProxyCallback');
-            socksProxy = this.socksProxyCallback (url, method, headers, body);
-        }
-        if (this.socks_proxy_callback !== undefined) {
-            usedProxies.push ('socks_proxy_callback');
-            socksProxy = this.socks_proxy_callback (url, method, headers, body);
+            socksProxy = issocksProxyCallbackDefined ? this.socksProxyCallback (url, method, headers, body) : this.socks_proxy_callback (url, method, headers, body);
         }
         // check
         const length = usedProxies.length;
@@ -2144,6 +2136,19 @@ export default class Exchange {
         if (proxyAgentSet && proxyUrlSet) {
             throw new InvalidProxySettings (this.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
         }
+    }
+
+    checkAddress (address: Str = undefined): Str {
+        if (address === undefined) {
+            throw new InvalidAddress (this.id + ' address is undefined');
+        }
+        // check the address is not the same letter like 'aaaaa' nor too short nor has a space
+        const uniqChars = (this.unique (this.stringToCharsArray (address)));
+        const length = uniqChars.length; // py transpiler trick
+        if (length === 1 || address.length < this.minFundingAddressLength || address.indexOf (' ') > -1) {
+            throw new InvalidAddress (this.id + ' address is invalid or has less than ' + this.minFundingAddressLength.toString () + ' characters: "' + address.toString () + '"');
+        }
+        return address;
     }
 
     findMessageHashes (client, element: string): string[] {
@@ -2616,20 +2621,7 @@ export default class Exchange {
         this.limits = (this.limits === undefined) ? {} : this.limits;
         this.exceptions = (this.exceptions === undefined) ? {} : this.exceptions;
         this.headers = (this.headers === undefined) ? {} : this.headers;
-        this.balance = (this.balance === undefined) ? {} : this.balance;
-        this.orderbooks = (this.orderbooks === undefined) ? {} : this.orderbooks;
-        this.fundingRates = (this.fundingRates === undefined) ? {} : this.fundingRates;
-        this.tickers = (this.tickers === undefined) ? {} : this.tickers;
-        this.bidsasks = (this.bidsasks === undefined) ? {} : this.bidsasks;
-        this.trades = (this.trades === undefined) ? {} : this.trades;
-        this.transactions = (this.transactions === undefined) ? {} : this.transactions;
-        this.ohlcvs = (this.ohlcvs === undefined) ? {} : this.ohlcvs;
-        this.liquidations = (this.liquidations === undefined) ? {} : this.liquidations;
-        this.myLiquidations = (this.myLiquidations === undefined) ? {} : this.myLiquidations;
         this.currencies = (this.currencies === undefined) ? {} : this.currencies;
-        this.orders = undefined;
-        this.myTrades = undefined;
-        this.positions = undefined;
         //
         // underlying properties
         //
@@ -3405,48 +3397,62 @@ export default class Exchange {
             }
             cost = Precise.stringMul (multiplyPrice, amount);
         }
-        const parseFee = this.safeValue (trade, 'fee') === undefined;
-        const parseFees = this.safeValue (trade, 'fees') === undefined;
-        const shouldParseFees = parseFee || parseFees;
-        const fees = [];
-        const fee = this.safeValue (trade, 'fee');
-        if (shouldParseFees) {
-            const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees) : fees;
-            const reducedLength = reducedFees.length;
-            for (let i = 0; i < reducedLength; i++) {
-                reducedFees[i]['cost'] = this.safeNumber (reducedFees[i], 'cost');
-                if ('rate' in reducedFees[i]) {
-                    reducedFees[i]['rate'] = this.safeNumber (reducedFees[i], 'rate');
-                }
-            }
-            if (!parseFee && (reducedLength === 0)) {
-                // copy fee to avoid modification by reference
-                const feeCopy = this.deepExtend (fee);
-                feeCopy['cost'] = this.safeNumber (feeCopy, 'cost');
-                if ('rate' in feeCopy) {
-                    feeCopy['rate'] = this.safeNumber (feeCopy, 'rate');
-                }
-                reducedFees.push (feeCopy);
-            }
-            if (parseFees) {
-                trade['fees'] = reducedFees;
-            }
-            if (parseFee && (reducedLength === 1)) {
-                trade['fee'] = reducedFees[0];
-            }
-            const tradeFee = this.safeValue (trade, 'fee');
-            if (tradeFee !== undefined) {
-                tradeFee['cost'] = this.safeNumber (tradeFee, 'cost');
-                if ('rate' in tradeFee) {
-                    tradeFee['rate'] = this.safeNumber (tradeFee, 'rate');
-                }
-                trade['fee'] = tradeFee;
-            }
-        }
+        const [ resultFee, resultFees ] = this.parsedFeeAndFees (trade);
+        trade['fee'] = resultFee;
+        trade['fees'] = resultFees;
         trade['amount'] = this.parseNumber (amount);
         trade['price'] = this.parseNumber (price);
         trade['cost'] = this.parseNumber (cost);
         return trade as Trade;
+    }
+
+    parsedFeeAndFees (container:any) {
+        let fee = this.safeDict (container, 'fee');
+        let fees = this.safeList (container, 'fees');
+        const feeDefined = fee !== undefined;
+        const feesDefined = fees !== undefined;
+        // parsing only if at least one of them is defined
+        const shouldParseFees = (feeDefined || feesDefined);
+        if (shouldParseFees) {
+            if (feeDefined) {
+                fee = this.parseFeeNumeric (fee);
+            }
+            if (!feesDefined) {
+                // just set it directly, no further processing needed
+                fees = [ fee ];
+            }
+            // 'fees' were set, so reparse them
+            const reducedFees = this.reduceFees ? this.reduceFeesByCurrency (fees) : fees;
+            const reducedLength = reducedFees.length;
+            for (let i = 0; i < reducedLength; i++) {
+                reducedFees[i] = this.parseFeeNumeric (reducedFees[i]);
+            }
+            fees = reducedFees;
+            if (reducedLength === 1) {
+                fee = reducedFees[0];
+            } else if (reducedLength === 0) {
+                fee = undefined;
+            }
+        }
+        // in case `fee & fees` are undefined, set `fees` as empty array
+        if (fee === undefined) {
+            fee = {
+                'cost': undefined,
+                'currency': undefined,
+            };
+        }
+        if (fees === undefined) {
+            fees = [];
+        }
+        return [ fee, fees ];
+    }
+
+    parseFeeNumeric (fee: any) {
+        fee['cost'] = this.safeNumber (fee, 'cost'); // ensure numeric
+        if ('rate' in fee) {
+            fee['rate'] = this.safeNumber (fee, 'rate');
+        }
+        return fee;
     }
 
     findNearestCeiling (arr: number[], providedValue: number) {
@@ -3523,12 +3529,13 @@ export default class Exchange {
         const reduced = {};
         for (let i = 0; i < fees.length; i++) {
             const fee = fees[i];
-            const feeCurrencyCode = this.safeString (fee, 'currency');
+            const code = this.safeString (fee, 'currency');
+            const feeCurrencyCode = code !== undefined ? code : i.toString ();
             if (feeCurrencyCode !== undefined) {
                 const rate = this.safeString (fee, 'rate');
-                const cost = this.safeValue (fee, 'cost');
-                if (Precise.stringEq (cost, '0')) {
-                    // omit zero cost fees
+                const cost = this.safeString (fee, 'cost');
+                if (cost === undefined) {
+                    // omit undefined cost, as it does not make sense, however, don't omit '0' costs, as they still make sense
                     continue;
                 }
                 if (!(feeCurrencyCode in reduced)) {
@@ -3539,7 +3546,7 @@ export default class Exchange {
                     reduced[feeCurrencyCode][rateKey]['cost'] = Precise.stringAdd (reduced[feeCurrencyCode][rateKey]['cost'], cost);
                 } else {
                     reduced[feeCurrencyCode][rateKey] = {
-                        'currency': feeCurrencyCode,
+                        'currency': code,
                         'cost': cost,
                     };
                     if (rate !== undefined) {
@@ -3580,7 +3587,15 @@ export default class Exchange {
                 change = Precise.stringSub (last, open);
             }
             if (average === undefined) {
-                average = Precise.stringDiv (Precise.stringAdd (last, open), '2');
+                let precision = 18;
+                if (market !== undefined && this.isTickPrecision ()) {
+                    const marketPrecision = this.safeDict (market, 'precision');
+                    const precisionPrice = this.safeString (marketPrecision, 'price');
+                    if (precisionPrice !== undefined) {
+                        precision = this.precisionFromString (precisionPrice);
+                    }
+                }
+                average = Precise.stringDiv (Precise.stringAdd (last, open), '2', precision);
             }
         }
         if ((percentage === undefined) && (change !== undefined) && (open !== undefined) && Precise.stringGt (open, '0')) {
@@ -7092,7 +7107,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' parseMarginModification() is not supported yet');
     }
 
-    parseMarginModifications (response: object[], symbols: string[] = undefined, symbolKey: Str = undefined, marketType: MarketType = undefined): MarginModification[] {
+    parseMarginModifications (response: object[], symbols: Strings = undefined, symbolKey: Str = undefined, marketType: MarketType = undefined): MarginModification[] {
         const marginModifications = [];
         for (let i = 0; i < response.length; i++) {
             const info = response[i];
