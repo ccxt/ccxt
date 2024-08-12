@@ -2683,8 +2683,7 @@ export default class Exchange {
             'refillRate': refillRate,
         };
         const existingBucket = (this.tokenBucket === undefined) ? {} : this.tokenBucket;
-        const extended = this.extend (defaultBucket, existingBucket);
-        this.tokenBucket = extended; // tranpsiler trick
+        this.tokenBucket = this.extend (defaultBucket, existingBucket);
         this.initThrottler ();
     }
 
