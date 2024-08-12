@@ -360,7 +360,7 @@ class Exchange(object):
         self.requests_trust_env = self.requests_trust_env or self.trust_env
 
         self.init_properties()
-        # manual
+
         self.balance = dict() if self.balance is None else self.balance
         self.orderbooks = dict() if self.orderbooks is None else self.orderbooks
         self.fundingRates = dict() if self.fundingRates is None else self.fundingRates
@@ -370,7 +370,7 @@ class Exchange(object):
         self.transactions = dict() if self.transactions is None else self.transactions
         self.ohlcvs = dict() if self.ohlcvs is None else self.ohlcvs
         self.liquidations = dict() if self.liquidations is None else self.liquidations
-        #
+
         self.options = self.get_default_options() if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
         self.decimal_to_precision = decimal_to_precision
         self.number_to_string = number_to_string
