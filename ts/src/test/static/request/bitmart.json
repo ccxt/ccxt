@@ -256,7 +256,7 @@
                   "market",
                   "buy",
                   1,
-                  0,
+                  null,
                   {
                     "triggerPrice": 55
                   }

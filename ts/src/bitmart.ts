@@ -2667,7 +2667,7 @@ export default class bitmart extends Exchange {
             request['activation_price_type'] = this.safeInteger (params, 'activation_price_type', 1);
         }
         if (isTriggerOrder) {
-            if (isLimitOrder || price !== 0) {
+            if (isLimitOrder || price !== undefined) {
                 request['executive_price'] = this.priceToPrecision (symbol, price);
             }
             request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
