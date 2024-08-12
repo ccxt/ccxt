@@ -1307,28 +1307,22 @@ export default class bybit extends Exchange {
         return amountString;
     }
 
-    getPrice (symbol: string, price: number) {
+    getPrice (symbol: string, price: string) {
         const market = this.market (symbol);
         const emptyPrecisionPrice = (market['precision']['price'] === undefined);
-        let priceString = undefined;
-        if (emptyPrecisionPrice) {
-            priceString = this.numberToString (price);
-        } else {
-            priceString = this.priceToPrecision (symbol, price);
+        if (!emptyPrecisionPrice) {
+            return this.priceToPrecision (symbol, price);
         }
-        return priceString;
+        return price;
     }
 
     getCost (symbol: string, cost: string) {
         const market = this.market (symbol);
         const emptyPrecisionPrice = (market['precision']['price'] === undefined);
-        let costString = undefined;
-        if (emptyPrecisionPrice) {
-            costString = cost;
-        } else {
-            costString = this.costToPrecision (symbol, cost);
+        if (!emptyPrecisionPrice) {
+            return this.costToPrecision (symbol, cost);
         }
-        return costString;
+        return cost;
     }
 
     async fetchTime (params = {}) {
@@ -3700,7 +3694,7 @@ export default class bybit extends Exchange {
         const isBuy = side === 'buy';
         const isAlternativeEndpoint = defaultMethod === 'privatePostV5PositionTradingStop';
         const amountString = this.getAmount (symbol, amount);
-        const priceString = this.getPrice (symbol, price);
+        const priceString = this.getPrice (symbol, this.numberToString (price));
         if (isTrailingAmountOrder || isAlternativeEndpoint) {
             if (isStopLoss || isTakeProfit || isTriggerOrder || market['spot']) {
                 throw new InvalidOrder (this.id + ' the API endpoint used only supports contract trailingAmount, stopLossPrice and takeProfitPrice orders');
@@ -3987,7 +3981,7 @@ export default class bybit extends Exchange {
         const isMarket = lowerCaseType === 'market';
         const isLimit = lowerCaseType === 'limit';
         if (isLimit !== undefined) {
-            request['orderPrice'] = this.getPrice (symbol, price);
+            request['orderPrice'] = this.getPrice (symbol, this.numberToString (price));
         }
         const exchangeSpecificParam = this.safeString (params, 'time_in_force');
         const timeInForce = this.safeStringLower (params, 'timeInForce');
@@ -4160,7 +4154,7 @@ export default class bybit extends Exchange {
             request['qty'] = this.getAmount (symbol, amount);
         }
         if (price !== undefined) {
-            request['price'] = this.getPrice (symbol, price);
+            request['price'] = this.getPrice (symbol, this.numberToString (price));
         }
         let triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const stopLossTriggerPrice = this.safeString (params, 'stopLossPrice');
