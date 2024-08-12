@@ -619,7 +619,7 @@ export default class Exchange {
         }
     }
 
-    encodeURIComponent (...args) {
+    encodeURIComponent (...args: any) {
         // @ts-expect-error
         return encodeURIComponent (...args)
     }
@@ -734,7 +734,7 @@ export default class Exchange {
         }
     }
 
-    log (... args) {
+    log (...args: any) {
         console.log (... args)
     }
 
@@ -1127,7 +1127,7 @@ export default class Exchange {
         }
     }
 
-    spawn(method, ...args) {
+    spawn(method: any, ...args: any) {
         const future = Future();
         // using setTimeout 0 to force the execution to run after the future is returned
         setTimeout(() => {
@@ -1136,7 +1136,7 @@ export default class Exchange {
         return future;
     }
 
-    delay (timeout, method, ... args) {
+    delay (timeout: number, method: any, ...args: any) {
         setTimeout (() => {
             this.spawn (method, ... args)
         }, timeout);
@@ -1158,7 +1158,7 @@ export default class Exchange {
         return new CountedOrderBook (snapshot, depth);
     }
 
-    handleMessage (client, message) {} // stub to override
+    handleMessage (client: Client, message) {} // stub to override
 
     // ping (client: Client) {} // stub to override
 
@@ -1369,18 +1369,18 @@ export default class Exchange {
         return future;
     }
 
-    onConnected (client, message = undefined) {
+    onConnected (client: Client, message = undefined) {
         // for user hooks
         // console.log ('Connected to', client.url)
     }
 
-    onError (client, error) {
+    onError (client: Client, error: Error) {
         if ((client.url in this.clients) && (this.clients[client.url].error)) {
             delete this.clients[client.url];
         }
     }
 
-    onClose (client, error) {
+    onClose (client: Client, error: Error) {
         if (client.error) {
             // connection closed due to an error, do nothing
         } else {
@@ -2201,7 +2201,7 @@ export default class Exchange {
         }
     }
 
-    findMessageHashes (client, element: string): string[] {
+    findMessageHashes (client: Client, element: string): string[] {
         const result = [];
         const messageHashes = Object.keys (client.futures);
         for (let i = 0; i < messageHashes.length; i++) {
