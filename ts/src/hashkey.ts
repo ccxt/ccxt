@@ -179,7 +179,7 @@ export default class hashkey extends Exchange {
                         'api/v1/futures/positions': 1,
                         'api/v1/futures/historyOrders': 1,
                         'api/v1/futures/balance': 1,
-                        'api/v1/futures/liquidationAssignStatus': 1, // todo ask
+                        'api/v1/futures/liquidationAssignStatus': 1,
                         'api/v1/futures/riskLimit': 1, // not unified
                         'api/v1/futures/commissionRate': 1,
                         'api/v1/futures/getBestOrder': 1, // not unified
@@ -324,6 +324,7 @@ export default class hashkey extends Exchange {
                     'Dogecoin': 'DOGE',
                     'Merlin Chain': 'Merlin Chain', // todo check
                     'zkSync': 'zkSync', // todo check
+                    'TRC20': 'TRC20',
                     'Tron': 'TRC20',
                     'TON': 'TON', // todo check
                     'BSC(BEP20)': 'BSC',
@@ -1354,7 +1355,7 @@ export default class hashkey extends Exchange {
         //         "type": "LIMIT",
         //         "side": "BUY_OPEN",
         //         "realizedPnl": "0",
-        //         "isMarker": false // todo report
+        //         "isMarker": false
         //     }
         const timestamp = this.safeInteger2 (trade, 't', 'time');
         const marketId = this.safeString (trade, 'symbol');
@@ -1615,7 +1616,7 @@ export default class hashkey extends Exchange {
     }
 
     parseLastPrice (entry, market: Market = undefined): LastPrice {
-        const marketId = this.safeString (entry, 's'); // todo check fetchLastPrices() could return more markets than fetchMarkets()
+        const marketId = this.safeString (entry, 's');
         market = this.safeMarket (marketId, market);
         return {
             'symbol': market['symbol'],
@@ -1834,7 +1835,7 @@ export default class hashkey extends Exchange {
         const request: Dict = {};
         let currency: Currency = undefined;
         if (code !== undefined) {
-            currency = this.currency (code); // todo format is chain_coin, such as ETH_USDT for USDT coin issued on Ethereum
+            currency = this.currency (code);
             request['coin'] = currency['id'];
         }
         if (since !== undefined) {
@@ -2055,9 +2056,9 @@ export default class hashkey extends Exchange {
             '2': 'pending',
             '3': 'failed',
             '4': 'ok',
-            '5': 'pending', // todo refund status
-            '6': 'ok', // todo refund status
-            '7': 'failed', // todo refund status
+            '5': 'pending',
+            '6': 'ok',
+            '7': 'failed',
             '8': 'cancelled',
             '9': 'failed',
             '10': 'failed',
@@ -2180,8 +2181,8 @@ export default class hashkey extends Exchange {
         const types: Dict = {
             '1': 'spot account',
             '3': 'swap account',
-            '5': 'custody account', // todo check
-            '6': 'fiat account', // todo check
+            '5': 'custody account',
+            '6': 'fiat account',
         };
         return this.safeString (types, type, type);
     }
@@ -2616,11 +2617,9 @@ export default class hashkey extends Exchange {
         if (timeInForce !== undefined) {
             request['timeInForce'] = timeInForce;
         }
-        let clientOrderId = this.safeString (params, 'clientOrderId');
+        const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId === undefined) {
-            // throw new ArgumentsRequired (this.id + ' createSwapOrder() requires a clientOrderId parameter');
-            clientOrderId = this.milliseconds ().toString (); // todo delete it after check
-            request['clientOrderId'] = clientOrderId;
+            throw new ArgumentsRequired (this.id + ' createSwapOrder() requires a clientOrderId parameter');
         }
         const triggerPrice = this.safeNumber (params, 'triggerPrice');
         if (triggerPrice !== undefined) {
@@ -3046,7 +3045,7 @@ export default class hashkey extends Exchange {
             let isTrigger = false;
             [ isTrigger, params ] = this.handleTriggerOptionAndParams (params, methodName, isTrigger);
             if (isTrigger) {
-                request['type'] = 'STOP'; // todo report type is not mandatory
+                request['type'] = 'STOP';
             }
             response = await this.privateGetApiV1FuturesOrder (this.extend (request, params));
             //
@@ -3343,7 +3342,7 @@ export default class hashkey extends Exchange {
         let response = undefined;
         if (marketType === 'spot') {
             if (market !== undefined) {
-                request['symbol'] = market['id']; // todo: report - symbol is not mandatory for spot markets
+                request['symbol'] = market['id'];
             }
             let orderId: Str = undefined;
             [ orderId, params ] = this.handleOptionAndParams (params, methodName, 'orderId');
@@ -3726,7 +3725,7 @@ export default class hashkey extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const request: Dict = {
-            'timestamp': this.milliseconds (), // todo report the exchange accepts any integer
+            'timestamp': this.milliseconds (),
         };
         const response = await this.publicGetApiV1FuturesFundingRate (this.extend (request, params));
         //
@@ -3798,7 +3797,6 @@ export default class hashkey extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        // todo report timestamp is not mandatory
         const response = await this.publicGetApiV1FuturesHistoryFundingRate (this.extend (request, params));
         //
         //     [
@@ -4116,7 +4114,7 @@ export default class hashkey extends Exchange {
                 'tier': this.sum (i, 1),
                 'currency': market['settle'],
                 'minNotional': undefined,
-                'maxNotional': this.safeNumber (tier, 'quantity'), // todo check
+                'maxNotional': this.safeNumber (tier, 'quantity'),
                 'maintenanceMarginRate': this.safeNumber (tier, 'maintMargin'),
                 'maxLeverage': this.parseNumber (Precise.stringDiv ('1', initialMarginRate)),
                 'info': tier,
