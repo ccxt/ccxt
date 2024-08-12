@@ -5465,10 +5465,12 @@ class bybit(Exchange, ImplicitAPI):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :see: https://bybit-exchange.github.io/docs/v5/account/transaction-log
+        :see: https://bybit-exchange.github.io/docs/v5/account/contract-transaction-log
         :param str code: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entrys to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.subType]: if inverse will use v5/account/contract-transaction-log
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
         self.load_markets()
@@ -5506,9 +5508,14 @@ class bybit(Exchange, ImplicitAPI):
             request[currencyKey] = currency['id']
         if limit is not None:
             request['limit'] = limit
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchLedger', None, params)
         response = None
         if enableUnified[1]:
-            response = self.privateGetV5AccountTransactionLog(self.extend(request, params))
+            if subType == 'inverse':
+                response = self.privateGetV5AccountContractTransactionLog(self.extend(request, params))
+            else:
+                response = self.privateGetV5AccountTransactionLog(self.extend(request, params))
         else:
             response = self.privateGetV2PrivateWalletFundRecords(self.extend(request, params))
         #

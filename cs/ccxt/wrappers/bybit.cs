@@ -1512,6 +1512,7 @@ public partial class bybit
     /// </summary>
     /// <remarks>
     /// See <see href="https://bybit-exchange.github.io/docs/v5/account/transaction-log"/>  <br/>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/account/contract-transaction-log"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1529,6 +1530,12 @@ public partial class bybit
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : if inverse will use v5/account/contract-transaction-log
     /// </description>
     /// </item>
     /// </list>

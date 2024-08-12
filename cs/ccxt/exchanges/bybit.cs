@@ -6299,10 +6299,12 @@ public partial class bybit : Exchange
         * @name bybit#fetchLedger
         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
         * @see https://bybit-exchange.github.io/docs/v5/account/transaction-log
+        * @see https://bybit-exchange.github.io/docs/v5/account/contract-transaction-log
         * @param {string} code unified currency code, default is undefined
         * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
         * @param {int} [limit] max number of ledger entrys to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.subType] if inverse will use v5/account/contract-transaction-log
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -6334,10 +6336,20 @@ public partial class bybit : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams("fetchLedger", null, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
         object response = null;
         if (isTrue(getValue(enableUnified, 1)))
         {
-            response = await this.privateGetV5AccountTransactionLog(this.extend(request, parameters));
+            if (isTrue(isEqual(subType, "inverse")))
+            {
+                response = await this.privateGetV5AccountContractTransactionLog(this.extend(request, parameters));
+            } else
+            {
+                response = await this.privateGetV5AccountTransactionLog(this.extend(request, parameters));
+            }
         } else
         {
             response = await this.privateGetV2PrivateWalletFundRecords(this.extend(request, parameters));
