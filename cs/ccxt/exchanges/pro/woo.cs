@@ -715,7 +715,7 @@ public partial class woo : ccxt.woo
                 } },
             };
             object message = this.extend(request, parameters);
-            this.watch(url, messageHash, message, messageHash);
+            this.watch(url, messageHash, message, messageHash, message);
         }
         return await (future as Exchange.Future);
     }
@@ -1081,7 +1081,7 @@ public partial class woo : ccxt.woo
         var client = this.client(url);
         this.setPositionsCache(client as WebSocketClient, symbols);
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-        object awaitPositionsSnapshot = this.safeBool("watchPositions", "awaitPositionsSnapshot", true);
+        object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
         if (isTrue(isTrue(isTrue(fetchPositionsSnapshot) && isTrue(awaitPositionsSnapshot)) && isTrue(isEqual(this.positions, null))))
         {
             object snapshot = await client.future("fetchPositionsSnapshot");

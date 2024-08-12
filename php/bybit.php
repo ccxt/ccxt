@@ -236,6 +236,7 @@ class bybit extends Exchange {
                 ),
                 'private' => array(
                     'get' => array(
+                        'v5/market/instruments-info' => 5,
                         // Legacy inverse swap
                         'v2/private/wallet/fund/records' => 25, // 120 per minute = 2 per second => cost = 50 / 2 = 25
                         // spot
@@ -981,6 +982,7 @@ class bybit extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'options' => array(
+                'usePrivateInstrumentsInfo' => false,
                 'sandboxMode' => false,
                 'enableDemoTrading' => false,
                 'fetchMarkets' => array( 'spot', 'linear', 'inverse', 'option' ),
@@ -1470,7 +1472,13 @@ class bybit extends Exchange {
         $request = array(
             'category' => 'spot',
         );
-        $response = $this->publicGetV5MarketInstrumentsInfo ($this->extend($request, $params));
+        $usePrivateInstrumentsInfo = $this->safe_bool($this->options, 'usePrivateInstrumentsInfo', false);
+        $response = null;
+        if ($usePrivateInstrumentsInfo) {
+            $response = $this->privateGetV5MarketInstrumentsInfo ($this->extend($request, $params));
+        } else {
+            $response = $this->publicGetV5MarketInstrumentsInfo ($this->extend($request, $params));
+        }
         //
         //     {
         //         "retCode" => 0,
@@ -1581,14 +1589,25 @@ class bybit extends Exchange {
     public function fetch_future_markets($params) {
         $params = $this->extend($params);
         $params['limit'] = 1000; // minimize number of requests
-        $response = $this->publicGetV5MarketInstrumentsInfo ($params);
+        $usePrivateInstrumentsInfo = $this->safe_bool($this->options, 'usePrivateInstrumentsInfo', false);
+        $response = null;
+        if ($usePrivateInstrumentsInfo) {
+            $response = $this->privateGetV5MarketInstrumentsInfo ($params);
+        } else {
+            $response = $this->publicGetV5MarketInstrumentsInfo ($params);
+        }
         $data = $this->safe_dict($response, 'result', array());
         $markets = $this->safe_list($data, 'list', array());
         $paginationCursor = $this->safe_string($data, 'nextPageCursor');
         if ($paginationCursor !== null) {
             while ($paginationCursor !== null) {
                 $params['cursor'] = $paginationCursor;
-                $responseInner = $this->publicGetV5MarketInstrumentsInfo ($params);
+                $responseInner = null;
+                if ($usePrivateInstrumentsInfo) {
+                    $responseInner = $this->privateGetV5MarketInstrumentsInfo ($params);
+                } else {
+                    $responseInner = $this->publicGetV5MarketInstrumentsInfo ($params);
+                }
                 $dataNew = $this->safe_dict($responseInner, 'result', array());
                 $rawMarkets = $this->safe_list($dataNew, 'list', array());
                 $rawMarketsLength = count($rawMarkets);
@@ -1756,7 +1775,13 @@ class bybit extends Exchange {
         $request = array(
             'category' => 'option',
         );
-        $response = $this->publicGetV5MarketInstrumentsInfo ($this->extend($request, $params));
+        $usePrivateInstrumentsInfo = $this->safe_bool($this->options, 'usePrivateInstrumentsInfo', false);
+        $response = null;
+        if ($usePrivateInstrumentsInfo) {
+            $response = $this->privateGetV5MarketInstrumentsInfo ($this->extend($request, $params));
+        } else {
+            $response = $this->publicGetV5MarketInstrumentsInfo ($this->extend($request, $params));
+        }
         $data = $this->safe_dict($response, 'result', array());
         $markets = $this->safe_list($data, 'list', array());
         if ($this->options['loadAllOptions']) {
@@ -1765,7 +1790,12 @@ class bybit extends Exchange {
             if ($paginationCursor !== null) {
                 while ($paginationCursor !== null) {
                     $request['cursor'] = $paginationCursor;
-                    $responseInner = $this->publicGetV5MarketInstrumentsInfo ($this->extend($request, $params));
+                    $responseInner = null;
+                    if ($usePrivateInstrumentsInfo) {
+                        $responseInner = $this->privateGetV5MarketInstrumentsInfo ($this->extend($request, $params));
+                    } else {
+                        $responseInner = $this->publicGetV5MarketInstrumentsInfo ($this->extend($request, $params));
+                    }
                     $dataNew = $this->safe_dict($responseInner, 'result', array());
                     $rawMarkets = $this->safe_list($dataNew, 'list', array());
                     $rawMarketsLength = count($rawMarkets);
@@ -3688,7 +3718,11 @@ class bybit extends Exchange {
             }
         } else {
             if (!$isTrailingAmountOrder && !$isAlternativeEndpoint) {
-                $request['qty'] = $this->amount_to_precision($symbol, $amount);
+                if ($market['option']) {
+                    $request['qty'] = $this->number_to_string($amount);
+                } else {
+                    $request['qty'] = $this->amount_to_precision($symbol, $amount);
+                }
             }
         }
         if ($isTrailingAmountOrder) {
@@ -5750,10 +5784,12 @@ class bybit extends Exchange {
         /**
          * fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @see https://bybit-exchange.github.io/docs/v5/account/transaction-log
+         * @see https://bybit-exchange.github.io/docs/v5/account/contract-transaction-log
          * @param {string} $code unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
          * @param {int} [$limit] max number of ledger entrys to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subType] if inverse will use v5/account/contract-transaction-log
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
          */
         $this->load_markets();
@@ -5796,9 +5832,15 @@ class bybit extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchLedger', null, $params);
         $response = null;
         if ($enableUnified[1]) {
-            $response = $this->privateGetV5AccountTransactionLog ($this->extend($request, $params));
+            if ($subType === 'inverse') {
+                $response = $this->privateGetV5AccountContractTransactionLog ($this->extend($request, $params));
+            } else {
+                $response = $this->privateGetV5AccountTransactionLog ($this->extend($request, $params));
+            }
         } else {
             $response = $this->privateGetV2PrivateWalletFundRecords ($this->extend($request, $params));
         }

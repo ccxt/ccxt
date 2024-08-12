@@ -240,6 +240,7 @@ class bybit extends bybit$1 {
                 },
                 'private': {
                     'get': {
+                        'v5/market/instruments-info': 5,
                         // Legacy inverse swap
                         'v2/private/wallet/fund/records': 25,
                         // spot
@@ -985,6 +986,7 @@ class bybit extends bybit$1 {
             },
             'precisionMode': number.TICK_SIZE,
             'options': {
+                'usePrivateInstrumentsInfo': false,
                 'sandboxMode': false,
                 'enableDemoTrading': false,
                 'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
@@ -1479,7 +1481,14 @@ class bybit extends bybit$1 {
         const request = {
             'category': 'spot',
         };
-        const response = await this.publicGetV5MarketInstrumentsInfo(this.extend(request, params));
+        const usePrivateInstrumentsInfo = this.safeBool(this.options, 'usePrivateInstrumentsInfo', false);
+        let response = undefined;
+        if (usePrivateInstrumentsInfo) {
+            response = await this.privateGetV5MarketInstrumentsInfo(this.extend(request, params));
+        }
+        else {
+            response = await this.publicGetV5MarketInstrumentsInfo(this.extend(request, params));
+        }
         //
         //     {
         //         "retCode": 0,
@@ -1589,14 +1598,27 @@ class bybit extends bybit$1 {
     async fetchFutureMarkets(params) {
         params = this.extend(params);
         params['limit'] = 1000; // minimize number of requests
-        const response = await this.publicGetV5MarketInstrumentsInfo(params);
+        const usePrivateInstrumentsInfo = this.safeBool(this.options, 'usePrivateInstrumentsInfo', false);
+        let response = undefined;
+        if (usePrivateInstrumentsInfo) {
+            response = await this.privateGetV5MarketInstrumentsInfo(params);
+        }
+        else {
+            response = await this.publicGetV5MarketInstrumentsInfo(params);
+        }
         const data = this.safeDict(response, 'result', {});
         let markets = this.safeList(data, 'list', []);
         let paginationCursor = this.safeString(data, 'nextPageCursor');
         if (paginationCursor !== undefined) {
             while (paginationCursor !== undefined) {
                 params['cursor'] = paginationCursor;
-                const responseInner = await this.publicGetV5MarketInstrumentsInfo(params);
+                let responseInner = undefined;
+                if (usePrivateInstrumentsInfo) {
+                    responseInner = await this.privateGetV5MarketInstrumentsInfo(params);
+                }
+                else {
+                    responseInner = await this.publicGetV5MarketInstrumentsInfo(params);
+                }
                 const dataNew = this.safeDict(responseInner, 'result', {});
                 const rawMarkets = this.safeList(dataNew, 'list', []);
                 const rawMarketsLength = rawMarkets.length;
@@ -1765,7 +1787,14 @@ class bybit extends bybit$1 {
         const request = {
             'category': 'option',
         };
-        const response = await this.publicGetV5MarketInstrumentsInfo(this.extend(request, params));
+        const usePrivateInstrumentsInfo = this.safeBool(this.options, 'usePrivateInstrumentsInfo', false);
+        let response = undefined;
+        if (usePrivateInstrumentsInfo) {
+            response = await this.privateGetV5MarketInstrumentsInfo(this.extend(request, params));
+        }
+        else {
+            response = await this.publicGetV5MarketInstrumentsInfo(this.extend(request, params));
+        }
         const data = this.safeDict(response, 'result', {});
         let markets = this.safeList(data, 'list', []);
         if (this.options['loadAllOptions']) {
@@ -1774,7 +1803,13 @@ class bybit extends bybit$1 {
             if (paginationCursor !== undefined) {
                 while (paginationCursor !== undefined) {
                     request['cursor'] = paginationCursor;
-                    const responseInner = await this.publicGetV5MarketInstrumentsInfo(this.extend(request, params));
+                    let responseInner = undefined;
+                    if (usePrivateInstrumentsInfo) {
+                        responseInner = await this.privateGetV5MarketInstrumentsInfo(this.extend(request, params));
+                    }
+                    else {
+                        responseInner = await this.publicGetV5MarketInstrumentsInfo(this.extend(request, params));
+                    }
                     const dataNew = this.safeDict(responseInner, 'result', {});
                     const rawMarkets = this.safeList(dataNew, 'list', []);
                     const rawMarketsLength = rawMarkets.length;
@@ -3751,7 +3786,12 @@ class bybit extends bybit$1 {
         }
         else {
             if (!isTrailingAmountOrder && !isAlternativeEndpoint) {
-                request['qty'] = this.amountToPrecision(symbol, amount);
+                if (market['option']) {
+                    request['qty'] = this.numberToString(amount);
+                }
+                else {
+                    request['qty'] = this.amountToPrecision(symbol, amount);
+                }
             }
         }
         if (isTrailingAmountOrder) {
@@ -5849,10 +5889,12 @@ class bybit extends bybit$1 {
          * @name bybit#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
          * @see https://bybit-exchange.github.io/docs/v5/account/transaction-log
+         * @see https://bybit-exchange.github.io/docs/v5/account/contract-transaction-log
          * @param {string} code unified currency code, default is undefined
          * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.subType] if inverse will use v5/account/contract-transaction-log
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets();
@@ -5896,9 +5938,16 @@ class bybit extends bybit$1 {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
+        let subType = undefined;
+        [subType, params] = this.handleSubTypeAndParams('fetchLedger', undefined, params);
         let response = undefined;
         if (enableUnified[1]) {
-            response = await this.privateGetV5AccountTransactionLog(this.extend(request, params));
+            if (subType === 'inverse') {
+                response = await this.privateGetV5AccountContractTransactionLog(this.extend(request, params));
+            }
+            else {
+                response = await this.privateGetV5AccountTransactionLog(this.extend(request, params));
+            }
         }
         else {
             response = await this.privateGetV2PrivateWalletFundRecords(this.extend(request, params));

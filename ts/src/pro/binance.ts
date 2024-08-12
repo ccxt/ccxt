@@ -209,7 +209,7 @@ export default class binance extends binanceRest {
          * @param {object} [params] exchange specific parameters for the bitmex api endpoint
          * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
          */
-        return this.watchLiquidationsForSymbols ([ symbol ], since, limit, params);
+        return await this.watchLiquidationsForSymbols ([ symbol ], since, limit, params);
     }
 
     async watchLiquidationsForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
@@ -545,6 +545,12 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#watchOrderBook
+         * @see https://binance-docs.github.io/apidocs/spot/en/#partial-book-depth-streams
+         * @see https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream
+         * @see https://binance-docs.github.io/apidocs/futures/en/#partial-book-depth-streams
+         * @see https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#partial-book-depth-streams
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
@@ -595,6 +601,12 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#watchOrderBookForSymbols
+         * @see https://binance-docs.github.io/apidocs/spot/en/#partial-book-depth-streams
+         * @see https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream
+         * @see https://binance-docs.github.io/apidocs/futures/en/#partial-book-depth-streams
+         * @see https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#partial-book-depth-streams
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string[]} symbols unified array of symbols
          * @param {int} [limit] the maximum amount of order book entries to return
@@ -1499,6 +1511,12 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#watchTicker
+         * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-mini-ticker-stream
+         * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-ticker-streams
+         * @see https://binance-docs.github.io/apidocs/futures/en/#all-market-mini-tickers-stream
+         * @see https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-ticker-streams
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#all-market-mini-tickers-stream
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-ticker-streams
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1515,6 +1533,12 @@ export default class binance extends binanceRest {
         /**
          * @method
          * @name binance#watchTickers
+         * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-mini-ticker-stream
+         * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-ticker-streams
+         * @see https://binance-docs.github.io/apidocs/futures/en/#all-market-mini-tickers-stream
+         * @see https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-ticker-streams
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#all-market-mini-tickers-stream
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-ticker-streams
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2053,7 +2077,7 @@ export default class binance extends binanceRest {
          * @param {string|undefined} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
          * @param {string|undefined} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
          * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
-         * @param {string|undefined} [params.method] method to use. Can be account.balance or account.status
+         * @param {string|undefined} [params.method] method to use. Can be account.balance, account.status, v2/account.balance or v2/account.status
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
@@ -2086,8 +2110,15 @@ export default class binance extends binanceRest {
         //
         //
         const messageHash = this.safeString (message, 'id');
-        const result = this.safeDict (message, 'result', {});
-        const rawBalance = this.safeList (result, 0, []);
+        let rawBalance = undefined;
+        if (Array.isArray (message['result'])) {
+            // account.balance
+            rawBalance = this.safeList (message, 'result', []);
+        } else {
+            // account.status
+            const result = this.safeDict (message, 'result', {});
+            rawBalance = this.safeList (result, 'assets', []);
+        }
         const parsedBalances = this.parseBalanceCustom (rawBalance);
         client.resolve (parsedBalances, messageHash);
     }
@@ -2167,6 +2198,7 @@ export default class binance extends binanceRest {
          * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.returnRateLimits] set to true to return rate limit informations, defaults to false.
+         * @param {string|undefined} [params.method] method to use. Can be account.position or v2/account.position
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         await this.loadMarkets ();
@@ -2184,9 +2216,11 @@ export default class binance extends binanceRest {
         let returnRateLimits = false;
         [ returnRateLimits, params ] = this.handleOptionAndParams (params, 'fetchPositionsWs', 'returnRateLimits', false);
         payload['returnRateLimits'] = returnRateLimits;
+        let method = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'fetchPositionsWs', 'method', 'account.position');
         const message: Dict = {
             'id': messageHash,
-            'method': 'account.position',
+            'method': method,
             'params': this.signParams (this.extend (payload, params)),
         };
         const subscription: Dict = {
@@ -3291,7 +3325,7 @@ export default class binance extends binanceRest {
         this.setBalanceCache (client, type, isPortfolioMargin);
         this.setPositionsCache (client, type, symbols, isPortfolioMargin);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
-        const awaitPositionsSnapshot = this.safeBool ('watchPositions', 'awaitPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
         const cache = this.safeValue (this.positions, type);
         if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) {
             const snapshot = await client.future (type + ':fetchPositionsSnapshot');

@@ -844,6 +844,8 @@ export default class Exchange {
     };
     safeLiquidation(liquidation: Dict, market?: Market): Liquidation;
     safeTrade(trade: Dict, market?: Market): Trade;
+    parsedFeeAndFees(container: any): Dictionary<any>[];
+    parseFeeNumeric(fee: any): any;
     findNearestCeiling(arr: number[], providedValue: number): number;
     invertFlatStringDictionary(dict: any): {};
     reduceFeesByCurrency(fees: any): any[];
@@ -1144,7 +1146,7 @@ export default class Exchange {
     fetchPositionHistory(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Position>;
     fetchPositionsHistory(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     parseMarginModification(data: Dict, market?: Market): MarginModification;
-    parseMarginModifications(response: object[], symbols?: string[], symbolKey?: Str, marketType?: MarketType): MarginModification[];
+    parseMarginModifications(response: object[], symbols?: Strings, symbolKey?: Str, marketType?: MarketType): MarginModification[];
     fetchTransfer(id: string, code?: Str, params?: {}): Promise<TransferEntry>;
     fetchTransfers(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<TransferEntry[]>;
 }

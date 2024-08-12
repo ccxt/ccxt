@@ -727,6 +727,19 @@
                 "method": "fetchLedger",
                 "url": "https://api-testnet.bybit.com/v5/account/transaction-log?",
                 "input": []
+            },
+            {
+                "description": "Ledger from inverse wallet",
+                "method": "fetchLedger",
+                "url": "https://api-testnet.bybit.com/v5/account/contract-transaction-log?",
+                "input": [
+                  null,
+                  null,
+                  null,
+                  {
+                    "subType": "inverse"
+                  }
+                ]
             }
         ],
         "fetchTransfers": [

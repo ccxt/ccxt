@@ -80,6 +80,25 @@ export default class bybit extends bybitRest {
                         },
                     },
                 },
+                'demotrading': {
+                    'ws': {
+                        'public': {
+                            'spot': 'wss://stream.{hostname}/v5/public/spot',
+                            'inverse': 'wss://stream.{hostname}/v5/public/inverse',
+                            'option': 'wss://stream.{hostname}/v5/public/option',
+                            'linear': 'wss://stream.{hostname}/v5/public/linear',
+                        },
+                        'private': {
+                            'spot': {
+                                'unified': 'wss://stream-demo.{hostname}/v5/private',
+                                'nonUnified': 'wss://stream-demo.{hostname}/spot/private/v3',
+                            },
+                            'contract': 'wss://stream-demo.{hostname}/v5/private',
+                            'usdc': 'wss://stream-demo.{hostname}/trade/option/usdc/private/v1',
+                            'trade': 'wss://stream-demo.bybit.com/v5/trade',
+                        },
+                    },
+                },
             },
             'options': {
                 'watchTicker': {
@@ -167,7 +186,7 @@ export default class bybit extends bybitRest {
         } else {
             if (isSpot) {
                 url = url[accessibility]['spot'];
-            } else if (type === 'swap') {
+            } else if ((type === 'swap') || (type === 'future')) {
                 let subType = undefined;
                 [ subType, params ] = this.handleSubTypeAndParams (method, market, params, 'linear');
                 url = url[accessibility][subType];
@@ -1125,7 +1144,7 @@ export default class bybit extends bybitRest {
         this.setPositionsCache (client, symbols);
         const cache = this.positions;
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
-        const awaitPositionsSnapshot = this.safeBool ('watchPositions', 'awaitPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
         if (fetchPositionsSnapshot && awaitPositionsSnapshot && cache === undefined) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
@@ -2082,7 +2101,7 @@ export default class bybit extends bybitRest {
             this.handleSubscriptionStatus (client, message);
             return;
         }
-        const topic = this.safeString2 (message, 'topic', 'op');
+        const topic = this.safeString2 (message, 'topic', 'op', '');
         const methods: Dict = {
             'orderbook': this.handleOrderBook,
             'kline': this.handleOHLCV,

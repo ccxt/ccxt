@@ -87,6 +87,25 @@ class bybit(ccxt.async_support.bybit):
                         },
                     },
                 },
+                'demotrading': {
+                    'ws': {
+                        'public': {
+                            'spot': 'wss://stream.{hostname}/v5/public/spot',
+                            'inverse': 'wss://stream.{hostname}/v5/public/inverse',
+                            'option': 'wss://stream.{hostname}/v5/public/option',
+                            'linear': 'wss://stream.{hostname}/v5/public/linear',
+                        },
+                        'private': {
+                            'spot': {
+                                'unified': 'wss://stream-demo.{hostname}/v5/private',
+                                'nonUnified': 'wss://stream-demo.{hostname}/spot/private/v3',
+                            },
+                            'contract': 'wss://stream-demo.{hostname}/v5/private',
+                            'usdc': 'wss://stream-demo.{hostname}/trade/option/usdc/private/v1',
+                            'trade': 'wss://stream-demo.bybit.com/v5/trade',
+                        },
+                    },
+                },
             },
             'options': {
                 'watchTicker': {
@@ -170,7 +189,7 @@ class bybit(ccxt.async_support.bybit):
         else:
             if isSpot:
                 url = url[accessibility]['spot']
-            elif type == 'swap':
+            elif (type == 'swap') or (type == 'future'):
                 subType = None
                 subType, params = self.handle_sub_type_and_params(method, market, params, 'linear')
                 url = url[accessibility][subType]
@@ -1042,7 +1061,7 @@ class bybit(ccxt.async_support.bybit):
         self.set_positions_cache(client, symbols)
         cache = self.positions
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
-        awaitPositionsSnapshot = self.safe_bool('watchPositions', 'awaitPositionsSnapshot', True)
+        awaitPositionsSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
         if fetchPositionsSnapshot and awaitPositionsSnapshot and cache is None:
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
@@ -1923,7 +1942,7 @@ class bybit(ccxt.async_support.bybit):
         if event == 'sub':
             self.handle_subscription_status(client, message)
             return
-        topic = self.safe_string_2(message, 'topic', 'op')
+        topic = self.safe_string_2(message, 'topic', 'op', '')
         methods: dict = {
             'orderbook': self.handle_order_book,
             'kline': self.handle_ohlcv,

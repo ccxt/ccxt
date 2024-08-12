@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.74'
+__version__ = '4.3.79'
 
 # -----------------------------------------------------------------------------
 
@@ -570,7 +570,7 @@ class Exchange(BaseExchange):
 
     async def watch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         if self.has['watchLiquidationsForSymbols']:
-            return self.watch_liquidations_for_symbols([symbol], since, limit, params)
+            return await self.watch_liquidations_for_symbols([symbol], since, limit, params)
         raise NotSupported(self.id + ' watchLiquidations() is not supported yet')
 
     async def watch_liquidations_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):

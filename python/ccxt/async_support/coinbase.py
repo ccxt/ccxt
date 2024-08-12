@@ -278,8 +278,8 @@ class coinbase(Exchange, ImplicitAPI):
             },
             'fees': {
                 'trading': {
-                    'taker': self.parse_number('0.006'),
-                    'maker': self.parse_number('0.004'),
+                    'taker': self.parse_number('0.012'),
+                    'maker': self.parse_number('0.006'),  # {"pricing_tier":"Advanced 1","usd_from":"0","usd_to":"1000","taker_fee_rate":"0.012","maker_fee_rate":"0.006","aop_from":"","aop_to":""}
                     'tierBased': True,
                     'percentage': True,
                     'tiers': {
@@ -1327,6 +1327,10 @@ class coinbase(Exchange, ImplicitAPI):
         marketType = self.safe_string_lower(market, 'product_type')
         tradingDisabled = self.safe_bool(market, 'trading_disabled')
         stablePairs = self.safe_list(self.options, 'stablePairs', [])
+        defaultTakerFee = self.safe_number(self.fees['trading'], 'taker')
+        defaultMakerFee = self.safe_number(self.fees['trading'], 'maker')
+        takerFee = 0.00001 if self.in_array(id, stablePairs) else self.safe_number(feeTier, 'taker_fee_rate', defaultTakerFee)
+        makerFee = 0.0 if self.in_array(id, stablePairs) else self.safe_number(feeTier, 'maker_fee_rate', defaultMakerFee)
         return self.safe_market_structure({
             'id': id,
             'symbol': base + '/' + quote,
@@ -1346,8 +1350,8 @@ class coinbase(Exchange, ImplicitAPI):
             'contract': False,
             'linear': None,
             'inverse': None,
-            'taker': 0.00001 if self.in_array(id, stablePairs) else self.safe_number(feeTier, 'taker_fee_rate'),
-            'maker': 0.0 if self.in_array(id, stablePairs) else self.safe_number(feeTier, 'maker_fee_rate'),
+            'taker': takerFee,
+            'maker': makerFee,
             'contractSize': None,
             'expiry': None,
             'expiryDatetime': None,

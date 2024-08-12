@@ -3417,8 +3417,8 @@ class gate extends Exchange {
         $side = $this->safe_string_2($trade, 'side', 'type', $contractSide);
         $orderId = $this->safe_string($trade, 'order_id');
         $feeAmount = $this->safe_string($trade, 'fee');
-        $gtFee = $this->safe_string($trade, 'gt_fee');
-        $pointFee = $this->safe_string($trade, 'point_fee');
+        $gtFee = $this->omit_zero($this->safe_string($trade, 'gt_fee'));
+        $pointFee = $this->omit_zero($this->safe_string($trade, 'point_fee'));
         $fees = array();
         if ($feeAmount !== null) {
             $feeCurrencyId = $this->safe_string($trade, 'fee_currency');

@@ -281,7 +281,7 @@ public partial class kraken
     /// create a market order by providing the symbol, side and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Trading/operation/addOrder"/>  <br/>
+    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -301,7 +301,7 @@ public partial class kraken
     /// create a market buy order by providing the symbol, side and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Trading/operation/addOrder"/>  <br/>
+    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -321,7 +321,7 @@ public partial class kraken
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Trading/operation/addOrder"/>  <br/>
+    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -396,7 +396,7 @@ public partial class kraken
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Trading/operation/editOrder"/>  <br/>
+    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Trading/operation/editOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>

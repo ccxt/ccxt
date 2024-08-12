@@ -254,6 +254,7 @@ class bybit(Exchange, ImplicitAPI):
                 },
                 'private': {
                     'get': {
+                        'v5/market/instruments-info': 5,
                         # Legacy inverse swap
                         'v2/private/wallet/fund/records': 25,  # 120 per minute = 2 per second => cost = 50 / 2 = 25
                         # spot
@@ -999,6 +1000,7 @@ class bybit(Exchange, ImplicitAPI):
             },
             'precisionMode': TICK_SIZE,
             'options': {
+                'usePrivateInstrumentsInfo': False,
                 'sandboxMode': False,
                 'enableDemoTrading': False,
                 'fetchMarkets': ['spot', 'linear', 'inverse', 'option'],
@@ -1457,7 +1459,12 @@ class bybit(Exchange, ImplicitAPI):
         request: dict = {
             'category': 'spot',
         }
-        response = self.publicGetV5MarketInstrumentsInfo(self.extend(request, params))
+        usePrivateInstrumentsInfo = self.safe_bool(self.options, 'usePrivateInstrumentsInfo', False)
+        response: dict = None
+        if usePrivateInstrumentsInfo:
+            response = self.privateGetV5MarketInstrumentsInfo(self.extend(request, params))
+        else:
+            response = self.publicGetV5MarketInstrumentsInfo(self.extend(request, params))
         #
         #     {
         #         "retCode": 0,
@@ -1566,14 +1573,23 @@ class bybit(Exchange, ImplicitAPI):
     def fetch_future_markets(self, params):
         params = self.extend(params)
         params['limit'] = 1000  # minimize number of requests
-        response = self.publicGetV5MarketInstrumentsInfo(params)
+        usePrivateInstrumentsInfo = self.safe_bool(self.options, 'usePrivateInstrumentsInfo', False)
+        response: dict = None
+        if usePrivateInstrumentsInfo:
+            response = self.privateGetV5MarketInstrumentsInfo(params)
+        else:
+            response = self.publicGetV5MarketInstrumentsInfo(params)
         data = self.safe_dict(response, 'result', {})
         markets = self.safe_list(data, 'list', [])
         paginationCursor = self.safe_string(data, 'nextPageCursor')
         if paginationCursor is not None:
             while(paginationCursor is not None):
                 params['cursor'] = paginationCursor
-                responseInner = self.publicGetV5MarketInstrumentsInfo(params)
+                responseInner: dict = None
+                if usePrivateInstrumentsInfo:
+                    responseInner = self.privateGetV5MarketInstrumentsInfo(params)
+                else:
+                    responseInner = self.publicGetV5MarketInstrumentsInfo(params)
                 dataNew = self.safe_dict(responseInner, 'result', {})
                 rawMarkets = self.safe_list(dataNew, 'list', [])
                 rawMarketsLength = len(rawMarkets)
@@ -1730,7 +1746,12 @@ class bybit(Exchange, ImplicitAPI):
         request: dict = {
             'category': 'option',
         }
-        response = self.publicGetV5MarketInstrumentsInfo(self.extend(request, params))
+        usePrivateInstrumentsInfo = self.safe_bool(self.options, 'usePrivateInstrumentsInfo', False)
+        response: dict = None
+        if usePrivateInstrumentsInfo:
+            response = self.privateGetV5MarketInstrumentsInfo(self.extend(request, params))
+        else:
+            response = self.publicGetV5MarketInstrumentsInfo(self.extend(request, params))
         data = self.safe_dict(response, 'result', {})
         markets = self.safe_list(data, 'list', [])
         if self.options['loadAllOptions']:
@@ -1739,7 +1760,11 @@ class bybit(Exchange, ImplicitAPI):
             if paginationCursor is not None:
                 while(paginationCursor is not None):
                     request['cursor'] = paginationCursor
-                    responseInner = self.publicGetV5MarketInstrumentsInfo(self.extend(request, params))
+                    responseInner: dict = None
+                    if usePrivateInstrumentsInfo:
+                        responseInner = self.privateGetV5MarketInstrumentsInfo(self.extend(request, params))
+                    else:
+                        responseInner = self.publicGetV5MarketInstrumentsInfo(self.extend(request, params))
                     dataNew = self.safe_dict(responseInner, 'result', {})
                     rawMarkets = self.safe_list(dataNew, 'list', [])
                     rawMarketsLength = len(rawMarkets)
@@ -3540,7 +3565,10 @@ class bybit(Exchange, ImplicitAPI):
                 request['qty'] = self.cost_to_precision(symbol, amount)
         else:
             if not isTrailingAmountOrder and not isAlternativeEndpoint:
-                request['qty'] = self.amount_to_precision(symbol, amount)
+                if market['option']:
+                    request['qty'] = self.number_to_string(amount)
+                else:
+                    request['qty'] = self.amount_to_precision(symbol, amount)
         if isTrailingAmountOrder:
             if trailingTriggerPrice is not None:
                 request['activePrice'] = self.price_to_precision(symbol, trailingTriggerPrice)
@@ -5437,10 +5465,12 @@ class bybit(Exchange, ImplicitAPI):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
         :see: https://bybit-exchange.github.io/docs/v5/account/transaction-log
+        :see: https://bybit-exchange.github.io/docs/v5/account/contract-transaction-log
         :param str code: unified currency code, default is None
         :param int [since]: timestamp in ms of the earliest ledger entry, default is None
         :param int [limit]: max number of ledger entrys to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.subType]: if inverse will use v5/account/contract-transaction-log
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
         self.load_markets()
@@ -5478,9 +5508,14 @@ class bybit(Exchange, ImplicitAPI):
             request[currencyKey] = currency['id']
         if limit is not None:
             request['limit'] = limit
+        subType = None
+        subType, params = self.handle_sub_type_and_params('fetchLedger', None, params)
         response = None
         if enableUnified[1]:
-            response = self.privateGetV5AccountTransactionLog(self.extend(request, params))
+            if subType == 'inverse':
+                response = self.privateGetV5AccountContractTransactionLog(self.extend(request, params))
+            else:
+                response = self.privateGetV5AccountTransactionLog(self.extend(request, params))
         else:
             response = self.privateGetV2PrivateWalletFundRecords(self.extend(request, params))
         #

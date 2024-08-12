@@ -1209,7 +1209,6 @@ class bingx extends bingx$1 {
             'fee': {
                 'cost': this.parseNumber(Precise["default"].stringAbs(this.safeString2(trade, 'commission', 'n'))),
                 'currency': currencyCode,
-                'rate': undefined,
             },
         }, market);
     }
