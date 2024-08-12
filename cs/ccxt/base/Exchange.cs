@@ -504,11 +504,6 @@ public partial class Exchange
         return (obj as List<string>).ToList();
     }
 
-    public bool checkAddress(object address)
-    {
-        return true;
-    }
-
     public int parseTimeframe(object timeframe2)
     {
         var timeframe = (string)timeframe2;
@@ -552,11 +547,6 @@ public partial class Exchange
 
     public void initThrottler() {
         this.throttler = new Throttler(this.tokenBucket);
-    }
-
-    public async Task throttle(object cost)
-    {
-        await (await this.throttler.throttle(cost));
     }
 
     public object clone(object o)
@@ -735,6 +725,11 @@ public partial class Exchange
             res.Add(item.ToString());
         }
         return res;
+    }
+
+    public async Task throttle(object cost)
+    {
+        await (await this.throttler.throttle(cost));
     }
 
     public Task sleep(object ms)

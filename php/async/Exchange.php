@@ -930,6 +930,19 @@ class Exchange extends \ccxt\Exchange {
         }
     }
 
+    public function check_address(?string $address = null) {
+        if ($address === null) {
+            throw new InvalidAddress($this->id . ' $address is null');
+        }
+        // check the $address is not the same letter like 'aaaaa' nor too short nor has a space
+        $uniqChars = ($this->unique($this->string_to_chars_array($address)));
+        $length = count($uniqChars); // py transpiler trick
+        if ($length === 1 || strlen($address) < $this->minFundingAddressLength || mb_strpos($address, ' ') > -1) {
+            throw new InvalidAddress($this->id . ' $address is invalid or has less than ' . (string) $this->minFundingAddressLength . ' characters => "' . (string) $address . '"');
+        }
+        return $address;
+    }
+
     public function find_message_hashes($client, string $element) {
         $result = array();
         $messageHashes = is_array($client->futures) ? array_keys($client->futures) : array();
@@ -1386,98 +1399,7 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function after_construct() {
-        // init predefined markets if any
-        if ($this->markets) {
-            $this->set_markets($this->markets);
-        }
-        // init the request rate limiter
-        $this->init_rest_rate_limiter();
-        // networks
         $this->create_networks_by_id_object();
-        // sanbox mode
-        $isSandbox = $this->safe_bool_2($this->options, 'sandbox', 'testnet', false);
-        if ($isSandbox) {
-            $this->set_sandbox_mode($isSandbox);
-        }
-    }
-
-    public function init_properties() {
-        // placeholders for cached data
-        $defaultPrecision = array( 'amount' => null, 'price' => null );
-        $this->precision = ($this->precision === null) ? $defaultPrecision : $this->precision;
-        $this->limits = ($this->limits === null) ? array() : $this->limits;
-        $this->exceptions = ($this->exceptions === null) ? array() : $this->exceptions;
-        $this->headers = ($this->headers === null) ? array() : $this->headers;
-        $this->balance = ($this->balance === null) ? array() : $this->balance;
-        $this->orderbooks = ($this->orderbooks === null) ? array() : $this->orderbooks;
-        $this->fundingRates = ($this->fundingRates === null) ? array() : $this->fundingRates;
-        $this->tickers = ($this->tickers === null) ? array() : $this->tickers;
-        $this->bidsasks = ($this->bidsasks === null) ? array() : $this->bidsasks;
-        $this->trades = ($this->trades === null) ? array() : $this->trades;
-        $this->transactions = ($this->transactions === null) ? array() : $this->transactions;
-        $this->ohlcvs = ($this->ohlcvs === null) ? array() : $this->ohlcvs;
-        $this->liquidations = ($this->liquidations === null) ? array() : $this->liquidations;
-        $this->myLiquidations = ($this->myLiquidations === null) ? array() : $this->myLiquidations;
-        $this->currencies = ($this->currencies === null) ? array() : $this->currencies;
-        $this->orders = null;
-        $this->myTrades = null;
-        $this->positions = null;
-        //
-        // underlying properties
-        //
-        $this->minFundingAddressLength = 1; // used in checkAddress
-        $this->substituteCommonCurrencyCodes = true;  // reserved
-        $this->quoteJsonNumbers = true; // treat numbers in json precise strings
-        // whether fees should be summed by currency code
-        $this->reduceFees = true;
-        $this->validateServerSsl = true;
-        $this->validateClientSsl = false;
-        // default property values
-        $this->timeout = 10000; // milliseconds
-        $this->verbose = false;
-        $this->twofa = null; // two-factor authentication (2FA)
-        // default credentials
-        $this->apiKey = null;
-        $this->secret = null;
-        $this->uid = null;
-        $this->login = null;
-        $this->password = null;
-        $this->privateKey = null; // a "0x"-prefixed hexstring private key for a wallet
-        $this->walletAddress = null; // a wallet address "0x"-prefixed hexstring
-        $this->token = null;  // reserved for HTTP auth in some cases
-        // web3 and cryptography flags
-        $this->requiresWeb3 = false;
-        $this->requiresEddsa = false;
-        // response handling flags and properties
-        $this->lastRestRequestTimestamp = 0;
-        $this->enableLastJsonResponse = true;
-        $this->enableLastHttpResponse = true;
-        $this->enableLastResponseHeaders = true;
-        $this->last_http_response = null;
-        $this->last_json_response = null;
-        $this->last_response_headers = null;
-        $this->last_request_headers = null;
-        $this->last_request_body = null;
-        $this->last_request_url = null;
-        $this->last_request_path = null;
-    }
-
-    public function init_rest_rate_limiter() {
-        if ($this->rateLimit === null || ($this->id !== null && $this->rateLimit === -1)) {
-            throw new ExchangeError($this->id . '.rateLimit property is not configured');
-        }
-        $refillRate = ($this->rateLimit > 0) ? (1 / $this->rateLimit) : $this->MAX_VALUE;
-        $defaultBucket = array(
-            'delay' => 0.001,
-            'capacity' => 1,
-            'cost' => 1,
-            'maxCapacity' => 1000,
-            'refillRate' => $refillRate,
-        );
-        $existingBucket = ($this->tokenBucket === null) ? array() : $this->tokenBucket;
-        $extended = $this->extend($defaultBucket, $existingBucket);
-        $this->tokenBucket = $extended; // tranpsiler trick
-        $this->init_throttler();
     }
 
     public function orderbook_checksum_message(?string $symbol) {
