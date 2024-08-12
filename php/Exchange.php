@@ -2832,6 +2832,19 @@ class Exchange {
         }
     }
 
+    public function check_address(?string $address = null) {
+        if ($address === null) {
+            throw new InvalidAddress($this->id . ' $address is null');
+        }
+        // check the $address is not the same letter like 'aaaaa' nor too short nor has a space
+        $uniqChars = ($this->unique($this->string_to_chars_array($address)));
+        $length = count($uniqChars); // py transpiler trick
+        if ($length === 1 || strlen($address) < $this->minFundingAddressLength || mb_strpos($address, ' ') > -1) {
+            throw new InvalidAddress($this->id . ' $address is invalid or has less than ' . (string) $this->minFundingAddressLength . ' characters => "' . (string) $address . '"');
+        }
+        return $address;
+    }
+
     public function find_message_hashes($client, string $element) {
         $result = array();
         $messageHashes = is_array($client->futures) ? array_keys($client->futures) : array();

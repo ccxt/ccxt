@@ -2304,6 +2304,16 @@ class Exchange(object):
         if proxyAgentSet and proxyUrlSet:
             raise InvalidProxySettings(self.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy')
 
+    def check_address(self, address: Str = None):
+        if address is None:
+            raise InvalidAddress(self.id + ' address is None')
+        # check the address is not the same letter like 'aaaaa' nor too short nor has a space
+        uniqChars = (self.unique(self.string_to_chars_array(address)))
+        length = len(uniqChars)  # py transpiler trick
+        if length == 1 or len(address) < self.minFundingAddressLength or address.find(' ') > -1:
+            raise InvalidAddress(self.id + ' address is invalid or has less than ' + str(self.minFundingAddressLength) + ' characters: "' + str(address) + '"')
+        return address
+
     def find_message_hashes(self, client, element: str):
         result = []
         messageHashes = list(client.futures.keys())

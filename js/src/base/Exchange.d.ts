@@ -311,7 +311,6 @@ export default class Exchange {
     constructor(userConfig?: {});
     encodeURIComponent(...args: any[]): string;
     checkRequiredVersion(requiredVersion: any, error?: boolean): boolean;
-    checkAddress(address: any): any;
     initRestRateLimiter(): void;
     throttle(cost?: any): any;
     defineRestApiEndpoint(methodName: any, uppercaseMethod: any, lowercaseMethod: any, camelcaseMethod: any, path: any, paths: any, config?: {}): void;
@@ -722,6 +721,7 @@ export default class Exchange {
     checkProxySettings(url?: Str, method?: Str, headers?: any, body?: any): any[];
     checkWsProxySettings(): any[];
     checkConflictingProxies(proxyAgentSet: any, proxyUrlSet: any): void;
+    checkAddress(address?: Str): Str;
     findMessageHashes(client: any, element: string): string[];
     filterByLimit(array: object[], limit?: Int, key?: IndexType, fromStart?: boolean): any;
     filterBySinceLimit(array: object[], since?: Int, limit?: Int, key?: IndexType, tail?: boolean): any;
