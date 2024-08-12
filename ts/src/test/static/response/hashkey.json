@@ -91,7 +91,7 @@
                         "takerOrMaker": "taker",
                         "type": null,
                         "order": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "info": {
                             "t": "1723228261453",
                             "p": "60064.04",
@@ -131,7 +131,7 @@
                         "takerOrMaker": "taker",
                         "type": null,
                         "order": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "info": {
                             "t": "1723228382236",
                             "p": "60125.7",
