@@ -304,7 +304,7 @@ export default class hashkey extends Exchange {
                     'OPTIMISM': 'Optimism',
                     'ARB': 'Arbitrum',
                     'DOGE': 'Dogecoin',
-                    'TRC20': 'TRC20',
+                    'TRC20': 'Tron',
                 },
                 'networksById': {
                     'BTC': 'BTC',
@@ -324,7 +324,7 @@ export default class hashkey extends Exchange {
                     'Dogecoin': 'DOGE',
                     'Merlin Chain': 'Merlin Chain', // todo check
                     'zkSync': 'zkSync', // todo check
-                    'TRC20': 'TRC20',
+                    'Tron': 'TRC20',
                     'TON': 'TON', // todo check
                     'BSC(BEP20)': 'BSC',
                     'Klaytn': 'Klaytn', // todo check
@@ -1888,7 +1888,7 @@ export default class hashkey extends Exchange {
             request['coin'] = currency['id'];
         }
         if (since !== undefined) {
-            request['startTime'] = since; // startTime and endTime must be within 7 days of each other
+            request['startTime'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
