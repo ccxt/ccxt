@@ -509,20 +509,6 @@ export default class Exchange {
         //     }
         //
         this.initProperties ();
-        // manual initizalization
-        this.balance = (this.balance === undefined) ? {} : this.balance;
-        this.orderbooks = (this.orderbooks === undefined) ? {} : this.orderbooks;
-        this.fundingRates = (this.fundingRates === undefined) ? {} : this.fundingRates;
-        this.tickers = (this.tickers === undefined) ? {} : this.tickers;
-        this.bidsasks = (this.bidsasks === undefined) ? {} : this.bidsasks;
-        this.trades = (this.trades === undefined) ? {} : this.trades;
-        this.transactions = (this.transactions === undefined) ? {} : this.transactions;
-        this.ohlcvs = (this.ohlcvs === undefined) ? {} : this.ohlcvs;
-        this.liquidations = (this.liquidations === undefined) ? {} : this.liquidations;
-        this.myLiquidations = (this.myLiquidations === undefined) ? {} : this.myLiquidations;
-        this.orders = undefined;
-        this.myTrades = undefined;
-        this.positions = undefined;
         //
         this.options = this.getDefaultOptions(); // exchange-specific options if any
         // http properties
@@ -531,7 +517,18 @@ export default class Exchange {
         this.handleContentTypeApplicationZip = false
         // do not delete this line, it is needed for users to be able to define their own fetchImplementation (JS only)
         this.fetchImplementation = undefined
-
+        // placeholders for cached data
+        this.balance      = {}
+        this.orderbooks   = {}
+        this.tickers      = {}
+        this.liquidations = {}
+        this.orders       = undefined
+        this.trades       = {}
+        this.transactions = {}
+        this.ohlcvs       = {}
+        this.myLiquidations = {}
+        this.myTrades     = undefined
+        this.positions    = undefined
         // camelCase and snake_notation support
         const unCamelCaseProperties = (obj = this) => {
             if (obj !== null) {
