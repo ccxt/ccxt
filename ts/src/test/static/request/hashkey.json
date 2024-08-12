@@ -319,64 +319,6 @@
                     }
                 ],
                 "output": "timestamp=1722865598586&symbol=ETHUSDT&side=SELL&type=LIMIT_MAKER&quantity=0.001&price=2500&signature=a5140d9efb386580af44aae7a014fe1469606cfc800f038bc2f406c1e9beb128"
-            },
-            {
-                "description": "Swap market buy",
-                "method": "createOrder",
-                "url": "https://api-glb.hashkey.com/api/v1/futures/order",
-                "input": [
-                    "ETH/USDT:USDT",
-                    "market",
-                    "buy",
-                    1,
-                    2000
-                ],
-                "output": "timestamp=1722865818744&symbol=ETHUSDT-PERPETUAL&type=LIMIT&quantity=1&priceType=INPUT&price=2000&side=BUY_OPEN&clientOrderId=1722865818243&signature=d7f58a664099765de21646418fe9ce093fb6f1eee33a880638f595ea5281fede"
-            },
-            {
-                "description": "Swap limit buy",
-                "method": "createOrder",
-                "url": "https://api-glb.hashkey.com/api/v1/futures/order",
-                "input": [
-                    "ETH/USDT:USDT",
-                    "limit",
-                    "buy",
-                    1,
-                    2000
-                ],
-                "output": "timestamp=1722865933722&symbol=ETHUSDT-PERPETUAL&type=LIMIT&quantity=1&price=2000&priceType=INPUT&side=BUY_OPEN&clientOrderId=1722865933221&signature=6f81c7464883f06dec6255d033464d6cfbe924eecbaf3acaac2bf449dfba9755"
-            },
-            {
-                "description": "Swap limit buy with trigger price",
-                "method": "createOrder",
-                "url": "https://api-glb.hashkey.com/api/v1/futures/order",
-                "input": [
-                    "ETH/USDT:USDT",
-                    "limit",
-                    "buy",
-                    1,
-                    2000,
-                    {
-                        "triggerPrice": 2500
-                    }
-                ],
-                "output": "timestamp=1722866056829&symbol=ETHUSDT-PERPETUAL&type=STOP&quantity=1&price=2000&priceType=INPUT&side=BUY_OPEN&clientOrderId=1722866056328&stopPrice=2500&triggerPrice=2500&signature=9fea0852198fcf831713a79e130a2391c2428cc67cc4b30fa1af216c1825b691"
-            },
-            {
-                "description": "Swap limit sell with post only set to true",
-                "method": "createOrder",
-                "url": "https://api-glb.hashkey.com/api/v1/futures/order",
-                "input": [
-                    "ETH/USDT:USDT",
-                    "limit",
-                    "sell",
-                    1,
-                    3500,
-                    {
-                        "postOnly": true
-                    }
-                ],
-                "output": "timestamp=1722866300832&symbol=ETHUSDT-PERPETUAL&type=LIMIT&quantity=1&price=3500&priceType=INPUT&side=SELL_OPEN&timeInForce=LIMIT_MAKER&clientOrderId=1722866300331&postOnly=true&signature=6d2ca8d4da7b756b2935c00140a9e3628a8744c9d5788db2881eb7fc7d0f71fc"
             }
         ],
         "cancelOrder": [
