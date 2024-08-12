@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.78'
+__version__ = '4.3.79'
 
 # -----------------------------------------------------------------------------
 
@@ -2236,44 +2236,38 @@ class Exchange(object):
         httpsProxy = None
         socksProxy = None
         # httpProxy
-        if self.value_is_defined(self.httpProxy):
+        isHttpProxyDefined = self.value_is_defined(self.httpProxy)
+        isHttp_proxy_defined = self.value_is_defined(self.http_proxy)
+        if isHttpProxyDefined or isHttp_proxy_defined:
             usedProxies.append('httpProxy')
-            httpProxy = self.httpProxy
-        if self.value_is_defined(self.http_proxy):
-            usedProxies.append('http_proxy')
-            httpProxy = self.http_proxy
-        if self.httpProxyCallback is not None:
+            httpProxy = self.httpProxy if isHttpProxyDefined else self.http_proxy
+        ishttpProxyCallbackDefined = self.value_is_defined(self.httpProxyCallback)
+        ishttp_proxy_callback_defined = self.value_is_defined(self.http_proxy_callback)
+        if ishttpProxyCallbackDefined or ishttp_proxy_callback_defined:
             usedProxies.append('httpProxyCallback')
-            httpProxy = self.httpProxyCallback(url, method, headers, body)
-        if self.http_proxy_callback is not None:
-            usedProxies.append('http_proxy_callback')
-            httpProxy = self.http_proxy_callback(url, method, headers, body)
+            httpProxy = self.httpProxyCallback(url, method, headers, body) if ishttpProxyCallbackDefined else self.http_proxy_callback(url, method, headers, body)
         # httpsProxy
-        if self.value_is_defined(self.httpsProxy):
+        isHttpsProxyDefined = self.value_is_defined(self.httpsProxy)
+        isHttps_proxy_defined = self.value_is_defined(self.https_proxy)
+        if isHttpsProxyDefined or isHttps_proxy_defined:
             usedProxies.append('httpsProxy')
-            httpsProxy = self.httpsProxy
-        if self.value_is_defined(self.https_proxy):
-            usedProxies.append('https_proxy')
-            httpsProxy = self.https_proxy
-        if self.httpsProxyCallback is not None:
+            httpsProxy = self.httpsProxy if isHttpsProxyDefined else self.https_proxy
+        ishttpsProxyCallbackDefined = self.value_is_defined(self.httpsProxyCallback)
+        ishttps_proxy_callback_defined = self.value_is_defined(self.https_proxy_callback)
+        if ishttpsProxyCallbackDefined or ishttps_proxy_callback_defined:
             usedProxies.append('httpsProxyCallback')
-            httpsProxy = self.httpsProxyCallback(url, method, headers, body)
-        if self.https_proxy_callback is not None:
-            usedProxies.append('https_proxy_callback')
-            httpsProxy = self.https_proxy_callback(url, method, headers, body)
+            httpsProxy = self.httpsProxyCallback(url, method, headers, body) if ishttpsProxyCallbackDefined else self.https_proxy_callback(url, method, headers, body)
         # socksProxy
-        if self.value_is_defined(self.socksProxy):
+        isSocksProxyDefined = self.value_is_defined(self.socksProxy)
+        isSocks_proxy_defined = self.value_is_defined(self.socks_proxy)
+        if isSocksProxyDefined or isSocks_proxy_defined:
             usedProxies.append('socksProxy')
-            socksProxy = self.socksProxy
-        if self.value_is_defined(self.socks_proxy):
-            usedProxies.append('socks_proxy')
-            socksProxy = self.socks_proxy
-        if self.socksProxyCallback is not None:
+            socksProxy = self.socksProxy if isSocksProxyDefined else self.socks_proxy
+        issocksProxyCallbackDefined = self.value_is_defined(self.socksProxyCallback)
+        issocks_proxy_callback_defined = self.value_is_defined(self.socks_proxy_callback)
+        if issocksProxyCallbackDefined or issocks_proxy_callback_defined:
             usedProxies.append('socksProxyCallback')
-            socksProxy = self.socksProxyCallback(url, method, headers, body)
-        if self.socks_proxy_callback is not None:
-            usedProxies.append('socks_proxy_callback')
-            socksProxy = self.socks_proxy_callback(url, method, headers, body)
+            socksProxy = self.socksProxyCallback(url, method, headers, body) if issocksProxyCallbackDefined else self.socks_proxy_callback(url, method, headers, body)
         # check
         length = len(usedProxies)
         if length > 1:
@@ -6235,7 +6229,7 @@ class Exchange(object):
     def parse_margin_modification(self, data: dict, market: Market = None):
         raise NotSupported(self.id + ' parseMarginModification() is not supported yet')
 
-    def parse_margin_modifications(self, response: List[object], symbols: List[str] = None, symbolKey: Str = None, marketType: MarketType = None):
+    def parse_margin_modifications(self, response: List[object], symbols: Strings = None, symbolKey: Str = None, marketType: MarketType = None):
         marginModifications = []
         for i in range(0, len(response)):
             info = response[i]

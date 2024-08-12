@@ -74,7 +74,7 @@ class binance(Exchange, ImplicitAPI):
                 'createMarketSellOrderWithCost': True,
                 'createOrder': True,
                 'createOrders': True,
-                'createOrderWithTakeProfitAndStopLoss': True,
+                'createOrderWithTakeProfitAndStopLoss': False,
                 'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
@@ -3472,7 +3472,7 @@ class binance(Exchange, ImplicitAPI):
         #
         # futures(fapi)
         #
-        #     fapiPrivateV2GetAccount
+        #     fapiPrivateV3GetAccount
         #
         #     {
         #         "feeTier":0,
@@ -8377,6 +8377,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://developers.binance.com/docs/wallet/asset/trade-fee
         :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
         :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Config
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
         :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
@@ -8393,7 +8394,7 @@ class binance(Exchange, ImplicitAPI):
         if isSpotOrMargin:
             response = self.sapiGetAssetTradeFee(params)
         elif isLinear:
-            response = self.fapiPrivateV2GetAccount(params)
+            response = self.fapiPrivateGetAccountConfig(params)
         elif isInverse:
             response = self.dapiPrivateGetAccount(params)
         #
@@ -9575,6 +9576,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
         :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
         :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information
+        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V3
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.portfolioMargin]: set to True if you would like to fetch positions in a portfolio margin account
@@ -9693,6 +9695,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information
         :see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-UM-Position-Information
         :see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-CM-Position-Information
+        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V3
         :param str[]|None symbols: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.portfolioMargin]: set to True if you would like to fetch positions for a portfolio margin account
@@ -10048,6 +10051,7 @@ class binance(Exchange, ImplicitAPI):
         :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
         :see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Account-Detail
         :see: https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Account-Detail
+        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
         :param str[] [symbols]: a list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
@@ -10066,7 +10070,7 @@ class binance(Exchange, ImplicitAPI):
             if isPortfolioMargin:
                 response = self.papiGetUmAccount(params)
             else:
-                response = self.fapiPrivateV2GetAccount(params)
+                response = self.fapiPrivateGetSymbolConfig(params)
         elif self.is_inverse(type, subType):
             if isPortfolioMargin:
                 response = self.papiGetCmAccount(params)
@@ -10075,6 +10079,8 @@ class binance(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + ' fetchLeverages() supports linear and inverse contracts only')
         leverages = self.safe_list(response, 'positions', [])
+        if isinstance(response, list):
+            leverages = response
         return self.parse_leverages(leverages, symbols, 'symbol')
 
     def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
@@ -10083,6 +10089,9 @@ class binance(Exchange, ImplicitAPI):
         marginMode = None
         if marginModeRaw is not None:
             marginMode = 'isolated' if marginModeRaw else 'cross'
+        marginTypeRaw = self.safe_string_lower(leverage, 'marginType')
+        if marginTypeRaw is not None:
+            marginMode = 'cross' if (marginTypeRaw == 'crossed') else 'isolated'
         side = self.safe_string_lower(leverage, 'positionSide')
         longLeverage = None
         shortLeverage = None
@@ -11762,6 +11771,7 @@ class binance(Exchange, ImplicitAPI):
         fetches margin modes("isolated" or "cross") that the market for the symbol in in, with symbol=None all markets for a subType(linear/inverse) are returned
         :see: https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
         :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
+        :see: https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
@@ -11776,70 +11786,17 @@ class binance(Exchange, ImplicitAPI):
         subType, params = self.handle_sub_type_and_params('fetchMarginMode', market, params)
         response = None
         if subType == 'linear':
-            response = self.fapiPrivateV2GetAccount(params)
+            response = self.fapiPrivateGetSymbolConfig(params)
             #
-            #    {
-            #        feeTier: '0',
-            #        canTrade: True,
-            #        canDeposit: True,
-            #        canWithdraw: True,
-            #        tradeGroupId: '-1',
-            #        updateTime: '0',
-            #        multiAssetsMargin: True,
-            #        totalInitialMargin: '438.31134352',
-            #        totalMaintMargin: '5.90847101',
-            #        totalWalletBalance: '4345.15626338',
-            #        totalUnrealizedProfit: '376.45220224',
-            #        totalMarginBalance: '4721.60846562',
-            #        totalPositionInitialMargin: '425.45252687',
-            #        totalOpenOrderInitialMargin: '12.85881664',
-            #        totalCrossWalletBalance: '4345.15626338',
-            #        totalCrossUnPnl: '376.45220224',
-            #        availableBalance: '4281.84764041',
-            #        maxWithdrawAmount: '4281.84764041',
-            #        assets: [
-            #            {
-            #                asset: 'ETH',
-            #                walletBalance: '0.00000000',
-            #                unrealizedProfit: '0.00000000',
-            #                marginBalance: '0.00000000',
-            #                maintMargin: '0.00000000',
-            #                initialMargin: '0.00000000',
-            #                positionInitialMargin: '0.00000000',
-            #                openOrderInitialMargin: '0.00000000',
-            #                maxWithdrawAmount: '0.00000000',
-            #                crossWalletBalance: '0.00000000',
-            #                crossUnPnl: '0.00000000',
-            #                availableBalance: '1.26075574',
-            #                marginAvailable: True,
-            #                updateTime: '0'
-            #            },
-            #        ...
-            #        ],
-            #        positions: [
-            #            {
-            #              symbol: 'SNTUSDT',
-            #              initialMargin: '0',
-            #              maintMargin: '0',
-            #              unrealizedProfit: '0.00000000',
-            #              positionInitialMargin: '0',
-            #              openOrderInitialMargin: '0',
-            #              leverage: '20',
-            #              isolated: False,
-            #              entryPrice: '0.0',
-            #              breakEvenPrice: '0.0',
-            #              maxNotional: '25000',
-            #              positionSide: 'BOTH',
-            #              positionAmt: '0',
-            #              notional: '0',
-            #              isolatedWallet: '0',
-            #              updateTime: '0',
-            #              bidNotional: '0',
-            #              askNotional: '0'
-            #            },
-            #            ...
-            #        ]
-            #    }
+            # [
+            #     {
+            #         "symbol": "BTCUSDT",
+            #         "marginType": "CROSSED",
+            #         "isAutoAddMargin": "false",
+            #         "leverage": 21,
+            #         "maxNotionalValue": "1000000",
+            #     }
+            # ]
             #
         elif subType == 'inverse':
             response = self.dapiPrivateGetAccount(params)
@@ -11894,16 +11851,24 @@ class binance(Exchange, ImplicitAPI):
         else:
             raise BadRequest(self.id + ' fetchMarginModes() supports linear and inverse subTypes only')
         assets = self.safe_list(response, 'positions', [])
+        if isinstance(response, list):
+            assets = response
         return self.parse_margin_modes(assets, symbols, 'symbol', 'swap')
 
     def parse_margin_mode(self, marginMode: dict, market=None) -> MarginMode:
         marketId = self.safe_string(marginMode, 'symbol')
         market = self.safe_market(marketId, market)
-        isIsolated = self.safe_bool(marginMode, 'isolated')
+        marginModeRaw = self.safe_bool(marginMode, 'isolated')
+        reMarginMode = None
+        if marginModeRaw is not None:
+            reMarginMode = 'isolated' if marginModeRaw else 'cross'
+        marginTypeRaw = self.safe_string_lower(marginMode, 'marginType')
+        if marginTypeRaw is not None:
+            reMarginMode = 'cross' if (marginTypeRaw == 'crossed') else 'isolated'
         return {
             'info': marginMode,
             'symbol': market['symbol'],
-            'marginMode': 'isolated' if isIsolated else 'cross',
+            'marginMode': reMarginMode,
         }
 
     def fetch_option(self, symbol: str, params={}) -> Option:
