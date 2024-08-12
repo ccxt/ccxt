@@ -7,7 +7,7 @@ import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
-import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, LeverageTier, LeverageTiers, int } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, Order, OHLCV, FundingRateHistory, OpenInterest, OrderRequest, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Greeks, Strings, Market, Currency, MarketInterface, TransferEntry, Liquidation, Leverage, Num, FundingHistory, Option, OptionChain, TradingFeeInterface, Currencies, TradingFees, CancellationRequest, Position, CrossBorrowRate, Dict, LeverageTier, LeverageTiers, int, FundingRate } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -2367,7 +2367,8 @@ export default class bybit extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    parseFundingRate (ticker, market: Market = undefined) {
+    parseFundingRate (contract: Dict, market: Market = undefined): FundingRate {
+        //
         //     {
         //         "symbol": "BTCUSDT",
         //         "bidPrice": "19255",
@@ -2392,16 +2393,16 @@ export default class bybit extends Exchange {
         //         "deliveryTime": "0"
         //     }
         //
-        const timestamp = this.safeInteger (ticker, 'timestamp'); // added artificially to avoid changing the signature
-        ticker = this.omit (ticker, 'timestamp');
-        const marketId = this.safeString (ticker, 'symbol');
+        const timestamp = this.safeInteger (contract, 'timestamp'); // added artificially to avoid changing the signature
+        contract = this.omit (contract, 'timestamp');
+        const marketId = this.safeString (contract, 'symbol');
         const symbol = this.safeSymbol (marketId, market, undefined, 'swap');
-        const fundingRate = this.safeNumber (ticker, 'fundingRate');
-        const fundingTimestamp = this.safeInteger (ticker, 'nextFundingTime');
-        const markPrice = this.safeNumber (ticker, 'markPrice');
-        const indexPrice = this.safeNumber (ticker, 'indexPrice');
+        const fundingRate = this.safeNumber (contract, 'fundingRate');
+        const fundingTimestamp = this.safeInteger (contract, 'nextFundingTime');
+        const markPrice = this.safeNumber (contract, 'markPrice');
+        const indexPrice = this.safeNumber (contract, 'indexPrice');
         return {
-            'info': ticker,
+            'info': contract,
             'symbol': symbol,
             'markPrice': markPrice,
             'indexPrice': indexPrice,

@@ -6,7 +6,7 @@ import { AuthenticationError, RateLimitExceeded, BadRequest, OperationFailed, Ex
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory } from './base/types.js';
+import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory, FundingRate } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -2770,7 +2770,7 @@ export default class woo extends Exchange {
         return this.parseIncomes (result, market, since, limit);
     }
 
-    parseFundingRate (fundingRate, market: Market = undefined) {
+    parseFundingRate (contract: Dict, market: Market = undefined): FundingRate {
         //
         //         {
         //             "symbol":"PERP_AAVE_USDT",
@@ -2781,14 +2781,13 @@ export default class woo extends Exchange {
         //             "next_funding_time":1653634800000
         //         }
         //
-        //
-        const symbol = this.safeString (fundingRate, 'symbol');
+        const symbol = this.safeString (contract, 'symbol');
         market = this.market (symbol);
-        const nextFundingTimestamp = this.safeInteger (fundingRate, 'next_funding_time');
-        const estFundingRateTimestamp = this.safeInteger (fundingRate, 'est_funding_rate_timestamp');
-        const lastFundingRateTimestamp = this.safeInteger (fundingRate, 'last_funding_rate_timestamp');
+        const nextFundingTimestamp = this.safeInteger (contract, 'next_funding_time');
+        const estFundingRateTimestamp = this.safeInteger (contract, 'est_funding_rate_timestamp');
+        const lastFundingRateTimestamp = this.safeInteger (contract, 'last_funding_rate_timestamp');
         return {
-            'info': fundingRate,
+            'info': contract,
             'symbol': market['symbol'],
             'markPrice': undefined,
             'indexPrice': undefined,
@@ -2796,13 +2795,13 @@ export default class woo extends Exchange {
             'estimatedSettlePrice': undefined,
             'timestamp': estFundingRateTimestamp,
             'datetime': this.iso8601 (estFundingRateTimestamp),
-            'fundingRate': this.safeNumber (fundingRate, 'est_funding_rate'),
+            'fundingRate': this.safeNumber (contract, 'est_funding_rate'),
             'fundingTimestamp': nextFundingTimestamp,
             'fundingDatetime': this.iso8601 (nextFundingTimestamp),
             'nextFundingRate': undefined,
             'nextFundingTimestamp': undefined,
             'nextFundingDatetime': undefined,
-            'previousFundingRate': this.safeNumber (fundingRate, 'last_funding_rate'),
+            'previousFundingRate': this.safeNumber (contract, 'last_funding_rate'),
             'previousFundingTimestamp': lastFundingRateTimestamp,
             'previousFundingDatetime': this.iso8601 (lastFundingRateTimestamp),
         };
