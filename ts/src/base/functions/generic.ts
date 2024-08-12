@@ -7,8 +7,8 @@ import { isObject, isNumber, isDictionary, isArray } from './type.js';
 // ----------------------------------------------------------------------------
 
 const keys = Object.keys; // eslint-disable-line padding-line-between-statements
-const values = (x: any[] | Dictionary<any>) => ((!isArray (x)) ? Object.values (x) : x); // don't copy arrays if they're already arrays
-const index = (x: any[]) => new Set (values (x));
+const values = (x: any[] | Dictionary<any> | string) => ((!isArray (x)) ? Object.values (x) : x); // don't copy arrays if they're already arrays
+const index = (x: any[] | string) => new Set (values (x));
 const extend = (...args: any[]) => Object.assign ({}, ...args); // NB: side-effect free
 const clone = (x: any) => (isArray (x) ? Array.from (x) : extend (x)); // clone arrays or objects
 
@@ -16,7 +16,7 @@ const clone = (x: any) => (isArray (x) ? Array.from (x) : extend (x)); // clone 
 
 const ordered = (x: any[] | Dictionary<any>) => x; // a stub to keep assoc keys in order (in JS it does nothing, it's mostly for Python)
 
-const unique = (x: any[]) => Array.from (index (x));
+const unique = (x: any[] | string) => Array.from (index (x));
 
 const arrayConcat = (a: any[], b: any[]) => a.concat (b);
 
