@@ -341,6 +341,32 @@
                     }
                 ],
                 "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"category\":\"linear\",\"qty\":\"1\",\"price\":\"50\",\"stopLoss\":\"50\",\"tpslMode\":\"Partial\",\"slOrderType\":\"Limit\",\"slLimitPrice\":\"49\",\"takeProfit\":\"100\",\"tpOrderType\":\"Limit\",\"tpLimitPrice\":\"90\"}"
+            },
+            {
+                "description": "spot order with weird price and amount",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                  "LTC/USDT",
+                  "limit",
+                  "buy",
+                  0.1444444234234234,
+                  60.423423423
+                ],
+                "output": "{\"symbol\":\"LTCUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"price\":\"60.423\",\"category\":\"spot\",\"qty\":\"0.14444\"}"
+            },
+            {
+                "description": "swap order with weird price and amount",
+                "method": "createOrder",
+                "url": "https://api-testnet.bybit.com/v5/order/create",
+                "input": [
+                  "ADA/USDT:USDT",
+                  "limit",
+                  "buy",
+                  1.1444444234234235,
+                  60.423423423
+                ],
+                "output": "{\"symbol\":\"ADAUSDT\",\"side\":\"Buy\",\"orderType\":\"Limit\",\"price\":\"60.4234\",\"category\":\"linear\",\"qty\":\"1\"}"
             }
         ],
         "createMarketBuyOrderWithCost": [
