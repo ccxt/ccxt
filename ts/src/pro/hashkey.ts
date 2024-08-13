@@ -245,8 +245,7 @@ export default class hashkey extends hashkeyRest {
         symbol = market['symbol'];
         const topic = 'trade';
         const messageHash = 'trades:' + symbol;
-        let trades = await this.wathPublic (market, topic, messageHash, params);
-        trades = this.sortBy (trades, 'timestamp');
+        const trades = await this.wathPublic (market, topic, messageHash, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -286,11 +285,14 @@ export default class hashkey extends hashkeyRest {
             this.trades[symbol] = new ArrayCache (limit);
         }
         const stored = this.trades[symbol];
-        const data = this.safeList (message, 'data', []);
-        for (let i = 0; i < data.length; i++) {
-            const trade = this.safeDict (data, i);
-            const parsed = this.parseWsTrade (trade, market);
-            stored.append (parsed);
+        let data = this.safeList (message, 'data');
+        if (data !== undefined) {
+            data = this.sortBy (data, 't');
+            for (let i = 0; i < data.length; i++) {
+                const trade = this.safeDict (data, i);
+                const parsed = this.parseWsTrade (trade, market);
+                stored.append (parsed);
+            }
         }
         const messageHash = 'trades' + ':' + symbol;
         client.resolve (stored, messageHash);
