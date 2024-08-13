@@ -2953,19 +2953,23 @@ export default class hashkey extends Exchange {
         if (side !== undefined) {
             request['side'] = side;
         }
+        let response = undefined;
         if (market['spot']) {
-            return await this.privateDeleteApiV1SpotOpenOrders (this.extend (request, params));
+            response = await this.privateDeleteApiV1SpotOpenOrders (this.extend (request, params));
             //
             //     { "success": true }
             //
         } else if (market['swap']) {
-            return await this.privateDeleteApiV1FuturesBatchOrders (this.extend (request, params));
+            response = await this.privateDeleteApiV1FuturesBatchOrders (this.extend (request, params));
             //
             //     { "message": "success", "timestamp": "1723127222198", "code": "0000" }
             //
         } else {
             throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + market['type'] + ' type of markets');
         }
+        const order = this.safeOrder (response);
+        order['info'] = response;
+        return [ order ];
     }
 
     async cancelOrders (ids: string[], symbol: Str = undefined, params = {}) {
