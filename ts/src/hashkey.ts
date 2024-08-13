@@ -2988,10 +2988,6 @@ export default class hashkey extends Exchange {
         await this.loadMarkets ();
         const request = {};
         const orderIds = ids.join (',');
-        // for (let i = 0; i < ids.length; i++) {
-        //     orderIds += this.safeString (ids, i) + ',';
-        // }
-        // orderIds = orderIds.slice (0, -1);
         request['ids'] = orderIds;
         let market: Market = undefined;
         if (symbol !== undefined) {
