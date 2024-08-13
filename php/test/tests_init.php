@@ -21,7 +21,7 @@ if ($isBaseTests) {
         require_once (__DIR__ . '/../pro/test/base/tests_init.php');
         \ccxt\pro\base_tests_init_ws();
     } else {
-        await((new testMainClass ())->init());
+        await((new testMainClass ())->init_base_tests());
     }
     if (!$isAllTest) {
         exit(0);

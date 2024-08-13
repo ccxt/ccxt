@@ -15,7 +15,7 @@ if (isBaseTests) {
     if (isWs) {
         baseTestsInitWs ();
     } else {
-        await (new testMainClass ()).init ();
+        await (new testMainClass ()).initBaseTests ();
     }
     if (!runAll) {
         process.exit (0);

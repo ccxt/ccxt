@@ -77,10 +77,6 @@ class testMainClass extends baseMainTestClass {
             await this.runBrokerIdTests ();
             return;
         }
-        if (this.baseTests) {
-            await this.runBaseTests ();
-            return;
-        }
         dump (this.newLine + '' + this.newLine + '' + '[INFO] TESTING ', this.ext, { 'exchange': exchangeId, 'symbol': symbolArgv, 'method': methodArgv, 'isWs': this.wsTests }, this.newLine);
         const exchangeArgs = {
             'verbose': this.verbose,
@@ -100,7 +96,8 @@ class testMainClass extends baseMainTestClass {
         exitScript (0); // needed to be explicitly finished for WS tests
     }
 
-    async runBaseTests () {
+    async initBaseTests () {
+        this.parseCliArgs ();
         if (this.isSynchronous) {
             this.testFiles = getTestFilesSync (undefined, this.wsTests, true);
         } else {

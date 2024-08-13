@@ -22,10 +22,10 @@ if (isBaseTests):
     else:
         if (is_synchronous):
             from tests_sync import testMainClass as testMainClassSync
-            testMainClassSync().init()
+            testMainClassSync().init_base_tests()
         else:
             from tests_async import testMainClass as testMainClassAsync
-            asyncio.run(testMainClassAsync().init())
+            asyncio.run(testMainClassAsync().init_base_tests())
 
     if not run_all:
         exit(0)

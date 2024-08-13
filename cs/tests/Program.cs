@@ -135,7 +135,7 @@ public class Tests
     {
         tests.testCryptography();
         var testClass = new testMainClass();
-        testClass.init().Wait();
+        testClass.initBaseTests().Wait();
     }
 
 
