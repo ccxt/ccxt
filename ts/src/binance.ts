@@ -3843,7 +3843,7 @@ export default class binance extends Exchange {
             'bidVolume': this.safeString (ticker, 'bidQty'),
             'ask': this.safeString (ticker, 'askPrice'),
             'askVolume': this.safeString (ticker, 'askQty'),
-            'vwap': ,
+            'vwap': wAvg,
             'open': this.safeString2 (ticker, 'openPrice', 'open'),
             'close': last,
             'last': last,
