@@ -158,12 +158,12 @@ export default class hashkey extends Exchange {
                         'quote/v1/ticker/24hr': 1,
                         'quote/v1/ticker/price': 1,
                         'quote/v1/ticker/bookTicker': 1, // not unified
-                        'quote/v1/depth/merged': 1, // todo ask
-                        'quote/v1/markPrice': 1, // not unified todo ask
-                        'quote/v1/index': 1, // not unified todo ask
+                        'quote/v1/depth/merged': 1,
+                        'quote/v1/markPrice': 1,
+                        'quote/v1/index': 1,
                         'api/v1/futures/fundingRate': 1,
                         'api/v1/futures/historyFundingRate': 1,
-                        'api/v1/ping': 1, // todo ask
+                        'api/v1/ping': 1,
                         'api/v1/time': 1,
                     },
                 },
@@ -180,18 +180,18 @@ export default class hashkey extends Exchange {
                         'api/v1/futures/historyOrders': 1,
                         'api/v1/futures/balance': 1,
                         'api/v1/futures/liquidationAssignStatus': 1,
-                        'api/v1/futures/riskLimit': 1, // not unified
+                        'api/v1/futures/riskLimit': 1,
                         'api/v1/futures/commissionRate': 1,
-                        'api/v1/futures/getBestOrder': 1, // not unified
-                        'api/v1/account/vipInfo': 5,
+                        'api/v1/futures/getBestOrder': 1,
+                        'api/v1/account/vipInfo': 1,
                         'api/v1/account': 1,
                         'api/v1/account/trades': 5,
                         'api/v1/account/type': 5,
-                        'api/v1/account/checkApiKey': 1, // not unified
+                        'api/v1/account/checkApiKey': 1,
                         'api/v1/account/balanceFlow': 5,
                         'api/v1/spot/subAccount/openOrders': 1,
-                        'api/v1/spot/subAccount/tradeOrders': 1, // not unified
-                        'api/v1/subAccount/trades': 1, // not unifieds
+                        'api/v1/spot/subAccount/tradeOrders': 1,
+                        'api/v1/subAccount/trades': 1,
                         'api/v1/futures/subAccount/openOrders': 1,
                         'api/v1/futures/subAccount/historyOrders': 1,
                         'api/v1/futures/subAccount/userTrades': 1,
@@ -210,7 +210,7 @@ export default class hashkey extends Exchange {
                         'api/v1/futures/position/trading-stop': 3,
                         'api/v1/futures/batchOrders': 5,
                         'api/v1/account/assetTransfer': 1,
-                        'api/v1/account/authAddress': 1, // todo ask about it
+                        'api/v1/account/authAddress': 1,
                         'api/v1/account/withdraw': 1,
                     },
                     'put': {
@@ -305,6 +305,10 @@ export default class hashkey extends Exchange {
                     'ARB': 'Arbitrum',
                     'DOGE': 'Dogecoin',
                     'TRC20': 'Tron',
+                    'ZKSYNC': 'zkSync',
+                    'TON': 'TON',
+                    'KLAYTN': 'Klaytn',
+                    'MERLINCHAIN': 'Merlin Chain',
                 },
                 'networksById': {
                     'BTC': 'BTC',
@@ -322,13 +326,13 @@ export default class hashkey extends Exchange {
                     'LTC': 'LTC',
                     'Litecoin': 'LTC',
                     'Dogecoin': 'DOGE',
-                    'Merlin Chain': 'Merlin Chain', // todo check
-                    'zkSync': 'zkSync', // todo check
+                    'Merlin Chain': 'MERLINCHAIN',
+                    'zkSync': 'ZKSYNC',
                     'TRC20': 'TRC20',
                     'Tron': 'TRC20',
-                    'TON': 'TON', // todo check
+                    'TON': 'TON',
                     'BSC(BEP20)': 'BSC',
-                    'Klaytn': 'Klaytn', // todo check
+                    'Klaytn': 'KLAYTN',
                 },
                 'defaultNetwork': 'ERC20',
             },
@@ -522,6 +526,28 @@ export default class hashkey extends Exchange {
         //     }
         //
         return this.safeInteger (response, 'serverTime');
+    }
+
+    async fetchStatus (params = {}) {
+        /**
+         * @method
+         * @name hashkey#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/test-connectivity
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+         */
+        const response = await this.publicGetApiV1Ping (params);
+        //
+        // {}
+        //
+        return {
+            'status': 'ok',
+            'updated': undefined,
+            'eta': undefined,
+            'url': undefined,
+            'info': response,
+        };
     }
 
     async fetchMarkets (params = {}): Promise<Market[]> {
@@ -1903,25 +1929,25 @@ export default class hashkey extends Exchange {
         //
         //     [
         //         {
-        //             "time": "1719499716079",
-        //             "id": "W594298131448512512",
+        //             "time": "1723545505366",
+        //             "id": "W611267400947572736",
         //             "coin": "USDT",
         //             "coinId": "USDT",
         //             "coinName": "USDT",
-        //             "address": "0xA9648A0f44956AFA90A16F5Fe470d34C85fb983B",
-        //             "quantity": "1.00000000",
-        //             "arriveQuantity": "1.00000000",
-        //             "txId": "0x4fc00f8d053bcd24cd052130e051e4587c4f5c19efb73ddc6c8da77cb0040e93",
-        //             "addressUrl": "0xA9648A0f44956AFA90A16F5Fe470d34C85fb983B",
+        //             "address": "TQbkBMnWnJNGTAUpFS4kvv4NRLzUAnGAes",
+        //             "quantity": "2.00000000",
+        //             "arriveQuantity": "2.00000000",
+        //             "txId": "f83f94e7d2e81fbec98c66c25d6615872cc2d426145629b6cf22e5e0a0753715",
+        //             "addressUrl": "TQbkBMnWnJNGTAUpFS4kvv4NRLzUAnGAes",
         //             "feeCoinId": "USDT",
         //             "feeCoinName": "USDT",
-        //             "fee": "0.00100000",
+        //             "fee": "1.00000000",
         //             "remark": "",
-        //             "platform": "hashkey"
+        //             "platform": ""
         //         }
         //     ]
         //
-        return this.parseTransactions (response, currency, since, limit, { 'type': 'withdrawal' }); // todo check after making a withdrawal
+        return this.parseTransactions (response, currency, since, limit, { 'type': 'withdrawal' });
     }
 
     async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
@@ -1971,7 +1997,8 @@ export default class hashkey extends Exchange {
         //     {
         //         "success": true,
         //         "id": "0",
-        //         "orderId": "W476435800487079936"
+        //         "orderId": "W611267400947572736",
+        //         "accountId": "1732885739589466115"
         //     }
         //
         return this.parseTransaction (response, currency);
@@ -1993,26 +2020,45 @@ export default class hashkey extends Exchange {
         //
         // fetchWithdrawals
         //     {
-        //         "time": "1719499716079",
-        //         "id": "W594298131448512512",
+        //         "time": "1723545505366",
+        //         "id": "W611267400947572736",
         //         "coin": "USDT",
         //         "coinId": "USDT",
         //         "coinName": "USDT",
-        //         "address": "0xA9648A0f44956AFA90A16F5Fe470d34C85fb983B",
-        //         "quantity": "1.00000000",
-        //         "arriveQuantity": "1.00000000",
-        //         "txId": "0x4fc00f8d053bcd24cd052130e051e4587c4f5c19efb73ddc6c8da77cb0040e93",
-        //         "addressUrl": "0xA9648A0f44956AFA90A16F5Fe470d34C85fb983B",
+        //         "address": "TQbkBMnWnJNGTAUpFS4kvv4NRLzUAnGAes",
+        //         "quantity": "2.00000000",
+        //         "arriveQuantity": "2.00000000",
+        //         "txId": "f83f94e7d2e81fbec98c66c25d6615872cc2d426145629b6cf22e5e0a0753715",
+        //         "addressUrl": "TQbkBMnWnJNGTAUpFS4kvv4NRLzUAnGAes",
         //         "feeCoinId": "USDT",
         //         "feeCoinName": "USDT",
-        //         "fee": "0.00100000",
+        //         "fee": "1.00000000",
         //         "remark": "",
-        //         "platform": "hashkey"
+        //         "platform": ""
+        //     }
+        //
+        // withdraw
+        //     {
+        //         "success": true,
+        //         "id": "0",
+        //         "orderId": "W611267400947572736",
+        //         "accountId": "1732885739589466115"
         //     }
         //
         const id = this.safeString2 (transaction, 'id', 'orderId');
         const address = this.safeString (transaction, 'address');
-        const status = this.safeString (transaction, 'status'); // todo check for withdrawals
+        let status = this.safeString (transaction, 'status'); // for fetchDeposits
+        if (status === undefined) {
+            const success = this.safeBool (transaction, 'success', false); // for withdraw
+            if (success) {
+                status = 'ok';
+            } else {
+                const addressUrl = this.safeString (transaction, 'addressUrl'); // for fetchWithdrawals
+                if (addressUrl !== undefined) {
+                    status = 'ok';
+                }
+            }
+        }
         const txid = this.safeString (transaction, 'txId');
         const coin = this.safeString (transaction, 'coin');
         const code = this.safeCurrencyCode (coin, currency);
