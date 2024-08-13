@@ -2987,11 +2987,11 @@ export default class hashkey extends Exchange {
         const methodName = 'cancelOrders';
         await this.loadMarkets ();
         const request = {};
-        let orderIds = '';
-        for (let i = 0; i < ids.length; i++) {
-            orderIds += this.safeString (ids, i) + ',';
-        }
-        orderIds = orderIds.slice (0, -1);
+        const orderIds = ids.join (',');
+        // for (let i = 0; i < ids.length; i++) {
+        //     orderIds += this.safeString (ids, i) + ',';
+        // }
+        // orderIds = orderIds.slice (0, -1);
         request['ids'] = orderIds;
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -3024,6 +3024,7 @@ export default class hashkey extends Exchange {
          * @name hashkey#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://hashkeyglobal-apidoc.readme.io/reference/query-order
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-futures-order
          * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3040,10 +3041,8 @@ export default class hashkey extends Exchange {
         const request: Dict = {};
         let clientOrderId: Str = undefined;
         [ clientOrderId, params ] = this.handleParamString (params, 'clientOrderId');
-        if (clientOrderId !== undefined) {
-            request['origClientOrderId'] = clientOrderId;
-        } else if (id === undefined) {
-            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires an id argument or clientOrderId parameter');
+        if (clientOrderId === undefined) {
+            request['orderId'] = id;
         }
         let market: Market = undefined;
         if (symbol !== undefined) {
@@ -3053,8 +3052,8 @@ export default class hashkey extends Exchange {
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
         let response = undefined;
         if (marketType === 'spot') {
-            if (id !== undefined) {
-                request['orderId'] = id;
+            if (clientOrderId !== undefined) {
+                request['origClientOrderId'] = clientOrderId;
             }
             let accountId: Str = undefined;
             [ accountId, params ] = this.handleOptionAndParams (params, methodName, 'accountId');
@@ -3092,9 +3091,6 @@ export default class hashkey extends Exchange {
             //     }
             //
         } else if (marketType === 'swap') {
-            if (clientOrderId !== undefined) {
-                request['clientOrderId'] = clientOrderId;
-            }
             let isTrigger = false;
             [ isTrigger, params ] = this.handleTriggerOptionAndParams (params, methodName, isTrigger);
             if (isTrigger) {
@@ -3891,7 +3887,8 @@ export default class hashkey extends Exchange {
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         const methodName = 'fetchPositions';
-        if ((symbols === undefined) || (symbols.length < 1)) {
+        const arrayLength = symbols.length;
+        if ((symbols === undefined) || (arrayLength < 1)) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a symbol argument with one single market symbol');
         } else if (symbols.length > 1) {
             throw new NotSupported (this.id + ' ' + methodName + '() is supported for a symbol argument with one single market symbol only');
