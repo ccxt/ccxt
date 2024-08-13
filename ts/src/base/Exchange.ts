@@ -4270,7 +4270,10 @@ export default class Exchange {
     }
 
     getListFromObjectValues (objects, key: IndexType) {
-        const newArray = this.toArray (objects);
+        let newArray = objects;
+        if (!Array.isArray (objects)) {
+            newArray = this.toArray (objects);
+        }
         const results = [];
         for (let i = 0; i < newArray.length; i++) {
             results.push (newArray[i][key]);
