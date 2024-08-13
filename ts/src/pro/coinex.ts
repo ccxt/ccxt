@@ -24,6 +24,7 @@ export default class coinex extends coinexRest {
                 'watchMyTrades': true,
                 'watchOrders': true,
                 'watchOrderBook': true,
+                'watchOrderBookForSymbols': true,
                 'watchOHLCV': false,
                 'fetchOHLCVWs': false,
             },
@@ -679,6 +680,66 @@ export default class coinex extends coinexRest {
             return trades;
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name coinex#watchOrderBookForSymbols
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.coinex.com/api/v2/spot/market/ws/market-depth
+         * @see https://docs.coinex.com/api/v2/futures/market/ws/market-depth
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const watchOrderBookSubscriptions = this.safeDict (this.options, 'watchOrderBookSubscriptions', {});
+        const messageHashes = [];
+        let market = undefined;
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchOrderBookForSymbols', undefined, params);
+        const options = this.safeDict (this.options, 'watchOrderBookForSymbols', {});
+        const limits = this.safeList (options, 'limits', []);
+        if (limit === undefined) {
+            limit = this.safeInteger (options, 'defaultLimit', 50);
+        }
+        if (!this.inArray (limit, limits)) {
+            throw new NotSupported (this.id + ' watchOrderBookForSymbols() limit must be one of ' + limits.join (', '));
+        }
+        const defaultAggregation = this.safeString (options, 'defaultAggregation', '0');
+        const aggregations = this.safeList (options, 'aggregations', []);
+        const aggregation = this.safeString (params, 'aggregation', defaultAggregation);
+        if (!this.inArray (aggregation, aggregations)) {
+            throw new NotSupported (this.id + ' watchOrderBookForSymbols() aggregation must be one of ' + aggregations.join (', '));
+        }
+        params = this.omit (params, 'aggregation');
+        const symbolsDefined = (symbols !== undefined);
+        if (symbolsDefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                market = this.market (symbol);
+                messageHashes.push ('orderbooks:' + market['symbol']);
+                watchOrderBookSubscriptions[symbol] = [ market['id'], limit, aggregation, true ];
+            }
+        } else {
+            messageHashes.push ('orderbooks');
+        }
+        const marketList = Object.values (watchOrderBookSubscriptions);
+        const subscribe: Dict = {
+            'method': 'depth.subscribe',
+            'params': { 'market_list': marketList },
+            'id': this.requestId (),
+        };
+        this.options['watchOrderBookSubscriptions'] = watchOrderBookSubscriptions;
+        const subscriptionHashes = this.hash (this.encode (this.json (watchOrderBookSubscriptions)), sha256);
+        const url = this.urls['api']['ws'][type];
+        const orderbooks = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), subscriptionHashes);
+        if (this.newUpdates) {
+            return orderbooks;
+        }
+        return orderbooks.limit ();
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
