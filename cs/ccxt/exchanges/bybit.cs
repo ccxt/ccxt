@@ -6621,6 +6621,11 @@ public partial class bybit : Exchange
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
+        // support withdrawals from SPOT or FUND account
+        object accountType = null;
+        var accountTypeparametersVariable = this.handleOptionAndParams(parameters, "withdraw", "accountType", "SPOT");
+        accountType = ((IList<object>)accountTypeparametersVariable)[0];
+        parameters = ((IList<object>)accountTypeparametersVariable)[1];
         await this.loadMarkets();
         this.checkAddress(address);
         object currency = this.currency(code);
@@ -6629,6 +6634,7 @@ public partial class bybit : Exchange
             { "amount", this.numberToString(amount) },
             { "address", address },
             { "timestamp", this.milliseconds() },
+            { "accountType", accountType },
         };
         if (isTrue(!isEqual(tag, null)))
         {

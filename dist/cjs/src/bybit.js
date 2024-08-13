@@ -6201,6 +6201,9 @@ class bybit extends bybit$1 {
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
+        // support withdrawals from SPOT or FUND account
+        let accountType = undefined;
+        [accountType, params] = this.handleOptionAndParams(params, 'withdraw', 'accountType', 'SPOT');
         await this.loadMarkets();
         this.checkAddress(address);
         const currency = this.currency(code);
@@ -6209,6 +6212,7 @@ class bybit extends bybit$1 {
             'amount': this.numberToString(amount),
             'address': address,
             'timestamp': this.milliseconds(),
+            'accountType': accountType,
         };
         if (tag !== undefined) {
             request['tag'] = tag;

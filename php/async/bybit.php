@@ -6207,6 +6207,9 @@ class bybit extends Exchange {
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
              */
             list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+            // support withdrawals from SPOT or FUND account
+            $accountType = null;
+            list($accountType, $params) = $this->handle_option_and_params($params, 'withdraw', 'accountType', 'SPOT');
             Async\await($this->load_markets());
             $this->check_address($address);
             $currency = $this->currency($code);
@@ -6215,6 +6218,7 @@ class bybit extends Exchange {
                 'amount' => $this->number_to_string($amount),
                 'address' => $address,
                 'timestamp' => $this->milliseconds(),
+                'accountType' => $accountType,
             );
             if ($tag !== null) {
                 $request['tag'] = $tag;
