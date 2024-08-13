@@ -2857,13 +2857,9 @@ export default class hashkey extends Exchange {
         this.checkTypeParam (methodName, params);
         await this.loadMarkets ();
         const request: Dict = {};
-        if (id !== undefined) {
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId === undefined) {
             request['orderId'] = id;
-        } else {
-            const clientOrderId = this.safeString (params, 'clientOrderId');
-            if (clientOrderId === undefined) {
-                throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires an id argument or clientOrderId parameter');
-            }
         }
         let market: Market = undefined;
         if (symbol !== undefined) {
