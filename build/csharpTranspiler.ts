@@ -321,7 +321,7 @@ class NewTranspiler {
         }
 
         if (name === 'watchOHLCVForSymbols') {
-            return `Task<Dictionary<string, Dictionary<string, List<OHLCV>>>`;
+            return `Task<Dictionary<string, Dictionary<string, List<OHLCV>>>>`;
         }
 
         if (name === 'fetchTime'){
