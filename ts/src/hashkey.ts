@@ -2999,8 +2999,9 @@ export default class hashkey extends Exchange {
         }
         let marketType = 'spot';
         [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
+        let response = undefined;
         if (marketType === 'spot') {
-            return await this.privateDeleteApiV1SpotCancelOrderByIds (this.extend (request));
+            response = await this.privateDeleteApiV1SpotCancelOrderByIds (this.extend (request));
             //
             //     {
             //         "code": "0000",
@@ -3008,10 +3009,13 @@ export default class hashkey extends Exchange {
             //     }
             //
         } else if (marketType === 'swap') {
-            return await this.privateDeleteApiV1FuturesCancelOrderByIds (this.extend (request));
+            response = this.privateDeleteApiV1FuturesCancelOrderByIds (this.extend (request));
         } else {
             throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
+        const order = this.safeOrder (response);
+        order['info'] = response;
+        return [ order ];
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
