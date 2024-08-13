@@ -2667,7 +2667,7 @@ export default class hashkey extends Exchange {
         if (clientOrderId === undefined) {
             request['clientOrderId'] = this.uuid ();
         }
-        const triggerPrice = this.safeNumber (params, 'triggerPrice');
+        const triggerPrice = this.safeString (params, 'triggerPrice');
         if (triggerPrice !== undefined) {
             request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
             request['type'] = 'STOP';
