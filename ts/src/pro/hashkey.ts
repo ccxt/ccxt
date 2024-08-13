@@ -245,7 +245,8 @@ export default class hashkey extends hashkeyRest {
         symbol = market['symbol'];
         const topic = 'trade';
         const messageHash = 'trades:' + symbol;
-        const trades = await this.wathPublic (market, topic, messageHash, params);
+        let trades = await this.wathPublic (market, topic, messageHash, params);
+        trades = this.sortBy (trades, 'timestamp');
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
