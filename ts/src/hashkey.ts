@@ -2665,7 +2665,7 @@ export default class hashkey extends Exchange {
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId === undefined) {
-            throw new ArgumentsRequired (this.id + ' createSwapOrder() requires a clientOrderId parameter');
+            request['clientOrderId'] = this.uuid ();
         }
         const triggerPrice = this.safeNumber (params, 'triggerPrice');
         if (triggerPrice !== undefined) {
@@ -2745,6 +2745,10 @@ export default class hashkey extends Exchange {
             const price = this.safeNumber (rawOrder, 'price');
             const orderParams = this.safeDict (rawOrder, 'params', {});
             const orderRequest = this.createOrderRequest (symbol, type, side, amount, price, orderParams);
+            const clientOrderId = this.safeString (orderRequest, 'clientOrderId');
+            if (clientOrderId === undefined) {
+                orderRequest['clientOrderId'] = this.uuid (); // both spot and swap endpoints require clientOrderId
+            }
             ordersRequests.push (orderRequest);
         }
         const firstOrder = ordersRequests[0];
