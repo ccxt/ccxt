@@ -1461,11 +1461,11 @@ export default class wavesexchange extends Exchange {
         //     }
         //
         if (isMarketOrder) {
-            const response = await this.matcherPostMatcherOrderbookMarket (body);
+            const response = await this.matcherPostMatcherOrderbookMarket (this.extend (body, params));
             const value = this.safeDict (response, 'message');
             return this.parseOrder (value, market);
         } else {
-            const response = await this.matcherPostMatcherOrderbook (body);
+            const response = await this.matcherPostMatcherOrderbook (this.extend (body, params));
             const value = this.safeDict (response, 'message');
             return this.parseOrder (value, market);
         }
