@@ -3996,7 +3996,9 @@ class Exchange(object):
         ]
 
     def get_list_from_object_values(self, objects, key: IndexType):
-        newArray = self.to_array(objects)
+        newArray = objects
+        if not isinstance(objects, list):
+            newArray = self.to_array(objects)
         results = []
         for i in range(0, len(newArray)):
             results.append(newArray[i][key])
