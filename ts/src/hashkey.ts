@@ -2949,8 +2949,7 @@ export default class hashkey extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        let side: Str = undefined;
-        [ side, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'side');
+        const side = this.safeString (params, 'side');
         if (side !== undefined) {
             request['side'] = side;
         }
