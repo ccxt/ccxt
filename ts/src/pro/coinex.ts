@@ -2,10 +2,10 @@
 //  ---------------------------------------------------------------------------
 
 import coinexRest from '../coinex.js';
-import { AuthenticationError, BadRequest, ExchangeNotAvailable, NotSupported, RequestTimeout, ExchangeError } from '../base/errors.js';
+import { AuthenticationError, BadRequest, RateLimitExceeded, NotSupported, RequestTimeout, ExchangeError, ExchangeNotAvailable } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Balances, Dict } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Balances, Dict, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -64,14 +64,25 @@ export default class coinex extends coinexRest {
             'streaming': {
             },
             'exceptions': {
-                'codes': {
-                    '1': BadRequest, // Parameter error
-                    '2': ExchangeError, // Internal error
-                    '3': ExchangeNotAvailable, // Service unavailable
-                    '4': NotSupported, // Method unavailable
-                    '5': RequestTimeout, // Service timeout
-                    '6': AuthenticationError, // Permission denied
+                'exact': {
+                    '20001': BadRequest, // Invalid argument
+                    '20002': NotSupported, // Method unavailable
+                    '21001': AuthenticationError, // Authentication required
+                    '21002': AuthenticationError, // Incorrect signature
+                    '23001': RequestTimeout, // Request service timeout
+                    '23002': RateLimitExceeded, // Requests too frequently
+                    '24001': ExchangeError, // Internal error
+                    '24002': ExchangeNotAvailable, // Service unavailable temporarily
+                    '30001': BadRequest, // Invalid argument
+                    '30002': NotSupported, // Method unavailable
+                    '31001': AuthenticationError, // Authentication required
+                    '31002': AuthenticationError, // Incorrect signature
+                    '33001': RequestTimeout, // Request service timeout
+                    '33002': RateLimitExceeded, // Requests too frequently
+                    '34001': ExchangeError, // Internal error
+                    '34002': ExchangeNotAvailable, // Service unavailable temporarily
                 },
+                'broad': {},
             },
         });
     }
@@ -1165,11 +1176,11 @@ export default class coinex extends coinexRest {
     }
 
     handleMessage (client: Client, message) {
-        const error = this.safeValue (message, 'error');
-        if (error !== undefined) {
-            throw new ExchangeError (this.id + ' ' + this.json (error));
-        }
         const method = this.safeString (message, 'method');
+        const error = this.safeString (message, 'message');
+        if (error !== undefined) {
+            this.handleErrors (undefined, undefined, client.url, method, undefined, this.json (error), message, undefined, undefined);
+        }
         const handlers: Dict = {
             'state.update': this.handleTicker,
             'balance.update': this.handleBalance,
@@ -1186,6 +1197,28 @@ export default class coinex extends coinexRest {
             return;
         }
         this.handleSubscriptionStatus (client, message);
+    }
+
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
+        if (response === undefined) {
+            return undefined;
+        }
+        //
+        //     { "id": 1, "code": 20001, "message": "invalid argument" }
+        //     { "id": 2, "code": 21001, "message": "require auth" }
+        //     { "id": 1, "code": 21002, "message": "Signature Incorrect" }
+        //
+        const message = this.safeStringLower (response, 'message');
+        const isErrorMessage = (message !== undefined) && (message !== 'ok');
+        const errorCode = this.safeString (response, 'code');
+        const isErrorCode = (errorCode !== undefined) && (errorCode !== '0');
+        if (isErrorCode || isErrorMessage) {
+            const feedback = this.id + ' ' + body;
+            this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
+            throw new ExchangeError (feedback);
+        }
+        return undefined;
     }
 
     handleAuthenticationMessage (client: Client, message) {
