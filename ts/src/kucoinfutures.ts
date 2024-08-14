@@ -1467,7 +1467,7 @@ export default class kucoinfutures extends kucoin {
         const preciseAmount = parseInt (this.amountToPrecision (symbol, amount));
         const request: Dict = {
             'clientOid': clientOrderId,
-            'side': side,
+            'side': side.toLowerCase (),
             'symbol': market['id'],
             'type': type, // limit or market
             'size': preciseAmount,

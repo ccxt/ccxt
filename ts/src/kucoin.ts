@@ -2290,7 +2290,7 @@ export default class kucoin extends Exchange {
         params = this.omit (params, [ 'clientOid', 'clientOrderId' ]);
         const request: Dict = {
             'clientOid': clientOrderId,
-            'side': side,
+            'side': side.toLowerCase (),
             'symbol': market['id'],
             'type': type, // limit or market
         };
