@@ -700,7 +700,7 @@ export default class coinex extends coinexRest {
         let market = undefined;
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrderBookForSymbols', undefined, params);
-        const options = this.safeDict (this.options, 'watchOrderBookForSymbols', {});
+        const options = this.safeDict (this.options, 'watchOrderBook', {});
         const limits = this.safeList (options, 'limits', []);
         if (limit === undefined) {
             limit = this.safeInteger (options, 'defaultLimit', 50);
@@ -720,11 +720,11 @@ export default class coinex extends coinexRest {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 market = this.market (symbol);
-                messageHashes.push ('orderbooks:' + market['symbol']);
+                messageHashes.push ('orderbook:' + market['symbol']);
                 watchOrderBookSubscriptions[symbol] = [ market['id'], limit, aggregation, true ];
             }
         } else {
-            messageHashes.push ('orderbooks');
+            messageHashes.push ('orderbook');
         }
         const marketList = Object.values (watchOrderBookSubscriptions);
         const subscribe: Dict = {
@@ -1346,15 +1346,19 @@ export default class coinex extends coinexRest {
         //         "message": ""
         //     }
         //
-        const messageHashSpot = 'authenticated:spot';
-        const messageHashSwap = 'authenticated:swap';
-        // client.resolve (message, messageHashSpot);
-        // client.resolve (message, messageHashSwap);
-        const spotFuture = this.safeValue (client.futures, messageHashSpot);
-        spotFuture.resolve (true);
-        const swapFutures = this.safeValue (client.futures, messageHashSwap);
-        swapFutures.resolve (true);
-        return message;
+        const status = this.safeStringLower (message, 'message');
+        const errorCode = this.safeString (message, 'code');
+        const messageHash = 'authenticated';
+        if ((status === 'ok') || (errorCode === '0')) {
+            const future = this.safeValue (client.futures, messageHash);
+            future.resolve (true);
+        } else {
+            const error = new AuthenticationError (this.json (message));
+            client.reject (error, messageHash);
+            if (messageHash in client.subscriptions) {
+                delete client.subscriptions[messageHash];
+            }
+        }
     }
 
     handleSubscriptionStatus (client: Client, message) {
@@ -1377,10 +1381,7 @@ export default class coinex extends coinexRest {
         const client = this.client (url);
         const time = this.milliseconds ();
         const timestamp = time.toString ();
-        const isSpot = (type === 'spot');
-        const spotMessageHash = 'authenticated:spot';
-        const swapMessageHash = 'authenticated:swap';
-        const messageHash = isSpot ? spotMessageHash : swapMessageHash;
+        const messageHash = 'authenticated';
         const future = client.future (messageHash);
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated !== undefined) {
@@ -1389,7 +1390,7 @@ export default class coinex extends coinexRest {
         const requestId = this.requestId ();
         const subscribe: Dict = {
             'id': requestId,
-            'future': spotMessageHash,
+            'future': messageHash,
         };
         const hmac = this.hmac (this.encode (timestamp), this.encode (this.secret), sha256, 'hex');
         const request: Dict = {
