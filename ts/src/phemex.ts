@@ -2990,7 +2990,7 @@ export default class phemex extends Exchange {
         if (market['settle'] === 'USDT') {
             response = await this.privateGetApiDataGFuturesOrdersByOrderId (this.extend (request, params));
         } else if (market['spot']) {
-            response = await this.privateGetSpotOrdersActive (this.extend (request, params));
+            throw new NotSupported (this.id + ' fetchOrder() is not supported for spot markets, use either fetchOpenOrders or fetchClosedOrders');
         } else {
             response = await this.privateGetExchangeOrder (this.extend (request, params));
         }
