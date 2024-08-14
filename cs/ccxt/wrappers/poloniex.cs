@@ -10,7 +10,7 @@ public partial class poloniex
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#public-endpoints-market-data-candles"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/api/public/market-data#candles"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -56,7 +56,7 @@ public partial class poloniex
     /// retrieves data on all markets for poloniex
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#public-endpoints-reference-data-symbol-information"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/api/public/reference-data#symbol-information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -76,7 +76,7 @@ public partial class poloniex
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#public-endpoints-reference-data-system-timestamp"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/api/public/reference-data#system-timestamp"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -96,7 +96,7 @@ public partial class poloniex
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#public-endpoints-market-data-ticker"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/api/public/market-data#ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -116,7 +116,7 @@ public partial class poloniex
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#public-endpoints-market-data-ticker"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/api/public/market-data#ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -136,7 +136,7 @@ public partial class poloniex
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#public-endpoints-market-data-trades"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/api/public/market-data#trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -170,7 +170,7 @@ public partial class poloniex
     /// fetch all trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#authenticated-endpoints-trades-trade-history"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/api/private/trade#trade-history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -216,8 +216,8 @@ public partial class poloniex
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#authenticated-endpoints-orders-open-orders"/>  <br/>
-    /// See <see href="https://docs.poloniex.com/#authenticated-endpoints-smart-orders-open-orders"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/api/private/order#open-orders"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/api/private/smart-order#open-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -257,13 +257,13 @@ public partial class poloniex
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#authenticated-endpoints-orders-create-order"/>  <br/>
-    /// See <see href="https://docs.poloniex.com/#authenticated-endpoints-smart-orders-create-order"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/api/private/order#create-order"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/api/private/smart-order#create-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -297,8 +297,8 @@ public partial class poloniex
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-replace-order"/>  <br/>
-    /// See <see href="https://docs.poloniex.com/#authenticated-endpoints-smart-orders-cancel-replace-order"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/api/private/order#cancel-replace-order"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-replace-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>amount</term>
@@ -309,7 +309,7 @@ public partial class poloniex
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>
@@ -351,8 +351,8 @@ public partial class poloniex
     /// cancel all open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#authenticated-endpoints-orders-cancel-all-orders"/>  <br/>
-    /// See <see href="https://docs.poloniex.com/#authenticated-endpoints-smart-orders-cancel-all-orders"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/api/private/order#cancel-all-orders"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/api/private/smart-order#cancel-all-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -378,8 +378,8 @@ public partial class poloniex
     /// fetch an order by it's id
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#authenticated-endpoints-orders-order-details"/>  <br/>
-    /// See <see href="https://docs.poloniex.com/#authenticated-endpoints-smart-orders-open-orders"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/api/private/order#order-details"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/api/private/smart-order#open-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -410,7 +410,7 @@ public partial class poloniex
     /// fetch all the trades made from a single order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#authenticated-endpoints-trades-trades-by-order-id"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/api/private/trade#trades-by-order-id"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -444,7 +444,7 @@ public partial class poloniex
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#authenticated-endpoints-accounts-all-account-balances"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/api/private/account#all-account-balances"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -464,7 +464,7 @@ public partial class poloniex
     /// fetch the trading fees for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#authenticated-endpoints-accounts-fee-info"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/api/private/account#fee-info"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -484,7 +484,7 @@ public partial class poloniex
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#public-endpoints-market-data-order-book"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/api/public/market-data#order-book"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -511,7 +511,7 @@ public partial class poloniex
     /// create a currency deposit address
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#authenticated-endpoints-wallets-deposit-addresses"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -531,7 +531,7 @@ public partial class poloniex
     /// fetch the deposit address for a currency associated with this account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#authenticated-endpoints-wallets-deposit-addresses"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/api/private/wallet#deposit-addresses"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -551,7 +551,7 @@ public partial class poloniex
     /// transfer currency internally between wallets on the same account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#authenticated-endpoints-accounts-accounts-transfer"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/api/private/account#accounts-transfer"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -571,7 +571,7 @@ public partial class poloniex
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#authenticated-endpoints-wallets-withdraw-currency"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/api/private/wallet#withdraw-currency"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -598,7 +598,7 @@ public partial class poloniex
     /// fetch history of deposits and withdrawals
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/api/private/wallet#wallets-activity-records"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>code</term>
@@ -638,7 +638,7 @@ public partial class poloniex
     /// fetch all withdrawals made from an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/api/private/wallet#wallets-activity-records"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -672,7 +672,7 @@ public partial class poloniex
     /// fetch deposit and withdraw fees
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#public-endpoints-reference-data-currency-information"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/api/public/reference-data#currency-information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -692,7 +692,7 @@ public partial class poloniex
     /// fetch all deposits made to an account
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.poloniex.com/#authenticated-endpoints-wallets-wallets-activity-records"/>  <br/>
+    /// See <see href="https://api-docs.poloniex.com/spot/api/private/wallet#wallets-activity-records"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

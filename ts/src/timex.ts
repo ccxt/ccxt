@@ -2,7 +2,7 @@ import Exchange from './abstract/timex.js';
 import { ExchangeError, PermissionDenied, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, InvalidOrder, RateLimitExceeded, NotSupported, BadRequest, AuthenticationError, ArgumentsRequired } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Balances, Currencies, Currency, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, int } from './base/types.js';
 
 /**
  * @class timex
@@ -378,7 +378,7 @@ export default class timex extends Exchange {
         if (address === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDeposits() requires an address parameter');
         }
-        const request = {
+        const request: Dict = {
             'address': address,
         };
         const response = await this.managerGetDeposits (this.extend (request, params));
@@ -415,7 +415,7 @@ export default class timex extends Exchange {
         if (address === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDeposits() requires an address parameter');
         }
-        const request = {
+        const request: Dict = {
             'address': address,
         };
         const response = await this.managerGetWithdrawals (this.extend (request, params));
@@ -448,7 +448,7 @@ export default class timex extends Exchange {
         return undefined;
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         //     {
         //         "from": "0x1134cc86b45039cc211c6d1d2e4b3c77f60207ed",
@@ -498,7 +498,7 @@ export default class timex extends Exchange {
          */
         await this.loadMarkets ();
         const period = this.safeString (this.options['fetchTickers'], 'period', '1d');
-        const request = {
+        const request: Dict = {
             'period': this.timeframes[period], // I1, I5, I15, I30, H1, H2, H4, H6, H12, D1, W1
         };
         const response = await this.publicGetTickers (this.extend (request, params));
@@ -535,7 +535,7 @@ export default class timex extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const period = this.safeString (this.options['fetchTickers'], 'period', '1d');
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'period': this.timeframes[period], // I1, I5, I15, I30, H1, H2, H4, H6, H12, D1, W1
         };
@@ -574,7 +574,7 @@ export default class timex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
         };
         if (limit !== undefined) {
@@ -627,7 +627,7 @@ export default class timex extends Exchange {
         const defaultSort = this.safeValue (options, 'sort', 'timestamp,asc');
         const sort = this.safeString (params, 'sort', defaultSort);
         const query = this.omit (params, 'sort');
-        const request = {
+        const request: Dict = {
             // 'address': 'string', // trade’s member account (?)
             // 'cursor': 1234, // int64 (?)
             // 'from': this.iso8601 (since),
@@ -673,7 +673,7 @@ export default class timex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'market': market['id'],
             'period': this.safeString (this.timeframes, timeframe, timeframe),
         };
@@ -708,7 +708,7 @@ export default class timex extends Exchange {
     }
 
     parseBalance (response): Balances {
-        const result = {
+        const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
@@ -758,7 +758,7 @@ export default class timex extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -771,7 +771,7 @@ export default class timex extends Exchange {
             uppercaseType = 'POST_ONLY';
             params = this.omit (params, [ 'postOnly' ]);
         }
-        const request = {
+        const request: Dict = {
             'symbol': market['id'],
             'quantity': this.amountToPrecision (symbol, amount),
             'side': uppercaseSide,
@@ -827,7 +827,7 @@ export default class timex extends Exchange {
     async editOrder (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'id': id,
         };
         if (amount !== undefined) {
@@ -888,7 +888,8 @@ export default class timex extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        return await this.cancelOrders ([ id ], symbol, params);
+        const orders = await this.cancelOrders ([ id ], symbol, params);
+        return this.safeDict (orders, 0);
     }
 
     async cancelOrders (ids, symbol: Str = undefined, params = {}) {
@@ -903,7 +904,7 @@ export default class timex extends Exchange {
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'id': ids,
         };
         const response = await this.tradingDeleteOrders (this.extend (request, params));
@@ -931,7 +932,22 @@ export default class timex extends Exchange {
         //         ],
         //         "unchangedOrders": [ "string" ],
         //     }
-        return response;
+        //
+        const changedOrders = this.safeList (response, 'changedOrders', []);
+        const unchangedOrders = this.safeList (response, 'unchangedOrders', []);
+        const orders = [];
+        for (let i = 0; i < changedOrders.length; i++) {
+            const newOrder = this.safeDict (changedOrders[i], 'newOrder');
+            orders.push (this.parseOrder (newOrder));
+        }
+        for (let i = 0; i < unchangedOrders.length; i++) {
+            orders.push (this.safeOrder ({
+                'info': unchangedOrders[i],
+                'id': unchangedOrders[i],
+                'status': 'unchanged',
+            }));
+        }
+        return orders;
     }
 
     async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -945,7 +961,7 @@ export default class timex extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const request = {
+        const request: Dict = {
             'orderHash': id,
         };
         const response = await this.historyGetOrdersDetails (request);
@@ -1004,7 +1020,7 @@ export default class timex extends Exchange {
         const defaultSort = this.safeValue (options, 'sort', 'createdAt,asc');
         const sort = this.safeString (params, 'sort', defaultSort);
         const query = this.omit (params, 'sort');
-        const request = {
+        const request: Dict = {
             // 'clientOrderId': '123', // order’s client id list for filter
             // page: 0, // results page you want to retrieve (0 .. N)
             'sort': sort, // sorting criteria in the format "property,asc" or "property,desc", default order is ascending, multiple sort criteria are supported
@@ -1060,7 +1076,7 @@ export default class timex extends Exchange {
         const defaultSort = this.safeValue (options, 'sort', 'createdAt,asc');
         const sort = this.safeString (params, 'sort', defaultSort);
         const query = this.omit (params, 'sort');
-        const request = {
+        const request: Dict = {
             // 'clientOrderId': '123', // order’s client id list for filter
             // page: 0, // results page you want to retrieve (0 .. N)
             'sort': sort, // sorting criteria in the format "property,asc" or "property,desc", default order is ascending, multiple sort criteria are supported
@@ -1121,7 +1137,7 @@ export default class timex extends Exchange {
         const defaultSort = this.safeValue (options, 'sort', 'timestamp,asc');
         const sort = this.safeString (params, 'sort', defaultSort);
         const query = this.omit (params, 'sort');
-        const request = {
+        const request: Dict = {
             // 'cursorId': 123, // int64 (?)
             // 'from': this.iso8601 (since),
             // 'makerOrderId': '1234', // maker order hash
@@ -1168,7 +1184,7 @@ export default class timex extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseTradingFee (fee, market: Market = undefined): TradingFeeInterface {
+    parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
         //
         //     {
         //         "fee": 0.0075,
@@ -1199,7 +1215,7 @@ export default class timex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'markets': market['id'],
         };
         const response = await this.tradingGetFees (this.extend (request, params));
@@ -1215,7 +1231,7 @@ export default class timex extends Exchange {
         return this.parseTradingFee (result, market);
     }
 
-    parseMarket (market): Market {
+    parseMarket (market: Dict): Market {
         //
         //     {
         //         "symbol": "ETHBTC",
@@ -1299,7 +1315,7 @@ export default class timex extends Exchange {
         };
     }
 
-    parseCurrency (currency) {
+    parseCurrency (currency: Dict) {
         //
         //     {
         //         "symbol": "BTC",
@@ -1382,7 +1398,7 @@ export default class timex extends Exchange {
         };
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "ask": 0.017,
@@ -1427,7 +1443,7 @@ export default class timex extends Exchange {
         }, market);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades (public)
         //
@@ -1518,7 +1534,7 @@ export default class timex extends Exchange {
         ];
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // fetchOrder, createOrder, cancelOrder, cancelOrders, fetchOpenOrders, fetchClosedOrders
         //
@@ -1597,7 +1613,7 @@ export default class timex extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = {
+        const request: Dict = {
             'symbol': currency['code'],
         };
         const response = await this.currenciesGetSSymbol (this.extend (request, params));
@@ -1664,7 +1680,7 @@ export default class timex extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody) {
+    handleErrors (statusCode: int, statusText: string, url: string, method: string, responseHeaders: Dict, responseBody, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }

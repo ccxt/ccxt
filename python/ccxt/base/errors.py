@@ -15,9 +15,7 @@ error_hierarchy = {
                 'NoChange': {
                     'MarginModeAlreadySet': {},
                 },
-            },
-            'BadResponse': {
-                'NullResponse': {},
+                'MarketClosed': {},
             },
             'InsufficientFunds': {},
             'InvalidAddress': {
@@ -26,14 +24,13 @@ error_hierarchy = {
             'InvalidOrder': {
                 'OrderNotFound': {},
                 'OrderNotCached': {},
-                'CancelPending': {},
                 'OrderImmediatelyFillable': {},
                 'OrderNotFillable': {},
                 'DuplicateOrderId': {},
                 'ContractUnavailable': {},
             },
             'NotSupported': {},
-            'ProxyError': {},
+            'InvalidProxySettings': {},
             'ExchangeClosedByUser': {},
         },
         'OperationFailed': {
@@ -43,9 +40,15 @@ error_hierarchy = {
                 'ExchangeNotAvailable': {
                     'OnMaintenance': {},
                 },
-                'InvalidNonce': {},
+                'InvalidNonce': {
+                    'ChecksumError': {},
+                },
                 'RequestTimeout': {},
             },
+            'BadResponse': {
+                'NullResponse': {},
+            },
+            'CancelPending': {},
         },
     },
 }
@@ -99,11 +102,7 @@ class MarginModeAlreadySet(NoChange):
     pass
 
 
-class BadResponse(ExchangeError):
-    pass
-
-
-class NullResponse(BadResponse):
+class MarketClosed(OperationRejected):
     pass
 
 
@@ -131,10 +130,6 @@ class OrderNotCached(InvalidOrder):
     pass
 
 
-class CancelPending(InvalidOrder):
-    pass
-
-
 class OrderImmediatelyFillable(InvalidOrder):
     pass
 
@@ -155,7 +150,7 @@ class NotSupported(ExchangeError):
     pass
 
 
-class ProxyError(ExchangeError):
+class InvalidProxySettings(ExchangeError):
     pass
 
 
@@ -191,7 +186,23 @@ class InvalidNonce(NetworkError):
     pass
 
 
+class ChecksumError(InvalidNonce):
+    pass
+
+
 class RequestTimeout(NetworkError):
+    pass
+
+
+class BadResponse(OperationFailed):
+    pass
+
+
+class NullResponse(BadResponse):
+    pass
+
+
+class CancelPending(OperationFailed):
     pass
 
 
@@ -209,21 +220,19 @@ __all__ = [
     'OperationRejected',
     'NoChange',
     'MarginModeAlreadySet',
-    'BadResponse',
-    'NullResponse',
+    'MarketClosed',
     'InsufficientFunds',
     'InvalidAddress',
     'AddressPending',
     'InvalidOrder',
     'OrderNotFound',
     'OrderNotCached',
-    'CancelPending',
     'OrderImmediatelyFillable',
     'OrderNotFillable',
     'DuplicateOrderId',
     'ContractUnavailable',
     'NotSupported',
-    'ProxyError',
+    'InvalidProxySettings',
     'ExchangeClosedByUser',
     'OperationFailed',
     'NetworkError',
@@ -232,5 +241,9 @@ __all__ = [
     'ExchangeNotAvailable',
     'OnMaintenance',
     'InvalidNonce',
-    'RequestTimeout'
+    'ChecksumError',
+    'RequestTimeout',
+    'BadResponse',
+    'NullResponse',
+    'CancelPending'
 ]

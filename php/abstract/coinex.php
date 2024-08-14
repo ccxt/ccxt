@@ -377,7 +377,7 @@ abstract class coinex extends \ccxt\Exchange {
         return $this->request('market/preference', array('v1', 'perpetualPrivate'), 'POST', $params, null, null, array("cost" => 20));
     }
     public function v2_public_get_maintain_info($params = array()) {
-        return $this->request('maintain-info', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('maintain/info', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function v2_public_get_ping($params = array()) {
         return $this->request('ping', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
@@ -436,6 +436,12 @@ abstract class coinex extends \ccxt\Exchange {
     public function v2_public_get_futures_basis_history($params = array()) {
         return $this->request('futures/basis-history', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function v2_public_get_assets_deposit_withdraw_config($params = array()) {
+        return $this->request('assets/deposit-withdraw-config', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v2_public_get_assets_all_deposit_withdraw_config($params = array()) {
+        return $this->request('assets/all-deposit-withdraw-config', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function v2_private_get_account_subs($params = array()) {
         return $this->request('account/subs', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -489,9 +495,6 @@ abstract class coinex extends \ccxt\Exchange {
     }
     public function v2_private_get_assets_withdraw($params = array()) {
         return $this->request('assets/withdraw', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 40));
-    }
-    public function v2_private_get_assets_deposit_withdraw_config($params = array()) {
-        return $this->request('assets/deposit-withdraw-config', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function v2_private_get_assets_transfer_history($params = array()) {
         return $this->request('assets/transfer-history', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 40));
@@ -1073,7 +1076,7 @@ abstract class coinex extends \ccxt\Exchange {
         return $this->request('market/preference', array('v1', 'perpetualPrivate'), 'POST', $params, null, null, array("cost" => 20));
     }
     public function v2PublicGetMaintainInfo($params = array()) {
-        return $this->request('maintain-info', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+        return $this->request('maintain/info', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function v2PublicGetPing($params = array()) {
         return $this->request('ping', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
@@ -1132,6 +1135,12 @@ abstract class coinex extends \ccxt\Exchange {
     public function v2PublicGetFuturesBasisHistory($params = array()) {
         return $this->request('futures/basis-history', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function v2PublicGetAssetsDepositWithdrawConfig($params = array()) {
+        return $this->request('assets/deposit-withdraw-config', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function v2PublicGetAssetsAllDepositWithdrawConfig($params = array()) {
+        return $this->request('assets/all-deposit-withdraw-config', array('v2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
     public function v2PrivateGetAccountSubs($params = array()) {
         return $this->request('account/subs', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1185,9 +1194,6 @@ abstract class coinex extends \ccxt\Exchange {
     }
     public function v2PrivateGetAssetsWithdraw($params = array()) {
         return $this->request('assets/withdraw', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 40));
-    }
-    public function v2PrivateGetAssetsDepositWithdrawConfig($params = array()) {
-        return $this->request('assets/deposit-withdraw-config', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 1));
     }
     public function v2PrivateGetAssetsTransferHistory($params = array()) {
         return $this->request('assets/transfer-history', array('v2', 'private'), 'GET', $params, null, null, array("cost" => 40));

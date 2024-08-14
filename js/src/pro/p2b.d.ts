@@ -14,7 +14,7 @@ export default class p2b extends p2bRest {
     handleOrderBook(client: Client, message: any): void;
     handleMessage(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): boolean;
-    ping(client: any): {
+    ping(client: Client): {
         method: string;
         params: any[];
         id: number;

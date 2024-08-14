@@ -62,7 +62,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         messageHash = 'orderbook:' + symbol
         channel = 'diff_order_book_' + market['id']
         url = self.urls['api']['ws']
-        request = {
+        request: dict = {
             'event': 'bts:subscribe',
             'data': {
                 'channel': channel,
@@ -165,7 +165,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         messageHash = 'trades:' + symbol
         url = self.urls['api']['ws']
         channel = 'live_trades_' + market['id']
-        request = {
+        request: dict = {
             'event': 'bts:subscribe',
             'data': {
                 'channel': channel,
@@ -269,7 +269,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         symbol = market['symbol']
         channel = 'private-my_orders'
         messageHash = channel + '_' + market['id']
-        subscription = {
+        subscription: dict = {
             'symbol': symbol,
             'limit': limit,
             'type': channel,
@@ -419,7 +419,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         #     }
         #
         channel = self.safe_string(message, 'channel')
-        methods = {
+        methods: dict = {
             'live_trades': self.handle_trade,
             'diff_order_book': self.handle_order_book,
             'private-my_orders': self.handle_orders,
@@ -511,7 +511,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         url = self.urls['api']['ws']
         await self.authenticate()
         messageHash += '-' + self.options['userId']
-        request = {
+        request: dict = {
             'event': 'bts:subscribe',
             'data': {
                 'channel': messageHash,

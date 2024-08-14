@@ -88,6 +88,7 @@ class hollaex extends hollaex$1 {
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -533,12 +534,12 @@ class hollaex extends hollaex$1 {
         //
         return this.parseTickers(response, symbols);
     }
-    parseTickers(response, symbols = undefined, params = {}) {
+    parseTickers(tickers, symbols = undefined, params = {}) {
         const result = {};
-        const keys = Object.keys(response);
+        const keys = Object.keys(tickers);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const ticker = response[key];
+            const ticker = tickers[key];
             const marketId = this.safeString(ticker, 'symbol', key);
             const market = this.safeMarket(marketId, undefined, '-');
             const symbol = market['symbol'];
@@ -1144,7 +1145,7 @@ class hollaex extends hollaex$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
          * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately

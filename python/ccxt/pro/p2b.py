@@ -75,7 +75,7 @@ class p2b(ccxt.async_support.p2b):
         :returns dict: data from the websocket stream
         """
         url = self.urls['api']['ws']
-        subscribe = {
+        subscribe: dict = {
             'method': name,
             'params': request,
             'id': self.milliseconds(),
@@ -371,7 +371,7 @@ class p2b(ccxt.async_support.p2b):
             self.handle_pong(client, message)
             return
         method = self.safe_string(message, 'method')
-        methods = {
+        methods: dict = {
             'depth.update': self.handle_order_book,
             'price.update': self.handle_ticker,
             'kline.update': self.handle_ohlcv,
@@ -388,7 +388,7 @@ class p2b(ccxt.async_support.p2b):
             raise ExchangeError(self.id + ' error: ' + self.json(error))
         return False
 
-    def ping(self, client):
+    def ping(self, client: Client):
         """
         :see: https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#ping
          * @param client

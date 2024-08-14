@@ -96,6 +96,7 @@ public partial class cryptocom : Exchange
                 { "reduceMargin", false },
                 { "repayCrossMargin", false },
                 { "repayIsolatedMargin", false },
+                { "sandbox", true },
                 { "setLeverage", false },
                 { "setMarginMode", false },
                 { "setPositionMode", false },
@@ -150,6 +151,9 @@ public partial class cryptocom : Exchange
                             { "public/get-expired-settlement-price", divide(10, 3) },
                             { "public/get-insurance", 1 },
                         } },
+                        { "post", new Dictionary<string, object>() {
+                            { "public/staking/get-conversion-rate", 2 },
+                        } },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "post", new Dictionary<string, object>() {
@@ -179,6 +183,16 @@ public partial class cryptocom : Exchange
                             { "private/get-accounts", divide(10, 3) },
                             { "private/get-withdrawal-history", divide(10, 3) },
                             { "private/get-deposit-history", divide(10, 3) },
+                            { "private/staking/stake", 2 },
+                            { "private/staking/unstake", 2 },
+                            { "private/staking/get-staking-position", 2 },
+                            { "private/staking/get-staking-instruments", 2 },
+                            { "private/staking/get-open-stake", 2 },
+                            { "private/staking/get-stake-history", 2 },
+                            { "private/staking/get-reward-history", 2 },
+                            { "private/staking/convert", 2 },
+                            { "private/staking/get-open-convert", 2 },
+                            { "private/staking/get-convert-history", 2 },
                         } },
                     } },
                 } },
@@ -341,7 +355,15 @@ public partial class cryptocom : Exchange
                     { "40006", typeof(BadRequest) },
                     { "40007", typeof(BadRequest) },
                     { "40101", typeof(AuthenticationError) },
-                    { "50001", typeof(BadRequest) },
+                    { "40102", typeof(InvalidNonce) },
+                    { "40103", typeof(AuthenticationError) },
+                    { "40104", typeof(AuthenticationError) },
+                    { "40107", typeof(BadRequest) },
+                    { "40401", typeof(OrderNotFound) },
+                    { "40801", typeof(RequestTimeout) },
+                    { "42901", typeof(RateLimitExceeded) },
+                    { "43005", typeof(InvalidOrder) },
+                    { "50001", typeof(ExchangeError) },
                     { "9010001", typeof(OnMaintenance) },
                 } },
                 { "broad", new Dictionary<string, object>() {} },
@@ -469,7 +491,8 @@ public partial class cryptocom : Exchange
             object strike = this.safeString(market, "strike");
             object marginBuyEnabled = this.safeValue(market, "margin_buy_enabled");
             object marginSellEnabled = this.safeValue(market, "margin_sell_enabled");
-            object expiry = this.omitZero(this.safeInteger(market, "expiry_timestamp_ms"));
+            object expiryString = this.omitZero(this.safeString(market, "expiry_timestamp_ms"));
+            object expiry = ((bool) isTrue((!isEqual(expiryString, null)))) ? parseInt(expiryString) : null;
             object symbol = add(add(bs, "/"), quote);
             object type = null;
             object contract = null;
@@ -669,8 +692,8 @@ public partial class cryptocom : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["end_time"] = until;
@@ -757,8 +780,8 @@ public partial class cryptocom : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["end_ts"] = until;
@@ -821,17 +844,29 @@ public partial class cryptocom : Exchange
             { "instrument_name", getValue(market, "id") },
             { "timeframe", this.safeString(this.timeframes, timeframe, timeframe) },
         };
-        if (isTrue(!isEqual(since, null)))
-        {
-            ((IDictionary<string,object>)request)["start_ts"] = since;
-        }
         if (isTrue(!isEqual(limit, null)))
         {
+            if (isTrue(isGreaterThan(limit, 300)))
+            {
+                limit = 300;
+            }
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
-        if (isTrue(!isEqual(until, null)))
+        object now = this.microseconds();
+        object duration = this.parseTimeframe(timeframe);
+        object until = this.safeInteger(parameters, "until", now);
+        parameters = this.omit(parameters, new List<object>() {"until"});
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["start_ts"] = subtract(since, multiply(duration, 1000));
+            if (isTrue(!isEqual(limit, null)))
+            {
+                ((IDictionary<string,object>)request)["end_ts"] = this.sum(since, multiply(multiply(duration, limit), 1000));
+            } else
+            {
+                ((IDictionary<string,object>)request)["end_ts"] = until;
+            }
+        } else
         {
             ((IDictionary<string,object>)request)["end_ts"] = until;
         }
@@ -1195,7 +1230,7 @@ public partial class cryptocom : Exchange
         * @param {string} type 'market', 'limit', 'stop_loss', 'stop_limit', 'take_profit', 'take_profit_limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
         * @param {string} [params.ref_price_type] 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger price type to use, default is MARK_PRICE
@@ -1570,7 +1605,7 @@ public partial class cryptocom : Exchange
         * @name cryptocom#cancelOrdersForSymbols
         * @description cancel multiple orders for multiple symbols
         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
-        * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol
+        * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -1703,8 +1738,8 @@ public partial class cryptocom : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["end_time"] = until;
@@ -1960,8 +1995,8 @@ public partial class cryptocom : Exchange
         {
             ((IDictionary<string,object>)request)["page_size"] = limit;
         }
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["end_ts"] = until;
@@ -2026,8 +2061,8 @@ public partial class cryptocom : Exchange
         {
             ((IDictionary<string,object>)request)["page_size"] = limit;
         }
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["end_ts"] = until;
@@ -2591,8 +2626,8 @@ public partial class cryptocom : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["end_time"] = until;
@@ -2947,8 +2982,8 @@ public partial class cryptocom : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        object until = this.safeInteger2(parameters, "until", "till");
-        parameters = this.omit(parameters, new List<object>() {"until", "till"});
+        object until = this.safeInteger(parameters, "until");
+        parameters = this.omit(parameters, new List<object>() {"until"});
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["end_ts"] = until;

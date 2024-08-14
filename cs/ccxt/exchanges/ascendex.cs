@@ -81,6 +81,7 @@ public partial class ascendex : Exchange
                 { "fetchWithdrawal", false },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", true },
+                { "sandbox", true },
                 { "setLeverage", true },
                 { "setMarginMode", true },
                 { "setPositionMode", false },
@@ -1460,7 +1461,7 @@ public partial class ascendex : Exchange
                 { "currency", feeCurrencyCode },
             };
         }
-        object stopPrice = this.safeNumber(order, "stopPrice");
+        object stopPrice = this.omitZero(this.safeString(order, "stopPrice"));
         object reduceOnly = null;
         object execInst = this.safeString(order, "execInst");
         if (isTrue(isEqual(execInst, "reduceOnly")))
@@ -1565,7 +1566,7 @@ public partial class ascendex : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
         * @param {bool} [params.postOnly] true or false
@@ -1671,7 +1672,7 @@ public partial class ascendex : Exchange
         * @param {string} type "limit" or "market"
         * @param {string} side "buy" or "sell"
         * @param {float} amount the amount of currency to trade
-        * @param {float} [price] *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
         * @param {bool} [params.postOnly] true or false
@@ -2425,7 +2426,7 @@ public partial class ascendex : Exchange
         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-all-open-orders
         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        * @returns {object[]} a list with a single [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} with the response assigned to the info property
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2497,7 +2498,9 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        return response;
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     public override object parseDepositAddress(object depositAddress, object currency = null)
@@ -3366,7 +3369,6 @@ public partial class ascendex : Exchange
         object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
         object accountGroup = this.safeString(account, "id");
         object currency = this.currency(code);
-        amount = this.currencyToPrecision(code, amount);
         object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
         object fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         object toId = this.safeString(accountsByType, toAccount, toAccount);
@@ -3376,7 +3378,7 @@ public partial class ascendex : Exchange
         }
         object request = new Dictionary<string, object>() {
             { "account-group", accountGroup },
-            { "amount", amount },
+            { "amount", this.currencyToPrecision(code, amount) },
             { "asset", getValue(currency, "id") },
             { "fromAccount", fromId },
             { "toAccount", toId },
@@ -3403,7 +3405,7 @@ public partial class ascendex : Exchange
         //
         //    { "code": "0" }
         //
-        object status = this.safeInteger(transfer, "code");
+        object status = this.safeString(transfer, "code");
         object currencyCode = this.safeCurrencyCode(null, currency);
         return new Dictionary<string, object>() {
             { "info", transfer },
@@ -3420,7 +3422,7 @@ public partial class ascendex : Exchange
 
     public virtual object parseTransferStatus(object status)
     {
-        if (isTrue(isEqual(status, 0)))
+        if (isTrue(isEqual(status, "0")))
         {
             return "ok";
         }
@@ -3518,7 +3520,7 @@ public partial class ascendex : Exchange
     {
         /**
         * @method
-        * @name ascendex#fetchMarginMode
+        * @name ascendex#fetchMarginModes
         * @description fetches the set margin mode of the user
         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
         * @param {string[]} [symbols] a list of unified market symbols

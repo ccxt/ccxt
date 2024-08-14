@@ -313,6 +313,9 @@ export default class bitget extends Exchange {
                             'v2/spot/account/subaccount-assets': 2,
                             'v2/spot/account/bills': 2,
                             'v2/spot/account/transferRecords': 1,
+                            'v2/account/funding-assets': 2,
+                            'v2/account/bot-assets': 2,
+                            'v2/account/all-account-balance': 20,
                             'v2/spot/wallet/deposit-address': 2,
                             'v2/spot/wallet/deposit-records': 2,
                             'v2/spot/wallet/withdrawal-records': 2,
@@ -483,7 +486,7 @@ export default class bitget extends Exchange {
                             'v2/mix/account/set-margin': 4,
                             'v2/mix/account/set-margin-mode': 4,
                             'v2/mix/account/set-position-mode': 4,
-                            'v2/mix/order/place-order': 20,
+                            'v2/mix/order/place-order': 2,
                             'v2/mix/order/click-backhand': 20,
                             'v2/mix/order/batch-place-order': 20,
                             'v2/mix/order/modify-order': 2,
@@ -757,6 +760,7 @@ export default class bitget extends Exchange {
                             'v2/earn/loan/borrow-history': 2,
                             'v2/earn/loan/debts': 2,
                             'v2/earn/loan/reduces': 2,
+                            'v2/earn/account/assets': 2,
                         },
                         'post': {
                             'v2/earn/savings/subscribe': 2,
@@ -1227,6 +1231,7 @@ export default class bitget extends Exchange {
                     '40712': InsufficientFunds,
                     '40713': ExchangeError,
                     '40714': ExchangeError,
+                    '40762': InsufficientFunds,
                     '40768': OrderNotFound,
                     '41114': OnMaintenance,
                     '43011': InvalidOrder,
@@ -1307,6 +1312,7 @@ export default class bitget extends Exchange {
                 'JADE': 'Jade Protocol',
                 'DEGEN': 'DegenReborn',
                 'TONCOIN': 'TON',
+                'OMNI': 'omni', // conflict with Omni Network
             },
             'options': {
                 'timeframes': {
@@ -2635,11 +2641,7 @@ export default class bitget extends Exchange {
         //
         const marketId = this.safeString(ticker, 'symbol');
         const close = this.safeString(ticker, 'lastPr');
-        const timestampString = this.omitZero(this.safeString(ticker, 'ts')); // exchange sometimes provided 0
-        let timestamp = undefined;
-        if (timestampString !== undefined) {
-            timestamp = this.parseToInt(timestampString);
-        }
+        const timestamp = this.safeIntegerOmitZero(ticker, 'ts'); // exchange bitget provided 0
         const change = this.safeString(ticker, 'change24h');
         const open24 = this.safeString(ticker, 'open24');
         const open = this.safeString(ticker, 'open');
@@ -3364,11 +3366,11 @@ export default class bitget extends Exchange {
             'symbol': market['id'],
             'granularity': this.safeString(timeframes, timeframe, timeframe),
         };
-        const until = this.safeInteger2(params, 'until', 'till');
+        const until = this.safeInteger(params, 'until');
         const limitDefined = limit !== undefined;
         const sinceDefined = since !== undefined;
         const untilDefined = until !== undefined;
-        params = this.omit(params, ['until', 'till']);
+        params = this.omit(params, ['until']);
         let response = undefined;
         const now = this.milliseconds();
         // retrievable periods listed here:
@@ -4131,7 +4133,7 @@ export default class bitget extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.cost] *spot only* how much you want to trade in units of the quote currency, for market buy orders only
          * @param {float} [params.triggerPrice] *swap only* The price at which a trigger order is triggered at
@@ -4153,6 +4155,7 @@ export default class bitget extends Exchange {
          * @param {string} [params.trailingTriggerPrice] *swap and future only* the price to trigger a trailing stop order, default uses the price argument
          * @param {string} [params.triggerType] *swap and future only* 'fill_price', 'mark_price' or 'index_price'
          * @param {boolean} [params.oneWayMode] *swap and future only* required to set this to true in one_way_mode and you can leave this as undefined in hedge_mode, can adjust the mode using the setPositionMode() method
+         * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -4346,11 +4349,17 @@ export default class bitget extends Exchange {
                 }
                 const marginModeRequest = (marginMode === 'cross') ? 'crossed' : 'isolated';
                 request['marginMode'] = marginModeRequest;
-                const oneWayMode = this.safeBool(params, 'oneWayMode', false);
-                params = this.omit(params, 'oneWayMode');
+                let hedged = undefined;
+                [hedged, params] = this.handleParamBool(params, 'hedged', false);
+                // backward compatibility for `oneWayMode`
+                let oneWayMode = undefined;
+                [oneWayMode, params] = this.handleParamBool(params, 'oneWayMode');
+                if (oneWayMode !== undefined) {
+                    hedged = !oneWayMode;
+                }
                 let requestSide = side;
                 if (reduceOnly) {
-                    if (oneWayMode) {
+                    if (!hedged) {
                         request['reduceOnly'] = 'YES';
                     }
                     else {
@@ -4360,7 +4369,7 @@ export default class bitget extends Exchange {
                     }
                 }
                 else {
-                    if (!oneWayMode) {
+                    if (hedged) {
                         request['tradeSide'] = 'Open';
                     }
                 }
@@ -4407,7 +4416,7 @@ export default class bitget extends Exchange {
             }
             if (marginMode !== undefined) {
                 request['loanType'] = 'normal';
-                if (createMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {
+                if (isMarketOrder && (side === 'buy')) {
                     request['quoteSize'] = quantity;
                 }
                 else {
@@ -4559,7 +4568,7 @@ export default class bitget extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] the price that a trigger order is triggered at
          * @param {float} [params.stopLossPrice] *swap only* The price at which a stop loss order is triggered at
@@ -4614,6 +4623,9 @@ export default class bitget extends Exchange {
         params = this.omit(params, ['stopPrice', 'triggerType', 'stopLossPrice', 'takeProfitPrice', 'stopLoss', 'takeProfit', 'clientOrderId', 'trailingTriggerPrice', 'trailingPercent']);
         let response = undefined;
         if (market['spot']) {
+            if (triggerPrice === undefined) {
+                throw new NotSupported(this.id + 'editOrder() only supports plan/trigger spot orders');
+            }
             const editMarketBuyOrderRequiresPrice = this.safeBool(this.options, 'editMarketBuyOrderRequiresPrice', true);
             if (editMarketBuyOrderRequiresPrice && isMarketOrder && (side === 'buy')) {
                 if (price === undefined) {
@@ -5004,6 +5016,22 @@ export default class bitget extends Exchange {
                 else {
                     response = await this.privateMarginPostMarginV1IsolatedOrderBatchCancelOrder(this.extend(request, params));
                 }
+                //
+                //     {
+                //         "code": "00000",
+                //         "msg": "success",
+                //         "requestTime": 1700717155622,
+                //         "data": {
+                //             "resultList": [
+                //                 {
+                //                     "orderId": "1111453253721796609",
+                //                     "clientOid": "2ae7fc8a4ff949b6b60d770ca3950e2d"
+                //                 },
+                //             ],
+                //             "failure": []
+                //         }
+                //     }
+                //
             }
             else {
                 if (stop) {
@@ -5015,6 +5043,27 @@ export default class bitget extends Exchange {
                 else {
                     response = await this.privateSpotPostV2SpotTradeCancelSymbolOrder(this.extend(request, params));
                 }
+                //
+                //     {
+                //         "code": "00000",
+                //         "msg": "success",
+                //         "requestTime": 1700716953996,
+                //         "data": {
+                //             "symbol": "BTCUSDT"
+                //         }
+                //     }
+                //
+                const timestamp = this.safeInteger(response, 'requestTime');
+                const responseData = this.safeDict(response, 'data');
+                const marketId = this.safeString(responseData, 'symbol');
+                return [
+                    this.safeOrder({
+                        'info': response,
+                        'symbol': this.safeSymbol(marketId, undefined, undefined, 'spot'),
+                        'timestamp': timestamp,
+                        'datetime': this.iso8601(timestamp),
+                    }),
+                ];
             }
         }
         else {
@@ -5027,54 +5076,26 @@ export default class bitget extends Exchange {
             else {
                 response = await this.privateMixPostV2MixOrderBatchCancelOrders(this.extend(request, params));
             }
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": "1680008815965",
+            //         "data": {
+            //             "successList": [
+            //                 {
+            //                     "orderId": "1024598257429823488",
+            //                     "clientOid": "876493ce-c287-4bfc-9f4a-8b1905881313"
+            //                 },
+            //             ],
+            //             "failureList": []
+            //         }
+            //     }
         }
-        //
-        // spot
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700716953996,
-        //         "data": {
-        //             "symbol": "BTCUSDT"
-        //         }
-        //     }
-        //
-        // swap
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": "1680008815965",
-        //         "data": {
-        //             "successList": [
-        //                 {
-        //                     "orderId": "1024598257429823488",
-        //                     "clientOid": "876493ce-c287-4bfc-9f4a-8b1905881313"
-        //                 },
-        //             ],
-        //             "failureList": []
-        //         }
-        //     }
-        //
-        // spot margin
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700717155622,
-        //         "data": {
-        //             "resultList": [
-        //                 {
-        //                     "orderId": "1111453253721796609",
-        //                     "clientOid": "2ae7fc8a4ff949b6b60d770ca3950e2d"
-        //                 },
-        //             ],
-        //             "failure": []
-        //         }
-        //     }
-        //
-        return response;
+        const data = this.safeDict(response, 'data');
+        const resultList = this.safeList2(data, 'resultList', 'successList');
+        const failureList = this.safeList2(data, 'failure', 'failureList');
+        const responseList = this.arrayConcat(resultList, failureList);
+        return this.parseOrders(responseList);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
         /**
@@ -5188,8 +5209,10 @@ export default class bitget extends Exchange {
             response = JSON.parse(response);
         }
         const data = this.safeDict(response, 'data');
-        if ((data !== undefined) && !Array.isArray(data)) {
-            return this.parseOrder(data, market);
+        if ((data !== undefined)) {
+            if (!Array.isArray(data)) {
+                return this.parseOrder(data, market);
+            }
         }
         const dataList = this.safeList(response, 'data', []);
         const first = this.safeDict(dataList, 0, {});
@@ -5646,8 +5669,8 @@ export default class bitget extends Exchange {
                     if (symbol === undefined) {
                         throw new ArgumentsRequired(this.id + ' fetchCanceledAndClosedOrders() requires a symbol argument');
                     }
-                    const endTime = this.safeIntegerN(params, ['endTime', 'until', 'till']);
-                    params = this.omit(params, ['until', 'till']);
+                    const endTime = this.safeIntegerN(params, ['endTime', 'until']);
+                    params = this.omit(params, ['until']);
                     if (since === undefined) {
                         since = now - 7776000000;
                         request['startTime'] = since;

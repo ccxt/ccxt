@@ -27,6 +27,51 @@ public partial class coinbaseinternational
         return ((IList<object>)res).Select(item => new Account(item)).ToList<Account>();
     }
     /// <summary>
+    /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/intx/reference/getinstrumentcandles"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : timestamp in ms of the earliest candle to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum amount of candles to fetch, default 100 max 10000
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest candle to fetch
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.paginate</term>
+    /// <description>
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>int[][]</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
+    public async Task<List<OHLCV>> FetchOHLCV(string symbol, string timeframe = "1m", Int64? since2 = 0, Int64 limit = 100, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var res = await this.fetchOHLCV(symbol, timeframe, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new OHLCV(item)).ToList<OHLCV>();
+    }
+    /// <summary>
     /// fetches historical funding rate prices
     /// </summary>
     /// <remarks>
@@ -65,6 +110,80 @@ public partial class coinbaseinternational
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchFundingRateHistory(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new FundingRateHistory(item)).ToList<FundingRateHistory>();
+    }
+    /// <summary>
+    /// fetch the history of funding payments paid and received on this account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/intx/reference/gettransfers"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>symbol</term>
+    /// <description>
+    /// string : unified market symbol
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch funding history for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of funding history structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}.</returns>
+    public async Task<List<FundingHistory>> FetchFundingHistory(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchFundingHistory(symbol, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new FundingHistory(item)).ToList<FundingHistory>();
+    }
+    /// <summary>
+    /// fetch a history of internal transfers made on an account
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://docs.cdp.coinbase.com/intx/reference/gettransfers"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>since</term>
+    /// <description>
+    /// int : the earliest time in ms to fetch transfers for
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>limit</term>
+    /// <description>
+    /// int : the maximum number of  transfers structures to retrieve
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object[]</term> a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
+    public async Task<List<TransferEntry>> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var since = since2 == 0 ? null : (object)since2;
+        var limit = limit2 == 0 ? null : (object)limit2;
+        var res = await this.fetchTransfers(code, since, limit, parameters);
+        return ((IList<object>)res).Select(item => new TransferEntry(item)).ToList<TransferEntry>();
     }
     /// <summary>
     /// create a currency deposit address
@@ -522,7 +641,7 @@ public partial class coinbaseinternational
     /// <item>
     /// <term>price</term>
     /// <description>
-    /// float : the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+    /// float : the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
     /// </description>
     /// </item>
     /// <item>

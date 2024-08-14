@@ -333,7 +333,7 @@ export class TypedDataEncoder {
                     result = result.map(keccak256);
                 }
 
-                return keccak256(concat(result));
+                return keccak256(getBytes(concat(result)));
             };
         }
 

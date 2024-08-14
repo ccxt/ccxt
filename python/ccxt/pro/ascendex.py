@@ -55,7 +55,7 @@ class ascendex(ccxt.async_support.ascendex):
     async def watch_public(self, messageHash, params={}):
         url = self.urls['api']['ws']['public']
         id = self.nonce()
-        request = {
+        request: dict = {
             'id': str(id),
             'op': 'sub',
         }
@@ -68,7 +68,7 @@ class ascendex(ccxt.async_support.ascendex):
         url = self.urls['api']['ws']['private']
         url = self.implode_params(url, {'accountGroup': accountGroup})
         id = self.nonce()
-        request = {
+        request: dict = {
             'id': str(id),
             'op': 'sub',
             'ch': channel,
@@ -285,9 +285,9 @@ class ascendex(ccxt.async_support.ascendex):
         marketId = self.safe_string(message, 'symbol')
         symbol = self.safe_symbol(marketId)
         messageHash = channel + ':' + marketId
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
-            orderbook = self.order_book({})
+        if not (symbol in self.orderbooks):
+            self.orderbooks[symbol] = self.order_book({})
+        orderbook = self.orderbooks[symbol]
         if orderbook['nonce'] is None:
             orderbook.cache.append(message)
         else:
@@ -830,7 +830,7 @@ class ascendex(ccxt.async_support.ascendex):
         # }
         #
         subject = self.safe_string(message, 'm')
-        methods = {
+        methods: dict = {
             'ping': self.handle_ping,
             'auth': self.handle_authenticate,
             'sub': self.handle_subscription_status,
@@ -904,7 +904,7 @@ class ascendex(ccxt.async_support.ascendex):
             auth = timestamp + '+' + version + '/' + path
             secret = self.base64_to_binary(self.secret)
             signature = self.hmac(self.encode(auth), secret, hashlib.sha256, 'base64')
-            request = {
+            request: dict = {
                 'op': 'auth',
                 'id': str(self.nonce()),
                 't': timestamp,

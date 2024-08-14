@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/okx.js';
-import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable } from './base/errors.js';
+import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, DDoSProtection, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -141,6 +141,7 @@ export default class okx extends Exchange {
                 'fetchWithdrawalWhitelist': false,
                 'reduceMargin': true,
                 'repayCrossMargin': true,
+                'sandbox': true,
                 'setLeverage': true,
                 'setMargin': false,
                 'setMarginMode': true,
@@ -247,6 +248,9 @@ export default class okx extends Exchange {
                         'sprd/books': 1 / 2,
                         'sprd/ticker': 1,
                         'sprd/public-trades': 1 / 5,
+                        'market/sprd-ticker': 2,
+                        'market/sprd-candles': 2,
+                        'market/sprd-history-candles': 2,
                         'tradingBot/grid/ai-param': 1,
                         'tradingBot/grid/min-investment': 1,
                         'tradingBot/public/rsi-back-testing': 1,
@@ -254,6 +258,9 @@ export default class okx extends Exchange {
                         'finance/staking-defi/eth/apy-history': 5 / 3,
                         'finance/savings/lending-rate-summary': 5 / 3,
                         'finance/savings/lending-rate-history': 5 / 3,
+                        'finance/fixed-loan/lending-offers': 10 / 3,
+                        'finance/fixed-loan/lending-apy-history': 10 / 3,
+                        'finance/fixed-loan/pending-lending-volume': 10 / 3,
                         // public broker
                         'finance/sfp/dcd/products': 2 / 3,
                         // copytrading
@@ -341,6 +348,9 @@ export default class okx extends Exchange {
                         'account/greeks': 2,
                         'account/position-tiers': 2,
                         'account/mmp-config': 4,
+                        'account/fixed-loan/borrowing-limit': 4,
+                        'account/fixed-loan/borrowing-quote': 5,
+                        'account/fixed-loan/borrowing-orders-list': 5,
                         // subaccount
                         'users/subaccount/list': 10,
                         'account/subaccount/balances': 10 / 3,
@@ -424,6 +434,7 @@ export default class okx extends Exchange {
                         'sprd/cancel-order': 1,
                         'sprd/mass-cancel': 1,
                         'sprd/amend-order': 1,
+                        'sprd/cancel-all-after': 10,
                         // trade
                         'trade/order': 1 / 3,
                         'trade/batch-orders': 1 / 15,
@@ -466,6 +477,10 @@ export default class okx extends Exchange {
                         'account/set-account-level': 4,
                         'account/mmp-reset': 4,
                         'account/mmp-config': 100,
+                        'account/fixed-loan/borrowing-order': 5,
+                        'account/fixed-loan/amend-borrowing-order': 5,
+                        'account/fixed-loan/manual-reborrow': 5,
+                        'account/fixed-loan/repay-borrowing-order': 5,
                         // subaccount
                         'users/subaccount/modify-apikey': 10,
                         'asset/subaccount/transfer': 10,
@@ -482,6 +497,7 @@ export default class okx extends Exchange {
                         'tradingBot/grid/compute-margin-balance': 1,
                         'tradingBot/grid/margin-balance': 1,
                         'tradingBot/grid/min-investment': 1,
+                        'tradingBot/grid/adjust-investment': 1,
                         'tradingBot/signal/create-signal': 1,
                         'tradingBot/signal/order-algo': 1,
                         'tradingBot/signal/stop-order-algo': 1,
@@ -891,10 +907,36 @@ export default class okx extends Exchange {
                     '60017': BadRequest,
                     '60018': BadRequest,
                     '60019': BadRequest,
+                    '60020': ExchangeError,
+                    '60021': AccountNotEnabled,
+                    '60022': AuthenticationError,
+                    '60023': DDoSProtection,
+                    '60024': AuthenticationError,
+                    '60025': ExchangeError,
+                    '60026': AuthenticationError,
+                    '60027': ArgumentsRequired,
+                    '60028': NotSupported,
+                    '60029': AccountNotEnabled,
+                    '60030': AccountNotEnabled,
+                    '60031': AuthenticationError,
+                    '60032': AuthenticationError,
                     '63999': ExchangeError,
+                    '64000': BadRequest,
+                    '64001': BadRequest,
+                    '64002': BadRequest,
+                    '64003': AccountNotEnabled,
                     '70010': BadRequest,
                     '70013': BadRequest,
-                    '70016': BadRequest, // Please specify your instrument settings for at least one instType.
+                    '70016': BadRequest,
+                    '1009': BadRequest,
+                    '4001': AuthenticationError,
+                    '4002': BadRequest,
+                    '4003': RateLimitExceeded,
+                    '4004': NetworkError,
+                    '4005': ExchangeNotAvailable,
+                    '4006': BadRequest,
+                    '4007': AuthenticationError,
+                    '4008': RateLimitExceeded, // The number of subscribed channels exceeds the maximum limit.
                 },
                 'broad': {
                     'Internal Server Error': ExchangeNotAvailable,
@@ -2429,6 +2471,7 @@ export default class okx extends Exchange {
          * @see https://www.okx.com/docs-v5/en/#funding-account-rest-api-get-balance
          * @see https://www.okx.com/docs-v5/en/#trading-account-rest-api-get-balance
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] wallet type, ['funding' or 'trading'] default is 'trading'
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets();
@@ -2882,7 +2925,7 @@ export default class okx extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.reduceOnly] a mark to reduce the position size for margin, swap and future orders
          * @param {bool} [params.postOnly] true to place a post only order
@@ -3092,7 +3135,7 @@ export default class okx extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of the currency you want to trade in units of the base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.clientOrderId] client order id, uses id if not passed
          * @param {float} [params.stopLossPrice] stop loss trigger price
@@ -3317,7 +3360,7 @@ export default class okx extends Exchange {
          * @description cancel multiple orders for multiple symbols
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-multiple-orders
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
-         * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol
+         * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.trigger] whether the order is a stop/trigger order
          * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
@@ -4030,10 +4073,10 @@ export default class okx extends Exchange {
             if (since !== undefined) {
                 request['begin'] = since;
             }
-            const until = this.safeInteger2(query, 'till', 'until');
+            const until = this.safeInteger(query, 'until');
             if (until !== undefined) {
                 request['end'] = until;
-                query = this.omit(query, ['until', 'till']);
+                query = this.omit(query, ['until']);
             }
         }
         const send = this.omit(query, ['method', 'stop', 'trigger', 'trailing']);
@@ -4219,10 +4262,10 @@ export default class okx extends Exchange {
             if (since !== undefined) {
                 request['begin'] = since;
             }
-            const until = this.safeInteger2(query, 'till', 'until');
+            const until = this.safeInteger(query, 'until');
             if (until !== undefined) {
                 request['end'] = until;
-                query = this.omit(query, ['until', 'till']);
+                query = this.omit(query, ['until']);
             }
             request['state'] = 'filled';
         }
@@ -5495,7 +5538,7 @@ export default class okx extends Exchange {
         for (let i = 0; i < positions.length; i++) {
             result.push(this.parsePosition(positions[i]));
         }
-        return this.filterByArrayPositions(result, 'symbol', symbols, false);
+        return this.filterByArrayPositions(result, 'symbol', this.marketSymbols(symbols), false);
     }
     async fetchPositionsForSymbol(symbol, params = {}) {
         /**
@@ -5578,7 +5621,7 @@ export default class okx extends Exchange {
         //    }
         //
         const marketId = this.safeString(position, 'instId');
-        market = this.safeMarket(marketId, market);
+        market = this.safeMarket(marketId, market, undefined, 'contract');
         const symbol = market['symbol'];
         const pos = this.safeString(position, 'pos'); // 'pos' field: One way mode: 0 if position is not open, 1 if open | Two way (hedge) mode: -1 if short, 1 if long, 0 if position is not open
         const contractsAbs = Precise.stringAbs(pos);
@@ -5995,6 +6038,22 @@ export default class okx extends Exchange {
         //        "nextFundingRate": "0.00017",
         //        "nextFundingTime": "1634284800000"
         //    }
+        // ws
+        //     {
+        //        "fundingRate":"0.0001875391284828",
+        //        "fundingTime":"1700726400000",
+        //        "instId":"BTC-USD-SWAP",
+        //        "instType":"SWAP",
+        //        "method": "next_period",
+        //        "maxFundingRate":"0.00375",
+        //        "minFundingRate":"-0.00375",
+        //        "nextFundingRate":"0.0002608059239328",
+        //        "nextFundingTime":"1700755200000",
+        //        "premium": "0.0001233824646391",
+        //        "settFundingRate":"0.0001699799259033",
+        //        "settState":"settled",
+        //        "ts":"1700724675402"
+        //     }
         //
         // in the response above nextFundingRate is actually two funding rates from now
         //
@@ -7124,10 +7183,10 @@ export default class okx extends Exchange {
             if (since !== undefined) {
                 request['begin'] = since;
             }
-            const until = this.safeInteger2(params, 'till', 'until');
+            const until = this.safeInteger(params, 'until');
             if (until !== undefined) {
                 request['end'] = until;
-                params = this.omit(params, ['until', 'till']);
+                params = this.omit(params, ['until']);
             }
             response = await this.publicGetRubikStatContractsOpenInterestVolume(this.extend(request, params));
         }
@@ -7306,6 +7365,9 @@ export default class okx extends Exchange {
                 }
                 depositWithdrawFees[code]['info'][currencyId] = feeInfo;
                 const chain = this.safeString(feeInfo, 'chain');
+                if (chain === undefined) {
+                    continue;
+                }
                 const chainSplit = chain.split('-');
                 const networkId = this.safeValue(chainSplit, 1);
                 const withdrawFee = this.safeNumber(feeInfo, 'minFee');

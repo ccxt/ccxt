@@ -1353,7 +1353,7 @@ class kucoinfutures extends kucoinfutures$1 {
          * @param {string} type 'limit' or 'market'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount the amount of currency to trade
-         * @param {float} [price] *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params]  extra parameters specific to the exchange API endpoint
          * @param {float} [params.triggerPrice] The price a trigger order is triggered at
          * @param {float} [params.stopLossPrice] price to trigger stop-loss orders
@@ -1765,9 +1765,9 @@ class kucoinfutures extends kucoinfutures$1 {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic('fetchOrdersByStatus', symbol, since, limit, params);
         }
-        const stop = this.safeValue2(params, 'stop', 'trigger');
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['stop', 'until', 'till', 'trigger']);
+        const stop = this.safeBool2(params, 'stop', 'trigger');
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['stop', 'until', 'trigger']);
         if (status === 'closed') {
             status = 'done';
         }
@@ -1864,7 +1864,7 @@ class kucoinfutures extends kucoinfutures$1 {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.till] end time in ms
+         * @param {int} [params.until] end time in ms
          * @param {string} [params.side] buy or sell
          * @param {string} [params.type] limit, or market
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
@@ -1889,7 +1889,7 @@ class kucoinfutures extends kucoinfutures$1 {
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {int} [params.till] end time in ms
+         * @param {int} [params.until] end time in ms
          * @param {string} [params.side] buy or sell
          * @param {string} [params.type] limit, or market
          * @param {boolean} [params.trigger] set to true to retrieve untriggered stop orders
@@ -2735,8 +2735,8 @@ class kucoinfutures extends kucoinfutures$1 {
             'from': 0,
             'to': this.milliseconds(),
         };
-        const until = this.safeInteger2(params, 'until', 'till');
-        params = this.omit(params, ['until', 'till']);
+        const until = this.safeInteger(params, 'until');
+        params = this.omit(params, ['until']);
         if (since !== undefined) {
             request['from'] = since;
             if (until === undefined) {

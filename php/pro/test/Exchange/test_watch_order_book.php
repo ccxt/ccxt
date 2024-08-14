@@ -9,8 +9,8 @@ namespace ccxt;
 // -----------------------------------------------------------------------------
 use React\Async;
 use React\Promise;
-include_once PATH_TO_CCXT . '/test/base/test_order_book.php';
-include_once PATH_TO_CCXT . '/test/base/test_shared_methods.php';
+include_once PATH_TO_CCXT . '/test/exchange/base/test_order_book.php';
+include_once PATH_TO_CCXT . '/test/exchange/base/test_shared_methods.php';
 
 function test_watch_order_book($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {

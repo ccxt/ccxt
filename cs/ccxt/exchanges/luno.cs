@@ -129,12 +129,14 @@ public partial class luno : Exchange
                         { "withdrawals", 1 },
                         { "send", 1 },
                         { "oauth2/grant", 1 },
+                        { "beneficiaries", 1 },
                     } },
                     { "put", new Dictionary<string, object>() {
                         { "accounts/{id}/name", 1 },
                     } },
                     { "delete", new Dictionary<string, object>() {
                         { "withdrawals/{id}", 1 },
+                        { "beneficiaries/{id}", 1 },
                     } },
                 } },
             } },
@@ -965,7 +967,7 @@ public partial class luno : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -1018,7 +1020,15 @@ public partial class luno : Exchange
         object request = new Dictionary<string, object>() {
             { "order_id", id },
         };
-        return await this.privatePostStoporder(this.extend(request, parameters));
+        object response = await this.privatePostStoporder(this.extend(request, parameters));
+        //
+        //    {
+        //        "success": true
+        //    }
+        //
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     public async virtual Task<object> fetchLedgerByEntries(object code = null, object entry = null, object limit = null, object parameters = null)

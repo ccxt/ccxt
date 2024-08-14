@@ -18,6 +18,7 @@ class idex extends Exchange {
             'rateLimit' => 1000,
             'version' => 'v3',
             'pro' => true,
+            'dex' => true,
             'certified' => false,
             'requiresWeb3' => true,
             'has' => array(
@@ -89,6 +90,7 @@ class idex extends Exchange {
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'reduceMargin' => false,
+                'sandbox' => true,
                 'setLeverage' => false,
                 'setMarginMode' => false,
                 'setPositionMode' => false,
@@ -355,7 +357,7 @@ class idex extends Exchange {
         //     "sequence" => 3902
         //   }
         // )
-        $response = $this->publicGetTickers (array_merge($request, $params));
+        $response = $this->publicGetTickers ($this->extend($request, $params));
         $ticker = $this->safe_dict($response, 0);
         return $this->parse_ticker($ticker, $market);
     }
@@ -391,7 +393,7 @@ class idex extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         // {
         //   "market" => "DIL-ETH",
         //   "time" => 1598367493008,
@@ -460,7 +462,7 @@ class idex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = min ($limit, 1000);
         }
-        $response = $this->publicGetCandles (array_merge($request, $params));
+        $response = $this->publicGetCandles ($this->extend($request, $params));
         if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
             // array(
             //   array(
@@ -531,11 +533,11 @@ class idex extends Exchange {
         //     "sequence" => 3853
         //   ), ...
         // )
-        $response = $this->publicGetTrades (array_merge($request, $params));
+        $response = $this->publicGetTrades ($this->extend($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // public trades
         //  {
@@ -627,7 +629,7 @@ class idex extends Exchange {
             'nonce' => $nonce,
         );
         $response = null;
-        $response = $this->privateGetUser (array_merge($request, $params));
+        $response = $this->privateGetUser ($this->extend($request, $params));
         //
         //     {
         //         "depositEnabled" => true,
@@ -696,7 +698,7 @@ class idex extends Exchange {
         //     array( '0.09995250', "3.40192141", 1 )
         //   )
         // }
-        $response = $this->publicGetOrderbook (array_merge($request, $params));
+        $response = $this->publicGetOrderbook ($this->extend($request, $params));
         $nonce = $this->safe_integer($response, 'sequence');
         return array(
             'symbol' => $symbol,
@@ -811,7 +813,7 @@ class idex extends Exchange {
         //     "usdValue" => null
         //   ), ...
         // )
-        $extendedRequest = array_merge($request, $params);
+        $extendedRequest = $this->extend($request, $params);
         if ($extendedRequest['wallet'] === null) {
             throw new BadRequest($this->id . ' fetchBalance() wallet is null, set $this->walletAddress or "address" in params');
         }
@@ -877,7 +879,7 @@ class idex extends Exchange {
         //     "txStatus" => "mined"
         //   }
         // )
-        $extendedRequest = array_merge($request, $params);
+        $extendedRequest = $this->extend($request, $params);
         if ($extendedRequest['wallet'] === null) {
             throw new BadRequest($this->id . ' fetchMyTrades() $walletAddress is null, set $this->walletAddress or "address" in params');
         }
@@ -907,7 +909,7 @@ class idex extends Exchange {
         $request = array(
             'orderId' => $id,
         );
-        return $this->fetch_orders_helper($symbol, null, null, array_merge($request, $params));
+        return $this->fetch_orders_helper($symbol, null, null, $this->extend($request, $params));
     }
 
     public function fetch_open_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -923,7 +925,7 @@ class idex extends Exchange {
         $request = array(
             'closed' => false,
         );
-        return $this->fetch_orders_helper($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_orders_helper($symbol, $since, $limit, $this->extend($request, $params));
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
@@ -939,7 +941,7 @@ class idex extends Exchange {
         $request = array(
             'closed' => true,
         );
-        return $this->fetch_orders_helper($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_orders_helper($symbol, $since, $limit, $this->extend($request, $params));
     }
 
     public function fetch_orders_helper(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -959,7 +961,7 @@ class idex extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetOrders (array_merge($request, $params));
+        $response = $this->privateGetOrders ($this->extend($request, $params));
         // fetchClosedOrders / fetchOpenOrders
         // array(
         //   {
@@ -1028,7 +1030,7 @@ class idex extends Exchange {
         }
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         // https://docs.idex.io/#order-states-amp-lifecycle
         $statuses = array(
             'active' => 'open',
@@ -1039,7 +1041,7 @@ class idex extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //     {
         //         "market" => "DIL-ETH",
@@ -1148,7 +1150,7 @@ class idex extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {bool} [$params->test] set to true to test an order, no order will be created but the $request will be validated
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
@@ -1428,7 +1430,7 @@ class idex extends Exchange {
         $signature = $this->sign_message_string($hash, $this->privateKey);
         $request['signature'] = $signature;
         // array( array( orderId => "688336f0-ec50-11ea-9842-b332f8a34d0e" ) )
-        $response = $this->privateDeleteOrders (array_merge($request, $params));
+        $response = $this->privateDeleteOrders ($this->extend($request, $params));
         return $this->parse_orders($response, $market);
     }
 
@@ -1466,12 +1468,12 @@ class idex extends Exchange {
             'signature' => $signature,
         );
         // array( array( orderId => "688336f0-ec50-11ea-9842-b332f8a34d0e" ) )
-        $response = $this->privateDeleteOrders (array_merge($request, $params));
+        $response = $this->privateDeleteOrders ($this->extend($request, $params));
         $canceledOrder = $this->safe_dict($response, 0);
         return $this->parse_order($canceledOrder, $market);
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         $errorCode = $this->safe_string($response, 'code');
         $message = $this->safe_string($response, 'message');
         if ($errorCode !== null) {
@@ -1497,7 +1499,7 @@ class idex extends Exchange {
             'wallet' => $this->walletAddress,
             'depositId' => $id,
         );
-        $response = $this->privateGetDeposits (array_merge($request, $params));
+        $response = $this->privateGetDeposits ($this->extend($request, $params));
         return $this->parse_transaction($response);
     }
 
@@ -1511,7 +1513,7 @@ class idex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
-        $params = array_merge(array(
+        $params = $this->extend(array(
             'method' => 'privateGetDeposits',
         ), $params);
         return $this->fetch_transactions_helper($code, $since, $limit, $params);
@@ -1564,7 +1566,7 @@ class idex extends Exchange {
             'wallet' => $this->walletAddress,
             'withdrawalId' => $id,
         );
-        $response = $this->privateGetWithdrawals (array_merge($request, $params));
+        $response = $this->privateGetWithdrawals ($this->extend($request, $params));
         return $this->parse_transaction($response);
     }
 
@@ -1578,7 +1580,7 @@ class idex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
-        $params = array_merge(array(
+        $params = $this->extend(array(
             'method' => 'privateGetWithdrawals',
         ), $params);
         return $this->fetch_transactions_helper($code, $since, $limit, $params);
@@ -1616,23 +1618,23 @@ class idex extends Exchange {
         $params = $this->omit($params, 'method');
         $response = null;
         if ($method === 'privateGetDeposits') {
-            $response = $this->privateGetDeposits (array_merge($request, $params));
+            $response = $this->privateGetDeposits ($this->extend($request, $params));
         } elseif ($method === 'privateGetWithdrawals') {
-            $response = $this->privateGetWithdrawals (array_merge($request, $params));
+            $response = $this->privateGetWithdrawals ($this->extend($request, $params));
         } else {
             throw new NotSupported($this->id . ' fetchTransactionsHelper() not support this method');
         }
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             'mined' => 'ok',
         );
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -1737,7 +1739,7 @@ class idex extends Exchange {
          */
         $request = array();
         $request['nonce'] = $this->uuidv1();
-        $response = $this->privateGetWallets (array_merge($request, $params));
+        $response = $this->privateGetWallets ($this->extend($request, $params));
         //
         //    array(
         //        array(

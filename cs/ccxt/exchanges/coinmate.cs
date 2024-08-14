@@ -11,7 +11,7 @@ public partial class coinmate : Exchange
             { "id", "coinmate" },
             { "name", "CoinMate" },
             { "countries", new List<object>() {"GB", "CZ", "EU"} },
-            { "rateLimit", 1000 },
+            { "rateLimit", 600 },
             { "has", new Dictionary<string, object>() {
                 { "CORS", true },
                 { "spot", true },
@@ -97,11 +97,11 @@ public partial class coinmate : Exchange
                 { "trading", new Dictionary<string, object>() {
                     { "tierBased", true },
                     { "percentage", true },
-                    { "maker", this.parseNumber("0.0012") },
-                    { "taker", this.parseNumber("0.0025") },
+                    { "taker", this.parseNumber("0.006") },
+                    { "maker", this.parseNumber("0.004") },
                     { "tiers", new Dictionary<string, object>() {
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.0035")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.0023")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0021")}, new List<object> {this.parseNumber("250000"), this.parseNumber("0.0020")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0013")}, new List<object> {this.parseNumber("3000000"), this.parseNumber("0.0010")}, new List<object> {this.parseNumber("15000000"), this.parseNumber("0.0005")}} },
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.003")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.0011")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0010")}, new List<object> {this.parseNumber("250000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0003")}, new List<object> {this.parseNumber("3000000"), this.parseNumber("0.0002")}, new List<object> {this.parseNumber("15000000"), this.parseNumber("0")}} },
+                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.006")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.003")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0023")}, new List<object> {this.parseNumber("250000"), this.parseNumber("0.0021")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0015")}, new List<object> {this.parseNumber("3000000"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("15000000"), this.parseNumber("0.001")}} },
+                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.004")}, new List<object> {this.parseNumber("10000"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("100000"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("250000"), this.parseNumber("0.0009")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0005")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0003")}, new List<object> {this.parseNumber("3000000"), this.parseNumber("0.0002")}, new List<object> {this.parseNumber("15000000"), this.parseNumber("-0.0004")}} },
                     } },
                 } },
             } },
@@ -911,6 +911,13 @@ public partial class coinmate : Exchange
         //         "trailing": false,
         //     }
         //
+        // cancelOrder
+        //
+        //    {
+        //        "success": true,
+        //        "remainingAmount": 0.1
+        //    }
+        //
         object id = this.safeString(order, "id");
         object timestamp = this.safeInteger(order, "timestamp");
         object side = this.safeStringLower(order, "type");
@@ -964,7 +971,7 @@ public partial class coinmate : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -1044,9 +1051,18 @@ public partial class coinmate : Exchange
             { "orderId", id },
         };
         object response = await this.privatePostCancelOrderWithInfo(this.extend(request, parameters));
-        return new Dictionary<string, object>() {
-            { "info", response },
-        };
+        //
+        //    {
+        //        "error": false,
+        //        "errorMessage": null,
+        //        "data": {
+        //          "success": true,
+        //          "remainingAmount": 0.1
+        //        }
+        //    }
+        //
+        object data = this.safeDict(response, "data");
+        return this.parseOrder(data);
     }
 
     public override object nonce()
@@ -1092,31 +1108,21 @@ public partial class coinmate : Exchange
 
     public override object handleErrors(object code, object reason, object url, object method, object headers, object body, object response, object requestHeaders, object requestBody)
     {
-        if (isTrue(!isEqual(response, null)))
+        if (isTrue(isEqual(response, null)))
         {
-            if (isTrue(inOp(response, "error")))
-            {
-                // {"error":true,"errorMessage":"Minimum Order Size 0.01 ETH","data":null}
-                if (isTrue(getValue(response, "error")))
-                {
-                    object message = this.safeString(response, "errorMessage");
-                    object feedback = add(add(this.id, " "), message);
-                    this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
-                    this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
-                    throw new ExchangeError ((string)add(add(this.id, " "), this.json(response))) ;
-                }
-            }
+            return null;  // fallback to default error handler
         }
-        if (isTrue(isGreaterThan(code, 400)))
+        //
+        //     {"error":true,"errorMessage":"Api internal error","data":null}
+        //     {"error":true,"errorMessage":"Access denied.","data":null}
+        //
+        object errorMessage = this.safeString(response, "errorMessage");
+        if (isTrue(!isEqual(errorMessage, null)))
         {
-            if (isTrue(body))
-            {
-                object feedback = add(add(this.id, " "), body);
-                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), body, feedback);
-                this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
-                throw new ExchangeError ((string)feedback) ;
-            }
-            throw new ExchangeError ((string)add(add(this.id, " "), body)) ;
+            object feedback = add(add(this.id, " "), body);
+            this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorMessage, feedback);
+            this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
+            throw new ExchangeError ((string)feedback) ;
         }
         return null;
     }

@@ -32,6 +32,9 @@ class whitebit extends whitebit$1 {
                 'cancelAllOrdersAfter': true,
                 'cancelOrder': true,
                 'cancelOrders': false,
+                'createMarketBuyOrderWithCost': true,
+                'createMarketOrderWithCost': false,
+                'createMarketSellOrderWithCost': false,
                 'createOrder': true,
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': true,
@@ -47,6 +50,7 @@ class whitebit extends whitebit$1 {
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
@@ -231,6 +235,15 @@ class whitebit extends whitebit$1 {
                             'convert/estimate',
                             'convert/confirm',
                             'convert/history',
+                            'sub-account/create',
+                            'sub-account/delete',
+                            'sub-account/edit',
+                            'sub-account/list',
+                            'sub-account/transfer',
+                            'sub-account/block',
+                            'sub-account/unblock',
+                            'sub-account/balances',
+                            'sub-account/transfer/history',
                         ],
                     },
                 },
@@ -791,8 +804,23 @@ class whitebit extends whitebit$1 {
         //        "change": "2.12" // in percent
         //    }
         //
+        // WS market_update
+        //
+        //     {
+        //         "open": "52853.04",
+        //         "close": "55913.88",
+        //         "high": "56272",
+        //         "low": "49549.67",
+        //         "volume": "57331.067185",
+        //         "deal": "3063860382.42985338",
+        //         "last": "55913.88",
+        //         "period": 86400
+        //     }
         market = this.safeMarket(undefined, market);
-        const last = this.safeString(ticker, 'last_price');
+        // last price is provided as "last" or "last_price"
+        const last = this.safeString2(ticker, 'last', 'last_price');
+        // if "close" is provided, use it, otherwise use <last>
+        const close = this.safeString(ticker, 'close', last);
         return this.safeTicker({
             'symbol': market['symbol'],
             'timestamp': undefined,
@@ -805,7 +833,7 @@ class whitebit extends whitebit$1 {
             'askVolume': undefined,
             'vwap': undefined,
             'open': this.safeString(ticker, 'open'),
-            'close': last,
+            'close': close,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
@@ -1187,6 +1215,33 @@ class whitebit extends whitebit$1 {
         //
         return this.safeInteger(response, 'time');
     }
+    async createMarketOrderWithCost(symbol, side, cost, params = {}) {
+        /**
+         * @method
+         * @name whitebit#createMarketOrderWithCost
+         * @description create a market order by providing the symbol, side and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        params['cost'] = cost;
+        // only buy side is supported
+        return await this.createOrder(symbol, 'market', side, 0, undefined, params);
+    }
+    async createMarketBuyOrderWithCost(symbol, cost, params = {}) {
+        /**
+         * @method
+         * @name whitebit#createMarketBuyOrderWithCost
+         * @description create a market buy order by providing the symbol and cost
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {float} cost how much you want to trade in units of the quote currency
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        return await this.createMarketOrderWithCost(symbol, 'buy', cost, params);
+    }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
         /**
          * @method
@@ -1201,8 +1256,9 @@ class whitebit extends whitebit$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {float} [params.cost] *market orders only* the cost of the order in units of the base currency
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -1210,8 +1266,18 @@ class whitebit extends whitebit$1 {
         const request = {
             'market': market['id'],
             'side': side,
-            'amount': this.amountToPrecision(symbol, amount),
         };
+        let cost = undefined;
+        [cost, params] = this.handleParamString(params, 'cost');
+        if (cost !== undefined) {
+            if ((side !== 'buy') || (type !== 'market')) {
+                throw new errors.InvalidOrder(this.id + ' createOrder() cost is only supported for market buy orders');
+            }
+            request['amount'] = this.costToPrecision(symbol, cost);
+        }
+        else {
+            request['amount'] = this.amountToPrecision(symbol, amount);
+        }
         const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
         if (clientOrderId === undefined) {
             const brokerId = this.safeString(this.options, 'brokerId');
@@ -1273,7 +1339,12 @@ class whitebit extends whitebit$1 {
                     response = await this.v4PrivatePostOrderCollateralMarket(this.extend(request, params));
                 }
                 else {
-                    response = await this.v4PrivatePostOrderStockMarket(this.extend(request, params));
+                    if (cost !== undefined) {
+                        response = await this.v4PrivatePostOrderMarket(this.extend(request, params));
+                    }
+                    else {
+                        response = await this.v4PrivatePostOrderStockMarket(this.extend(request, params));
+                    }
                 }
             }
         }
@@ -1290,7 +1361,7 @@ class whitebit extends whitebit$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1363,7 +1434,27 @@ class whitebit extends whitebit$1 {
             'market': market['id'],
             'orderId': parseInt(id),
         };
-        return await this.v4PrivatePostOrderCancel(this.extend(request, params));
+        const response = await this.v4PrivatePostOrderCancel(this.extend(request, params));
+        //
+        //    {
+        //        "orderId": 4180284841, // order id
+        //        "clientOrderId": "customId11", // custom order identifier; "clientOrderId": "" - if not specified.
+        //        "market": "BTC_USDT", // deal market
+        //        "side": "buy", // order side
+        //        "type": "stop market", // order type
+        //        "timestamp": 1595792396.165973, // current timestamp
+        //        "dealMoney": "0", // if order finished - amount in money currency that is finished
+        //        "dealStock": "0", // if order finished - amount in stock currency that is finished
+        //        "amount": "0.001", // amount
+        //        "takerFee": "0.001", // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        //        "makerFee": "0.001", // maker fee ratio. If the number less than 0.0001 - it will be rounded to zero
+        //        "left": "0.001", // if order not finished - rest of the amount that must be finished
+        //        "dealFee": "0", // fee in money that you pay if order is finished
+        //        "price": "40000", // price if price isset
+        //        "activation_price": "40000" // activation price if activation price is set
+        //    }
+        //
+        return this.parseOrder(response);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
         /**
@@ -1408,7 +1499,7 @@ class whitebit extends whitebit$1 {
         //
         // []
         //
-        return response;
+        return this.parseOrders(response, market);
     }
     async cancelAllOrdersAfter(timeout, params = {}) {
         /**
@@ -1460,7 +1551,7 @@ class whitebit extends whitebit$1 {
             const balance = response[id];
             if (typeof balance === 'object' && balance !== undefined) {
                 const account = this.account();
-                account['free'] = this.safeString(balance, 'available');
+                account['free'] = this.safeString2(balance, 'available', 'main_balance');
                 account['used'] = this.safeString(balance, 'freeze');
                 account['total'] = this.safeString(balance, 'main_balance');
                 result[code] = account;
@@ -1642,7 +1733,7 @@ class whitebit extends whitebit$1 {
     }
     parseOrder(order, market = undefined) {
         //
-        // createOrder, fetchOpenOrders
+        // createOrder, fetchOpenOrders, cancelOrder
         //
         //      {
         //          "orderId":105687928629,
@@ -1657,6 +1748,7 @@ class whitebit extends whitebit$1 {
         //          "takerFee":"0.001",
         //          "makerFee":"0",
         //          "left":"100",
+        //          "price": "40000", // price if price isset
         //          "dealFee":"0",
         //          "activation_price":"0.065"      // stop price (if stop limit or stop market)
         //      }
@@ -1684,7 +1776,7 @@ class whitebit extends whitebit$1 {
         const symbol = market['symbol'];
         const side = this.safeString(order, 'side');
         const filled = this.safeString(order, 'dealStock');
-        const remaining = this.safeString(order, 'left');
+        let remaining = this.safeString(order, 'left');
         let clientOrderId = this.safeString(order, 'clientOrderId');
         if (clientOrderId === '') {
             clientOrderId = undefined;
@@ -1693,6 +1785,10 @@ class whitebit extends whitebit$1 {
         const stopPrice = this.safeNumber(order, 'activation_price');
         const orderId = this.safeString2(order, 'orderId', 'id');
         const type = this.safeString(order, 'type');
+        const orderType = this.parseOrderType(type);
+        if (orderType === 'market') {
+            remaining = undefined;
+        }
         let amount = this.safeString(order, 'amount');
         const cost = this.safeString(order, 'dealMoney');
         if ((side === 'buy') && ((type === 'market') || (type === 'stop market'))) {
@@ -1721,7 +1817,7 @@ class whitebit extends whitebit$1 {
             'status': undefined,
             'side': side,
             'price': price,
-            'type': this.parseOrderType(type),
+            'type': orderType,
             'stopPrice': stopPrice,
             'triggerPrice': stopPrice,
             'amount': amount,
@@ -1979,6 +2075,7 @@ class whitebit extends whitebit$1 {
         //     {
         //         "address": "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                              // deposit address
         //         "uniqueId": null,                                                                             // unique Id of deposit
+        //         "transactionId": "a6d71d69-2b17-4ad8-8b15-2d686c54a1a5",
         //         "createdAt": 1593437922,                                                                      // timestamp of deposit
         //         "currency": "Bitcoin",                                                                        // deposit currency
         //         "ticker": "BTC",                                                                              // deposit currency ticker
@@ -2002,6 +2099,7 @@ class whitebit extends whitebit$1 {
         //             "actual": 1,                                                                              // current block confirmations
         //             "required": 2                                                                             // required block confirmation for successful deposit
         //         }
+        //         "centralized": false,
         //     }
         //
         currency = this.safeCurrency(undefined, currency);
@@ -2012,7 +2110,7 @@ class whitebit extends whitebit$1 {
         const method = this.safeString(transaction, 'method');
         return {
             'id': this.safeString(transaction, 'uniqueId'),
-            'txid': this.safeString(transaction, 'transactionHash'),
+            'txid': this.safeString(transaction, 'transactionId'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'network': this.safeString(transaction, 'network'),
@@ -2403,6 +2501,78 @@ class whitebit extends whitebit$1 {
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
         };
+    }
+    async fetchDepositsWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name whitebit#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
+         * @see https://github.com/whitebit-exchange/api-docs/blob/main/pages/private/http-main-v4.md#get-depositwithdraw-history
+         * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
+         * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
+         * @param {int} [limit] max number of deposit/withdrawals to return, default = 50, Min: 1, Max: 100
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {number} [params.transactionMethod] Method. Example: 1 to display deposits / 2 to display withdraws. Do not send this parameter in order to receive both deposits and withdraws.
+         * @param {string} [params.address] Can be used for filtering transactions by specific address or memo.
+         * @param {string[]} [params.addresses] Can be used for filtering transactions by specific addresses or memos (max: 20).
+         * @param {string} [params.uniqueId] Can be used for filtering transactions by specific unique id
+         * @param {int} [params.offset] If you want the request to return entries starting from a particular line, you can use OFFSET clause to tell it where it should start. Default: 0, Min: 0, Max: 10000
+         * @param {string[]} [params.status] Can be used for filtering transactions by status codes. Caution: You must use this parameter with appropriate transactionMethod and use valid status codes for this method. You can find them below. Example: "status": [3,7]
+         * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        await this.loadMarkets();
+        const request = {};
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency(code);
+            request['ticker'] = currency['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 1000
+        }
+        const response = await this.v4PrivatePostMainAccountHistory(this.extend(request, params));
+        //
+        //    {
+        //        "limit": 100,
+        //        "offset": 0,
+        //        "records": [
+        //            {
+        //                "address": "3ApEASLcrQtZpg1TsssFgYF5V5YQJAKvuE",                                        // deposit address
+        //                "uniqueId": null,                                                                       // unique Id of deposit
+        //                "createdAt": 1593437922,                                                                // timestamp of deposit
+        //                "currency": "Bitcoin",                                                                  // deposit currency
+        //                "ticker": "BTC",                                                                        // deposit currency ticker
+        //                "method": 1,                                                                            // called method 1 - deposit, 2 - withdraw
+        //                "amount": "0.0006",                                                                     // amount of deposit
+        //                "description": "",                                                                      // deposit description
+        //                "memo": "",                                                                             // deposit memo
+        //                "fee": "0",                                                                             // deposit fee
+        //                "status": 15,                                                                           // transactions status
+        //                "network": null,                                                                        // if currency is multinetwork
+        //                "transactionHash": "a275a514013e4e0f927fd0d1bed215e7f6f2c4c6ce762836fe135ec22529d886",  // deposit transaction hash
+        //                "transactionId": "5e112b38-9652-11ed-a1eb-0242ac120002",                                // transaction id
+        //                "details": {
+        //                    "partial": {                                                                        // details about partially successful withdrawals
+        //                        "requestAmount": "50000",                                                       // requested withdrawal amount
+        //                        "processedAmount": "39000",                                                     // processed withdrawal amount
+        //                        "processedFee": "273",                                                          // fee for processed withdrawal amount
+        //                        "normalizeTransaction": ""                                                      // deposit id
+        //                    }
+        //                },
+        //                "confirmations": {                                                                      // if transaction status == 15 (Pending) you can see this object
+        //                    "actual": 1,                                                                        // current block confirmations
+        //                    "required": 2                                                                       // required block confirmation for successful deposit
+        //                }
+        //            },
+        //            {...},
+        //        ],
+        //        "total": 300                                                                                    // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
+        //    }
+        //
+        const records = this.safeList(response, 'records');
+        return this.parseTransactions(records, currency, since, limit);
     }
     isFiat(currency) {
         const fiatCurrencies = this.safeValue(this.options, 'fiatCurrencies', []);

@@ -230,6 +230,7 @@ public partial class yobit : Exchange
                 { "XIN", "XINCoin" },
                 { "XMT", "SummitCoin" },
                 { "XRA", "Ratecoin" },
+                { "BCHN", "BSV" },
             } },
             { "options", new Dictionary<string, object>() {
                 { "maxUrlLength", 2048 },
@@ -566,42 +567,9 @@ public partial class yobit : Exchange
         }, market);
     }
 
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async virtual Task<object> fetchTickersHelper(object idsString, object parameters = null)
     {
-        /**
-        * @method
-        * @name yobit#fetchTickers
-        * @see https://yobit.net/en/api
-        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
-        */
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(symbols, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchTickers() requires \"symbols\" argument")) ;
-        }
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols);
-        object ids = null;
-        if (isTrue(isEqual(symbols, null)))
-        {
-            ids = this.ids;
-        } else
-        {
-            ids = this.marketIds(symbols);
-        }
-        object idsLength = getArrayLength(ids);
-        object idsString = String.Join("-", ((IList<object>)ids).ToArray());
-        object maxLength = this.safeInteger(this.options, "maxUrlLength", 2048);
-        // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
-        object lenghtOfBaseUrl = 30; // the url including api-base and endpoint dir is 30 chars
-        object actualLength = add(getArrayLength(idsString), lenghtOfBaseUrl);
-        if (isTrue(isGreaterThan(actualLength, maxLength)))
-        {
-            throw new ArgumentsRequired ((string)add(add(add(add(add(add(add(this.id, " fetchTickers() is being requested for "), ((object)idsLength).ToString()), " markets (which has an URL length of "), ((object)actualLength).ToString()), " characters), but it exceedes max URL length ("), ((object)maxLength).ToString()), "), please pass limisted symbols array to fetchTickers to fit in one request")) ;
-        }
         object request = new Dictionary<string, object>() {
             { "pair", idsString },
         };
@@ -616,7 +584,75 @@ public partial class yobit : Exchange
             object symbol = getValue(market, "symbol");
             ((IDictionary<string,object>)result)[(string)symbol] = this.parseTicker(ticker, market);
         }
-        return this.filterByArrayTickers(result, "symbol", symbols);
+        return result;
+    }
+
+    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name yobit#fetchTickers
+        * @see https://yobit.net/en/api
+        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {object} [params.all] you can set to `true` for convenience to fetch all tickers from this exchange by sending multiple requests
+        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        object allSymbols = null;
+        var allSymbolsparametersVariable = this.handleParamBool(parameters, "all", false);
+        allSymbols = ((IList<object>)allSymbolsparametersVariable)[0];
+        parameters = ((IList<object>)allSymbolsparametersVariable)[1];
+        if (isTrue(isTrue(isEqual(symbols, null)) && !isTrue(allSymbols)))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " fetchTickers() requires \"symbols\" argument or use `params[\"all\"] = true` to send multiple requests for all markets")) ;
+        }
+        await this.loadMarkets();
+        object promises = new List<object>() {};
+        object maxLength = this.safeInteger(this.options, "maxUrlLength", 2048);
+        // max URL length is 2048 symbols, including http schema, hostname, tld, etc...
+        object lenghtOfBaseUrl = 40; // safe space for the url including api-base and endpoint dir is 30 chars
+        if (isTrue(allSymbols))
+        {
+            symbols = this.symbols;
+            object ids = "";
+            for (object i = 0; isLessThan(i, getArrayLength(this.ids)); postFixIncrement(ref i))
+            {
+                object id = getValue(this.ids, i);
+                object prefix = ((bool) isTrue((isEqual(ids, "")))) ? "" : "-";
+                ids = add(ids, add(prefix, id));
+                if (isTrue(isGreaterThan(((string)ids).Length, maxLength)))
+                {
+                    ((IList<object>)promises).Add(this.fetchTickersHelper(ids, parameters));
+                    ids = "";
+                }
+            }
+            if (isTrue(!isEqual(ids, "")))
+            {
+                ((IList<object>)promises).Add(this.fetchTickersHelper(ids, parameters));
+            }
+        } else
+        {
+            symbols = this.marketSymbols(symbols);
+            object ids = this.marketIds(symbols);
+            object idsLength = getArrayLength(ids);
+            object idsString = String.Join("-", ((IList<object>)ids).ToArray());
+            object actualLength = add(((string)idsString).Length, lenghtOfBaseUrl);
+            if (isTrue(isGreaterThan(actualLength, maxLength)))
+            {
+                throw new ArgumentsRequired ((string)add(add(add(add(add(add(add(this.id, " fetchTickers() is being requested for "), ((object)idsLength).ToString()), " markets (which has an URL length of "), ((object)actualLength).ToString()), " characters), but it exceedes max URL length ("), ((object)maxLength).ToString()), "), please pass limisted symbols array to fetchTickers to fit in one request")) ;
+            }
+            ((IList<object>)promises).Add(this.fetchTickersHelper(idsString, parameters));
+        }
+        object resultAll = await promiseAll(promises);
+        object finalResult = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(resultAll)); postFixIncrement(ref i))
+        {
+            object result = this.filterByArrayTickers(getValue(resultAll, i), "symbol", symbols);
+            finalResult = this.extend(finalResult, result);
+        }
+        return finalResult;
     }
 
     public async override Task<object> fetchTicker(object symbol, object parameters = null)
@@ -836,7 +872,7 @@ public partial class yobit : Exchange
         * @param {string} type must be 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */

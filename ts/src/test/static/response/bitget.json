@@ -1337,7 +1337,7 @@
                         "cost": 4237.08452964,
                         "timestamp": 1710327601000,
                         "datetime": "2024-03-13T11:00:01.000Z",
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     }
                 ]

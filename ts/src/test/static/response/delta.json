@@ -37,7 +37,7 @@
                         "amount": 0.000635,
                         "cost": 46.5204175,
                         "takerOrMaker": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "info": {
                             "buyer_role": "taker",
                             "price": "73260.5",
@@ -106,7 +106,7 @@
                     "previousClose": null,
                     "change": 1258.5,
                     "percentage": 1.7446333636004463,
-                    "average": 72764.75,
+                    "average": 72764.7,
                     "baseVolume": 1.4971349999999992,
                     "quoteVolume": 1.4971349999999992,
                     "info": {

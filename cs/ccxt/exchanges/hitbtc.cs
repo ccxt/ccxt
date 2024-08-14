@@ -83,6 +83,7 @@ public partial class hitbtc : Exchange
                 { "fetchTransactions", "emulated" },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", true },
+                { "sandbox", true },
                 { "setLeverage", true },
                 { "setMargin", false },
                 { "setMarginMode", false },
@@ -417,6 +418,7 @@ public partial class hitbtc : Exchange
                 { "accountsByType", new Dictionary<string, object>() {
                     { "spot", "spot" },
                     { "funding", "wallet" },
+                    { "swap", "derivatives" },
                     { "future", "derivatives" },
                 } },
                 { "withdraw", new Dictionary<string, object>() {
@@ -666,8 +668,8 @@ public partial class hitbtc : Exchange
                 object network = this.safeNetwork(networkId);
                 fee = this.safeNumber(rawNetwork, "payout_fee");
                 object networkPrecision = this.safeNumber(rawNetwork, "precision_payout");
-                object payinEnabledNetwork = this.safeBool(entry, "payin_enabled", false);
-                object payoutEnabledNetwork = this.safeBool(entry, "payout_enabled", false);
+                object payinEnabledNetwork = this.safeBool(rawNetwork, "payin_enabled", false);
+                object payoutEnabledNetwork = this.safeBool(rawNetwork, "payout_enabled", false);
                 object activeNetwork = isTrue(payinEnabledNetwork) && isTrue(payoutEnabledNetwork);
                 if (isTrue(isTrue(payinEnabledNetwork) && !isTrue(depositEnabled)))
                 {
@@ -1660,7 +1662,7 @@ public partial class hitbtc : Exchange
         {
             ((IDictionary<string,object>)request)["from"] = this.iso8601(since);
         }
-        var requestparametersVariable = this.handleUntilOption("till", request, parameters);
+        var requestparametersVariable = this.handleUntilOption("until", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(!isEqual(limit, null)))
@@ -2298,7 +2300,7 @@ public partial class hitbtc : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
         * @param {bool} [params.margin] true for creating a margin order
@@ -2552,7 +2554,7 @@ public partial class hitbtc : Exchange
     {
         /**
         * @method
-        * @name hitbtc#fetchMarginMode
+        * @name hitbtc#fetchMarginModes
         * @description fetches margin mode of the user
         * @see https://api.hitbtc.com/#get-margin-position-parameters
         * @see https://api.hitbtc.com/#get-futures-position-parameters
@@ -2840,7 +2842,7 @@ public partial class hitbtc : Exchange
         }
         object market = null;
         object request = new Dictionary<string, object>() {};
-        var requestparametersVariable = this.handleUntilOption("till", request, parameters);
+        var requestparametersVariable = this.handleUntilOption("until", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         if (isTrue(!isEqual(symbol, null)))

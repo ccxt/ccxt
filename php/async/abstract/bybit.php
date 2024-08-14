@@ -160,6 +160,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     public function public_get_v5_ins_loan_ensure_tokens_convert($params = array()) {
         return $this->request('v5/ins-loan/ensure-tokens-convert', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function private_get_v5_market_instruments_info($params = array()) {
+        return $this->request('v5/market/instruments-info', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function private_get_v2_private_wallet_fund_records($params = array()) {
         return $this->request('v2/private/wallet/fund/records', 'private', 'GET', $params, null, null, array("cost" => 25));
     }
@@ -385,6 +388,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     public function private_get_v5_account_transaction_log($params = array()) {
         return $this->request('v5/account/transaction-log', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function private_get_v5_account_contract_transaction_log($params = array()) {
+        return $this->request('v5/account/contract-transaction-log', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function private_get_v5_account_smp_group($params = array()) {
         return $this->request('v5/account/smp-group', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -447,6 +453,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     }
     public function private_get_v5_asset_withdraw_withdrawable_amount($params = array()) {
         return $this->request('v5/asset/withdraw/withdrawable-amount', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function private_get_v5_asset_withdraw_vasp_list($params = array()) {
+        return $this->request('v5/asset/withdraw/vasp/list', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function private_get_v5_user_query_sub_members($params = array()) {
         return $this->request('v5/user/query-sub-members', 'private', 'GET', $params, null, null, array("cost" => 5));
@@ -1036,6 +1045,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     public function publicGetV5InsLoanEnsureTokensConvert($params = array()) {
         return $this->request('v5/ins-loan/ensure-tokens-convert', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function privateGetV5MarketInstrumentsInfo($params = array()) {
+        return $this->request('v5/market/instruments-info', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function privateGetV2PrivateWalletFundRecords($params = array()) {
         return $this->request('v2/private/wallet/fund/records', 'private', 'GET', $params, null, null, array("cost" => 25));
     }
@@ -1261,6 +1273,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     public function privateGetV5AccountTransactionLog($params = array()) {
         return $this->request('v5/account/transaction-log', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
+    public function privateGetV5AccountContractTransactionLog($params = array()) {
+        return $this->request('v5/account/contract-transaction-log', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function privateGetV5AccountSmpGroup($params = array()) {
         return $this->request('v5/account/smp-group', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1323,6 +1338,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     }
     public function privateGetV5AssetWithdrawWithdrawableAmount($params = array()) {
         return $this->request('v5/asset/withdraw/withdrawable-amount', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetV5AssetWithdrawVaspList($params = array()) {
+        return $this->request('v5/asset/withdraw/vasp/list', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privateGetV5UserQuerySubMembers($params = array()) {
         return $this->request('v5/user/query-sub-members', 'private', 'GET', $params, null, null, array("cost" => 5));

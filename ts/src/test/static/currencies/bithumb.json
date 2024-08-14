@@ -1,0 +1,24 @@
+{
+    "BTC": {
+        "id": "BTC",
+        "code": "BTC",
+        "precision": 4,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    },
+    "KRW": {
+        "id": "KRW",
+        "code": "KRW",
+        "precision": 4,
+        "fees": {},
+        "networks": {},
+        "limits": {
+            "deposit": {},
+            "withdraw": {}
+        }
+    }
+}
