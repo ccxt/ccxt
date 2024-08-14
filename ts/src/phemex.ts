@@ -3046,7 +3046,7 @@ export default class phemex extends Exchange {
         } else if (market['swap']) {
             response = await this.privateGetExchangeOrderList (this.extend (request, params));
         } else {
-            throw new NotSupported (this.id + ' fetchOrders() is not supported for spot markets, use either fetchOpenOrders or fetchClosedOrders');
+            response = await this.privateGetApiDataSpotsOrders (this.extend (request, params));
         }
         const data = this.safeValue (response, 'data', {});
         const rows = this.safeList (data, 'rows', data);
