@@ -6204,7 +6204,6 @@ export default class bybit extends Exchange {
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        // support withdrawals from SPOT or FUND account
         let accountType = undefined;
         [accountType, params] = this.handleOptionAndParams(params, 'withdraw', 'accountType', 'SPOT');
         await this.loadMarkets();

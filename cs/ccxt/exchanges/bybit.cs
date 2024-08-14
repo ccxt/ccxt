@@ -6621,7 +6621,6 @@ public partial class bybit : Exchange
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
-        // support withdrawals from SPOT or FUND account
         object accountType = null;
         var accountTypeparametersVariable = this.handleOptionAndParams(parameters, "withdraw", "accountType", "SPOT");
         accountType = ((IList<object>)accountTypeparametersVariable)[0];

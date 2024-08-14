@@ -5761,7 +5761,6 @@ class bybit(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
-        # support withdrawals from SPOT or FUND account
         accountType = None
         accountType, params = self.handle_option_and_params(params, 'withdraw', 'accountType', 'SPOT')
         await self.load_markets()
