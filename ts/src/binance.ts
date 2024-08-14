@@ -13124,7 +13124,7 @@ export default class binance extends Exchange {
         } else {
             request['startTime'] = now - msInThirtyDays;
         }
-        const endTime = this.safeString2 (params, 'endTime', 'until');
+        const endTime = this.safeInteger2 (params, 'endTime', 'until');
         if (endTime !== undefined) {
             request['endTime'] = endTime;
         } else {
