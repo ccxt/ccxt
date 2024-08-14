@@ -13134,7 +13134,7 @@ class binance extends Exchange {
             } else {
                 $request['startTime'] = $now - $msInThirtyDays;
             }
-            $endTime = $this->safe_string_2($params, 'endTime', 'until');
+            $endTime = $this->safe_integer_2($params, 'endTime', 'until');
             if ($endTime !== null) {
                 $request['endTime'] = $endTime;
             } else {
@@ -13174,6 +13174,9 @@ class binance extends Exchange {
                 //     }
                 //
             } else {
+                if (($request['endTime'] - $request['startTime']) > $msInThirtyDays) {
+                    throw new BadRequest($this->id . ' fetchConvertTradeHistory () the max interval between startTime and $endTime is 30 days.');
+                }
                 if ($limit !== null) {
                     $request['limit'] = $limit;
                 }

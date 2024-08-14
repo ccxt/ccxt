@@ -13299,7 +13299,7 @@ class binance extends binance$1 {
         else {
             request['startTime'] = now - msInThirtyDays;
         }
-        const endTime = this.safeString2(params, 'endTime', 'until');
+        const endTime = this.safeInteger2(params, 'endTime', 'until');
         if (endTime !== undefined) {
             request['endTime'] = endTime;
         }
@@ -13341,6 +13341,9 @@ class binance extends binance$1 {
             //
         }
         else {
+            if ((request['endTime'] - request['startTime']) > msInThirtyDays) {
+                throw new errors.BadRequest(this.id + ' fetchConvertTradeHistory () the max interval between startTime and endTime is 30 days.');
+            }
             if (limit !== undefined) {
                 request['limit'] = limit;
             }

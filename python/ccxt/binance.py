@@ -12229,7 +12229,7 @@ class binance(Exchange, ImplicitAPI):
             request['startTime'] = since
         else:
             request['startTime'] = now - msInThirtyDays
-        endTime = self.safe_string_2(params, 'endTime', 'until')
+        endTime = self.safe_integer_2(params, 'endTime', 'until')
         if endTime is not None:
             request['endTime'] = endTime
         else:
@@ -12267,6 +12267,8 @@ class binance(Exchange, ImplicitAPI):
             #     }
             #
         else:
+            if (request['endTime'] - request['startTime']) > msInThirtyDays:
+                raise BadRequest(self.id + ' fetchConvertTradeHistory() the max interval between startTime and endTime is 30 days.')
             if limit is not None:
                 request['limit'] = limit
             fromCurrencyKey = 'fromAsset'
