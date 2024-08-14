@@ -2,7 +2,8 @@
     "exchange": "bybit",
     "skipKeys": [
         "transferId",
-        "orderLinkId"
+        "orderLinkId",
+        "timestamp"
     ],
     "outputType": "json",
     "methods": {
@@ -1150,6 +1151,23 @@
                   }
                 ]
               }
+        ],
+        "withdraw": [
+            {
+                "description": "withdraw usdt on tron",
+                "method": "withdraw",
+                "url": "https://api.bybit.com/v5/asset/withdraw/create",
+                "input": [
+                  "USDT",
+                  5,
+                  "TReSxAuV3YvKQPTZoUuCVSFXxJUC432LMz",
+                  null,
+                  {
+                    "network": "TRC20"
+                  }
+                ],
+                "output": "{\"coin\":\"USDT\",\"amount\":\"5\",\"address\":\"TReSxAuV3YvKQPTZoUuCVSFXxJUC432LMz\",\"timestamp\":1723663288607,\"accountType\":\"SPOT\",\"chain\":\"TRX\"}"
+            }
         ]
     },
     "disabled": []
