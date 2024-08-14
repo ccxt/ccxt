@@ -2,7 +2,7 @@
 // ----------------------------------------------------------------------------
 
 import Exchange from './abstract/phemex.js';
-import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId, RateLimitExceeded } from './base/errors.js';
+import { ExchangeError, BadSymbol, NotSupported, AuthenticationError, InsufficientFunds, InvalidOrder, ArgumentsRequired, OrderNotFound, BadRequest, PermissionDenied, AccountSuspended, CancelPending, DDoSProtection, DuplicateOrderId, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -3043,7 +3043,7 @@ export default class phemex extends Exchange {
         } else if (market['swap']) {
             response = await this.privateGetExchangeOrderList (this.extend (request, params));
         } else {
-            response = await this.privateGetSpotOrders (this.extend (request, params));
+            throw new NotSupported (this.id + ' fetchOrders() is not supported for spot markets, use either fetchOpenOrders or fetchClosedOrders');
         }
         const data = this.safeValue (response, 'data', {});
         const rows = this.safeList (data, 'rows', data);
