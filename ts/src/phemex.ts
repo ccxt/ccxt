@@ -2990,7 +2990,7 @@ export default class phemex extends Exchange {
         if (market['settle'] === 'USDT') {
             response = await this.privateGetApiDataGFuturesOrdersByOrderId (this.extend (request, params));
         } else if (market['spot']) {
-            throw new NotSupported (this.id + ' fetchOrder() is not supported for spot markets, use either fetchOpenOrders or fetchClosedOrders');
+            response = await this.privateGetApiDataSpotsOrdersByOrderId (this.extend (request, params));
         } else {
             response = await this.privateGetExchangeOrder (this.extend (request, params));
         }
@@ -3005,7 +3005,10 @@ export default class phemex extends Exchange {
                     throw new OrderNotFound (this.id + ' fetchOrder() ' + symbol + ' order with id ' + id + ' not found');
                 }
             }
-            order = this.safeValue (data, 0, {});
+            order = this.safeDict (data, 0, {});
+        } else if (market['spot']) {
+            const rows = this.safeList (data, 'rows', []);
+            order = this.safeDict (rows, 0, {});
         }
         return this.parseOrder (order, market);
     }
