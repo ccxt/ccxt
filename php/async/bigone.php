@@ -25,7 +25,7 @@ class bigone extends Exchange {
             'name' => 'BigONE',
             'countries' => array( 'CN' ),
             'version' => 'v3',
-            'rateLimit' => 1200, // 500 request per 10 minutes
+            'rateLimit' => 20, // 500 requests per 10 seconds
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -709,7 +709,7 @@ class bigone extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // spot
         //
@@ -803,7 +803,7 @@ class bigone extends Exchange {
                 $request = array(
                     'asset_pair_name' => $market['id'],
                 );
-                $response = Async\await($this->publicGetAssetPairsAssetPairNameTicker (array_merge($request, $params)));
+                $response = Async\await($this->publicGetAssetPairsAssetPairNameTicker ($this->extend($request, $params)));
                 //
                 //     {
                 //         "code":0,
@@ -855,7 +855,7 @@ class bigone extends Exchange {
                     $ids = $this->market_ids($symbols);
                     $request['pair_names'] = implode(',', $ids);
                 }
-                $response = Async\await($this->publicGetAssetPairsTickers (array_merge($request, $params)));
+                $response = Async\await($this->publicGetAssetPairsTickers ($this->extend($request, $params)));
                 //
                 //    {
                 //        "code" => 0,
@@ -956,7 +956,7 @@ class bigone extends Exchange {
                 $request = array(
                     'symbol' => $market['id'],
                 );
-                $response = Async\await($this->contractPublicGetDepthSymbolSnapshot (array_merge($request, $params)));
+                $response = Async\await($this->contractPublicGetDepthSymbolSnapshot ($this->extend($request, $params)));
                 //
                 //    {
                 //        bids => array(
@@ -992,7 +992,7 @@ class bigone extends Exchange {
                 if ($limit !== null) {
                     $request['limit'] = $limit; // default 50, max 200
                 }
-                $response = Async\await($this->publicGetAssetPairsAssetPairNameDepth (array_merge($request, $params)));
+                $response = Async\await($this->publicGetAssetPairsAssetPairNameDepth ($this->extend($request, $params)));
                 //
                 //     {
                 //         "code":0,
@@ -1039,7 +1039,7 @@ class bigone extends Exchange {
         );
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades (public)
         //
@@ -1193,7 +1193,7 @@ class bigone extends Exchange {
             $request = array(
                 'asset_pair_name' => $market['id'],
             );
-            $response = Async\await($this->publicGetAssetPairsAssetPairNameTrades (array_merge($request, $params)));
+            $response = Async\await($this->publicGetAssetPairsAssetPairNameTrades ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -1272,7 +1272,7 @@ class bigone extends Exchange {
                 $end = $this->sum($since, $limit * $duration * 1000);
                 $request['time'] = $this->iso8601($end);
             }
-            $response = Async\await($this->publicGetAssetPairsAssetPairNameCandles (array_merge($request, $params)));
+            $response = Async\await($this->publicGetAssetPairsAssetPairNameCandles ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -1362,7 +1362,7 @@ class bigone extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         //    {
         //        "id" => "42154072251",
@@ -1467,7 +1467,7 @@ class bigone extends Exchange {
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {float} [$params->triggerPrice] the $price at which a trigger $order is triggered at
              * @param {bool} [$params->postOnly] if true, the $order will only be posted to the $order book and not executed immediately
@@ -1548,7 +1548,7 @@ class bigone extends Exchange {
                 $request['client_order_id'] = $clientOrderId;
             }
             $params = $this->omit($params, array( 'stop_price', 'stopPrice', 'triggerPrice', 'timeInForce', 'clientOrderId' ));
-            $response = Async\await($this->privatePostOrders (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrders ($this->extend($request, $params)));
             //
             //    {
             //        "id" => 10,
@@ -1580,7 +1580,7 @@ class bigone extends Exchange {
              */
             Async\await($this->load_markets());
             $request = array( 'id' => $id );
-            $response = Async\await($this->privatePostOrdersIdCancel (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrdersIdCancel ($this->extend($request, $params)));
             //    {
             //        "id" => 10,
             //        "asset_pair_name" => "EOS-BTC",
@@ -1603,7 +1603,7 @@ class bigone extends Exchange {
             /**
              * cancel all open orders
              * @see https://open.big.one/docs/spot_orders.html#cancel-all-orders
-             * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+             * @param {string} $symbol unified $market $symbol, only orders in the $market of this $symbol are $cancelled when $symbol is not null
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
@@ -1612,7 +1612,7 @@ class bigone extends Exchange {
             $request = array(
                 'asset_pair_name' => $market['id'],
             );
-            $response = Async\await($this->privatePostOrdersCancel (array_merge($request, $params)));
+            $response = Async\await($this->privatePostOrdersCancel ($this->extend($request, $params)));
             //
             //     {
             //         "code":0,
@@ -1625,7 +1625,27 @@ class bigone extends Exchange {
             //         }
             //     }
             //
-            return $response;
+            $data = $this->safe_dict($response, 'data', array());
+            $cancelled = $this->safe_list($data, 'cancelled', array());
+            $failed = $this->safe_list($data, 'failed', array());
+            $result = array();
+            for ($i = 0; $i < count($cancelled); $i++) {
+                $orderId = $cancelled[$i];
+                $result[] = $this->safe_order(array(
+                    'info' => $orderId,
+                    'id' => $orderId,
+                    'status' => 'canceled',
+                ));
+            }
+            for ($i = 0; $i < count($failed); $i++) {
+                $orderId = $failed[$i];
+                $result[] = $this->safe_order(array(
+                    'info' => $orderId,
+                    'id' => $orderId,
+                    'status' => 'failed',
+                ));
+            }
+            return $result;
         }) ();
     }
 
@@ -1640,7 +1660,7 @@ class bigone extends Exchange {
              */
             Async\await($this->load_markets());
             $request = array( 'id' => $id );
-            $response = Async\await($this->privateGetOrdersId (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOrdersId ($this->extend($request, $params)));
             $order = $this->safe_dict($response, 'data', array());
             return $this->parse_order($order);
         }) ();
@@ -1672,7 +1692,7 @@ class bigone extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 20, max 200
             }
-            $response = Async\await($this->privateGetOrders (array_merge($request, $params)));
+            $response = Async\await($this->privateGetOrders ($this->extend($request, $params)));
             //
             //    {
             //        "code":0,
@@ -1721,7 +1741,7 @@ class bigone extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 20, max 200
             }
-            $response = Async\await($this->privateGetTrades (array_merge($request, $params)));
+            $response = Async\await($this->privateGetTrades ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -1761,7 +1781,7 @@ class bigone extends Exchange {
         }) ();
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'PENDING' => 'open',
             'FILLED' => 'closed',
@@ -1784,7 +1804,7 @@ class bigone extends Exchange {
             $request = array(
                 'state' => 'PENDING',
             );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -1802,7 +1822,7 @@ class bigone extends Exchange {
             $request = array(
                 'state' => 'FILLED',
             );
-            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+            return Async\await($this->fetch_orders($symbol, $since, $limit, $this->extend($request, $params)));
         }) ();
     }
 
@@ -1859,7 +1879,7 @@ class bigone extends Exchange {
                 'asset_symbol' => $currency['id'],
             );
             list($networkCode, $paramsOmitted) = $this->handle_network_code_and_params($params);
-            $response = Async\await($this->privateGetAssetsAssetSymbolAddress (array_merge($request, $paramsOmitted)));
+            $response = Async\await($this->privateGetAssetsAssetSymbolAddress ($this->extend($request, $paramsOmitted)));
             //
             // the actual $response format is not the same documented one
             // the $data key contains an array in the actual $response
@@ -1898,7 +1918,7 @@ class bigone extends Exchange {
         }) ();
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             // what are other $statuses here?
             'WITHHOLD' => 'ok', // deposits
@@ -1910,7 +1930,7 @@ class bigone extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //
@@ -2024,7 +2044,7 @@ class bigone extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 50
             }
-            $response = Async\await($this->privateGetDeposits (array_merge($request, $params)));
+            $response = Async\await($this->privateGetDeposits ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -2077,7 +2097,7 @@ class bigone extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit; // default 50
             }
-            $response = Async\await($this->privateGetWithdrawals (array_merge($request, $params)));
+            $response = Async\await($this->privateGetWithdrawals ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -2131,7 +2151,7 @@ class bigone extends Exchange {
                 // 'type' => type, // NORMAL, MASTER_TO_SUB, SUB_TO_MASTER, SUB_INTERNAL, default is NORMAL
                 // 'sub_acccunt' => '', // when type is NORMAL, it should be empty, and when type is others it is required
             );
-            $response = Async\await($this->privatePostTransfer (array_merge($request, $params)));
+            $response = Async\await($this->privatePostTransfer ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 0,
@@ -2151,14 +2171,14 @@ class bigone extends Exchange {
         }) ();
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         //     {
         //         "code" => 0,
         //         "data" => null
         //     }
         //
-        $code = $this->safe_number($transfer, 'code');
+        $code = $this->safe_string($transfer, 'code');
         return array(
             'info' => $transfer,
             'id' => null,
@@ -2172,7 +2192,7 @@ class bigone extends Exchange {
         );
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             '0' => 'ok',
         );
@@ -2208,7 +2228,7 @@ class bigone extends Exchange {
                 $request['gateway_name'] = $this->network_code_to_id($networkCode);
             }
             // requires write permission on the wallet
-            $response = Async\await($this->privatePostWithdrawals (array_merge($request, $params)));
+            $response = Async\await($this->privatePostWithdrawals ($this->extend($request, $params)));
             //
             //     {
             //         "code":0,
@@ -2235,7 +2255,7 @@ class bigone extends Exchange {
         }) ();
     }
 
-    public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null; // fallback to default error handler
         }

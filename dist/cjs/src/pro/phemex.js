@@ -39,7 +39,7 @@ class phemex extends phemex$1 {
                 'OHLCVLimit': 1000,
             },
             'streaming': {
-                'keepAlive': 10000,
+                'keepAlive': 9000,
             },
         });
     }
@@ -706,11 +706,11 @@ class phemex extends phemex$1 {
             client.resolve(orderbook, messageHash);
         }
         else {
-            const orderbook = this.safeValue(this.orderbooks, symbol);
-            if (orderbook !== undefined) {
-                const changes = this.safeValue2(message, 'book', 'orderbook_p', {});
-                const asks = this.safeValue(changes, 'asks', []);
-                const bids = this.safeValue(changes, 'bids', []);
+            if (symbol in this.orderbooks) {
+                const orderbook = this.orderbooks[symbol];
+                const changes = this.safeDict2(message, 'book', 'orderbook_p', {});
+                const asks = this.safeList(changes, 'asks', []);
+                const bids = this.safeList(changes, 'bids', []);
                 this.customHandleDeltas(orderbook['asks'], asks, market);
                 this.customHandleDeltas(orderbook['bids'], bids, market);
                 orderbook['nonce'] = nonce;
@@ -730,7 +730,7 @@ class phemex extends phemex$1 {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         let market = undefined;

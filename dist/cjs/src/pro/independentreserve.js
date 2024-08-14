@@ -26,7 +26,9 @@ class independentreserve extends independentreserve$1 {
                 },
             },
             'options': {
-                'checksum': false, // TODO: currently only working for snapshot
+                'watchOrderBook': {
+                    'checksum': true, // TODO: currently only working for snapshot
+                },
             },
             'streaming': {},
             'exceptions': {},
@@ -173,30 +175,30 @@ class independentreserve extends independentreserve$1 {
         const base = this.safeCurrencyCode(baseId);
         const quote = this.safeCurrencyCode(quoteId);
         const symbol = base + '/' + quote;
-        const orderBook = this.safeValue(message, 'Data', {});
+        const orderBook = this.safeDict(message, 'Data', {});
         const messageHash = 'orderbook:' + symbol + ':' + depth;
         const subscription = this.safeValue(client.subscriptions, messageHash, {});
         const receivedSnapshot = this.safeBool(subscription, 'receivedSnapshot', false);
         const timestamp = this.safeInteger(message, 'Time');
-        let orderbook = this.safeValue(this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook({});
-            this.orderbooks[symbol] = orderbook;
+        // let orderbook = this.safeValue (this.orderbooks, symbol);
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook({});
         }
+        const orderbook = this.orderbooks[symbol];
         if (event === 'OrderBookSnapshot') {
             const snapshot = this.parseOrderBook(orderBook, symbol, timestamp, 'Bids', 'Offers', 'Price', 'Volume');
             orderbook.reset(snapshot);
             subscription['receivedSnapshot'] = true;
         }
         else {
-            const asks = this.safeValue(orderBook, 'Offers', []);
-            const bids = this.safeValue(orderBook, 'Bids', []);
+            const asks = this.safeList(orderBook, 'Offers', []);
+            const bids = this.safeList(orderBook, 'Bids', []);
             this.handleDeltas(orderbook['asks'], asks);
             this.handleDeltas(orderbook['bids'], bids);
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601(timestamp);
         }
-        const checksum = this.safeBool(this.options, 'checksum', true);
+        const checksum = this.handleOption('watchOrderBook', 'checksum', true);
         if (checksum && receivedSnapshot) {
             const storedAsks = orderbook['asks'];
             const storedBids = orderbook['bids'];
@@ -216,7 +218,9 @@ class independentreserve extends independentreserve$1 {
             const calculatedChecksum = this.crc32(payload, true);
             const responseChecksum = this.safeInteger(orderBook, 'Crc32');
             if (calculatedChecksum !== responseChecksum) {
-                const error = new errors.InvalidNonce(this.id + ' invalid checksum');
+                const error = new errors.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
+                delete client.subscriptions[messageHash];
+                delete this.orderbooks[symbol];
                 client.reject(error, messageHash);
             }
         }

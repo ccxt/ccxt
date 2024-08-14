@@ -879,7 +879,6 @@ public partial class kuna : Exchange
             { "fee", new Dictionary<string, object>() {
                 { "cost", this.safeString(trade, "fee") },
                 { "currency", this.safeCurrencyCode(this.safeString(trade, "feeCurrency")) },
-                { "rate", null },
             } },
         }, market);
     }
@@ -948,7 +947,7 @@ public partial class kuna : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {float} [params.triggerPrice] the price at which a trigger order is triggered at
         *

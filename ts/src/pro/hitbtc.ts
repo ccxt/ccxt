@@ -3,7 +3,7 @@
 
 import hitbtcRest from '../hitbtc.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
-import type { Tickers, Int, OHLCV, OrderSide, OrderType, Strings, Num } from '../base/types.js';
+import type { Tickers, Int, OHLCV, OrderSide, OrderType, Strings, Num, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { Str, OrderBook, Order, Trade, Ticker, Balances } from '../base/types';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -90,7 +90,7 @@ export default class hitbtc extends hitbtcRest {
         if (authenticated === undefined) {
             const timestamp = this.milliseconds ();
             const signature = this.hmac (this.encode (this.numberToString (timestamp)), this.encode (this.secret), sha256, 'hex');
-            const request = {
+            const request: Dict = {
                 'method': 'login',
                 'params': {
                     'type': 'HS256',
@@ -135,7 +135,7 @@ export default class hitbtc extends hitbtcRest {
         if (symbols !== undefined) {
             messageHash = messageHash + '::' + symbols.join (',');
         }
-        const subscribe = {
+        const subscribe: Dict = {
             'method': 'subscribe',
             'id': this.nonce (),
             'ch': name,
@@ -160,7 +160,7 @@ export default class hitbtc extends hitbtcRest {
         if (symbol !== undefined) {
             messageHash = messageHash + '::' + symbol;
         }
-        const subscribe = {
+        const subscribe: Dict = {
             'method': name,
             'params': params,
             'id': this.nonce (),
@@ -180,7 +180,7 @@ export default class hitbtc extends hitbtcRest {
         await this.authenticate ();
         const url = this.urls['api']['ws']['private'];
         const messageHash = this.nonce ().toString ();
-        const subscribe = {
+        const subscribe: Dict = {
             'method': name,
             'params': params,
             'id': messageHash,
@@ -221,7 +221,7 @@ export default class hitbtc extends hitbtcRest {
             name = 'orderbook/top/' + speed + 'ms/batch';
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'params': {
                 'symbols': [ market['id'] ],
             },
@@ -325,7 +325,7 @@ export default class hitbtc extends hitbtcRest {
         const name = this.implodeParams (method, { 'speed': speed });
         params = this.omit (params, [ 'method', 'speed' ]);
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'params': {
                 'symbols': [ market['id'] ],
             },
@@ -361,7 +361,7 @@ export default class hitbtc extends hitbtcRest {
                 marketIds.push (marketId);
             }
         }
-        const request = {
+        const request: Dict = {
             'params': {
                 'symbols': marketIds,
             },
@@ -414,7 +414,7 @@ export default class hitbtc extends hitbtcRest {
         //
         const data = this.safeValue (message, 'data', {});
         const marketIds = Object.keys (data);
-        const newTickers = {};
+        const newTickers: Dict = {};
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
             const market = this.safeMarket (marketId);
@@ -510,7 +510,7 @@ export default class hitbtc extends hitbtcRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'params': {
                 'symbols': [ market['id'] ],
             },
@@ -644,7 +644,7 @@ export default class hitbtc extends hitbtcRest {
         const period = this.safeString (this.timeframes, timeframe, timeframe);
         const name = 'candles/' + period;
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'params': {
                 'symbols': [ market['id'] ],
             },
@@ -1010,7 +1010,7 @@ export default class hitbtc extends hitbtcRest {
         });
         const mode = this.safeString (params, 'mode', 'batches');
         params = this.omit (params, 'mode');
-        const request = {
+        const request: Dict = {
             'mode': mode,
         };
         return await this.subscribePrivate (name, undefined, this.extend (request, params));
@@ -1028,7 +1028,7 @@ export default class hitbtc extends hitbtcRest {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.marginMode] 'cross' or 'isolated' only 'isolated' is supported for spot-margin, swap supports both, default is 'cross'
          * @param {bool} [params.margin] true for creating a margin order
@@ -1140,7 +1140,7 @@ export default class hitbtc extends hitbtcRest {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -1233,12 +1233,14 @@ export default class hitbtc extends hitbtcRest {
     }
 
     handleMessage (client: Client, message) {
-        this.handleError (client, message);
+        if (this.handleError (client, message)) {
+            return;
+        }
         let channel = this.safeString2 (message, 'ch', 'method');
         if (channel !== undefined) {
             const splitChannel = channel.split ('/');
             channel = this.safeString (splitChannel, 0);
-            const methods = {
+            const methods: Dict = {
                 'candles': this.handleOHLCV,
                 'ticker': this.handleTicker,
                 'trades': this.handleTrades,
@@ -1312,13 +1314,27 @@ export default class hitbtc extends hitbtcRest {
         //
         const error = this.safeValue (message, 'error');
         if (error !== undefined) {
-            const code = this.safeValue (error, 'code');
-            const errorMessage = this.safeString (error, 'message');
-            const description = this.safeString (error, 'description');
-            const feedback = this.id + ' ' + description;
-            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
-            throw new ExchangeError (feedback); // unknown message
+            try {
+                const code = this.safeValue (error, 'code');
+                const errorMessage = this.safeString (error, 'message');
+                const description = this.safeString (error, 'description');
+                const feedback = this.id + ' ' + description;
+                this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
+                throw new ExchangeError (feedback); // unknown message
+            } catch (e) {
+                if (e instanceof AuthenticationError) {
+                    const messageHash = 'authenticated';
+                    client.reject (e, messageHash);
+                    if (messageHash in client.subscriptions) {
+                        delete client.subscriptions[messageHash];
+                    }
+                } else {
+                    const id = this.safeString (message, 'id');
+                    client.reject (e, id);
+                }
+                return true;
+            }
         }
         return undefined;
     }

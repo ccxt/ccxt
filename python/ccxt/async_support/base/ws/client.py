@@ -4,7 +4,7 @@ from asyncio import sleep, ensure_future, wait_for, TimeoutError
 from .functions import milliseconds, iso8601, deep_extend
 from ccxt import NetworkError, RequestTimeout, NotSupported
 from ccxt.async_support.base.ws.future import Future
-
+from collections import deque
 
 class Client(object):
 
@@ -14,6 +14,8 @@ class Client(object):
     options = {}  # ws-specific options
     subscriptions = {}
     rejections = {}
+    message_queue = {}
+    useMessageQueue = False
     on_message_callback = None
     on_error_callback = None
     on_close_callback = None
@@ -68,15 +70,33 @@ class Client(object):
         if message_hash in self.rejections:
             future.reject(self.rejections[message_hash])
             del self.rejections[message_hash]
+            del self.message_queue[message_hash]
+            return future
+        if self.useMessageQueue and message_hash in self.message_queue:
+            queue = self.message_queue[message_hash]
+            if len(queue):
+                future.resolve(queue.popleft())
+                del self.futures[message_hash]
         return future
 
     def resolve(self, result, message_hash):
         if self.verbose and message_hash is None:
             self.log(iso8601(milliseconds()), 'resolve received None messageHash')
-        if message_hash in self.futures:
-            future = self.futures[message_hash]
-            future.resolve(result)
-            del self.futures[message_hash]
+
+        if self.useMessageQueue:
+            if message_hash not in self.message_queue:
+                self.message_queue[message_hash] = deque(maxlen=10)
+            queue = self.message_queue[message_hash]
+            queue.append(result)
+            if message_hash in self.futures:
+                future = self.futures[message_hash]
+                future.resolve(queue.popleft())
+                del self.futures[message_hash]
+        else:
+            if message_hash in self.futures:
+                future = self.futures[message_hash]
+                future.resolve(result)
+                del self.futures[message_hash]
         return result
 
     def reject(self, result, message_hash=None):
@@ -165,6 +185,7 @@ class Client(object):
             ensure_future(self.close(code), loop=self.asyncio_loop)
 
     def reset(self, error):
+        self.message_queue = {}
         self.reject(error)
 
     async def ping_loop(self):

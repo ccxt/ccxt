@@ -672,7 +672,7 @@ class btcturk extends btcturk$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -711,7 +711,17 @@ class btcturk extends btcturk$1 {
         const request = {
             'id': id,
         };
-        return await this.privateDeleteOrder(this.extend(request, params));
+        const response = await this.privateDeleteOrder(this.extend(request, params));
+        //
+        //    {
+        //        "success": true,
+        //        "message": "SUCCESS",
+        //        "code": 0
+        //    }
+        //
+        return this.safeOrder({
+            'info': response,
+        });
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**

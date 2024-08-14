@@ -14,7 +14,7 @@ async function testWatchPositions(exchange, skippedProperties, symbol) {
     while (now < ends) {
         let response = undefined;
         try {
-            response = await exchange.watchPositions(symbol);
+            response = await exchange.watchPositions([symbol]);
         }
         catch (e) {
             if (!testSharedMethods.isTemporaryFailure(e)) {

@@ -3,10 +3,10 @@
 
 import Exchange from './abstract/cryptocom.js';
 import { Precise } from './base/Precise.js';
-import { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled, OnMaintenance, InvalidOrder } from './base/errors.js';
+import { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled, OnMaintenance, InvalidOrder, RequestTimeout, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, Market, Num, Account, CancellationRequest } from './base/types.js';
+import type { Int, OrderSide, OrderType, Trade, OHLCV, Order, FundingRateHistory, Str, Ticker, OrderRequest, Balances, Transaction, OrderBook, Tickers, Strings, Currency, Market, Num, Account, CancellationRequest, Dict, int } from './base/types.js';
 
 /**
  * @class cryptocom
@@ -103,6 +103,7 @@ export default class cryptocom extends Exchange {
                 'reduceMargin': false,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
+                'sandbox': true,
                 'setLeverage': false,
                 'setMarginMode': false,
                 'setPositionMode': false,
@@ -161,6 +162,9 @@ export default class cryptocom extends Exchange {
                             'public/get-expired-settlement-price': 10 / 3,
                             'public/get-insurance': 1,
                         },
+                        'post': {
+                            'public/staking/get-conversion-rate': 2,
+                        },
                     },
                     'private': {
                         'post': {
@@ -190,6 +194,16 @@ export default class cryptocom extends Exchange {
                             'private/get-accounts': 10 / 3,
                             'private/get-withdrawal-history': 10 / 3,
                             'private/get-deposit-history': 10 / 3,
+                            'private/staking/stake': 2,
+                            'private/staking/unstake': 2,
+                            'private/staking/get-staking-position': 2,
+                            'private/staking/get-staking-instruments': 2,
+                            'private/staking/get-open-stake': 2,
+                            'private/staking/get-stake-history': 2,
+                            'private/staking/get-reward-history': 2,
+                            'private/staking/convert': 2,
+                            'private/staking/get-open-convert': 2,
+                            'private/staking/get-convert-history': 2,
                         },
                     },
                 },
@@ -373,7 +387,15 @@ export default class cryptocom extends Exchange {
                     '40006': BadRequest,
                     '40007': BadRequest,
                     '40101': AuthenticationError,
-                    '50001': BadRequest,
+                    '40102': InvalidNonce, // Nonce value differs by more than 60 seconds from server
+                    '40103': AuthenticationError, // IP address not whitelisted
+                    '40104': AuthenticationError, // Disallowed based on user tier
+                    '40107': BadRequest, // Session subscription limit has been exceeded
+                    '40401': OrderNotFound,
+                    '40801': RequestTimeout,
+                    '42901': RateLimitExceeded,
+                    '43005': InvalidOrder, // Rejected POST_ONLY create-order request (normally happened when exec_inst contains POST_ONLY but time_in_force is NOT GOOD_TILL_CANCEL)
+                    '50001': ExchangeError,
                     '9010001': OnMaintenance, // {"code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details."}
                 },
                 'broad': {},
@@ -586,7 +608,7 @@ export default class cryptocom extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbols !== undefined) {
             let symbol = undefined;
             if (Array.isArray (symbols)) {
@@ -668,7 +690,7 @@ export default class cryptocom extends Exchange {
             return await this.fetchPaginatedCallDynamic ('fetchOrders', symbol, since, limit, params) as Order[];
         }
         let market = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['instrument_name'] = market['id'];
@@ -750,7 +772,7 @@ export default class cryptocom extends Exchange {
             return await this.fetchPaginatedCallDynamic ('fetchTrades', symbol, since, limit, params) as Trade[];
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
         };
         if (since !== undefined) {
@@ -812,19 +834,28 @@ export default class cryptocom extends Exchange {
             return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, params, 300) as OHLCV[];
         }
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
             'timeframe': this.safeString (this.timeframes, timeframe, timeframe),
         };
-        if (since !== undefined) {
-            request['start_ts'] = since;
-        }
         if (limit !== undefined) {
+            if (limit > 300) {
+                limit = 300;
+            }
             request['count'] = limit;
         }
-        const until = this.safeInteger (params, 'until');
+        const now = this.microseconds ();
+        const duration = this.parseTimeframe (timeframe);
+        const until = this.safeInteger (params, 'until', now);
         params = this.omit (params, [ 'until' ]);
-        if (until !== undefined) {
+        if (since !== undefined) {
+            request['start_ts'] = since - duration * 1000;
+            if (limit !== undefined) {
+                request['end_ts'] = this.sum (since, duration * limit * 1000);
+            } else {
+                request['end_ts'] = until;
+            }
+        } else {
             request['end_ts'] = until;
         }
         const response = await this.v1PublicGetPublicGetCandlestick (this.extend (request, params));
@@ -867,7 +898,7 @@ export default class cryptocom extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
         };
         if (limit) {
@@ -903,7 +934,7 @@ export default class cryptocom extends Exchange {
         const responseResult = this.safeValue (response, 'result', {});
         const data = this.safeValue (responseResult, 'data', []);
         const positionBalances = this.safeValue (data[0], 'position_balances', []);
-        const result = { 'info': response };
+        const result: Dict = { 'info': response };
         for (let i = 0; i < positionBalances.length; i++) {
             const balance = positionBalances[i];
             const currencyId = this.safeString (balance, 'instrument_name');
@@ -988,7 +1019,7 @@ export default class cryptocom extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {
+        const request: Dict = {
             'order_id': id,
         };
         const response = await this.v1PrivatePostPrivateGetOrderDetail (this.extend (request, params));
@@ -1032,7 +1063,7 @@ export default class cryptocom extends Exchange {
     createOrderRequest (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
             'side': side.toUpperCase (),
             'quantity': this.amountToPrecision (symbol, amount),
@@ -1137,7 +1168,7 @@ export default class cryptocom extends Exchange {
          * @param {string} type 'market', 'limit', 'stop_loss', 'stop_limit', 'take_profit', 'take_profit_limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.timeInForce] 'GTC', 'IOC', 'FOK' or 'PO'
          * @param {string} [params.ref_price_type] 'MARK_PRICE', 'INDEX_PRICE', 'LAST_PRICE' which trigger price type to use, default is MARK_PRICE
@@ -1189,7 +1220,7 @@ export default class cryptocom extends Exchange {
             ordersRequests.push (orderRequest);
         }
         const contigency = this.safeString (params, 'contingency_type', 'LIST');
-        const request = {
+        const request: Dict = {
             'contingency_type': contigency, // or OCO
             'order_list': ordersRequests,
         };
@@ -1251,7 +1282,7 @@ export default class cryptocom extends Exchange {
         // and market-buy orders need to send notional instead of quantity
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
             'side': side.toUpperCase (),
         };
@@ -1370,7 +1401,7 @@ export default class cryptocom extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['instrument_name'] = market['id'];
@@ -1394,7 +1425,7 @@ export default class cryptocom extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request = {
+        const request: Dict = {
             'order_id': id,
         };
         const response = await this.v1PrivatePostPrivateCancelOrder (this.extend (request, params));
@@ -1433,13 +1464,13 @@ export default class cryptocom extends Exchange {
         const orderRequests = [];
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            const order = {
+            const order: Dict = {
                 'instrument_name': market['id'],
                 'order_id': id.toString (),
             };
             orderRequests.push (order);
         }
-        const request = {
+        const request: Dict = {
             'contingency_type': 'LIST',
             'order_list': orderRequests,
         };
@@ -1454,7 +1485,7 @@ export default class cryptocom extends Exchange {
          * @name cryptocom#cancelOrdersForSymbols
          * @description cancel multiple orders for multiple symbols
          * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
-         * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol
+         * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1465,13 +1496,13 @@ export default class cryptocom extends Exchange {
             const id = this.safeString (order, 'id');
             const symbol = this.safeString (order, 'symbol');
             const market = this.market (symbol);
-            const orderItem = {
+            const orderItem: Dict = {
                 'instrument_name': market['id'],
                 'order_id': id.toString (),
             };
             orderRequests.push (orderItem);
         }
-        const request = {
+        const request: Dict = {
             'contingency_type': 'LIST',
             'order_list': orderRequests,
         };
@@ -1494,7 +1525,7 @@ export default class cryptocom extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        const request: Dict = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['instrument_name'] = market['id'];
@@ -1562,7 +1593,7 @@ export default class cryptocom extends Exchange {
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchMyTrades', symbol, since, limit, params) as Trade[];
         }
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1644,7 +1675,7 @@ export default class cryptocom extends Exchange {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         await this.loadMarkets ();
         const currency = this.safeCurrency (code); // for instance, USDC is not inferred from markets but it's still available
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
             'amount': amount,
             'address': address,
@@ -1691,7 +1722,7 @@ export default class cryptocom extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.safeCurrency (code);
-        const request = {
+        const request: Dict = {
             'currency': currency['id'],
         };
         const response = await this.v1PrivatePostPrivateGetDepositAddress (this.extend (request, params));
@@ -1720,7 +1751,7 @@ export default class cryptocom extends Exchange {
         if (addressesLength === 0) {
             throw new ExchangeError (this.id + ' fetchDepositAddressesByNetwork() generating address...');
         }
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < addressesLength; i++) {
             const value = this.safeValue (addresses, i);
             const addressString = this.safeString (value, 'address');
@@ -1762,7 +1793,7 @@ export default class cryptocom extends Exchange {
     }
 
     safeNetwork (networkId) {
-        const networksById = {
+        const networksById: Dict = {
             'BTC': 'BTC',
             'ETH': 'ETH',
             'SOL': 'SOL',
@@ -1789,7 +1820,7 @@ export default class cryptocom extends Exchange {
          */
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {};
+        const request: Dict = {};
         if (code !== undefined) {
             currency = this.safeCurrency (code);
             request['currency'] = currency['id'];
@@ -1849,7 +1880,7 @@ export default class cryptocom extends Exchange {
          */
         await this.loadMarkets ();
         let currency = undefined;
-        const request = {};
+        const request: Dict = {};
         if (code !== undefined) {
             currency = this.safeCurrency (code);
             request['currency'] = currency['id'];
@@ -1896,7 +1927,7 @@ export default class cryptocom extends Exchange {
         return this.parseTransactions (withdrawalList, currency, since, limit);
     }
 
-    parseTicker (ticker, market: Market = undefined): Ticker {
+    parseTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         // fetchTicker
         //
@@ -1958,7 +1989,7 @@ export default class cryptocom extends Exchange {
         }, market);
     }
 
-    parseTrade (trade, market: Market = undefined): Trade {
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades
         //
@@ -2039,8 +2070,8 @@ export default class cryptocom extends Exchange {
         ];
     }
 
-    parseOrderStatus (status) {
-        const statuses = {
+    parseOrderStatus (status: Str) {
+        const statuses: Dict = {
             'ACTIVE': 'open',
             'CANCELED': 'canceled',
             'FILLED': 'closed',
@@ -2050,8 +2081,8 @@ export default class cryptocom extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTimeInForce (timeInForce) {
-        const timeInForces = {
+    parseTimeInForce (timeInForce: Str) {
+        const timeInForces: Dict = {
             'GOOD_TILL_CANCEL': 'GTC',
             'IMMEDIATE_OR_CANCEL': 'IOC',
             'FILL_OR_KILL': 'FOK',
@@ -2059,7 +2090,7 @@ export default class cryptocom extends Exchange {
         return this.safeString (timeInForces, timeInForce, timeInForce);
     }
 
-    parseOrder (order, market: Market = undefined): Order {
+    parseOrder (order: Dict, market: Market = undefined): Order {
         //
         // createOrder, cancelOrder
         //
@@ -2159,7 +2190,7 @@ export default class cryptocom extends Exchange {
     }
 
     parseDepositStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             '0': 'pending',
             '1': 'ok',
             '2': 'failed',
@@ -2169,7 +2200,7 @@ export default class cryptocom extends Exchange {
     }
 
     parseWithdrawalStatus (status) {
-        const statuses = {
+        const statuses: Dict = {
             '0': 'pending',
             '1': 'pending',
             '2': 'failed',
@@ -2181,7 +2212,7 @@ export default class cryptocom extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+    parseTransaction (transaction: Dict, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //
@@ -2313,7 +2344,7 @@ export default class cryptocom extends Exchange {
         //
         const networkList = this.safeValue (fee, 'network_list');
         const networkListLength = networkList.length;
-        const result = {
+        const result: Dict = {
             'info': fee,
             'withdraw': {
                 'fee': undefined,
@@ -2375,7 +2406,7 @@ export default class cryptocom extends Exchange {
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         await this.loadMarkets ();
-        const request = {};
+        const request: Dict = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.safeCurrency (code);
@@ -2426,7 +2457,7 @@ export default class cryptocom extends Exchange {
         return this.parseLedger (ledger, currency, since, limit);
     }
 
-    parseLedgerEntry (item, currency: Currency = undefined) {
+    parseLedgerEntry (item: Dict, currency: Currency = undefined) {
         //
         //     {
         //         "account_id": "ce075cef-1234-4321-bd6e-gf9007351e64",
@@ -2480,7 +2511,7 @@ export default class cryptocom extends Exchange {
     }
 
     parseLedgerEntryType (type) {
-        const ledgerType = {
+        const ledgerType: Dict = {
             'TRADING': 'trade',
             'TRADE_FEE': 'fee',
             'WITHDRAW_FEE': 'fee',
@@ -2613,7 +2644,7 @@ export default class cryptocom extends Exchange {
         if (type === 'option') {
             type = 'WARRANT';
         }
-        const request = {
+        const request: Dict = {
             'instrument_type': type.toUpperCase (),
         };
         const response = await this.v1PublicGetPublicGetExpiredSettlementPrice (this.extend (request, params));
@@ -2706,7 +2737,7 @@ export default class cryptocom extends Exchange {
         if (!market['swap']) {
             throw new BadSymbol (this.id + ' fetchFundingRateHistory() supports swap contracts only');
         }
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
             'valuation_type': 'funding_hist',
         };
@@ -2769,7 +2800,7 @@ export default class cryptocom extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
         };
         const response = await this.v1PrivatePostPrivateGetPositions (this.extend (request, params));
@@ -2812,7 +2843,7 @@ export default class cryptocom extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbols !== undefined) {
             let symbol = undefined;
@@ -2863,7 +2894,7 @@ export default class cryptocom extends Exchange {
         return this.filterByArrayPositions (result, 'symbol', undefined, false);
     }
 
-    parsePosition (position, market: Market = undefined) {
+    parsePosition (position: Dict, market: Market = undefined) {
         //
         //     {
         //         "account_id": "ce075bef-b600-4277-bd6e-ff9007251e63",
@@ -2966,7 +2997,7 @@ export default class cryptocom extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'instrument_name': market['id'],
             'type': 'MARKET',
         };
@@ -3037,7 +3068,7 @@ export default class cryptocom extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    handleErrors (code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response, requestHeaders, requestBody) {
         const errorCode = this.safeString (response, 'code');
         if (errorCode !== '0') {
             const feedback = this.id + ' ' + body;

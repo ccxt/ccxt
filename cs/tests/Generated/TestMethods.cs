@@ -99,7 +99,13 @@ public partial class testMainClass : BaseTest
     {
         object properties = new List<object>(((IDictionary<string,object>)exchange.has).Keys);
         ((IList<object>)properties).Add("loadMarkets");
-        this.testFiles = await getTestFiles(properties, this.wsTests);
+        if (isTrue(this.isSynchronous))
+        {
+            this.testFiles = getTestFilesSync(properties, this.wsTests);
+        } else
+        {
+            this.testFiles = await getTestFiles(properties, this.wsTests);
+        }
     }
 
     public virtual void loadCredentialsFromEnv(Exchange exchange)
@@ -278,11 +284,21 @@ public partial class testMainClass : BaseTest
         }
         if (isTrue(this.info))
         {
-            object argsStringified = add(add("(", String.Join(",", ((IList<object>)args).ToArray())), ")");
+            object argsStringified = add(add("(", exchange.json(args)), ")"); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
             dump(this.addPadding("[INFO] TESTING", 25), this.exchangeHint(exchange), methodName, argsStringified);
         }
-        await callMethod(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
-        // if it was passed successfully, add to the list of successfull tests
+        if (isTrue(this.isSynchronous))
+        {
+            callMethodSync(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
+        } else
+        {
+            await callMethod(this.testFiles, methodName, exchange, skippedPropertiesForMethod, args);
+        }
+        if (isTrue(this.info))
+        {
+            dump(this.addPadding("[INFO] TESTING DONE", 25), this.exchangeHint(exchange), methodName);
+        }
+        // add to the list of successed tests
         if (isTrue(isPublic))
         {
             ((IDictionary<string,object>)this.checkedPublicTests)[(string)methodName] = true;
@@ -364,15 +380,16 @@ public partial class testMainClass : BaseTest
         args ??= new List<object>();
         isPublic ??= false;
         object maxRetries = 3;
-        object argsStringified = exchange.json(args); // args.join() breaks when we provide a list of symbols | "args.toString()" breaks bcz of "array to string conversion"
+        object argsStringified = exchange.json(args); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
         for (object i = 0; isLessThan(i, maxRetries); postFixIncrement(ref i))
         {
             try
             {
                 await this.testMethod(methodName, exchange, args, isPublic);
                 return true;
-            } catch(Exception e)
+            } catch(Exception ex)
             {
+                object e = getRootException(ex);
                 object isLoadMarkets = (isEqual(methodName, "loadMarkets"));
                 object isAuthError = (e is AuthenticationError);
                 object isNotSupported = (e is NotSupported);
@@ -844,17 +861,20 @@ public partial class testMainClass : BaseTest
             try
             {
                 await this.testMethod(proxyTestName, exchange, new List<object>() {}, true);
-                break; // if successfull, then break
+                return;  // if successfull, then end the test
             } catch(Exception e)
             {
                 exception = e;
+                await exchange.sleep(multiply(j, 1000));
             }
         }
         // if exception was set, then throw it
-        if (isTrue(exception))
+        if (isTrue(!isEqual(exception, null)))
         {
             object errorMessage = add(add(add("[TEST_FAILURE] Failed ", proxyTestName), " : "), exceptionMessage(exception));
-            throw new ExchangeError (((object)errorMessage).ToString()) ;
+            // temporary comment the below, because c# transpilation failure
+            // throw new Exchange Error (errorMessage.toString ());
+            dump(add("[TEST_WARNING]", ((object)errorMessage).ToString()));
         }
     }
 
@@ -874,7 +894,10 @@ public partial class testMainClass : BaseTest
             object result = await this.loadExchange(exchange);
             if (!isTrue(result))
             {
-                await close(exchange);
+                if (!isTrue(this.isSynchronous))
+                {
+                    await close(exchange);
+                }
                 return;
             }
             // if (exchange.id === 'binance') {
@@ -882,10 +905,16 @@ public partial class testMainClass : BaseTest
             //     // await this.testProxies (exchange);
             // }
             await this.testExchange(exchange, symbol);
-            await close(exchange);
+            if (!isTrue(this.isSynchronous))
+            {
+                await close(exchange);
+            }
         } catch(Exception e)
         {
-            await close(exchange);
+            if (!isTrue(this.isSynchronous))
+            {
+                await close(exchange);
+            }
             throw e;
         }
     }
@@ -1200,16 +1229,22 @@ public partial class testMainClass : BaseTest
         return newInput;
     }
 
-    public async virtual Task testMethodStatically(Exchange exchange, object method, object data, object type, object skipKeys)
+    public async virtual Task testRequestStatically(Exchange exchange, object method, object data, object type, object skipKeys)
     {
         object output = null;
         object requestUrl = null;
         try
         {
-            await callExchangeMethodDynamically(exchange, method, this.sanitizeDataInput(getValue(data, "input")));
+            if (!isTrue(this.isSynchronous))
+            {
+                await callExchangeMethodDynamically(exchange, method, this.sanitizeDataInput(getValue(data, "input")));
+            } else
+            {
+                callExchangeMethodDynamicallySync(exchange, method, this.sanitizeDataInput(getValue(data, "input")));
+            }
         } catch(Exception e)
         {
-            if (!isTrue((e is ProxyError)))
+            if (!isTrue((e is InvalidProxySettings)))
             {
                 throw e;
             }
@@ -1234,11 +1269,18 @@ public partial class testMainClass : BaseTest
         var mockedExchange = setFetchResponse(exchange, getValue(data, "httpResponse"));
         try
         {
-            object unifiedResult = await callExchangeMethodDynamically(exchange, method, this.sanitizeDataInput(getValue(data, "input")));
-            this.assertStaticResponseOutput(mockedExchange, skipKeys, unifiedResult, expectedResult);
+            if (!isTrue(this.isSynchronous))
+            {
+                object unifiedResult = await callExchangeMethodDynamically(exchange, method, this.sanitizeDataInput(getValue(data, "input")));
+                this.assertStaticResponseOutput(mockedExchange, skipKeys, unifiedResult, expectedResult);
+            } else
+            {
+                object unifiedResultSync = callExchangeMethodDynamicallySync(exchange, method, this.sanitizeDataInput(getValue(data, "input")));
+                this.assertStaticResponseOutput(mockedExchange, skipKeys, unifiedResultSync, expectedResult);
+            }
         } catch(Exception e)
         {
-            this.requestTestsFailed = true;
+            this.responseTestsFailed = true;
             object errorMessage = add(add(add(add(add(add(add(add(add(add(add(add("[", this.lang), "][STATIC_RESPONSE_TEST_FAILURE]"), "["), this.exchangeHint(exchange)), "]"), "["), method), "]"), "["), getValue(data, "description")), "]"), ((object)e).ToString());
             dump(add("[TEST_FAILURE]", errorMessage));
         }
@@ -1263,6 +1305,7 @@ public partial class testMainClass : BaseTest
             { "privateKey", "0xff3bdd43534543d421f05aec535965b5050ad6ac15345435345435453495e771" },
             { "uid", "uid" },
             { "token", "token" },
+            { "accountId", "accountId" },
             { "accounts", new List<object>() {new Dictionary<string, object>() {
     { "id", "myAccount" },
     { "code", "USDT" },
@@ -1287,6 +1330,31 @@ public partial class testMainClass : BaseTest
         // instantiate the exchange and make sure that we sink the requests to avoid an actual request
         Exchange exchange = this.initOfflineExchange(exchangeName);
         object globalOptions = exchange.safeDict(exchangeData, "options", new Dictionary<string, object>() {});
+        // read apiKey/secret from the test file
+        object apiKey = exchange.safeString(exchangeData, "apiKey");
+        if (isTrue(apiKey))
+        {
+            // c# to string requirement
+            exchange.apiKey = ((object)apiKey).ToString();
+        }
+        object secret = exchange.safeString(exchangeData, "secret");
+        if (isTrue(secret))
+        {
+            // c# to string requirement
+            exchange.secret = ((object)secret).ToString();
+        }
+        object privateKey = exchange.safeString(exchangeData, "privateKey");
+        if (isTrue(privateKey))
+        {
+            // c# to string requirement
+            exchange.privateKey = ((object)privateKey).ToString();
+        }
+        object walletAddress = exchange.safeString(exchangeData, "walletAddress");
+        if (isTrue(walletAddress))
+        {
+            // c# to string requirement
+            exchange.walletAddress = ((object)walletAddress).ToString();
+        }
         // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
         exchange.extendExchangeOptions(globalOptions);
         object methods = exchange.safeValue(exchangeData, "methods", new Dictionary<string, object>() {});
@@ -1314,19 +1382,47 @@ public partial class testMainClass : BaseTest
                 }
                 object type = exchange.safeString(exchangeData, "outputType");
                 object skipKeys = exchange.safeValue(exchangeData, "skipKeys", new List<object>() {});
-                await this.testMethodStatically(exchange, method, result, type, skipKeys);
+                await this.testRequestStatically(exchange, method, result, type, skipKeys);
                 // reset options
                 // exchange.options = exchange.deepExtend (oldExchangeOptions, {});
                 exchange.extendExchangeOptions(exchange.deepExtend(oldExchangeOptions, new Dictionary<string, object>() {}));
             }
         }
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;  // in c# methods that will be used with promiseAll need to return something
     }
 
     public async virtual Task<object> testExchangeResponseStatically(object exchangeName, object exchangeData, object testName = null)
     {
         Exchange exchange = this.initOfflineExchange(exchangeName);
+        // read apiKey/secret from the test file
+        object apiKey = exchange.safeString(exchangeData, "apiKey");
+        if (isTrue(apiKey))
+        {
+            // c# to string requirement
+            exchange.apiKey = ((object)apiKey).ToString();
+        }
+        object secret = exchange.safeString(exchangeData, "secret");
+        if (isTrue(secret))
+        {
+            // c# to string requirement
+            exchange.secret = ((object)secret).ToString();
+        }
+        object privateKey = exchange.safeString(exchangeData, "privateKey");
+        if (isTrue(privateKey))
+        {
+            // c# to string requirement
+            exchange.privateKey = ((object)privateKey).ToString();
+        }
+        object walletAddress = exchange.safeString(exchangeData, "walletAddress");
+        if (isTrue(walletAddress))
+        {
+            // c# to string requirement
+            exchange.walletAddress = ((object)walletAddress).ToString();
+        }
         object methods = exchange.safeValue(exchangeData, "methods", new Dictionary<string, object>() {});
         object options = exchange.safeValue(exchangeData, "options", new Dictionary<string, object>() {});
         // exchange.options = exchange.deepExtend (exchange.options, options); // custom options to be used in the tests
@@ -1370,7 +1466,10 @@ public partial class testMainClass : BaseTest
                 exchange.extendExchangeOptions(exchange.deepExtend(oldExchangeOptions, new Dictionary<string, object>() {}));
             }
         }
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;  // in c# methods that will be used with promiseAll need to return something
     }
 
@@ -1438,7 +1537,8 @@ public partial class testMainClass : BaseTest
             exitScript(1);
         } else
         {
-            object successMessage = add(add(add(add(add(add("[", this.lang), "][TEST_SUCCESS] "), ((object)sum).ToString()), " static "), type), " tests passed.");
+            object prefix = ((bool) isTrue((this.isSynchronous))) ? "[SYNC]" : "";
+            object successMessage = add(add(add(add(add(add(add(add("[", this.lang), "]"), prefix), "[TEST_SUCCESS] "), ((object)sum).ToString()), " static "), type), " tests passed.");
             dump(add("[INFO]", successMessage));
         }
     }
@@ -1456,7 +1556,7 @@ public partial class testMainClass : BaseTest
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced()};
+        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testVertex(), this.testParadex()};
         await promiseAll(promises);
         object successMessage = add(add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
         dump(add("[INFO]", successMessage));
@@ -1500,7 +1600,10 @@ public partial class testMainClass : BaseTest
         assert(((string)clientOrderIdSwap).StartsWith(((string)swapIdString)), add(add(add("binance - swap clientOrderId: ", clientOrderIdSwap), " does not start with swapId"), swapIdString));
         object clientOrderIdInverse = getValue(swapInverseOrderRequest, "newClientOrderId");
         assert(((string)clientOrderIdInverse).StartsWith(((string)swapIdString)), add(add(add("binance - swap clientOrderIdInverse: ", clientOrderIdInverse), " does not start with swapId"), swapIdString));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 
@@ -1533,7 +1636,10 @@ public partial class testMainClass : BaseTest
         assert(((string)clientOrderIdSwap).StartsWith(((string)idString)), add(add(add("okx - swap clientOrderId: ", clientOrderIdSwap), " does not start with id: "), idString));
         object swapTag = getValue(getValue(swapOrderRequest, 0), "tag");
         assert(isEqual(swapTag, id), add(add(add("okx - id: ", id), " different from swap tag: "), swapTag));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 
@@ -1552,7 +1658,10 @@ public partial class testMainClass : BaseTest
         }
         object brokerId = getValue(getValue(request, "params"), "broker_id");
         assert(isEqual(brokerId, id), add(add(add("cryptocom - id: ", id), " different from  broker_id: "), brokerId));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 
@@ -1571,7 +1680,10 @@ public partial class testMainClass : BaseTest
             reqHeaders = exchange.last_request_headers;
         }
         assert(isEqual(getValue(reqHeaders, "Referer"), id), add(add("bybit - id: ", id), " not in headers."));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 
@@ -1593,7 +1705,10 @@ public partial class testMainClass : BaseTest
         }
         object id = "ccxt";
         assert(isEqual(getValue(reqHeaders, "KC-API-PARTNER"), id), add(add("kucoin - id: ", id), " not in headers."));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 
@@ -1614,7 +1729,10 @@ public partial class testMainClass : BaseTest
             reqHeaders = exchange.last_request_headers;
         }
         assert(isEqual(getValue(reqHeaders, "KC-API-PARTNER"), id), add(add("kucoinfutures - id: ", id), " not in headers."));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 
@@ -1632,7 +1750,10 @@ public partial class testMainClass : BaseTest
             reqHeaders = exchange.last_request_headers;
         }
         assert(isEqual(getValue(reqHeaders, "X-CHANNEL-API-CODE"), id), add(add("bitget - id: ", id), " not in headers."));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 
@@ -1651,7 +1772,10 @@ public partial class testMainClass : BaseTest
             reqHeaders = exchange.last_request_headers;
         }
         assert(isEqual(getValue(reqHeaders, "source"), id), add(add("mexc - id: ", id), " not in headers."));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 
@@ -1692,7 +1816,10 @@ public partial class testMainClass : BaseTest
         assert(((string)clientOrderIdSwap).StartsWith(((string)idString)), add(add(add("htx - swap channel_code ", clientOrderIdSwap), " does not start with id: "), idString));
         object clientOrderIdInverse = getValue(swapInverseOrderRequest, "channel_code");
         assert(((string)clientOrderIdInverse).StartsWith(((string)idString)), add(add(add("htx - swap inverse channel_code ", clientOrderIdInverse), " does not start with id: "), idString));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 
@@ -1725,7 +1852,10 @@ public partial class testMainClass : BaseTest
         }
         object clientOrderIdStop = getValue(stopOrderRequest, "brokerId");
         assert(((string)clientOrderIdStop).StartsWith(((string)idString)), add(add(add("woo - brokerId: ", clientOrderIdStop), " does not start with id: "), idString));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 
@@ -1744,7 +1874,10 @@ public partial class testMainClass : BaseTest
             reqHeaders = exchange.last_request_headers;
         }
         assert(isEqual(getValue(reqHeaders, "X-BM-BROKER-ID"), id), add(add("bitmart - id: ", id), " not in headers"));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 
@@ -1764,7 +1897,10 @@ public partial class testMainClass : BaseTest
         object clientOrderId = getValue(spotOrderRequest, "client_id");
         object idString = ((object)id).ToString();
         assert(((string)clientOrderId).StartsWith(((string)idString)), add(add(add("coinex - clientOrderId: ", clientOrderId), " does not start with id: "), idString));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 
@@ -1783,7 +1919,10 @@ public partial class testMainClass : BaseTest
             reqHeaders = exchange.last_request_headers;
         }
         assert(isEqual(getValue(reqHeaders, "X-SOURCE-KEY"), id), add(add("bingx - id: ", id), " not in headers."));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
     }
 
     public async virtual Task testPhemex()
@@ -1801,7 +1940,10 @@ public partial class testMainClass : BaseTest
         object clientOrderId = getValue(request, "clOrdID");
         object idString = ((object)id).ToString();
         assert(((string)clientOrderId).StartsWith(((string)idString)), add(add(add("phemex - clOrdID: ", clientOrderId), " does not start with id: "), idString));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
     }
 
     public async virtual Task testBlofin()
@@ -1819,7 +1961,10 @@ public partial class testMainClass : BaseTest
         object brokerId = getValue(request, "brokerId");
         object idString = ((object)id).ToString();
         assert(((string)brokerId).StartsWith(((string)idString)), add(add(add("blofin - brokerId: ", brokerId), " does not start with id: "), idString));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
     }
 
     public async virtual Task testHyperliquid()
@@ -1836,7 +1981,10 @@ public partial class testMainClass : BaseTest
         }
         object brokerId = ((object)(getValue(getValue(request, "action"), "brokerCode"))).ToString();
         assert(isEqual(brokerId, id), add(add(add("hyperliquid - brokerId: ", brokerId), " does not start with id: "), id));
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
     }
 
     public async virtual Task<object> testCoinbaseinternational()
@@ -1855,7 +2003,10 @@ public partial class testMainClass : BaseTest
         }
         object clientOrderId = getValue(request, "client_order_id");
         assert(((string)clientOrderId).StartsWith(((string)((object)id).ToString())), "clientOrderId does not start with id");
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 
@@ -1874,7 +2025,164 @@ public partial class testMainClass : BaseTest
         }
         object clientOrderId = getValue(request, "client_order_id");
         assert(((string)clientOrderId).StartsWith(((string)((object)id).ToString())), "clientOrderId does not start with id");
-        await close(exchange);
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
+        return true;
+    }
+
+    public async virtual Task<object> testWoofiPro()
+    {
+        Exchange exchange = this.initOfflineExchange("woofipro");
+        exchange.secret = "secretsecretsecretsecretsecretsecretsecrets";
+        object id = "CCXT";
+        await exchange.loadMarkets();
+        object request = null;
+        try
+        {
+            await exchange.createOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            request = jsonParse(exchange.last_request_body);
+        }
+        object brokerId = getValue(request, "order_tag");
+        assert(isEqual(brokerId, id), add(add(add("woofipro - id: ", id), " different from  broker_id: "), brokerId));
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
+        return true;
+    }
+
+    public async virtual Task<object> testOxfun()
+    {
+        Exchange exchange = this.initOfflineExchange("oxfun");
+        exchange.secret = "secretsecretsecretsecretsecretsecretsecrets";
+        object id = 1000;
+        await exchange.loadMarkets();
+        object request = null;
+        try
+        {
+            await exchange.createOrder("BTC/USD:OX", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            request = jsonParse(exchange.last_request_body);
+        }
+        object orders = getValue(request, "orders");
+        object first = getValue(orders, 0);
+        object brokerId = getValue(first, "source");
+        assert(isEqual(brokerId, id), add(add(add("oxfun - id: ", ((object)id).ToString()), " different from  broker_id: "), ((object)brokerId).ToString()));
+        return true;
+    }
+
+    public async virtual Task<object> testXT()
+    {
+        Exchange exchange = this.initOfflineExchange("xt");
+        object id = "CCXT";
+        object spotOrderRequest = null;
+        try
+        {
+            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            spotOrderRequest = jsonParse(exchange.last_request_body);
+        }
+        object spotMedia = getValue(spotOrderRequest, "media");
+        assert(isEqual(spotMedia, id), add(add(add("xt - id: ", id), " different from swap tag: "), spotMedia));
+        object swapOrderRequest = null;
+        try
+        {
+            await exchange.createOrder("BTC/USDT:USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            swapOrderRequest = jsonParse(exchange.last_request_body);
+        }
+        object swapMedia = getValue(swapOrderRequest, "clientMedia");
+        assert(isEqual(swapMedia, id), add(add(add("xt - id: ", id), " different from swap tag: "), swapMedia));
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
+        return true;
+    }
+
+    public async virtual Task<object> testVertex()
+    {
+        Exchange exchange = this.initOfflineExchange("vertex");
+        exchange.walletAddress = "0xc751489d24a33172541ea451bc253d7a9e98c781";
+        exchange.privateKey = "c33b1eb4b53108bf52e10f636d8c1236c04c33a712357ba3543ab45f48a5cb0b";
+        ((IDictionary<string,object>)exchange.options)["v1contracts"] = new Dictionary<string, object>() {
+            { "chain_id", "42161" },
+            { "endpoint_addr", "0xbbee07b3e8121227afcfe1e2b82772246226128e" },
+            { "book_addrs", new List<object>() {"0x0000000000000000000000000000000000000000", "0x70e5911371472e406f1291c621d1c8f207764d73", "0xf03f457a30e598d5020164a339727ef40f2b8fbc", "0x1c6281a78aa0ed88949c319cba5f0f0de2ce8353", "0xfe653438a1a4a7f56e727509c341d60a7b54fa91", "0xb6304e9a6ca241376a5fc9294daa8fca65ddcdcd", "0x01ec802ae0ab1b2cc4f028b9fe6eb954aef06ed1", "0x0000000000000000000000000000000000000000", "0x9c52d5c4df5a68955ad088a781b4ab364a861e9e", "0x0000000000000000000000000000000000000000", "0x2a3bcda1bb3ef649f3571c96c597c3d2b25edc79", "0x0000000000000000000000000000000000000000", "0x0492ff9807f82856781488015ef7aa5526c0edd6", "0x0000000000000000000000000000000000000000", "0xea884c82418ebc21cd080b8f40ecc4d06a6a6883", "0x0000000000000000000000000000000000000000", "0x5ecf68f983253a818ca8c17a56a4f2fb48d6ec6b", "0x0000000000000000000000000000000000000000", "0xba3f57a977f099905531f7c2f294aad7b56ed254", "0x0000000000000000000000000000000000000000", "0x0ac8c26d207d0c6aabb3644fea18f530c4d6fc8e", "0x0000000000000000000000000000000000000000", "0x8bd80ad7630b3864bed66cf28f548143ea43dc3b", "0x0000000000000000000000000000000000000000", "0x045391227fc4b2cdd27b95f066864225afc9314e", "0x0000000000000000000000000000000000000000", "0x7d512bef2e6cfd7e7f5f6b2f8027e3728eb7b6c3", "0x0000000000000000000000000000000000000000", "0x678a6c5003b56b5e9a81559e9a0df880407c796f", "0x0000000000000000000000000000000000000000", "0x14b5a17208fa98843cc602b3f74e31c95ded3567", "0xe442a89a07b3888ab10579fbb2824aeceff3a282", "0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000", "0xac28ac205275d7c2d6877bea8657cebe04fd9ae9", "0x0000000000000000000000000000000000000000", "0xed811409bfea901e75cb19ba347c08a154e860c9", "0x0000000000000000000000000000000000000000", "0x0f7afcb1612b305626cff84f84e4169ba2d0f12c", "0x0000000000000000000000000000000000000000", "0xe4b8d903db2ce2d3891ef04cfc3ac56330c1b0c3", "0x5f44362bad629846b7455ad9d36bbc3759a3ef62", "0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000", "0xa64e04ed4b223a71e524dc7ebb7f28e422ccfdde", "0x0000000000000000000000000000000000000000", "0x2ee573caab73c1d8cf0ca6bd3589b67de79628a4", "0x0000000000000000000000000000000000000000", "0x01bb96883a8a478d4410387d4aaf11067edc2c74", "0x0000000000000000000000000000000000000000", "0xe7ed0c559d905436a867cddf07e06921d572363c", "0x0000000000000000000000000000000000000000", "0xa94f9e3433c92a5cd1925494811a67b1943557d9", "0x0000000000000000000000000000000000000000", "0xa63de7f89ba1270b85f3dcc193ff1a1390a7c7c7", "0x0000000000000000000000000000000000000000", "0xc8b0b37dffe3a711a076dc86dd617cc203f36121", "0x0000000000000000000000000000000000000000", "0x646df48947ff785fe609969ff634e7be9d1c34cd", "0x0000000000000000000000000000000000000000", "0x42582b404b0bec4a266631a0e178840b107a0c69", "0x0000000000000000000000000000000000000000", "0x36a94bc3edb1b629d1413091e22dc65fa050f17f", "0x0000000000000000000000000000000000000000", "0xb398d00b5a336f0ad33cfb352fd7646171cec442", "0x0000000000000000000000000000000000000000", "0xb4bc3b00de98e1c0498699379f6607b1f00bd5a1", "0x0000000000000000000000000000000000000000", "0xfe8b7baf68952bac2c04f386223d2013c1b4c601", "0x0000000000000000000000000000000000000000", "0x9c8764ec71f175c97c6c2fd558eb6546fcdbea32", "0x0000000000000000000000000000000000000000", "0x94d31188982c8eccf243e555b22dc57de1dba4e1", "0x0000000000000000000000000000000000000000", "0x407c5e2fadd7555be927c028bc358daa907c797a", "0x0000000000000000000000000000000000000000", "0x7e97da2dbbbdd7fb313cf9dc0581ac7cec999c70", "0x0000000000000000000000000000000000000000", "0x7f8d2662f64dd468c423805f98a6579ad59b28fa", "0x0000000000000000000000000000000000000000", "0x3398adf63fed17cbadd6080a1fb771e6a2a55958", "0x0000000000000000000000000000000000000000", "0xba8910a1d7ab62129729047d453091a1e6356170", "0x0000000000000000000000000000000000000000", "0xdc054bce222fe725da0f17abcef38253bd8bb745", "0x0000000000000000000000000000000000000000", "0xca21693467d0a5ea9e10a5a7c5044b9b3837e694", "0x0000000000000000000000000000000000000000", "0xe0b02de2139256dbae55cf350094b882fbe629ea", "0x0000000000000000000000000000000000000000", "0x02c38368a6f53858aab5a3a8d91d73eb59edf9b9", "0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000", "0x0000000000000000000000000000000000000000", "0xfe8c4778843c3cb047ffe7c0c0154a724c05cab9", "0x0000000000000000000000000000000000000000", "0xe2e88862d9b7379e21c82fc4aec8d71bddbcdb4b", "0x0000000000000000000000000000000000000000", "0xbbaff9e73b30f9cea5c01481f12de75050947fd6", "0x0000000000000000000000000000000000000000", "0xa20f6f381fe0fec5a1035d37ebf8890726377ab9", "0x0000000000000000000000000000000000000000", "0xbad68032d012bf35d3a2a177b242e86684027ed0", "0x0000000000000000000000000000000000000000", "0x0e61ca37f0c67e8a8794e45e264970a2a23a513c", "0x0000000000000000000000000000000000000000", "0xa77b7048e378c5270b15918449ededf87c3a3db3", "0x0000000000000000000000000000000000000000", "0x15afca1e6f02b556fa6551021b3493a1e4a7f44f"} },
+        };
+        object id = 5930043274845996;
+        await exchange.loadMarkets();
+        object request = null;
+        try
+        {
+            await exchange.createOrder("BTC/USDC:USDC", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            request = jsonParse(exchange.last_request_body);
+        }
+        object order = getValue(request, "place_order");
+        object brokerId = getValue(order, "id");
+        assert(isEqual(brokerId, id), add(add(add("vertex - id: ", ((object)id).ToString()), " different from  broker_id: "), ((object)brokerId).ToString()));
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
+        return true;
+    }
+
+    public async virtual Task<object> testParadex()
+    {
+        Exchange exchange = this.initOfflineExchange("paradex");
+        exchange.walletAddress = "0xc751489d24a33172541ea451bc253d7a9e98c781";
+        exchange.privateKey = "c33b1eb4b53108bf52e10f636d8c1236c04c33a712357ba3543ab45f48a5cb0b";
+        ((IDictionary<string,object>)exchange.options)["authToken"] = "token";
+        ((IDictionary<string,object>)exchange.options)["systemConfig"] = new Dictionary<string, object>() {
+            { "starknet_gateway_url", "https://potc-testnet-sepolia.starknet.io" },
+            { "starknet_fullnode_rpc_url", "https://pathfinder.api.testnet.paradex.trade/rpc/v0_7" },
+            { "starknet_chain_id", "PRIVATE_SN_POTC_SEPOLIA" },
+            { "block_explorer_url", "https://voyager.testnet.paradex.trade/" },
+            { "paraclear_address", "0x286003f7c7bfc3f94e8f0af48b48302e7aee2fb13c23b141479ba00832ef2c6" },
+            { "paraclear_decimals", 8 },
+            { "paraclear_account_proxy_hash", "0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9" },
+            { "paraclear_account_hash", "0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e" },
+            { "oracle_address", "0x2c6a867917ef858d6b193a0ff9e62b46d0dc760366920d631715d58baeaca1f" },
+            { "bridged_tokens", new List<object>() {new Dictionary<string, object>() {
+    { "name", "TEST USDC" },
+    { "symbol", "USDC" },
+    { "decimals", 6 },
+    { "l1_token_address", "0x29A873159D5e14AcBd63913D4A7E2df04570c666" },
+    { "l1_bridge_address", "0x8586e05adc0C35aa11609023d4Ae6075Cb813b4C" },
+    { "l2_token_address", "0x6f373b346561036d98ea10fb3e60d2f459c872b1933b50b21fe6ef4fda3b75e" },
+    { "l2_bridge_address", "0x46e9237f5408b5f899e72125dd69bd55485a287aaf24663d3ebe00d237fc7ef" },
+}} },
+            { "l1_core_contract_address", "0x582CC5d9b509391232cd544cDF9da036e55833Af" },
+            { "l1_operator_address", "0x11bACdFbBcd3Febe5e8CEAa75E0Ef6444d9B45FB" },
+            { "l1_chain_id", "11155111" },
+            { "liquidation_fee", "0.2" },
+        };
+        object reqHeaders = null;
+        object id = "CCXT";
+        assert(isEqual(getValue(exchange.options, "broker"), id), add(add("paradex - id: ", id), " not in options"));
+        await exchange.loadMarkets();
+        try
+        {
+            await exchange.createOrder("BTC/USD:USDC", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert(isEqual(getValue(reqHeaders, "PARADEX-PARTNER"), id), add(add("paradex - id: ", id), " not in headers"));
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
         return true;
     }
 }

@@ -221,6 +221,81 @@
                         "stopLossPrice": null
                     }
                 ]
+            },
+            {
+              "description": "trigger open order",
+              "method": "fetchOpenOrders",
+              "input": [
+                "ADA/USDC:USDC"
+              ],
+              "httpResponse": [
+                {
+                  "children": [],
+                  "cloid": null,
+                  "coin": "ADA",
+                  "isPositionTpsl": false,
+                  "isTrigger": true,
+                  "limitPx": "0.4",
+                  "oid": "8670685324",
+                  "orderType": "Stop Limit",
+                  "origSz": "40.0",
+                  "reduceOnly": false,
+                  "side": "B",
+                  "sz": "40.0",
+                  "tif": null,
+                  "timestamp": "1715524233290",
+                  "triggerCondition": "Price above 0.6",
+                  "triggerPx": "0.6"
+                }
+              ],
+              "parsedResponse": [
+                {
+                  "info": {
+                    "children": [],
+                    "cloid": null,
+                    "coin": "ADA",
+                    "isPositionTpsl": false,
+                    "isTrigger": true,
+                    "limitPx": "0.4",
+                    "oid": "8670685324",
+                    "orderType": "Stop Limit",
+                    "origSz": "40.0",
+                    "reduceOnly": false,
+                    "side": "B",
+                    "sz": "40.0",
+                    "tif": null,
+                    "timestamp": "1715524233290",
+                    "triggerCondition": "Price above 0.6",
+                    "triggerPx": "0.6"
+                  },
+                  "id": "8670685324",
+                  "clientOrderId": null,
+                  "timestamp": 1715524233290,
+                  "datetime": "2024-05-12T14:30:33.290Z",
+                  "lastTradeTimestamp": null,
+                  "lastUpdateTimestamp": null,
+                  "symbol": "ADA/USDC:USDC",
+                  "type": "limit",
+                  "timeInForce": null,
+                  "postOnly": null,
+                  "reduceOnly": false,
+                  "side": "buy",
+                  "price": 0.4,
+                  "triggerPrice": 0.6,
+                  "amount": 40,
+                  "cost": null,
+                  "average": null,
+                  "filled": null,
+                  "remaining": null,
+                  "status": null,
+                  "fee": null,
+                  "trades": [],
+                  "fees": [],
+                  "stopPrice": 0.6,
+                  "takeProfitPrice": null,
+                  "stopLossPrice": null
+                }
+              ]
             }
         ],
         "fetchOrder": [
@@ -690,6 +765,62 @@
                   "total": {
                     "USDC": 16570.115313
                   }
+                }
+            }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "fetchTradingFee",
+                "method": "fetchTradingFee",
+                "input": [
+                    "SOL/USDC:USDC",
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "httpResponse": {
+                    "dailyUserVlm": [
+                        {
+                            "date": "2024-07-08",
+                            "userCross": "0.0",
+                            "userAdd": "0.0",
+                            "exchange": "90597185.23639999"
+                        }
+                    ],
+                    "feeSchedule": {
+                        "cross": "0.00035",
+                        "add": "0.0001",
+                        "tiers": {
+                            "vip": [
+                                {
+                                    "ntlCutoff": "5000000.0",
+                                    "cross": "0.0003",
+                                    "add": "0.00005"
+                                }
+                            ],
+                            "mm": [
+                                {
+                                    "makerFractionCutoff": "0.005",
+                                    "add": "-0.00001"
+                                }
+                            ]
+                        },
+                        "referralDiscount": "0.04"
+                    },
+                    "userCrossRate": "0.00035",
+                    "userAddRate": "0.0001",
+                    "activeReferralDiscount": "0.0"
+                },
+                "parsedResponse": {
+                    "info": {
+                        "userCrossRate": "0.00035",
+                        "userAddRate": "0.0001"
+                    },
+                    "symbol": "SOL/USDC:USDC",
+                    "maker": 0.0001,
+                    "taker": 0.00035,
+                    "percentage": null,
+                    "tierBased": null
                 }
             }
         ]

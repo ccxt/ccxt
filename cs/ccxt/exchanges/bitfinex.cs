@@ -857,7 +857,9 @@ public partial class bitfinex : Exchange
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
-            object ticker = this.parseTicker(getValue(response, i));
+            object ticker = this.parseTicker(new Dictionary<string, object>() {
+                { "result", getValue(response, i) },
+            });
             object symbol = getValue(ticker, "symbol");
             ((IDictionary<string,object>)result)[(string)symbol] = ticker;
         }
@@ -882,11 +884,35 @@ public partial class bitfinex : Exchange
             { "symbol", getValue(market, "id") },
         };
         object ticker = await this.publicGetPubtickerSymbol(this.extend(request, parameters));
+        //
+        //    {
+        //        mid: '63560.5',
+        //        bid: '63560.0',
+        //        ask: '63561.0',
+        //        last_price: '63547.0',
+        //        low: '62812.0',
+        //        high: '64480.0',
+        //        volume: '517.25634977',
+        //        timestamp: '1715102384.9849467'
+        //    }
+        //
         return this.parseTicker(ticker, market);
     }
 
     public override object parseTicker(object ticker, object market = null)
     {
+        //
+        //    {
+        //        mid: '63560.5',
+        //        bid: '63560.0',
+        //        ask: '63561.0',
+        //        last_price: '63547.0',
+        //        low: '62812.0',
+        //        high: '64480.0',
+        //        volume: '517.25634977',
+        //        timestamp: '1715102384.9849467'
+        //    }
+        //
         object timestamp = this.safeTimestamp(ticker, "timestamp");
         object marketId = this.safeString(ticker, "pair");
         market = this.safeMarket(marketId, market);
@@ -1076,7 +1102,7 @@ public partial class bitfinex : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -1164,7 +1190,33 @@ public partial class bitfinex : Exchange
         object request = new Dictionary<string, object>() {
             { "order_id", parseInt(id) },
         };
-        return await this.privatePostOrderCancel(this.extend(request, parameters));
+        object response = await this.privatePostOrderCancel(this.extend(request, parameters));
+        //
+        //    {
+        //        id: '161236928925',
+        //        cid: '1720172026812',
+        //        cid_date: '2024-07-05',
+        //        gid: null,
+        //        symbol: 'adaust',
+        //        exchange: 'bitfinex',
+        //        price: '0.33',
+        //        avg_execution_price: '0.0',
+        //        side: 'buy',
+        //        type: 'exchange limit',
+        //        timestamp: '1720172026.813',
+        //        is_live: true,
+        //        is_cancelled: false,
+        //        is_hidden: false,
+        //        oco_order: null,
+        //        was_forced: false,
+        //        original_amount: '10.0',
+        //        remaining_amount: '10.0',
+        //        executed_amount: '0.0',
+        //        src: 'api',
+        //        meta: {}
+        //    }
+        //
+        return this.parseOrder(response);
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -1174,12 +1226,18 @@ public partial class bitfinex : Exchange
         * @name bitfinex#cancelAllOrders
         * @description cancel all open orders
         * @see https://docs.bitfinex.com/v1/reference/rest-auth-cancel-all-orders
-        * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+        * @param {string} symbol not used by bitfinex cancelAllOrders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} response from exchange
         */
         parameters ??= new Dictionary<string, object>();
-        return await this.privatePostOrderCancelAll(parameters);
+        object response = await this.privatePostOrderCancelAll(parameters);
+        //
+        //    { result: 'Submitting 1 order cancellations.' }
+        //
+        return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+})};
     }
 
     public override object parseOrder(object order, object market = null)
@@ -1662,7 +1720,7 @@ public partial class bitfinex : Exchange
         //     ]
         //
         object response = this.safeValue(responses, 0, new Dictionary<string, object>() {});
-        object id = this.safeNumber(response, "withdrawal_id");
+        object id = this.safeInteger(response, "withdrawal_id");
         object message = this.safeString(response, "message");
         object errorMessage = this.findBroadlyMatchedKey(getValue(this.exceptions, "broad"), message);
         if (isTrue(isEqual(id, 0)))
@@ -1711,7 +1769,7 @@ public partial class bitfinex : Exchange
 
     public override object nonce()
     {
-        return this.milliseconds();
+        return this.microseconds();
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

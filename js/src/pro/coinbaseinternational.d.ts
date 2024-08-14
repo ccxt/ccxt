@@ -1,17 +1,21 @@
 import coinbaseinternationalRest from '../coinbaseinternational.js';
-import { Ticker, Int, Trade, OrderBook, Market, Dict, Strings } from '../base/types.js';
+import { Ticker, Int, Trade, OrderBook, Market, Dict, Strings, FundingRate, FundingRates, Tickers, OHLCV } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class coinbaseinternational extends coinbaseinternationalRest {
     describe(): any;
     subscribe(name: string, symbols?: Strings, params?: {}): Promise<any>;
     subscribeMultiple(name: string, symbols?: Strings, params?: {}): Promise<any>;
-    watchFundingRate(symbol: string, params?: {}): Promise<{}>;
-    watchFundingRates(symbols: string[], params?: {}): Promise<{}>;
+    watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    watchFundingRates(symbols: string[], params?: {}): Promise<FundingRates>;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    getActiveSymbols(): any[];
+    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     handleInstrument(client: Client, message: any): void;
     parseWsInstrument(ticker: Dict, market?: any): Ticker;
     handleTicker(client: Client, message: any): void;
     parseWsTicker(ticker: object, market?: Market): Ticker;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    handleOHLCV(client: Client, message: any): void;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     handleTrade(client: any, message: any): any;

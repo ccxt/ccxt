@@ -4,7 +4,8 @@
         "id",
         "sig",
         "api_key",
-        "nonce"
+        "nonce",
+        "end_ts"
     ],
     "outputType": "json",
     "methods": {
@@ -271,7 +272,7 @@
             {
                 "description": "spot ohlcv",
                 "method": "fetchOHLCV",
-                "url": "https://api.crypto.com/exchange/v1/public/get-candlestick?instrument_name=BTC_USDT&timeframe=1m",
+                "url": "https://api.crypto.com/exchange/v1/public/get-candlestick?instrument_name=BTC_USDT&timeframe=1m&end_ts=1720773701964000",
                 "input": [
                     "BTC/USDT"
                 ]
