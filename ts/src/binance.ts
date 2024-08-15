@@ -10766,7 +10766,7 @@ export default class binance extends Exchange {
         let longLeverage = undefined;
         let shortLeverage = undefined;
         const leverageValue = this.safeInteger (leverage, 'leverage');
-        if (side === 'both') {
+        if ((side === undefined) || (side === 'both')) {
             longLeverage = leverageValue;
             shortLeverage = leverageValue;
         } else if (side === 'long') {
