@@ -11226,7 +11226,7 @@ export default class binance extends Exchange {
             }
             if ((api === 'sapi') && (path === 'asset/dust')) {
                 query = this.urlencodeWithArrayRepeat (extendedParams);
-            } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0) || (path === 'capital/withdraw/apply') || (path.indexOf ('staking') >= 0)) {
+            } else if ((path === 'batchOrders') || (path.indexOf ('sub-account') >= 0) || (path === 'capital/withdraw/apply') || (path.indexOf ('staking') >= 0) || (path.indexOf ('simple-earn') >= 0)) {
                 if ((method === 'DELETE') && (path === 'batchOrders')) {
                     const orderidlist = this.safeList (extendedParams, 'orderidlist', []);
                     const origclientorderidlist = this.safeList (extendedParams, 'origclientorderidlist', []);
