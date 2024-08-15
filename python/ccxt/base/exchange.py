@@ -143,7 +143,6 @@ class Exchange(object):
     verify = True  # SSL verification
     validateServerSsl = True
     validateClientSsl = False
-    requiresWeb3 = False
     logger = None  # logging.getLogger(__name__) by default
     verbose = False
     markets = None
@@ -359,8 +358,10 @@ class Exchange(object):
         self.aiohttp_trust_env = self.aiohttp_trust_env or self.trust_env
         self.requests_trust_env = self.requests_trust_env or self.trust_env
 
-        self.init_properties()
-
+        self.precision = dict() if self.precision is None else self.precision
+        self.limits = dict() if self.limits is None else self.limits
+        self.exceptions = dict() if self.exceptions is None else self.exceptions
+        self.headers = dict() if self.headers is None else self.headers
         self.balance = dict() if self.balance is None else self.balance
         self.orderbooks = dict() if self.orderbooks is None else self.orderbooks
         self.fundingRates = dict() if self.fundingRates is None else self.fundingRates
@@ -370,7 +371,7 @@ class Exchange(object):
         self.transactions = dict() if self.transactions is None else self.transactions
         self.ohlcvs = dict() if self.ohlcvs is None else self.ohlcvs
         self.liquidations = dict() if self.liquidations is None else self.liquidations
-
+        self.currencies = dict() if self.currencies is None else self.currencies
         self.options = self.get_default_options() if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
         self.decimal_to_precision = decimal_to_precision
         self.number_to_string = number_to_string
