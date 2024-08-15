@@ -884,10 +884,10 @@ export default class indodax extends Exchange {
             if (price === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder() requires a price argument for a ' + type + ' order');
             }
-            request["price"] = price;
+            request['price'] = price;
         }
         if (quantityIsRequired) {
-            request[market["baseId"]] = this.amountToPrecision (symbol, amount);
+            request[market['baseId']] = this.amountToPrecision (symbol, amount);
         }
         const result = await this.privatePostTrade (this.extend (request, params));
         const data = this.safeValue (result, 'return', {});
