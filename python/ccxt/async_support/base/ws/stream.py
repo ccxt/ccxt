@@ -60,7 +60,7 @@ class Stream:
         if self.verbose:
             print(f'Subscribed to topic: {topic}. Total consumers for topic now: {len(self.consumers[topic])}.')
 
-    def unsubscribe(self, topic: Topic, consumer_fn: ConsumerFunction) -> None:
+    def unsubscribe(self, topic: Topic, consumer_fn: ConsumerFunction) -> bool:
         """
         Unsubscribes a consumer function from a topic.
         :param Topic topic: The topic to unsubscribe from.
@@ -70,8 +70,10 @@ class Stream:
             self.consumers[topic] = [consumer for consumer in self.consumers[topic] if consumer.fn != consumer_fn]
             if self.verbose:
                 print(f'Unsubscribed consumer from topic: {topic}. Total consumers for topic now: {len(self.consumers[topic])}.')
+            return True
         else:
             print(f'Unable to unsubscribe. Could not find consumer for topic: {topic}')
+            return False
 
     def get_message_history(self, topic: Topic) -> List[Message]:
         """

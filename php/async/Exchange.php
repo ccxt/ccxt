@@ -354,11 +354,35 @@ class Exchange extends \ccxt\Exchange {
             $stream->subscribe ('trades', $this->stream_to_symbol('trades'), true);
             $stream->subscribe ('myTrades', $this->stream_to_symbol('myTrades'), true);
         }
+        $options = $this->safe_dict($this->options, 'streaming', array());
+        $reconnect = $this->safe_bool($options, 'autoreconnect', true);
+        if ($reconnect) {
+            $stream->subscribe ('errors', $this->stream_reconnect_on_error(), true);
+        }
     }
 
     public function stream_produce(string $topic, mixed $payload = null, mixed $error = null) {
         $stream = $this->stream;
         $stream->produce ($topic, $payload, $error);
+    }
+
+    public function stream_reconnect() {
+        if ($this->verbose) {
+            $this->log('Stream reconnecting active watch functions');
+        }
+        $stream = $this->stream;
+        $activeFunctions = $stream->activeWatchFunctions;
+        $tasks = array();
+        for ($i = 0; $i < count($activeFunctions); $i++) {
+            $activeFunction = $activeFunctions[$i];
+            $method = $this->safe_string($activeFunction, 'method');
+            $args = $this->safe_list($activeFunction, 'args');
+            $future = $this->spawn($this->$method, ...$args);
+            $tasks[] = $future;
+        }
+        return Promise\all($tasks);
+    }
+
     public function describe() {
         return array(
             'id' => null,
@@ -1124,11 +1148,12 @@ class Exchange extends \ccxt\Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              */
             Async\await($this->load_markets());
+            $stream = $this->stream;
             if ($callback !== null) {
-                $stream = $this->stream;
                 $stream->subscribe ('trades::' . $symbol, $callback, $synchronous);
             }
-            Async\await($this->watchTrades ($symbol, null, null, $params));
+            $stream->add_watch_function('watchTrades', array( $symbol, null, null, $params ));
+            Async\await($this->watch_trades($symbol, null, null, $params));
         }) ();
     }
 
@@ -1147,8 +1172,8 @@ class Exchange extends \ccxt\Exchange {
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, true);
+            $stream = $this->stream;
             if ($callback !== null) {
-                $stream = $this->stream;
                 for ($i = 0; $i < count($symbols); $i++) {
                     $stream->subscribe ('trades::' . $symbols[$i], $callback, $synchronous);
                 }
@@ -1156,7 +1181,8 @@ class Exchange extends \ccxt\Exchange {
                     $stream->subscribe ('trades', $callback, $synchronous);
                 }
             }
-            Async\await($this->watchTradesForSymbols ($symbols, null, null, $params));
+            $stream->add_watch_function('watchTradesForSymbols', array( $symbols, null, null, $params ));
+            Async\await($this->watch_trades_for_symbols($symbols, null, null, $params));
         }) ();
     }
 
@@ -1175,8 +1201,8 @@ class Exchange extends \ccxt\Exchange {
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, true);
+            $stream = $this->stream;
             if ($callback !== null) {
-                $stream = $this->stream;
                 if ($this->is_empty($symbols)) {
                     $stream->subscribe ('myTrades', $callback, $synchronous);
                 } else {
@@ -1185,7 +1211,8 @@ class Exchange extends \ccxt\Exchange {
                     }
                 }
             }
-            Async\await($this->watchMyTradesForSymbols ($symbols, null, null, $params));
+            $stream->add_watch_function('watchMyTradesForSymbols', array( $symbols, null, null, $params ));
+            Async\await($this->watch_my_trades_for_symbols($symbols, null, null, $params));
         }) ();
     }
 
@@ -1204,8 +1231,8 @@ class Exchange extends \ccxt\Exchange {
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, true);
+            $stream = $this->stream;
             if ($callback !== null) {
-                $stream = $this->stream;
                 for ($i = 0; $i < count($symbols); $i++) {
                     $stream->subscribe ('orders::' . $symbols[$i], $callback, $synchronous);
                 }
@@ -1213,7 +1240,8 @@ class Exchange extends \ccxt\Exchange {
                     $stream->subscribe ('orders', $callback, $synchronous);
                 }
             }
-            Async\await($this->watchOrdersForSymbols ($symbols, null, null, $params));
+            $stream->add_watch_function('watchOrdersForSymbols', array( $symbols, null, null, $params ));
+            Async\await($this->watch_orders_for_symbols($symbols, null, null, $params));
         }) ();
     }
 
@@ -1231,10 +1259,10 @@ class Exchange extends \ccxt\Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              */
             Async\await($this->load_markets());
+            $stream = $this->stream;
             if ($callback !== null) {
-                $stream = $this->stream;
                 for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
-                    $symbol = $this->symbol ($symbolsAndTimeframes[$i][0]);
+                    $symbol = $this->symbol($symbolsAndTimeframes[$i][0]);
                     $timeframe = $symbolsAndTimeframes[$i][1];
                     $stream->subscribe ('ohlcv' . '::' . $symbol . '::' . $timeframe, $callback, $synchronous);
                 }
@@ -1242,7 +1270,8 @@ class Exchange extends \ccxt\Exchange {
                     $stream->subscribe ('ohlcv', $callback, $synchronous);
                 }
             }
-            Async\await($this->watchOHLCVForSymbols ($symbolsAndTimeframes, null, null, $params));
+            $stream->add_watch_function('watchOHLCVForSymbols', array( $symbolsAndTimeframes, null, null, $params ));
+            Async\await($this->watch_ohlcv_for_symbols($symbolsAndTimeframes, null, null, $params));
         }) ();
     }
 
@@ -1271,7 +1300,8 @@ class Exchange extends \ccxt\Exchange {
                     $stream->subscribe ('orderbooks', $callback, $synchronous);
                 }
             }
-            Async\await($this->watchOrderBookForSymbols ($symbols, null, $params));
+            $stream->add_watch_function('watchOrderBookForSymbols', array( $symbols, null, $params ));
+            Async\await($this->watch_order_book_for_symbols($symbols, null, $params));
         }) ();
     }
 
@@ -1328,7 +1358,7 @@ class Exchange extends \ccxt\Exchange {
              * @param {boolean} $synchronous if set to true, the $callback will wait to finish before passing next message
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by market symbols
              */
-            Async\await($this->subscribeOrderBookForSymbols (array( $symbol ), $callback, $synchronous, $params));
+            Async\await($this->subscribe_order_book_for_symbols(array( $symbol ), $callback, $synchronous, $params));
         }) ();
     }
 
@@ -2583,12 +2613,13 @@ class Exchange extends \ccxt\Exchange {
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
             Async\await($this->load_markets());
-            $symbol = $this->symbol ($symbol);
+            $symbol = $this->symbol($symbol);
+            $stream = $this->stream;
             if ($callback !== null) {
-                $stream = $this->stream;
                 $stream->subscribe ('ohlcv::' . $symbol . '::' . $timeframe, $callback, $synchronous);
             }
-            Async\await($this->watchOHLCV ($symbol, $timeframe, null, null, $params));
+            $stream->add_watch_function('watchOHLCV', array( $symbol, $timeframe, null, null, $params ));
+            Async\await($this->watch_ohlcv($symbol, $timeframe, null, null, $params));
         }) ();
     }
 
@@ -3422,12 +3453,13 @@ class Exchange extends \ccxt\Exchange {
     public function subscribe_position(string $symbol, mixed $callback = null, bool $synchronous = true, $params = array ()) {
         return Async\async(function () use ($symbol, $callback, $synchronous, $params) {
             Async\await($this->load_markets());
-            $symbol = $this->symbol ($symbol);
+            $symbol = $this->symbol($symbol);
             $stream = $this->stream;
             if ($callback !== null) {
                 $stream->subscribe ('positions::' . $symbol, $callback, $synchronous);
             }
-            Async\await($this->watchPosition ($symbol, $params));
+            $stream->add_watch_function('watchPosition', array( $symbol, null, $params ));
+            Async\await($this->watch_position($symbol, $params));
         }) ();
     }
 
@@ -3449,7 +3481,7 @@ class Exchange extends \ccxt\Exchange {
                     }
                 }
             }
-            Async\await($this->watchPositions ($symbols, null, null, $params));
+            Async\await($this->watch_positions($symbols, null, null, $params));
         }) ();
     }
 
@@ -3461,7 +3493,7 @@ class Exchange extends \ccxt\Exchange {
 
     public function subscribe_position_for_symbols(?array $symbols = null, mixed $callback = null, bool $synchronous = true, $params = array ()) {
         return Async\async(function () use ($symbols, $callback, $synchronous, $params) {
-            return Async\await($this->subscribePositions ($symbols, $callback, $synchronous, $params));
+            Async\await($this->subscribe_positions($symbols, $callback, $synchronous, $params));
         }) ();
     }
 
@@ -3639,7 +3671,8 @@ class Exchange extends \ccxt\Exchange {
             if ($callback !== null) {
                 $stream->subscribe ('balances', $callback, $synchronous);
             }
-            Async\await($this->watchBalance ($params));
+            $stream->add_watch_function('watchBalance', array( $params ));
+            Async\await($this->watch_balance($params));
         }) ();
     }
 
@@ -3935,12 +3968,13 @@ class Exchange extends \ccxt\Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              */
             Async\await($this->load_markets());
-            $symbol = $this->symbol ($symbol);
+            $symbol = $this->symbol($symbol);
             $stream = $this->stream;
             if ($callback !== null) {
                 $stream->subscribe ('tickers::' . $symbol, $callback, $synchronous);
             }
-            Async\await($this->watchTicker ($symbol, $params));
+            $stream->add_watch_function('watchTicker', array( $symbol, $params ));
+            Async\await($this->watch_ticker($symbol, $params));
         }) ();
     }
 
@@ -3975,8 +4009,8 @@ class Exchange extends \ccxt\Exchange {
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, true);
+            $stream = $this->stream;
             if ($callback !== null) {
-                $stream = $this->stream;
                 if ($this->is_empty($symbols)) {
                     $stream->subscribe ('tickers', $callback, $synchronous);
                 } else {
@@ -3985,7 +4019,8 @@ class Exchange extends \ccxt\Exchange {
                     }
                 }
             }
-            Async\await($this->watchTickers ($symbols, $params));
+            $stream->add_watch_function('watchTickers', array( $symbols, $params ));
+            Async\await($this->watch_tickers($symbols, $params));
         }) ();
     }
 
@@ -4539,16 +4574,17 @@ class Exchange extends \ccxt\Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              */
             Async\await($this->load_markets());
-            $symbol = $this->symbol ($symbol);
+            $symbol = $this->symbol($symbol);
+            $stream = $this->stream;
             if ($callback !== null) {
-                $stream = $this->stream;
                 if ($symbol === null) {
                     $stream->subscribe ('orders', $callback, $synchronous);
                 } else {
                     $stream->subscribe ('orders::' . $symbol, $callback, $synchronous);
                 }
             }
-            Async\await($this->watchOrders ($symbol, null, null, $params));
+            $stream->add_watch_function('watchOrders', array( $symbol, null, null, $params ));
+            Async\await($this->watch_orders($symbol, null, null, $params));
         }) ();
     }
 
@@ -4626,12 +4662,13 @@ class Exchange extends \ccxt\Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              */
             Async\await($this->load_markets());
-            $symbol = $this->symbol ($symbol);
+            $symbol = $this->symbol($symbol);
+            $stream = $this->stream;
             if ($callback !== null) {
-                $stream = $this->stream;
                 $stream->subscribe ('myTrades::' . $symbol, $callback, $synchronous);
             }
-            Async\await($this->watchMyTrades ($symbol, null, null, $params));
+            $stream->add_watch_function('watchMyTrades', array( $symbol, null, null, $params ));
+            Async\await($this->watch_my_trades($symbol, null, null, $params));
         }) ();
     }
 

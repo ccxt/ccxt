@@ -59,7 +59,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         };
     }
 
-    async subscribe (name, symbol = undefined, messageHashStart = undefined, params = {}) {
+    async subscribe (name: string, symbol: Str = undefined, messageHashStart = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         let messageHash = messageHashStart;
@@ -85,7 +85,7 @@ export default class coinbaseexchange extends coinbaseexchangeRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    async subscribeMultiple (name, symbols = [], messageHashStart = undefined, params = {}) {
+    async subscribeMultiple (name: string, symbols: Strings = [], messageHashStart = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
         symbols = this.marketSymbols (symbols);

@@ -224,13 +224,26 @@ Many of the CCXT rules and concepts also apply to CCXT Pro:
 
 
 ## Subscribe functions
-Subscribe functions allow you to listen for updates from a specific stream. For example, subscribeTickers lets you subscribe to ticker updates for one or more symbols in real-time. When an update occurs, a callback function you define is invoked with the new data.
+Subscribe functions allow you to listen for updates from a specific stream and use callbacks on every update. For example, subscribeTickers lets you subscribe to ticker updates for one or more symbols in real-time. When an update occurs, a callback function you define is invoked with the new data.
 
 ### Callback Functions
 When you subscribe to a stream, you must provide a callback function. This function is called whenever a new message is received. The callback function receives a single argument: a Message object that contains the new data (payload), any error that might have occurred, metadata about the message, and the history of messages for that topic.
 
-Accessing Metadata and Message History
+#### Accessing Metadata and Message History
 Each message contains metadata providing context about the message, such as the stream and topic it belongs to and its index in the stream. The message also includes a history of previous messages for the topic, allowing you to access past data easily.
+
+```typescript
+export interface Message {
+    payload: any; // payload of the message
+    error: any; // any error returned
+    metadata: {
+        stream: BaseStream // reference to the exchange stream
+        topic: Topic // string identifying the topic of the stream
+        index: number // index of the message being consumed
+        history: Message []; // reference to the history of the topic
+    }
+}
+```
 
 ### Synchronous vs. Asynchronous Consumption
 You can choose to consume messages synchronously or asynchronously:
@@ -305,8 +318,55 @@ subscribeTickers(['BTC/USD', 'ETH/USD'], 'handleTickerUpdate', true);
     }
 ```
 <!-- tabs:end -->
+### Streaming helpers
+#### All raw messages
+You can use the function `subscribeRaw(callback, synchroneous = true)` to subscribe to all raw messages published to the stream
+### Subscribe to errors
+You can use the function `subscribeErrors(callback, synchroneous = true)` to subscribe to all errors thrown to the stream
+#### Access topic history 
+The stream will keep a history of all the messages, use `getMessageHistory(topic)` to access them.
+The history size is set by `stream.maxMessagesPerTopic`
+<!-- tabs:start -->
+#### **Javascript**
+```javascript
+const history = exchange.stream.getMessageHistory (topic)
+```
+#### **Python**
+```python
+history = exchange.stream.get_message_history (topic)
+```
+#### **PHP**
+```php
+$history = $exchange->stream->get_message_history($topic)
+```
+#### **C#**
+```csharp
+var history = exchange.stream.getMessageHistory(topic);
+```
+<!-- tabs:end -->
 
+#### Unsubscribe stream callback
+You can use `exchange.stream.unsubcribe(topic, consumeFunction)` to unsubscribe a callback from stream topic. However notice this won't unsubscribe the stream from the exchange.
+The function will return true if the callback as found and unsubscribed and false if not.
 
+<!-- tabs:start -->
+#### **Javascript**
+```javascript
+const history = exchange.stream.getMessageHistory (topic)
+```
+#### **Python**
+```python
+history = exchange.stream.get_message_history (topic)
+```
+#### **PHP**
+```php
+$history = $exchange->stream->get_message_history($topic)
+```
+#### **C#**
+```csharp
+var history = exchange.stream.getMessageHistory(topic);
+```
+<!-- tabs:end -->
 ## Streaming Specifics
 
 Despite of the numerous commonalities, streaming-based APIs have their own specifics, because of their connection-based nature.

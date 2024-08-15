@@ -74,12 +74,12 @@ class Exchange(BaseExchange):
         self.verify = config.get('verify', self.verify)
         self.own_session = 'session' not in config
         self.cafile = config.get('cafile', certifi.where())
+        self.init_stream()
         super(Exchange, self).__init__(config)
         self.throttle = None
         self.init_rest_rate_limiter()
         self.markets_loading = None
         self.reloading_markets = False
-        self.init_stream()
 
     def init_stream(self):
         maxMessagesPerTopic = self.streaming.get('maxMessagesPerTopic', 10000)
@@ -531,7 +531,7 @@ class Exchange(BaseExchange):
             return '0e-00'
         return format(n, 'g')
 
-    def stream_reconnect_on_error(self, topic):
+    def stream_reconnect_on_error(self):
         def callback(message):
             if message.error and not isinstance(message.error, ExchangeClosedByUser):
                 try:
@@ -642,7 +642,7 @@ class Exchange(BaseExchange):
         stream = self.stream
         if callback is not None:
             stream.subscribe('trades::' + symbol, callback, synchronous)
-        stream.addWatchFunction('watchTrades', [symbol, None, None, params])
+        stream.add_watch_function('watchTrades', [symbol, None, None, params])
         await self.watch_trades(symbol, None, None, params)
 
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
@@ -664,7 +664,7 @@ class Exchange(BaseExchange):
                 stream.subscribe('trades::' + symbols[i], callback, synchronous)
             if self.is_empty(symbols):
                 stream.subscribe('trades', callback, synchronous)
-        stream.addWatchFunction('watchTradesForSymbols', [symbols, None, None, params])
+        stream.add_watch_function('watchTradesForSymbols', [symbols, None, None, params])
         await self.watch_trades_for_symbols(symbols, None, None, params)
 
     async def watch_my_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
@@ -687,7 +687,7 @@ class Exchange(BaseExchange):
             else:
                 for i in range(0, len(symbols)):
                     stream.subscribe('myTrades::' + symbols[i], callback, synchronous)
-        stream.addWatchFunction('watchMyTradesForSymbols', [symbols, None, None, params])
+        stream.add_watch_function('watchMyTradesForSymbols', [symbols, None, None, params])
         await self.watch_my_trades_for_symbols(symbols, None, None, params)
 
     async def watch_orders_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
@@ -709,7 +709,7 @@ class Exchange(BaseExchange):
                 stream.subscribe('orders::' + symbols[i], callback, synchronous)
             if self.is_empty(symbols):
                 stream.subscribe('orders', callback, synchronous)
-        stream.addWatchFunction('watchOrdersForSymbols', [symbols, None, None, params])
+        stream.add_watch_function('watchOrdersForSymbols', [symbols, None, None, params])
         await self.watch_orders_for_symbols(symbols, None, None, params)
 
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Int = None, limit: Int = None, params={}):
@@ -732,7 +732,7 @@ class Exchange(BaseExchange):
                 stream.subscribe('ohlcv' + '::' + symbol + '::' + timeframe, callback, synchronous)
             if self.is_empty(symbolsAndTimeframes):
                 stream.subscribe('ohlcv', callback, synchronous)
-        stream.addWatchFunction('watchOHLCVForSymbols', [symbolsAndTimeframes, None, None, params])
+        stream.add_watch_function('watchOHLCVForSymbols', [symbolsAndTimeframes, None, None, params])
         await self.watch_ohlcv_for_symbols(symbolsAndTimeframes, None, None, params)
 
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}):
@@ -755,7 +755,7 @@ class Exchange(BaseExchange):
                 stream.subscribe('orderbooks::' + symbols[i], callback, synchronous)
             if self.is_empty(symbols):
                 stream.subscribe('orderbooks', callback, synchronous)
-        stream.addWatchFunction('watchOrderBookForSymbols', [symbols, None, params])
+        stream.add_watch_function('watchOrderBookForSymbols', [symbols, None, params])
         await self.watch_order_book_for_symbols(symbols, None, params)
 
     async def fetch_deposit_addresses(self, codes: Strings = None, params={}):
@@ -940,7 +940,7 @@ class Exchange(BaseExchange):
         stream = self.stream
         if callback is not None:
             stream.subscribe('ohlcv::' + symbol + '::' + timeframe, callback, synchronous)
-        stream.addWatchFunction('watchOHLCV', [symbol, timeframe, None, None, params])
+        stream.add_watch_function('watchOHLCV', [symbol, timeframe, None, None, params])
         await self.watch_ohlcv(symbol, timeframe, None, None, params)
 
     async def fetch_web_endpoint(self, method, endpointMethod, returnAsJson, startRegex=None, endRegex=None):
@@ -1077,7 +1077,7 @@ class Exchange(BaseExchange):
         stream = self.stream
         if callback is not None:
             stream.subscribe('positions::' + symbol, callback, synchronous)
-        stream.addWatchFunction('watchPosition', [symbol, None, params])
+        stream.add_watch_function('watchPosition', [symbol, None, params])
         await self.watch_position(symbol, params)
 
     async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}):
@@ -1153,7 +1153,7 @@ class Exchange(BaseExchange):
         stream = self.stream
         if callback is not None:
             stream.subscribe('balances', callback, synchronous)
-        stream.addWatchFunction('watchBalance', [params])
+        stream.add_watch_function('watchBalance', [params])
         await self.watch_balance(params)
 
     async def fetch_partial_balance(self, part, params={}):
@@ -1253,7 +1253,7 @@ class Exchange(BaseExchange):
         stream = self.stream
         if callback is not None:
             stream.subscribe('tickers::' + symbol, callback, synchronous)
-        stream.addWatchFunction('watchTicker', [symbol, params])
+        stream.add_watch_function('watchTicker', [symbol, params])
         await self.watch_ticker(symbol, params)
 
     async def fetch_tickers(self, symbols: Strings = None, params={}):
@@ -1288,7 +1288,7 @@ class Exchange(BaseExchange):
             else:
                 for i in range(0, len(symbols)):
                     stream.subscribe('tickers::' + symbols[i], callback, synchronous)
-        stream.addWatchFunction('watchTickers', [symbols, params])
+        stream.add_watch_function('watchTickers', [symbols, params])
         await self.watch_tickers(symbols, params)
 
     async def fetch_order(self, id: str, symbol: Str = None, params={}):
@@ -1673,7 +1673,7 @@ class Exchange(BaseExchange):
                 stream.subscribe('orders', callback, synchronous)
             else:
                 stream.subscribe('orders::' + symbol, callback, synchronous)
-        stream.addWatchFunction('watchOrders', [symbol, None, None, params])
+        stream.add_watch_function('watchOrders', [symbol, None, None, params])
         await self.watch_orders(symbol, None, None, params)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -1731,7 +1731,7 @@ class Exchange(BaseExchange):
         stream = self.stream
         if callback is not None:
             stream.subscribe('myTrades::' + symbol, callback, synchronous)
-        stream.addWatchFunction('watchMyTrades', [symbol, None, None, params])
+        stream.add_watch_function('watchMyTrades', [symbol, None, None, params])
         await self.watch_my_trades(symbol, None, None, params)
 
     async def fetch_greeks(self, symbol: str, params={}):

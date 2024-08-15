@@ -1627,6 +1627,11 @@ export default class Exchange {
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
     setupStream () {
+        /**
+         * @ignore
+         * @method
+         * @description setup the stream object options and create subscriptions so the streams of multiple symbols publish to the individual ones
+         */
         const stream = this.stream;
         if (this.stream !== undefined) {
             stream.subscribe ('tickers', this.streamToSymbol ('tickers'), true);
@@ -1644,11 +1649,23 @@ export default class Exchange {
     }
 
     streamProduce (topic: Topic, payload: any = undefined, error: any = undefined) {
+        /**
+         * @ignore
+         * @method
+         * @description produce a message to a topic of the stream
+         * @returns {bool | undefined}
+         */
         const stream = this.stream;
         stream.produce (topic, payload, error);
     }
 
     async streamReconnect () {
+        /**
+         * @ignore
+         * @method
+         * @description Calls all watchFunctions that were being used.
+         * @returns {bool | undefined}
+         */
         if (this.verbose) {
             this.log ('Stream reconnecting active watch functions');
         }

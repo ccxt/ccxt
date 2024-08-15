@@ -98,7 +98,7 @@ public class Stream : IBaseStream
         }
     }
 
-    public void unsubscribe(object topic2, ConsumerFunction consumerFn)
+    public bool unsubscribe(object topic2, ConsumerFunction consumerFn)
     {
         string topic = topic2 as String;
         if (consumers.ContainsKey(topic))
@@ -108,6 +108,7 @@ public class Stream : IBaseStream
             {
                 Console.WriteLine($"Unsubscribed {consumerFn.Method.Name} from {topic}.");
             }
+            return true;
         }
         else
         {
@@ -115,6 +116,7 @@ public class Stream : IBaseStream
             {
                 Console.WriteLine($"Unable to unsubscribe {consumerFn.Method.Name} from {topic}. Consumer not found.");
             }
+            return false;
         }
     }
 

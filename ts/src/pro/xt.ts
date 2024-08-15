@@ -139,7 +139,7 @@ export default class xt extends xtRest {
         // this.handleBidAsks (storedAsks, asks);
     }
 
-    async subscribe (name: string, access: string, methodName: string, market: Market = undefined, symbols: string[] = undefined, params = {}) {
+    async subscribe (name: string, access: string, methodName: string, market = undefined, symbols: string[] = undefined, params = {}) {
         /**
          * @ignore
          * @method

@@ -78,18 +78,21 @@ export class Stream implements BaseStream {
      * Unsubscribes a consumer function from a topic.
      * @param topic - The topic to unsubscribe from.
      * @param consumerFn - The consumer function to unsubscribe.
+     * @returns true if the consumer was successfully unsubscribed, false otherwise.
      */
-    unsubscribe (topic: Topic, consumerFn: ConsumerFunction): void {
+    unsubscribe (topic: Topic, consumerFn: ConsumerFunction): boolean {
         if (this.consumers[topic]) {
             const consumersForTopic = this.consumers[topic];
             this.consumers[topic] = consumersForTopic.filter ((consumer) => consumer.fn !== consumerFn);
             if (this.verbose) {
                 console.log ('unsubscribed function from topic: ', topic);
             }
+            return true
         } else {
             if (this.verbose) {
                 console.log ('unsubscribe failed: consumer not found for topic: ', topic);
             }
+            return false
         }
     }
 
@@ -116,6 +119,11 @@ export class Stream implements BaseStream {
         return lastIndex;
     }
 
+    /**
+     * Sends a message to all consumers of a topic.
+     * @param consumers {Consumer[]} - array of consumers
+     * @param message {Message} - message to publish
+     */
     private sendToConsumers (consumers: Consumer[], message: Message): void {
         if (this.verbose) {
             console.log ('sending message from topic ', message.metadata.topic, 'to ', consumers.length, ' consumers');
@@ -126,6 +134,11 @@ export class Stream implements BaseStream {
         }
     }
 
+    /**
+     * Adds a watch function to the stream. This is used to reconnect in case of any disconnectons.
+     * @param watchFn {string} - the watchFunction name
+     * @param args {any[]} - the arguments to pass to the watchFunction
+     */
     public addWatchFunction (watchFn: string, args: any[]): void {
         this.activeWatchFunctions.push ({ 'method': watchFn, 'args': args })
     }

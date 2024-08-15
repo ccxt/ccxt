@@ -82,10 +82,12 @@ class Stream {
             if ($this->verbose) {
                 print_r ("Unsubscribed function from topic: " . $topic . "\n");
             }
+            return true;
         }
         if ($this->verbose) {
             print_r ("Unable to unsubscribe function from topic: " . $topic . ". Consumer function not found.\n");
         }
+        return false;
     }
 
     public function get_message_history($topic) {
