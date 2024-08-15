@@ -1205,13 +1205,7 @@ If you want to have an access to raw incoming messages and use your custom handl
 <!-- tabs:start -->
 #### **Javascript**
 ```javascript
-async function example () {
-    const ex = new ccxt.pro.binance();
-    ex.handleMessage = myFunc;
-    await ex.watchTicker('BTC/USDT');
-}
-
-function myFunc(ws, data){
+function myHandler(ws, data){
     console.log(data);
     if (your_condition) {
         // your custom logic
@@ -1221,17 +1215,14 @@ function myFunc(ws, data){
     }
 }
 
-example ()
+const ex = new ccxt.pro.binance();
+ex.handleMessage = myHandler;
+ex.watchTicker('BTC/USDT');
 ```
 #### **Python**
 ```python
-async def example():
-    e = ccxt.pro.binance()
-    original_handle_message = e.handle_message
-    e.handle_message = lambda ws, data: myFunc(e, ws, data, original_handle_message)
-    await e.watch_ticker('BTC/USDT')
 
-def myFunc(instance, ws, data, original_handle_message):
+def myHandler(instance, ws, data, original_handle_message):
     print(data)
     if your_condition:
         # your custom logic
@@ -1239,8 +1230,36 @@ def myFunc(instance, ws, data, original_handle_message):
         # else trigger original `handleMessage`
         original_handle_message(ws, data)
 
+async def example():
+    e = ccxt.pro.binance()
+    original_handle_message = e.handle_message
+    e.handle_message = lambda ws, data: myHandler(e, ws, data, original_handle_message)
+    await e.watch_ticker('BTC/USDT')
 
 asyncio.run(example())
+```
+#### **PHP**
+```php
+class myBinance extends \ccxt\pro\binance {
+    public function __construct($options = array()) {
+        parent::__construct($options);
+    }
+
+    // your custom handler
+    public function handle_message($ws, $message) {
+        var_dump($message);
+        if ($your_condition) {
+            // your custom logic
+        } else {
+            // else trigger original `handleMessage`
+            return parent::handle_message($ws, $message);
+        }
+    }
+}
+
+$e = new myBinance();
+$e->watch_ticker('BTC/USDT');
+
 ```
 <!-- tabs:end -->
 
