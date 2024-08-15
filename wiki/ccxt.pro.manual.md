@@ -1222,7 +1222,26 @@ function myFunc(ws, data){
 }
 
 example ()
+```
+#### **Python**
+```python
+async def example():
+    e = ccxt.pro.binance()
+    original_handle_message = e.handle_message
+    e.handle_message = lambda ws, data: myFunc(e, ws, data, original_handle_message)
+    await e.watch_ticker('BTC/USDT')
 
+def myFunc(instance, ws, data, original_handle_message):
+    print(data)
+    if your_condition:
+        # your custom logic
+    else:
+        # else trigger original `handleMessage`
+        original_handle_message(ws, data)
+
+
+asyncio.run(example())
+```
 <!-- tabs:end -->
 
 
