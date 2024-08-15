@@ -3433,7 +3433,18 @@ public partial class binance : Exchange
         } else if (isTrue(this.isLinear(type, subType)))
         {
             type = "linear";
-            response = await this.fapiPrivateV3GetAccount(this.extend(request, query));
+            object useV2 = null;
+            var useV2parametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "useV2", false);
+            useV2 = ((IList<object>)useV2parametersVariable)[0];
+            parameters = ((IList<object>)useV2parametersVariable)[1];
+            parameters = this.extend(request, query);
+            if (!isTrue(useV2))
+            {
+                response = await this.fapiPrivateV3GetAccount(parameters);
+            } else
+            {
+                response = await this.fapiPrivateV2GetAccount(parameters);
+            }
         } else if (isTrue(this.isInverse(type, subType)))
         {
             type = "inverse";
@@ -10625,6 +10636,7 @@ public partial class binance : Exchange
         * @param {string[]} [symbols] list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
+        * @param {bool} [params.useV2] set to true if you want to use the obsolete endpoint, where some more additional fields were provided
         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -10757,6 +10769,7 @@ public partial class binance : Exchange
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions for a portfolio margin account
         * @param {string} [params.subType] "linear" or "inverse"
+        * @param {bool} [params.useV2] set to true if you want to use the obsolete endpoint, where some more additional fields were provided
         * @returns {object} data on the positions risk
         */
         parameters ??= new Dictionary<string, object>();
@@ -10790,7 +10803,18 @@ public partial class binance : Exchange
                 response = await this.papiGetUmPositionRisk(this.extend(request, parameters));
             } else
             {
-                response = await this.fapiPrivateV3GetPositionRisk(this.extend(request, parameters));
+                object useV2 = null;
+                var useV2parametersVariable = this.handleOptionAndParams(parameters, "fetchPositionsRisk", "useV2", false);
+                useV2 = ((IList<object>)useV2parametersVariable)[0];
+                parameters = ((IList<object>)useV2parametersVariable)[1];
+                parameters = this.extend(request, parameters);
+                if (!isTrue(useV2))
+                {
+                    response = await this.fapiPrivateV3GetPositionRisk(parameters);
+                } else
+                {
+                    response = await this.fapiPrivateV2GetPositionRisk(parameters);
+                }
             }
         } else if (isTrue(this.isInverse(type, subType)))
         {
@@ -11278,7 +11302,7 @@ public partial class binance : Exchange
         object longLeverage = null;
         object shortLeverage = null;
         object leverageValue = this.safeInteger(leverage, "leverage");
-        if (isTrue(isEqual(side, "both")))
+        if (isTrue(isTrue((isEqual(side, null))) || isTrue((isEqual(side, "both")))))
         {
             longLeverage = leverageValue;
             shortLeverage = leverageValue;

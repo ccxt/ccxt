@@ -3364,7 +3364,13 @@ class binance(Exchange, ImplicitAPI):
             response = await self.papiGetBalance(self.extend(request, query))
         elif self.is_linear(type, subType):
             type = 'linear'
-            response = await self.fapiPrivateV3GetAccount(self.extend(request, query))
+            useV2 = None
+            useV2, params = self.handle_option_and_params(params, 'fetchBalance', 'useV2', False)
+            params = self.extend(request, query)
+            if not useV2:
+                response = await self.fapiPrivateV3GetAccount(params)
+            else:
+                response = await self.fapiPrivateV2GetAccount(params)
         elif self.is_inverse(type, subType):
             type = 'inverse'
             response = await self.dapiPrivateGetAccount(self.extend(request, query))
@@ -9550,6 +9556,7 @@ class binance(Exchange, ImplicitAPI):
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [method]: method name to call, "positionRisk", "account" or "option", default is "positionRisk"
+        :param bool [params.useV2]: set to True if you want to use the obsolete endpoint, where some more additional fields were provided
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         defaultMethod = None
@@ -9701,6 +9708,7 @@ class binance(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.portfolioMargin]: set to True if you would like to fetch positions for a portfolio margin account
         :param str [params.subType]: "linear" or "inverse"
+        :param bool [params.useV2]: set to True if you want to use the obsolete endpoint, where some more additional fields were provided
         :returns dict: data on the positions risk
         """
         if symbols is not None:
@@ -9722,7 +9730,13 @@ class binance(Exchange, ImplicitAPI):
             if isPortfolioMargin:
                 response = await self.papiGetUmPositionRisk(self.extend(request, params))
             else:
-                response = await self.fapiPrivateV3GetPositionRisk(self.extend(request, params))
+                useV2 = None
+                useV2, params = self.handle_option_and_params(params, 'fetchPositionsRisk', 'useV2', False)
+                params = self.extend(request, params)
+                if not useV2:
+                    response = await self.fapiPrivateV3GetPositionRisk(params)
+                else:
+                    response = await self.fapiPrivateV2GetPositionRisk(params)
                 #
                 # [
                 #  {
@@ -10097,7 +10111,7 @@ class binance(Exchange, ImplicitAPI):
         longLeverage = None
         shortLeverage = None
         leverageValue = self.safe_integer(leverage, 'leverage')
-        if side == 'both':
+        if (side is None) or (side == 'both'):
             longLeverage = leverageValue
             shortLeverage = leverageValue
         elif side == 'long':

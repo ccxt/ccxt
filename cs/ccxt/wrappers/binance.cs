@@ -1905,6 +1905,12 @@ public partial class binance
     /// string : method name to call, "positionRisk", "account" or "option", default is "positionRisk"
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.useV2</term>
+    /// <description>
+    /// bool : set to true if you want to use the obsolete endpoint, where some more additional fields were provided
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}.</returns>
@@ -1987,6 +1993,12 @@ public partial class binance
     /// <term>params.subType</term>
     /// <description>
     /// string : "linear" or "inverse"
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.useV2</term>
+    /// <description>
+    /// bool : set to true if you want to use the obsolete endpoint, where some more additional fields were provided
     /// </description>
     /// </item>
     /// </list>

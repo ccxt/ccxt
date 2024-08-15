@@ -3433,7 +3433,15 @@ class binance extends binance$1 {
         }
         else if (this.isLinear(type, subType)) {
             type = 'linear';
-            response = await this.fapiPrivateV3GetAccount(this.extend(request, query));
+            let useV2 = undefined;
+            [useV2, params] = this.handleOptionAndParams(params, 'fetchBalance', 'useV2', false);
+            params = this.extend(request, query);
+            if (!useV2) {
+                response = await this.fapiPrivateV3GetAccount(params);
+            }
+            else {
+                response = await this.fapiPrivateV2GetAccount(params);
+            }
         }
         else if (this.isInverse(type, subType)) {
             type = 'inverse';
@@ -10284,6 +10292,7 @@ class binance extends binance$1 {
          * @param {string[]} [symbols] list of unified market symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
+         * @param {bool} [params.useV2] set to true if you want to use the obsolete endpoint, where some more additional fields were provided
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         let defaultMethod = undefined;
@@ -10457,6 +10466,7 @@ class binance extends binance$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions for a portfolio margin account
          * @param {string} [params.subType] "linear" or "inverse"
+         * @param {bool} [params.useV2] set to true if you want to use the obsolete endpoint, where some more additional fields were provided
          * @returns {object} data on the positions risk
          */
         if (symbols !== undefined) {
@@ -10481,7 +10491,15 @@ class binance extends binance$1 {
                 response = await this.papiGetUmPositionRisk(this.extend(request, params));
             }
             else {
-                response = await this.fapiPrivateV3GetPositionRisk(this.extend(request, params));
+                let useV2 = undefined;
+                [useV2, params] = this.handleOptionAndParams(params, 'fetchPositionsRisk', 'useV2', false);
+                params = this.extend(request, params);
+                if (!useV2) {
+                    response = await this.fapiPrivateV3GetPositionRisk(params);
+                }
+                else {
+                    response = await this.fapiPrivateV2GetPositionRisk(params);
+                }
                 //
                 // [
                 //  {
@@ -10925,7 +10943,7 @@ class binance extends binance$1 {
         let longLeverage = undefined;
         let shortLeverage = undefined;
         const leverageValue = this.safeInteger(leverage, 'leverage');
-        if (side === 'both') {
+        if ((side === undefined) || (side === 'both')) {
             longLeverage = leverageValue;
             shortLeverage = leverageValue;
         }
