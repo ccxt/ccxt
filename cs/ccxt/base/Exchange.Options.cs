@@ -122,17 +122,6 @@ public partial class Exchange
         }
     }
     public object last_request_url { get; set; }
-    public object last_request_path { get; set; }
-
-    public bool quoteJsonNumbers { get; set; }
-
-    public bool validateServerSsl { get; set; }
-    public bool validateClientSsl { get; set; }
-    public bool requiresWeb3 { get; set; }
-    public bool requiresEddsa { get; set; }
-    public bool enableLastJsonResponse { get; set; }
-    public bool enableLastHttpResponse { get; set; }
-    public bool enableLastResponseHeaders { get; set; }
     public float MAX_VALUE = float.MaxValue;
 
     public object name { get; set; }

@@ -307,7 +307,6 @@ class Exchange {
     public $last_request_headers = null;
     public $last_request_body = null;
     public $last_request_url = null;
-    public $last_request_path = null;
 
     public $requiresWeb3 = false;
     public $requiresEddsa = false;
@@ -1121,7 +1120,6 @@ class Exchange {
         //     }
         // }
 
-        $this->init_properties();
         $this->options = $this->get_default_options();
 
         $this->urlencode_glue = ini_get('arg_separator.output'); // can be overrided by exchange constructor params
