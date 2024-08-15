@@ -12,7 +12,9 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
+from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class indodax(Exchange):
@@ -672,12 +674,34 @@ class indodax(Exchange):
             'type': side,
             'price': price,
         }
-        currency = market['baseId']
-        if side == 'buy':
-            request[market['quoteId']] = amount * price
-        else:
-            request[market['baseId']] = amount
-        request[currency] = amount
+        priceIsRequired = False
+        quantityIsRequired = False
+        if type == "market":
+            precision = market["precision"]["price"]
+            if side == "buy":
+                if price is None:
+                    raise InvalidOrder(
+                        self.id
+                        + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend(amount * price)."
+                    )
+                amountString = self.number_to_string(amount)
+                priceString = self.number_to_string(price)
+                quoteAmount = Precise.string_mul(amountString, priceString)
+                request[market["quoteId"]] = self.decimal_to_precision(
+                    quoteAmount, TRUNCATE, precision, self.precisionMode
+                )
+            else:
+                quantityIsRequired = True
+        elif type == "limit":
+            priceIsRequired = True
+            quantityIsRequired = True
+        if quantityIsRequired:
+            request[market["baseId"]] = self.amount_to_precision(symbol, amount)
+        # if price is required and not supplied
+        if priceIsRequired:
+            if price is None:
+                raise InvalidOrder(self.id + " createOrder() requires a price argument for a " + type + " order")
+            request["price"] = price
         result = self.privatePostTrade(self.extend(request, params))
         data = self.safe_value(result, 'return', {})
         id = self.safe_string(data, 'order_id')
