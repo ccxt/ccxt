@@ -1581,6 +1581,19 @@
                         "method": "account"
                     }
                 ]
+            },
+            {
+                "description": "fetchPositions using v2 endpoint",
+                "method": "fetchPositions",
+                "url": "https://testnet.binancefuture.com/fapi/v2/positionRisk?timestamp=1723707952699&recvWindow=10000&signature=dff9cc68edcb97f55d93a978daa862eb3caf36ccf053943467995603ba453b7c",
+                "input": [
+                  [
+                    "LTC/USDT:USDT"
+                  ],
+                  {
+                    "useV2": true
+                  }
+                ]
             }
         ],
         "transfer": [
