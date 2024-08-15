@@ -617,8 +617,9 @@ export default class bingx extends bingxRest {
          * @method
          * @name bingx#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://bingx-api.github.io/docs/#/spot/socket/market.html#Subscribe%20Market%20Depth%20Data
-         * @see https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20Market%20Depth%20Data
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#Subscribe%20Market%20Depth%20Data
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20Market%20Depth%20Data
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%20Limited%20Depth
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -626,18 +627,25 @@ export default class bingx extends bingxRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('watchOrderBook', market, params);
+        let marketType = undefined;
+        let subType = undefined;
+        let url = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchOrderBook', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('watchOrderBook', market, params, 'linear');
+        if (marketType === 'swap') {
+            url = this.safeString (this.urls['api']['ws'], subType);
+        } else {
+            url = this.safeString (this.urls['api']['ws'], marketType);
+        }
         limit = this.getOrderBookLimitByMarketType (marketType, limit);
         let channelName = 'depth' + limit.toString ();
-        const url = this.safeValue (this.urls['api']['ws'], marketType);
-        if (url === undefined) {
-            throw new BadRequest (this.id + ' watchOrderBook is not supported for ' + marketType + ' markets.');
-        }
         let interval = undefined;
         if (marketType !== 'spot') {
-            [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', 500);
-            this.checkRequiredArgument ('watchOrderBook', interval, 'interval', [ 100, 200, 500, 1000 ]);
-            channelName = channelName + '@' + interval.toString () + 'ms';
+            if (!market['inverse']) {
+                [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', 500);
+                this.checkRequiredArgument ('watchOrderBook', interval, 'interval', [ 100, 200, 500, 1000 ]);
+                channelName = channelName + '@' + interval.toString () + 'ms';
+            }
         }
         const subscriptionHash = market['id'] + '@' + channelName;
         const messageHash = this.getMessageHash ('orderbook', market['symbol']);
@@ -649,25 +657,32 @@ export default class bingx extends bingxRest {
         if (marketType === 'swap') {
             request['reqType'] = 'sub';
         }
-        const subscriptionArgs: Dict = {
-            'limit': limit,
-            'interval': interval,
-            'params': params,
-        };
-        const orderbook = await this.watch (url, messageHash, this.deepExtend (request, query), subscriptionHash, subscriptionArgs);
+        let subscriptionArgs: Dict = {};
+        if (market['inverse']) {
+            subscriptionArgs = {
+                'count': limit,
+                'params': params,
+            };
+        } else {
+            subscriptionArgs = {
+                'level': limit,
+                'interval': interval,
+                'params': params,
+            };
+        }
+        const orderbook = await this.watch (url, messageHash, this.deepExtend (request, params), subscriptionHash, subscriptionArgs);
         return orderbook.limit ();
     }
 
     handleDelta (bookside, delta) {
-        const price = this.safeFloat (delta, 0);
-        const amount = this.safeFloat (delta, 1);
+        const price = this.safeFloat2 (delta, 0, 'p');
+        const amount = this.safeFloat2 (delta, 1, 'a');
         bookside.store (price, amount);
     }
 
     handleOrderBook (client: Client, message) {
         //
         // spot
-        //
         //
         //    {
         //        "code": 0,
@@ -686,8 +701,7 @@ export default class bingx extends bingxRest {
         //        "success": true
         //    }
         //
-        // swap
-        //
+        // linear swap
         //
         //    {
         //        "code": 0,
@@ -704,6 +718,28 @@ export default class bingx extends bingxRest {
         //          "symbol": "BTC-USDT", // this key exists only in "all" subscription
         //        }
         //    }
+        //
+        // inverse swap
+        //
+        //     {
+        //         "code": 0,
+        //         "dataType": "BTC-USD@depth100",
+        //         "data": {
+        //             {
+        //                 "symbol": "BTC-USD",
+        //                 "bids": [
+        //                     { "p": "58074.2", "a": "1.422318", "v": "826.0" },
+        //                     ...
+        //                 ],
+        //                 "asks": [
+        //                     { "p": "62878.0", "a": "0.001590", "v": "1.0" },
+        //                     ...
+        //                 ],
+        //                 "aggPrecision": "0.1",
+        //                 "timestamp": 1723705093529
+        //             }
+        //         }
+        //     }
         //
         const data = this.safeDict (message, 'data', {});
         const dataType = this.safeString (message, 'dataType');
@@ -723,7 +759,12 @@ export default class bingx extends bingxRest {
             this.orderbooks[symbol] = this.orderBook ({}, limit);
         }
         const orderbook = this.orderbooks[symbol];
-        const snapshot = this.parseOrderBook (data, symbol, undefined, 'bids', 'asks', 0, 1);
+        let snapshot = undefined;
+        if (market['inverse']) {
+            snapshot = this.parseOrderBook (data, symbol, undefined, 'bids', 'asks', 'p', 'a');
+        } else {
+            snapshot = this.parseOrderBook (data, symbol, undefined, 'bids', 'asks', 0, 1);
+        }
         orderbook.reset (snapshot);
         this.orderbooks[symbol] = orderbook;
         const messageHash = this.getMessageHash ('orderbook', symbol);
