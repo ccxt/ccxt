@@ -1198,6 +1198,34 @@ cancel_all_orders_ws(string $symbol, $params = array ())
 - this method is a work in progress now (may be unavailable)
 ```
 
+### Custom handler
+
+If you want to have an access to raw incoming messages and use your custom handlers, you can override exchange's `handleMessage/handle_message` method, like:
+
+<!-- tabs:start -->
+#### **Javascript**
+```javascript
+async function example () {
+    const ex = new ccxt.pro.binance();
+    ex.handleMessage = myFunc;
+    await ex.watchTicker('BTC/USDT');
+}
+
+function myFunc(ws, data){
+    console.log(data);
+    if (your_condition) {
+        // your custom logic
+    } else {
+        // else trigger original `handleMessage`
+        this.handleMessage(data); 
+    }
+}
+
+example ()
+
+<!-- tabs:end -->
+
+
 ### Error Handling
 
 In case of an error the CCXT Pro will throw a standard CCXT exception, see [Error Handling](https://docs.ccxt.com/#/README?id=error-handling) for more details.
