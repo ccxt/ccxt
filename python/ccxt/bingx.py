@@ -1179,7 +1179,6 @@ class bingx(Exchange, ImplicitAPI):
             'fee': {
                 'cost': self.parse_number(Precise.string_abs(self.safe_string_2(trade, 'commission', 'n'))),
                 'currency': currencyCode,
-                'rate': None,
             },
         }, market)
 

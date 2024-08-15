@@ -382,7 +382,7 @@
                     "amount": 0.218,
                     "cost": 18.1877182,
                     "takerOrMaker": null,
-                    "fee": null,
+                    "fee": {"cost": null, "currency": null },
                     "fees": []
                   }
                 ]

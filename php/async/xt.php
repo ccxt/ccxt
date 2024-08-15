@@ -2117,7 +2117,6 @@ class xt extends Exchange {
             'fee' => array(
                 'currency' => $this->safe_currency_code($this->safe_string_2($trade, 'feeCurrency', 'feeCoin')),
                 'cost' => $this->safe_string($trade, 'fee'),
-                'rate' => null,
             ),
         ), $market);
     }

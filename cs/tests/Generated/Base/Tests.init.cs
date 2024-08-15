@@ -6,6 +6,7 @@ namespace Tests;
 
 public partial class BaseTest
 {
+        // import testJson from './test.json.js';
         public void baseTestsInit()
         {
             testLanguageSpecific();

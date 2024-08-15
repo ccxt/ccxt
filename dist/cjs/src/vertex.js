@@ -665,6 +665,13 @@ class vertex extends vertex$1 {
         let amount = undefined;
         let side = undefined;
         let fee = undefined;
+        const feeCost = this.convertFromX18(this.safeString(trade, 'fee'));
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': undefined,
+            };
+        }
         const id = this.safeString2(trade, 'trade_id', 'submission_idx');
         const order = this.safeString(trade, 'digest');
         const timestamp = this.safeTimestamp(trade, 'timestamp');
@@ -682,10 +689,6 @@ class vertex extends vertex$1 {
             const subOrder = this.safeDict(trade, 'order', {});
             price = this.convertFromX18(this.safeString(subOrder, 'priceX18'));
             amount = this.convertFromX18(this.safeString(trade, 'base_filled'));
-            fee = {
-                'cost': this.convertFromX18(this.safeString(trade, 'fee')),
-                'currency': undefined,
-            };
             if (Precise["default"].stringLt(amount, '0')) {
                 side = 'sell';
             }

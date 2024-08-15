@@ -360,6 +360,8 @@ export default class okx extends okxRest {
         let channel = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchTicker', 'channel', 'tickers');
         params['channel'] = channel;
+        const market = this.market (symbol);
+        symbol = market['symbol'];
         const ticker = await this.watchTickers ([ symbol ], params);
         return this.safeValue (ticker, symbol);
     }

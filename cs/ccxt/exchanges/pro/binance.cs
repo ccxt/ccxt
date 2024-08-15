@@ -207,7 +207,7 @@ public partial class binance : ccxt.binance
         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        return this.watchLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
+        return await this.watchLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
     }
 
     public async override Task<object> watchLiquidationsForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
@@ -2323,7 +2323,7 @@ public partial class binance : ccxt.binance
         * @param {string|undefined} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
         * @param {string|undefined} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
         * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
-        * @param {string|undefined} [params.method] method to use. Can be account.balance or account.status
+        * @param {string|undefined} [params.method] method to use. Can be account.balance, account.status, v2/account.balance or v2/account.status
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -2363,8 +2363,17 @@ public partial class binance : ccxt.binance
         //
         //
         object messageHash = this.safeString(message, "id");
-        object result = this.safeDict(message, "result", new Dictionary<string, object>() {});
-        object rawBalance = this.safeList(result, 0, new List<object>() {});
+        object rawBalance = null;
+        if (isTrue(((getValue(message, "result") is IList<object>) || (getValue(message, "result").GetType().IsGenericType && getValue(message, "result").GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            // account.balance
+            rawBalance = this.safeList(message, "result", new List<object>() {});
+        } else
+        {
+            // account.status
+            object result = this.safeDict(message, "result", new Dictionary<string, object>() {});
+            rawBalance = this.safeList(result, "assets", new List<object>() {});
+        }
         object parsedBalances = this.parseBalanceCustom(rawBalance);
         callDynamically(client as WebSocketClient, "resolve", new object[] {parsedBalances, messageHash});
     }
@@ -2448,6 +2457,7 @@ public partial class binance : ccxt.binance
         * @param {string[]} [symbols] list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.returnRateLimits] set to true to return rate limit informations, defaults to false.
+        * @param {string|undefined} [params.method] method to use. Can be account.position or v2/account.position
         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -2470,9 +2480,13 @@ public partial class binance : ccxt.binance
         returnRateLimits = ((IList<object>)returnRateLimitsparametersVariable)[0];
         parameters = ((IList<object>)returnRateLimitsparametersVariable)[1];
         ((IDictionary<string,object>)payload)["returnRateLimits"] = returnRateLimits;
+        object method = null;
+        var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchPositionsWs", "method", "account.position");
+        method = ((IList<object>)methodparametersVariable)[0];
+        parameters = ((IList<object>)methodparametersVariable)[1];
         object message = new Dictionary<string, object>() {
             { "id", messageHash },
-            { "method", "account.position" },
+            { "method", method },
             { "params", this.signParams(this.extend(payload, parameters)) },
         };
         object subscription = new Dictionary<string, object>() {
@@ -3704,7 +3718,7 @@ public partial class binance : ccxt.binance
         this.setBalanceCache(client as WebSocketClient, type, isPortfolioMargin);
         this.setPositionsCache(client as WebSocketClient, type, symbols, isPortfolioMargin);
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-        object awaitPositionsSnapshot = this.safeBool("watchPositions", "awaitPositionsSnapshot", true);
+        object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
         object cache = this.safeValue(this.positions, type);
         if (isTrue(isTrue(isTrue(fetchPositionsSnapshot) && isTrue(awaitPositionsSnapshot)) && isTrue(isEqual(cache, null))))
         {

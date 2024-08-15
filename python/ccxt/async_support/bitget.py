@@ -1331,6 +1331,7 @@ class bitget(Exchange, ImplicitAPI):
                 'JADE': 'Jade Protocol',
                 'DEGEN': 'DegenReborn',
                 'TONCOIN': 'TON',
+                'OMNI': 'omni',  # conflict with Omni Network
             },
             'options': {
                 'timeframes': {

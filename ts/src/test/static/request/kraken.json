@@ -172,17 +172,33 @@
                 "method": "createOrder",
                 "url": "https://api.kraken.com/0/private/AddOrder",
                 "input": [
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50,
+                    {
+                        "postOnly": true,
+                        "oflags": "fcib"
+                    }
+                ],
+                "output": "nonce=1715945544767&pair=LTCUSDT&type=buy&ordertype=limit&volume=0.1&price=50&oflags=fcib%2Cpost"
+            },
+            {
+                "description": "order with extra oflags",
+                "method": "createOrder",
+                "url": "https://api.kraken.com/0/private/AddOrder",
+                "input": [
                   "LTC/USDT",
                   "limit",
                   "buy",
-                  0.1,
-                  50,
+                  0.5,
+                  20,
                   {
-                    "postOnly": true,
                     "oflags": "fcib"
                   }
                 ],
-                "output": "nonce=1715945544767&pair=LTCUSDT&type=buy&ordertype=limit&volume=0.1&price=50&oflags=fcib%2Cpost"
+                "output": "nonce=1723192431526&pair=LTCUSDT&type=buy&ordertype=limit&volume=0.5&price=20&oflags=fcib"
             }
         ],
         "createMarketBuyOrderWithCost": [
@@ -191,8 +207,8 @@
                 "method": "createMarketBuyOrderWithCost",
                 "url": "https://api.kraken.com/0/private/AddOrder",
                 "input": [
-                  "LTC/USD",
-                  5
+                    "LTC/USD",
+                    5
                 ],
                 "output": "nonce=1715881618883&pair=XLTCZUSD&type=buy&ordertype=market&volume=5&oflags=viqc"
             },
@@ -201,8 +217,8 @@
                 "method": "createMarketBuyOrderWithCost",
                 "url": "https://api.kraken.com/0/private/AddOrder",
                 "input": [
-                  "LTC/USDT",
-                  10
+                    "LTC/USDT",
+                    10
                 ],
                 "output": "nonce=1715951571837&pair=LTCUSDT&type=buy&ordertype=market&volume=10&oflags=viqc"
             }
@@ -364,9 +380,9 @@
                 "method": "fetchOHLCV",
                 "url": "https://api.kraken.com/0/public/OHLC?pair=ETHUSDT&interval=60&since=1716156000",
                 "input": [
-                  "ETH/USDT",
-                  "1h",
-                  1716159600000
+                    "ETH/USDT",
+                    "1h",
+                    1716159600000
                 ]
             },
             {
@@ -400,8 +416,8 @@
                 "method": "fetchTrades",
                 "url": "https://api.kraken.com/0/public/Trades?pair=XBTUSDT&since=1716550666",
                 "input": [
-                  "BTC/USDT",
-                  1716550666738
+                    "BTC/USDT",
+                    1716550666738
                 ]
             }
         ],
@@ -436,6 +452,39 @@
                         "ETH/USDT"
                     ]
                 ]
+            }
+        ],
+        "editOrder": [
+            {
+                "description": "editOrder",
+                "method": "editOrder",
+                "url": "https://api.kraken.com/0/private/EditOrder",
+                "input": [
+                    "OS7ILF-3M6IY-IYVV65",
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    2,
+                    20
+                ],
+                "output": "nonce=1723182148790&txid=OS7ILF-3M6IY-IYVV65&pair=LTCUSDT&volume=2&price=20"
+            },
+            {
+                "description": "editOrder with clientOid",
+                "method": "editOrder",
+                "url": "https://api.kraken.com/0/private/EditOrder",
+                "input": [
+                    "OS7ILF-3M6IY-IYVV65",
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    2,
+                    20,
+                    {
+                        "clientOrderId": 1234
+                    }
+                ],
+                "output": "nonce=1723182148790&txid=OS7ILF-3M6IY-IYVV65&pair=LTCUSDT&volume=2&userref=1234&price=20"
             }
         ]
     }

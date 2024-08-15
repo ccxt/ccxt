@@ -351,6 +351,11 @@ public partial class testMainClass : BaseTest
             if (isTrue(!isEqual(feeObject, null)))
             {
                 assert(inOp(feeObject, "cost"), add(add(keyString, " fee object should contain \"cost\" key"), logText));
+                if (isTrue(isEqual(getValue(feeObject, "cost"), null)))
+                {
+                    return;  // todo: remove undefined check to make stricter
+                }
+                assert((getValue(feeObject, "cost") is Int64 || getValue(feeObject, "cost") is int || getValue(feeObject, "cost") is float || getValue(feeObject, "cost") is double), add(add(keyString, " \"cost\" must be numeric type"), logText));
                 // assertGreaterOrEqual (exchange, skippedProperties, method, feeObject, 'cost', '0'); // fee might be negative in the case of a rebate or reward
                 assert(inOp(feeObject, "currency"), add(add(add("\"", keyString), "\" fee object should contain \"currency\" key"), logText));
                 assertCurrencyCode(exchange, skippedProperties, method, entry, getValue(feeObject, "currency"));

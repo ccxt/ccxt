@@ -2464,8 +2464,7 @@ export default class bitmart extends Exchange {
          * @see https://developer-pro.bitmart.com/en/spot/#place-margin-order
          * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
          * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
-         * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
-         * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market', 'limit' or 'trailing' for swap markets only
          * @param {string} side 'buy' or 'sell'
@@ -2611,6 +2610,7 @@ export default class bitmart extends Exchange {
          * @description create a trade order
          * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
          * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market', 'limit' or 'trailing'
          * @param {string} side 'buy' or 'sell'
@@ -2670,7 +2670,9 @@ export default class bitmart extends Exchange {
             request['activation_price_type'] = this.safeInteger(params, 'activation_price_type', 1);
         }
         if (isTriggerOrder) {
-            request['executive_price'] = this.priceToPrecision(symbol, price);
+            if (isLimitOrder || price !== undefined) {
+                request['executive_price'] = this.priceToPrecision(symbol, price);
+            }
             request['trigger_price'] = this.priceToPrecision(symbol, triggerPrice);
             request['price_type'] = this.safeInteger(params, 'price_type', 1);
             if (side === 'buy') {
@@ -2718,6 +2720,9 @@ export default class bitmart extends Exchange {
         params = this.omit(params, ['timeInForce', 'postOnly', 'reduceOnly', 'leverage', 'trailingTriggerPrice', 'trailingPercent', 'triggerPrice', 'stopPrice']);
         if (leverage !== undefined) {
             request['leverage'] = this.numberToString(leverage);
+        }
+        else if (isTriggerOrder) {
+            request['leverage'] = '1'; // for plan orders leverage is required, if not available default to 1
         }
         return this.extend(request, params);
     }

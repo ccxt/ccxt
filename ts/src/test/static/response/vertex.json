@@ -215,7 +215,7 @@
                         "order": null,
                         "takerOrMaker": null,
                         "type": null,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "info": {
                             "ticker_id": "USDT_USDC",
                             "trade_id": "20295068",
