@@ -1770,6 +1770,10 @@ class Exchange(object):
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
     def setup_stream(self):
+        """
+         * @ignore
+        setup the stream object options and create subscriptions so the streams of multiple symbols publish to the individual ones
+        """
         stream = self.stream
         if self.stream is not None:
             stream.subscribe('tickers', self.stream_to_symbol('tickers'), True)
@@ -1784,10 +1788,20 @@ class Exchange(object):
             stream.subscribe('errors', self.stream_reconnect_on_error(), True)
 
     def stream_produce(self, topic: Topic, payload: Any = None, error: Any = None):
+        """
+         * @ignore
+        produce a message to a topic of the stream
+        :returns bool | None:
+        """
         stream = self.stream
         stream.produce(topic, payload, error)
 
     def stream_reconnect(self):
+        """
+         * @ignore
+        Calls all watchFunctions that were being used.
+        :returns bool | None:
+        """
         if self.verbose:
             self.log('Stream reconnecting active watch functions')
         stream = self.stream

@@ -589,6 +589,11 @@ class Exchange(BaseExchange):
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
     async def stream_reconnect(self):
+        """
+         * @ignore
+        Calls all watchFunctions that were being used.
+        :returns bool | None:
+        """
         if self.verbose:
             self.log('Stream reconnecting active watch functions')
         stream = self.stream

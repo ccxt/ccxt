@@ -13,11 +13,11 @@ public static class Program
     public static async Task PrintMessage(ccxt.pro.Message message)
     {
         Console.WriteLine($"Received message from: {message.metadata.topic}, index: ${message.metadata.index}");
-        /// return Task.CompletedTask;
     }
 
     public static async Task StoreInDb(Message message)
     {
+        Console.WriteLine($"Storing message from: {message.metadata.topic}, index: ${message.metadata.index} in the database.");
         await Task.Delay(1000); // Simulate asynchronous database storage operation
         Console.WriteLine($"Stored message from : {message.metadata.topic}, index: ${message.metadata.index} in the database.");
     }
@@ -43,15 +43,14 @@ public static class Program
         ConsumerFunction storeInDb = StoreInDb;
 
         // subscribe synchronously to all tickers with a sync function
-        await exchange.subscribeTrades ("BTC/USDT", printMessage, false);
-        // subscribe asynchronously to all tickers with a sync function
-        // subscribe synchronously to a single ticker with an async function
         await exchange.subscribeTrades ("BTC/USDT", storeInDb, true);
+        // subscribe asynchronously to all tickers with a sync function
+        await exchange.subscribeTrades ("BTC/USDT", printMessage, false);
         // subscribe to exchange wide errors
         exchange.stream.subscribe("errors", printMessage, true);
-        exchange.stream.unsubscribe ("trades::BTC/USDT", printMessage);
 
         await exchange.sleep(10000);
+        var result = exchange.stream.unsubscribe ("trades::BTC/USDT", printMessage);
         // get history length
         var history = exchange.stream.GetMessageHistory ("trades");
         Console.WriteLine("History Length:" + history.Count);

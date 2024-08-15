@@ -2275,6 +2275,10 @@ class Exchange {
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
     public function setup_stream() {
+        /**
+         * @ignore
+         * setup the $stream object $options and create subscriptions so the streams of multiple symbols publish to the individual ones
+         */
         $stream = $this->stream;
         if ($this->stream !== null) {
             $stream->subscribe ('tickers', $this->stream_to_symbol('tickers'), true);
@@ -2292,11 +2296,21 @@ class Exchange {
     }
 
     public function stream_produce(string $topic, mixed $payload = null, mixed $error = null) {
+        /**
+         * @ignore
+         * produce a message to a $topic of the $stream
+         * @return array(bool | null)
+         */
         $stream = $this->stream;
         $stream->produce ($topic, $payload, $error);
     }
 
     public function stream_reconnect() {
+        /**
+         * @ignore
+         * Calls all watchFunctions that were being used.
+         * @return array(bool | null)
+         */
         if ($this->verbose) {
             $this->log('Stream reconnecting active watch functions');
         }

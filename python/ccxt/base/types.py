@@ -525,7 +525,8 @@ Currency = Optional[CurrencyInterface]
 
 Topic = str
 MessagePayload = Any
-ConsumerFunction = Callable[['Message'], Future[None] | None]
+ConsumerFunction = Callable[['Message'], Optional[Future[None]]]
+
 
 class Metadata:
     def __init__(self, stream, topic: Topic, index: int):
