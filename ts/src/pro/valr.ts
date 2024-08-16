@@ -581,14 +581,18 @@ export default class valr extends valrRest {
         };
         const currency = this.safeValue (balanceWs, 'currency');
         const code = this.safeCurrencyCode (this.safeString (currency, 'shortName'));
-        const debt = Precise.stringAdd (
-            this.safeString (balanceWs, 'lendReserved'),
+        const used = Precise.stringAdd (
+            this.safeString (balanceWs, 'reserved'),
+            this.safeString (balanceWs, 'borrowReserved')
+        );
+        const debt = Precise.stringSub (
+            this.safeString (balanceWs, 'borrowedAmount'),
             this.safeString (balanceWs, 'borrowReserved')
         );
         if (code !== undefined) {
             result[code] = {
                 'free': this.safeFloat (balanceWs, 'available'),
-                'used': this.safeFloat (balanceWs, 'reserved'),
+                'used': used,
                 'total': this.safeFloat (balanceWs, 'total'),
                 'debt': debt,
             };

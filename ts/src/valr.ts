@@ -894,13 +894,17 @@ export default class valr extends Exchange {
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const code = this.safeCurrencyCode (this.safeString (balance, 'currency'));
-            const debt = Precise.stringAdd (
-                this.safeString (balance, 'lendReserved'),
+            const used = Precise.stringAdd (
+                this.safeString (balance, 'reserved'),
+                this.safeString (balance, 'borrowReserved')
+            );
+            const debt = Precise.stringSub (
+                this.safeString (balance, 'borrowedAmount'),
                 this.safeString (balance, 'borrowReserved')
             );
             result[code] = {
                 'free': this.safeFloat (balance, 'available'),
-                'used': this.safeFloat (balance, 'reserved'),
+                'used': used,
                 'total': this.safeFloat (balance, 'total'),
                 'debt': debt,
             };
