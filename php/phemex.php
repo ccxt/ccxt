@@ -2955,7 +2955,7 @@ class phemex extends Exchange {
         if ($market['settle'] === 'USDT') {
             $response = $this->privateGetApiDataGFuturesOrdersByOrderId ($this->extend($request, $params));
         } elseif ($market['spot']) {
-            $response = $this->privateGetSpotOrdersActive ($this->extend($request, $params));
+            $response = $this->privateGetApiDataSpotsOrdersByOrderId ($this->extend($request, $params));
         } else {
             $response = $this->privateGetExchangeOrder ($this->extend($request, $params));
         }
@@ -2970,7 +2970,10 @@ class phemex extends Exchange {
                     throw new OrderNotFound($this->id . ' fetchOrder() ' . $symbol . ' $order with $id ' . $id . ' not found');
                 }
             }
-            $order = $this->safe_value($data, 0, array());
+            $order = $this->safe_dict($data, 0, array());
+        } elseif ($market['spot']) {
+            $rows = $this->safe_list($data, 'rows', array());
+            $order = $this->safe_dict($rows, 0, array());
         }
         return $this->parse_order($order, $market);
     }
@@ -3006,7 +3009,7 @@ class phemex extends Exchange {
         } elseif ($market['swap']) {
             $response = $this->privateGetExchangeOrderList ($this->extend($request, $params));
         } else {
-            $response = $this->privateGetSpotOrders ($this->extend($request, $params));
+            $response = $this->privateGetApiDataSpotsOrders ($this->extend($request, $params));
         }
         $data = $this->safe_value($response, 'data', array());
         $rows = $this->safe_list($data, 'rows', $data);

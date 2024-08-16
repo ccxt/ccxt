@@ -101,12 +101,12 @@ public partial class Exchange
         var res = await this.watchOrdersForSymbols(symbols, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
-    public async Task<Dictionary<string, Dictionary<string, OHLCV[]>>> WatchOHLCVForSymbols(List<List<string>> symbolsAndTimeframes, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, Dictionary<string, List<OHLCV>>>> WatchOHLCVForSymbols(List<List<string>> symbolsAndTimeframes, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchOHLCVForSymbols(symbolsAndTimeframes, since, limit, parameters);
-        return ((Dictionary<string, Dictionary<string, OHLCV[]>>)res);
+        return Helper.ConvertToDictionaryOHLCVList(res);
     }
     public async Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(List<string> symbols, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {

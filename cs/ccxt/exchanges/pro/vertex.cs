@@ -633,7 +633,7 @@ public partial class vertex : ccxt.vertex
         var client = this.client(url);
         this.setPositionsCache(client as WebSocketClient, symbols, parameters);
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-        object awaitPositionsSnapshot = this.safeBool("watchPositions", "awaitPositionsSnapshot", true);
+        object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
         if (isTrue(isTrue(isTrue(fetchPositionsSnapshot) && isTrue(awaitPositionsSnapshot)) && isTrue(isEqual(this.positions, null))))
         {
             object snapshot = await client.future("fetchPositionsSnapshot");

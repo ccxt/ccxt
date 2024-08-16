@@ -320,6 +320,10 @@ class NewTranspiler {
             return `Task<ccxt.pro.IOrderBook>`;
         }
 
+        if (name === 'watchOHLCVForSymbols') {
+            return `Task<Dictionary<string, Dictionary<string, List<OHLCV>>>>`;
+        }
+
         if (name === 'fetchTime'){
             return `Task<Int64>`; // custom handling for now
         }
@@ -508,6 +512,10 @@ class NewTranspiler {
         // handle watchOrderBook exception here
         if (methodName.startsWith('watchOrderBook')) {
             return `return ((ccxt.pro.IOrderBook) res).Copy();`; // return copy to avoid concurrency issues
+        }
+
+        if (methodName === 'watchOHLCVForSymbols') {
+            return `return Helper.ConvertToDictionaryOHLCVList(res);`
         }
 
         // custom handling for now

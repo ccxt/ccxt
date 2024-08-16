@@ -1061,7 +1061,7 @@ class bybit(ccxt.async_support.bybit):
         self.set_positions_cache(client, symbols)
         cache = self.positions
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
-        awaitPositionsSnapshot = self.safe_bool('watchPositions', 'awaitPositionsSnapshot', True)
+        awaitPositionsSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
         if fetchPositionsSnapshot and awaitPositionsSnapshot and cache is None:
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)

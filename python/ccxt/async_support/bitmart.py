@@ -2364,8 +2364,6 @@ class bitmart(Exchange, ImplicitAPI):
         :see: https://developer-pro.bitmart.com/en/spot/#place-margin-order
         :see: https://developer-pro.bitmart.com/en/futures/#submit-order-signed
         :see: https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
-        :see: https://developer-pro.bitmart.com/en/futures/#submit-order-signed
-        :see: https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
         :see: https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market', 'limit' or 'trailing' for swap markets only
@@ -2496,6 +2494,7 @@ class bitmart(Exchange, ImplicitAPI):
         create a trade order
         :see: https://developer-pro.bitmart.com/en/futures/#submit-order-signed
         :see: https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
+        :see: https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market', 'limit' or 'trailing'
         :param str side: 'buy' or 'sell'
@@ -2549,7 +2548,8 @@ class bitmart(Exchange, ImplicitAPI):
             request['activation_price'] = self.price_to_precision(symbol, trailingTriggerPrice)
             request['activation_price_type'] = self.safe_integer(params, 'activation_price_type', 1)
         if isTriggerOrder:
-            request['executive_price'] = self.price_to_precision(symbol, price)
+            if isLimitOrder or price is not None:
+                request['executive_price'] = self.price_to_precision(symbol, price)
             request['trigger_price'] = self.price_to_precision(symbol, triggerPrice)
             request['price_type'] = self.safe_integer(params, 'price_type', 1)
             if side == 'buy':

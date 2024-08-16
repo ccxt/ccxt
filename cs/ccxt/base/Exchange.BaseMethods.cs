@@ -560,67 +560,49 @@ public partial class Exchange
         object httpsProxy = null;
         object socksProxy = null;
         // httpProxy
-        if (isTrue(this.valueIsDefined(this.httpProxy)))
+        object isHttpProxyDefined = this.valueIsDefined(this.httpProxy);
+        object isHttp_proxy_defined = this.valueIsDefined(this.http_proxy);
+        if (isTrue(isTrue(isHttpProxyDefined) || isTrue(isHttp_proxy_defined)))
         {
             ((IList<object>)usedProxies).Add("httpProxy");
-            httpProxy = this.httpProxy;
+            httpProxy = ((bool) isTrue(isHttpProxyDefined)) ? this.httpProxy : this.http_proxy;
         }
-        if (isTrue(this.valueIsDefined(this.http_proxy)))
-        {
-            ((IList<object>)usedProxies).Add("http_proxy");
-            httpProxy = this.http_proxy;
-        }
-        if (isTrue(!isEqual(this.httpProxyCallback, null)))
+        object ishttpProxyCallbackDefined = this.valueIsDefined(this.httpProxyCallback);
+        object ishttp_proxy_callback_defined = this.valueIsDefined(this.http_proxy_callback);
+        if (isTrue(isTrue(ishttpProxyCallbackDefined) || isTrue(ishttp_proxy_callback_defined)))
         {
             ((IList<object>)usedProxies).Add("httpProxyCallback");
-            httpProxy = callDynamically(this, "httpProxyCallback", new object[] { url, method, headers, body });
-        }
-        if (isTrue(!isEqual(this.http_proxy_callback, null)))
-        {
-            ((IList<object>)usedProxies).Add("http_proxy_callback");
-            httpProxy = callDynamically(this, "http_proxy_callback", new object[] { url, method, headers, body });
+            httpProxy = ((bool) isTrue(ishttpProxyCallbackDefined)) ? callDynamically(this, "httpProxyCallback", new object[] { url, method, headers, body }) : callDynamically(this, "http_proxy_callback", new object[] { url, method, headers, body });
         }
         // httpsProxy
-        if (isTrue(this.valueIsDefined(this.httpsProxy)))
+        object isHttpsProxyDefined = this.valueIsDefined(this.httpsProxy);
+        object isHttps_proxy_defined = this.valueIsDefined(this.https_proxy);
+        if (isTrue(isTrue(isHttpsProxyDefined) || isTrue(isHttps_proxy_defined)))
         {
             ((IList<object>)usedProxies).Add("httpsProxy");
-            httpsProxy = this.httpsProxy;
+            httpsProxy = ((bool) isTrue(isHttpsProxyDefined)) ? this.httpsProxy : this.https_proxy;
         }
-        if (isTrue(this.valueIsDefined(this.https_proxy)))
-        {
-            ((IList<object>)usedProxies).Add("https_proxy");
-            httpsProxy = this.https_proxy;
-        }
-        if (isTrue(!isEqual(this.httpsProxyCallback, null)))
+        object ishttpsProxyCallbackDefined = this.valueIsDefined(this.httpsProxyCallback);
+        object ishttps_proxy_callback_defined = this.valueIsDefined(this.https_proxy_callback);
+        if (isTrue(isTrue(ishttpsProxyCallbackDefined) || isTrue(ishttps_proxy_callback_defined)))
         {
             ((IList<object>)usedProxies).Add("httpsProxyCallback");
-            httpsProxy = callDynamically(this, "httpsProxyCallback", new object[] { url, method, headers, body });
-        }
-        if (isTrue(!isEqual(this.https_proxy_callback, null)))
-        {
-            ((IList<object>)usedProxies).Add("https_proxy_callback");
-            httpsProxy = callDynamically(this, "https_proxy_callback", new object[] { url, method, headers, body });
+            httpsProxy = ((bool) isTrue(ishttpsProxyCallbackDefined)) ? callDynamically(this, "httpsProxyCallback", new object[] { url, method, headers, body }) : callDynamically(this, "https_proxy_callback", new object[] { url, method, headers, body });
         }
         // socksProxy
-        if (isTrue(this.valueIsDefined(this.socksProxy)))
+        object isSocksProxyDefined = this.valueIsDefined(this.socksProxy);
+        object isSocks_proxy_defined = this.valueIsDefined(this.socks_proxy);
+        if (isTrue(isTrue(isSocksProxyDefined) || isTrue(isSocks_proxy_defined)))
         {
             ((IList<object>)usedProxies).Add("socksProxy");
-            socksProxy = this.socksProxy;
+            socksProxy = ((bool) isTrue(isSocksProxyDefined)) ? this.socksProxy : this.socks_proxy;
         }
-        if (isTrue(this.valueIsDefined(this.socks_proxy)))
-        {
-            ((IList<object>)usedProxies).Add("socks_proxy");
-            socksProxy = this.socks_proxy;
-        }
-        if (isTrue(!isEqual(this.socksProxyCallback, null)))
+        object issocksProxyCallbackDefined = this.valueIsDefined(this.socksProxyCallback);
+        object issocks_proxy_callback_defined = this.valueIsDefined(this.socks_proxy_callback);
+        if (isTrue(isTrue(issocksProxyCallbackDefined) || isTrue(issocks_proxy_callback_defined)))
         {
             ((IList<object>)usedProxies).Add("socksProxyCallback");
-            socksProxy = callDynamically(this, "socksProxyCallback", new object[] { url, method, headers, body });
-        }
-        if (isTrue(!isEqual(this.socks_proxy_callback, null)))
-        {
-            ((IList<object>)usedProxies).Add("socks_proxy_callback");
-            socksProxy = callDynamically(this, "socks_proxy_callback", new object[] { url, method, headers, body });
+            socksProxy = ((bool) isTrue(issocksProxyCallbackDefined)) ? callDynamically(this, "socksProxyCallback", new object[] { url, method, headers, body }) : callDynamically(this, "socks_proxy_callback", new object[] { url, method, headers, body });
         }
         // check
         object length = getArrayLength(usedProxies);
@@ -687,6 +669,22 @@ public partial class Exchange
         {
             throw new InvalidProxySettings ((string)add(this.id, " you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy")) ;
         }
+    }
+
+    public virtual object checkAddress(object address = null)
+    {
+        if (isTrue(isEqual(address, null)))
+        {
+            throw new InvalidAddress ((string)add(this.id, " address is undefined")) ;
+        }
+        // check the address is not the same letter like 'aaaaa' nor too short nor has a space
+        object uniqChars = (this.unique(this.stringToCharsArray(address)));
+        object length = getArrayLength(uniqChars); // py transpiler trick
+        if (isTrue(isTrue(isTrue(isEqual(length, 1)) || isTrue(isLessThan(((string)address).Length, this.minFundingAddressLength))) || isTrue(isGreaterThan(getIndexOf(address, " "), -1))))
+        {
+            throw new InvalidAddress ((string)add(add(add(add(add(this.id, " address is invalid or has less than "), ((object)this.minFundingAddressLength).ToString()), " characters: \""), ((object)address).ToString()), "\"")) ;
+        }
+        return address;
     }
 
     public virtual object findMessageHashes(WebSocketClient client, object element)
@@ -3268,7 +3266,11 @@ public partial class Exchange
 
     public virtual object getListFromObjectValues(object objects, object key)
     {
-        object newArray = this.toArray(objects);
+        object newArray = objects;
+        if (!isTrue(((objects is IList<object>) || (objects.GetType().IsGenericType && objects.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            newArray = this.toArray(objects);
+        }
         object results = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(newArray)); postFixIncrement(ref i))
         {

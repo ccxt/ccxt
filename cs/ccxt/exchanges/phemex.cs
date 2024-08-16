@@ -3140,7 +3140,7 @@ public partial class phemex : Exchange
             response = await this.privateGetApiDataGFuturesOrdersByOrderId(this.extend(request, parameters));
         } else if (isTrue(getValue(market, "spot")))
         {
-            response = await this.privateGetSpotOrdersActive(this.extend(request, parameters));
+            response = await this.privateGetApiDataSpotsOrdersByOrderId(this.extend(request, parameters));
         } else
         {
             response = await this.privateGetExchangeOrder(this.extend(request, parameters));
@@ -3160,7 +3160,11 @@ public partial class phemex : Exchange
                     throw new OrderNotFound ((string)add(add(add(add(add(this.id, " fetchOrder() "), symbol), " order with id "), id), " not found")) ;
                 }
             }
-            order = this.safeValue(data, 0, new Dictionary<string, object>() {});
+            order = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        } else if (isTrue(getValue(market, "spot")))
+        {
+            object rows = this.safeList(data, "rows", new List<object>() {});
+            order = this.safeDict(rows, 0, new Dictionary<string, object>() {});
         }
         return this.parseOrder(order, market);
     }
@@ -3206,7 +3210,7 @@ public partial class phemex : Exchange
             response = await this.privateGetExchangeOrderList(this.extend(request, parameters));
         } else
         {
-            response = await this.privateGetSpotOrders(this.extend(request, parameters));
+            response = await this.privateGetApiDataSpotsOrders(this.extend(request, parameters));
         }
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object rows = this.safeList(data, "rows", data);

@@ -354,9 +354,9 @@ class bitfinex2(Exchange, ImplicitAPI):
                 # convert 'EXCHANGE LIMIT' to lowercase 'limit'
                 # everything else remains uppercase
                 'exchangeTypes': {
-                    # 'MARKET': None,
+                    'MARKET': 'market',
                     'EXCHANGE MARKET': 'market',
-                    # 'LIMIT': None,
+                    'LIMIT': 'limit',
                     'EXCHANGE LIMIT': 'limit',
                     # 'STOP': None,
                     'EXCHANGE STOP': 'market',

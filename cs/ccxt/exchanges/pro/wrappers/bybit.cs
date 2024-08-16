@@ -333,12 +333,12 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> A list of candles ordered as timestamp, open, high, low, close, volume.</returns>
-    public async Task<Dictionary<string, Dictionary<string, OHLCV[]>>> WatchOHLCVForSymbols(List<List<string>> symbolsAndTimeframes, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, Dictionary<string, List<OHLCV>>>> WatchOHLCVForSymbols(List<List<string>> symbolsAndTimeframes, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchOHLCVForSymbols(symbolsAndTimeframes, since, limit, parameters);
-        return ((Dictionary<string, Dictionary<string, OHLCV[]>>)res);
+        return Helper.ConvertToDictionaryOHLCVList(res);
     }
     /// <summary>
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data

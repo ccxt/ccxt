@@ -2552,14 +2552,12 @@ export default class kraken extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         // https://www.kraken.com/en-us/help/api#deposit-status
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a currency code argument');
-        }
         await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request: Dict = {
-            'asset': currency['id'],
-        };
+        const request: Dict = {};
+        if (code !== undefined) {
+            const currency = this.currency (code);
+            request['asset'] = currency['id'];
+        }
         if (since !== undefined) {
             request['start'] = since;
         }

@@ -1222,11 +1222,11 @@ class binance extends \ccxt\async\binance {
     public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
-             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
              * @see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
              * @see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
-             * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
@@ -1234,6 +1234,9 @@ class binance extends \ccxt\async\binance {
              * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $params['callerMethodName'] = 'watchOHLCV';
             $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
             return $result[$symbol][$timeframe];
@@ -1285,7 +1288,7 @@ class binance extends \ccxt\async\binance {
                 $suffix = '@+08:00';
                 $utcSuffix = $shouldUseUTC8 ? $suffix : '';
                 $rawHashes[] = $marketId . '@' . $klineType . '_' . $interval . $utcSuffix;
-                $messageHashes[] = 'ohlcv::' . $symbolString . '::' . $timeframeString;
+                $messageHashes[] = 'ohlcv::' . $market['symbol'] . '::' . $timeframeString;
             }
             $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, 'multipleOHLCV');
             $requestId = $this->request_id($url);
@@ -1568,6 +1571,8 @@ class binance extends \ccxt\async\binance {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true, false, true);
             $result = Async\await($this->watch_multi_ticker_helper('watchBidsAsks', 'bookTicker', $symbols, $params));
             if ($this->newUpdates) {
                 return $result;
@@ -2085,7 +2090,7 @@ class binance extends \ccxt\async\binance {
              * @param {string|null} [$params->type] 'future', 'delivery', 'savings', 'funding', or 'spot'
              * @param {string|null} [$params->marginMode] 'cross' or 'isolated', for margin trading, uses $this->options.defaultMarginMode if not passed, defaults to null/None/null
              * @param {string[]|null} [$params->symbols] unified market symbols, only used in isolated margin mode
-             * @param {string|null} [$params->method] $method to use. Can be account.balance or account.status
+             * @param {string|null} [$params->method] $method to use. Can be account.balance, account.status, v2/account.balance or v2/account.status
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
             Async\await($this->load_markets());
@@ -2119,8 +2124,15 @@ class binance extends \ccxt\async\binance {
         //
         //
         $messageHash = $this->safe_string($message, 'id');
-        $result = $this->safe_dict($message, 'result', array());
-        $rawBalance = $this->safe_list($result, 0, array());
+        $rawBalance = null;
+        if (gettype($message['result']) === 'array' && array_keys($message['result']) === array_keys(array_keys($message['result']))) {
+            // account.balance
+            $rawBalance = $this->safe_list($message, 'result', array());
+        } else {
+            // account.status
+            $result = $this->safe_dict($message, 'result', array());
+            $rawBalance = $this->safe_list($result, 'assets', array());
+        }
         $parsedBalances = $this->parseBalanceCustom ($rawBalance);
         $client->resolve ($parsedBalances, $messageHash);
     }
@@ -2199,6 +2211,7 @@ class binance extends \ccxt\async\binance {
              * @param {string[]} [$symbols] list of unified market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {boolean} [$params->returnRateLimits] set to true to return rate limit informations, defaults to false.
+             * @param {string|null} [$params->method] $method to use. Can be account.position or v2/account.position
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
              */
             Async\await($this->load_markets());
@@ -2216,9 +2229,11 @@ class binance extends \ccxt\async\binance {
             $returnRateLimits = false;
             list($returnRateLimits, $params) = $this->handle_option_and_params($params, 'fetchPositionsWs', 'returnRateLimits', false);
             $payload['returnRateLimits'] = $returnRateLimits;
+            $method = null;
+            list($method, $params) = $this->handle_option_and_params($params, 'fetchPositionsWs', 'method', 'account.position');
             $message = array(
                 'id' => $messageHash,
-                'method' => 'account.position',
+                'method' => $method,
                 'params' => $this->sign_params($this->extend($payload, $params)),
             );
             $subscription = array(
@@ -3323,7 +3338,7 @@ class binance extends \ccxt\async\binance {
             $this->set_balance_cache($client, $type, $isPortfolioMargin);
             $this->set_positions_cache($client, $type, $symbols, $isPortfolioMargin);
             $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
-            $awaitPositionsSnapshot = $this->safe_bool('watchPositions', 'awaitPositionsSnapshot', true);
+            $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
             $cache = $this->safe_value($this->positions, $type);
             if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $cache === null) {
                 $snapshot = Async\await($client->future ($type . ':fetchPositionsSnapshot'));

@@ -2717,15 +2717,13 @@ public partial class kraken : Exchange
         */
         // https://www.kraken.com/en-us/help/api#deposit-status
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(code, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchDeposits() requires a currency code argument")) ;
-        }
         await this.loadMarkets();
-        object currency = this.currency(code);
-        object request = new Dictionary<string, object>() {
-            { "asset", getValue(currency, "id") },
-        };
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(code, null)))
+        {
+            object currency = this.currency(code);
+            ((IDictionary<string,object>)request)["asset"] = getValue(currency, "id");
+        }
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["start"] = since;

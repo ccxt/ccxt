@@ -43,11 +43,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.3.78';
+$version = '4.3.84';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.3.78';
+    const VERSION = '4.3.84';
 
     public $browser;
     public $marketsLoading = null;
@@ -833,55 +833,43 @@ class Exchange extends \ccxt\Exchange {
         $httpsProxy = null;
         $socksProxy = null;
         // $httpProxy
-        if ($this->value_is_defined($this->httpProxy)) {
+        $isHttpProxyDefined = $this->value_is_defined($this->httpProxy);
+        $isHttp_proxy_defined = $this->value_is_defined($this->http_proxy);
+        if ($isHttpProxyDefined || $isHttp_proxy_defined) {
             $usedProxies[] = 'httpProxy';
-            $httpProxy = $this->httpProxy;
+            $httpProxy = $isHttpProxyDefined ? $this->httpProxy : $this->http_proxy;
         }
-        if ($this->value_is_defined($this->http_proxy)) {
-            $usedProxies[] = 'http_proxy';
-            $httpProxy = $this->http_proxy;
-        }
-        if ($this->httpProxyCallback !== null) {
+        $ishttpProxyCallbackDefined = $this->value_is_defined($this->httpProxyCallback);
+        $ishttp_proxy_callback_defined = $this->value_is_defined($this->http_proxy_callback);
+        if ($ishttpProxyCallbackDefined || $ishttp_proxy_callback_defined) {
             $usedProxies[] = 'httpProxyCallback';
-            $httpProxy = $this->httpProxyCallback ($url, $method, $headers, $body);
-        }
-        if ($this->http_proxy_callback !== null) {
-            $usedProxies[] = 'http_proxy_callback';
-            $httpProxy = $this->http_proxy_callback ($url, $method, $headers, $body);
+            $httpProxy = $ishttpProxyCallbackDefined ? $this->httpProxyCallback ($url, $method, $headers, $body) : $this->http_proxy_callback ($url, $method, $headers, $body);
         }
         // $httpsProxy
-        if ($this->value_is_defined($this->httpsProxy)) {
+        $isHttpsProxyDefined = $this->value_is_defined($this->httpsProxy);
+        $isHttps_proxy_defined = $this->value_is_defined($this->https_proxy);
+        if ($isHttpsProxyDefined || $isHttps_proxy_defined) {
             $usedProxies[] = 'httpsProxy';
-            $httpsProxy = $this->httpsProxy;
+            $httpsProxy = $isHttpsProxyDefined ? $this->httpsProxy : $this->https_proxy;
         }
-        if ($this->value_is_defined($this->https_proxy)) {
-            $usedProxies[] = 'https_proxy';
-            $httpsProxy = $this->https_proxy;
-        }
-        if ($this->httpsProxyCallback !== null) {
+        $ishttpsProxyCallbackDefined = $this->value_is_defined($this->httpsProxyCallback);
+        $ishttps_proxy_callback_defined = $this->value_is_defined($this->https_proxy_callback);
+        if ($ishttpsProxyCallbackDefined || $ishttps_proxy_callback_defined) {
             $usedProxies[] = 'httpsProxyCallback';
-            $httpsProxy = $this->httpsProxyCallback ($url, $method, $headers, $body);
-        }
-        if ($this->https_proxy_callback !== null) {
-            $usedProxies[] = 'https_proxy_callback';
-            $httpsProxy = $this->https_proxy_callback ($url, $method, $headers, $body);
+            $httpsProxy = $ishttpsProxyCallbackDefined ? $this->httpsProxyCallback ($url, $method, $headers, $body) : $this->https_proxy_callback ($url, $method, $headers, $body);
         }
         // $socksProxy
-        if ($this->value_is_defined($this->socksProxy)) {
+        $isSocksProxyDefined = $this->value_is_defined($this->socksProxy);
+        $isSocks_proxy_defined = $this->value_is_defined($this->socks_proxy);
+        if ($isSocksProxyDefined || $isSocks_proxy_defined) {
             $usedProxies[] = 'socksProxy';
-            $socksProxy = $this->socksProxy;
+            $socksProxy = $isSocksProxyDefined ? $this->socksProxy : $this->socks_proxy;
         }
-        if ($this->value_is_defined($this->socks_proxy)) {
-            $usedProxies[] = 'socks_proxy';
-            $socksProxy = $this->socks_proxy;
-        }
-        if ($this->socksProxyCallback !== null) {
+        $issocksProxyCallbackDefined = $this->value_is_defined($this->socksProxyCallback);
+        $issocks_proxy_callback_defined = $this->value_is_defined($this->socks_proxy_callback);
+        if ($issocksProxyCallbackDefined || $issocks_proxy_callback_defined) {
             $usedProxies[] = 'socksProxyCallback';
-            $socksProxy = $this->socksProxyCallback ($url, $method, $headers, $body);
-        }
-        if ($this->socks_proxy_callback !== null) {
-            $usedProxies[] = 'socks_proxy_callback';
-            $socksProxy = $this->socks_proxy_callback ($url, $method, $headers, $body);
+            $socksProxy = $issocksProxyCallbackDefined ? $this->socksProxyCallback ($url, $method, $headers, $body) : $this->socks_proxy_callback ($url, $method, $headers, $body);
         }
         // check
         $length = count($usedProxies);
@@ -937,6 +925,19 @@ class Exchange extends \ccxt\Exchange {
         if ($proxyAgentSet && $proxyUrlSet) {
             throw new InvalidProxySettings($this->id . ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy');
         }
+    }
+
+    public function check_address(?string $address = null) {
+        if ($address === null) {
+            throw new InvalidAddress($this->id . ' $address is null');
+        }
+        // check the $address is not the same letter like 'aaaaa' nor too short nor has a space
+        $uniqChars = ($this->unique($this->string_to_chars_array($address)));
+        $length = count($uniqChars); // py transpiler trick
+        if ($length === 1 || strlen($address) < $this->minFundingAddressLength || mb_strpos($address, ' ') > -1) {
+            throw new InvalidAddress($this->id . ' $address is invalid or has less than ' . (string) $this->minFundingAddressLength . ' characters => "' . (string) $address . '"');
+        }
+        return $address;
     }
 
     public function find_message_hashes($client, string $element) {
@@ -3015,7 +3016,10 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function get_list_from_object_values($objects, int|string $key) {
-        $newArray = $this->to_array($objects);
+        $newArray = $objects;
+        if (gettype($objects) !== 'array' || array_keys($objects) !== array_keys(array_keys($objects))) {
+            $newArray = $this->to_array($objects);
+        }
         $results = array();
         for ($i = 0; $i < count($newArray); $i++) {
             $results[] = $newArray[$i][$key];

@@ -29,6 +29,29 @@ class Helper
         return null;
 
     }
+
+    public static Dictionary<string, Dictionary<string, List<OHLCV>>> ConvertToDictionaryOHLCVList(object data2)
+    {
+
+        var data = data2 as Dictionary<string, object>;
+        var result = new Dictionary<string, Dictionary<string, List<OHLCV>>>();
+        foreach (var symbol in data.Keys)
+        {
+            var symbolOHLCV = data[symbol] as Dictionary<string, object>;
+            var timeframeOHLCV = new Dictionary<string, List<OHLCV>>();
+            foreach (var timeframe in symbolOHLCV.Keys)
+            {
+                var ohlcvList = new List<OHLCV>();
+                foreach (var ohlcv in symbolOHLCV[timeframe] as List<object>)
+                {
+                    ohlcvList.Add(new OHLCV(ohlcv));
+                }
+                timeframeOHLCV.Add(timeframe, ohlcvList);
+            }
+            result.Add(symbol, timeframeOHLCV);
+        }
+        return result;
+    }
 }
 
 
@@ -655,6 +678,8 @@ public struct OHLCVC
         cost = Exchange.SafeFloat(ohlcv, 6);
     }
 }
+
+
 
 public struct Balance
 {
