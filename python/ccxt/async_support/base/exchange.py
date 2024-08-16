@@ -91,7 +91,7 @@ class Exchange(BaseExchange):
     def get_session(self):
         return self.session
 
-    async def unexpected_exchange_close(self):
+    def unexpected_exchange_close(self):
         asyncio.run(self.fatal_close_handler())
 
     async def fatal_close_handler(self):
