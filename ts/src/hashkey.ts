@@ -3884,11 +3884,13 @@ export default class hashkey extends Exchange {
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
         const methodName = 'fetchPositions';
-        const arrayLength = symbols.length;
-        if ((symbols === undefined) || (arrayLength < 1)) {
+        if ((symbols === undefined)) {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a symbol argument with one single market symbol');
-        } else if (symbols.length > 1) {
-            throw new NotSupported (this.id + ' ' + methodName + '() is supported for a symbol argument with one single market symbol only');
+        } else {
+            const symbolsLength = symbols.length;
+            if (symbolsLength !== 1) {
+                throw new NotSupported (this.id + ' ' + methodName + '() is supported for a symbol argument with one single market symbol only');
+            }
         }
         await this.loadMarkets ();
         return await this.fetchPositionsForSymbol (symbols[0], this.extend ({ 'methodName': 'fetchPositions' }, params));
