@@ -3,7 +3,7 @@
 
 import Exchange from './abstract/indodax.js';
 import { ExchangeError, ArgumentsRequired, InsufficientFunds, InvalidOrder, OrderNotFound, AuthenticationError, BadSymbol } from './base/errors.js';
-import { TRUNCATE, TICK_SIZE } from './base/functions/number.js';
+import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha512 } from './static_dependencies/noble-hashes/sha512.js';
 import type { Balances, Currency, Dict, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, int } from './base/types.js';
@@ -865,18 +865,18 @@ export default class indodax extends Exchange {
         if (type === 'market') {
             if (side === 'buy') {
                 let quoteAmount = undefined;
-                const cost = this.safeNumber(params, 'cost');
-                params = this.omit(params, 'cost');
+                const cost = this.safeNumber (params, 'cost');
+                params = this.omit (params, 'cost');
                 if (cost !== undefined) {
-                    quoteAmount = this.costToPrecision(symbol, cost);
+                    quoteAmount = this.costToPrecision (symbol, cost);
                 } else {
                     if (price === undefined) {
-                        throw new InvalidOrder(this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price).');
+                        throw new InvalidOrder (this.id + ' createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price).');
                     }
-                    const amountString = this.numberToString(amount);
-                    const priceString = this.numberToString(price);
-                    const costRequest = Precise.stringMul(amountString, priceString);
-                    quoteAmount = this.costToPrecision(symbol, costRequest);
+                    const amountString = this.numberToString (amount);
+                    const priceString = this.numberToString (price);
+                    const costRequest = Precise.stringMul (amountString, priceString);
+                    quoteAmount = this.costToPrecision (symbol, costRequest);
                 }
                 request[market['quoteId']] = quoteAmount;
             } else {
