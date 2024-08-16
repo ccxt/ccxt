@@ -1408,7 +1408,7 @@ class gate(ccxt.async_support.gate):
         errs = self.safe_dict(data, 'errs')
         error = self.safe_dict(message, 'error', errs)
         code = self.safe_string_2(error, 'code', 'label')
-        id = self.safe_string_2(message, 'id', 'requestId')
+        id = self.safe_string_n(message, ['id', 'requestId', 'request_id'])
         if error is not None:
             messageHash = self.safe_string(client.subscriptions, id)
             try:
@@ -1421,7 +1421,7 @@ class gate(ccxt.async_support.gate):
                 client.reject(e, messageHash)
                 if (messageHash is not None) and (messageHash in client.subscriptions):
                     del client.subscriptions[messageHash]
-            if id is not None:
+            if (id is not None) and (id in client.subscriptions):
                 del client.subscriptions[id]
             return True
         return False
@@ -1686,7 +1686,7 @@ class gate(ccxt.async_support.gate):
             'event': event,
             'payload': payload,
         }
-        return await self.watch(url, messageHash, request, messageHash)
+        return await self.watch(url, messageHash, request, messageHash, requestId)
 
     async def subscribe_private(self, url, messageHash, payload, channel, params, requiresUid=False):
         self.check_required_credentials()
@@ -1724,4 +1724,4 @@ class gate(ccxt.async_support.gate):
             # in case of authenticationError we will throw
             client.subscriptions[tempSubscriptionHash] = messageHash
         message = self.extend(request, params)
-        return await self.watch(url, messageHash, message, messageHash)
+        return await self.watch(url, messageHash, message, messageHash, messageHash)

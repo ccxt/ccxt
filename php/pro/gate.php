@@ -1557,7 +1557,7 @@ class gate extends \ccxt\async\gate {
         $errs = $this->safe_dict($data, 'errs');
         $error = $this->safe_dict($message, 'error', $errs);
         $code = $this->safe_string_2($error, 'code', 'label');
-        $id = $this->safe_string_2($message, 'id', 'requestId');
+        $id = $this->safe_string_n($message, array( 'id', 'requestId', 'request_id' ));
         if ($error !== null) {
             $messageHash = $this->safe_string($client->subscriptions, $id);
             try {
@@ -1572,7 +1572,7 @@ class gate extends \ccxt\async\gate {
                     unset($client->subscriptions[$messageHash]);
                 }
             }
-            if ($id !== null) {
+            if (($id !== null) && (is_array($client->subscriptions) && array_key_exists($id, $client->subscriptions))) {
                 unset($client->subscriptions[$id]);
             }
             return true;
@@ -1876,7 +1876,7 @@ class gate extends \ccxt\async\gate {
                 'event' => $event,
                 'payload' => $payload,
             );
-            return Async\await($this->watch($url, $messageHash, $request, $messageHash));
+            return Async\await($this->watch($url, $messageHash, $request, $messageHash, $requestId));
         }) ();
     }
 
@@ -1922,7 +1922,7 @@ class gate extends \ccxt\async\gate {
                 $client->subscriptions[$tempSubscriptionHash] = $messageHash;
             }
             $message = $this->extend($request, $params);
-            return Async\await($this->watch($url, $messageHash, $message, $messageHash));
+            return Async\await($this->watch($url, $messageHash, $message, $messageHash, $messageHash));
         }) ();
     }
 }
