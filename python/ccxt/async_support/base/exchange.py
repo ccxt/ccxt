@@ -114,8 +114,8 @@ class Exchange(BaseExchange):
 
         if self.own_session and self.session is None:
             # Pass this SSL context to aiohttp and create a TCPConnector
-            connector = aiohttp.TCPConnector(ssl=self.ssl_context, loop=self.asyncio_loop, enable_cleanup_closed=True)
-            self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
+            self.connector = aiohttp.TCPConnector(ssl=self.ssl_context, loop=self.asyncio_loop, enable_cleanup_closed=True)
+            self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=self.connector, trust_env=self.aiohttp_trust_env)
 
     async def close(self):
         await self.ws_close()
@@ -123,6 +123,9 @@ class Exchange(BaseExchange):
             if self.own_session:
                 await self.session.close()
             self.session = None
+        if self.connector is not None:
+            await self.connector.close()
+            self.connector = None
         await self.close_proxy_sessions()
 
     async def close_proxy_sessions(self):
