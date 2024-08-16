@@ -1202,12 +1202,64 @@ cancel_all_orders_ws(string $symbol, $params = array ())
 
 If you want to have an access to raw incoming messages and use your custom handlers, you can override exchange's `handleMessage/handle_message` method, like:
 
-A) u
+A) By inheritance:
+
+<!-- tabs:start -->
+#### **Javascript**
+```javascript
+class myExchange extends ccxt.pro.coinbase {
+    handleMessage (wsClient, data) {
+        console.log("Raw incoming message:", message) // this is the raw update
+        super.handleMessage(wsClient, data);
+        // your extra logic here
+    }
+}
+const ex = new myExchange();
+ex.watchTicker('BTC/USDT');
+```
+#### **Python**
+```python
+
+class my_exchange(ccxt.pro.coinbase):
+    def handle_message(self, client, message):
+        print("Raw incoming message:", message)  # this is the raw update
+        super().handle_message(client, message)
+        # your extra logic here
+
+async def example():
+    ex = my_exchange()
+    await ex.watch_ticker('BTC/USDT')
+
+asyncio.run(example())
+```
+#### **PHP**
+```php
+class myBinance extends \ccxt\pro\binance {
+    public function __construct($options = array()) {
+        parent::__construct($options);
+    }
+
+    // your custom handler
+    public function handle_message($ws, $message) {
+        parent::handle_message($ws, $message); // trigger original `handleMessage`
+        if ($your_condition) {
+            // execute your additional code
+        }
+    }
+}
+
+$ex = new myBinance();
+$ex->watch_ticker('BTC/USDT');
+
+```
+<!-- tabs:end -->
+
+B) by overriding the method:
+
 <!-- tabs:start -->
 #### **Javascript**
 ```javascript
 function myHandler(ws, data, orignal_handler){
-    // console.log(data);
     orignal_handler(ws, data); // trigger original `handleMessage`
     if (your_condition) {
         // execute your additional code
@@ -1223,7 +1275,6 @@ ex.watchTicker('BTC/USDT');
 ```python
 
 def myHandler(instance, ws, data, original_handle_message):
-    # print(data)
     original_handle_message(ws, data)  # trigger original `handleMessage`
     if your_condition:
         # execute your additional code
@@ -1235,27 +1286,6 @@ async def example():
     await e.watch_ticker('BTC/USDT')
 
 asyncio.run(example())
-```
-#### **PHP**
-```php
-class myBinance extends \ccxt\pro\binance {
-    public function __construct($options = array()) {
-        parent::__construct($options);
-    }
-
-    // your custom handler
-    public function handle_message($ws, $message) {
-        // var_dump($message);
-        parent::handle_message($ws, $message); // trigger original `handleMessage`
-        if ($your_condition) {
-            // execute your additional code
-        }
-    }
-}
-
-$e = new myBinance();
-$e->watch_ticker('BTC/USDT');
-
 ```
 <!-- tabs:end -->
 
