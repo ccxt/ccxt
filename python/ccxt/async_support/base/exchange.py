@@ -17,6 +17,8 @@ import yarl
 import math
 from typing import Any, List
 from ccxt.base.types import Int, Str, Num, Strings
+import atexit
+
 
 # -----------------------------------------------------------------------------
 
@@ -78,6 +80,7 @@ class Exchange(BaseExchange):
         self.init_rest_rate_limiter()
         self.markets_loading = None
         self.reloading_markets = False
+        atexit.register(self.unexpected_exchange_close)
 
     def init_rest_rate_limiter(self):
         self.throttle = Throttler(self.tokenBucket, self.asyncio_loop)
@@ -87,6 +90,15 @@ class Exchange(BaseExchange):
 
     def get_session(self):
         return self.session
+
+    async def unexpected_exchange_close(self):
+        asyncio.run(self.fatal_close_handler())
+
+    async def fatal_close_handler(self):
+        try:
+            await self.close()
+        except AttributeError:
+            pass
 
     def __del__(self):
         if self.session is not None or self.socks_proxy_sessions is not None:
