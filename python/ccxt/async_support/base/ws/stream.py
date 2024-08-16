@@ -1,11 +1,9 @@
-from typing import Any, Callable, Dict, List
-from asyncio import Future
-from ....base.types import Topic, Message
+from typing import Any, Dict, List
+from ....base.types import Topic, Message, ConsumerFunction
 from .consumer import Consumer
 
 # Define type aliases for clarity
 MessagePayload = Any
-ConsumerFunction = Callable[['Message'], Future[None] | None]
 
 
 class Stream:
