@@ -360,6 +360,8 @@ public partial class okx : ccxt.okx
         channel = ((IList<object>)channelparametersVariable)[0];
         parameters = ((IList<object>)channelparametersVariable)[1];
         ((IDictionary<string,object>)parameters)["channel"] = channel;
+        object market = this.market(symbol);
+        symbol = getValue(market, "symbol");
         object ticker = await this.watchTickers(new List<object>() {symbol}, parameters);
         return this.safeValue(ticker, symbol);
     }

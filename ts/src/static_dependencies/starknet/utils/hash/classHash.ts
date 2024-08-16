@@ -20,7 +20,6 @@ import { CallData } from '../calldata/index.js';
 import { felt } from '../calldata/cairo.js';
 import { pedersen, poseidonHash, keccak } from '../../../scure-starknet/index.js';
 import { addHexPrefix, utf8ToArray } from '../encode.js';
-import { parse, stringify } from '../json.js';
 import { toHex } from '../num.js';
 import { encodeShortString, isString } from '../shortString.js';
 
@@ -115,7 +114,7 @@ export function formatSpaces(json: string) {
 export default function computeHintedClassHash(compiledContract: LegacyCompiledContract) {
   const { abi, program } = compiledContract;
   const contractClass = { abi, program };
-  const serializedJson = formatSpaces(stringify(contractClass, nullSkipReplacer));
+  const serializedJson = formatSpaces(JSON.stringify(contractClass, nullSkipReplacer));
 
   return addHexPrefix(keccak(utf8ToArray(serializedJson)).toString(16));
 }
@@ -126,7 +125,7 @@ export default function computeHintedClassHash(compiledContract: LegacyCompiledC
  */
 export function computeLegacyContractClassHash(contract: LegacyCompiledContract | string) {
   const compiledContract = isString(contract)
-    ? (parse(contract) as LegacyCompiledContract)
+    ? (JSON.parse(contract) as LegacyCompiledContract)
     : contract;
 
   const apiVersion = toHex(API_VERSION);
@@ -242,7 +241,7 @@ function hashEntryPointSierra(data: SierraContractEntryPointFields[]) {
 }
 
 function hashAbi(sierra: CompiledSierra) {
-  const indentString = formatSpaces(stringify(sierra.abi, null));
+  const indentString = formatSpaces(JSON.stringify(sierra.abi, null));
   return BigInt(addHexPrefix(keccak(utf8ToArray(indentString)).toString(16)));
 }
 
@@ -288,7 +287,7 @@ export function computeSierraContractClassHash(sierra: CompiledSierra) {
  * @returns format: hex-string
  */
 export function computeContractClassHash(contract: CompiledContract | string) {
-  const compiledContract = isString(contract) ? parse(contract) : contract;
+  const compiledContract = isString(contract) ? JSON.parse(contract) : contract;
 
   if ('sierra_program' in compiledContract) {
     return computeSierraContractClassHash(compiledContract as CompiledSierra);

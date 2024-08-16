@@ -332,9 +332,9 @@ class bitfinex2 extends Exchange {
                 // convert 'EXCHANGE LIMIT' to lowercase 'limit'
                 // everything else remains uppercase
                 'exchangeTypes' => array(
-                    // 'MARKET' => null,
+                    'MARKET' => 'market',
                     'EXCHANGE MARKET' => 'market',
-                    // 'LIMIT' => null,
+                    'LIMIT' => 'limit',
                     'EXCHANGE LIMIT' => 'limit',
                     // 'STOP' => null,
                     'EXCHANGE STOP' => 'market',
