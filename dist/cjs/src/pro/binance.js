@@ -230,7 +230,7 @@ class binance extends binance$1 {
         else {
             for (let i = 0; i < symbols.length; i++) {
                 const market = this.market(symbols[i]);
-                subscriptionHashes.push(market['id'] + '@forceOrder');
+                subscriptionHashes.push(market['lowercaseId'] + '@forceOrder');
                 messageHashes.push('liquidations::' + symbols[i]);
             }
             streamHash += '::' + symbols.join(',');

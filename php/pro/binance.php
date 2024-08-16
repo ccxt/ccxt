@@ -236,7 +236,7 @@ class binance extends \ccxt\async\binance {
             } else {
                 for ($i = 0; $i < count($symbols); $i++) {
                     $market = $this->market($symbols[$i]);
-                    $subscriptionHashes[] = $market['id'] . '@forceOrder';
+                    $subscriptionHashes[] = $market['lowercaseId'] . '@forceOrder';
                     $messageHashes[] = 'liquidations::' . $symbols[$i];
                 }
                 $streamHash .= '::' . implode(',', $symbols);
