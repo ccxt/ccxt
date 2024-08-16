@@ -1731,7 +1731,7 @@ public partial class gate : ccxt.gate
         object errs = this.safeDict(data, "errs");
         object error = this.safeDict(message, "error", errs);
         object code = this.safeString2(error, "code", "label");
-        object id = this.safeString2(message, "id", "requestId");
+        object id = this.safeStringN(message, new List<object>() {"id", "requestId", "request_id"});
         if (isTrue(!isEqual(error, null)))
         {
             object messageHash = this.safeString(((WebSocketClient)client).subscriptions, id);
@@ -1750,7 +1750,7 @@ public partial class gate : ccxt.gate
 
                 }
             }
-            if (isTrue(!isEqual(id, null)))
+            if (isTrue(isTrue((!isEqual(id, null))) && isTrue((inOp(((WebSocketClient)client).subscriptions, id)))))
             {
 
             }
@@ -2085,7 +2085,7 @@ public partial class gate : ccxt.gate
             { "event", eventVar },
             { "payload", payload },
         };
-        return await this.watch(url, messageHash, request, messageHash);
+        return await this.watch(url, messageHash, request, messageHash, requestId);
     }
 
     public async virtual Task<object> subscribePrivate(object url, object messageHash, object payload, object channel, object parameters, object requiresUid = null)
@@ -2137,6 +2137,6 @@ public partial class gate : ccxt.gate
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)tempSubscriptionHash] = messageHash;
         }
         object message = this.extend(request, parameters);
-        return await this.watch(url, messageHash, message, messageHash);
+        return await this.watch(url, messageHash, message, messageHash, messageHash);
     }
 }

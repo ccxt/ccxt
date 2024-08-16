@@ -1222,11 +1222,11 @@ class binance extends \ccxt\async\binance {
     public function watch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
-             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
              * @see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
              * @see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
-             * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
              * @param {int} [$limit] the maximum amount of candles to fetch
@@ -1234,6 +1234,9 @@ class binance extends \ccxt\async\binance {
              * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
              * @return {int[][]} A list of candles ordered, open, high, low, close, volume
              */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $params['callerMethodName'] = 'watchOHLCV';
             $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
             return $result[$symbol][$timeframe];
@@ -1285,7 +1288,7 @@ class binance extends \ccxt\async\binance {
                 $suffix = '@+08:00';
                 $utcSuffix = $shouldUseUTC8 ? $suffix : '';
                 $rawHashes[] = $marketId . '@' . $klineType . '_' . $interval . $utcSuffix;
-                $messageHashes[] = 'ohlcv::' . $symbolString . '::' . $timeframeString;
+                $messageHashes[] = 'ohlcv::' . $market['symbol'] . '::' . $timeframeString;
             }
             $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, 'multipleOHLCV');
             $requestId = $this->request_id($url);
@@ -1568,6 +1571,8 @@ class binance extends \ccxt\async\binance {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true, false, true);
             $result = Async\await($this->watch_multi_ticker_helper('watchBidsAsks', 'bookTicker', $symbols, $params));
             if ($this->newUpdates) {
                 return $result;

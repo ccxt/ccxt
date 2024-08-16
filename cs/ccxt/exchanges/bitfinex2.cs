@@ -294,7 +294,9 @@ public partial class bitfinex2 : Exchange
             { "options", new Dictionary<string, object>() {
                 { "precision", "R0" },
                 { "exchangeTypes", new Dictionary<string, object>() {
+                    { "MARKET", "market" },
                     { "EXCHANGE MARKET", "market" },
+                    { "LIMIT", "limit" },
                     { "EXCHANGE LIMIT", "limit" },
                     { "EXCHANGE STOP", "market" },
                     { "EXCHANGE FOK", "limit" },

@@ -46,7 +46,7 @@ use Exception;
 use ccxt\pro\Stream;
 
 
-$version = '4.3.83';
+$version = '4.3.84';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -65,7 +65,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.3.83';
+    const VERSION = '4.3.84';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
