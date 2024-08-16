@@ -2367,13 +2367,11 @@ class kraken(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         # https://www.kraken.com/en-us/help/api#deposit-status
-        if code is None:
-            raise ArgumentsRequired(self.id + ' fetchDeposits() requires a currency code argument')
         self.load_markets()
-        currency = self.currency(code)
-        request: dict = {
-            'asset': currency['id'],
-        }
+        request: dict = {}
+        if code is not None:
+            currency = self.currency(code)
+            request['asset'] = currency['id']
         if since is not None:
             request['start'] = since
         response = self.privatePostDepositStatus(self.extend(request, params))

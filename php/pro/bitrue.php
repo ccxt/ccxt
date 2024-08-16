@@ -433,14 +433,7 @@ class bitrue extends \ccxt\async\bitrue {
         return Async\async(function () use ($params) {
             $listenKey = $this->safe_value($this->options, 'listenKey');
             if ($listenKey === null) {
-                $response = null;
-                try {
-                    $response = Async\await($this->openPrivatePostPoseidonApiV1ListenKey ($params));
-                } catch (Exception $error) {
-                    $this->options['listenKey'] = null;
-                    $this->options['listenKeyUrl'] = null;
-                    return null;
-                }
+                $response = Async\await($this->openPrivatePostPoseidonApiV1ListenKey ($params));
                 //
                 //     {
                 //         "msg" => "succ",

@@ -2563,14 +2563,12 @@ class kraken extends Exchange {
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
              */
             // https://www.kraken.com/en-us/help/api#deposit-status
-            if ($code === null) {
-                throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $currency $code argument');
-            }
             Async\await($this->load_markets());
-            $currency = $this->currency($code);
-            $request = array(
-                'asset' => $currency['id'],
-            );
+            $request = array();
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['asset'] = $currency['id'];
+            }
             if ($since !== null) {
                 $request['start'] = $since;
             }

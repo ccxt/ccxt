@@ -1343,6 +1343,9 @@ public partial class binance : ccxt.binance
         */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        symbol = getValue(market, "symbol");
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOHLCV";
         object result = await this.watchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframe}}, since, limit, parameters);
         return getValue(getValue(result, symbol), timeframe);
@@ -1403,7 +1406,7 @@ public partial class binance : ccxt.binance
             object suffix = "@+08:00";
             object utcSuffix = ((bool) isTrue(shouldUseUTC8)) ? suffix : "";
             ((IList<object>)rawHashes).Add(add(add(add(add(add(marketId, "@"), klineType), "_"), interval), utcSuffix));
-            ((IList<object>)messageHashes).Add(add(add(add("ohlcv::", symbolString), "::"), timeframeString));
+            ((IList<object>)messageHashes).Add(add(add(add("ohlcv::", getValue(market, "symbol")), "::"), timeframeString));
         }
         object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/"), this.stream(type, "multipleOHLCV"));
         object requestId = this.requestId(url);
@@ -1715,6 +1718,8 @@ public partial class binance : ccxt.binance
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
         */
         parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, true, false, true);
         object result = await this.watchMultiTickerHelper("watchBidsAsks", "bookTicker", symbols, parameters);
         if (isTrue(this.newUpdates))
         {

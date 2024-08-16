@@ -338,9 +338,9 @@ export default class bitfinex2 extends Exchange {
                 // convert 'EXCHANGE LIMIT' to lowercase 'limit'
                 // everything else remains uppercase
                 'exchangeTypes': {
-                    // 'MARKET': undefined,
+                    'MARKET': 'market',
                     'EXCHANGE MARKET': 'market',
-                    // 'LIMIT': undefined,
+                    'LIMIT': 'limit',
                     'EXCHANGE LIMIT': 'limit',
                     // 'STOP': undefined,
                     'EXCHANGE STOP': 'market',

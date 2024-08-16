@@ -1133,6 +1133,9 @@ class binance(ccxt.async_support.binance):
         :param dict [params.timezone]: if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
+        await self.load_markets()
+        market = self.market(symbol)
+        symbol = market['symbol']
         params['callerMethodName'] = 'watchOHLCV'
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, params)
         return result[symbol][timeframe]
@@ -1179,7 +1182,7 @@ class binance(ccxt.async_support.binance):
             suffix = '@+08:00'
             utcSuffix = suffix if shouldUseUTC8 else ''
             rawHashes.append(marketId + '@' + klineType + '_' + interval + utcSuffix)
-            messageHashes.append('ohlcv::' + symbolString + '::' + timeframeString)
+            messageHashes.append('ohlcv::' + market['symbol'] + '::' + timeframeString)
         url = self.urls['api']['ws'][type] + '/' + self.stream(type, 'multipleOHLCV')
         requestId = self.request_id(url)
         request = {
@@ -1434,6 +1437,8 @@ class binance(ccxt.async_support.binance):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, False, True)
         result = await self.watch_multi_ticker_helper('watchBidsAsks', 'bookTicker', symbols, params)
         if self.newUpdates:
             return result
