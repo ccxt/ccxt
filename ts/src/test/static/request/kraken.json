@@ -355,6 +355,13 @@
         ],
         "fetchDeposits": [
             {
+                "description": "fetch deposits without a code",
+                "method": "fetchDeposits",
+                "url": "https://api.kraken.com/0/private/DepositStatus",
+                "input": [],
+                "output": "nonce=1723801422087"
+            },
+            {
                 "description": "Fetch deposit",
                 "method": "fetchDeposits",
                 "url": "https://api.kraken.com/0/private/DepositStatus",
