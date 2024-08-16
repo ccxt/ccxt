@@ -1202,19 +1202,21 @@ cancel_all_orders_ws(string $symbol, $params = array ())
 
 If you want to have an access to raw incoming messages and use your custom handlers, you can override exchange's `handleMessage/handle_message` method, like:
 
+A) u
 <!-- tabs:start -->
 #### **Javascript**
 ```javascript
-function myHandler(ws, data){
+function myHandler(ws, data, orignal_handler){
     // console.log(data);
-    this.handleMessage(data); // trigger original `handleMessage`
+    orignal_handler(ws, data); // trigger original `handleMessage`
     if (your_condition) {
         // execute your additional code
     }
 }
 
 const ex = new ccxt.pro.binance();
-ex.handleMessage = myHandler;
+const original_handler = ex.handleMessage.bind(ex);
+ex.handleMessage = (ws, data) => myHandler(ws, data, original_handler);
 ex.watchTicker('BTC/USDT');
 ```
 #### **Python**
