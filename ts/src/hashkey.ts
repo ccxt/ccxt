@@ -290,6 +290,7 @@ export default class hashkey extends Exchange {
                 },
             },
             'options': {
+                'broker': '10000700011',
                 'recvWindow': undefined,
                 'sandboxMode': false,
                 'networks': {
@@ -4315,6 +4316,8 @@ export default class hashkey extends Exchange {
                     body = query;
                 }
             }
+            headers['INPUT_SOURCE'] = this.safeString (this.options, 'broker', '10000700011');
+            headers['broker_sign'] = signature;
         } else {
             query = this.urlencode (params);
             if (query.length !== 0) {
