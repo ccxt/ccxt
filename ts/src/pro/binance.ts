@@ -1234,6 +1234,9 @@ export default class binance extends binanceRest {
          * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
         params['callerMethodName'] = 'watchOHLCV';
         const result = await this.watchOHLCVForSymbols ([ [ symbol, timeframe ] ], since, limit, params);
         return result[symbol][timeframe];
@@ -1285,7 +1288,7 @@ export default class binance extends binanceRest {
             const suffix = '@+08:00';
             const utcSuffix = shouldUseUTC8 ? suffix : '';
             rawHashes.push (marketId + '@' + klineType + '_' + interval + utcSuffix);
-            messageHashes.push ('ohlcv::' + symbolString + '::' + timeframeString);
+            messageHashes.push ('ohlcv::' + market['symbol'] + '::' + timeframeString);
         }
         const url = this.urls['api']['ws'][type] + '/' + this.stream (type, 'multipleOHLCV');
         const requestId = this.requestId (url);
@@ -1568,6 +1571,8 @@ export default class binance extends binanceRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, false, true);
         const result = await this.watchMultiTickerHelper ('watchBidsAsks', 'bookTicker', symbols, params);
         if (this.newUpdates) {
             return result;
