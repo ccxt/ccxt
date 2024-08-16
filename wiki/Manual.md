@@ -5650,10 +5650,11 @@ fetchDepositWithdrawFees (codes, params = {})
 
 Trading fees are properties of markets. Most often trading fees are loaded into the markets by the `fetchMarkets` call. Sometimes, however, the exchanges serve fees from different endpoints.
 
-The `calculateFee` method can be used to precalculate trading fees that will be paid. **WARNING! This method is experimental, unstable and may produce incorrect results in certain cases.** You should only use it with caution. Actual fees may be different from the values returned from `calculateFee`, this is just for precalculation.  Do not rely on precalculated values, because market conditions change frequently. It is difficult to know in advance whether your order will be a market taker or maker.
+The `calculateFee` (or `calculateFeeWithRate`) method can be used to precalculate trading fees that will be paid. **WARNING! This method is experimental, unstable and may produce incorrect results in certain cases.** You should only use it with caution. Actual fees may be different from the values returned from `calculateFee`, this is just for precalculation.  Do not rely on precalculated values, because market conditions change frequently. It is difficult to know in advance whether your order will be a market taker or maker.
 
 ```javascript
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {})
+    calculateFeeWithRate (symbol, type, side, amount, price, takerOrMaker = 'taker', customRate, params = {})
 ```
 
 The `calculateFee` method will return a unified fee structure with precalculated fees for an order with specified params.
@@ -5696,6 +5697,9 @@ Maker fees are paid when you provide liquidity to the exchange i.e. you *market-
 Fees can be negative, this is very common amongst derivative exchanges. A negative fee means the exchange will pay a rebate (reward) to the user for the trading.
 
 Also, some exchanges might not specify fees as percentage of volume, check the `percentage` field of the market to be sure.
+
+Some users might have custom membership/fee levels, so if users want to pass custom fee (different from what is provided from fetched public markets or fetched trading fees) users can use **`calculateFeeWithRate`** which accepts an additional 'rate' string argument, which will override the default value.
+
 
 #### Trading Fee Schedule
 
