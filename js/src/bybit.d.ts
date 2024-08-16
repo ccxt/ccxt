@@ -15,6 +15,9 @@ export default class bybit extends Exchange {
     createExpiredOptionMarket(symbol: string): MarketInterface;
     safeMarket(marketId?: Str, market?: Market, delimiter?: Str, marketType?: Str): MarketInterface;
     getBybitType(method: any, market: any, params?: {}): any[];
+    getAmount(symbol: string, amount: number): string;
+    getPrice(symbol: string, price: string): string;
+    getCost(symbol: string, cost: string): string;
     fetchTime(params?: {}): Promise<number>;
     fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchMarkets(params?: {}): Promise<Market[]>;

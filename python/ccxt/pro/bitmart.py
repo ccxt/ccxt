@@ -48,8 +48,8 @@ class bitmart(ccxt.async_support.bitmart):
                             'private': 'wss://ws-manager-compress.{hostname}/user?protocol=1.1',
                         },
                         'swap': {
-                            'public': 'wss://openapi-ws.{hostname}/api?protocol=1.1',
-                            'private': 'wss://openapi-ws.{hostname}/user?protocol=1.1',
+                            'public': 'wss://openapi-ws-v2.{hostname}/api?protocol=1.1',
+                            'private': 'wss://openapi-ws-v2.{hostname}/user?protocol=1.1',
                         },
                     },
                 },
@@ -137,7 +137,7 @@ class bitmart(ccxt.async_support.bitmart):
     async def watch_balance(self, params={}) -> Balances:
         """
         :see: https://developer-pro.bitmart.com/en/spot/#private-balance-change
-        :see: https://developer-pro.bitmart.com/en/futures/#private-assets-channel
+        :see: https://developer-pro.bitmart.com/en/futuresv2/#private-assets-channel
         watch balance and get the amount of funds available for trading or funds locked in orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
@@ -257,7 +257,7 @@ class bitmart(ccxt.async_support.bitmart):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         :see: https://developer-pro.bitmart.com/en/spot/#public-trade-channel
-        :see: https://developer-pro.bitmart.com/en/futures/#public-trade-channel
+        :see: https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
         get the list of most recent trades for a particular symbol
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
@@ -301,6 +301,7 @@ class bitmart(ccxt.async_support.bitmart):
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         :see: https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
+        :see: https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -313,7 +314,7 @@ class bitmart(ccxt.async_support.bitmart):
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
-        :see: https://developer-pro.bitmart.com/en/futures/#overview
+        :see: https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -334,7 +335,7 @@ class bitmart(ccxt.async_support.bitmart):
         """
         watches information on multiple orders made by the user
         :see: https://developer-pro.bitmart.com/en/spot/#private-order-progress
-        :see: https://developer-pro.bitmart.com/en/futures/#private-order-channel
+        :see: https://developer-pro.bitmart.com/en/futuresv2/#private-order-channel
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -933,7 +934,7 @@ class bitmart(ccxt.async_support.bitmart):
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         :see: https://developer-pro.bitmart.com/en/spot/#public-kline-channel
-        :see: https://developer-pro.bitmart.com/en/futures/#public-klinebin-channel
+        :see: https://developer-pro.bitmart.com/en/futuresv2/#public-klinebin-channel
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
@@ -1049,7 +1050,7 @@ class bitmart(ccxt.async_support.bitmart):
         """
         :see: https://developer-pro.bitmart.com/en/spot/#public-depth-all-channel
         :see: https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel
-        :see: https://developer-pro.bitmart.com/en/futures/#public-depth-channel
+        :see: https://developer-pro.bitmart.com/en/futuresv2/#public-depth-channel
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return

@@ -27,6 +27,7 @@ import {
     callMethodSync,
     callExchangeMethodDynamically,
     callExchangeMethodDynamicallySync,
+    getRootException,
     exceptionMessage,
     exitScript,
     getExchangeProp,
@@ -349,7 +350,8 @@ class testMainClass extends baseMainTestClass {
                 await this.testMethod (methodName, exchange, args, isPublic);
                 return true;
             }
-            catch (e) {
+            catch (ex) {
+                const e = getRootException (ex);
                 const isLoadMarkets = (methodName === 'loadMarkets');
                 const isAuthError = (e instanceof AuthenticationError);
                 const isNotSupported = (e instanceof NotSupported);

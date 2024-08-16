@@ -359,7 +359,7 @@ class ace extends Exchange {
             for ($i = 0; $i < count($pairs); $i++) {
                 $marketId = $pairs[$i];
                 $market = $this->safe_market($marketId);
-                $rawTicker = $this->safe_dict($response, $marketId);
+                $rawTicker = $this->safe_dict($response, $marketId, array());
                 $ticker = $this->parse_ticker($rawTicker, $market);
                 $tickers[] = $ticker;
             }

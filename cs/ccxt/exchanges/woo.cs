@@ -133,7 +133,7 @@ public partial class woo : Exchange
                 { "doc", new List<object>() {"https://docs.woo.org/"} },
                 { "fees", new List<object>() {"https://support.woo.org/hc/en-001/articles/4404611795353--Trading-Fees"} },
                 { "referral", new Dictionary<string, object>() {
-                    { "url", "https://x.woo.org/register?ref=YWOWC96B" },
+                    { "url", "https://x.woo.org/register?ref=DIJT0CNL" },
                     { "discount", 0.35 },
                 } },
             } },
@@ -611,6 +611,11 @@ public partial class woo : Exchange
         object amount = this.safeString(trade, "executed_quantity");
         object order_id = this.safeString(trade, "order_id");
         object fee = this.parseTokenAndFeeTemp(trade, "fee_asset", "fee");
+        object feeCost = this.safeString(fee, "cost");
+        if (isTrue(!isEqual(feeCost, null)))
+        {
+            ((IDictionary<string,object>)fee)["cost"] = feeCost;
+        }
         object cost = Precise.stringMul(price, amount);
         object side = this.safeStringLower(trade, "side");
         object id = this.safeString(trade, "id");

@@ -335,6 +335,8 @@ class okx(ccxt.async_support.okx):
         channel = None
         channel, params = self.handle_option_and_params(params, 'watchTicker', 'channel', 'tickers')
         params['channel'] = channel
+        market = self.market(symbol)
+        symbol = market['symbol']
         ticker = await self.watch_tickers([symbol], params)
         return self.safe_value(ticker, symbol)
 

@@ -4,7 +4,12 @@ from typing import (
     TypeVar,
 )
 
-from ...typing_extensions.typing_extensions import Literal, ParamSpec
+import sys
+
+if sys.version_info.minor >= 11:
+    from typing import Literal, ParamSpec
+else:
+    from typing_extensions import Literal, ParamSpec
 
 T = TypeVar("T")
 P = ParamSpec("P")

@@ -77,6 +77,25 @@ public partial class bybit : ccxt.bybit
                         } },
                     } },
                 } },
+                { "demotrading", new Dictionary<string, object>() {
+                    { "ws", new Dictionary<string, object>() {
+                        { "public", new Dictionary<string, object>() {
+                            { "spot", "wss://stream.{hostname}/v5/public/spot" },
+                            { "inverse", "wss://stream.{hostname}/v5/public/inverse" },
+                            { "option", "wss://stream.{hostname}/v5/public/option" },
+                            { "linear", "wss://stream.{hostname}/v5/public/linear" },
+                        } },
+                        { "private", new Dictionary<string, object>() {
+                            { "spot", new Dictionary<string, object>() {
+                                { "unified", "wss://stream-demo.{hostname}/v5/private" },
+                                { "nonUnified", "wss://stream-demo.{hostname}/spot/private/v3" },
+                            } },
+                            { "contract", "wss://stream-demo.{hostname}/v5/private" },
+                            { "usdc", "wss://stream-demo.{hostname}/trade/option/usdc/private/v1" },
+                            { "trade", "wss://stream-demo.bybit.com/v5/trade" },
+                        } },
+                    } },
+                } },
             } },
             { "options", new Dictionary<string, object>() {
                 { "watchTicker", new Dictionary<string, object>() {
@@ -177,7 +196,7 @@ public partial class bybit : ccxt.bybit
             if (isTrue(isSpot))
             {
                 url = getValue(getValue(url, accessibility), "spot");
-            } else if (isTrue(isEqual(type, "swap")))
+            } else if (isTrue(isTrue((isEqual(type, "swap"))) || isTrue((isEqual(type, "future")))))
             {
                 object subType = null;
                 var subTypeparametersVariable = this.handleSubTypeAndParams(method, market, parameters, "linear");
@@ -1208,7 +1227,7 @@ public partial class bybit : ccxt.bybit
         this.setPositionsCache(client as WebSocketClient, symbols);
         object cache = this.positions;
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-        object awaitPositionsSnapshot = this.safeBool("watchPositions", "awaitPositionsSnapshot", true);
+        object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
         if (isTrue(isTrue(isTrue(fetchPositionsSnapshot) && isTrue(awaitPositionsSnapshot)) && isTrue(isEqual(cache, null))))
         {
             object snapshot = await client.future("fetchPositionsSnapshot");
@@ -2258,7 +2277,7 @@ public partial class bybit : ccxt.bybit
             this.handleSubscriptionStatus(client as WebSocketClient, message);
             return;
         }
-        object topic = this.safeString2(message, "topic", "op");
+        object topic = this.safeString2(message, "topic", "op", "");
         object methods = new Dictionary<string, object>() {
             { "orderbook", this.handleOrderBook },
             { "kline", this.handleOHLCV },

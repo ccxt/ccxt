@@ -597,7 +597,7 @@ class vertex extends \ccxt\async\vertex {
             $client = $this->client($url);
             $this->set_positions_cache($client, $symbols, $params);
             $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
-            $awaitPositionsSnapshot = $this->safe_bool('watchPositions', 'awaitPositionsSnapshot', true);
+            $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
             if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $this->positions === null) {
                 $snapshot = Async\await($client->future ('fetchPositionsSnapshot'));
                 return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);

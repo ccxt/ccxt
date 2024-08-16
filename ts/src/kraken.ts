@@ -1404,7 +1404,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#createMarketOrderWithCost
          * @description create a market order by providing the symbol, side and cost
-         * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
+         * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
          * @param {string} symbol unified symbol of the market to create an order in (only USD markets are supported)
          * @param {string} side 'buy' or 'sell'
          * @param {float} cost how much you want to trade in units of the quote currency
@@ -1422,7 +1422,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#createMarketBuyOrderWithCost
          * @description create a market buy order by providing the symbol, side and cost
-         * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
+         * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {float} cost how much you want to trade in units of the quote currency
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1436,7 +1436,7 @@ export default class kraken extends Exchange {
         /**
          * @method
          * @name kraken#createOrder
-         * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
+         * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
          * @description create a trade order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -1578,6 +1578,8 @@ export default class kraken extends Exchange {
         //         "status": "ok",
         //         "txid": "OAW2BO-7RWEK-PZY5UO",
         //         "originaltxid": "OXL6SS-UPNMC-26WBE7",
+        //         "newuserref": 1234,
+        //         "olduserref": 123,
         //         "volume": "0.00075000",
         //         "price": "13500.0",
         //         "orders_cancelled": 1,
@@ -1717,7 +1719,7 @@ export default class kraken extends Exchange {
             const txid = this.safeList (order, 'txid');
             id = this.safeString (txid, 0);
         }
-        const clientOrderId = this.safeString (order, 'userref');
+        const clientOrderId = this.safeString2 (order, 'userref', 'newuserref');
         const rawTrades = this.safeValue (order, 'trades', []);
         const trades = [];
         for (let i = 0; i < rawTrades.length; i++) {
@@ -1864,6 +1866,9 @@ export default class kraken extends Exchange {
             const extendedPostFlags = (flags !== undefined) ? flags + ',post' : 'post';
             request['oflags'] = extendedPostFlags;
         }
+        if ((flags !== undefined) && !('oflags' in request)) {
+            request['oflags'] = flags;
+        }
         params = this.omit (params, [ 'timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingLimitAmount', 'offset' ]);
         return [ request, params ];
     }
@@ -1873,7 +1878,7 @@ export default class kraken extends Exchange {
          * @method
          * @name kraken#editOrder
          * @description edit a trade order
-         * @see https://docs.kraken.com/rest/#tag/Trading/operation/editOrder
+         * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/editOrder
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
@@ -1937,15 +1942,13 @@ export default class kraken extends Exchange {
         const clientOrderId = this.safeValue2 (params, 'userref', 'clientOrderId');
         const request: Dict = {
             'trades': true, // whether or not to include trades in output (optional, default false)
-            // 'txid': id, // do not comma separate a list of ids - use fetchOrdersByIds instead
+            'txid': id, // do not comma separate a list of ids - use fetchOrdersByIds instead
             // 'userref': 'optional', // restrict results to given user reference id (optional)
         };
         let query = params;
         if (clientOrderId !== undefined) {
             request['userref'] = clientOrderId;
             query = this.omit (params, [ 'userref', 'clientOrderId' ]);
-        } else {
-            request['txid'] = id;
         }
         const response = await this.privatePostQueryOrders (this.extend (request, query));
         //
@@ -2549,14 +2552,12 @@ export default class kraken extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         // https://www.kraken.com/en-us/help/api#deposit-status
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a currency code argument');
-        }
         await this.loadMarkets ();
-        const currency = this.currency (code);
-        const request: Dict = {
-            'asset': currency['id'],
-        };
+        const request: Dict = {};
+        if (code !== undefined) {
+            const currency = this.currency (code);
+            request['asset'] = currency['id'];
+        }
         if (since !== undefined) {
             request['start'] = since;
         }

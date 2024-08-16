@@ -45,7 +45,7 @@ class binance extends Exchange {
                 'createMarketSellOrderWithCost' => true,
                 'createOrder' => true,
                 'createOrders' => true,
-                'createOrderWithTakeProfitAndStopLoss' => true,
+                'createOrderWithTakeProfitAndStopLoss' => false,
                 'createPostOnlyOrder' => true,
                 'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => true,
@@ -183,8 +183,10 @@ class binance extends Exchange {
                     'dapiPrivateV2' => 'https://testnet.binancefuture.com/dapi/v2',
                     'fapiPublic' => 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPublicV2' => 'https://testnet.binancefuture.com/fapi/v2',
+                    'fapiPublicV3' => 'https://testnet.binancefuture.com/fapi/v3',
                     'fapiPrivate' => 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivateV2' => 'https://testnet.binancefuture.com/fapi/v2',
+                    'fapiPrivateV3' => 'https://testnet.binancefuture.com/fapi/v3',
                     'public' => 'https://testnet.binance.vision/api/v3',
                     'private' => 'https://testnet.binance.vision/api/v3',
                     'v1' => 'https://testnet.binance.vision/api/v1',
@@ -202,9 +204,11 @@ class binance extends Exchange {
                     'dapiData' => 'https://dapi.binance.com/futures/data',
                     'fapiPublic' => 'https://fapi.binance.com/fapi/v1',
                     'fapiPublicV2' => 'https://fapi.binance.com/fapi/v2',
+                    'fapiPublicV3' => 'https://fapi.binance.com/fapi/v3',
                     'fapiPrivate' => 'https://fapi.binance.com/fapi/v1',
-                    'fapiData' => 'https://fapi.binance.com/futures/data',
                     'fapiPrivateV2' => 'https://fapi.binance.com/fapi/v2',
+                    'fapiPrivateV3' => 'https://fapi.binance.com/fapi/v3',
+                    'fapiData' => 'https://fapi.binance.com/futures/data',
                     'public' => 'https://api.binance.com/api/v3',
                     'private' => 'https://api.binance.com/api/v3',
                     'v1' => 'https://api.binance.com/api/v1',
@@ -840,6 +844,8 @@ class binance extends Exchange {
                         'trade/asyn' => 1000,
                         'trade/asyn/id' => 10,
                         'feeBurn' => 1,
+                        'symbolConfig' => 5,
+                        'accountConfig' => 5,
                     ),
                     'post' => array(
                         'batchOrders' => 5,
@@ -874,6 +880,16 @@ class binance extends Exchange {
                     ),
                 ),
                 'fapiPrivateV2' => array(
+                    'get' => array(
+                        'account' => 1,
+                        'balance' => 1,
+                        'positionRisk' => 1,
+                    ),
+                ),
+                'fapiPublicV3' => array(
+                    'get' => array(),
+                ),
+                'fapiPrivateV3' => array(
                     'get' => array(
                         'account' => 1,
                         'balance' => 1,
@@ -2770,7 +2786,7 @@ class binance extends Exchange {
                     'active' => $depositEnable && $withdrawEnable,
                     'deposit' => $depositEnable,
                     'withdraw' => $withdrawEnable,
-                    'fee' => $this->parse_number($fee),
+                    'fee' => $withdrawFee,
                     'precision' => $this->parse_number($precisionTick),
                     'limits' => array(
                         'withdraw' => array(
@@ -2778,7 +2794,7 @@ class binance extends Exchange {
                             'max' => $this->safe_number($networkItem, 'withdrawMax'),
                         ),
                         'deposit' => array(
-                            'min' => null,
+                            'min' => $this->safe_number($networkItem, 'depositDust'),
                             'max' => null,
                         ),
                     ),
@@ -3386,7 +3402,14 @@ class binance extends Exchange {
             $response = $this->papiGetBalance ($this->extend($request, $query));
         } elseif ($this->is_linear($type, $subType)) {
             $type = 'linear';
-            $response = $this->fapiPrivateV2GetAccount ($this->extend($request, $query));
+            $useV2 = null;
+            list($useV2, $params) = $this->handle_option_and_params($params, 'fetchBalance', 'useV2', false);
+            $params = $this->extend($request, $query);
+            if (!$useV2) {
+                $response = $this->fapiPrivateV3GetAccount ($params);
+            } else {
+                $response = $this->fapiPrivateV2GetAccount ($params);
+            }
         } elseif ($this->is_inverse($type, $subType)) {
             $type = 'inverse';
             $response = $this->dapiPrivateGetAccount ($this->extend($request, $query));
@@ -3499,7 +3522,7 @@ class binance extends Exchange {
         //
         // futures (fapi)
         //
-        //     fapiPrivateV2GetAccount
+        //     fapiPrivateV3GetAccount
         //
         //     {
         //         "feeTier":0,
@@ -8750,6 +8773,7 @@ class binance extends Exchange {
          * @see https://developers.binance.com/docs/wallet/asset/trade-$fee
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Config
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->subType] "linear" or "inverse"
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$fee-structure $fee structures~ indexed by $market $symbols
@@ -8766,7 +8790,7 @@ class binance extends Exchange {
         if ($isSpotOrMargin) {
             $response = $this->sapiGetAssetTradeFee ($params);
         } elseif ($isLinear) {
-            $response = $this->fapiPrivateV2GetAccount ($params);
+            $response = $this->fapiPrivateGetAccountConfig ($params);
         } elseif ($isInverse) {
             $response = $this->dapiPrivateGetAccount ($params);
         }
@@ -9184,24 +9208,29 @@ class binance extends Exchange {
         //
         // $usdm
         //
+        // v3 (similar for cross & $isolated)
+        //
         //    {
-        //       "symbol" => "BTCBUSD",
-        //       "initialMargin" => "0",
-        //       "maintMargin" => "0",
-        //       "unrealizedProfit" => "0.00000000",
-        //       "positionInitialMargin" => "0",
-        //       "openOrderInitialMargin" => "0",
-        //       "leverage" => "20",
-        //       "isolated" => false,
-        //       "entryPrice" => "0.0000",
-        //       "maxNotional" => "100000",
-        //       "positionSide" => "BOTH",
-        //       "positionAmt" => "0.000",
-        //       "notional" => "0",
-        //       "isolatedWallet" => "0",
-        //       "updateTime" => "0",
-        //       "crossMargin" => "100.93634809",
-        //     }
+        //        "symbol" => "WLDUSDT",
+        //        "positionSide" => "BOTH",
+        //        "positionAmt" => "-849",
+        //        "unrealizedProfit" => "11.17920750",
+        //        "notional" => "-1992.46079250",
+        //        "isolatedMargin" => "0",
+        //        "isolatedWallet" => "0",
+        //        "initialMargin" => "99.62303962",
+        //        "maintMargin" => "11.95476475",
+        //        "updateTime" => "1721995760449"
+        //        "leverage" => "50",                        // in v2
+        //        "entryPrice" => "2.34",                    // in v2
+        //        "positionInitialMargin" => "118.82116614", // in v2
+        //        "openOrderInitialMargin" => "0",           // in v2
+        //        "isolated" => false,                       // in v2
+        //        "breakEvenPrice" => "2.3395788",           // in v2
+        //        "maxNotional" => "25000",                  // in v2
+        //        "bidNotional" => "0",                      // in v2
+        //        "askNotional" => "0"                       // in v2
+        //    }
         //
         // coinm
         //
@@ -9267,13 +9296,16 @@ class binance extends Exchange {
         $market = $this->safe_market($marketId, $market, null, 'contract');
         $symbol = $this->safe_string($market, 'symbol');
         $leverageString = $this->safe_string($position, 'leverage');
-        $leverage = intval($leverageString);
+        $leverage = ($leverageString !== null) ? intval($leverageString) : null;
         $initialMarginString = $this->safe_string($position, 'initialMargin');
         $initialMargin = $this->parse_number($initialMarginString);
-        $initialMarginPercentageString = Precise::string_div('1', $leverageString, 8);
-        $rational = $this->is_round_number(fmod(1000, $leverage));
-        if (!$rational) {
-            $initialMarginPercentageString = Precise::string_div(Precise::string_add($initialMarginPercentageString, '1e-8'), '1', 8);
+        $initialMarginPercentageString = null;
+        if ($leverageString !== null) {
+            $initialMarginPercentageString = Precise::string_div('1', $leverageString, 8);
+            $rational = $this->is_round_number(fmod(1000, $leverage));
+            if (!$rational) {
+                $initialMarginPercentageString = Precise::string_div(Precise::string_add($initialMarginPercentageString, '1e-8'), '1', 8);
+            }
         }
         // to notionalValue
         $usdm = (is_array($position) && array_key_exists('notional', $position));
@@ -9311,6 +9343,10 @@ class binance extends Exchange {
             $timestamp = null;
         }
         $isolated = $this->safe_bool($position, 'isolated');
+        if ($isolated === null) {
+            $isolatedMarginRaw = $this->safe_string($position, 'isolatedMargin');
+            $isolated = !Precise::string_eq($isolatedMarginRaw, '0');
+        }
         $marginMode = null;
         $collateralString = null;
         $walletBalance = null;
@@ -9422,23 +9458,34 @@ class binance extends Exchange {
         //
         // usdm
         //
-        //     {
-        //       "symbol" => "BTCUSDT",
-        //       "positionAmt" => "0.001",
-        //       "entryPrice" => "43578.07000",
-        //       "markPrice" => "43532.30000000",
-        //       "unRealizedProfit" => "-0.04577000",
-        //       "liquidationPrice" => "21841.24993976",
-        //       "leverage" => "2",
-        //       "maxNotionalValue" => "300000000",
-        //       "marginType" => "isolated",
-        //       "isolatedMargin" => "21.77841506",
-        //       "isAutoAddMargin" => "false",
-        //       "positionSide" => "BOTH",
-        //       "notional" => "43.53230000",
-        //       "isolatedWallet" => "21.82418506",
-        //       "updateTime" => "1621358023886"
-        //     }
+        //  {
+        //     $symbol => "WLDUSDT",
+        //     $positionSide => "BOTH",
+        //     positionAmt => "5",
+        //     $entryPrice => "2.3483",
+        //     breakEvenPrice => "2.349356735",
+        //     $markPrice => "2.39560000",
+        //     unRealizedProfit => "0.23650000",
+        //     $liquidationPrice => "0",
+        //     isolatedMargin => "0",
+        //     $notional => "11.97800000",
+        //     isolatedWallet => "0",
+        //     updateTime => "1722062678998",
+        //     initialMargin => "2.39560000",         // not in v2
+        //     maintMargin => "0.07186800",           // not in v2
+        //     positionInitialMargin => "2.39560000", // not in v2
+        //     openOrderInitialMargin => "0",         // not in v2
+        //     adl => "2",                            // not in v2
+        //     bidNotional => "0",                    // not in v2
+        //     askNotional => "0",                    // not in v2
+        //     marginAsset => "USDT",                 // not in v2
+        //     // the below fields are only in v2
+        //     $leverage => "5",
+        //     maxNotionalValue => "6000000",
+        //     marginType => "cross",
+        //     isAutoAddMargin => "false",
+        //     isolated => false,
+        //     adlQuantile => "2",
         //
         // coinm
         //
@@ -9496,6 +9543,7 @@ class binance extends Exchange {
         $marketId = $this->safe_string($position, 'symbol');
         $market = $this->safe_market($marketId, $market, null, 'contract');
         $symbol = $this->safe_string($market, 'symbol');
+        $isolatedMarginString = $this->safe_string($position, 'isolatedMargin');
         $leverageBrackets = $this->safe_dict($this->options, 'leverageBrackets', array());
         $leverageBracket = $this->safe_list($leverageBrackets, $symbol, array());
         $notionalString = $this->safe_string_2($position, 'notional', 'notionalValue');
@@ -9513,12 +9561,13 @@ class binance extends Exchange {
         $contracts = $this->parse_number($contractsAbs);
         $unrealizedPnlString = $this->safe_string($position, 'unRealizedProfit');
         $unrealizedPnl = $this->parse_number($unrealizedPnlString);
-        $leverageString = $this->safe_string($position, 'leverage');
-        $leverage = intval($leverageString);
         $liquidationPriceString = $this->omit_zero($this->safe_string($position, 'liquidationPrice'));
         $liquidationPrice = $this->parse_number($liquidationPriceString);
         $collateralString = null;
         $marginMode = $this->safe_string($position, 'marginType');
+        if ($marginMode === null && $isolatedMarginString !== null) {
+            $marginMode = Precise::string_eq($isolatedMarginString, '0') ? 'cross' : 'isolated';
+        }
         $side = null;
         if (Precise::string_gt($notionalString, '0')) {
             $side = 'long';
@@ -9584,14 +9633,28 @@ class binance extends Exchange {
         }
         $maintenanceMarginPercentage = $this->parse_number($maintenanceMarginPercentageString);
         $maintenanceMarginString = Precise::string_mul($maintenanceMarginPercentageString, $notionalStringAbs);
-        $maintenanceMargin = $this->parse_number($maintenanceMarginString);
-        $initialMarginPercentageString = Precise::string_div('1', $leverageString, 8);
-        $rational = $this->is_round_number(fmod(1000, $leverage));
-        if (!$rational) {
-            $initialMarginPercentageString = Precise::string_add($initialMarginPercentageString, '1e-8');
+        if ($maintenanceMarginString === null) {
+            // for a while, this new value was a backup to the existing calculations, but in future we might prioritize this
+            $maintenanceMarginString = $this->safe_string($position, 'maintMargin');
         }
-        $initialMarginString = Precise::string_div(Precise::string_mul($notionalStringAbs, $initialMarginPercentageString), '1', 8);
-        $initialMargin = $this->parse_number($initialMarginString);
+        $maintenanceMargin = $this->parse_number($maintenanceMarginString);
+        $initialMarginString = null;
+        $initialMarginPercentageString = null;
+        $leverageString = $this->safe_string($position, 'leverage');
+        if ($leverageString !== null) {
+            $leverage = intval($leverageString);
+            $rational = $this->is_round_number(fmod(1000, $leverage));
+            $initialMarginPercentageString = Precise::string_div('1', $leverageString, 8);
+            if (!$rational) {
+                $initialMarginPercentageString = Precise::string_add($initialMarginPercentageString, '1e-8');
+            }
+            $unrounded = Precise::string_mul($notionalStringAbs, $initialMarginPercentageString);
+            $initialMarginString = Precise::string_div($unrounded, '1', 8);
+        } else {
+            $initialMarginString = $this->safe_string($position, 'initialMargin');
+            $unrounded = Precise::string_mul($initialMarginString, '1');
+            $initialMarginPercentageString = Precise::string_div($unrounded, $notionalStringAbs, 8);
+        }
         $marginRatio = null;
         $percentage = null;
         if (!Precise::string_equals($collateralString, '0')) {
@@ -9614,7 +9677,7 @@ class binance extends Exchange {
             'markPrice' => $markPrice,
             'entryPrice' => $entryPrice,
             'timestamp' => $timestamp,
-            'initialMargin' => $initialMargin,
+            'initialMargin' => $this->parse_number($initialMarginString),
             'initialMarginPercentage' => $this->parse_number($initialMarginPercentageString),
             'maintenanceMargin' => $maintenanceMargin,
             'maintenanceMarginPercentage' => $maintenanceMarginPercentage,
@@ -9965,11 +10028,19 @@ class binance extends Exchange {
          * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
+         * @param {bool} [$params->useV2] set to true if you want to use the obsolete endpoint, where some more additional fields were provided
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
          */
-        $defaultValue = $this->safe_string($this->options, 'fetchPositions', 'positionRisk');
         $defaultMethod = null;
-        list($defaultMethod, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'method', $defaultValue);
+        list($defaultMethod, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'method');
+        if ($defaultMethod === null) {
+            $options = $this->safe_dict($this->options, 'fetchPositions');
+            if ($options === null) {
+                $defaultMethod = $this->safe_string($this->options, 'fetchPositions', 'positionRisk');
+            } else {
+                $defaultMethod = 'positionRisk';
+            }
+        }
         if ($defaultMethod === 'positionRisk') {
             return $this->fetch_positions_risk($symbols, $params);
         } elseif ($defaultMethod === 'account') {
@@ -9977,7 +10048,7 @@ class binance extends Exchange {
         } elseif ($defaultMethod === 'option') {
             return $this->fetch_option_positions($symbols, $params);
         } else {
-            throw new NotSupported($this->id . '.options["fetchPositions"]/params["method"] = "' . $defaultMethod . '" is invalid, please choose between "account", "positionRisk" and "option"');
+            throw new NotSupported($this->id . '.options["fetchPositions"]["method"] or $params["method"] = "' . $defaultMethod . '" is invalid, please choose between "account", "positionRisk" and "option"');
         }
     }
 
@@ -9989,11 +10060,13 @@ class binance extends Exchange {
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V3
          * @param {string[]} [$symbols] list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch positions in a portfolio margin account
          * @param {string} [$params->subType] "linear" or "inverse"
          * @param {boolean} [$params->filterClosed] set to true if you would like to filter out closed positions, default is false
+         * @param {boolean} [$params->useV2] set to true if you want to use obsolete endpoint, where some more additional fields were provided
          * @return {array} data on account positions
          */
         if ($symbols !== null) {
@@ -10015,7 +10088,79 @@ class binance extends Exchange {
             if ($isPortfolioMargin) {
                 $response = $this->papiGetUmAccount ($params);
             } else {
-                $response = $this->fapiPrivateV2GetAccount ($params);
+                $useV2 = null;
+                list($useV2, $params) = $this->handle_option_and_params($params, 'fetchAccountPositions', 'useV2', false);
+                if (!$useV2) {
+                    $response = $this->fapiPrivateV3GetAccount ($params);
+                } else {
+                    $response = $this->fapiPrivateV2GetAccount ($params);
+                }
+                //
+                //    {
+                //        "totalInitialMargin" => "99.62112386",
+                //        "totalMaintMargin" => "11.95453485",
+                //        "totalWalletBalance" => "99.84331553",
+                //        "totalUnrealizedProfit" => "11.17675690",
+                //        "totalMarginBalance" => "111.02007243",
+                //        "totalPositionInitialMargin" => "99.62112386",
+                //        "totalOpenOrderInitialMargin" => "0.00000000",
+                //        "totalCrossWalletBalance" => "99.84331553",
+                //        "totalCrossUnPnl" => "11.17675690",
+                //        "availableBalance" => "11.39894857",
+                //        "maxWithdrawAmount" => "11.39894857",
+                //        "feeTier" => "0",      // in v2
+                //        "canTrade" => true,    // in v2
+                //        "canDeposit" => true,  // in v2
+                //        "canWithdraw" => true, // in v2
+                //        "feeBurn" => true,     // in v2
+                //        "tradeGroupId" => "-1",// in v2
+                //        "updateTime" => "0",   // in v2
+                //        "multiAssetsMargin" => true // in v2
+                //        "assets" => array(
+                //            array(
+                //                "asset" => "USDT",
+                //                "walletBalance" => "72.72317863",
+                //                "unrealizedProfit" => "11.17920750",
+                //                "marginBalance" => "83.90238613",
+                //                "maintMargin" => "11.95476475",
+                //                "initialMargin" => "99.62303962",
+                //                "positionInitialMargin" => "99.62303962",
+                //                "openOrderInitialMargin" => "0.00000000",
+                //                "crossWalletBalance" => "72.72317863",
+                //                "crossUnPnl" => "11.17920750",
+                //                "availableBalance" => "11.39916777",
+                //                "maxWithdrawAmount" => "11.39916777",
+                //                "updateTime" => "1721995605338",
+                //                "marginAvailable" => true // in v2
+                //            ),
+                //            ... and some few supported settle currencies => USDC, BTC, ETH, BNB ..
+                //        ),
+                //        "positions" => array(
+                //            array(
+                //                "symbol" => "WLDUSDT",
+                //                "positionSide" => "BOTH",
+                //                "positionAmt" => "-849",
+                //                "unrealizedProfit" => "11.17920750",
+                //                "isolatedMargin" => "0",
+                //                "isolatedWallet" => "0",
+                //                "notional" => "-1992.46079250",
+                //                "initialMargin" => "99.62303962",
+                //                "maintMargin" => "11.95476475",
+                //                "updateTime" => "1721995760449"
+                //                "leverage" => "50",                        // in v2
+                //                "entryPrice" => "2.34",                    // in v2
+                //                "positionInitialMargin" => "118.82116614", // in v2
+                //                "openOrderInitialMargin" => "0",           // in v2
+                //                "isolated" => false,                       // in v2
+                //                "breakEvenPrice" => "2.3395788",           // in v2
+                //                "maxNotional" => "25000",                  // in v2
+                //                "bidNotional" => "0",                      // in v2
+                //                "askNotional" => "0"                       // in v2
+                //            ),
+                //            ...
+                //        )
+                //    }
+                //
             }
         } elseif ($this->is_inverse($type, $subType)) {
             if ($isPortfolioMargin) {
@@ -10041,10 +10186,12 @@ class binance extends Exchange {
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-UM-Position-Information
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-CM-Position-Information
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V3
          * @param {string[]|null} $symbols list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->portfolioMargin] set to true if you would like to fetch positions for a portfolio margin account
          * @param {string} [$params->subType] "linear" or "inverse"
+         * @param {bool} [$params->useV2] set to true if you want to use the obsolete endpoint, where some more additional fields were provided
          * @return {array} data on the positions risk
          */
         if ($symbols !== null) {
@@ -10068,7 +10215,40 @@ class binance extends Exchange {
             if ($isPortfolioMargin) {
                 $response = $this->papiGetUmPositionRisk ($this->extend($request, $params));
             } else {
-                $response = $this->fapiPrivateV2GetPositionRisk ($this->extend($request, $params));
+                $useV2 = null;
+                list($useV2, $params) = $this->handle_option_and_params($params, 'fetchPositionsRisk', 'useV2', false);
+                $params = $this->extend($request, $params);
+                if (!$useV2) {
+                    $response = $this->fapiPrivateV3GetPositionRisk ($params);
+                } else {
+                    $response = $this->fapiPrivateV2GetPositionRisk ($params);
+                }
+                //
+                // array(
+                //  array(
+                //     symbol => "WLDUSDT",
+                //     positionSide => "BOTH",
+                //     positionAmt => "5",
+                //     entryPrice => "2.3483",
+                //     breakEvenPrice => "2.349356735",
+                //     markPrice => "2.39560000",
+                //     unRealizedProfit => "0.23650000",
+                //     liquidationPrice => "0",
+                //     isolatedMargin => "0",
+                //     notional => "11.97800000",
+                //     isolatedWallet => "0",
+                //     updateTime => "1722062678998",
+                //     initialMargin => "2.39560000",         // added in v3
+                //     maintMargin => "0.07186800",           // added in v3
+                //     positionInitialMargin => "2.39560000", // added in v3
+                //     openOrderInitialMargin => "0",         // added in v3
+                //     adl => "2",                            // added in v3
+                //     bidNotional => "0",                    // added in v3
+                //     askNotional => "0",                    // added in v3
+                //     marginAsset => "USDT",                 // added in v3
+                //  ),
+                // )
+                //
             }
         } elseif ($this->is_inverse($type, $subType)) {
             if ($isPortfolioMargin) {
@@ -10085,18 +10265,18 @@ class binance extends Exchange {
         //
         //     array(
         //         {
+        //             "symbol" => "BTCUSDT",
+        //             "positionSide" => "BOTH",
+        //             "positionAmt" => "0.000",
         //             "entryPrice" => "0.00000",
+        //             "markPrice" => "6679.50671178",
+        //             "unRealizedProfit" => "0.00000000",
+        //             "liquidationPrice" => "0",
+        //             "isolatedMargin" => "0.00000000",
         //             "marginType" => "isolated",
         //             "isAutoAddMargin" => "false",
-        //             "isolatedMargin" => "0.00000000",
         //             "leverage" => "10",
-        //             "liquidationPrice" => "0",
-        //             "markPrice" => "6679.50671178",
         //             "maxNotionalValue" => "20000000",
-        //             "positionAmt" => "0.000",
-        //             "symbol" => "BTCUSDT",
-        //             "unRealizedProfit" => "0.00000000",
-        //             "positionSide" => "BOTH",
         //             "updateTime" => 0
         //        }
         //     )
@@ -10113,27 +10293,13 @@ class binance extends Exchange {
         //             "liquidationPrice" => "5930.78",
         //             "markPrice" => "6679.50671178",
         //             "maxNotionalValue" => "20000000",
-        //             "positionAmt" => "20.000",
+        //             "positionSide" => "LONG",
+        //             "positionAmt" => "20.000", // negative value for 'SHORT'
         //             "symbol" => "BTCUSDT",
         //             "unRealizedProfit" => "2316.83423560"
-        //             "positionSide" => "LONG",
         //             "updateTime" => 1625474304765
         //         ),
-        //         {
-        //             "entryPrice" => "0.00000",
-        //             "marginType" => "isolated",
-        //             "isAutoAddMargin" => "false",
-        //             "isolatedMargin" => "5413.95799991",
-        //             "leverage" => "10",
-        //             "liquidationPrice" => "7189.95",
-        //             "markPrice" => "6679.50671178",
-        //             "maxNotionalValue" => "20000000",
-        //             "positionAmt" => "-10.000",
-        //             "symbol" => "BTCUSDT",
-        //             "unRealizedProfit" => "-1156.46711780",
-        //             "positionSide" => "SHORT",
-        //             "updateTime" => 0
-        //         }
+        //         .. second dict is similar, but with `positionSide => SHORT`
         //     )
         //
         // inverse portfolio margin:
@@ -10177,10 +10343,9 @@ class binance extends Exchange {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $rawPosition = $response[$i];
-            $entryPrice = $this->safe_string($rawPosition, 'entryPrice');
-            if (($entryPrice !== '0') && ($entryPrice !== '0.0') && ($entryPrice !== '0.00000000')) {
-                $parsed = $this->parse_position_risk($response[$i]);
-                $result[] = $parsed;
+            $entryPriceString = $this->safe_string($rawPosition, 'entryPrice');
+            if (Precise::string_gt($entryPriceString, '0')) {
+                $result[] = $this->parse_position_risk($response[$i]);
             }
         }
         $symbols = $this->market_symbols($symbols);
@@ -10420,6 +10585,7 @@ class binance extends Exchange {
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Account-Detail
          * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Account-Detail
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
          * @param {string[]} [$symbols] a list of unified market $symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->subType] "linear" or "inverse"
@@ -10438,7 +10604,7 @@ class binance extends Exchange {
             if ($isPortfolioMargin) {
                 $response = $this->papiGetUmAccount ($params);
             } else {
-                $response = $this->fapiPrivateV2GetAccount ($params);
+                $response = $this->fapiPrivateGetSymbolConfig ($params);
             }
         } elseif ($this->is_inverse($type, $subType)) {
             if ($isPortfolioMargin) {
@@ -10450,6 +10616,9 @@ class binance extends Exchange {
             throw new NotSupported($this->id . ' fetchLeverages() supports linear and inverse contracts only');
         }
         $leverages = $this->safe_list($response, 'positions', array());
+        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+            $leverages = $response;
+        }
         return $this->parse_leverages($leverages, $symbols, 'symbol');
     }
 
@@ -10460,11 +10629,15 @@ class binance extends Exchange {
         if ($marginModeRaw !== null) {
             $marginMode = $marginModeRaw ? 'isolated' : 'cross';
         }
+        $marginTypeRaw = $this->safe_string_lower($leverage, 'marginType');
+        if ($marginTypeRaw !== null) {
+            $marginMode = ($marginTypeRaw === 'crossed') ? 'cross' : 'isolated';
+        }
         $side = $this->safe_string_lower($leverage, 'positionSide');
         $longLeverage = null;
         $shortLeverage = null;
         $leverageValue = $this->safe_integer($leverage, 'leverage');
-        if ($side === 'both') {
+        if (($side === null) || ($side === 'both')) {
             $longLeverage = $leverageValue;
             $shortLeverage = $leverageValue;
         } elseif ($side === 'long') {
@@ -10884,7 +11057,7 @@ class binance extends Exchange {
             } else {
                 throw new AuthenticationError($this->id . ' $userDataStream endpoint requires `apiKey` credential');
             }
-        } elseif (($api === 'private') || ($api === 'eapiPrivate') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV2') || ($api === 'sapiV3') || ($api === 'sapiV4') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2') || ($api === 'papi' && $path !== 'ping')) {
+        } elseif (($api === 'private') || ($api === 'eapiPrivate') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV2') || ($api === 'sapiV3') || ($api === 'sapiV4') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2') || ($api === 'fapiPrivateV3') || ($api === 'papi' && $path !== 'ping')) {
             $this->check_required_credentials();
             if ($method === 'POST' && (($path === 'order') || ($path === 'sor/order'))) {
                 // inject in implicit API calls
@@ -10918,7 +11091,7 @@ class binance extends Exchange {
             }
             if (($api === 'sapi') && ($path === 'asset/dust')) {
                 $query = $this->urlencode_with_array_repeat($extendedParams);
-            } elseif (($path === 'batchOrders') || (mb_strpos($path, 'sub-account') !== false) || ($path === 'capital/withdraw/apply') || (mb_strpos($path, 'staking') !== false)) {
+            } elseif (($path === 'batchOrders') || (mb_strpos($path, 'sub-account') !== false) || ($path === 'capital/withdraw/apply') || (mb_strpos($path, 'staking') !== false) || (mb_strpos($path, 'simple-earn') !== false)) {
                 if (($method === 'DELETE') && ($path === 'batchOrders')) {
                     $orderidlist = $this->safe_list($extendedParams, 'orderidlist', array());
                     $origclientorderidlist = $this->safe_list($extendedParams, 'origclientorderidlist', array());
@@ -12291,6 +12464,7 @@ class binance extends Exchange {
          * fetches margin modes ("isolated" or "cross") that the $market for the symbol in in, with symbol=null all markets for a $subType (linear/inverse) are returned
          * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
          * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
+         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
          * @param {string} symbol unified symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->subType] "linear" or "inverse"
@@ -12306,70 +12480,17 @@ class binance extends Exchange {
         list($subType, $params) = $this->handle_sub_type_and_params('fetchMarginMode', $market, $params);
         $response = null;
         if ($subType === 'linear') {
-            $response = $this->fapiPrivateV2GetAccount ($params);
+            $response = $this->fapiPrivateGetSymbolConfig ($params);
             //
-            //    {
-            //        feeTier => '0',
-            //        canTrade => true,
-            //        canDeposit => true,
-            //        canWithdraw => true,
-            //        tradeGroupId => '-1',
-            //        updateTime => '0',
-            //        multiAssetsMargin => true,
-            //        totalInitialMargin => '438.31134352',
-            //        totalMaintMargin => '5.90847101',
-            //        totalWalletBalance => '4345.15626338',
-            //        totalUnrealizedProfit => '376.45220224',
-            //        totalMarginBalance => '4721.60846562',
-            //        totalPositionInitialMargin => '425.45252687',
-            //        totalOpenOrderInitialMargin => '12.85881664',
-            //        totalCrossWalletBalance => '4345.15626338',
-            //        totalCrossUnPnl => '376.45220224',
-            //        availableBalance => '4281.84764041',
-            //        maxWithdrawAmount => '4281.84764041',
-            //        $assets => array(
-            //            array(
-            //                asset => 'ETH',
-            //                walletBalance => '0.00000000',
-            //                unrealizedProfit => '0.00000000',
-            //                marginBalance => '0.00000000',
-            //                maintMargin => '0.00000000',
-            //                initialMargin => '0.00000000',
-            //                positionInitialMargin => '0.00000000',
-            //                openOrderInitialMargin => '0.00000000',
-            //                maxWithdrawAmount => '0.00000000',
-            //                crossWalletBalance => '0.00000000',
-            //                crossUnPnl => '0.00000000',
-            //                availableBalance => '1.26075574',
-            //                marginAvailable => true,
-            //                updateTime => '0'
-            //            ),
-            //        ...
-            //        ),
-            //        positions => array(
-            //            array(
-            //              symbol => 'SNTUSDT',
-            //              initialMargin => '0',
-            //              maintMargin => '0',
-            //              unrealizedProfit => '0.00000000',
-            //              positionInitialMargin => '0',
-            //              openOrderInitialMargin => '0',
-            //              leverage => '20',
-            //              isolated => false,
-            //              entryPrice => '0.0',
-            //              breakEvenPrice => '0.0',
-            //              maxNotional => '25000',
-            //              positionSide => 'BOTH',
-            //              positionAmt => '0',
-            //              notional => '0',
-            //              isolatedWallet => '0',
-            //              updateTime => '0',
-            //              bidNotional => '0',
-            //              askNotional => '0'
-            //            ),
-            //            ...
-            //        )
-            //    }
+            // array(
+            //     {
+            //         "symbol" => "BTCUSDT",
+            //         "marginType" => "CROSSED",
+            //         "isAutoAddMargin" => "false",
+            //         "leverage" => 21,
+            //         "maxNotionalValue" => "1000000",
+            //     }
+            // )
             //
         } elseif ($subType === 'inverse') {
             $response = $this->dapiPrivateGetAccount ($params);
@@ -12425,17 +12546,28 @@ class binance extends Exchange {
             throw new BadRequest($this->id . ' fetchMarginModes () supports linear and inverse subTypes only');
         }
         $assets = $this->safe_list($response, 'positions', array());
+        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+            $assets = $response;
+        }
         return $this->parse_margin_modes($assets, $symbols, 'symbol', 'swap');
     }
 
     public function parse_margin_mode(array $marginMode, $market = null): array {
         $marketId = $this->safe_string($marginMode, 'symbol');
         $market = $this->safe_market($marketId, $market);
-        $isIsolated = $this->safe_bool($marginMode, 'isolated');
+        $marginModeRaw = $this->safe_bool($marginMode, 'isolated');
+        $reMarginMode = null;
+        if ($marginModeRaw !== null) {
+            $reMarginMode = $marginModeRaw ? 'isolated' : 'cross';
+        }
+        $marginTypeRaw = $this->safe_string_lower($marginMode, 'marginType');
+        if ($marginTypeRaw !== null) {
+            $reMarginMode = ($marginTypeRaw === 'crossed') ? 'cross' : 'isolated';
+        }
         return array(
             'info' => $marginMode,
             'symbol' => $market['symbol'],
-            'marginMode' => $isIsolated ? 'isolated' : 'cross',
+            'marginMode' => $reMarginMode,
         );
     }
 
@@ -12820,7 +12952,7 @@ class binance extends Exchange {
         } else {
             $request['startTime'] = $now - $msInThirtyDays;
         }
-        $endTime = $this->safe_string_2($params, 'endTime', 'until');
+        $endTime = $this->safe_integer_2($params, 'endTime', 'until');
         if ($endTime !== null) {
             $request['endTime'] = $endTime;
         } else {
@@ -12860,6 +12992,9 @@ class binance extends Exchange {
             //     }
             //
         } else {
+            if (($request['endTime'] - $request['startTime']) > $msInThirtyDays) {
+                throw new BadRequest($this->id . ' fetchConvertTradeHistory () the max interval between startTime and $endTime is 30 days.');
+            }
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }

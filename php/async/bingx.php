@@ -1228,7 +1228,6 @@ class bingx extends Exchange {
             'fee' => array(
                 'cost' => $this->parse_number(Precise::string_abs($this->safe_string_2($trade, 'commission', 'n'))),
                 'currency' => $currencyCode,
-                'rate' => null,
             ),
         ), $market);
     }

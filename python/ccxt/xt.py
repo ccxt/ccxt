@@ -2034,7 +2034,6 @@ class xt(Exchange, ImplicitAPI):
             'fee': {
                 'currency': self.safe_currency_code(self.safe_string_2(trade, 'feeCurrency', 'feeCoin')),
                 'cost': self.safe_string(trade, 'fee'),
-                'rate': None,
             },
         }, market)
 

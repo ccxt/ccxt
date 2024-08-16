@@ -144,7 +144,7 @@ class woo extends woo$1 {
                     'https://support.woo.org/hc/en-001/articles/4404611795353--Trading-Fees',
                 ],
                 'referral': {
-                    'url': 'https://x.woo.org/register?ref=YWOWC96B',
+                    'url': 'https://x.woo.org/register?ref=DIJT0CNL',
                     'discount': 0.35,
                 },
             },
@@ -607,6 +607,10 @@ class woo extends woo$1 {
         const amount = this.safeString(trade, 'executed_quantity');
         const order_id = this.safeString(trade, 'order_id');
         const fee = this.parseTokenAndFeeTemp(trade, 'fee_asset', 'fee');
+        const feeCost = this.safeString(fee, 'cost');
+        if (feeCost !== undefined) {
+            fee['cost'] = feeCost;
+        }
         const cost = Precise["default"].stringMul(price, amount);
         const side = this.safeStringLower(trade, 'side');
         const id = this.safeString(trade, 'id');
