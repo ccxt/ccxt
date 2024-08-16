@@ -789,8 +789,11 @@ export default class bingx extends bingxRest {
         //    }
         //
         // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
-        // for swap, (T) is the opening time
-        const timestamp = (market['spot']) ? 't' : 'T';
+        // for linear swap, (T) is the opening time
+        let timestamp = (market['spot']) ? 't' : 'T';
+        if (market['swap']) {
+            timestamp = (market['inverse']) ? 't' : 'T';
+        }
         return [
             this.safeInteger (ohlcv, timestamp),
             this.safeNumber (ohlcv, 'o'),
@@ -803,7 +806,7 @@ export default class bingx extends bingxRest {
 
     handleOHLCV (client: Client, message) {
         //
-        // spot
+        // spot:
         //
         //   {
         //       "code": 0,
@@ -829,7 +832,8 @@ export default class bingx extends bingxRest {
         //       "success": true
         //   }
         //
-        // swap
+        // linear swap:
+        //
         //    {
         //        "code": 0,
         //        "dataType": "BTC-USDT@kline_1m",
@@ -846,14 +850,26 @@ export default class bingx extends bingxRest {
         //        ]
         //    }
         //
+        // inverse swap:
+        //
+        //     {
+        //         "code": 0,
+        //         "timestamp": 1723769354547,
+        //         "dataType": "BTC-USD@kline_1m",
+        //         "data": {
+        //             "t": 1723769340000,
+        //             "o": 57485.1,
+        //             "c": 57468,
+        //             "l": 57464.9,
+        //             "h": 57485.1,
+        //             "a": 0.189663,
+        //             "v": 109,
+        //             "u": 92,
+        //             "s": "BTC-USD"
+        //         }
+        //     }
+        //
         const isSwap = client.url.indexOf ('swap') >= 0;
-        let candles = undefined;
-        if (isSwap) {
-            candles = this.safeList (message, 'data', []);
-        } else {
-            const data = this.safeDict (message, 'data', {});
-            candles = [ this.safeDict (data, 'K', {}) ];
-        }
         const dataType = this.safeString (message, 'dataType');
         const parts = dataType.split ('@');
         const firstPart = parts[0];
@@ -861,6 +877,17 @@ export default class bingx extends bingxRest {
         const marketId = this.safeString (message, 's', firstPart);
         const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket (marketId, undefined, undefined, marketType);
+        let candles = undefined;
+        if (isSwap) {
+            if (market['inverse']) {
+                candles = [ this.safeDict (message, 'data', {}) ];
+            } else {
+                candles = this.safeList (message, 'data', []);
+            }
+        } else {
+            const data = this.safeDict (message, 'data', {});
+            candles = [ this.safeDict (data, 'K', {}) ];
+        }
         const symbol = market['symbol'];
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         const rawTimeframe = dataType.split ('_')[1];
@@ -894,8 +921,9 @@ export default class bingx extends bingxRest {
          * @method
          * @name bingx#watchOHLCV
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://bingx-api.github.io/docs/#/spot/socket/market.html#K%E7%BA%BF%20Streams
-         * @see https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20K-Line%20Data
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#K-line%20Streams
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20K-Line%20Data
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/socket/market.html#Subscribe%20to%20Latest%20Trading%20Pair%20K-Line
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -905,8 +933,16 @@ export default class bingx extends bingxRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('watchOHLCV', market, params);
-        const url = this.safeValue (this.urls['api']['ws'], marketType);
+        let marketType = undefined;
+        let subType = undefined;
+        let url = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('watchOHLCV', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('watchOHLCV', market, params, 'linear');
+        if (marketType === 'swap') {
+            url = this.safeString (this.urls['api']['ws'], subType);
+        } else {
+            url = this.safeString (this.urls['api']['ws'], marketType);
+        }
         if (url === undefined) {
             throw new BadRequest (this.id + ' watchOHLCV is not supported for ' + marketType + ' markets.');
         }
@@ -924,10 +960,10 @@ export default class bingx extends bingxRest {
             request['reqType'] = 'sub';
         }
         const subscriptionArgs: Dict = {
-            'limit': limit,
+            'interval': rawTimeframe,
             'params': params,
         };
-        const result = await this.watch (url, messageHash, this.extend (request, query), subscriptionHash, subscriptionArgs);
+        const result = await this.watch (url, messageHash, this.extend (request, params), subscriptionHash, subscriptionArgs);
         const ohlcv = result[2];
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
