@@ -16,6 +16,7 @@ const errorHierarchy = {
                     'MarginModeAlreadySet': {},
                 },
                 'MarketClosed': {},
+                'ManualInteractionNeeded': {},
             },
             'InsufficientFunds': {},
             'InvalidAddress': {
