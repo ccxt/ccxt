@@ -1206,12 +1206,10 @@ If you want to have an access to raw incoming messages and use your custom handl
 #### **Javascript**
 ```javascript
 function myHandler(ws, data){
-    console.log(data);
+    // console.log(data);
+    this.handleMessage(data); // trigger original `handleMessage`
     if (your_condition) {
-        // your custom logic
-    } else {
-        // else trigger original `handleMessage`
-        this.handleMessage(data); 
+        // execute your additional code
     }
 }
 
@@ -1223,12 +1221,10 @@ ex.watchTicker('BTC/USDT');
 ```python
 
 def myHandler(instance, ws, data, original_handle_message):
-    print(data)
+    # print(data)
+    original_handle_message(ws, data)  # trigger original `handleMessage`
     if your_condition:
-        # your custom logic
-    else:
-        # else trigger original `handleMessage`
-        original_handle_message(ws, data)
+        # execute your additional code
 
 async def example():
     e = ccxt.pro.binance()
@@ -1247,12 +1243,10 @@ class myBinance extends \ccxt\pro\binance {
 
     // your custom handler
     public function handle_message($ws, $message) {
-        var_dump($message);
+        // var_dump($message);
+        parent::handle_message($ws, $message); // trigger original `handleMessage`
         if ($your_condition) {
-            // your custom logic
-        } else {
-            // else trigger original `handleMessage`
-            return parent::handle_message($ws, $message);
+            // execute your additional code
         }
     }
 }
