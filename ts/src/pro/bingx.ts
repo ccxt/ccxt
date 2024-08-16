@@ -975,11 +975,12 @@ export default class bingx extends bingxRest {
         /**
          * @method
          * @name bingx#watchOrders
-         * @see https://bingx-api.github.io/docs/#/spot/socket/account.html#Subscription%20order%20update%20data
-         * @see https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
          * @description watches information on multiple orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/socket/account.html#Subscription%20order%20update%20data
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Order%20update%20push
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/socket/account.html#Order%20update%20push
+         * @param {string} [symbol] unified market symbol of the market orders are made in
+         * @param {int} [since] the earliest time in ms to watch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -987,12 +988,14 @@ export default class bingx extends bingxRest {
         await this.loadMarkets ();
         await this.authenticate ();
         let type = undefined;
+        let subType = undefined;
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
         }
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('watchOrders', market, params, 'linear');
         const isSpot = (type === 'spot');
         const spotHash = 'spot:private';
         const swapHash = 'swap:private';
@@ -1003,16 +1006,21 @@ export default class bingx extends bingxRest {
         if (market !== undefined) {
             messageHash += ':' + symbol;
         }
-        const url = this.urls['api']['ws'][type] + '?listenKey=' + this.options['listenKey'];
-        let request = undefined;
         const uuid = this.uuid ();
-        if (isSpot) {
+        let baseUrl = undefined;
+        let request: Dict = {};
+        if (type === 'swap') {
+            baseUrl = this.safeString (this.urls['api']['ws'], subType);
+        } else {
+            baseUrl = this.safeString (this.urls['api']['ws'], type);
             request = {
                 'id': uuid,
+                'reqType': 'sub',
                 'dataType': 'spot.executionReport',
             };
         }
-        const orders = await this.watch (url, messageHash, request, subscriptionHash);
+        const url = baseUrl + '?listenKey=' + this.options['listenKey'];
+        const orders = await this.watch (url, messageHash, this.extend (request, params), subscriptionHash);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -1023,44 +1031,52 @@ export default class bingx extends bingxRest {
         /**
          * @method
          * @name bingx#watchMyTrades
-         * @see https://bingx-api.github.io/docs/#/spot/socket/account.html#Subscription%20order%20update%20data
-         * @see https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
          * @description watches information on multiple trades made by the user
-         * @param {string} symbol unified market symbol of the market trades were made in
-         * @param {int} [since] the earliest time in ms to trades orders for
-         * @param {int} [limit] the maximum number of trades structures to retrieve
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/socket/account.html#Subscription%20order%20update%20data
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Order%20update%20push
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/socket/account.html#Order%20update%20push
+         * @param {string} [symbol] unified market symbol of the market the trades are made in
+         * @param {int} [since] the earliest time in ms to watch trades for
+         * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
         await this.authenticate ();
         let type = undefined;
+        let subType = undefined;
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
         }
-        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('watchMyTrades', market, params, 'linear');
         const isSpot = (type === 'spot');
-        const spotSubHash = 'spot:private';
-        const swapSubHash = 'swap:private';
-        const subscriptionHash = isSpot ? spotSubHash : swapSubHash;
+        const spotHash = 'spot:private';
+        const swapHash = 'swap:private';
+        const subscriptionHash = isSpot ? spotHash : swapHash;
         const spotMessageHash = 'spot:mytrades';
         const swapMessageHash = 'swap:mytrades';
         let messageHash = isSpot ? spotMessageHash : swapMessageHash;
         if (market !== undefined) {
             messageHash += ':' + symbol;
         }
-        const url = this.urls['api']['ws'][type] + '?listenKey=' + this.options['listenKey'];
-        let request = undefined;
         const uuid = this.uuid ();
-        if (isSpot) {
+        let baseUrl = undefined;
+        let request: Dict = {};
+        if (type === 'swap') {
+            baseUrl = this.safeString (this.urls['api']['ws'], subType);
+        } else {
+            baseUrl = this.safeString (this.urls['api']['ws'], type);
             request = {
                 'id': uuid,
+                'reqType': 'sub',
                 'dataType': 'spot.executionReport',
             };
         }
-        const trades = await this.watch (url, messageHash, request, subscriptionHash);
+        const url = baseUrl + '?listenKey=' + this.options['listenKey'];
+        const trades = await this.watch (url, messageHash, this.extend (request, params), subscriptionHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
