@@ -370,11 +370,11 @@ export default class hashkey extends Exchange {
                     '-1021': InvalidNonce, // Timestamp for this request is outside of the recvWindow
                     '-1024': BadRequest, // Duplicate request
                     '-1101': ExchangeNotAvailable, // Feature has been offline
-                    '-1115': BadRequest, // Invalid timeInForce
-                    '-1117': BadRequest, // Invalid order side
-                    '-1123': BadRequest, // Invalid client order id
-                    '-1124': BadRequest, // Invalid price
-                    '-1126': BadRequest, // Invalid quantity
+                    '-1115': InvalidOrder, // Invalid timeInForce
+                    '-1117': InvalidOrder, // Invalid order side
+                    '-1123': InvalidOrder, // Invalid client order id
+                    '-1124': InvalidOrder, // Invalid price
+                    '-1126': InvalidOrder, // Invalid quantity
                     '-1129': BadRequest, // Invalid parameters, quantity and amount are not allowed to be sent at the same time.
                     '-1130': BadRequest, // Illegal parameter '%s'
                     '-1132': BadRequest, // Order price greater than the maximum
@@ -382,9 +382,9 @@ export default class hashkey extends Exchange {
                     '-1135': BadRequest, // Order quantity greater than the maximum
                     '-1136': BadRequest, // Order quantity lower than the minimum
                     '-1138': InvalidOrder, // Order has been partially cancelled
-                    '-1137': BadRequest, // Order quantity precision too large
+                    '-1137': InvalidOrder, // Order quantity precision too large
                     '-1139': OrderImmediatelyFillable, // Order has been filled
-                    '-1140': BadRequest, // Order amount lower than the minimum
+                    '-1140': InvalidOrder, // Order amount lower than the minimum
                     '-1141': DuplicateOrderId, // Duplicate order
                     '-1142': OrderNotFillable, // Order has been cancelled
                     '-1143': OrderNotFound, // Order not found on order book
@@ -392,13 +392,13 @@ export default class hashkey extends Exchange {
                     '-1145': NotSupported, // Cancellation on this order type not supported
                     '-1146': RequestTimeout, // Order creation timeout
                     '-1147': RequestTimeout, // Order cancellation timeout
-                    '-1148': BadRequest, // Order amount precision too large
+                    '-1148': InvalidOrder, // Order amount precision too large
                     '-1149': OperationRejected, // Order creation failed
                     '-1150': OperationFailed, // Order cancellation failed
                     '-1151': OperationRejected, // The trading pair is not open yet
                     '-1152': AccountNotEnabled, // User does not exist
-                    '-1153': BadRequest, // Invalid price type
-                    '-1154': BadRequest, // Invalid position side
+                    '-1153': InvalidOrder, // Invalid price type
+                    '-1154': InvalidOrder, // Invalid position side
                     '-1155': OperationRejected, // The trading pair is not available for api trading
                     '-1156': OperationFailed, // Limit maker order creation failed
                     '-1157': OperationFailed, // Modify futures margin failed
