@@ -25,6 +25,7 @@ interface kucoin {
     publicGetTimestamp (params?: {}): Promise<implicitReturnType>;
     publicGetStatus (params?: {}): Promise<implicitReturnType>;
     publicGetMarkPriceSymbolCurrent (params?: {}): Promise<implicitReturnType>;
+    publicGetMarkPriceAllSymbols (params?: {}): Promise<implicitReturnType>;
     publicGetMarginConfig (params?: {}): Promise<implicitReturnType>;
     publicPostBulletPublic (params?: {}): Promise<implicitReturnType>;
     privateGetUserInfo (params?: {}): Promise<implicitReturnType>;
@@ -94,6 +95,7 @@ interface kucoin {
     privateGetRedeemOrders (params?: {}): Promise<implicitReturnType>;
     privateGetPurchaseOrders (params?: {}): Promise<implicitReturnType>;
     privateGetBrokerApiRebaseDownload (params?: {}): Promise<implicitReturnType>;
+    privateGetAffiliateInviterStatistics (params?: {}): Promise<implicitReturnType>;
     privatePostSubUserCreated (params?: {}): Promise<implicitReturnType>;
     privatePostSubApiKey (params?: {}): Promise<implicitReturnType>;
     privatePostSubApiKeyUpdate (params?: {}): Promise<implicitReturnType>;

@@ -787,7 +787,11 @@ class alpaca(Exchange, ImplicitAPI):
         if isinstance(response, list):
             return self.parse_orders(response, None)
         else:
-            return response
+            return [
+                self.safe_order({
+                    'info': response,
+                }),
+            ]
 
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -1052,6 +1056,7 @@ class alpaca(Exchange, ImplicitAPI):
         url = self.implode_hostname(self.urls['api'][api[0]])
         headers = headers if (headers is not None) else {}
         if api[1] == 'private':
+            self.check_required_credentials()
             headers['APCA-API-KEY-ID'] = self.apiKey
             headers['APCA-API-SECRET-KEY'] = self.secret
         query = self.omit(params, self.extract_params(path))

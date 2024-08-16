@@ -69,6 +69,7 @@ class ImplicitAPI:
     private_spot_post_withdraw = privateSpotPostWithdraw = Entry('withdraw', ['private', 'spot'], 'POST', {'cost': 1})
     private_spot_post_balance_transfer = privateSpotPostBalanceTransfer = Entry('balance/transfer', ['private', 'spot'], 'POST', {'cost': 1})
     private_spot_post_balance_account_transfer = privateSpotPostBalanceAccountTransfer = Entry('balance/account/transfer', ['private', 'spot'], 'POST', {'cost': 1})
+    private_spot_post_ws_token = privateSpotPostWsToken = Entry('ws-token', ['private', 'spot'], 'POST', {'cost': 1})
     private_spot_delete_batch_order = privateSpotDeleteBatchOrder = Entry('batch-order', ['private', 'spot'], 'DELETE', {'cost': 1})
     private_spot_delete_open_order = privateSpotDeleteOpenOrder = Entry('open-order', ['private', 'spot'], 'DELETE', {'cost': 1})
     private_spot_delete_order_orderid = privateSpotDeleteOrderOrderId = Entry('order/{orderId}', ['private', 'spot'], 'DELETE', {'cost': 1})

@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import cryptocomRest from '../cryptocom.js';
-import { AuthenticationError, InvalidNonce, NetworkError } from '../base/errors.js';
+import { AuthenticationError, ChecksumError, ExchangeError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
@@ -46,6 +46,9 @@ export default class cryptocom extends cryptocomRest {
                 'watchPositions': {
                     'fetchPositionsSnapshot': true,
                     'awaitPositionsSnapshot': true, // whether to wait for the positions snapshot before providing updates
+                },
+                'watchOrderBook': {
+                    'checksum': true,
                 },
             },
             'streaming': {},
@@ -220,7 +223,10 @@ export default class cryptocom extends cryptocomRest {
             const previousNonce = this.safeInteger(data, 'pu');
             const currentNonce = orderbook['nonce'];
             if (currentNonce !== previousNonce) {
-                throw new InvalidNonce(this.id + ' watchOrderBook() ' + symbol + ' ' + previousNonce + ' != ' + nonce);
+                const checksum = this.handleOption('watchOrderBook', 'checksum', true);
+                if (checksum) {
+                    throw new ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
+                }
             }
         }
         this.handleDeltas(orderbook['asks'], this.safeValue(books, 'asks', []));
@@ -330,7 +336,7 @@ export default class cryptocom extends cryptocomRest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         let market = undefined;
@@ -558,7 +564,7 @@ export default class cryptocom extends cryptocomRest {
         const client = this.client(url);
         this.setPositionsCache(client, symbols);
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
-        const awaitPositionsSnapshot = this.safeBool('watchPositions', 'awaitPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.handleOption('watchPositions', 'awaitPositionsSnapshot', true);
         if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
             const snapshot = await client.future('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
@@ -883,6 +889,7 @@ export default class cryptocom extends cryptocomRest {
         //        "message": "invalid channel {"channels":["trade.BTCUSD-PERP"]}"
         //    }
         //
+        const id = this.safeString(message, 'id');
         const errorCode = this.safeString(message, 'code');
         try {
             if (errorCode && errorCode !== '0') {
@@ -892,6 +899,7 @@ export default class cryptocom extends cryptocomRest {
                 if (messageString !== undefined) {
                     this.throwBroadlyMatchedException(this.exceptions['broad'], messageString, feedback);
                 }
+                throw new ExchangeError(feedback);
             }
             return false;
         }
@@ -904,7 +912,7 @@ export default class cryptocom extends cryptocomRest {
                 }
             }
             else {
-                client.reject(e);
+                client.reject(e, id);
             }
             return true;
         }

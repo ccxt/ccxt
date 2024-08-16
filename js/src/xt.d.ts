@@ -1,5 +1,9 @@
 import Exchange from './abstract/xt.js';
 import { Currencies, Currency, Dict, FundingHistory, FundingRateHistory, Int, LeverageTier, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Str, Tickers, Transaction, TransferEntry } from './base/types.js';
+/**
+ * @class xt
+ * @augments Exchange
+ */
 export default class xt extends Exchange {
     describe(): any;
     nonce(): number;
@@ -37,7 +41,7 @@ export default class xt extends Exchange {
     cancelOrders(ids: string[], symbol?: string, params?: {}): Promise<Order[]>;
     parseOrder(order: any, market?: any): Order;
     parseOrderStatus(status: any): string;
-    fetchLedger(code?: string, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchLedger(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
     parseLedgerEntry(item: any, currency?: any): {
         id: string;
         direction: string;
@@ -73,8 +77,8 @@ export default class xt extends Exchange {
         network: any;
         info: any;
     };
-    fetchDeposits(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
-    fetchWithdrawals(code?: string, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
+    fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     parseTransactionStatus(status: any): string;

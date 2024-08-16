@@ -14,7 +14,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
-from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import ChecksumError
 from ccxt.base.precise import Precise
 
 
@@ -105,6 +105,7 @@ class gate(ccxt.async_support.gate):
                     'interval': '100ms',
                     'snapshotDelay': 10,  # how many deltas to cache before fetching a snapshot
                     'snapshotMaxRetries': 3,
+                    'checksum': True,
                 },
                 'watchBalance': {
                     'settle': 'usdt',  # or btc
@@ -460,10 +461,12 @@ class gate(ccxt.async_support.gate):
         elif nonce >= deltaStart - 1:
             self.handle_delta(storedOrderBook, delta)
         else:
-            error = InvalidNonce(self.id + ' orderbook update has a nonce bigger than u')
             del client.subscriptions[messageHash]
             del self.orderbooks[symbol]
-            client.reject(error, messageHash)
+            checksum = self.handle_option('watchOrderBook', 'checksum', True)
+            if checksum:
+                error = ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
+                client.reject(error, messageHash)
         client.resolve(storedOrderBook, messageHash)
 
     def get_cache_index(self, orderBook, cache):
@@ -785,7 +788,7 @@ class gate(ccxt.async_support.gate):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         subType = None
@@ -1010,7 +1013,7 @@ class gate(ccxt.async_support.gate):
         client = self.client(url)
         self.set_positions_cache(client, type, symbols)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
-        awaitPositionsSnapshot = self.safe_bool('watchPositions', 'awaitPositionsSnapshot', True)
+        awaitPositionsSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
         cache = self.safe_value(self.positions, type)
         if fetchPositionsSnapshot and awaitPositionsSnapshot and cache is None:
             return await client.future(type + ':fetchPositionsSnapshot')
@@ -1105,7 +1108,7 @@ class gate(ccxt.async_support.gate):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.type]: spot, margin, swap, future, or option. Required if listening to all symbols.
         :param boolean [params.isInverse]: if future, listen to inverse or linear contracts
-        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         market = None
@@ -1192,7 +1195,7 @@ class gate(ccxt.async_support.gate):
             elif event == 'finish':
                 status = self.safe_string(parsed, 'status')
                 if status is None:
-                    left = self.safe_number(info, 'left')
+                    left = self.safe_integer(info, 'left')
                     parsed['status'] = 'closed' if (left == 0) else 'canceled'
             stored.append(parsed)
             symbol = parsed['symbol']
@@ -1405,7 +1408,7 @@ class gate(ccxt.async_support.gate):
         errs = self.safe_dict(data, 'errs')
         error = self.safe_dict(message, 'error', errs)
         code = self.safe_string_2(error, 'code', 'label')
-        id = self.safe_string_2(message, 'id', 'requestId')
+        id = self.safe_string_n(message, ['id', 'requestId', 'request_id'])
         if error is not None:
             messageHash = self.safe_string(client.subscriptions, id)
             try:
@@ -1418,7 +1421,7 @@ class gate(ccxt.async_support.gate):
                 client.reject(e, messageHash)
                 if (messageHash is not None) and (messageHash in client.subscriptions):
                     del client.subscriptions[messageHash]
-            if id is not None:
+            if (id is not None) and (id in client.subscriptions):
                 del client.subscriptions[id]
             return True
         return False
@@ -1683,7 +1686,7 @@ class gate(ccxt.async_support.gate):
             'event': event,
             'payload': payload,
         }
-        return await self.watch(url, messageHash, request, messageHash)
+        return await self.watch(url, messageHash, request, messageHash, requestId)
 
     async def subscribe_private(self, url, messageHash, payload, channel, params, requiresUid=False):
         self.check_required_credentials()
@@ -1721,4 +1724,4 @@ class gate(ccxt.async_support.gate):
             # in case of authenticationError we will throw
             client.subscriptions[tempSubscriptionHash] = messageHash
         message = self.extend(request, params)
-        return await self.watch(url, messageHash, message, messageHash)
+        return await self.watch(url, messageHash, message, messageHash, messageHash)

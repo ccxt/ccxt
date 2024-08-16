@@ -229,6 +229,75 @@ abstract class bingx extends \ccxt\async\Exchange {
     public function swap_v3_public_get_quote_klines($params = array()) {
         return $this->request('quote/klines', array('swap', 'v3', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
+    public function cswap_v1_public_get_market_contracts($params = array()) {
+        return $this->request('market/contracts', array('cswap', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function cswap_v1_public_get_market_premiumindex($params = array()) {
+        return $this->request('market/premiumIndex', array('cswap', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function cswap_v1_public_get_market_openinterest($params = array()) {
+        return $this->request('market/openInterest', array('cswap', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function cswap_v1_public_get_market_klines($params = array()) {
+        return $this->request('market/klines', array('cswap', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function cswap_v1_public_get_market_depth($params = array()) {
+        return $this->request('market/depth', array('cswap', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function cswap_v1_public_get_market_ticker($params = array()) {
+        return $this->request('market/ticker', array('cswap', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function cswap_v1_private_get_trade_leverage($params = array()) {
+        return $this->request('trade/leverage', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function cswap_v1_private_get_trade_forceorders($params = array()) {
+        return $this->request('trade/forceOrders', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function cswap_v1_private_get_trade_allfillorders($params = array()) {
+        return $this->request('trade/allFillOrders', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function cswap_v1_private_get_trade_openorders($params = array()) {
+        return $this->request('trade/openOrders', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function cswap_v1_private_get_trade_orderdetail($params = array()) {
+        return $this->request('trade/orderDetail', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function cswap_v1_private_get_trade_orderhistory($params = array()) {
+        return $this->request('trade/orderHistory', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function cswap_v1_private_get_trade_margintype($params = array()) {
+        return $this->request('trade/marginType', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function cswap_v1_private_get_user_commissionrate($params = array()) {
+        return $this->request('user/commissionRate', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function cswap_v1_private_get_user_positions($params = array()) {
+        return $this->request('user/positions', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function cswap_v1_private_get_user_balance($params = array()) {
+        return $this->request('user/balance', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function cswap_v1_private_post_trade_order($params = array()) {
+        return $this->request('trade/order', array('cswap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function cswap_v1_private_post_trade_leverage($params = array()) {
+        return $this->request('trade/leverage', array('cswap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function cswap_v1_private_post_trade_closeallpositions($params = array()) {
+        return $this->request('trade/closeAllPositions', array('cswap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function cswap_v1_private_post_trade_margintype($params = array()) {
+        return $this->request('trade/marginType', array('cswap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function cswap_v1_private_post_trade_positionmargin($params = array()) {
+        return $this->request('trade/positionMargin', array('cswap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function cswap_v1_private_delete_trade_allopenorders($params = array()) {
+        return $this->request('trade/allOpenOrders', array('cswap', 'v1', 'private'), 'DELETE', $params, null, null, array("cost" => 2));
+    }
+    public function cswap_v1_private_delete_trade_cancelorder($params = array()) {
+        return $this->request('trade/cancelOrder', array('cswap', 'v1', 'private'), 'DELETE', $params, null, null, array("cost" => 2));
+    }
     public function contract_v1_private_get_allposition($params = array()) {
         return $this->request('allPosition', array('contract', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
     }
@@ -555,6 +624,75 @@ abstract class bingx extends \ccxt\async\Exchange {
     }
     public function swapV3PublicGetQuoteKlines($params = array()) {
         return $this->request('quote/klines', array('swap', 'v3', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function cswapV1PublicGetMarketContracts($params = array()) {
+        return $this->request('market/contracts', array('cswap', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function cswapV1PublicGetMarketPremiumIndex($params = array()) {
+        return $this->request('market/premiumIndex', array('cswap', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function cswapV1PublicGetMarketOpenInterest($params = array()) {
+        return $this->request('market/openInterest', array('cswap', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function cswapV1PublicGetMarketKlines($params = array()) {
+        return $this->request('market/klines', array('cswap', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function cswapV1PublicGetMarketDepth($params = array()) {
+        return $this->request('market/depth', array('cswap', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function cswapV1PublicGetMarketTicker($params = array()) {
+        return $this->request('market/ticker', array('cswap', 'v1', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    public function cswapV1PrivateGetTradeLeverage($params = array()) {
+        return $this->request('trade/leverage', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function cswapV1PrivateGetTradeForceOrders($params = array()) {
+        return $this->request('trade/forceOrders', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function cswapV1PrivateGetTradeAllFillOrders($params = array()) {
+        return $this->request('trade/allFillOrders', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function cswapV1PrivateGetTradeOpenOrders($params = array()) {
+        return $this->request('trade/openOrders', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function cswapV1PrivateGetTradeOrderDetail($params = array()) {
+        return $this->request('trade/orderDetail', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function cswapV1PrivateGetTradeOrderHistory($params = array()) {
+        return $this->request('trade/orderHistory', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function cswapV1PrivateGetTradeMarginType($params = array()) {
+        return $this->request('trade/marginType', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function cswapV1PrivateGetUserCommissionRate($params = array()) {
+        return $this->request('user/commissionRate', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function cswapV1PrivateGetUserPositions($params = array()) {
+        return $this->request('user/positions', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function cswapV1PrivateGetUserBalance($params = array()) {
+        return $this->request('user/balance', array('cswap', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));
+    }
+    public function cswapV1PrivatePostTradeOrder($params = array()) {
+        return $this->request('trade/order', array('cswap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function cswapV1PrivatePostTradeLeverage($params = array()) {
+        return $this->request('trade/leverage', array('cswap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function cswapV1PrivatePostTradeCloseAllPositions($params = array()) {
+        return $this->request('trade/closeAllPositions', array('cswap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function cswapV1PrivatePostTradeMarginType($params = array()) {
+        return $this->request('trade/marginType', array('cswap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function cswapV1PrivatePostTradePositionMargin($params = array()) {
+        return $this->request('trade/positionMargin', array('cswap', 'v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function cswapV1PrivateDeleteTradeAllOpenOrders($params = array()) {
+        return $this->request('trade/allOpenOrders', array('cswap', 'v1', 'private'), 'DELETE', $params, null, null, array("cost" => 2));
+    }
+    public function cswapV1PrivateDeleteTradeCancelOrder($params = array()) {
+        return $this->request('trade/cancelOrder', array('cswap', 'v1', 'private'), 'DELETE', $params, null, null, array("cost" => 2));
     }
     public function contractV1PrivateGetAllPosition($params = array()) {
         return $this->request('allPosition', array('contract', 'v1', 'private'), 'GET', $params, null, null, array("cost" => 2));

@@ -354,9 +354,9 @@ class bitfinex2(Exchange, ImplicitAPI):
                 # convert 'EXCHANGE LIMIT' to lowercase 'limit'
                 # everything else remains uppercase
                 'exchangeTypes': {
-                    # 'MARKET': None,
+                    'MARKET': 'market',
                     'EXCHANGE MARKET': 'market',
-                    # 'LIMIT': None,
+                    'LIMIT': 'limit',
                     'EXCHANGE LIMIT': 'limit',
                     # 'STOP': None,
                     'EXCHANGE STOP': 'market',
@@ -2237,7 +2237,7 @@ class bitfinex2(Exchange, ImplicitAPI):
             if feeCost is not None:
                 feeCost = Precise.string_abs(feeCost)
             amount = self.safe_number(data, 5)
-            id = self.safe_string(data, 0)
+            id = self.safe_integer(data, 0)
             status = 'ok'
             if id == 0:
                 id = None

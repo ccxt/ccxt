@@ -317,7 +317,7 @@ public partial class bybit
     /// <item>
     /// <term>params.type</term>
     /// <description>
-    /// string : wallet type, ['spot', 'swap', 'fund']
+    /// string : wallet type, ['spot', 'swap', 'funding']
     /// </description>
     /// </item>
     /// </list>
@@ -1512,6 +1512,7 @@ public partial class bybit
     /// </summary>
     /// <remarks>
     /// See <see href="https://bybit-exchange.github.io/docs/v5/account/transaction-log"/>  <br/>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/account/contract-transaction-log"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1531,6 +1532,12 @@ public partial class bybit
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : if inverse will use v5/account/contract-transaction-log
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
@@ -1545,7 +1552,7 @@ public partial class bybit
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://bybit-exchange.github.io/docs/v5/asset/withdraw"/>  <br/>
+    /// See <see href="https://www.tokocrypto.com/apidocs/#withdraw-signed"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -1927,12 +1934,12 @@ public partial class bybit
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}.</returns>
-    public async Task<TransferEntries> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<TransferEntry>> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTransfers(code, since, limit, parameters);
-        return new TransferEntries(res);
+        return ((IList<object>)res).Select(item => new TransferEntry(item)).ToList<TransferEntry>();
     }
     public async Task<List<LeverageTier>> FetchDerivativesMarketLeverageTiers(string symbol, Dictionary<string, object> parameters = null)
     {

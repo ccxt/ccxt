@@ -6,7 +6,7 @@ import { AccountSuspended, BadRequest, BadResponse, NetworkError, DDoSProtection
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry, Num, MarginModification, TradingFeeInterface, Currencies, CrossBorrowRate, CrossBorrowRates, Dict, TransferEntries, LeverageTier, LeverageTiers, int } from './base/types.js';
+import type { FundingRateHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Trade, Balances, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Market, Currency, TransferEntry, Num, MarginModification, TradingFeeInterface, Currencies, CrossBorrowRate, CrossBorrowRates, Dict, LeverageTier, LeverageTiers, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1912,8 +1912,38 @@ export default class digifinex extends Exchange {
             if (numCanceledOrders !== 1) {
                 throw new OrderNotFound (this.id + ' cancelOrder() ' + id + ' not found');
             }
+            const orders = this.parseCancelOrders (response);
+            return this.safeDict (orders, 0);
+        } else {
+            return this.safeOrder ({
+                'info': response,
+                'orderId': this.safeString (response, 'data'),
+            });
         }
-        return response;
+    }
+
+    parseCancelOrders (response) {
+        const success = this.safeList (response, 'success');
+        const error = this.safeList (response, 'error');
+        const result = [];
+        for (let i = 0; i < success.length; i++) {
+            const order = success[i];
+            result.push (this.safeOrder ({
+                'info': order,
+                'id': order,
+                'status': 'canceled',
+            }));
+        }
+        for (let i = 0; i < error.length; i++) {
+            const order = error[i];
+            result.push (this.safeOrder ({
+                'info': order,
+                'id': this.safeString2 (order, 'order-id', 'order_id'),
+                'status': 'failed',
+                'clientOrderId': this.safeString (order, 'client-order-id'),
+            }));
+        }
+        return result;
     }
 
     async cancelOrders (ids, symbol: Str = undefined, params = {}) {
@@ -1947,12 +1977,7 @@ export default class digifinex extends Exchange {
         //         ]
         //     }
         //
-        const canceledOrders = this.safeValue (response, 'success', []);
-        const numCanceledOrders = canceledOrders.length;
-        if (numCanceledOrders < 1) {
-            throw new OrderNotFound (this.id + ' cancelOrders() error');
-        }
-        return response;
+        return this.parseCancelOrders (response);
     }
 
     parseOrderStatus (status: Str) {
@@ -3695,7 +3720,7 @@ export default class digifinex extends Exchange {
         //
     }
 
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntries> {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         /**
          * @method
          * @name digifinex#fetchTransfers

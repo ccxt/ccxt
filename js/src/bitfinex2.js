@@ -338,9 +338,9 @@ export default class bitfinex2 extends Exchange {
                 // convert 'EXCHANGE LIMIT' to lowercase 'limit'
                 // everything else remains uppercase
                 'exchangeTypes': {
-                    // 'MARKET': undefined,
+                    'MARKET': 'market',
                     'EXCHANGE MARKET': 'market',
-                    // 'LIMIT': undefined,
+                    'LIMIT': 'limit',
                     'EXCHANGE LIMIT': 'limit',
                     // 'STOP': undefined,
                     'EXCHANGE STOP': 'market',
@@ -2360,7 +2360,7 @@ export default class bitfinex2 extends Exchange {
                 feeCost = Precise.stringAbs(feeCost);
             }
             amount = this.safeNumber(data, 5);
-            id = this.safeString(data, 0);
+            id = this.safeInteger(data, 0);
             status = 'ok';
             if (id === 0) {
                 id = undefined;

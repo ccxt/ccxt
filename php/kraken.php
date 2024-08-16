@@ -75,6 +75,7 @@ class kraken extends Exchange {
                 'fetchOrderTrades' => 'emulated',
                 'fetchPositions' => true,
                 'fetchPremiumIndexOHLCV' => false,
+                'fetchStatus' => true,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTime' => true,
@@ -635,6 +636,31 @@ class kraken extends Exchange {
         return $result;
     }
 
+    public function fetch_status($params = array ()) {
+        /**
+         * the latest known information on the availability of the exchange API
+         * @see https://docs.kraken.com/api/docs/rest-api/get-system-status/
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-status-structure status structure~
+         */
+        $response = $this->publicGetSystemStatus ($params);
+        //
+        // {
+        //     error => array(),
+        //     $result => array( status => 'online', timestamp => '2024-07-22T16:34:44Z' )
+        // }
+        //
+        $result = $this->safe_dict($response, 'result');
+        $statusRaw = $this->safe_string($result, 'status');
+        return array(
+            'status' => ($statusRaw === 'online') ? 'ok' : 'maintenance',
+            'updated' => null,
+            'eta' => null,
+            'url' => null,
+            'info' => $response,
+        );
+    }
+
     public function fetch_currencies($params = array ()): ?array {
         /**
          * fetches all available $currencies on an exchange
@@ -1044,7 +1070,7 @@ class kraken extends Exchange {
         } else {
             $direction = 'in';
         }
-        $timestamp = $this->safe_timestamp($item, 'time');
+        $timestamp = $this->safe_integer_product($item, 'time', 1000);
         return array(
             'info' => $item,
             'id' => $id,
@@ -1347,7 +1373,7 @@ class kraken extends Exchange {
     public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array ()) {
         /**
          * create a market order by providing the $symbol, $side and $cost
-         * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
+         * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
          * @param {string} $symbol unified $symbol of the market to create an order in (only USD markets are supported)
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $cost how much you want to trade in units of the quote currency
@@ -1363,7 +1389,7 @@ class kraken extends Exchange {
     public function create_market_buy_order_with_cost(string $symbol, float $cost, $params = array ()) {
         /**
          * create a market buy order by providing the $symbol, side and $cost
-         * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
+         * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
          * @param {string} $symbol unified $symbol of the market to create an order in
          * @param {float} $cost how much you want to trade in units of the quote currency
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1375,7 +1401,7 @@ class kraken extends Exchange {
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
-         * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
+         * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
          * create a trade order
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
@@ -1517,6 +1543,8 @@ class kraken extends Exchange {
         //         "status" => "ok",
         //         "txid" => "OAW2BO-7RWEK-PZY5UO",
         //         "originaltxid" => "OXL6SS-UPNMC-26WBE7",
+        //         "newuserref" => 1234,
+        //         "olduserref" => 123,
         //         "volume" => "0.00075000",
         //         "price" => "13500.0",
         //         "orders_cancelled" => 1,
@@ -1656,7 +1684,7 @@ class kraken extends Exchange {
             $txid = $this->safe_list($order, 'txid');
             $id = $this->safe_string($txid, 0);
         }
-        $clientOrderId = $this->safe_string($order, 'userref');
+        $clientOrderId = $this->safe_string_2($order, 'userref', 'newuserref');
         $rawTrades = $this->safe_value($order, 'trades', array());
         $trades = array();
         for ($i = 0; $i < count($rawTrades); $i++) {
@@ -1803,6 +1831,9 @@ class kraken extends Exchange {
             $extendedPostFlags = ($flags !== null) ? $flags . ',post' : 'post';
             $request['oflags'] = $extendedPostFlags;
         }
+        if (($flags !== null) && !(is_array($request) && array_key_exists('oflags', $request))) {
+            $request['oflags'] = $flags;
+        }
         $params = $this->omit($params, array( 'timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingLimitAmount', 'offset' ));
         return array( $request, $params );
     }
@@ -1810,7 +1841,7 @@ class kraken extends Exchange {
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         /**
          * edit a trade order
-         * @see https://docs.kraken.com/rest/#tag/Trading/operation/editOrder
+         * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/editOrder
          * @param {string} $id order $id
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
@@ -1872,15 +1903,13 @@ class kraken extends Exchange {
         $clientOrderId = $this->safe_value_2($params, 'userref', 'clientOrderId');
         $request = array(
             'trades' => true, // whether or not to include trades in output (optional, default false)
-            // 'txid' => $id, // do not comma separate a list of ids - use fetchOrdersByIds instead
+            'txid' => $id, // do not comma separate a list of ids - use fetchOrdersByIds instead
             // 'userref' => 'optional', // restrict results to given user reference $id (optional)
         );
         $query = $params;
         if ($clientOrderId !== null) {
             $request['userref'] = $clientOrderId;
             $query = $this->omit($params, array( 'userref', 'clientOrderId' ));
-        } else {
-            $request['txid'] = $id;
         }
         $response = $this->privatePostQueryOrders ($this->extend($request, $query));
         //
@@ -2464,14 +2493,12 @@ class kraken extends Exchange {
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         // https://www.kraken.com/en-us/help/api#deposit-status
-        if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $currency $code argument');
-        }
         $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'asset' => $currency['id'],
-        );
+        $request = array();
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['asset'] = $currency['id'];
+        }
         if ($since !== null) {
             $request['start'] = $since;
         }

@@ -294,7 +294,9 @@ public partial class bitfinex2 : Exchange
             { "options", new Dictionary<string, object>() {
                 { "precision", "R0" },
                 { "exchangeTypes", new Dictionary<string, object>() {
+                    { "MARKET", "market" },
                     { "EXCHANGE MARKET", "market" },
+                    { "LIMIT", "limit" },
                     { "EXCHANGE LIMIT", "limit" },
                     { "EXCHANGE STOP", "market" },
                     { "EXCHANGE FOK", "limit" },
@@ -2514,7 +2516,7 @@ public partial class bitfinex2 : Exchange
                 feeCost = Precise.stringAbs(feeCost);
             }
             amount = this.safeNumber(data, 5);
-            id = this.safeString(data, 0);
+            id = this.safeInteger(data, 0);
             status = "ok";
             if (isTrue(isEqual(id, 0)))
             {

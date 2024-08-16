@@ -1012,6 +1012,7 @@ function mapToCurveSimpleSWU(Fp, opts) {
     };
 }
 
+exports.DER = DER;
 exports.SWUFpSqrtRatio = SWUFpSqrtRatio;
 exports.mapToCurveSimpleSWU = mapToCurveSimpleSWU;
 exports.weierstrass = weierstrass;

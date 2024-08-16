@@ -1432,7 +1432,11 @@ class latoken extends Exchange {
             //         "status":"SUCCESS"
             //     }
             //
-            return $response;
+            return array(
+                $this->safe_order(array(
+                    'info' => $response,
+                )),
+            );
         }) ();
     }
 

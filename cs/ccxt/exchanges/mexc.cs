@@ -668,24 +668,24 @@ public partial class mexc : Exchange
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "BEYONDPROTOCOL", "BEYOND" },
                 { "BIFI", "BIFIF" },
-                { "BYN", "BeyondFi" },
+                { "BYN", "BEYONDFI" },
                 { "COFI", "COFIX" },
-                { "DFI", "DfiStarter" },
-                { "DFT", "dFuture" },
+                { "DFI", "DFISTARTER" },
+                { "DFT", "DFUTURE" },
                 { "DRK", "DRK" },
-                { "EGC", "Egoras Credit" },
+                { "EGC", "EGORASCREDIT" },
                 { "FLUX1", "FLUX" },
                 { "FLUX", "FLUX1" },
-                { "FREE", "FreeRossDAO" },
+                { "FREE", "FREEROSSDAO" },
                 { "GAS", "GASDAO" },
                 { "GASNEO", "GAS" },
-                { "GMT", "GMT Token" },
+                { "GMT", "GMTTOKEN" },
                 { "STEPN", "GMT" },
-                { "HERO", "Step Hero" },
-                { "MIMO", "Mimosa" },
-                { "PROS", "Pros.Finance" },
-                { "SIN", "Sin City Token" },
-                { "SOUL", "Soul Swap" },
+                { "HERO", "STEPHERO" },
+                { "MIMO", "MIMOSA" },
+                { "PROS", "PROSFINANCE" },
+                { "SIN", "SINCITYTOKEN" },
+                { "SOUL", "SOULSWAP" },
             } },
             { "exceptions", new Dictionary<string, object>() {
                 { "exact", new Dictionary<string, object>() {
@@ -5247,9 +5247,10 @@ public partial class mexc : Exchange
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
-        object networks = this.safeValue(this.options, "networks", new Dictionary<string, object>() {});
+        object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         object network = this.safeString2(parameters, "network", "netWork"); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
+        network = this.networkIdToCode(network);
         this.checkAddress(address);
         await this.loadMarkets();
         object currency = this.currency(code);

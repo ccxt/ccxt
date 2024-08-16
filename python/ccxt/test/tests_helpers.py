@@ -25,7 +25,7 @@ import ccxt.pro as ccxtpro  # noqa: E402
 # from typing import Optional
 # from typing import List
 from ccxt.base.errors import NotSupported  # noqa: F401
-from ccxt.base.errors import ProxyError  # noqa: F401
+from ccxt.base.errors import InvalidProxySettings  # noqa: F401
 from ccxt.base.errors import OperationFailed  # noqa: F401
 # from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ExchangeNotAvailable  # noqa: F401
@@ -73,7 +73,6 @@ parser.add_argument('--requestTests', action='store_true', help='run response te
 parser.add_argument('--sync', action='store_true', help='is sync')
 parser.add_argument('--baseTests', action='store_true', help='is base tests')
 parser.add_argument('--exchangeTests', action='store_true', help='is exchange tests')
-parser.add_argument('--nonce', type=int, help='integer')
 parser.add_argument('exchange', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('symbol', type=str, help='symbol in uppercase', nargs='?')
 parser.parse_args(namespace=argv)
@@ -192,6 +191,10 @@ def io_dir_read(path):
     return os.listdir(path)
 
 
+def call_method_sync(test_files, methodName, exchange, skippedProperties, args):
+    methodNameToCall = 'test_' + convert_to_snake_case(methodName)
+    return getattr(test_files[methodName], methodNameToCall)(exchange, skippedProperties, *args)
+
 async def call_method(test_files, methodName, exchange, skippedProperties, args):
     methodNameToCall = 'test_' + convert_to_snake_case(methodName)
     return await getattr(test_files[methodName], methodNameToCall)(exchange, skippedProperties, *args)
@@ -214,6 +217,9 @@ def exception_message(exc):
         message = message[0:LOG_CHARS_LENGTH]
     return message
 
+# stub for c#
+def get_root_exception(exc):
+    return exc
 
 def exit_script(code=0):
     exit(code)
@@ -241,7 +247,7 @@ def init_exchange(exchangeId, args, is_ws=False):
     return getattr(ccxt, exchangeId)(args)
 
 
-async def get_test_files(properties, ws=False):
+def get_test_files_sync(properties, ws=False):
     tests = {}
     finalPropList = properties + [proxyTestFileName]
     for i in range(0, len(finalPropList)):
@@ -259,6 +265,9 @@ async def get_test_files(properties, ws=False):
             imp = importlib.import_module(module_string)
             tests[methodName] = imp  # getattr(imp, finalName)
     return tests
+
+async def get_test_files(properties, ws=False):
+    return get_test_files_sync(properties, ws)
 
 async def close(exchange):
     if (not is_synchronous and hasattr(exchange, 'close')):
@@ -279,6 +288,7 @@ def set_fetch_response(exchange: ccxt.Exchange, data):
     return exchange
 
 
+argvExchange = argv.exchange
 argvSymbol = argv.symbol if argv.symbol and '/' in argv.symbol else None
 # in python, we check it through "symbol" arg (as opposed to JS/PHP) because argvs were already built above
 argvMethod = argv.symbol if argv.symbol and '()' in argv.symbol else None

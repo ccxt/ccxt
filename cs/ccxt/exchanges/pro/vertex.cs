@@ -89,7 +89,7 @@ public partial class vertex : ccxt.vertex
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trade structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -157,7 +157,7 @@ public partial class vertex : ccxt.vertex
         * @param {int} [limit] the maximum number of order structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.user] user address, will default to this.walletAddress if not provided
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(symbol, null)))
@@ -633,7 +633,7 @@ public partial class vertex : ccxt.vertex
         var client = this.client(url);
         this.setPositionsCache(client as WebSocketClient, symbols, parameters);
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-        object awaitPositionsSnapshot = this.safeBool("watchPositions", "awaitPositionsSnapshot", true);
+        object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
         if (isTrue(isTrue(isTrue(fetchPositionsSnapshot) && isTrue(awaitPositionsSnapshot)) && isTrue(isEqual(this.positions, null))))
         {
             object snapshot = await client.future("fetchPositionsSnapshot");
@@ -945,9 +945,10 @@ public partial class vertex : ccxt.vertex
         //
         object marketId = this.safeString(order, "product_id");
         object timestamp = this.parseToInt(Precise.stringDiv(this.safeString(order, "timestamp"), "1000000"));
-        object remaining = this.parseToNumeric(this.convertFromX18(this.safeString(order, "amount")));
+        object remainingString = this.convertFromX18(this.safeString(order, "amount"));
+        object remaining = this.parseToNumeric(remainingString);
         object status = this.parseWsOrderStatus(this.safeString(order, "reason"));
-        if (isTrue(isTrue(isEqual(remaining, 0)) && isTrue(isEqual(status, "open"))))
+        if (isTrue(isTrue(Precise.stringEq(remainingString, "0")) && isTrue(isEqual(status, "open"))))
         {
             status = "closed";
         }

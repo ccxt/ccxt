@@ -44,6 +44,9 @@ public partial class cryptocom : ccxt.cryptocom
                     { "fetchPositionsSnapshot", true },
                     { "awaitPositionsSnapshot", true },
                 } },
+                { "watchOrderBook", new Dictionary<string, object>() {
+                    { "checksum", true },
+                } },
             } },
             { "streaming", new Dictionary<string, object>() {} },
         });
@@ -246,7 +249,11 @@ public partial class cryptocom : ccxt.cryptocom
             object currentNonce = getValue(orderbook, "nonce");
             if (isTrue(!isEqual(currentNonce, previousNonce)))
             {
-                throw new InvalidNonce ((string)add(add(add(add(add(add(this.id, " watchOrderBook() "), symbol), " "), previousNonce), " != "), nonce)) ;
+                object checksum = this.handleOption("watchOrderBook", "checksum", true);
+                if (isTrue(checksum))
+                {
+                    throw new ChecksumError ((string)add(add(this.id, " "), this.orderbookChecksumMessage(symbol))) ;
+                }
             }
         }
         this.handleDeltas(getValue(orderbook, "asks"), this.safeValue(books, "asks", new List<object>() {}));
@@ -371,7 +378,7 @@ public partial class cryptocom : ccxt.cryptocom
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trade structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -631,7 +638,7 @@ public partial class cryptocom : ccxt.cryptocom
         var client = this.client(url);
         this.setPositionsCache(client as WebSocketClient, symbols);
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-        object awaitPositionsSnapshot = this.safeBool("watchPositions", "awaitPositionsSnapshot", true);
+        object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
         if (isTrue(isTrue(isTrue(fetchPositionsSnapshot) && isTrue(awaitPositionsSnapshot)) && isTrue(isEqual(this.positions, null))))
         {
             object snapshot = await client.future("fetchPositionsSnapshot");
@@ -1006,6 +1013,7 @@ public partial class cryptocom : ccxt.cryptocom
         //        "message": "invalid channel {"channels":["trade.BTCUSD-PERP"]}"
         //    }
         //
+        object id = this.safeString(message, "id");
         object errorCode = this.safeString(message, "code");
         try
         {
@@ -1018,6 +1026,7 @@ public partial class cryptocom : ccxt.cryptocom
                 {
                     this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), messageString, feedback);
                 }
+                throw new ExchangeError ((string)feedback) ;
             }
             return false;
         } catch(Exception e)
@@ -1032,7 +1041,7 @@ public partial class cryptocom : ccxt.cryptocom
                 }
             } else
             {
-                ((WebSocketClient)client).reject(e);
+                ((WebSocketClient)client).reject(e, id);
             }
             return true;
         }

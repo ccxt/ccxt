@@ -19,13 +19,13 @@ from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.errors import CancelPending
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import CancelPending
 from ccxt.base.decimal_to_precision import TRUNCATE
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -98,6 +98,7 @@ class kraken(Exchange, ImplicitAPI):
                 'fetchOrderTrades': 'emulated',
                 'fetchPositions': True,
                 'fetchPremiumIndexOHLCV': False,
+                'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
@@ -645,6 +646,30 @@ class kraken(Exchange, ImplicitAPI):
             result.append(self.extend(defaults, markets[i]))
         return result
 
+    async def fetch_status(self, params={}):
+        """
+        the latest known information on the availability of the exchange API
+        :see: https://docs.kraken.com/api/docs/rest-api/get-system-status/
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
+        """
+        response = await self.publicGetSystemStatus(params)
+        #
+        # {
+        #     error: [],
+        #     result: {status: 'online', timestamp: '2024-07-22T16:34:44Z'}
+        # }
+        #
+        result = self.safe_dict(response, 'result')
+        statusRaw = self.safe_string(result, 'status')
+        return {
+            'status': 'ok' if (statusRaw == 'online') else 'maintenance',
+            'updated': None,
+            'eta': None,
+            'url': None,
+            'info': response,
+        }
+
     async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
@@ -1030,7 +1055,7 @@ class kraken(Exchange, ImplicitAPI):
             amount = Precise.string_abs(amount)
         else:
             direction = 'in'
-        timestamp = self.safe_timestamp(item, 'time')
+        timestamp = self.safe_integer_product(item, 'time', 1000)
         return {
             'info': item,
             'id': id,
@@ -1311,7 +1336,7 @@ class kraken(Exchange, ImplicitAPI):
     async def create_market_order_with_cost(self, symbol: str, side: OrderSide, cost: float, params={}):
         """
         create a market order by providing the symbol, side and cost
-        :see: https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
+        :see: https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
         :param str symbol: unified symbol of the market to create an order in(only USD markets are supported)
         :param str side: 'buy' or 'sell'
         :param float cost: how much you want to trade in units of the quote currency
@@ -1326,7 +1351,7 @@ class kraken(Exchange, ImplicitAPI):
     async def create_market_buy_order_with_cost(self, symbol: str, cost: float, params={}):
         """
         create a market buy order by providing the symbol, side and cost
-        :see: https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
+        :see: https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
         :param str symbol: unified symbol of the market to create an order in
         :param float cost: how much you want to trade in units of the quote currency
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1337,7 +1362,7 @@ class kraken(Exchange, ImplicitAPI):
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
         """
-        :see: https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
+        :see: https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
         create a trade order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1470,6 +1495,8 @@ class kraken(Exchange, ImplicitAPI):
         #         "status": "ok",
         #         "txid": "OAW2BO-7RWEK-PZY5UO",
         #         "originaltxid": "OXL6SS-UPNMC-26WBE7",
+        #         "newuserref": 1234,
+        #         "olduserref": 123,
         #         "volume": "0.00075000",
         #         "price": "13500.0",
         #         "orders_cancelled": 1,
@@ -1598,7 +1625,7 @@ class kraken(Exchange, ImplicitAPI):
         if (id is None) or (id.startswith('[')):
             txid = self.safe_list(order, 'txid')
             id = self.safe_string(txid, 0)
-        clientOrderId = self.safe_string(order, 'userref')
+        clientOrderId = self.safe_string_2(order, 'userref', 'newuserref')
         rawTrades = self.safe_value(order, 'trades', [])
         trades = []
         for i in range(0, len(rawTrades)):
@@ -1725,13 +1752,15 @@ class kraken(Exchange, ImplicitAPI):
         if postOnly:
             extendedPostFlags = flags + ',post' if (flags is not None) else 'post'
             request['oflags'] = extendedPostFlags
+        if (flags is not None) and not ('oflags' in request):
+            request['oflags'] = flags
         params = self.omit(params, ['timeInForce', 'reduceOnly', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingLimitAmount', 'offset'])
         return [request, params]
 
     async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         """
         edit a trade order
-        :see: https://docs.kraken.com/rest/#tag/Trading/operation/editOrder
+        :see: https://docs.kraken.com/rest/#tag/Spot-Trading/operation/editOrder
         :param str id: order id
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
@@ -1790,15 +1819,13 @@ class kraken(Exchange, ImplicitAPI):
         clientOrderId = self.safe_value_2(params, 'userref', 'clientOrderId')
         request: dict = {
             'trades': True,  # whether or not to include trades in output(optional, default False)
-            # 'txid': id,  # do not comma separate a list of ids - use fetchOrdersByIds instead
+            'txid': id,  # do not comma separate a list of ids - use fetchOrdersByIds instead
             # 'userref': 'optional',  # restrict results to given user reference id(optional)
         }
         query = params
         if clientOrderId is not None:
             request['userref'] = clientOrderId
             query = self.omit(params, ['userref', 'clientOrderId'])
-        else:
-            request['txid'] = id
         response = await self.privatePostQueryOrders(self.extend(request, query))
         #
         #     {
@@ -2340,13 +2367,11 @@ class kraken(Exchange, ImplicitAPI):
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         # https://www.kraken.com/en-us/help/api#deposit-status
-        if code is None:
-            raise ArgumentsRequired(self.id + ' fetchDeposits() requires a currency code argument')
         await self.load_markets()
-        currency = self.currency(code)
-        request: dict = {
-            'asset': currency['id'],
-        }
+        request: dict = {}
+        if code is not None:
+            currency = self.currency(code)
+            request['asset'] = currency['id']
         if since is not None:
             request['start'] = since
         response = await self.privatePostDepositStatus(self.extend(request, params))

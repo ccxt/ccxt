@@ -23,7 +23,7 @@ export default class okcoin extends okcoinRest {
     handleBalance(client: Client, message: any): void;
     handleSubscriptionStatus(client: Client, message: any): any;
     handleAuthenticate(client: Client, message: any): any;
-    ping(client: any): string;
+    ping(client: Client): string;
     handlePong(client: Client, message: any): any;
     handleErrorMessage(client: Client, message: any): any;
     handleMessage(client: Client, message: any): void;

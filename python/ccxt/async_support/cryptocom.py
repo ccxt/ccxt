@@ -17,10 +17,13 @@ from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import RequestTimeout
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
@@ -176,6 +179,9 @@ class cryptocom(Exchange, ImplicitAPI):
                             'public/get-expired-settlement-price': 10 / 3,
                             'public/get-insurance': 1,
                         },
+                        'post': {
+                            'public/staking/get-conversion-rate': 2,
+                        },
                     },
                     'private': {
                         'post': {
@@ -205,6 +211,16 @@ class cryptocom(Exchange, ImplicitAPI):
                             'private/get-accounts': 10 / 3,
                             'private/get-withdrawal-history': 10 / 3,
                             'private/get-deposit-history': 10 / 3,
+                            'private/staking/stake': 2,
+                            'private/staking/unstake': 2,
+                            'private/staking/get-staking-position': 2,
+                            'private/staking/get-staking-instruments': 2,
+                            'private/staking/get-open-stake': 2,
+                            'private/staking/get-stake-history': 2,
+                            'private/staking/get-reward-history': 2,
+                            'private/staking/convert': 2,
+                            'private/staking/get-open-convert': 2,
+                            'private/staking/get-convert-history': 2,
                         },
                     },
                 },
@@ -388,7 +404,15 @@ class cryptocom(Exchange, ImplicitAPI):
                     '40006': BadRequest,
                     '40007': BadRequest,
                     '40101': AuthenticationError,
-                    '50001': BadRequest,
+                    '40102': InvalidNonce,  # Nonce value differs by more than 60 seconds from server
+                    '40103': AuthenticationError,  # IP address not whitelisted
+                    '40104': AuthenticationError,  # Disallowed based on user tier
+                    '40107': BadRequest,  # Session subscription limit has been exceeded
+                    '40401': OrderNotFound,
+                    '40801': RequestTimeout,
+                    '42901': RateLimitExceeded,
+                    '43005': InvalidOrder,  # Rejected POST_ONLY create-order request(normally happened when exec_inst contains POST_ONLY but time_in_force is NOT GOOD_TILL_CANCEL)
+                    '50001': ExchangeError,
                     '9010001': OnMaintenance,  # {"code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details."}
                 },
                 'broad': {},
@@ -798,13 +822,21 @@ class cryptocom(Exchange, ImplicitAPI):
             'instrument_name': market['id'],
             'timeframe': self.safe_string(self.timeframes, timeframe, timeframe),
         }
-        if since is not None:
-            request['start_ts'] = since
         if limit is not None:
+            if limit > 300:
+                limit = 300
             request['count'] = limit
-        until = self.safe_integer(params, 'until')
+        now = self.microseconds()
+        duration = self.parse_timeframe(timeframe)
+        until = self.safe_integer(params, 'until', now)
         params = self.omit(params, ['until'])
-        if until is not None:
+        if since is not None:
+            request['start_ts'] = since - duration * 1000
+            if limit is not None:
+                request['end_ts'] = self.sum(since, duration * limit * 1000)
+            else:
+                request['end_ts'] = until
+        else:
             request['end_ts'] = until
         response = await self.v1PublicGetPublicGetCandlestick(self.extend(request, params))
         #
@@ -1362,7 +1394,7 @@ class cryptocom(Exchange, ImplicitAPI):
         """
         cancel multiple orders for multiple symbols
         :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-cancel-order-list-list
-        :param CancellationRequest[] orders: each order should contain the parameters required by cancelOrder namely id and symbol
+        :param CancellationRequest[] orders: each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """

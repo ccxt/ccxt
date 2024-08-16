@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.55'
+__version__ = '4.3.84'
 
 # -----------------------------------------------------------------------------
 
@@ -33,21 +33,18 @@ from ccxt.base.errors import OperationRejected                        # noqa: F4
 from ccxt.base.errors import NoChange                                 # noqa: F401
 from ccxt.base.errors import MarginModeAlreadySet                     # noqa: F401
 from ccxt.base.errors import MarketClosed                             # noqa: F401
-from ccxt.base.errors import BadResponse                              # noqa: F401
-from ccxt.base.errors import NullResponse                             # noqa: F401
 from ccxt.base.errors import InsufficientFunds                        # noqa: F401
 from ccxt.base.errors import InvalidAddress                           # noqa: F401
 from ccxt.base.errors import AddressPending                           # noqa: F401
 from ccxt.base.errors import InvalidOrder                             # noqa: F401
 from ccxt.base.errors import OrderNotFound                            # noqa: F401
 from ccxt.base.errors import OrderNotCached                           # noqa: F401
-from ccxt.base.errors import CancelPending                            # noqa: F401
 from ccxt.base.errors import OrderImmediatelyFillable                 # noqa: F401
 from ccxt.base.errors import OrderNotFillable                         # noqa: F401
 from ccxt.base.errors import DuplicateOrderId                         # noqa: F401
 from ccxt.base.errors import ContractUnavailable                      # noqa: F401
 from ccxt.base.errors import NotSupported                             # noqa: F401
-from ccxt.base.errors import ProxyError                               # noqa: F401
+from ccxt.base.errors import InvalidProxySettings                     # noqa: F401
 from ccxt.base.errors import ExchangeClosedByUser                     # noqa: F401
 from ccxt.base.errors import OperationFailed                          # noqa: F401
 from ccxt.base.errors import NetworkError                             # noqa: F401
@@ -56,7 +53,11 @@ from ccxt.base.errors import RateLimitExceeded                        # noqa: F4
 from ccxt.base.errors import ExchangeNotAvailable                     # noqa: F401
 from ccxt.base.errors import OnMaintenance                            # noqa: F401
 from ccxt.base.errors import InvalidNonce                             # noqa: F401
+from ccxt.base.errors import ChecksumError                            # noqa: F401
 from ccxt.base.errors import RequestTimeout                           # noqa: F401
+from ccxt.base.errors import BadResponse                              # noqa: F401
+from ccxt.base.errors import NullResponse                             # noqa: F401
+from ccxt.base.errors import CancelPending                            # noqa: F401
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 
 
@@ -149,6 +150,7 @@ from ccxt.async_support.okx import okx                                          
 from ccxt.async_support.onetrading import onetrading                            # noqa: F401
 from ccxt.async_support.oxfun import oxfun                                      # noqa: F401
 from ccxt.async_support.p2b import p2b                                          # noqa: F401
+from ccxt.async_support.paradex import paradex                                  # noqa: F401
 from ccxt.async_support.paymium import paymium                                  # noqa: F401
 from ccxt.async_support.phemex import phemex                                    # noqa: F401
 from ccxt.async_support.poloniex import poloniex                                # noqa: F401
@@ -259,6 +261,7 @@ exchanges = [
     'onetrading',
     'oxfun',
     'p2b',
+    'paradex',
     'paymium',
     'phemex',
     'poloniex',

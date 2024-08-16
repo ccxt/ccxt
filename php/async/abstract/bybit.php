@@ -160,6 +160,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     public function public_get_v5_ins_loan_ensure_tokens_convert($params = array()) {
         return $this->request('v5/ins-loan/ensure-tokens-convert', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
+    public function private_get_v5_market_instruments_info($params = array()) {
+        return $this->request('v5/market/instruments-info', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
     public function private_get_v2_private_wallet_fund_records($params = array()) {
         return $this->request('v2/private/wallet/fund/records', 'private', 'GET', $params, null, null, array("cost" => 25));
     }
@@ -1041,6 +1044,9 @@ abstract class bybit extends \ccxt\async\Exchange {
     }
     public function publicGetV5InsLoanEnsureTokensConvert($params = array()) {
         return $this->request('v5/ins-loan/ensure-tokens-convert', 'public', 'GET', $params, null, null, array("cost" => 5));
+    }
+    public function privateGetV5MarketInstrumentsInfo($params = array()) {
+        return $this->request('v5/market/instruments-info', 'private', 'GET', $params, null, null, array("cost" => 5));
     }
     public function privateGetV2PrivateWalletFundRecords($params = array()) {
         return $this->request('v2/private/wallet/fund/records', 'private', 'GET', $params, null, null, array("cost" => 25));

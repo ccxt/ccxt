@@ -68,6 +68,7 @@ public partial class kraken : Exchange
                 { "fetchOrderTrades", "emulated" },
                 { "fetchPositions", true },
                 { "fetchPremiumIndexOHLCV", false },
+                { "fetchStatus", true },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
                 { "fetchTime", true },
@@ -625,6 +626,35 @@ public partial class kraken : Exchange
         return result;
     }
 
+    public async override Task<object> fetchStatus(object parameters = null)
+    {
+        /**
+        * @method
+        * @name kraken#fetchStatus
+        * @description the latest known information on the availability of the exchange API
+        * @see https://docs.kraken.com/api/docs/rest-api/get-system-status/
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        object response = await this.publicGetSystemStatus(parameters);
+        //
+        // {
+        //     error: [],
+        //     result: { status: 'online', timestamp: '2024-07-22T16:34:44Z' }
+        // }
+        //
+        object result = this.safeDict(response, "result");
+        object statusRaw = this.safeString(result, "status");
+        return new Dictionary<string, object>() {
+            { "status", ((bool) isTrue((isEqual(statusRaw, "online")))) ? "ok" : "maintenance" },
+            { "updated", null },
+            { "eta", null },
+            { "url", null },
+            { "info", response },
+        };
+    }
+
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
         /**
@@ -1078,7 +1108,7 @@ public partial class kraken : Exchange
         {
             direction = "in";
         }
-        object timestamp = this.safeTimestamp(item, "time");
+        object timestamp = this.safeIntegerProduct(item, "time", 1000);
         return new Dictionary<string, object>() {
             { "info", item },
             { "id", id },
@@ -1421,7 +1451,7 @@ public partial class kraken : Exchange
         * @method
         * @name kraken#createMarketOrderWithCost
         * @description create a market order by providing the symbol, side and cost
-        * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
+        * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
         * @param {string} symbol unified symbol of the market to create an order in (only USD markets are supported)
         * @param {string} side 'buy' or 'sell'
         * @param {float} cost how much you want to trade in units of the quote currency
@@ -1441,7 +1471,7 @@ public partial class kraken : Exchange
         * @method
         * @name kraken#createMarketBuyOrderWithCost
         * @description create a market buy order by providing the symbol, side and cost
-        * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
+        * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {float} cost how much you want to trade in units of the quote currency
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1457,7 +1487,7 @@ public partial class kraken : Exchange
         /**
         * @method
         * @name kraken#createOrder
-        * @see https://docs.kraken.com/rest/#tag/Trading/operation/addOrder
+        * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder
         * @description create a trade order
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
@@ -1611,6 +1641,8 @@ public partial class kraken : Exchange
         //         "status": "ok",
         //         "txid": "OAW2BO-7RWEK-PZY5UO",
         //         "originaltxid": "OXL6SS-UPNMC-26WBE7",
+        //         "newuserref": 1234,
+        //         "olduserref": 123,
         //         "volume": "0.00075000",
         //         "price": "13500.0",
         //         "orders_cancelled": 1,
@@ -1765,7 +1797,7 @@ public partial class kraken : Exchange
             object txid = this.safeList(order, "txid");
             id = this.safeString(txid, 0);
         }
-        object clientOrderId = this.safeString(order, "userref");
+        object clientOrderId = this.safeString2(order, "userref", "newuserref");
         object rawTrades = this.safeValue(order, "trades", new List<object>() {});
         object trades = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(rawTrades)); postFixIncrement(ref i))
@@ -1950,6 +1982,10 @@ public partial class kraken : Exchange
             object extendedPostFlags = ((bool) isTrue((!isEqual(flags, null)))) ? add(flags, ",post") : "post";
             ((IDictionary<string,object>)request)["oflags"] = extendedPostFlags;
         }
+        if (isTrue(isTrue((!isEqual(flags, null))) && !isTrue((inOp(request, "oflags")))))
+        {
+            ((IDictionary<string,object>)request)["oflags"] = flags;
+        }
         parameters = this.omit(parameters, new List<object>() {"timeInForce", "reduceOnly", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingLimitAmount", "offset"});
         return new List<object>() {request, parameters};
     }
@@ -1960,7 +1996,7 @@ public partial class kraken : Exchange
         * @method
         * @name kraken#editOrder
         * @description edit a trade order
-        * @see https://docs.kraken.com/rest/#tag/Trading/operation/editOrder
+        * @see https://docs.kraken.com/rest/#tag/Spot-Trading/operation/editOrder
         * @param {string} id order id
         * @param {string} symbol unified symbol of the market to create an order in
         * @param {string} type 'market' or 'limit'
@@ -2029,15 +2065,13 @@ public partial class kraken : Exchange
         object clientOrderId = this.safeValue2(parameters, "userref", "clientOrderId");
         object request = new Dictionary<string, object>() {
             { "trades", true },
+            { "txid", id },
         };
         object query = parameters;
         if (isTrue(!isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["userref"] = clientOrderId;
             query = this.omit(parameters, new List<object>() {"userref", "clientOrderId"});
-        } else
-        {
-            ((IDictionary<string,object>)request)["txid"] = id;
         }
         object response = await this.privatePostQueryOrders(this.extend(request, query));
         //
@@ -2683,15 +2717,13 @@ public partial class kraken : Exchange
         */
         // https://www.kraken.com/en-us/help/api#deposit-status
         parameters ??= new Dictionary<string, object>();
-        if (isTrue(isEqual(code, null)))
-        {
-            throw new ArgumentsRequired ((string)add(this.id, " fetchDeposits() requires a currency code argument")) ;
-        }
         await this.loadMarkets();
-        object currency = this.currency(code);
-        object request = new Dictionary<string, object>() {
-            { "asset", getValue(currency, "id") },
-        };
+        object request = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(code, null)))
+        {
+            object currency = this.currency(code);
+            ((IDictionary<string,object>)request)["asset"] = getValue(currency, "id");
+        }
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["start"] = since;

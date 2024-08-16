@@ -68,6 +68,9 @@ interface Exchange {
     privateGetContractPrivateGetOpenOrders (params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivateCurrentPlanOrder (params?: {}): Promise<implicitReturnType>;
     privateGetContractPrivateTrades (params?: {}): Promise<implicitReturnType>;
+    privateGetContractPrivatePositionRisk (params?: {}): Promise<implicitReturnType>;
+    privateGetContractPrivateAffilateRebateList (params?: {}): Promise<implicitReturnType>;
+    privateGetContractPrivateAffilateTradeList (params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubAccountMainV1SubToMain (params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubAccountSubV1SubToMain (params?: {}): Promise<implicitReturnType>;
     privatePostAccountSubAccountMainV1MainToSub (params?: {}): Promise<implicitReturnType>;

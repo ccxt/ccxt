@@ -40,6 +40,7 @@ Exchange::$exchanges = array(
     'bitstamp',
     'bitvavo',
     'blockchaincom',
+    'blofin',
     'bybit',
     'cex',
     'coinbase',
@@ -76,6 +77,7 @@ Exchange::$exchanges = array(
     'onetrading',
     'oxfun',
     'p2b',
+    'paradex',
     'phemex',
     'poloniex',
     'poloniexfutures',
@@ -86,5 +88,6 @@ Exchange::$exchanges = array(
     'whitebit',
     'woo',
     'woofipro',
+    'xt',
 );
 

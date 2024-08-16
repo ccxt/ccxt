@@ -927,7 +927,16 @@ export default class okx extends Exchange {
                     '64003': AccountNotEnabled,
                     '70010': BadRequest,
                     '70013': BadRequest,
-                    '70016': BadRequest, // Please specify your instrument settings for at least one instType.
+                    '70016': BadRequest,
+                    '1009': BadRequest,
+                    '4001': AuthenticationError,
+                    '4002': BadRequest,
+                    '4003': RateLimitExceeded,
+                    '4004': NetworkError,
+                    '4005': ExchangeNotAvailable,
+                    '4006': BadRequest,
+                    '4007': AuthenticationError,
+                    '4008': RateLimitExceeded, // The number of subscribed channels exceeds the maximum limit.
                 },
                 'broad': {
                     'Internal Server Error': ExchangeNotAvailable,
@@ -3351,7 +3360,7 @@ export default class okx extends Exchange {
          * @description cancel multiple orders for multiple symbols
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-cancel-multiple-orders
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-cancel-algo-order
-         * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol
+         * @param {CancellationRequest[]} orders each order should contain the parameters required by cancelOrder namely id and symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.trigger] whether the order is a stop/trigger order
          * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
@@ -7356,6 +7365,9 @@ export default class okx extends Exchange {
                 }
                 depositWithdrawFees[code]['info'][currencyId] = feeInfo;
                 const chain = this.safeString(feeInfo, 'chain');
+                if (chain === undefined) {
+                    continue;
+                }
                 const chainSplit = chain.split('-');
                 const networkId = this.safeValue(chainSplit, 1);
                 const withdrawFee = this.safeNumber(feeInfo, 'minFee');

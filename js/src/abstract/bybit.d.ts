@@ -52,6 +52,7 @@ interface Exchange {
     publicGetV5SpotCrossMarginTradeBorrowToken(params?: {}): Promise<implicitReturnType>;
     publicGetV5InsLoanProductInfos(params?: {}): Promise<implicitReturnType>;
     publicGetV5InsLoanEnsureTokensConvert(params?: {}): Promise<implicitReturnType>;
+    privateGetV5MarketInstrumentsInfo(params?: {}): Promise<implicitReturnType>;
     privateGetV2PrivateWalletFundRecords(params?: {}): Promise<implicitReturnType>;
     privateGetSpotV3PrivateOrder(params?: {}): Promise<implicitReturnType>;
     privateGetSpotV3PrivateOpenOrders(params?: {}): Promise<implicitReturnType>;

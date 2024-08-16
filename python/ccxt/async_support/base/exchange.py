@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.55'
+__version__ = '4.3.84'
 
 # -----------------------------------------------------------------------------
 
@@ -570,7 +570,7 @@ class Exchange(BaseExchange):
 
     async def watch_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         if self.has['watchLiquidationsForSymbols']:
-            return self.watch_liquidations_for_symbols([symbol], since, limit, params)
+            return await self.watch_liquidations_for_symbols([symbol], since, limit, params)
         raise NotSupported(self.id + ' watchLiquidations() is not supported yet')
 
     async def watch_liquidations_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
@@ -1013,14 +1013,14 @@ class Exchange(BaseExchange):
             await self.load_markets()
             market = self.market(symbol)
             symbol = market['symbol']
-            tickers = await self.fetch_ticker_ws(symbol, params)
+            tickers = await self.fetch_tickers_ws([symbol], params)
             ticker = self.safe_dict(tickers, symbol)
             if ticker is None:
-                raise NullResponse(self.id + ' fetchTickers() could not find a ticker for ' + symbol)
+                raise NullResponse(self.id + ' fetchTickerWs() could not find a ticker for ' + symbol)
             else:
                 return ticker
         else:
-            raise NotSupported(self.id + ' fetchTicker() is not supported yet')
+            raise NotSupported(self.id + ' fetchTickerWs() is not supported yet')
 
     async def watch_ticker(self, symbol: str, params={}):
         raise NotSupported(self.id + ' watchTicker() is not supported yet')

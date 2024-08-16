@@ -1236,17 +1236,17 @@ class htx(Exchange, ImplicitAPI):
                 # https://github.com/ccxt/ccxt/issues/6081
                 # https://github.com/ccxt/ccxt/issues/3365
                 # https://github.com/ccxt/ccxt/issues/2873
-                'GET': 'Themis',  # conflict with GET(Guaranteed Entrance Token, GET Protocol)
-                'GTC': 'Game.com',  # conflict with Gitcoin and Gastrocoin
-                'HIT': 'HitChain',
+                'GET': 'THEMIS',  # conflict with GET(Guaranteed Entrance Token, GET Protocol)
+                'GTC': 'GAMECOM',  # conflict with Gitcoin and Gastrocoin
+                'HIT': 'HITCHAIN',
                 # https://github.com/ccxt/ccxt/issues/7399
                 # https://coinmarketcap.com/currencies/pnetwork/
                 # https://coinmarketcap.com/currencies/penta/markets/
                 # https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
-                'PNT': 'Penta',
-                'SBTC': 'Super Bitcoin',
-                'SOUL': 'Soulsaver',
-                'BIFI': 'Bitcoin File',  # conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
+                'PNT': 'PENTA',
+                'SBTC': 'SUPERBITCOIN',
+                'SOUL': 'SOULSAVER',
+                'BIFI': 'BITCOINFILE',  # conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
             },
         })
 
@@ -3053,6 +3053,7 @@ class htx(Exchange, ImplicitAPI):
             instStatus = self.safe_string(entry, 'instStatus')
             currencyActive = instStatus == 'normal'
             minPrecision = None
+            minDeposit = None
             minWithdraw = None
             maxWithdraw = None
             deposit = False
@@ -3064,6 +3065,7 @@ class htx(Exchange, ImplicitAPI):
                 self.options['networkChainIdsByNames'][code][title] = uniqueChainId
                 self.options['networkNamesByChainIds'][uniqueChainId] = title
                 networkCode = self.network_id_to_code(uniqueChainId)
+                minDeposit = self.safe_number(chainEntry, 'minDepositAmt')
                 minWithdraw = self.safe_number(chainEntry, 'minWithdrawAmt')
                 maxWithdraw = self.safe_number(chainEntry, 'maxWithdrawAmt')
                 withdrawStatus = self.safe_string(chainEntry, 'withdrawStatus')
@@ -3083,7 +3085,7 @@ class htx(Exchange, ImplicitAPI):
                     'network': networkCode,
                     'limits': {
                         'deposit': {
-                            'min': None,
+                            'min': minDeposit,
                             'max': None,
                         },
                         'withdraw': {
@@ -5521,7 +5523,62 @@ class htx(Exchange, ImplicitAPI):
         #         "ts": 1604367997451
         #     }
         #
-        return response
+        data = self.safe_dict(response, 'data')
+        return self.parse_cancel_orders(data)
+
+    def parse_cancel_orders(self, orders):
+        #
+        #    {
+        #        "success": [
+        #            "5983466"
+        #        ],
+        #        "failed": [
+        #            {
+        #                "err-msg": "Incorrect order state",
+        #                "order-state": 7,
+        #                "order-id": "",
+        #                "err-code": "order-orderstate-error",
+        #                "client-order-id": "first"
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
+        #    {
+        #        "errors": [
+        #            {
+        #                "order_id": "769206471845261312",
+        #                "err_code": 1061,
+        #                "err_msg": "This order doesnt exist."
+        #            }
+        #        ],
+        #        "successes": "1258075374411399168,1258075393254871040"
+        #    }
+        #
+        successes = self.safe_string(orders, 'successes')
+        success = None
+        if successes is not None:
+            success = successes.split(',')
+        else:
+            success = self.safe_list(orders, 'success', [])
+        failed = self.safe_list_2(orders, 'errors', 'failed', [])
+        result = []
+        for i in range(0, len(success)):
+            order = success[i]
+            result.append(self.safe_order({
+                'info': order,
+                'id': order,
+                'status': 'canceled',
+            }))
+        for i in range(0, len(failed)):
+            order = failed[i]
+            result.append(self.safe_order({
+                'info': order,
+                'id': self.safe_string_2(order, 'order-id', 'order_id'),
+                'status': 'failed',
+                'clientOrderId': self.safe_string(order, 'client-order-id'),
+            }))
+        return result
 
     def cancel_all_orders(self, symbol: Str = None, params={}):
         """
@@ -5558,6 +5615,22 @@ class htx(Exchange, ImplicitAPI):
             if symbol is not None:
                 request['symbol'] = market['id']
             response = self.spotPrivatePostV1OrderOrdersBatchCancelOpenOrders(self.extend(request, params))
+            #
+            #     {
+            #         "code": 200,
+            #         "data": {
+            #             "success-count": 2,
+            #             "failed-count": 0,
+            #             "next-id": 5454600
+            #         }
+            #     }
+            #
+            data = self.safe_dict(response, 'data')
+            return [
+                self.safe_order({
+                    'info': data,
+                }),
+            ]
         else:
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument')
@@ -5611,30 +5684,18 @@ class htx(Exchange, ImplicitAPI):
                         response = self.contractPrivatePostApiV1ContractCancelall(self.extend(request, params))
             else:
                 raise NotSupported(self.id + ' cancelAllOrders() does not support ' + marketType + ' markets')
-        #
-        # spot
-        #
-        #     {
-        #         "code": 200,
-        #         "data": {
-        #             "success-count": 2,
-        #             "failed-count": 0,
-        #             "next-id": 5454600
-        #         }
-        #     }
-        #
-        # future and swap
-        #
-        #     {
-        #         "status": "ok",
-        #         "data": {
-        #             "errors": [],
-        #             "successes": "1104754904426696704"
-        #         },
-        #         "ts": "1683435723755"
-        #     }
-        #
-        return response
+            #
+            #     {
+            #         "status": "ok",
+            #         "data": {
+            #             "errors": [],
+            #             "successes": "1104754904426696704"
+            #         },
+            #         "ts": "1683435723755"
+            #     }
+            #
+            data = self.safe_dict(response, 'data')
+            return self.parse_cancel_orders(data)
 
     def cancel_all_orders_after(self, timeout: Int, params={}):
         """
@@ -5689,6 +5750,7 @@ class htx(Exchange, ImplicitAPI):
 
     def fetch_deposit_addresses_by_network(self, code: str, params={}):
         """
+        :see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003
         fetch a dictionary of addresses for a currency, indexed by network
         :param str code: unified currency code of the currency for the deposit address
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -5719,6 +5781,7 @@ class htx(Exchange, ImplicitAPI):
 
     def fetch_deposit_address(self, code: str, params={}):
         """
+        :see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -5765,6 +5828,7 @@ class htx(Exchange, ImplicitAPI):
 
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
+        :see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec4f050-7773-11ed-9966-0242ac110003
         fetch all deposits made to an account
         :param str code: unified currency code
         :param int [since]: the earliest time in ms to fetch deposits for
@@ -5984,6 +6048,7 @@ class htx(Exchange, ImplicitAPI):
 
     def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
+        :see: https://www.htx.com/en-us/opend/newApiPages/?id=7ec4cc41-7773-11ed-9966-0242ac110003
         make a withdrawal
         :param str code: unified currency code
         :param float amount: the amount to withdraw

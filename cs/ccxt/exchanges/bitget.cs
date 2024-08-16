@@ -1270,6 +1270,7 @@ public partial class bitget : Exchange
                 { "JADE", "Jade Protocol" },
                 { "DEGEN", "DegenReborn" },
                 { "TONCOIN", "TON" },
+                { "OMNI", "omni" },
             } },
             { "options", new Dictionary<string, object>() {
                 { "timeframes", new Dictionary<string, object>() {
@@ -5352,6 +5353,25 @@ public partial class bitget : Exchange
                 {
                     response = await this.privateSpotPostV2SpotTradeCancelSymbolOrder(this.extend(request, parameters));
                 }
+                //
+                //     {
+                //         "code": "00000",
+                //         "msg": "success",
+                //         "requestTime": 1700716953996,
+                //         "data": {
+                //             "symbol": "BTCUSDT"
+                //         }
+                //     }
+                //
+                object timestamp = this.safeInteger(response, "requestTime");
+                object responseData = this.safeDict(response, "data");
+                object marketId = this.safeString(responseData, "symbol");
+                return new List<object> {this.safeOrder(new Dictionary<string, object>() {
+    { "info", response },
+    { "symbol", this.safeSymbol(marketId, null, null, "spot") },
+    { "timestamp", timestamp },
+    { "datetime", this.iso8601(timestamp) },
+})};
             }
         } else
         {
@@ -5368,53 +5388,11 @@ public partial class bitget : Exchange
                 response = await this.privateMixPostV2MixOrderBatchCancelOrders(this.extend(request, parameters));
             }
         }
-        //
-        // spot
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700716953996,
-        //         "data": {
-        //             "symbol": "BTCUSDT"
-        //         }
-        //     }
-        //
-        // swap
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": "1680008815965",
-        //         "data": {
-        //             "successList": [
-        //                 {
-        //                     "orderId": "1024598257429823488",
-        //                     "clientOid": "876493ce-c287-4bfc-9f4a-8b1905881313"
-        //                 },
-        //             ],
-        //             "failureList": []
-        //         }
-        //     }
-        //
-        // spot margin
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1700717155622,
-        //         "data": {
-        //             "resultList": [
-        //                 {
-        //                     "orderId": "1111453253721796609",
-        //                     "clientOid": "2ae7fc8a4ff949b6b60d770ca3950e2d"
-        //                 },
-        //             ],
-        //             "failure": []
-        //         }
-        //     }
-        //
-        return response;
+        object data = this.safeDict(response, "data");
+        object resultList = this.safeList2(data, "resultList", "successList");
+        object failureList = this.safeList2(data, "failure", "failureList");
+        object responseList = this.arrayConcat(resultList, failureList);
+        return this.parseOrders(responseList);
     }
 
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
@@ -5537,9 +5515,12 @@ public partial class bitget : Exchange
             response = parseJson(response);
         }
         object data = this.safeDict(response, "data");
-        if (isTrue(isTrue((!isEqual(data, null))) && !isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        if (isTrue((!isEqual(data, null))))
         {
-            return this.parseOrder(data, market);
+            if (!isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            {
+                return this.parseOrder(data, market);
+            }
         }
         object dataList = this.safeList(response, "data", new List<object>() {});
         object first = this.safeDict(dataList, 0, new Dictionary<string, object>() {});

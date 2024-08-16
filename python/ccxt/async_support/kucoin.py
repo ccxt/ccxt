@@ -179,6 +179,7 @@ class kucoin(Exchange, ImplicitAPI):
                         'status': 4.5,  # 3PW
                         # margin trading
                         'mark-price/{symbol}/current': 3,  # 2PW
+                        'mark-price/all-symbols': 3,
                         'margin/config': 25,  # 25SW
                     },
                     'post': {
@@ -260,6 +261,8 @@ class kucoin(Exchange, ImplicitAPI):
                         'purchase/orders': 10,  # 10SW
                         # broker
                         'broker/api/rebase/download': 3,
+                        # affiliate
+                        'affiliate/inviter/statistics': 30,
                     },
                     'post': {
                         # account
@@ -662,6 +665,7 @@ class kucoin(Exchange, ImplicitAPI):
                             'currencies': 'v3',
                             'currencies/{currency}': 'v3',
                             'symbols': 'v2',
+                            'mark-price/all-symbols': 'v3',
                         },
                     },
                     'private': {
@@ -701,6 +705,7 @@ class kucoin(Exchange, ImplicitAPI):
                             'redeem/orders': 'v3',
                             'purchase/orders': 'v3',
                             'margin/symbols': 'v3',
+                            'affiliate/inviter/statistics': 'v2',
                         },
                         'POST': {
                             # account
@@ -1509,20 +1514,26 @@ class kucoin(Exchange, ImplicitAPI):
             },
             'networks': {},
         }
-        isWithdrawEnabled = self.safe_bool(fee, 'isWithdrawEnabled')
+        isWithdrawEnabled = self.safe_bool(fee, 'isWithdrawEnabled', True)
+        minFee = None
         if isWithdrawEnabled:
-            result['withdraw']['fee'] = self.safe_number_2(fee, 'withdrawalMinFee', 'withdrawMinFee')
             result['withdraw']['percentage'] = False
-            networkId = self.safe_string(fee, 'chain')
-            if networkId:
+            chains = self.safe_list(fee, 'chains', [])
+            for i in range(0, len(chains)):
+                chain = chains[i]
+                networkId = self.safe_string(chain, 'chainId')
                 networkCode = self.network_id_to_code(networkId, self.safe_string(currency, 'code'))
+                withdrawFee = self.safe_string(chain, 'withdrawalMinFee')
+                if minFee is None or (Precise.string_lt(withdrawFee, minFee)):
+                    minFee = withdrawFee
                 result['networks'][networkCode] = {
-                    'withdraw': result['withdraw'],
+                    'withdraw': self.parse_number(withdrawFee),
                     'deposit': {
                         'fee': None,
                         'percentage': None,
                     },
                 }
+            result['withdraw']['fee'] = self.parse_number(minFee)
         return result
 
     def is_futures_method(self, methodName, params):

@@ -43,8 +43,8 @@ export default class bitmart extends bitmartRest {
                             'private': 'wss://ws-manager-compress.{hostname}/user?protocol=1.1',
                         },
                         'swap': {
-                            'public': 'wss://openapi-ws.{hostname}/api?protocol=1.1',
-                            'private': 'wss://openapi-ws.{hostname}/user?protocol=1.1',
+                            'public': 'wss://openapi-ws-v2.{hostname}/api?protocol=1.1',
+                            'private': 'wss://openapi-ws-v2.{hostname}/user?protocol=1.1',
                         },
                     },
                 },
@@ -138,7 +138,7 @@ export default class bitmart extends bitmartRest {
          * @method
          * @name bitmart#watchBalance
          * @see https://developer-pro.bitmart.com/en/spot/#private-balance-change
-         * @see https://developer-pro.bitmart.com/en/futures/#private-assets-channel
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#private-assets-channel
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
@@ -272,7 +272,7 @@ export default class bitmart extends bitmartRest {
          * @method
          * @name bitmart#watchTrades
          * @see https://developer-pro.bitmart.com/en/spot/#public-trade-channel
-         * @see https://developer-pro.bitmart.com/en/futures/#public-trade-channel
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -322,6 +322,7 @@ export default class bitmart extends bitmartRest {
          * @method
          * @name bitmart#watchTicker
          * @see https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -336,7 +337,7 @@ export default class bitmart extends bitmartRest {
         /**
          * @method
          * @name bitmart#watchTickers
-         * @see https://developer-pro.bitmart.com/en/futures/#overview
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {string[]} symbols unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -360,7 +361,7 @@ export default class bitmart extends bitmartRest {
          * @name bitmart#watchOrders
          * @description watches information on multiple orders made by the user
          * @see https://developer-pro.bitmart.com/en/spot/#private-order-progress
-         * @see https://developer-pro.bitmart.com/en/futures/#private-order-channel
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#private-order-channel
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -757,8 +758,8 @@ export default class bitmart extends bitmartRest {
         const symbol = market['symbol'];
         const openTimestamp = this.safeInteger(position, 'create_time');
         const timestamp = this.safeInteger(position, 'update_time');
-        const side = this.safeNumber(position, 'position_type');
-        const marginModeId = this.safeNumber(position, 'open_type');
+        const side = this.safeInteger(position, 'position_type');
+        const marginModeId = this.safeInteger(position, 'open_type');
         return this.safePosition({
             'info': position,
             'id': undefined,
@@ -995,7 +996,7 @@ export default class bitmart extends bitmartRest {
          * @method
          * @name bitmart#watchOHLCV
          * @see https://developer-pro.bitmart.com/en/spot/#public-kline-channel
-         * @see https://developer-pro.bitmart.com/en/futures/#public-klinebin-channel
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#public-klinebin-channel
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
@@ -1123,7 +1124,7 @@ export default class bitmart extends bitmartRest {
          * @name bitmart#watchOrderBook
          * @see https://developer-pro.bitmart.com/en/spot/#public-depth-all-channel
          * @see https://developer-pro.bitmart.com/en/spot/#public-depth-increase-channel
-         * @see https://developer-pro.bitmart.com/en/futures/#public-depth-channel
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#public-depth-channel
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
@@ -1322,7 +1323,7 @@ export default class bitmart extends bitmartRest {
                 this.orderbooks[symbol] = ob;
             }
             const orderbook = this.orderbooks[symbol];
-            const way = this.safeNumber(data, 'way');
+            const way = this.safeInteger(data, 'way');
             const side = (way === 1) ? 'bids' : 'asks';
             if (way === 1) {
                 orderbook[side] = new Bids([], limit);

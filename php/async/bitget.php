@@ -1316,6 +1316,7 @@ class bitget extends Exchange {
                 'JADE' => 'Jade Protocol',
                 'DEGEN' => 'DegenReborn',
                 'TONCOIN' => 'TON',
+                'OMNI' => 'omni', // conflict with Omni Network
             ),
             'options' => array(
                 'timeframes' => array(
@@ -4950,6 +4951,22 @@ class bitget extends Exchange {
                     } else {
                         $response = Async\await($this->privateMarginPostMarginV1IsolatedOrderBatchCancelOrder ($this->extend($request, $params)));
                     }
+                    //
+                    //     {
+                    //         "code" => "00000",
+                    //         "msg" => "success",
+                    //         "requestTime" => 1700717155622,
+                    //         "data" => {
+                    //             "resultList" => array(
+                    //                 array(
+                    //                     "orderId" => "1111453253721796609",
+                    //                     "clientOid" => "2ae7fc8a4ff949b6b60d770ca3950e2d"
+                    //                 ),
+                    //             ),
+                    //             "failure" => array()
+                    //         }
+                    //     }
+                    //
                 } else {
                     if ($stop) {
                         $stopRequest = array(
@@ -4959,6 +4976,27 @@ class bitget extends Exchange {
                     } else {
                         $response = Async\await($this->privateSpotPostV2SpotTradeCancelSymbolOrder ($this->extend($request, $params)));
                     }
+                    //
+                    //     {
+                    //         "code" => "00000",
+                    //         "msg" => "success",
+                    //         "requestTime" => 1700716953996,
+                    //         "data" => {
+                    //             "symbol" => "BTCUSDT"
+                    //         }
+                    //     }
+                    //
+                    $timestamp = $this->safe_integer($response, 'requestTime');
+                    $responseData = $this->safe_dict($response, 'data');
+                    $marketId = $this->safe_string($responseData, 'symbol');
+                    return array(
+                        $this->safe_order(array(
+                            'info' => $response,
+                            'symbol' => $this->safe_symbol($marketId, null, null, 'spot'),
+                            'timestamp' => $timestamp,
+                            'datetime' => $this->iso8601($timestamp),
+                        )),
+                    );
                 }
             } else {
                 $productType = null;
@@ -4969,54 +5007,26 @@ class bitget extends Exchange {
                 } else {
                     $response = Async\await($this->privateMixPostV2MixOrderBatchCancelOrders ($this->extend($request, $params)));
                 }
+                //     {
+                //         "code" => "00000",
+                //         "msg" => "success",
+                //         "requestTime" => "1680008815965",
+                //         "data" => {
+                //             "successList" => array(
+                //                 array(
+                //                     "orderId" => "1024598257429823488",
+                //                     "clientOid" => "876493ce-c287-4bfc-9f4a-8b1905881313"
+                //                 ),
+                //             ),
+                //             "failureList" => array()
+                //         }
+                //     }
             }
-            //
-            // spot
-            //
-            //     {
-            //         "code" => "00000",
-            //         "msg" => "success",
-            //         "requestTime" => 1700716953996,
-            //         "data" => {
-            //             "symbol" => "BTCUSDT"
-            //         }
-            //     }
-            //
-            // swap
-            //
-            //     {
-            //         "code" => "00000",
-            //         "msg" => "success",
-            //         "requestTime" => "1680008815965",
-            //         "data" => {
-            //             "successList" => array(
-            //                 array(
-            //                     "orderId" => "1024598257429823488",
-            //                     "clientOid" => "876493ce-c287-4bfc-9f4a-8b1905881313"
-            //                 ),
-            //             ),
-            //             "failureList" => array()
-            //         }
-            //     }
-            //
-            // spot margin
-            //
-            //     {
-            //         "code" => "00000",
-            //         "msg" => "success",
-            //         "requestTime" => 1700717155622,
-            //         "data" => {
-            //             "resultList" => array(
-            //                 array(
-            //                     "orderId" => "1111453253721796609",
-            //                     "clientOid" => "2ae7fc8a4ff949b6b60d770ca3950e2d"
-            //                 ),
-            //             ),
-            //             "failure" => array()
-            //         }
-            //     }
-            //
-            return $response;
+            $data = $this->safe_dict($response, 'data');
+            $resultList = $this->safe_list_2($data, 'resultList', 'successList');
+            $failureList = $this->safe_list_2($data, 'failure', 'failureList');
+            $responseList = $this->array_concat($resultList, $failureList);
+            return $this->parse_orders($responseList);
         }) ();
     }
 
@@ -5128,8 +5138,10 @@ class bitget extends Exchange {
                 $response = json_decode($response, $as_associative_array = true);
             }
             $data = $this->safe_dict($response, 'data');
-            if (($data !== null) && gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
-                return $this->parse_order($data, $market);
+            if (($data !== null)) {
+                if (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
+                    return $this->parse_order($data, $market);
+                }
             }
             $dataList = $this->safe_list($response, 'data', array());
             $first = $this->safe_dict($dataList, 0, array());

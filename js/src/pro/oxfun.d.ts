@@ -32,7 +32,7 @@ export default class oxfun extends oxfunRest {
     cancelOrdersWs(ids: string[], symbol?: Str, params?: {}): Promise<any>;
     authenticate(params?: {}): Promise<any>;
     handleAuthenticationMessage(client: Client, message: any): void;
-    ping(client: any): string;
+    ping(client: Client): string;
     handlePong(client: Client, message: any): any;
     handleMessage(client: Client, message: any): void;
 }
