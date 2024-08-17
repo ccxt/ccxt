@@ -1302,7 +1302,10 @@ export default class kraken extends Exchange {
         }
         const cost = this.safeString (trade, 'cost');
         const maker = this.safeBool (trade, 'maker');
-        const takerOrMaker = maker ? 'maker' : 'taker';
+        let takerOrMaker = undefined;
+        if (maker !== undefined) {
+            takerOrMaker = maker ? 'maker' : 'taker';
+        }
         return this.safeTrade ({
             'id': id,
             'order': orderId,
