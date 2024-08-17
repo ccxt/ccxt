@@ -454,9 +454,15 @@ export default class okx extends okxRest {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols, undefined, true, true);
-        let messageHash = 'liquidations';
+        const messageHash = 'liquidations';
+        const messageHashes = [];
         if (symbols !== undefined) {
-            messageHash += '::' + symbols.join (',');
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                messageHashes.push (messageHash + '::' + symbol);
+            }
+        } else {
+            messageHashes.push (messageHash);
         }
         const market = this.getMarketFromSymbols (symbols);
         let type = undefined;
@@ -469,9 +475,16 @@ export default class okx extends okxRest {
         }
         const uppercaseType = type.toUpperCase ();
         const request = {
-            'instType': uppercaseType,
+            'op': 'subscribe',
+            'args': [
+                {
+                    'channel': channel,
+                    'instType': uppercaseType,
+                },
+            ],
         };
-        const newLiquidations = await this.subscribe ('public', messageHash, channel, undefined, this.extend (request, params));
+        const url = this.getUrl (channel, 'public');
+        const newLiquidations = await this.watchMultiple (url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
             return newLiquidations;
         }
