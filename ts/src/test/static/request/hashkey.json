@@ -3,12 +3,30 @@
     "skipKeys": ["timestamp", "signature", "clientOrderId", "timeInForce"],
     "outputType": "urlencoded",
     "methods": {
+        "fetchStatus": [
+            {
+                "description": "Fetch status",
+                "method": "fetchStatus",
+                "url": "https://api-glb.hashkey.com/api/v1/ping",
+                "input": []
+            }
+        ],
         "fetchMarkets": [
             {
                 "description": "Fetch markets",
                 "method": "fetchMarkets",
                 "url": "https://api-glb.hashkey.com/api/v1/exchangeInfo",
                 "input": []
+            },
+            {
+                "description": "Fetch markets for one symbol",
+                "method": "fetchMarkets",
+                "url": "https://api-glb.hashkey.com/api/v1/exchangeInfo?symbol=ETHUSDT",
+                "input": [
+                    {
+                        "symbol": "ETHUSDT"
+                    }
+                ]
             }
         ],
         "fetchCurrencies": [
