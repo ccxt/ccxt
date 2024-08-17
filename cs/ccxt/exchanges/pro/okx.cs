@@ -468,9 +468,17 @@ public partial class okx : ccxt.okx
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, null, true, true);
         object messageHash = "liquidations";
+        object messageHashes = new List<object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
-            messageHash = add(messageHash, add("::", String.Join(",", ((IList<object>)symbols).ToArray())));
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                object symbol = getValue(symbols, i);
+                ((IList<object>)messageHashes).Add(add(add(messageHash, "::"), symbol));
+            }
+        } else
+        {
+            ((IList<object>)messageHashes).Add(messageHash);
         }
         object market = this.getMarketFromSymbols(symbols);
         object type = null;
@@ -487,9 +495,14 @@ public partial class okx : ccxt.okx
         }
         object uppercaseType = ((string)type).ToUpper();
         object request = new Dictionary<string, object>() {
-            { "instType", uppercaseType },
+            { "op", "subscribe" },
+            { "args", new List<object>() {new Dictionary<string, object>() {
+    { "channel", channel },
+    { "instType", uppercaseType },
+}} },
         };
-        object newLiquidations = await this.subscribe("public", messageHash, channel, null, this.extend(request, parameters));
+        object url = this.getUrl(channel, "public");
+        object newLiquidations = await this.watchMultiple(url, messageHashes, request, messageHashes);
         if (isTrue(this.newUpdates))
         {
             return newLiquidations;
