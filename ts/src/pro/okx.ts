@@ -475,7 +475,13 @@ export default class okx extends okxRest {
         }
         const uppercaseType = type.toUpperCase ();
         const request = {
-            'instType': uppercaseType,
+            'op': 'subscribe',
+            'args': [
+                {
+                    'channel': channel,
+                    'instType': uppercaseType,
+                },
+            ],
         };
         const url = this.getUrl (channel, 'public');
         const newLiquidations = await this.watchMultiple (url, messageHashes, request, messageHashes);
