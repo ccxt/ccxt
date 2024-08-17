@@ -419,8 +419,13 @@ class okx(ccxt.async_support.okx):
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True)
         messageHash = 'liquidations'
+        messageHashes = []
         if symbols is not None:
-            messageHash += '::' + ','.join(symbols)
+            for i in range(0, len(symbols)):
+                symbol = symbols[i]
+                messageHashes.append(messageHash + '::' + symbol)
+        else:
+            messageHashes.append(messageHash)
         market = self.get_market_from_symbols(symbols)
         type = None
         type, params = self.handle_market_type_and_params('watchliquidationsForSymbols', market, params)
@@ -431,9 +436,16 @@ class okx(ccxt.async_support.okx):
             type = 'futures'
         uppercaseType = type.upper()
         request = {
-            'instType': uppercaseType,
+            'op': 'subscribe',
+            'args': [
+                {
+                    'channel': channel,
+                    'instType': uppercaseType,
+                },
+            ],
         }
-        newLiquidations = await self.subscribe('public', messageHash, channel, None, self.extend(request, params))
+        url = self.get_url(channel, 'public')
+        newLiquidations = await self.watch_multiple(url, messageHashes, request, messageHashes)
         if self.newUpdates:
             return newLiquidations
         return self.filter_by_symbols_since_limit(self.liquidations, symbols, since, limit, True)

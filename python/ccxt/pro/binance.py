@@ -228,7 +228,7 @@ class binance(ccxt.async_support.binance):
         else:
             for i in range(0, len(symbols)):
                 market = self.market(symbols[i])
-                subscriptionHashes.append(market['id'] + '@forceOrder')
+                subscriptionHashes.append(market['lowercaseId'] + '@forceOrder')
                 messageHashes.append('liquidations::' + symbols[i])
             streamHash += '::' + ','.join(symbols)
         firstMarket = self.get_market_from_symbols(symbols)
