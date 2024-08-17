@@ -34,11 +34,11 @@ async def test_subscribe():
         assert message.payload == 'Hello, world!', 'Incorrect payload'
     _stream.subscribe(topic, consumer_fn, True)
     _stream.produce(topic, 'Hello, world!')
-    await asyncio.sleep(1) # Wait for the message to be processed
+    await asyncio.sleep(1)  # Wait for the message to be processed
     assert received_message, 'Consumer did not receive the message'
     received_message = False
     _stream.produce(topic, 'Hello, world!')
-    await asyncio.sleep(1) # Wait for the message to be processed
+    await asyncio.sleep(1)  # Wait for the message to be processed
     assert received_message, 'Consumer did not receive the message'
 
 
@@ -76,10 +76,10 @@ def test_sync_consumer_function():
     _stream = stream.Stream()
     topic = 'topic1'
     payload = 'hello world'
-    
+
     def sync_consumer(message):
         assert message.payload == payload
-    
+
     _stream.subscribe(topic, sync_consumer)
     # Produce message
     _stream.produce(topic, payload)
@@ -92,7 +92,7 @@ def test_async_consumer_function():
     payload = 'hello world'
     def async_consumer(message):
         assert message.payload == payload
-        
+
     _stream.subscribe(topic, async_consumer)
     # Produce message
     _stream.produce(topic, payload)
