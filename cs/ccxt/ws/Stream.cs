@@ -74,7 +74,7 @@ public class Stream : IBaseStream
         }
     }
 
-    public void subscribe(object topic2, object consumerFn2, object synchronous2)
+    public void subscribe(object topic2, object consumerFn2, object synchronous2 = null)
     {
         var synchronous = synchronous2 as bool? ?? true;
         var topic = topic2 as String;

@@ -61,6 +61,7 @@ class Client {
     public $log = null;
     public $heartbeat = null;
     public $cost = 1;
+    public $maxMessagesPerTopic = null;
 
     // ratchet/pawl/reactphp stuff
     public $connector = null;

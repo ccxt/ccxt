@@ -105,9 +105,11 @@ function testAsyncConsumerFunction () {
 }
 
 // Run the tests
-testProduce ();
-testSubscribe ();
-testUnsubscribe ();
-testClose ();
-testSyncConsumerFunction ();
-testAsyncConsumerFunction ();
+export default function testStream () {
+    testProduce ();
+    testSubscribe ();
+    testUnsubscribe ();
+    testClose ();
+    testSyncConsumerFunction ();
+    testAsyncConsumerFunction ();
+}

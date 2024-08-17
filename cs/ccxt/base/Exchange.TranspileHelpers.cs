@@ -547,6 +547,10 @@ public partial class Exchange
         {
             return ((List<List<string>>)value).Count;
         }
+        else if (value is ((List<ccxt.pro.Message>)))
+        {
+            return ((List<ccxt.pro.Message>)value).Count;
+        }
         else if (value is (string))
         {
             return ((string)value).Length; // fallback that should not be used
@@ -814,6 +818,16 @@ public partial class Exchange
         {
             int parsed = Convert.ToInt32(key);
             return ((List<Int64>)value)[parsed];
+        }
+        else if (value is List<ccxt.pro.Message>)
+        {
+            int parsed = Convert.ToInt32(key);
+            var listLength = getArrayLength(value);
+            if (parsed >= listLength)
+            {
+                return null;
+            }
+            return ((List<ccxt.pro.Message>)value)[parsed];
         }
         // check this last, avoid reflection
         else if (key.GetType() == typeof(string) && (value.GetType()).GetProperty((string)key) != null)
