@@ -1118,29 +1118,45 @@ export default class hyperliquid extends Exchange {
          * @param {string} [params.vaultAddress] the vault address for order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const vaultAddress = this.safeString (params, 'vaultAddress');
-        params = this.omit (params, 'vaultAddress');
-        symbol = market['symbol'];
-        const order = {
-            'symbol': symbol as string,
-            'type': type as OrderType,
-            'side': side as OrderSide,
-            'amount': amount,
-            'price': price,
-            'params': params,
-        } as OrderRequest;
-        const globalParams: Dict = {};
-        if (vaultAddress !== undefined) {
-            globalParams['vaultAddress'] = vaultAddress;
-        }
-        const response = await this.createOrders ([ order ], globalParams);
-        const first = this.safeDict (response, 0);
-        return first as Order;
+        const { globalParams, order } = await this.parseCreateOrderArgs (symbol, type, side, amount, price, params);
+        return (await this.createOrders ([ order ], globalParams))[0];
     }
 
     async createOrders (orders: OrderRequest[], params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#createOrders
+         * @description create a list of trade orders
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        const request = await this.createOrdersRequest (orders, params);
+        const response = await this.privatePostExchange (request);
+        //
+        //     {
+        //         "status": "ok",
+        //         "response": {
+        //             "type": "order",
+        //             "data": {
+        //                 "statuses": [
+        //                     {
+        //                         "resting": {
+        //                             "oid": 5063830287
+        //                         }
+        //                     }
+        //                 ]
+        //             }
+        //         }
+        //     }
+        //
+        const responseObj = this.safeDict (response, 'response', {});
+        const data = this.safeDict (responseObj, 'data', {});
+        const statuses = this.safeList (data, 'statuses', []);
+        return this.parseOrders (statuses, undefined);
+    }
+
+    async createOrdersRequest (orders, params = {}): Promise<Dict> {
         /**
          * @method
          * @name hyperliquid#createOrders
@@ -1267,28 +1283,7 @@ export default class hyperliquid extends Exchange {
             params = this.omit (params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
-        const response = await this.privatePostExchange (request);
-        //
-        //     {
-        //         "status": "ok",
-        //         "response": {
-        //             "type": "order",
-        //             "data": {
-        //                 "statuses": [
-        //                     {
-        //                         "resting": {
-        //                             "oid": 5063830287
-        //                         }
-        //                     }
-        //                 ]
-        //             }
-        //         }
-        //     }
-        //
-        const responseObj = this.safeDict (response, 'response', {});
-        const data = this.safeDict (responseObj, 'data', {});
-        const statuses = this.safeList (data, 'statuses', []);
-        return this.parseOrders (statuses, undefined);
+        return request;
     }
 
     async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
@@ -1513,28 +1508,7 @@ export default class hyperliquid extends Exchange {
         return response;
     }
 
-    async editOrder (id: string, symbol: string, type: string, side: string, amount: Num = undefined, price: Num = undefined, params = {}) {
-        /**
-         * @method
-         * @name hyperliquid#editOrder
-         * @description edit a trade order
-         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
-         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
-         * @param {string} id cancel order id
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.timeInForce] 'Gtc', 'Ioc', 'Alo'
-         * @param {bool} [params.postOnly] true or false whether the order is post-only
-         * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
-         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
-         * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
-         * @param {string} [params.vaultAddress] the vault address for order
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-         */
+    async editOrderRequest (id: string, symbol: string, type: string, side: string, amount: Num = undefined, price: Num = undefined, params = {}) {
         this.checkRequiredCredentials ();
         if (id === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an id argument');
@@ -1623,6 +1597,32 @@ export default class hyperliquid extends Exchange {
             params = this.omit (params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
+        return { request, market };
+    }
+
+    async editOrder (id: string, symbol: string, type: string, side: string, amount: Num = undefined, price: Num = undefined, params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#editOrder
+         * @description edit a trade order
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
+         * @param {string} id cancel order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.timeInForce] 'Gtc', 'Ioc', 'Alo'
+         * @param {bool} [params.postOnly] true or false whether the order is post-only
+         * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+         * @param {string} [params.vaultAddress] the vault address for order
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        const { request, market } = await this.editOrderRequest (id, symbol, type, side, amount, price, params);
         const response = await this.privatePostExchange (request);
         //
         //     {
@@ -2806,5 +2806,29 @@ export default class hyperliquid extends Exchange {
             body = this.json (params);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+    }
+
+    async parseCreateOrderArgs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<{
+        order: OrderRequest,
+        globalParams: Dict
+    }> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const vaultAddress = this.safeString (params, 'vaultAddress');
+        params = this.omit (params, 'vaultAddress');
+        symbol = market['symbol'];
+        const order = {
+            'symbol': symbol,
+            'type': type as OrderType,
+            'side': side as OrderSide,
+            'amount': amount,
+            'price': price,
+            'params': params,
+        };
+        const globalParams = {};
+        if (vaultAddress !== undefined) {
+            globalParams['vaultAddress'] = vaultAddress;
+        }
+        return { order, globalParams };
     }
 }
