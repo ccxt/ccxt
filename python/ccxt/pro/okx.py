@@ -1317,6 +1317,12 @@ class okx(ccxt.async_support.okx):
         for i in range(0, len(data)):
             rawPosition = data[i]
             position = self.parse_position(rawPosition)
+            if position['contracts'] == 0:
+                position['side'] = 'long'
+                shortPosition = self.clone(position)
+                shortPosition['side'] = 'short'
+                cache.append(shortPosition)
+                newPositions.append(shortPosition)
             newPositions.append(position)
             cache.append(position)
         messageHashes = self.find_message_hashes(client, channel + '::')

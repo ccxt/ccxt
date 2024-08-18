@@ -1548,6 +1548,14 @@ public partial class okx : ccxt.okx
         {
             object rawPosition = getValue(data, i);
             object position = this.parsePosition(rawPosition);
+            if (isTrue(isEqual(getValue(position, "contracts"), 0)))
+            {
+                ((IDictionary<string,object>)position)["side"] = "long";
+                object shortPosition = this.clone(position);
+                ((IDictionary<string,object>)shortPosition)["side"] = "short";
+                callDynamically(cache, "append", new object[] {shortPosition});
+                ((IList<object>)newPositions).Add(shortPosition);
+            }
             ((IList<object>)newPositions).Add(position);
             callDynamically(cache, "append", new object[] {position});
         }
