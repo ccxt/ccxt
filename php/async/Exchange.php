@@ -350,14 +350,15 @@ class Exchange extends \ccxt\Exchange {
          * setup the $stream object $options and create subscriptions so the streams of multiple symbols publish to the individual ones
          */
         $stream = $this->stream;
-        if ($this->stream !== null) {
-            $stream->subscribe ('tickers', $this->stream_to_symbol('tickers'), true);
-            $stream->subscribe ('orderbooks', $this->stream_to_symbol('orderbooks'), true);
-            $stream->subscribe ('orders', $this->stream_to_symbol('orders'), true);
-            $stream->subscribe ('positions', $this->stream_to_symbol('positions'), true);
-            $stream->subscribe ('trades', $this->stream_to_symbol('trades'), true);
-            $stream->subscribe ('myTrades', $this->stream_to_symbol('myTrades'), true);
+        if ($this->stream === null) {
+            return;
         }
+        $stream->subscribe ('tickers', $this->stream_to_symbol('tickers'), true);
+        $stream->subscribe ('orderbooks', $this->stream_to_symbol('orderbooks'), true);
+        $stream->subscribe ('orders', $this->stream_to_symbol('orders'), true);
+        $stream->subscribe ('positions', $this->stream_to_symbol('positions'), true);
+        $stream->subscribe ('trades', $this->stream_to_symbol('trades'), true);
+        $stream->subscribe ('myTrades', $this->stream_to_symbol('myTrades'), true);
         $options = $this->safe_dict($this->options, 'streaming', array());
         $reconnect = $this->safe_bool($options, 'autoreconnect', true);
         if ($reconnect) {
@@ -385,7 +386,7 @@ class Exchange extends \ccxt\Exchange {
             $this->log('Stream reconnecting active watch functions');
         }
         $stream = $this->stream;
-        $activeFunctions = $stream->activeWatchFunctions;
+        $activeFunctions = $stream->active_watch_functions;
         $tasks = array();
         for ($i = 0; $i < count($activeFunctions); $i++) {
             $activeFunction = $activeFunctions[$i];
@@ -4559,7 +4560,6 @@ class Exchange extends \ccxt\Exchange {
     public function subscribe_raw(mixed $callback, bool $synchronous = true) {
         /**
          * subscribe to all raw messages received from websocket
-         * @param {string[]} symbols unified symbols of the market to watch tickers
          * @param {Function} $callback function to call when receiving an update
          * @param {boolean} $synchronous if set to true, the $callback will wait to finish before passing next message
          */
@@ -4570,7 +4570,6 @@ class Exchange extends \ccxt\Exchange {
     public function subscribe_errors(mixed $callback, bool $synchronous = true) {
         /**
          * subscribe to all errors thrown by $stream
-         * @param {string[]} symbols unified symbols of the market to watch tickers
          * @param {Function} $callback function to call when receiving an update
          * @param {boolean} $synchronous if set to true, the $callback will wait to finish before passing next message
          */

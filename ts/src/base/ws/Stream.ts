@@ -151,11 +151,7 @@ export class Stream implements BaseStream {
         if (this.verbose) {
             console.log ('closing stream');
         }
-        const config = {
-            'maxMessagesPerTopic': this.maxMessagesPerTopic,
-            'verbose': this.verbose,
-        }
-        this.init (this.maxMessagesPerTopic);
+        this.init (this.maxMessagesPerTopic, this.verbose);
     }
 }
 

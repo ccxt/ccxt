@@ -111,6 +111,6 @@ class Stream:
         for consumers in self.consumers.values():
             for consumer in consumers:
                 await consumer.close()
+        self.__init__(self.max_messages_per_topic, self.verbose)
         if self.verbose:
             print("closed stream")
-        self.stream = Stream()

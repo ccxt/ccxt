@@ -1489,7 +1489,7 @@ export default class Exchange {
     }
 
     streamReconnectOnError () {
-        const callback = async (message:Message) => {
+        const callback = async (message: Message) => {
             const error = message.payload;
             if (error !== undefined && !(message.error instanceof ExchangeClosedByUser)) {
                 try{
@@ -5805,7 +5805,6 @@ export default class Exchange {
          * @method
          * @name subscribeRaw
          * @description subscribe to all raw messages received from websocket
-         * @param {string[]} symbols unified symbols of the market to watch tickers
          * @param {Function} callback function to call when receiving an update
          * @param {boolean} synchronous if set to true, the callback will wait to finish before passing next message
          */
@@ -5818,7 +5817,6 @@ export default class Exchange {
          * @method
          * @name subscribeErrors
          * @description subscribe to all errors thrown by stream
-         * @param {string[]} symbols unified symbols of the market to watch tickers
          * @param {Function} callback function to call when receiving an update
          * @param {boolean} synchronous if set to true, the callback will wait to finish before passing next message
          */

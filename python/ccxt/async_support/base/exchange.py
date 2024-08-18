@@ -500,6 +500,7 @@ class Exchange(BaseExchange):
             await asyncio.wait([asyncio.create_task(client.close()) for client in self.clients.values()], return_when=asyncio.ALL_COMPLETED)
             for url in self.clients.copy():
                 del self.clients[url]
+        await self.stream.close()
 
     async def load_order_book(self, client, messageHash, symbol, limit=None, params={}):
         if symbol not in self.orderbooks:
@@ -532,12 +533,12 @@ class Exchange(BaseExchange):
         return format(n, 'g')
 
     def stream_reconnect_on_error(self):
-        def callback(message):
+        async def callback(message):
             if message.error and not isinstance(message.error, ExchangeClosedByUser):
                 try:
-                    self.stream_reconnect()
+                    await self.stream_reconnect()
                 except Exception as e:
-                    self.log("Stream failed to reconnect")
+                    self.log(f"Stream failed to reconnect: {e}")
         return callback
 
     def stream_to_symbol(self, topic):
@@ -597,7 +598,7 @@ class Exchange(BaseExchange):
         if self.verbose:
             self.log('Stream reconnecting active watch functions')
         stream = self.stream
-        activeFunctions = stream.activeWatchFunctions
+        activeFunctions = stream.active_watch_functions
         tasks = []
         for i in range(0, len(activeFunctions)):
             activeFunction = activeFunctions[i]

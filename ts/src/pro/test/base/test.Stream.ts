@@ -1,6 +1,7 @@
 import assert from 'assert';
 import Stream from '../../../base/ws/Stream.js';
 import { Message } from '../../../base/types.js';
+import ccxt, { ExchangeClosedByUser } from '../../../../ccxt.js';
 
 // Test case for producing a message
 function testProduce () {
@@ -54,7 +55,7 @@ function testUnsubscribe () {
 }
 
 // Test case for closing the stream
-function testClose () {
+async function testClose () {
     const stream = new Stream ();
     const topic = 'topic1';
     let receivedMessage = false;
@@ -65,7 +66,7 @@ function testClose () {
 
     stream.subscribe (topic, consumerFn);
 
-    stream.close ();
+    await stream.close ();
 
     stream.produce (topic, 'Hello, world!');
 
@@ -103,13 +104,44 @@ function testAsyncConsumerFunction () {
     // Produce message
     stream.produce (topic, payload);
 }
+// Test async case
+async function testReconnect () {
+    let receivedMessage = false;
+    let receivedError = false;
+    function fnConsumer (message) {
+        receivedMessage = true;
+    }
+    const errorConsumer = (message) => {
+        if (!(message.error instanceof ExchangeClosedByUser)) {
+            receivedError = true;
+        }
+    };
+    const ex = new ccxt.pro.binance ();
+    ex.subscribeErrors (errorConsumer);
+    await ex.subscribeTrades ('BTC/USDT', fnConsumer);
+    await ex.sleep (1000);
+    assert (receivedMessage);
+    receivedMessage = false;
+    const keys = Object.keys (ex.clients);
+    ex.clients[keys[0]].onError ("Some error");
+    await ex.sleep (500);
+    assert (receivedError);
+    receivedError = false;
+    await ex.sleep (5000);
+    assert (receivedMessage);
+    await ex.close ();
+    receivedMessage = false;
+    assert (!receivedError);
+    assert (!receivedMessage);
+}
 
 // Run the tests
-export default function testStream () {
+export default async function testStream () {
     testProduce ();
     testSubscribe ();
     testUnsubscribe ();
-    testClose ();
+    await testClose ();
     testSyncConsumerFunction ();
     testAsyncConsumerFunction ();
+    await testReconnect ();
 }
