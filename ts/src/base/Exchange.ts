@@ -1633,14 +1633,15 @@ export default class Exchange {
          * @description setup the stream object options and create subscriptions so the streams of multiple symbols publish to the individual ones
          */
         const stream = this.stream;
-        if (this.stream !== undefined) {
-            stream.subscribe ('tickers', this.streamToSymbol ('tickers'), true);
-            stream.subscribe ('orderbooks', this.streamToSymbol ('orderbooks'), true);
-            stream.subscribe ('orders', this.streamToSymbol ('orders'), true);
-            stream.subscribe ('positions', this.streamToSymbol ('positions'), true);
-            stream.subscribe ('trades', this.streamToSymbol ('trades'), true);
-            stream.subscribe ('myTrades', this.streamToSymbol ('myTrades'), true);
+        if (this.stream === undefined) {
+            return;
         }
+        stream.subscribe ('tickers', this.streamToSymbol ('tickers'), true);
+        stream.subscribe ('orderbooks', this.streamToSymbol ('orderbooks'), true);
+        stream.subscribe ('orders', this.streamToSymbol ('orders'), true);
+        stream.subscribe ('positions', this.streamToSymbol ('positions'), true);
+        stream.subscribe ('trades', this.streamToSymbol ('trades'), true);
+        stream.subscribe ('myTrades', this.streamToSymbol ('myTrades'), true);
         const options = this.safeDict (this.options, 'streaming', {});
         const reconnect = this.safeBool (options, 'autoreconnect', true);
         if (reconnect) {
