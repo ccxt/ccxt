@@ -89,8 +89,8 @@ class cryptocom extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => false,
                 'fetchTrades' => true,
-                'fetchTradingFee' => false,
-                'fetchTradingFees' => false,
+                'fetchTradingFee' => true,
+                'fetchTradingFees' => true,
                 'fetchTransactionFees' => false,
                 'fetchTransactions' => false,
                 'fetchTransfers' => false,
@@ -191,6 +191,8 @@ class cryptocom extends Exchange {
                             'private/get-accounts' => 10 / 3,
                             'private/get-withdrawal-history' => 10 / 3,
                             'private/get-deposit-history' => 10 / 3,
+                            'private/get-fee-rate' => 2,
+                            'private/get-instrument-fee-rate' => 2,
                             'private/staking/stake' => 2,
                             'private/staking/unstake' => 2,
                             'private/staking/get-staking-position' => 2,
@@ -2959,6 +2961,119 @@ class cryptocom extends Exchange {
         //
         $result = $this->safe_dict($response, 'result');
         return $this->parse_order($result, $market);
+    }
+
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
+        /**
+         * fetch the trading fees for a $market
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-instrument-fee-rate
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=fee-structure fee structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'instrument_name' => $market['id'],
+        );
+        $response = $this->v1PrivatePostPrivateGetInstrumentFeeRate ($this->extend($request, $params));
+        //
+        //    {
+        //        "id" => 1,
+        //        "code" => 0,
+        //        "method" => "private/staking/unstake",
+        //        "result" => {
+        //          "staking_id" => "1",
+        //          "instrument_name" => "SOL.staked",
+        //          "status" => "NEW",
+        //          "quantity" => "1",
+        //          "underlying_inst_name" => "SOL",
+        //          "reason" => "NO_ERROR"
+        //        }
+        //    }
+        //
+        $data = $this->safe_dict($response, 'result', array());
+        return $this->parse_trading_fee($data, $market);
+    }
+
+    public function fetch_trading_fees($params = array ()): array {
+        /**
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-fee-rate
+         * fetch the trading fees for multiple markets
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=fee-structure fee structures~ indexed by market symbols
+         */
+        $this->load_markets();
+        $response = $this->v1PrivatePostPrivateGetFeeRate ($params);
+        //
+        //   {
+        //       "id" => 1,
+        //       "method" => "/private/get-fee-rate",
+        //       "code" => 0,
+        //       "result" => {
+        //         "spot_tier" => "3",
+        //         "deriv_tier" => "3",
+        //         "effective_spot_maker_rate_bps" => "6.5",
+        //         "effective_spot_taker_rate_bps" => "6.9",
+        //         "effective_deriv_maker_rate_bps" => "1.1",
+        //         "effective_deriv_taker_rate_bps" => "3"
+        //       }
+        //   }
+        //
+        $result = $this->safe_dict($response, 'result', array());
+        return $this->parse_trading_fees($result);
+    }
+
+    public function parse_trading_fees($response) {
+        //
+        // {
+        //         "spot_tier" => "3",
+        //         "deriv_tier" => "3",
+        //         "effective_spot_maker_rate_bps" => "6.5",
+        //         "effective_spot_taker_rate_bps" => "6.9",
+        //         "effective_deriv_maker_rate_bps" => "1.1",
+        //         "effective_deriv_taker_rate_bps" => "3"
+        //  }
+        //
+        $result = array();
+        $result['info'] = $response;
+        for ($i = 0; $i < count($this->symbols); $i++) {
+            $symbol = $this->symbols[$i];
+            $market = $this->market($symbol);
+            $isSwap = $market['swap'];
+            $takerFeeKey = $isSwap ? 'effective_deriv_taker_rate_bps' : 'effective_spot_taker_rate_bps';
+            $makerFeeKey = $isSwap ? 'effective_deriv_maker_rate_bps' : 'effective_spot_maker_rate_bps';
+            $tradingFee = array(
+                'info' => $response,
+                'symbol' => $symbol,
+                'maker' => $this->parse_number(Precise::string_div($this->safe_string($response, $makerFeeKey), '10000')),
+                'taker' => $this->parse_number(Precise::string_div($this->safe_string($response, $takerFeeKey), '10000')),
+                'percentage' => null,
+                'tierBased' => null,
+            );
+            $result[$symbol] = $tradingFee;
+        }
+        return $result;
+    }
+
+    public function parse_trading_fee(array $fee, ?array $market = null): array {
+        //
+        // {
+        //      "instrument_name" => "BTC_USD",
+        //      "effective_maker_rate_bps" => "6.5",
+        //      "effective_taker_rate_bps" => "6.9"
+        // }
+        //
+        $marketId = $this->safe_string($fee, 'instrument_name');
+        $symbol = $this->safe_symbol($marketId, $market);
+        return array(
+            'info' => $fee,
+            'symbol' => $symbol,
+            'maker' => $this->parse_number(Precise::string_div($this->safe_string($fee, 'effective_maker_rate_bps'), '10000')),
+            'taker' => $this->parse_number(Precise::string_div($this->safe_string($fee, 'effective_taker_rate_bps'), '10000')),
+            'percentage' => null,
+            'tierBased' => null,
+        );
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

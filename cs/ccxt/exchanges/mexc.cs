@@ -1065,7 +1065,7 @@ public partial class mexc : Exchange
         //         "symbols": [
         //           {
         //                "symbol": "OGNUSDT",
-        //                "status": "ENABLED",
+        //                "status": "1",
         //                "baseAsset": "OGN",
         //                "baseAssetPrecision": "2",
         //                "quoteAsset": "USDT",
@@ -1111,7 +1111,7 @@ public partial class mexc : Exchange
             object status = this.safeString(market, "status");
             object isSpotTradingAllowed = this.safeValue(market, "isSpotTradingAllowed");
             object active = false;
-            if (isTrue(isTrue((isEqual(status, "ENABLED"))) && isTrue((isSpotTradingAllowed))))
+            if (isTrue(isTrue((isEqual(status, "1"))) && isTrue((isSpotTradingAllowed))))
             {
                 active = true;
             }

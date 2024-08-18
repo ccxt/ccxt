@@ -1438,6 +1438,13 @@ export default class okx extends okxRest {
         for (let i = 0; i < data.length; i++) {
             const rawPosition = data[i];
             const position = this.parsePosition (rawPosition);
+            if (position['contracts'] === 0) {
+                position['side'] = 'long';
+                const shortPosition = this.clone (position);
+                shortPosition['side'] = 'short';
+                cache.append (shortPosition);
+                newPositions.push (shortPosition);
+            }
             newPositions.push (position);
             cache.append (position);
         }

@@ -7,7 +7,7 @@
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/bybit.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout, MarginModeAlreadySet, NoChange } from './base/errors.js';
+import { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, RequestTimeout, MarginModeAlreadySet, NoChange, ManualInteractionNeeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { rsa } from './base/functions/rsa.js';
@@ -756,8 +756,11 @@ export default class bybit extends Exchange {
                     '140069': PermissionDenied,
                     '140070': InvalidOrder,
                     '170001': ExchangeError,
-                    '170007': RequestTimeout,
                     '170005': InvalidOrder,
+                    '170007': RequestTimeout,
+                    '170010': InvalidOrder,
+                    '170011': InvalidOrder,
+                    '170019': InvalidOrder,
                     '170031': ExchangeError,
                     '170032': ExchangeError,
                     '170033': InsufficientFunds,
@@ -770,6 +773,7 @@ export default class bybit extends Exchange {
                     '170116': InvalidOrder,
                     '170117': InvalidOrder,
                     '170121': InvalidOrder,
+                    '170124': InvalidOrder,
                     '170130': BadRequest,
                     '170131': InsufficientFunds,
                     '170132': InvalidOrder,
@@ -780,7 +784,6 @@ export default class bybit extends Exchange {
                     '170137': InvalidOrder,
                     '170139': InvalidOrder,
                     '170140': InvalidOrder,
-                    '170124': InvalidOrder,
                     '170141': InvalidOrder,
                     '170142': InvalidOrder,
                     '170143': InvalidOrder,
@@ -805,6 +808,15 @@ export default class bybit extends Exchange {
                     '170198': InvalidOrder,
                     '170199': InvalidOrder,
                     '170200': InvalidOrder,
+                    '170201': PermissionDenied,
+                    '170202': InvalidOrder,
+                    '170203': InvalidOrder,
+                    '170204': InvalidOrder,
+                    '170206': InvalidOrder,
+                    '170210': InvalidOrder,
+                    '170213': OrderNotFound,
+                    '170217': InvalidOrder,
+                    '170218': InvalidOrder,
                     '170221': BadRequest,
                     '170222': RateLimitExceeded,
                     '170223': InsufficientFunds,
@@ -814,18 +826,7 @@ export default class bybit extends Exchange {
                     '170228': InvalidOrder,
                     '170229': InvalidOrder,
                     '170234': ExchangeError,
-                    '170210': InvalidOrder,
-                    '170213': OrderNotFound,
-                    '170217': InvalidOrder,
-                    '170218': InvalidOrder,
-                    '170010': InvalidOrder,
-                    '170011': InvalidOrder,
-                    '170019': InvalidOrder,
-                    '170201': PermissionDenied,
-                    '170202': InvalidOrder,
-                    '170203': InvalidOrder,
-                    '170204': InvalidOrder,
-                    '170206': InvalidOrder,
+                    '170241': ManualInteractionNeeded,
                     '175000': InvalidOrder,
                     '175001': InvalidOrder,
                     '175002': InvalidOrder,

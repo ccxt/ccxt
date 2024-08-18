@@ -1208,6 +1208,26 @@ class kraken extends kraken$1 {
         //         "misc": ''
         //     }
         //
+        // fetchMyTrades
+        //
+        //     {
+        //         "ordertxid": "OSJVN7-A2AE-63WZV",
+        //         "postxid": "TBP7O6-PNXI-CONU",
+        //         "pair": "XXBTZUSD",
+        //         "time": 1710429248.3052235,
+        //         "type": "sell",
+        //         "ordertype": "liquidation market",
+        //         "price": "72026.50000",
+        //         "cost": "7.20265",
+        //         "fee": "0.01873",
+        //         "vol": "0.00010000",
+        //         "margin": "1.44053",
+        //         "leverage": "5",
+        //         "misc": "closing",
+        //         "trade_id": 68230622,
+        //         "maker": false
+        //     }
+        //
         let timestamp = undefined;
         let side = undefined;
         let type = undefined;
@@ -1263,6 +1283,11 @@ class kraken extends kraken$1 {
             symbol = market['symbol'];
         }
         const cost = this.safeString(trade, 'cost');
+        const maker = this.safeBool(trade, 'maker');
+        let takerOrMaker = undefined;
+        if (maker !== undefined) {
+            takerOrMaker = maker ? 'maker' : 'taker';
+        }
         return this.safeTrade({
             'id': id,
             'order': orderId,
@@ -1272,7 +1297,7 @@ class kraken extends kraken$1 {
             'symbol': symbol,
             'type': type,
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -2128,7 +2153,10 @@ class kraken extends kraken$1 {
         //                     "fee": "0.000026",
         //                     "vol": "16.00000000",
         //                     "margin": "0.000000",
+        //                     "leverage": "5",
         //                     "misc": ""
+        //                     "trade_id": 68230622,
+        //                     "maker": false
         //                 },
         //                 ...
         //             },

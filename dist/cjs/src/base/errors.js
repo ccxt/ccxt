@@ -81,6 +81,12 @@ class MarketClosed extends OperationRejected {
         this.name = 'MarketClosed';
     }
 }
+class ManualInteractionNeeded extends OperationRejected {
+    constructor(message) {
+        super(message);
+        this.name = 'ManualInteractionNeeded';
+    }
+}
 class InsufficientFunds extends ExchangeError {
     constructor(message) {
         super(message);
@@ -231,7 +237,7 @@ class CancelPending extends OperationFailed {
         this.name = 'CancelPending';
     }
 }
-var errors = { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending };
+var errors = { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending };
 
 exports.AccountNotEnabled = AccountNotEnabled;
 exports.AccountSuspended = AccountSuspended;
@@ -255,6 +261,7 @@ exports.InvalidAddress = InvalidAddress;
 exports.InvalidNonce = InvalidNonce;
 exports.InvalidOrder = InvalidOrder;
 exports.InvalidProxySettings = InvalidProxySettings;
+exports.ManualInteractionNeeded = ManualInteractionNeeded;
 exports.MarginModeAlreadySet = MarginModeAlreadySet;
 exports.MarketClosed = MarketClosed;
 exports.NetworkError = NetworkError;
