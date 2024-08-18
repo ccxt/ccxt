@@ -16,6 +16,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NoChange
 from ccxt.base.errors import MarginModeAlreadySet
+from ccxt.base.errors import ManualInteractionNeeded
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
@@ -768,8 +769,11 @@ class bybit(Exchange, ImplicitAPI):
                     '140069': PermissionDenied,  # Do not allow OTC lending users to trade
                     '140070': InvalidOrder,  # ETP symbols are not allowed to be traded
                     '170001': ExchangeError,  # Internal error.
-                    '170007': RequestTimeout,  # Timeout waiting for response from backend server.
                     '170005': InvalidOrder,  # Too many new orders; current limit is %s orders per %s.
+                    '170007': RequestTimeout,  # Timeout waiting for response from backend server.
+                    '170010': InvalidOrder,  # Purchase failed: Exceed the maximum position limit of leveraged tokens, the current available limit is %s USDT
+                    '170011': InvalidOrder,  # "Purchase failed: Exceed the maximum position limit of innovation tokens,
+                    '170019': InvalidOrder,  # the current available limit is replaceKey0 USDT"
                     '170031': ExchangeError,  # The feature has been suspended
                     '170032': ExchangeError,  # Network error. Please try again later
                     '170033': InsufficientFunds,  # margin Insufficient account balance
@@ -782,6 +786,7 @@ class bybit(Exchange, ImplicitAPI):
                     '170116': InvalidOrder,  # Invalid orderType.
                     '170117': InvalidOrder,  # Invalid side.
                     '170121': InvalidOrder,  # Invalid symbol.
+                    '170124': InvalidOrder,  # Order amount too large.
                     '170130': BadRequest,  # Data sent for paramter '%s' is not valid.
                     '170131': InsufficientFunds,  # Balance insufficient
                     '170132': InvalidOrder,  # Order price too high.
@@ -792,7 +797,6 @@ class bybit(Exchange, ImplicitAPI):
                     '170137': InvalidOrder,  # Order volume decimal too long
                     '170139': InvalidOrder,  # Order has been filled.
                     '170140': InvalidOrder,  # Transaction amount lower than the minimum.
-                    '170124': InvalidOrder,  # Order amount too large.
                     '170141': InvalidOrder,  # Duplicate clientOrderId
                     '170142': InvalidOrder,  # Order has been canceled
                     '170143': InvalidOrder,  # Cannot be found on order book
@@ -817,6 +821,15 @@ class bybit(Exchange, ImplicitAPI):
                     '170198': InvalidOrder,  # Your order quantity to sell is too large. The filled price may deviate significantly from the market price. Please try again
                     '170199': InvalidOrder,  # Your order quantity to buy is too large. The filled price may deviate significantly from the nav. Please try again.
                     '170200': InvalidOrder,  # Your order quantity to sell is too large. The filled price may deviate significantly from the nav. Please try again.
+                    '170201': PermissionDenied,  # Your account has been restricted for trades. If you have any questions, please email us at support@bybit.com
+                    '170202': InvalidOrder,  # Invalid orderFilter parameter.
+                    '170203': InvalidOrder,  # Please enter the TP/SL price.
+                    '170204': InvalidOrder,  # trigger price cannot be higher than 110% price.
+                    '170206': InvalidOrder,  # trigger price cannot be lower than 90% of qty.
+                    '170210': InvalidOrder,  # New order rejected.
+                    '170213': OrderNotFound,  # Order does not exist.
+                    '170217': InvalidOrder,  # Only LIMIT-MAKER order is supported for the current pair.
+                    '170218': InvalidOrder,  # The LIMIT-MAKER order is rejected due to invalid price.
                     '170221': BadRequest,  # This coin does not exist.
                     '170222': RateLimitExceeded,  # Too many hasattr(self, requests) time frame.
                     '170223': InsufficientFunds,  # Your Spot Account with Institutional Lending triggers an alert or liquidation.
@@ -826,18 +839,7 @@ class bybit(Exchange, ImplicitAPI):
                     '170228': InvalidOrder,  # The purchase amount of each order exceeds the estimated maximum purchase amount.
                     '170229': InvalidOrder,  # The sell quantity per order exceeds the estimated maximum sell quantity.
                     '170234': ExchangeError,  # System Error
-                    '170210': InvalidOrder,  # New order rejected.
-                    '170213': OrderNotFound,  # Order does not exist.
-                    '170217': InvalidOrder,  # Only LIMIT-MAKER order is supported for the current pair.
-                    '170218': InvalidOrder,  # The LIMIT-MAKER order is rejected due to invalid price.
-                    '170010': InvalidOrder,  # Purchase failed: Exceed the maximum position limit of leveraged tokens, the current available limit is %s USDT
-                    '170011': InvalidOrder,  # "Purchase failed: Exceed the maximum position limit of innovation tokens,
-                    '170019': InvalidOrder,  # the current available limit is replaceKey0 USDT"
-                    '170201': PermissionDenied,  # Your account has been restricted for trades. If you have any questions, please email us at support@bybit.com
-                    '170202': InvalidOrder,  # Invalid orderFilter parameter.
-                    '170203': InvalidOrder,  # Please enter the TP/SL price.
-                    '170204': InvalidOrder,  # trigger price cannot be higher than 110% price.
-                    '170206': InvalidOrder,  # trigger price cannot be lower than 90% of qty.
+                    '170241': ManualInteractionNeeded,  # To proceed with trading, users must read through and confirm that they fully understand the project's risk disclosure document.
                     '175000': InvalidOrder,  # The serialNum is already in use.
                     '175001': InvalidOrder,  # Daily purchase limit has been exceeded. Please try again later.
                     '175002': InvalidOrder,  # There's a large number of purchase orders. Please try again later.
