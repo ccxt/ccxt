@@ -81,6 +81,12 @@ namespace ccxt;
         public MarketClosed(string message) : base(message) { }
         public MarketClosed(string message, OperationRejected inner) : base(message, inner) { }
     }
+   public class ManualInteractionNeeded : OperationRejected
+    {
+        public ManualInteractionNeeded() : base() { }
+        public ManualInteractionNeeded(string message) : base(message) { }
+        public ManualInteractionNeeded(string message, OperationRejected inner) : base(message, inner) { }
+    }
    public class InsufficientFunds : ExchangeError
     {
         public InsufficientFunds() : base() { }

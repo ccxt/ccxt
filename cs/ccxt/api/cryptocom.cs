@@ -191,6 +191,16 @@ public partial class cryptocom : Exchange
         return await this.callAsync ("v1PrivatePostPrivateGetDepositHistory",parameters);
     }
 
+    public async Task<object> v1PrivatePostPrivateGetFeeRate (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateGetFeeRate",parameters);
+    }
+
+    public async Task<object> v1PrivatePostPrivateGetInstrumentFeeRate (object parameters = null)
+    {
+        return await this.callAsync ("v1PrivatePostPrivateGetInstrumentFeeRate",parameters);
+    }
+
     public async Task<object> v1PrivatePostPrivateStakingStake (object parameters = null)
     {
         return await this.callAsync ("v1PrivatePostPrivateStakingStake",parameters);

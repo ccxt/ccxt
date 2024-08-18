@@ -38,6 +38,8 @@ class ImplicitAPI:
     v1_private_post_private_get_accounts = v1PrivatePostPrivateGetAccounts = Entry('private/get-accounts', ['v1', 'private'], 'POST', {'cost': 3.3333333333333335})
     v1_private_post_private_get_withdrawal_history = v1PrivatePostPrivateGetWithdrawalHistory = Entry('private/get-withdrawal-history', ['v1', 'private'], 'POST', {'cost': 3.3333333333333335})
     v1_private_post_private_get_deposit_history = v1PrivatePostPrivateGetDepositHistory = Entry('private/get-deposit-history', ['v1', 'private'], 'POST', {'cost': 3.3333333333333335})
+    v1_private_post_private_get_fee_rate = v1PrivatePostPrivateGetFeeRate = Entry('private/get-fee-rate', ['v1', 'private'], 'POST', {'cost': 2})
+    v1_private_post_private_get_instrument_fee_rate = v1PrivatePostPrivateGetInstrumentFeeRate = Entry('private/get-instrument-fee-rate', ['v1', 'private'], 'POST', {'cost': 2})
     v1_private_post_private_staking_stake = v1PrivatePostPrivateStakingStake = Entry('private/staking/stake', ['v1', 'private'], 'POST', {'cost': 2})
     v1_private_post_private_staking_unstake = v1PrivatePostPrivateStakingUnstake = Entry('private/staking/unstake', ['v1', 'private'], 'POST', {'cost': 2})
     v1_private_post_private_staking_get_staking_position = v1PrivatePostPrivateStakingGetStakingPosition = Entry('private/staking/get-staking-position', ['v1', 'private'], 'POST', {'cost': 2})

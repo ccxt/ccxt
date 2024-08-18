@@ -749,8 +749,11 @@ class bybit extends Exchange {
                     '140069' => '\\ccxt\\PermissionDenied', // Do not allow OTC lending users to trade
                     '140070' => '\\ccxt\\InvalidOrder', // ETP symbols are not allowed to be traded
                     '170001' => '\\ccxt\\ExchangeError', // Internal error.
-                    '170007' => '\\ccxt\\RequestTimeout', // Timeout waiting for response from backend server.
                     '170005' => '\\ccxt\\InvalidOrder', // Too many new orders; current limit is %s orders per %s.
+                    '170007' => '\\ccxt\\RequestTimeout', // Timeout waiting for response from backend server.
+                    '170010' => '\\ccxt\\InvalidOrder', // Purchase failed => Exceed the maximum position limit of leveraged tokens, the current available limit is %s USDT
+                    '170011' => '\\ccxt\\InvalidOrder', // "Purchase failed => Exceed the maximum position limit of innovation tokens,
+                    '170019' => '\\ccxt\\InvalidOrder', // the current available limit is replaceKey0 USDT"
                     '170031' => '\\ccxt\\ExchangeError', // The feature has been suspended
                     '170032' => '\\ccxt\\ExchangeError', // Network error. Please try again later
                     '170033' => '\\ccxt\\InsufficientFunds', // margin Insufficient account balance
@@ -763,6 +766,7 @@ class bybit extends Exchange {
                     '170116' => '\\ccxt\\InvalidOrder', // Invalid orderType.
                     '170117' => '\\ccxt\\InvalidOrder', // Invalid side.
                     '170121' => '\\ccxt\\InvalidOrder', // Invalid symbol.
+                    '170124' => '\\ccxt\\InvalidOrder', // Order amount too large.
                     '170130' => '\\ccxt\\BadRequest', // Data sent for paramter '%s' is not valid.
                     '170131' => '\\ccxt\\InsufficientFunds', // Balance insufficient
                     '170132' => '\\ccxt\\InvalidOrder', // Order price too high.
@@ -773,7 +777,6 @@ class bybit extends Exchange {
                     '170137' => '\\ccxt\\InvalidOrder', // Order volume decimal too long
                     '170139' => '\\ccxt\\InvalidOrder', // Order has been filled.
                     '170140' => '\\ccxt\\InvalidOrder', // Transaction amount lower than the minimum.
-                    '170124' => '\\ccxt\\InvalidOrder', // Order amount too large.
                     '170141' => '\\ccxt\\InvalidOrder', // Duplicate clientOrderId
                     '170142' => '\\ccxt\\InvalidOrder', // Order has been canceled
                     '170143' => '\\ccxt\\InvalidOrder', // Cannot be found on order book
@@ -798,6 +801,15 @@ class bybit extends Exchange {
                     '170198' => '\\ccxt\\InvalidOrder', // Your order quantity to sell is too large. The filled price may deviate significantly from the market price. Please try again
                     '170199' => '\\ccxt\\InvalidOrder', // Your order quantity to buy is too large. The filled price may deviate significantly from the nav. Please try again.
                     '170200' => '\\ccxt\\InvalidOrder', // Your order quantity to sell is too large. The filled price may deviate significantly from the nav. Please try again.
+                    '170201' => '\\ccxt\\PermissionDenied', // Your account has been restricted for trades. If you have any questions, please email us at support@bybit.com
+                    '170202' => '\\ccxt\\InvalidOrder', // Invalid orderFilter parameter.
+                    '170203' => '\\ccxt\\InvalidOrder', // Please enter the TP/SL price.
+                    '170204' => '\\ccxt\\InvalidOrder', // trigger price cannot be higher than 110% price.
+                    '170206' => '\\ccxt\\InvalidOrder', // trigger price cannot be lower than 90% of qty.
+                    '170210' => '\\ccxt\\InvalidOrder', // New order rejected.
+                    '170213' => '\\ccxt\\OrderNotFound', // Order does not exist.
+                    '170217' => '\\ccxt\\InvalidOrder', // Only LIMIT-MAKER order is supported for the current pair.
+                    '170218' => '\\ccxt\\InvalidOrder', // The LIMIT-MAKER order is rejected due to invalid price.
                     '170221' => '\\ccxt\\BadRequest', // This coin does not exist.
                     '170222' => '\\ccxt\\RateLimitExceeded', // Too many property_exists($this, requests) time frame.
                     '170223' => '\\ccxt\\InsufficientFunds', // Your Spot Account with Institutional Lending triggers an alert or liquidation.
@@ -807,18 +819,7 @@ class bybit extends Exchange {
                     '170228' => '\\ccxt\\InvalidOrder', // The purchase amount of each order exceeds the estimated maximum purchase amount.
                     '170229' => '\\ccxt\\InvalidOrder', // The sell quantity per order exceeds the estimated maximum sell quantity.
                     '170234' => '\\ccxt\\ExchangeError', // System Error
-                    '170210' => '\\ccxt\\InvalidOrder', // New order rejected.
-                    '170213' => '\\ccxt\\OrderNotFound', // Order does not exist.
-                    '170217' => '\\ccxt\\InvalidOrder', // Only LIMIT-MAKER order is supported for the current pair.
-                    '170218' => '\\ccxt\\InvalidOrder', // The LIMIT-MAKER order is rejected due to invalid price.
-                    '170010' => '\\ccxt\\InvalidOrder', // Purchase failed => Exceed the maximum position limit of leveraged tokens, the current available limit is %s USDT
-                    '170011' => '\\ccxt\\InvalidOrder', // "Purchase failed => Exceed the maximum position limit of innovation tokens,
-                    '170019' => '\\ccxt\\InvalidOrder', // the current available limit is replaceKey0 USDT"
-                    '170201' => '\\ccxt\\PermissionDenied', // Your account has been restricted for trades. If you have any questions, please email us at support@bybit.com
-                    '170202' => '\\ccxt\\InvalidOrder', // Invalid orderFilter parameter.
-                    '170203' => '\\ccxt\\InvalidOrder', // Please enter the TP/SL price.
-                    '170204' => '\\ccxt\\InvalidOrder', // trigger price cannot be higher than 110% price.
-                    '170206' => '\\ccxt\\InvalidOrder', // trigger price cannot be lower than 90% of qty.
+                    '170241' => '\\ccxt\\ManualInteractionNeeded', // To proceed with trading, users must read through and confirm that they fully understand the project's risk disclosure document.
                     '175000' => '\\ccxt\\InvalidOrder', // The serialNum is already in use.
                     '175001' => '\\ccxt\\InvalidOrder', // Daily purchase limit has been exceeded. Please try again later.
                     '175002' => '\\ccxt\\InvalidOrder', // There's a large number of purchase orders. Please try again later.

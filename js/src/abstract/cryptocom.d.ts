@@ -37,6 +37,8 @@ interface Exchange {
     v1PrivatePostPrivateGetAccounts(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateGetWithdrawalHistory(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateGetDepositHistory(params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostPrivateGetFeeRate(params?: {}): Promise<implicitReturnType>;
+    v1PrivatePostPrivateGetInstrumentFeeRate(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateStakingStake(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateStakingUnstake(params?: {}): Promise<implicitReturnType>;
     v1PrivatePostPrivateStakingGetStakingPosition(params?: {}): Promise<implicitReturnType>;
