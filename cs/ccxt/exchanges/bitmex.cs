@@ -2636,6 +2636,10 @@ public partial class bitmex : Exchange
             { "address", address },
             { "network", this.networkCodeToId(networkCode, getValue(currency, "code")) },
         };
+        if (isTrue(!isEqual(this.twofa, null)))
+        {
+            ((IDictionary<string,object>)request)["otpToken"] = totp(this.twofa);
+        }
         object response = await this.privatePostUserRequestWithdrawal(this.extend(request, parameters));
         //
         //     {
