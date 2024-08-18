@@ -236,18 +236,18 @@
                 "output": "nonce=1699458293821&start=1699457638"
             },
             {
-                "description": "fetch my trades with an until parameter",
+                "description": "fetch my trades with since and until parameters",
                 "method": "fetchMyTrades",
                 "url": "https://api.kraken.com/0/private/TradesHistory",
                 "input": [
                   "BTC/USDT",
-                  null,
+                  1703148143996,
                   null,
                   {
                     "until": 1703148662559
                   }
                 ],
-                "output": "nonce=1723936581403&end=1703148662"
+                "output": "nonce=1723943525031&start=1703148143&end=1703148663"
             }
         ],
         "fetchOpenOrders": [
@@ -378,7 +378,7 @@
                     "until": 1703054504934
                   }
                 ],
-                "output": "nonce=1723936063234&asset=XXBT&start=1653094900&end=1703054504"
+                "output": "nonce=1723943578678&asset=XXBT&start=1653094900&end=1703054505"
             }
         ],
         "fetchDeposits": [

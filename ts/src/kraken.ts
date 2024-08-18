@@ -1131,7 +1131,7 @@ export default class kraken extends Exchange {
          */
         // https://www.kraken.com/features/api#get-ledgers-info
         await this.loadMarkets ();
-        let request: Dict = {};
+        const request: Dict = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
@@ -1140,7 +1140,12 @@ export default class kraken extends Exchange {
         if (since !== undefined) {
             request['start'] = this.parseToInt (since / 1000);
         }
-        [ request, params ] = this.handleUntilOption ('end', request, params, 0.001);
+        const until = this.safeStringN (params, [ 'until', 'till', 'end' ]);
+        if (until !== undefined) {
+            params = this.omit (params, [ 'until', 'till' ]);
+            const untilDivided = Precise.stringDiv (until, '1000');
+            request['end'] = this.parseToInt (Precise.stringAdd (untilDivided, '1'));
+        }
         const response = await this.privatePostLedgers (this.extend (request, params));
         // {  error: [],
         //   "result": { ledger: { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
@@ -2118,7 +2123,7 @@ export default class kraken extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        let request: Dict = {
+        const request: Dict = {
             // 'type': 'all', // any position, closed position, closing position, no position
             // 'trades': false, // whether or not to include trades related to position in output
             // 'start': 1234567890, // starting unix timestamp or trade tx id of results (exclusive)
@@ -2128,7 +2133,12 @@ export default class kraken extends Exchange {
         if (since !== undefined) {
             request['start'] = this.parseToInt (since / 1000);
         }
-        [ request, params ] = this.handleUntilOption ('end', request, params, 0.001);
+        const until = this.safeStringN (params, [ 'until', 'till', 'end' ]);
+        if (until !== undefined) {
+            params = this.omit (params, [ 'until', 'till' ]);
+            const untilDivided = Precise.stringDiv (until, '1000');
+            request['end'] = this.parseToInt (Precise.stringAdd (untilDivided, '1'));
+        }
         const response = await this.privatePostTradesHistory (this.extend (request, params));
         //
         //     {
