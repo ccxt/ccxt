@@ -1120,7 +1120,7 @@ export default class hyperliquid extends Exchange {
          */
         await this.loadMarkets ();
         const [ order, globalParams ] = this.parseCreateOrderArgs (symbol, type, side, amount, price, params);
-        const orders = await this.createOrders ([ order ], globalParams);
+        const orders = await this.createOrders ([ order as any ], globalParams);
         return orders[0];
     }
 
@@ -2811,7 +2811,7 @@ export default class hyperliquid extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    parseCreateOrderArgs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): List {
+    parseCreateOrderArgs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
         const market = this.market (symbol);
         const vaultAddress = this.safeString (params, 'vaultAddress');
         params = this.omit (params, 'vaultAddress');
