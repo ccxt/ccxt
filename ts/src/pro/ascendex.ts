@@ -21,6 +21,7 @@ export default class ascendex extends ascendexRest {
                 'watchOrders': true,
                 'watchTicker': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
             },
             'urls': {
                 'api': {
@@ -58,6 +59,17 @@ export default class ascendex extends ascendexRest {
         };
         const message = this.extend (request, params);
         return await this.watch (url, messageHash, message, messageHash);
+    }
+
+    async watchPublicMultiple (messageHashes, params = {}) {
+        const url = this.urls['api']['ws']['public'];
+        const id = this.nonce ();
+        const request: Dict = {
+            'id': id.toString (),
+            'op': 'sub',
+        };
+        const message = this.extend (request, params);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
     async watchPrivate (channel, messageHash, params = {}) {
@@ -148,22 +160,47 @@ export default class ascendex extends ascendexRest {
          * @method
          * @name ascendex#watchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://ascendex.github.io/ascendex-pro-api/#channel-market-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    }
+
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name ascendex#watchTradesForSymbols
+         * @description get the list of most recent trades for a list of symbols
+         * @see https://ascendex.github.io/ascendex-pro-api/#channel-market-trades
+         * @param {string[]} symbols unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        symbol = market['symbol'];
-        const channel = 'trades' + ':' + market['id'];
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        const marketIds = [];
+        const messageHashes = [];
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const market = this.market (symbols[i]);
+                marketIds.push (market['id']);
+                messageHashes.push ('trades:' + market['id']);
+            }
+        }
+        const channel = 'trades:' + marketIds.join (',');
         params = this.extend (params, {
             'ch': channel,
         });
-        const trades = await this.watchPublic (channel, params);
+        const trades = await this.watchPublicMultiple (messageHashes, params);
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limit = trades.getLimit (symbols[0], limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
