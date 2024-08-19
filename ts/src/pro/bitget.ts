@@ -1925,7 +1925,7 @@ export default class bitget extends bitgetRest {
                 const instId = this.safeString (arg, 'instId');
                 const market = this.safeMarket (instId, undefined, undefined, type);
                 const symbol = market['symbol'];
-                const messageHash = 'unsubscribe:orderbook:' + market['id'];
+                const messageHash = 'unsubscribe:orderbook:' + market['symbol'];
                 const subMessageHash = 'orderbook:' + symbol;
                 if (symbol in this.orderbooks) {
                     delete this.orderbooks[symbol];
