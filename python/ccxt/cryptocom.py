@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.cryptocom import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Account, Balances, Currency, Int, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -109,8 +109,8 @@ class cryptocom(Exchange, ImplicitAPI):
                 'fetchTickers': True,
                 'fetchTime': False,
                 'fetchTrades': True,
-                'fetchTradingFee': False,
-                'fetchTradingFees': False,
+                'fetchTradingFee': True,
+                'fetchTradingFees': True,
                 'fetchTransactionFees': False,
                 'fetchTransactions': False,
                 'fetchTransfers': False,
@@ -211,6 +211,8 @@ class cryptocom(Exchange, ImplicitAPI):
                             'private/get-accounts': 10 / 3,
                             'private/get-withdrawal-history': 10 / 3,
                             'private/get-deposit-history': 10 / 3,
+                            'private/get-fee-rate': 2,
+                            'private/get-instrument-fee-rate': 2,
                             'private/staking/stake': 2,
                             'private/staking/unstake': 2,
                             'private/staking/get-staking-position': 2,
@@ -2805,6 +2807,114 @@ class cryptocom(Exchange, ImplicitAPI):
         #
         result = self.safe_dict(response, 'result')
         return self.parse_order(result, market)
+
+    def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
+        """
+        fetch the trading fees for a market
+        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-instrument-fee-rate
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/#/?id=fee-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request: dict = {
+            'instrument_name': market['id'],
+        }
+        response = self.v1PrivatePostPrivateGetInstrumentFeeRate(self.extend(request, params))
+        #
+        #    {
+        #        "id": 1,
+        #        "code": 0,
+        #        "method": "private/staking/unstake",
+        #        "result": {
+        #          "staking_id": "1",
+        #          "instrument_name": "SOL.staked",
+        #          "status": "NEW",
+        #          "quantity": "1",
+        #          "underlying_inst_name": "SOL",
+        #          "reason": "NO_ERROR"
+        #        }
+        #    }
+        #
+        data = self.safe_dict(response, 'result', {})
+        return self.parse_trading_fee(data, market)
+
+    def fetch_trading_fees(self, params={}) -> TradingFees:
+        """
+        :see: https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-fee-rate
+        fetch the trading fees for multiple markets
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/#/?id=fee-structure>` indexed by market symbols
+        """
+        self.load_markets()
+        response = self.v1PrivatePostPrivateGetFeeRate(params)
+        #
+        #   {
+        #       "id": 1,
+        #       "method": "/private/get-fee-rate",
+        #       "code": 0,
+        #       "result": {
+        #         "spot_tier": "3",
+        #         "deriv_tier": "3",
+        #         "effective_spot_maker_rate_bps": "6.5",
+        #         "effective_spot_taker_rate_bps": "6.9",
+        #         "effective_deriv_maker_rate_bps": "1.1",
+        #         "effective_deriv_taker_rate_bps": "3"
+        #       }
+        #   }
+        #
+        result = self.safe_dict(response, 'result', {})
+        return self.parse_trading_fees(result)
+
+    def parse_trading_fees(self, response):
+        #
+        # {
+        #         "spot_tier": "3",
+        #         "deriv_tier": "3",
+        #         "effective_spot_maker_rate_bps": "6.5",
+        #         "effective_spot_taker_rate_bps": "6.9",
+        #         "effective_deriv_maker_rate_bps": "1.1",
+        #         "effective_deriv_taker_rate_bps": "3"
+        #  }
+        #
+        result: dict = {}
+        result['info'] = response
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            market = self.market(symbol)
+            isSwap = market['swap']
+            takerFeeKey = 'effective_deriv_taker_rate_bps' if isSwap else 'effective_spot_taker_rate_bps'
+            makerFeeKey = 'effective_deriv_maker_rate_bps' if isSwap else 'effective_spot_maker_rate_bps'
+            tradingFee = {
+                'info': response,
+                'symbol': symbol,
+                'maker': self.parse_number(Precise.string_div(self.safe_string(response, makerFeeKey), '10000')),
+                'taker': self.parse_number(Precise.string_div(self.safe_string(response, takerFeeKey), '10000')),
+                'percentage': None,
+                'tierBased': None,
+            }
+            result[symbol] = tradingFee
+        return result
+
+    def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
+        #
+        # {
+        #      "instrument_name": "BTC_USD",
+        #      "effective_maker_rate_bps": "6.5",
+        #      "effective_taker_rate_bps": "6.9"
+        # }
+        #
+        marketId = self.safe_string(fee, 'instrument_name')
+        symbol = self.safe_symbol(marketId, market)
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': self.parse_number(Precise.string_div(self.safe_string(fee, 'effective_maker_rate_bps'), '10000')),
+            'taker': self.parse_number(Precise.string_div(self.safe_string(fee, 'effective_taker_rate_bps'), '10000')),
+            'percentage': None,
+            'tierBased': None,
+        }
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         type = self.safe_string(api, 0)

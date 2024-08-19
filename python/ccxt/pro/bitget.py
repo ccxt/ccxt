@@ -9,6 +9,7 @@ import hashlib
 from ccxt.base.types import Balances, Int, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
+from typing import Any
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
@@ -429,6 +430,32 @@ class bitget(ccxt.async_support.bitget):
         """
         return await self.watch_order_book_for_symbols([symbol], limit, params)
 
+    async def un_watch_order_book(self, symbol: str, params={}) -> Any:
+        """
+        unsubscribe from the orderbook channel
+        :see: https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
+        :see: https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int [params.limit]: orderbook limit, default is None
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        messageHash = 'unsubscribe:orderbook:' + market['symbol']
+        channel = 'books'
+        limit = self.safe_integer(params, 'limit')
+        if (limit == 1) or (limit == 5) or (limit == 15):
+            params = self.omit(params, 'limit')
+            channel += str(limit)
+        instType = None
+        instType, params = self.get_inst_type(market, params)
+        args: dict = {
+            'instType': instType,
+            'channel': channel,
+            'instId': market['id'],
+        }
+        return await self.un_watch_public(messageHash, args, params)
+
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
@@ -542,10 +569,11 @@ class bitget(ccxt.async_support.bitget):
                 calculatedChecksum = self.crc32(payload, True)
                 responseChecksum = self.safe_integer(rawOrderBook, 'checksum')
                 if calculatedChecksum != responseChecksum:
-                    del client.subscriptions[messageHash]
-                    del self.orderbooks[symbol]
-                    error = ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
-                    client.reject(error, messageHash)
+                    # if messageHash in client.subscriptions:
+                    #     # del client.subscriptions[messageHash]
+                    #     # del self.orderbooks[symbol]
+                    # }
+                    self.spawn(self.handle_check_sum_error, client, symbol, messageHash)
                     return
         else:
             orderbook = self.order_book({})
@@ -553,6 +581,11 @@ class bitget(ccxt.async_support.bitget):
             orderbook.reset(parsedOrderbook)
             self.orderbooks[symbol] = orderbook
         client.resolve(self.orderbooks[symbol], messageHash)
+
+    async def handle_check_sum_error(self, client: Client, symbol: str, messageHash: str):
+        await self.un_watch_order_book(symbol)
+        error = ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
+        client.reject(error, messageHash)
 
     def handle_delta(self, bookside, delta):
         bidAsk = self.parse_bid_ask(delta, 0, 1)
@@ -1524,6 +1557,15 @@ class bitget(ccxt.async_support.bitget):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
+    async def un_watch_public(self, messageHash, args, params={}):
+        url = self.urls['api']['ws']['public']
+        request: dict = {
+            'op': 'unsubscribe',
+            'args': [args],
+        }
+        message = self.extend(request, params)
+        return await self.watch(url, messageHash, message, messageHash)
+
     async def watch_public_multiple(self, messageHashes, argsArray, params={}):
         url = self.urls['api']['ws']['public']
         request: dict = {
@@ -1637,6 +1679,17 @@ class bitget(ccxt.async_support.bitget):
         #        "event": "subscribe",
         #        "arg": {instType: 'SPOT', channel: "account", instId: "default"}
         #    }
+        # unsubscribe
+        #    {
+        #        "op":"unsubscribe",
+        #        "args":[
+        #          {
+        #            "instType":"USDT-FUTURES",
+        #            "channel":"ticker",
+        #            "instId":"BTCUSDT"
+        #          }
+        #        ]
+        #    }
         #
         if self.handle_error_message(client, message):
             return
@@ -1653,6 +1706,9 @@ class bitget(ccxt.async_support.bitget):
             return
         if event == 'subscribe':
             self.handle_subscription_status(client, message)
+            return
+        if event == 'unsubscribe':
+            self.handle_un_subscription_status(client, message)
             return
         methods: dict = {
             'ticker': self.handle_ticker,
@@ -1692,4 +1748,48 @@ class bitget(ccxt.async_support.bitget):
         #        "arg": {instType: 'SPOT', channel: "account", instId: "default"}
         #    }
         #
+        return message
+
+    def handle_un_subscription_status(self, client: Client, message):
+        #
+        #  {
+        #      "op":"unsubscribe",
+        #      "args":[
+        #        {
+        #          "instType":"USDT-FUTURES",
+        #          "channel":"ticker",
+        #          "instId":"BTCUSDT"
+        #        },
+        #        {
+        #          "instType":"USDT-FUTURES",
+        #          "channel":"candle1m",
+        #          "instId":"BTCUSDT"
+        #        }
+        #      ]
+        #  }
+        #  or
+        # {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"books","instId":"BTCUSDT"}}
+        #
+        argsList = self.safe_list(message, 'args')
+        if argsList is None:
+            argsList = [self.safe_dict(message, 'arg', {})]
+        for i in range(0, len(argsList)):
+            arg = argsList[i]
+            channel = self.safe_string(arg, 'channel')
+            if channel == 'books':
+                # for now only unWatchOrderBook is supporteod
+                instType = self.safe_string_lower(arg, 'instType')
+                type = 'spot' if (instType == 'spot') else 'contract'
+                instId = self.safe_string(arg, 'instId')
+                market = self.safe_market(instId, None, None, type)
+                symbol = market['symbol']
+                messageHash = 'unsubscribe:orderbook:' + market['symbol']
+                subMessageHash = 'orderbook:' + symbol
+                if symbol in self.orderbooks:
+                    del self.orderbooks[symbol]
+                if subMessageHash in client.subscriptions:
+                    del client.subscriptions[subMessageHash]
+                if messageHash in client.subscriptions:
+                    del client.subscriptions[messageHash]
+                client.resolve(True, messageHash)
         return message

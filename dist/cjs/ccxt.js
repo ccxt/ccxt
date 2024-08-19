@@ -194,7 +194,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.3.84';
+const version = '4.3.85';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -410,6 +410,7 @@ exports.InvalidAddress = errors.InvalidAddress;
 exports.InvalidNonce = errors.InvalidNonce;
 exports.InvalidOrder = errors.InvalidOrder;
 exports.InvalidProxySettings = errors.InvalidProxySettings;
+exports.ManualInteractionNeeded = errors.ManualInteractionNeeded;
 exports.MarginModeAlreadySet = errors.MarginModeAlreadySet;
 exports.MarketClosed = errors.MarketClosed;
 exports.NetworkError = errors.NetworkError;

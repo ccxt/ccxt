@@ -5,6 +5,7 @@ var number = require('./base/functions/number.js');
 var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
+var totp = require('./base/functions/totp.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -2455,6 +2456,9 @@ class bitmex extends bitmex$1 {
             // 'otpToken': '123456', // requires if two-factor auth (OTP) is enabled
             // 'fee': 0.001, // bitcoin network fee
         };
+        if (this.twofa !== undefined) {
+            request['otpToken'] = totp.totp(this.twofa);
+        }
         const response = await this.privatePostUserRequestWithdrawal(this.extend(request, params));
         //
         //     {

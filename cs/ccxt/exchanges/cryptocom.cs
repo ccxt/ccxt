@@ -85,8 +85,8 @@ public partial class cryptocom : Exchange
                 { "fetchTickers", true },
                 { "fetchTime", false },
                 { "fetchTrades", true },
-                { "fetchTradingFee", false },
-                { "fetchTradingFees", false },
+                { "fetchTradingFee", true },
+                { "fetchTradingFees", true },
                 { "fetchTransactionFees", false },
                 { "fetchTransactions", false },
                 { "fetchTransfers", false },
@@ -183,6 +183,8 @@ public partial class cryptocom : Exchange
                             { "private/get-accounts", divide(10, 3) },
                             { "private/get-withdrawal-history", divide(10, 3) },
                             { "private/get-deposit-history", divide(10, 3) },
+                            { "private/get-fee-rate", 2 },
+                            { "private/get-instrument-fee-rate", 2 },
                             { "private/staking/stake", 2 },
                             { "private/staking/unstake", 2 },
                             { "private/staking/get-staking-position", 2 },
@@ -3285,6 +3287,130 @@ public partial class cryptocom : Exchange
         //
         object result = this.safeDict(response, "result");
         return this.parseOrder(result, market);
+    }
+
+    public async override Task<object> fetchTradingFee(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name cryptocom#fetchTradingFee
+        * @description fetch the trading fees for a market
+        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-instrument-fee-rate
+        * @param {string} symbol unified market symbol
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [fee structure]{@link https://docs.ccxt.com/#/?id=fee-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = new Dictionary<string, object>() {
+            { "instrument_name", getValue(market, "id") },
+        };
+        object response = await this.v1PrivatePostPrivateGetInstrumentFeeRate(this.extend(request, parameters));
+        //
+        //    {
+        //        "id": 1,
+        //        "code": 0,
+        //        "method": "private/staking/unstake",
+        //        "result": {
+        //          "staking_id": "1",
+        //          "instrument_name": "SOL.staked",
+        //          "status": "NEW",
+        //          "quantity": "1",
+        //          "underlying_inst_name": "SOL",
+        //          "reason": "NO_ERROR"
+        //        }
+        //    }
+        //
+        object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        return this.parseTradingFee(data, market);
+    }
+
+    public async override Task<object> fetchTradingFees(object parameters = null)
+    {
+        /**
+        * @method
+        * @name cryptocom#fetchTradingFees
+        * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#private-get-fee-rate
+        * @description fetch the trading fees for multiple markets
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object response = await this.v1PrivatePostPrivateGetFeeRate(parameters);
+        //
+        //   {
+        //       "id": 1,
+        //       "method": "/private/get-fee-rate",
+        //       "code": 0,
+        //       "result": {
+        //         "spot_tier": "3",
+        //         "deriv_tier": "3",
+        //         "effective_spot_maker_rate_bps": "6.5",
+        //         "effective_spot_taker_rate_bps": "6.9",
+        //         "effective_deriv_maker_rate_bps": "1.1",
+        //         "effective_deriv_taker_rate_bps": "3"
+        //       }
+        //   }
+        //
+        object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
+        return this.parseTradingFees(result);
+    }
+
+    public virtual object parseTradingFees(object response)
+    {
+        //
+        // {
+        //         "spot_tier": "3",
+        //         "deriv_tier": "3",
+        //         "effective_spot_maker_rate_bps": "6.5",
+        //         "effective_spot_taker_rate_bps": "6.9",
+        //         "effective_deriv_maker_rate_bps": "1.1",
+        //         "effective_deriv_taker_rate_bps": "3"
+        //  }
+        //
+        object result = new Dictionary<string, object>() {};
+        ((IDictionary<string,object>)result)["info"] = response;
+        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(this.symbols, i);
+            object market = this.market(symbol);
+            object isSwap = getValue(market, "swap");
+            object takerFeeKey = ((bool) isTrue(isSwap)) ? "effective_deriv_taker_rate_bps" : "effective_spot_taker_rate_bps";
+            object makerFeeKey = ((bool) isTrue(isSwap)) ? "effective_deriv_maker_rate_bps" : "effective_spot_maker_rate_bps";
+            object tradingFee = new Dictionary<string, object>() {
+                { "info", response },
+                { "symbol", symbol },
+                { "maker", this.parseNumber(Precise.stringDiv(this.safeString(response, makerFeeKey), "10000")) },
+                { "taker", this.parseNumber(Precise.stringDiv(this.safeString(response, takerFeeKey), "10000")) },
+                { "percentage", null },
+                { "tierBased", null },
+            };
+            ((IDictionary<string,object>)result)[(string)symbol] = tradingFee;
+        }
+        return result;
+    }
+
+    public virtual object parseTradingFee(object fee, object market = null)
+    {
+        //
+        // {
+        //      "instrument_name": "BTC_USD",
+        //      "effective_maker_rate_bps": "6.5",
+        //      "effective_taker_rate_bps": "6.9"
+        // }
+        //
+        object marketId = this.safeString(fee, "instrument_name");
+        object symbol = this.safeSymbol(marketId, market);
+        return new Dictionary<string, object>() {
+            { "info", fee },
+            { "symbol", symbol },
+            { "maker", this.parseNumber(Precise.stringDiv(this.safeString(fee, "effective_maker_rate_bps"), "10000")) },
+            { "taker", this.parseNumber(Precise.stringDiv(this.safeString(fee, "effective_taker_rate_bps"), "10000")) },
+            { "percentage", null },
+            { "tierBased", null },
+        };
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)

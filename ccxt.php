@@ -75,6 +75,7 @@ require_once PATH_TO_CCXT . 'OperationRejected.php';
 require_once PATH_TO_CCXT . 'NoChange.php';
 require_once PATH_TO_CCXT . 'MarginModeAlreadySet.php';
 require_once PATH_TO_CCXT . 'MarketClosed.php';
+require_once PATH_TO_CCXT . 'ManualInteractionNeeded.php';
 require_once PATH_TO_CCXT . 'InsufficientFunds.php';
 require_once PATH_TO_CCXT . 'InvalidAddress.php';
 require_once PATH_TO_CCXT . 'AddressPending.php';

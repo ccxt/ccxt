@@ -468,6 +468,41 @@ public partial class bitget : ccxt.bitget
         return await this.watchOrderBookForSymbols(new List<object>() {symbol}, limit, parameters);
     }
 
+    public async virtual Task<object> unWatchOrderBook(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bitget#unWatchOrderBook
+        * @description unsubscribe from the orderbook channel
+        * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
+        * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+        * @param {string} symbol unified symbol of the market to fetch the order book for
+        * @param {int} [params.limit] orderbook limit, default is undefined
+        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object messageHash = add("unsubscribe:orderbook:", getValue(market, "symbol"));
+        object channel = "books";
+        object limit = this.safeInteger(parameters, "limit");
+        if (isTrue(isTrue(isTrue((isEqual(limit, 1))) || isTrue((isEqual(limit, 5)))) || isTrue((isEqual(limit, 15)))))
+        {
+            parameters = this.omit(parameters, "limit");
+            channel = add(channel, ((object)limit).ToString());
+        }
+        object instType = null;
+        var instTypeparametersVariable = this.getInstType(market, parameters);
+        instType = ((IList<object>)instTypeparametersVariable)[0];
+        parameters = ((IList<object>)instTypeparametersVariable)[1];
+        object args = new Dictionary<string, object>() {
+            { "instType", instType },
+            { "channel", channel },
+            { "instId", getValue(market, "id") },
+        };
+        return await this.unWatchPublic(messageHash, args, parameters);
+    }
+
     public async override Task<object> watchOrderBookForSymbols(object symbols, object limit = null, object parameters = null)
     {
         /**
@@ -607,10 +642,11 @@ public partial class bitget : ccxt.bitget
                 object responseChecksum = this.safeInteger(rawOrderBook, "checksum");
                 if (isTrue(!isEqual(calculatedChecksum, responseChecksum)))
                 {
-
-
-                    var error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));
-                    ((WebSocketClient)client).reject(error, messageHash);
+                    // if (messageHash in ((WebSocketClient)client).subscriptions) {
+                    //     // delete ((WebSocketClient)client).subscriptions[messageHash];
+                    //     // delete this.orderbooks[symbol];
+                    // }
+                    this.spawn(this.handleCheckSumError, new object[] { client, symbol, messageHash});
                     return;
                 }
             }
@@ -622,6 +658,13 @@ public partial class bitget : ccxt.bitget
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.orderbooks, symbol), messageHash});
+    }
+
+    public async virtual Task handleCheckSumError(WebSocketClient client, object symbol, object messageHash)
+    {
+        await this.unWatchOrderBook(symbol);
+        var error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));
+        ((WebSocketClient)client).reject(error, messageHash);
     }
 
     public override void handleDelta(object bookside, object delta)
@@ -1781,6 +1824,18 @@ public partial class bitget : ccxt.bitget
         return await this.watch(url, messageHash, message, messageHash);
     }
 
+    public async virtual Task<object> unWatchPublic(object messageHash, object args, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object request = new Dictionary<string, object>() {
+            { "op", "unsubscribe" },
+            { "args", new List<object>() {args} },
+        };
+        object message = this.extend(request, parameters);
+        return await this.watch(url, messageHash, message, messageHash);
+    }
+
     public async virtual Task<object> watchPublicMultiple(object messageHashes, object argsArray, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
@@ -1918,6 +1973,17 @@ public partial class bitget : ccxt.bitget
         //        "event": "subscribe",
         //        "arg": { instType: 'SPOT', channel: "account", instId: "default" }
         //    }
+        // unsubscribe
+        //    {
+        //        "op":"unsubscribe",
+        //        "args":[
+        //          {
+        //            "instType":"USDT-FUTURES",
+        //            "channel":"ticker",
+        //            "instId":"BTCUSDT"
+        //          }
+        //        ]
+        //    }
         //
         if (isTrue(this.handleErrorMessage(client as WebSocketClient, message)))
         {
@@ -1943,6 +2009,11 @@ public partial class bitget : ccxt.bitget
         if (isTrue(isEqual(eventVar, "subscribe")))
         {
             this.handleSubscriptionStatus(client as WebSocketClient, message);
+            return;
+        }
+        if (isTrue(isEqual(eventVar, "unsubscribe")))
+        {
+            this.handleUnSubscriptionStatus(client as WebSocketClient, message);
             return;
         }
         object methods = new Dictionary<string, object>() {
@@ -1995,6 +2066,64 @@ public partial class bitget : ccxt.bitget
         //        "arg": { instType: 'SPOT', channel: "account", instId: "default" }
         //    }
         //
+        return message;
+    }
+
+    public virtual object handleUnSubscriptionStatus(WebSocketClient client, object message)
+    {
+        //
+        //  {
+        //      "op":"unsubscribe",
+        //      "args":[
+        //        {
+        //          "instType":"USDT-FUTURES",
+        //          "channel":"ticker",
+        //          "instId":"BTCUSDT"
+        //        },
+        //        {
+        //          "instType":"USDT-FUTURES",
+        //          "channel":"candle1m",
+        //          "instId":"BTCUSDT"
+        //        }
+        //      ]
+        //  }
+        //  or
+        // {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"books","instId":"BTCUSDT"}}
+        //
+        object argsList = this.safeList(message, "args");
+        if (isTrue(isEqual(argsList, null)))
+        {
+            argsList = new List<object> {this.safeDict(message, "arg", new Dictionary<string, object>() {})};
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(argsList)); postFixIncrement(ref i))
+        {
+            object arg = getValue(argsList, i);
+            object channel = this.safeString(arg, "channel");
+            if (isTrue(isEqual(channel, "books")))
+            {
+                // for now only unWatchOrderBook is supporteod
+                object instType = this.safeStringLower(arg, "instType");
+                object type = ((bool) isTrue((isEqual(instType, "spot")))) ? "spot" : "contract";
+                object instId = this.safeString(arg, "instId");
+                object market = this.safeMarket(instId, null, null, type);
+                object symbol = getValue(market, "symbol");
+                object messageHash = add("unsubscribe:orderbook:", getValue(market, "symbol"));
+                object subMessageHash = add("orderbook:", symbol);
+                if (isTrue(inOp(this.orderbooks, symbol)))
+                {
+
+                }
+                if (isTrue(inOp(((WebSocketClient)client).subscriptions, subMessageHash)))
+                {
+
+                }
+                if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
+                {
+
+                }
+                callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
+            }
+        }
         return message;
     }
 }
