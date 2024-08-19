@@ -17,8 +17,10 @@ export default class bitget extends bitgetRest {
     handleOHLCV(client: Client, message: any): void;
     parseWsOHLCV(ohlcv: any, market?: any): OHLCV;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     handleOrderBook(client: Client, message: any): void;
+    handleCheckSumError(client: Client, symbol: string, messageHash: string): Promise<void>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -37,6 +39,7 @@ export default class bitget extends bitgetRest {
     watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: Client, message: any): void;
     watchPublic(messageHash: any, args: any, params?: {}): Promise<any>;
+    unWatchPublic(messageHash: any, args: any, params?: {}): Promise<any>;
     watchPublicMultiple(messageHashes: any, argsArray: any, params?: {}): Promise<any>;
     authenticate(params?: {}): Promise<any>;
     watchPrivate(messageHash: any, subscriptionHash: any, args: any, params?: {}): Promise<any>;
@@ -46,4 +49,5 @@ export default class bitget extends bitgetRest {
     ping(client: Client): string;
     handlePong(client: Client, message: any): any;
     handleSubscriptionStatus(client: Client, message: any): any;
+    handleUnSubscriptionStatus(client: Client, message: any): any;
 }
