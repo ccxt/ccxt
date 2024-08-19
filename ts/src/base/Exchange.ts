@@ -1642,6 +1642,9 @@ export default class Exchange {
         stream.subscribe ('positions', this.streamToSymbol ('positions'), true);
         stream.subscribe ('trades', this.streamToSymbol ('trades'), true);
         stream.subscribe ('myTrades', this.streamToSymbol ('myTrades'), true);
+        stream.subscribe ('ohlcvs', this.streamToSymbol ('ohlcvs'), true);
+        stream.subscribe ('liquidations', this.streamToSymbol ('liquidations'), true);
+        stream.subscribe ('myLiquidations', this.streamToSymbol ('myLiquidations'), true);
         const options = this.safeDict (this.options, 'streaming', {});
         const reconnect = this.safeBool (options, 'autoreconnect', true);
         if (reconnect) {
@@ -2426,8 +2429,53 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchLiquidations() is not supported yet');
     }
 
+
+    async subscribeLiquidations (symbol: string, callback: ConsumerFunction, synchronous = true, params = {}): Promise<void> {
+        /**
+         * @method
+         * @name exchange#subscribeLiquidations
+         * @description watch the public liquidations of a trading pair
+         * @param {string} symbol unified CCXT market symbol
+         * @param {Function} callback Consumer function to be called with each update
+         * @param {boolean} synchronous if set to true, the callback will wait to finish before passing next message
+         * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+         */
+        await this.loadMarkets ();
+        const stream = this.stream;
+        if (callback !== undefined) {
+            stream.subscribe ('liquidations::' + symbol, callback, synchronous);
+        }
+        stream.addWatchFunction ('liquidations', [ symbol, undefined, undefined, params ]);
+        await this.watchLiquidations (symbol, undefined, undefined, params);
+    }
+
     async watchLiquidationsForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
         throw new NotSupported (this.id + ' watchLiquidationsForSymbols() is not supported yet');
+    }
+
+    async subscribeLiquidationsForSymbols (symbols: string[], callback: ConsumerFunction, synchronous = true, params = {}): Promise<void> {
+        /**
+         * @method
+         * @name exchange#subscribeLiquidationsForSymbols
+         * @description watch the public liquidations of trading pairs
+         * @param {string[]} symbols unified CCXT market symbol
+         * @param {Function} callback Consumer function to be called with each update
+         * @param {boolean} synchronous if set to true, the callback will wait to finish before passing next message
+         * @param {object} [params] exchange specific parameters for the bitmex api endpoint
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true);
+        const stream = this.stream;
+        if (callback !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                stream.subscribe ('liquidations::' + symbols[i], callback, synchronous);
+            }
+            if (this.isEmpty (symbols)) {
+                stream.subscribe ('liquidations', callback, synchronous);
+            }
+        }
+        stream.addWatchFunction ('watchLiquidationsForSymbols', [ symbols, undefined, undefined, params ]);
+        await this.watchTradesForSymbols (symbols, undefined, undefined, params);
     }
 
     async watchMyLiquidations (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {

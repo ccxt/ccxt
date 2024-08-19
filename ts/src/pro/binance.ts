@@ -323,6 +323,7 @@ export default class binance extends binanceRest {
             liquidations = new ArrayCache (limit);
         }
         liquidations.append (liquidation);
+        this.streamProduce ('liquidations', liquidation);
         this.liquidations[symbol] = liquidations;
         client.resolve ([ liquidation ], 'liquidations');
         client.resolve ([ liquidation ], 'liquidations::' + symbol);
@@ -537,6 +538,7 @@ export default class binance extends binanceRest {
         }
         myLiquidations.append (liquidation);
         this.myLiquidations[symbol] = myLiquidations;
+        this.streamProduce ('myLiquidations', liquidation);
         client.resolve ([ liquidation ], 'myLiquidations');
         client.resolve ([ liquidation ], 'myLiquidations::' + symbol);
     }
@@ -734,6 +736,7 @@ export default class binance extends binanceRest {
         const timestamp = this.safeInteger (result, 'T');
         const orderbook = this.parseOrderBook (result, undefined, timestamp);
         orderbook['nonce'] = this.safeInteger2 (result, 'lastUpdateId', 'u');
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 
@@ -1379,7 +1382,8 @@ export default class binance extends binanceRest {
         }
         stored.append (parsed);
         const resolveData = [ symbol, unifiedTimeframe, stored ];
-        this.streamProduce (messageHash, parsed);
+        const ohlcvs = this.createOHLCVObject (symbol, unifiedTimeframe, stored);
+        this.streamProduce ('ohlcvs', ohlcvs);
         client.resolve (resolveData, messageHash);
     }
 
@@ -2285,6 +2289,7 @@ export default class binance extends binanceRest {
             const parsed = this.parsePositionRisk (result[i]);
             const entryPrice = this.safeString (parsed, 'entryPrice');
             if ((entryPrice !== '0') && (entryPrice !== '0.0') && (entryPrice !== '0.00000000')) {
+                this.streamProduce ('positions', parsed);
                 positions.push (parsed);
             }
         }

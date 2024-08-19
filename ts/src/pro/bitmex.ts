@@ -458,6 +458,7 @@ export default class bitmex extends bitmexRest {
             liquidations.append (liquidation);
             this.liquidations[symbol] = liquidations;
             newLiquidations.push (liquidation);
+            this.streamProduce ('liquidations', liquidation);
         }
         client.resolve (newLiquidations, 'liquidations');
         const liquidationsBySymbol = this.indexBy (newLiquidations, 'symbol');

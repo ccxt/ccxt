@@ -119,6 +119,7 @@ export default class blockchaincom extends blockchaincomRest {
         }
         const messageHash = 'balance';
         this.balance = this.safeBalance (result);
+        this.streamProduce ('balances', this.balance);
         client.resolve (this.balance, messageHash);
     }
 
@@ -195,6 +196,8 @@ export default class blockchaincom extends blockchaincomRest {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append (ohlcv);
+            const ohlcvs = this.createOHLCVObject (symbol, timeframe, ohlcv);
+            this.streamProduce ('ohlcvs', ohlcvs);
             client.resolve (stored, messageHash);
         } else if (event !== 'subscribed') {
             throw new NotSupported (this.id + ' ' + this.json (message));
@@ -542,6 +545,7 @@ export default class blockchaincom extends blockchaincomRest {
             cachedOrders.append (parsedOrder);
         }
         this.orders = cachedOrders;
+        this.streamProduce ('orders', this.orders);
         client.resolve (this.orders, messageHash);
     }
 
@@ -718,6 +722,7 @@ export default class blockchaincom extends blockchaincomRest {
         } else {
             throw new NotSupported (this.id + ' watchOrderBook() does not support ' + event + ' yet');
         }
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 

@@ -504,6 +504,8 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         for (let i = 0; i < data.length; i++) {
             const tick = data[i];
             const parsed = this.parseOHLCV (tick, market);
+            const ohlcvs = this.createOHLCVObject (symbol, timeframe, parsed);
+            this.streamProduce ('ohlcvs', ohlcvs);
             stored.append (parsed);
         }
         client.resolve (stored, messageHash + '::' + symbol);
@@ -696,6 +698,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         orderbook['datetime'] = datetime;
         orderbook['timestamp'] = this.parse8601 (datetime);
         this.orderbooks[symbol] = orderbook;
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, channel + '::' + symbol);
     }
 
@@ -792,6 +795,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             this.throwBroadlyMatchedException (this.exceptions['broad'], reason, feedback);
             throw new ExchangeError (feedback);
         } catch (e) {
+            this.streamProduce ('errors', undefined, e);
             client.reject (e);
         }
         return true;

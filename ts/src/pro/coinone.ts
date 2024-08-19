@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import coinoneRest from '../coinone.js';
-import { AuthenticationError } from '../base/errors.js';
+import { AuthenticationError, ExchangeError } from '../base/errors.js';
 import type { Int, Market, OrderBook, Ticker, Trade, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ArrayCache } from '../base/ws/Cache.js';
@@ -124,6 +124,7 @@ export default class coinone extends coinoneRest {
         orderbook['datetime'] = this.iso8601 (timestamp);
         const messageHash = 'orderbook:' + symbol;
         this.orderbooks[symbol] = orderbook;
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 
@@ -370,6 +371,17 @@ export default class coinone extends coinoneRest {
         //
         const type = this.safeString (message, 'response_type', '');
         if (type === 'ERROR') {
+            const code = this.safeString (message, 'error_code');
+            const msg = this.safeString (message, 'message');
+            const feedback = this.id + ' ' + this.json (message);
+            try {
+                this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['broad'], msg, feedback);
+                throw new ExchangeError (feedback);
+            } catch (e) {
+                this.streamProduce ('errors', undefined, e);
+                client.reject (e);
+            }
             return true;
         }
         return false;

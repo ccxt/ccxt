@@ -570,6 +570,7 @@ export default class coinbase extends coinbaseRest {
                 if (!(marketId in marketIds)) {
                     marketIds.push (marketId);
                 }
+                this.streamProduce ('orders', parsed);
                 cachedOrders.append (parsed);
             }
         }
@@ -694,6 +695,7 @@ export default class coinbase extends coinbaseRest {
                 orderbook['timestamp'] = this.parse8601 (datetime);
                 orderbook['datetime'] = datetime;
                 orderbook['symbol'] = symbol;
+                this.streamProduce ('orderbooks', orderbook);
                 client.resolve (orderbook, messageHash);
                 if (messageHash.endsWith ('USD')) {
                     client.resolve (orderbook, messageHash + 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
@@ -704,6 +706,7 @@ export default class coinbase extends coinbaseRest {
                 orderbook['datetime'] = datetime;
                 orderbook['timestamp'] = this.parse8601 (datetime);
                 orderbook['symbol'] = symbol;
+                this.streamProduce ('orderbooks', orderbook);
                 client.resolve (orderbook, messageHash);
                 if (messageHash.endsWith ('USD')) {
                     client.resolve (orderbook, messageHash + 'C'); // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD
@@ -762,7 +765,9 @@ export default class coinbase extends coinbaseRest {
         const type = this.safeString (message, 'type');
         if (type === 'error') {
             const errorMessage = this.safeString (message, 'message');
-            throw new ExchangeError (errorMessage);
+            const err = new ExchangeError (errorMessage);
+            this.streamProduce ('error', err);
+            throw err;
         }
         const method = this.safeValue (methods, channel);
         if (method) {

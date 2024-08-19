@@ -103,6 +103,7 @@ export default class coincheck extends coincheckRest {
             orderbook.reset (snapshot);
         }
         const messageHash = 'orderbook:' + symbol;
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 

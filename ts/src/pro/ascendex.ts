@@ -139,6 +139,8 @@ export default class ascendex extends ascendexRest {
             this.ohlcvs[symbol][timeframe] = stored;
         }
         stored.append (parsed);
+        const ohlcvs = this.createOHLCVObject (symbol, timeframe, parsed);
+        this.streamProduce ('ohlcvs', ohlcvs);
         client.resolve (stored, messageHash);
         return message;
     }
@@ -288,6 +290,7 @@ export default class ascendex extends ascendexRest {
             this.handleOrderBookMessage (client, messageItem, orderbook);
         }
         this.orderbooks[symbol] = orderbook;
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 
@@ -316,6 +319,7 @@ export default class ascendex extends ascendexRest {
             orderbook.cache.push (message);
         } else {
             this.handleOrderBookMessage (client, message, orderbook);
+            this.streamProduce ('orderbooks', orderbook);
             client.resolve (orderbook, messageHash);
         }
     }
@@ -587,6 +591,7 @@ export default class ascendex extends ascendexRest {
         const orders = this.orders;
         orders.append (order);
         const symbolMessageHash = messageHash + ':' + order['symbol'];
+        this.streamProduce ('orders', order);
         client.resolve (orders, symbolMessageHash);
         client.resolve (orders, messageHash);
     }
@@ -729,6 +734,7 @@ export default class ascendex extends ascendexRest {
             } else {
                 client.reject (e);
             }
+            this.streamProduce ('errors', undefined, e);
             return true;
         }
     }

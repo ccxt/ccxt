@@ -108,6 +108,7 @@ export default class currencycom extends currencycomRest {
         const balance = this.parseBalance (payload);
         this.balance = this.extend (this.balance, balance);
         const messageHash = this.safeString (subscription, 'messageHash');
+        this.streamProduce ('balances', this.balance);
         client.resolve (this.balance, messageHash);
         if (messageHash in client.subscriptions) {
             delete client.subscriptions[messageHash];
@@ -280,6 +281,8 @@ export default class currencycom extends currencycomRest {
             this.safeNumber (payload, 'c'),
             undefined, // no volume v in OHLCV
         ];
+        const ohlcvs = this.createOHLCVObject (symbol, timeframe, result);
+        this.streamProduce ('ohlcvs', ohlcvs);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
@@ -493,6 +496,7 @@ export default class currencycom extends currencycomRest {
         this.handleDeltas (orderbook['bids'], bids);
         this.handleDeltas (orderbook['asks'], asks);
         this.orderbooks[symbol] = orderbook;
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 

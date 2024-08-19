@@ -282,6 +282,7 @@ export default class coinex extends coinexRest {
             this.balance = this.safeBalance (this.balance);
         }
         const messageHash = 'balance';
+        this.streamProduce ('balances', this.balance);
         client.resolve (this.balance, messageHash);
     }
 
@@ -709,6 +710,7 @@ export default class coinex extends coinexRest {
             this.orderbooks[symbol] = currentOrderBook;
         }
         // this.checkOrderBookChecksum (this.orderbooks[symbol]);
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (this.orderbooks[symbol], messageHash);
     }
 
@@ -838,6 +840,7 @@ export default class coinex extends coinexRest {
         let messageHash = 'orders';
         client.resolve (this.orders, messageHash);
         messageHash += ':' + parsedOrder['symbol'];
+        this.streamProduce ('orders', parsedOrder);
         client.resolve (this.orders, messageHash);
     }
 

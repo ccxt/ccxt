@@ -186,6 +186,8 @@ export default class bitfinex2 extends bitfinex2Rest {
         for (let i = 0; i < ohlcvsLength; i++) {
             const ohlcv = ohlcvs[ohlcvsLength - i - 1];
             const parsed = this.parseOHLCV (ohlcv, market);
+            const resolved = this.createOHLCVObject (symbol, timeframe, parsed);
+            this.streamProduce ('ohlcvs', resolved);
             stored.append (parsed);
         }
         client.resolve (stored, messageHash);
@@ -280,6 +282,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         const tradesArray = this.myTrades;
         tradesArray.append (trade);
         this.myTrades = tradesArray;
+        this.streamProduce ('myTrades', trade);
         // generic subscription
         client.resolve (tradesArray, name);
         // specific subscription
@@ -630,6 +633,7 @@ export default class bitfinex2 extends bitfinex2Rest {
                 }
             }
             orderbook['symbol'] = symbol;
+            this.streamProduce ('orderbooks', orderbook);
             client.resolve (orderbook, messageHash);
         } else {
             const orderbook = this.orderbooks[symbol];
@@ -654,6 +658,7 @@ export default class bitfinex2 extends bitfinex2Rest {
                 const bookside = orderbookItem[side];
                 bookside.storeArray ([ this.parseNumber (price), this.parseNumber (size), this.parseNumber (counter) ]);
             }
+            this.streamProduce ('orderbooks', orderbook);
             client.resolve (orderbook, messageHash);
         }
     }
@@ -700,6 +705,7 @@ export default class bitfinex2 extends bitfinex2Rest {
             const checksum = this.handleOption ('watchOrderBook', 'checksum', true);
             if (checksum) {
                 const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+                this.streamProduce ('orderbooks::' + symbol, undefined, error);
                 client.reject (error, messageHash);
             }
         }
@@ -808,6 +814,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         for (let i = 0; i < updatesKeys.length; i++) {
             const type = updatesKeys[i];
             const messageHash = 'balance:' + type;
+            this.streamProduce ('balances', this.balance[type]);
             client.resolve (this.balance[type], messageHash);
         }
     }
@@ -897,6 +904,7 @@ export default class bitfinex2 extends bitfinex2Rest {
             future.resolve (true);
         } else {
             const error = new AuthenticationError (this.json (message));
+            this.streamProduce ('errors', undefined, error);
             client.reject (error, messageHash);
             // allows further authentication attempts
             if (messageHash in client.subscriptions) {
@@ -989,10 +997,12 @@ export default class bitfinex2 extends bitfinex2Rest {
                 const symbol = parsed['symbol'];
                 symbolIds[symbol] = true;
                 orders.append (parsed);
+                this.streamProduce ('orders', parsed);
             }
         } else {
             const parsed = this.parseWsOrder (data);
             orders.append (parsed);
+            this.streamProduce ('orders', parsed);
             const symbol = parsed['symbol'];
             symbolIds[symbol] = true;
         }

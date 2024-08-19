@@ -353,6 +353,7 @@ export default class bitfinex extends bitfinexRest {
                     countedBookSide.storeArray ([ delta[0], size, delta[1] ]);
                 }
             }
+            this.streamProduce ('orderbooks', orderbook);
             client.resolve (orderbook, messageHash);
         } else {
             const orderbook = this.orderbooks[symbol];
@@ -373,6 +374,7 @@ export default class bitfinex extends bitfinexRest {
                 const countedBookSide = orderbook[side];
                 countedBookSide.storeArray ([ message[1], size, message[2] ]);
             }
+            this.streamProduce ('orderbooks', orderbook);
             client.resolve (orderbook, messageHash);
         }
     }
@@ -455,6 +457,7 @@ export default class bitfinex extends bitfinexRest {
             future.resolve (true);
         } else {
             const error = new AuthenticationError (this.json (message));
+            this.streamProduce ('errors', undefined, error);
             client.reject (error, 'authenticated');
             // allows further authentication attempts
             const method = this.safeString (message, 'event');
@@ -628,6 +631,7 @@ export default class bitfinex extends bitfinexRest {
         }
         const orders = this.orders;
         orders.append (parsed);
+        this.streamProduce ('orders', parsed);
         client.resolve (parsed, id);
         return parsed;
     }
