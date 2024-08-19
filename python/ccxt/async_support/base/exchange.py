@@ -125,11 +125,15 @@ class Exchange(BaseExchange):
             self.session = None
         await self.close_connector()
         await self.close_proxy_sessions()
+        await self.sleep(10)  # avoid https://github.com/ccxt/ccxt/issues/9218
 
     async def close_connector(self):
         if self.TCPconnector is not None:
             await self.TCPconnector.close()
             self.TCPconnector = None
+        if self.aiohttp_socks_connector is not None:
+            await self.aiohttp_socks_connector.close()
+            self.aiohttp_socks_connector = None
 
     async def close_proxy_sessions(self):
         if self.socks_proxy_sessions is not None:
@@ -161,7 +165,7 @@ class Exchange(BaseExchange):
                 raise NotSupported(self.id + ' - to use SOCKS proxy with ccxt, you need "aiohttp_socks" module that can be installed by "pip install aiohttp_socks"')
             # Create our SSL context object with our CA cert file
             self.open()  # ensure `asyncio_loop` is set
-            connector = ProxyConnector.from_url(
+            self.aiohttp_socks_connector = ProxyConnector.from_url(
                 socksProxy,
                 # extra args copied from self.open()
                 ssl=self.ssl_context,
@@ -172,7 +176,7 @@ class Exchange(BaseExchange):
             if (self.socks_proxy_sessions is None):
                 self.socks_proxy_sessions = {}
             if (socksProxy not in self.socks_proxy_sessions):
-                self.socks_proxy_sessions[socksProxy] = aiohttp.ClientSession(loop=self.asyncio_loop, connector=connector, trust_env=self.aiohttp_trust_env)
+                self.socks_proxy_sessions[socksProxy] = aiohttp.ClientSession(loop=self.asyncio_loop, connector=self.aiohttp_socks_connector, trust_env=self.aiohttp_trust_env)
             proxy_session = self.socks_proxy_sessions[socksProxy]
         # add aiohttp_proxy for python as exclusion
         elif self.aiohttp_proxy:
