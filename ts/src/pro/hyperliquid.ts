@@ -119,7 +119,7 @@ export default class hyperliquid extends hyperliquidRest {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const url = this.urls['api']['ws']['public'];
-        const { request: postRequest, market } = await this.editOrderRequest (id, symbol, type, side, amount, price, params);
+        const { 'request': postRequest, market } = await this.editOrderRequest (id, symbol, type, side, amount, price, params);
         const { request, requestId } = this.wrapAsPostAction (postRequest);
         const response = await this.watch (url, requestId + '', request, requestId);
         // response is the same as in this.editOrder
