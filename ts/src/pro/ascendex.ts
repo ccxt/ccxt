@@ -201,7 +201,9 @@ export default class ascendex extends ascendexRest {
         });
         const trades = await this.watchPublicMultiple (messageHashes, params);
         if (this.newUpdates) {
-            limit = trades.getLimit (symbols[0], limit);
+            const first = this.safeValue (trades, 0);
+            const tradeSymbol = this.safeString (first, 'symbol');
+            limit = trades.getLimit (tradeSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
