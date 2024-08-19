@@ -130,6 +130,7 @@ export default class exmo extends exmoRest {
             this.parseMarginBalance (message);
         }
         const messageHash = 'balance:' + type;
+        this.streamProduce ('balances', this.balance);
         client.resolve (this.balance, messageHash);
     }
 
@@ -448,6 +449,7 @@ export default class exmo extends exmoRest {
         for (let j = 0; j < trades.length; j++) {
             const trade = trades[j];
             myTrades.append (trade);
+            this.streamProduce ('myTrades', trade);
             symbols[trade['symbol']] = true;
         }
         const symbolKeys = Object.keys (symbols);
@@ -544,6 +546,7 @@ export default class exmo extends exmoRest {
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
         }
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 
@@ -611,7 +614,9 @@ export default class exmo extends exmoRest {
                 }
             }
         }
-        throw new NotSupported (this.id + ' received an unsupported message: ' + this.json (message));
+        const err = new NotSupported (this.id + ' received an unsupported message: ' + this.json (message));
+        this.streamProduce ('error', undefined, err);
+        client.reject (err);
     }
 
     handleSubscribed (client: Client, message) {

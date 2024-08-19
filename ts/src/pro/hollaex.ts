@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import hollaexRest from '../hollaex.js';
-import { AuthenticationError, BadSymbol, BadRequest } from '../base/errors.js';
+import { AuthenticationError, BadSymbol, BadRequest, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import type { Int, Str, OrderBook, Order, Trade, Balances, Dict } from '../base/types.js';
@@ -110,6 +110,7 @@ export default class hollaex extends hollaexRest {
             orderbook.reset (snapshot);
         }
         const messageHash = channel + ':' + marketId;
+        this.streamProduce ('orderbook', orderbook);
         client.resolve (orderbook, messageHash);
     }
 
@@ -243,6 +244,7 @@ export default class hollaex extends hollaexRest {
             const market = this.market (symbol);
             const marketId = market['id'];
             marketIds[marketId] = true;
+            this.streamProduce ('myTrades', parsed);
         }
         // non-symbol specific
         client.resolve (this.myTrades, channel);
@@ -365,6 +367,7 @@ export default class hollaex extends hollaexRest {
             const market = this.market (symbol);
             const marketId = market['id'];
             marketIds[marketId] = true;
+            this.streamProduce ('orders', parsed);
         }
         // non-symbol specific
         client.resolve (this.orders, channel);
@@ -424,6 +427,7 @@ export default class hollaex extends hollaexRest {
             this.balance[code] = account;
         }
         this.balance = this.safeBalance (this.balance);
+        this.streamProduce ('balances', this.balance);
         client.resolve (this.balance, messageHash);
     }
 
@@ -475,11 +479,15 @@ export default class hollaex extends hollaexRest {
             if (error !== undefined) {
                 const feedback = this.id + ' ' + this.json (message);
                 this.throwExactlyMatchedException (this.exceptions['ws']['exact'], error, feedback);
+                this.throwBroadlyMatchedException (this.exceptions['ws']['broad'], error, feedback);
+                throw new ExchangeError (feedback);
             }
         } catch (e) {
             if (e instanceof AuthenticationError) {
                 return false;
             }
+            client.reject (e);
+            this.streamProduce ('errors', undefined, e);
         }
         return message;
     }
