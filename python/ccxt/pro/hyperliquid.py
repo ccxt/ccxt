@@ -5,7 +5,7 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
-from ccxt.base.types import Int, Market, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
+from ccxt.base.types import Any, Int, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
@@ -17,6 +17,9 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         return self.deep_extend(super(hyperliquid, self).describe(), {
             'has': {
                 'ws': True,
+                'createOrderWs': True,
+                'createOrdersWs': True,
+                'editOrderWs': True,
                 'watchBalance': False,
                 'watchMyTrades': True,
                 'watchOHLCV': True,
@@ -52,6 +55,84 @@ class hyperliquid(ccxt.async_support.hyperliquid):
                 },
             },
         })
+
+    async def create_orders_ws(self, orders: List[OrderRequest], params={}):
+        """
+        create a list of trade orders using WebSocket post request
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        url = self.urls['api']['ws']['public']
+        ordersRequest = self.createOrdersRequest(orders, params)
+        wrapped = self.wrap_as_post_action(ordersRequest)
+        request = self.safe_dict(wrapped, 'request', {})
+        requestId = self.safe_string(wrapped, 'requestId')
+        response = await self.watch(url, requestId, request, requestId)
+        responseOjb = self.safe_dict(response, 'response', {})
+        data = self.safe_dict(responseOjb, 'data', {})
+        statuses = self.safe_list(data, 'statuses', [])
+        return self.parse_orders(statuses, None)
+
+    async def create_order_ws(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+        """
+        create a trade order using WebSocket post request
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.timeInForce]: 'Gtc', 'Ioc', 'Alo'
+        :param bool [params.postOnly]: True or False whether the order is post-only
+        :param bool [params.reduceOnly]: True or False whether the order is reduce-only
+        :param float [params.triggerPrice]: The price at which a trigger order is triggered at
+        :param str [params.clientOrderId]: client order id,(optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+        :param str [params.slippage]: the slippage for market order
+        :param str [params.vaultAddress]: the vault address for order
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        order, globalParams = self.parseCreateOrderArgs(symbol, type, side, amount, price, params)
+        orders = await self.create_orders_ws([order], globalParams)
+        return orders[0]
+
+    async def edit_order_ws(self, id: str, symbol: str, type: str, side: str, amount: Num = None, price: Num = None, params={}):
+        """
+        edit a trade order
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
+        :param str id: cancel order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.timeInForce]: 'Gtc', 'Ioc', 'Alo'
+        :param bool [params.postOnly]: True or False whether the order is post-only
+        :param bool [params.reduceOnly]: True or False whether the order is reduce-only
+        :param float [params.triggerPrice]: The price at which a trigger order is triggered at
+        :param str [params.clientOrderId]: client order id,(optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+        :param str [params.vaultAddress]: the vault address for order
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        url = self.urls['api']['ws']['public']
+        postRequest = self.edit_order_request(id, symbol, type, side, amount, price, params)
+        wrapped = self.wrap_as_post_action(postRequest)
+        request = self.safe_dict(wrapped, 'request', {})
+        requestId = self.safe_string(wrapped, 'requestId')
+        response = await self.watch(url, requestId, request, requestId)
+        # response is the same self.edit_order
+        responseObject = self.safe_dict(response, 'response', {})
+        dataObject = self.safe_dict(responseObject, 'data', {})
+        statuses = self.safe_list(dataObject, 'statuses', [])
+        first = self.safe_dict(statuses, 0, {})
+        return self.parse_order(first, market)
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
@@ -494,6 +575,22 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         messageHash = 'candles:' + timeframe + ':' + symbol
         client.resolve(ohlcv, messageHash)
 
+    def handle_ws_post(self, client: Client, message: Any):
+        #    {
+        #         channel: "post",
+        #         data: {
+        #             id: <number>,
+        #             response: {
+        #                  type: "info" | "action" | "error",
+        #                  payload: {...}
+        #         }
+        #    }
+        data = self.safe_dict(message, 'data')
+        id = self.safe_string(data, 'id')
+        response = self.safe_dict(data, 'response')
+        payload = self.safe_dict(response, 'payload')
+        client.resolve(payload, id)
+
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
@@ -597,6 +694,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             'orderUpdates': self.handle_order,
             'userFills': self.handle_my_trades,
             'webData2': self.handle_ws_tickers,
+            'post': self.handle_ws_post,
         }
         exacMethod = self.safe_value(methods, topic)
         if exacMethod is not None:
@@ -623,3 +721,22 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         #
         client.lastPong = self.safe_integer(message, 'pong')
         return message
+
+    def request_id(self) -> float:
+        requestId = self.sum(self.safe_integer(self.options, 'requestId', 0), 1)
+        self.options['requestId'] = requestId
+        return requestId
+
+    def wrap_as_post_action(self, request: dict) -> dict:
+        requestId = self.request_id()
+        return {
+            'requestId': requestId,
+            'request': {
+                'method': 'post',
+                'id': requestId,
+                'request': {
+                    'type': 'action',
+                    'payload': request,
+                },
+            },
+        }

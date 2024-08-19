@@ -1067,24 +1067,9 @@ class hyperliquid(Exchange, ImplicitAPI):
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        market = self.market(symbol)
-        vaultAddress = self.safe_string(params, 'vaultAddress')
-        params = self.omit(params, 'vaultAddress')
-        symbol = market['symbol']
-        order = {
-            'symbol': symbol,
-            'type': type,
-            'side': side,
-            'amount': amount,
-            'price': price,
-            'params': params,
-        }
-        globalParams: dict = {}
-        if vaultAddress is not None:
-            globalParams['vaultAddress'] = vaultAddress
-        response = await self.create_orders([order], globalParams)
-        first = self.safe_dict(response, 0)
-        return first
+        order, globalParams = self.parse_create_order_args(symbol, type, side, amount, price, params)
+        orders = await self.create_orders([order], globalParams)
+        return orders[0]
 
     async def create_orders(self, orders: List[OrderRequest], params={}):
         """
@@ -1093,8 +1078,39 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
-        self.check_required_credentials()
         await self.load_markets()
+        request = self.create_orders_request(orders, params)
+        response = await self.privatePostExchange(request)
+        #
+        #     {
+        #         "status": "ok",
+        #         "response": {
+        #             "type": "order",
+        #             "data": {
+        #                 "statuses": [
+        #                     {
+        #                         "resting": {
+        #                             "oid": 5063830287
+        #                         }
+        #                     }
+        #                 ]
+        #             }
+        #         }
+        #     }
+        #
+        responseObj = self.safe_dict(response, 'response', {})
+        data = self.safe_dict(responseObj, 'data', {})
+        statuses = self.safe_list(data, 'statuses', [])
+        return self.parse_orders(statuses, None)
+
+    def create_orders_request(self, orders, params={}) -> dict:
+        """
+        create a list of trade orders
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+        :param Array orders: list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        self.check_required_credentials()
         defaultSlippage = self.safe_string(self.options, 'defaultSlippage')
         defaultSlippage = self.safe_string(params, 'slippage', defaultSlippage)
         hasClientOrderId = False
@@ -1197,28 +1213,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         if vaultAddress is not None:
             params = self.omit(params, 'vaultAddress')
             request['vaultAddress'] = vaultAddress
-        response = await self.privatePostExchange(request)
-        #
-        #     {
-        #         "status": "ok",
-        #         "response": {
-        #             "type": "order",
-        #             "data": {
-        #                 "statuses": [
-        #                     {
-        #                         "resting": {
-        #                             "oid": 5063830287
-        #                         }
-        #                     }
-        #                 ]
-        #             }
-        #         }
-        #     }
-        #
-        responseObj = self.safe_dict(response, 'response', {})
-        data = self.safe_dict(responseObj, 'data', {})
-        statuses = self.safe_list(data, 'statuses', [])
-        return self.parse_orders(statuses, None)
+        return request
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
         """
@@ -1417,30 +1412,10 @@ class hyperliquid(Exchange, ImplicitAPI):
         #
         return response
 
-    async def edit_order(self, id: str, symbol: str, type: str, side: str, amount: Num = None, price: Num = None, params={}):
-        """
-        edit a trade order
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
-        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
-        :param str id: cancel order id
-        :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
-        :param str side: 'buy' or 'sell'
-        :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.timeInForce]: 'Gtc', 'Ioc', 'Alo'
-        :param bool [params.postOnly]: True or False whether the order is post-only
-        :param bool [params.reduceOnly]: True or False whether the order is reduce-only
-        :param float [params.triggerPrice]: The price at which a trigger order is triggered at
-        :param str [params.clientOrderId]: client order id,(optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
-        :param str [params.vaultAddress]: the vault address for order
-        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
-        """
+    def edit_order_request(self, id: str, symbol: str, type: str, side: str, amount: Num = None, price: Num = None, params={}):
         self.check_required_credentials()
         if id is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires an id argument')
-        await self.load_markets()
         market = self.market(symbol)
         type = type.upper()
         isMarket = (type == 'MARKET')
@@ -1517,6 +1492,31 @@ class hyperliquid(Exchange, ImplicitAPI):
         if vaultAddress is not None:
             params = self.omit(params, 'vaultAddress')
             request['vaultAddress'] = vaultAddress
+        return request
+
+    async def edit_order(self, id: str, symbol: str, type: str, side: str, amount: Num = None, price: Num = None, params={}):
+        """
+        edit a trade order
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
+        :param str id: cancel order id
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.timeInForce]: 'Gtc', 'Ioc', 'Alo'
+        :param bool [params.postOnly]: True or False whether the order is post-only
+        :param bool [params.reduceOnly]: True or False whether the order is reduce-only
+        :param float [params.triggerPrice]: The price at which a trigger order is triggered at
+        :param str [params.clientOrderId]: client order id,(optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+        :param str [params.vaultAddress]: the vault address for order
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = self.edit_order_request(id, symbol, type, side, amount, price, params)
         response = await self.privatePostExchange(request)
         #
         #     {
@@ -2605,3 +2605,21 @@ class hyperliquid(Exchange, ImplicitAPI):
             }
             body = self.json(params)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
+
+    def parse_create_order_args(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+        market = self.market(symbol)
+        vaultAddress = self.safe_string(params, 'vaultAddress')
+        params = self.omit(params, 'vaultAddress')
+        symbol = market['symbol']
+        order = {
+            'symbol': symbol,
+            'type': type,
+            'side': side,
+            'amount': amount,
+            'price': price,
+            'params': params,
+        }
+        globalParams = {}
+        if vaultAddress is not None:
+            globalParams['vaultAddress'] = vaultAddress
+        return [order, globalParams]
