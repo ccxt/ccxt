@@ -450,6 +450,36 @@ export default class bitget extends bitgetRest {
         return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
+    async unWatchOrderBook (symbol: string, params = {}): Promise<Boolean> {
+        /**
+         * @method
+         * @name bitget#unWatchOrderBook
+         * @descriptio unsubscribe from the orderbook channel
+         * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
+         * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [params.limit] orderbook limit, default is undefined
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const messageHash = 'unsubscribe:orderbook:' + market['symbol'];
+        let channel = 'books';
+        const limit = this.safeInteger (params, 'limit');
+        if ((limit === 1) || (limit === 5) || (limit === 15)) {
+            params = this.omit (params, 'limit');
+            channel += limit.toString ();
+        }
+        let instType = undefined;
+        [ instType, params ] = this.getInstType (market, params);
+        const args: Dict = {
+            'instType': instType,
+            'channel': channel,
+            'instId': market['id'],
+        };
+        return await this.unWatchPublic (messageHash, args, params);
+    }
+
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
@@ -573,10 +603,11 @@ export default class bitget extends bitgetRest {
                 const calculatedChecksum = this.crc32 (payload, true);
                 const responseChecksum = this.safeInteger (rawOrderBook, 'checksum');
                 if (calculatedChecksum !== responseChecksum) {
-                    delete client.subscriptions[messageHash];
-                    delete this.orderbooks[symbol];
-                    const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
-                    client.reject (error, messageHash);
+                    // if (messageHash in client.subscriptions) {
+                    //     // delete client.subscriptions[messageHash];
+                    //     // delete this.orderbooks[symbol];
+                    // }
+                    this.spawn (this.handleCheckSumError, client, symbol, messageHash);
                     return;
                 }
             }
@@ -587,6 +618,12 @@ export default class bitget extends bitgetRest {
             this.orderbooks[symbol] = orderbook;
         }
         client.resolve (this.orderbooks[symbol], messageHash);
+    }
+
+    async handleCheckSumError (client: Client, symbol: string, messageHash: string) {
+        await this.unWatchOrderBook (symbol);
+        const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
+        client.reject (error, messageHash);
     }
 
     handleDelta (bookside, delta) {
@@ -1637,6 +1674,16 @@ export default class bitget extends bitgetRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
+    async unWatchPublic (messageHash, args, params = {}) {
+        const url = this.urls['api']['ws']['public'];
+        const request: Dict = {
+            'op': 'unsubscribe',
+            'args': [ args ],
+        };
+        const message = this.extend (request, params);
+        return await this.watch (url, messageHash, message, messageHash);
+    }
+
     async watchPublicMultiple (messageHashes, argsArray, params = {}) {
         const url = this.urls['api']['ws']['public'];
         const request: Dict = {
@@ -1760,6 +1807,17 @@ export default class bitget extends bitgetRest {
         //        "event": "subscribe",
         //        "arg": { instType: 'SPOT', channel: "account", instId: "default" }
         //    }
+        // unsubscribe
+        //    {
+        //        "op":"unsubscribe",
+        //        "args":[
+        //          {
+        //            "instType":"USDT-FUTURES",
+        //            "channel":"ticker",
+        //            "instId":"BTCUSDT"
+        //          }
+        //        ]
+        //    }
         //
         if (this.handleErrorMessage (client, message)) {
             return;
@@ -1780,6 +1838,10 @@ export default class bitget extends bitgetRest {
         }
         if (event === 'subscribe') {
             this.handleSubscriptionStatus (client, message);
+            return;
+        }
+        if (event === 'unsubscribe') {
+            this.handleUnSubscriptionStatus (client, message);
             return;
         }
         const methods: Dict = {
@@ -1826,6 +1888,47 @@ export default class bitget extends bitgetRest {
         //        "arg": { instType: 'SPOT', channel: "account", instId: "default" }
         //    }
         //
+        return message;
+    }
+
+    handleUnSubscriptionStatus (client: Client, message) {
+        //
+        //  {
+        //      "op":"unsubscribe",
+        //      "args":[
+        //        {
+        //          "instType":"USDT-FUTURES",
+        //          "channel":"ticker",
+        //          "instId":"BTCUSDT"
+        //        },
+        //        {
+        //          "instType":"USDT-FUTURES",
+        //          "channel":"candle1m",
+        //          "instId":"BTCUSDT"
+        //        }
+        //      ]
+        //  }
+        //
+        const args = this.safeList (message, 'args', []);
+        for (let i = 0; i < args.length; i++) {
+            const arg = args[i];
+            const channel = this.safeString (arg, 'channel');
+            if (channel === 'books') {
+                // for now only unWatchOrderBook is supported
+                const instId = this.safeString (arg, 'instId');
+                const market = this.safeMarket (instId);
+                const symbol = market['symbol'];
+                const messageHash = 'unsubscribe:orderbook:' + market['id'];
+                const subMessageHash = 'orderbook:' + symbol;
+                if (symbol in this.orderbooks) {
+                    delete this.orderbooks[symbol];
+                }
+                if (subMessageHash in client.subscriptions) {
+                    delete client.subscriptions[subMessageHash];
+                }
+                client.resolve (true, messageHash);
+            }
+        }
         return message;
     }
 }
