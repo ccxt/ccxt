@@ -1919,9 +1919,11 @@ export default class bitget extends bitgetRest {
             const arg = argsList[i];
             const channel = this.safeString (arg, 'channel');
             if (channel === 'books') {
-                // for now only unWatchOrderBook is supported
+                // for now only unWatchOrderBook is supporteod
+                const instType = this.safeStringLower (arg, 'instType');
+                const type = (instType === 'spot') ? 'spot' : 'contract';
                 const instId = this.safeString (arg, 'instId');
-                const market = this.safeMarket (instId);
+                const market = this.safeMarket (instId, undefined, undefined, type);
                 const symbol = market['symbol'];
                 const messageHash = 'unsubscribe:orderbook:' + market['id'];
                 const subMessageHash = 'orderbook:' + symbol;
