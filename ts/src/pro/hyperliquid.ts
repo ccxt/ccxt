@@ -793,7 +793,7 @@ export default class hyperliquid extends hyperliquidRest {
         return requestId;
     }
 
-    wrapAsPostAction (request: {}): Dict {
+    wrapAsPostAction (request: Dict): Dict {
         const requestId = this.requestId ();
         return {
             'requestId': requestId,
