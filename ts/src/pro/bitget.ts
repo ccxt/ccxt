@@ -1908,10 +1908,15 @@ export default class bitget extends bitgetRest {
         //        }
         //      ]
         //  }
+        //  or
+        // {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"books","instId":"BTCUSDT"}}
         //
-        const args = this.safeList (message, 'args', []);
-        for (let i = 0; i < args.length; i++) {
-            const arg = args[i];
+        let argsList = this.safeList (message, 'args');
+        if (argsList === undefined) {
+            argsList = [ this.safeDict (message, 'arg', {}) ];
+        }
+        for (let i = 0; i < argsList.length; i++) {
+            const arg = argsList[i];
             const channel = this.safeString (arg, 'channel');
             if (channel === 'books') {
                 // for now only unWatchOrderBook is supported
