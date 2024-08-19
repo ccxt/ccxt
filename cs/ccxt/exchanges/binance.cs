@@ -3867,13 +3867,15 @@ public partial class binance : Exchange
         object marketId = this.safeString(ticker, "symbol");
         object symbol = this.safeSymbol(marketId, market, null, marketType);
         object last = this.safeString(ticker, "lastPrice");
+        object wAvg = this.safeString(ticker, "weightedAvgPrice");
         object isCoinm = (inOp(ticker, "baseVolume"));
         object baseVolume = null;
         object quoteVolume = null;
         if (isTrue(isCoinm))
         {
             baseVolume = this.safeString(ticker, "baseVolume");
-            quoteVolume = this.safeString(ticker, "volume");
+            // 'volume' field in inverse markets is not quoteVolume, but traded amount (per contracts)
+            quoteVolume = Precise.stringMul(baseVolume, wAvg);
         } else
         {
             baseVolume = this.safeString(ticker, "volume");
@@ -3889,7 +3891,7 @@ public partial class binance : Exchange
             { "bidVolume", this.safeString(ticker, "bidQty") },
             { "ask", this.safeString(ticker, "askPrice") },
             { "askVolume", this.safeString(ticker, "askQty") },
-            { "vwap", this.safeString(ticker, "weightedAvgPrice") },
+            { "vwap", wAvg },
             { "open", this.safeString2(ticker, "openPrice", "open") },
             { "close", last },
             { "last", last },

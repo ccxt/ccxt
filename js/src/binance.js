@@ -3855,12 +3855,14 @@ export default class binance extends Exchange {
         const marketId = this.safeString(ticker, 'symbol');
         const symbol = this.safeSymbol(marketId, market, undefined, marketType);
         const last = this.safeString(ticker, 'lastPrice');
+        const wAvg = this.safeString(ticker, 'weightedAvgPrice');
         const isCoinm = ('baseVolume' in ticker);
         let baseVolume = undefined;
         let quoteVolume = undefined;
         if (isCoinm) {
             baseVolume = this.safeString(ticker, 'baseVolume');
-            quoteVolume = this.safeString(ticker, 'volume');
+            // 'volume' field in inverse markets is not quoteVolume, but traded amount (per contracts)
+            quoteVolume = Precise.stringMul(baseVolume, wAvg);
         }
         else {
             baseVolume = this.safeString(ticker, 'volume');
@@ -3876,7 +3878,7 @@ export default class binance extends Exchange {
             'bidVolume': this.safeString(ticker, 'bidQty'),
             'ask': this.safeString(ticker, 'askPrice'),
             'askVolume': this.safeString(ticker, 'askQty'),
-            'vwap': this.safeString(ticker, 'weightedAvgPrice'),
+            'vwap': wAvg,
             'open': this.safeString2(ticker, 'openPrice', 'open'),
             'close': last,
             'last': last,
