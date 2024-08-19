@@ -8,7 +8,7 @@ import { TICK_SIZE, ROUND, SIGNIFICANT_DIGITS, DECIMAL_PLACES } from './base/fun
 import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js';
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
-import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, TradingFeeInterface, Ticker, Tickers } from './base/types.js';
+import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, TradingFeeInterface, Ticker, Tickers, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1119,7 +1119,7 @@ export default class hyperliquid extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const { globalParams, order } = this.parseCreateOrderArgs (symbol, type, side, amount, price, params);
+        const [ order, globalParams ] = this.parseCreateOrderArgs (symbol, type, side, amount, price, params);
         const orders = await this.createOrders ([ order ], globalParams);
         return orders[0];
     }
@@ -1133,7 +1133,8 @@ export default class hyperliquid extends Exchange {
          * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const request = await this.createOrdersRequest (orders, params);
+        await this.loadMarkets ();
+        const request = this.createOrdersRequest (orders, params);
         const response = await this.privatePostExchange (request);
         //
         //     {
@@ -1158,7 +1159,7 @@ export default class hyperliquid extends Exchange {
         return this.parseOrders (statuses, undefined);
     }
 
-    async createOrdersRequest (orders, params = {}): Promise<Dict> {
+    createOrdersRequest (orders, params = {}): Dict {
         /**
          * @method
          * @name hyperliquid#createOrders
@@ -1168,7 +1169,6 @@ export default class hyperliquid extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         this.checkRequiredCredentials ();
-        await this.loadMarkets ();
         let defaultSlippage = this.safeString (this.options, 'defaultSlippage');
         defaultSlippage = this.safeString (params, 'slippage', defaultSlippage);
         let hasClientOrderId = false;
@@ -1510,12 +1510,11 @@ export default class hyperliquid extends Exchange {
         return response;
     }
 
-    async editOrderRequest (id: string, symbol: string, type: string, side: string, amount: Num = undefined, price: Num = undefined, params = {}) {
+    editOrderRequest (id: string, symbol: string, type: string, side: string, amount: Num = undefined, price: Num = undefined, params = {}) {
         this.checkRequiredCredentials ();
         if (id === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an id argument');
         }
-        await this.loadMarkets ();
         const market = this.market (symbol);
         type = type.toUpperCase ();
         const isMarket = (type === 'MARKET');
@@ -1599,7 +1598,7 @@ export default class hyperliquid extends Exchange {
             params = this.omit (params, 'vaultAddress');
             request['vaultAddress'] = vaultAddress;
         }
-        return { request, market };
+        return request;
     }
 
     async editOrder (id: string, symbol: string, type: string, side: string, amount: Num = undefined, price: Num = undefined, params = {}) {
@@ -1624,7 +1623,9 @@ export default class hyperliquid extends Exchange {
          * @param {string} [params.vaultAddress] the vault address for order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const { request, market } = await this.editOrderRequest (id, symbol, type, side, amount, price, params);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = this.editOrderRequest (id, symbol, type, side, amount, price, params);
         const response = await this.privatePostExchange (request);
         //
         //     {
@@ -2810,7 +2811,7 @@ export default class hyperliquid extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    parseCreateOrderArgs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Dict {
+    parseCreateOrderArgs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): List {
         const market = this.market (symbol);
         const vaultAddress = this.safeString (params, 'vaultAddress');
         params = this.omit (params, 'vaultAddress');
@@ -2827,6 +2828,6 @@ export default class hyperliquid extends Exchange {
         if (vaultAddress !== undefined) {
             globalParams['vaultAddress'] = vaultAddress;
         }
-        return { order, globalParams };
+        return [ order, globalParams ];
     }
 }

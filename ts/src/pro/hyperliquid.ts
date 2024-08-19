@@ -62,9 +62,13 @@ export default class hyperliquid extends hyperliquidRest {
          * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        await this.loadMarkets ();
         const url = this.urls['api']['ws']['public'];
-        const { request, requestId } = this.wrapAsPostAction (await this.createOrdersRequest (orders, params));
-        const response = await this.watch (url, requestId + '', request, requestId);
+        const ordersRequest = this.createOrdersRequest (orders, params);
+        const wrapped = this.wrapAsPostAction (ordersRequest);
+        const request = this.safeDict (wrapped, 'request', {});
+        const requestId = this.safeString (wrapped, 'requestId');
+        const response = await this.watch (url, requestId, request, requestId);
         const responseOjb = this.safeDict (response, 'response', {});
         const data = this.safeDict (responseOjb, 'data', {});
         const statuses = this.safeList (data, 'statuses', []);
@@ -93,7 +97,7 @@ export default class hyperliquid extends hyperliquidRest {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
-        const { order, globalParams } = this.parseCreateOrderArgs (symbol, type, side, amount, price, params);
+        const [ order, globalParams ] = this.parseCreateOrderArgs (symbol, type, side, amount, price, params);
         const orders = await this.createOrdersWs ([ order ], globalParams);
         return orders[0];
     }
@@ -120,10 +124,14 @@ export default class hyperliquid extends hyperliquidRest {
          * @param {string} [params.vaultAddress] the vault address for order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
         const url = this.urls['api']['ws']['public'];
-        const { 'request': postRequest, market } = await this.editOrderRequest (id, symbol, type, side, amount, price, params);
-        const { request, requestId } = this.wrapAsPostAction (postRequest);
-        const response = await this.watch (url, requestId + '', request, requestId);
+        const postRequest = this.editOrderRequest (id, symbol, type, side, amount, price, params);
+        const wrapped = this.wrapAsPostAction (postRequest);
+        const request = this.safeDict (wrapped, 'request', {});
+        const requestId = this.safeString (wrapped, 'requestId');
+        const response = await this.watch (url, requestId, request, requestId);
         // response is the same as in this.editOrder
         const responseObject = this.safeDict (response, 'response', {});
         const dataObject = this.safeDict (responseObject, 'data', {});
@@ -785,10 +793,10 @@ export default class hyperliquid extends hyperliquidRest {
         return requestId;
     }
 
-    wrapAsPostAction (request: {}): {request: {}, requestId: number} {
+    wrapAsPostAction (request: {}): Dict {
         const requestId = this.requestId ();
         return {
-            requestId,
+            'requestId': requestId,
             'request': {
                 'method': 'post',
                 'id': requestId,
