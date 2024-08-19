@@ -1933,6 +1933,9 @@ export default class bitget extends bitgetRest {
                 if (subMessageHash in client.subscriptions) {
                     delete client.subscriptions[subMessageHash];
                 }
+                if (messageHash in client.subscriptions) {
+                    delete client.subscriptions[messageHash];
+                }
                 client.resolve (true, messageHash);
             }
         }
