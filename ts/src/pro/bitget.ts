@@ -450,7 +450,7 @@ export default class bitget extends bitgetRest {
         return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
-    async unWatchOrderBook (symbol: string, params = {}): Promise<Boolean> {
+    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
         /**
          * @method
          * @name bitget#unWatchOrderBook
