@@ -98,7 +98,7 @@ export default class hyperliquid extends hyperliquidRest {
          */
         await this.loadMarkets ();
         const [ order, globalParams ] = this.parseCreateOrderArgs (symbol, type, side, amount, price, params);
-        const orders = await this.createOrdersWs ([ order ], globalParams);
+        const orders = await this.createOrdersWs ([ order as any ], globalParams);
         return orders[0];
     }
 
