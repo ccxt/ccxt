@@ -454,7 +454,7 @@ export default class bitget extends bitgetRest {
         /**
          * @method
          * @name bitget#unWatchOrderBook
-         * @descriptio unsubscribe from the orderbook channel
+         * @description unsubscribe from the orderbook channel
          * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
          * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
          * @param {string} symbol unified symbol of the market to fetch the order book for
