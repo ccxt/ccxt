@@ -92,8 +92,10 @@ export default class hyperliquid extends hyperliquidRest {
          * @param {string} [params.vaultAddress] the vault address for order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const { order, globalParams } = await this.parseCreateOrderArgs (symbol, type, side, amount, price, params);
-        return (await this.createOrdersWs ([ order ], globalParams))[0];
+        await this.loadMarkets ();
+        const { order, globalParams } = this.parseCreateOrderArgs (symbol, type, side, amount, price, params);
+        const orders = await this.createOrdersWs ([ order ], globalParams);
+        return orders[0];
     }
 
     async editOrderWs (id: string, symbol: string, type: string, side: string, amount: Num = undefined, price: Num = undefined, params = {}) {

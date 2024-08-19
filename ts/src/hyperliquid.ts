@@ -1118,8 +1118,10 @@ export default class hyperliquid extends Exchange {
          * @param {string} [params.vaultAddress] the vault address for order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        const { globalParams, order } = await this.parseCreateOrderArgs (symbol, type, side, amount, price, params);
-        return (await this.createOrders ([ order ], globalParams))[0];
+        await this.loadMarkets ();
+        const { globalParams, order } = this.parseCreateOrderArgs (symbol, type, side, amount, price, params);
+        const orders = await this.createOrders ([ order ], globalParams);
+        return orders[0];
     }
 
     async createOrders (orders: OrderRequest[], params = {}) {
@@ -2808,11 +2810,7 @@ export default class hyperliquid extends Exchange {
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
-    async parseCreateOrderArgs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<{
-        order: OrderRequest,
-        globalParams: Dict
-    }> {
-        await this.loadMarkets ();
+    parseCreateOrderArgs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Dict {
         const market = this.market (symbol);
         const vaultAddress = this.safeString (params, 'vaultAddress');
         params = this.omit (params, 'vaultAddress');
