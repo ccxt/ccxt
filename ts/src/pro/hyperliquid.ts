@@ -631,10 +631,10 @@ export default class hyperliquid extends hyperliquidRest {
         //         }
         //    }
         const data = this.safeDict (message, 'data');
-        const id = this.safeNumber (data, 'id');
+        const id = this.safeString (data, 'id');
         const response = this.safeDict (data, 'response');
         const payload = this.safeDict (response, 'payload');
-        client.resolve (payload, id + '');
+        client.resolve (payload, id);
     }
 
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
