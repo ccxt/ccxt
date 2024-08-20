@@ -47,7 +47,7 @@ class hashkey(Exchange, ImplicitAPI):
             'version': 'v1',
             'certified': True,
             'pro': True,
-            'hostname': 'https://global.hashkey.com/',
+            'hostname': '/api-glb',
             'has': {
                 'CORS': None,
                 'spot': True,
@@ -168,8 +168,7 @@ class hashkey(Exchange, ImplicitAPI):
                 'www': 'https://global.hashkey.com/',
                 'doc': 'https://hashkeyglobal-apidoc.readme.io/',
                 'fees': 'https://support.global.hashkey.com/hc/en-us/articles/13199900083612-HashKey-Global-Fee-Structure',
-                'referral': {
-                },
+                'referral': '',
             },
             'api': {
                 'public': {

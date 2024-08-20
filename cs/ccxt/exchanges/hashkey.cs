@@ -15,7 +15,7 @@ public partial class hashkey : Exchange
             { "version", "v1" },
             { "certified", true },
             { "pro", true },
-            { "hostname", "https://global.hashkey.com/" },
+            { "hostname", "/api-glb" },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
                 { "spot", true },
@@ -136,7 +136,7 @@ public partial class hashkey : Exchange
                 { "www", "https://global.hashkey.com/" },
                 { "doc", "https://hashkeyglobal-apidoc.readme.io/" },
                 { "fees", "https://support.global.hashkey.com/hc/en-us/articles/13199900083612-HashKey-Global-Fee-Structure" },
-                { "referral", new Dictionary<string, object>() {} },
+                { "referral", "" },
             } },
             { "api", new Dictionary<string, object>() {
                 { "public", new Dictionary<string, object>() {
