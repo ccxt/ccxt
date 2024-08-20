@@ -479,10 +479,10 @@ class testMainClass extends baseMainTestClass {
         const testPrefixString = isPublicTest ? 'PUBLIC_TESTS' : 'PRIVATE_TESTS';
         if (failedMethods.length) {
             const errorsString = failedMethods.join (', ');
-            dump ('[TEST_FAILURE]', this.exchangeHint (exchange), testPrefixString, 'Failed methods : ' + errorsString);
+            dump ('[TEST_FAILURE]', exchange.id, testPrefixString, 'Failed methods : ' + errorsString);
         }
         if (this.info) {
-            dump (this.addPadding ('[INFO] END ' + testPrefixString + ' ' + this.exchangeHint (exchange), 25));
+            dump (this.addPadding ('[INFO] END ' + testPrefixString + ' ' + exchange.id, 25));
         }
     }
 
