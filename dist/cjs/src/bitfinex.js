@@ -851,7 +851,7 @@ class bitfinex extends bitfinex$1 {
          * @method
          * @name bitfinex#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
@@ -860,7 +860,7 @@ class bitfinex extends bitfinex$1 {
         const response = await this.publicGetTickers(params);
         const result = {};
         for (let i = 0; i < response.length; i++) {
-            const ticker = this.parseTicker({ 'result': response[i] });
+            const ticker = this.parseTicker(response[i]);
             const symbol = ticker['symbol'];
             result[symbol] = ticker;
         }

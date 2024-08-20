@@ -142,6 +142,7 @@ from ccxt.fmfwio import fmfwio                                        # noqa: F4
 from ccxt.gate import gate                                            # noqa: F401
 from ccxt.gateio import gateio                                        # noqa: F401
 from ccxt.gemini import gemini                                        # noqa: F401
+from ccxt.hashkey import hashkey                                      # noqa: F401
 from ccxt.hitbtc import hitbtc                                        # noqa: F401
 from ccxt.hitbtc3 import hitbtc3                                      # noqa: F401
 from ccxt.hollaex import hollaex                                      # noqa: F401
@@ -253,6 +254,7 @@ exchanges = [
     'gate',
     'gateio',
     'gemini',
+    'hashkey',
     'hitbtc',
     'hitbtc3',
     'hollaex',

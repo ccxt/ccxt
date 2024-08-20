@@ -26,6 +26,7 @@ class woofipro extends \ccxt\async\woofipro {
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchPositions' => true,
             ),
             'urls' => array(

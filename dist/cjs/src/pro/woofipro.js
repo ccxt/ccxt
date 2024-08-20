@@ -22,6 +22,7 @@ class woofipro extends woofipro$1 {
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchPositions': true,
             },
             'urls': {

@@ -65,6 +65,7 @@ import fmfwio from './src/fmfwio.js';
 import gate from './src/gate.js';
 import gateio from './src/gateio.js';
 import gemini from './src/gemini.js';
+import hashkey from './src/hashkey.js';
 import hitbtc from './src/hitbtc.js';
 import hitbtc3 from './src/hitbtc3.js';
 import hollaex from './src/hollaex.js';
@@ -151,6 +152,7 @@ import exmoPro from './src/pro/exmo.js';
 import gatePro from './src/pro/gate.js';
 import gateioPro from './src/pro/gateio.js';
 import geminiPro from './src/pro/gemini.js';
+import hashkeyPro from './src/pro/hashkey.js';
 import hitbtcPro from './src/pro/hitbtc.js';
 import hollaexPro from './src/pro/hollaex.js';
 import htxPro from './src/pro/htx.js';
@@ -245,6 +247,7 @@ declare const exchanges: {
     gate: typeof gate;
     gateio: typeof gateio;
     gemini: typeof gemini;
+    hashkey: typeof hashkey;
     hitbtc: typeof hitbtc;
     hitbtc3: typeof hitbtc3;
     hollaex: typeof hollaex;
@@ -333,6 +336,7 @@ declare const pro: {
     gate: typeof gatePro;
     gateio: typeof gateioPro;
     gemini: typeof geminiPro;
+    hashkey: typeof hashkeyPro;
     hitbtc: typeof hitbtcPro;
     hollaex: typeof hollaexPro;
     htx: typeof htxPro;
@@ -410,6 +414,7 @@ declare const ccxt: {
         gate: typeof gatePro;
         gateio: typeof gateioPro;
         gemini: typeof geminiPro;
+        hashkey: typeof hashkeyPro;
         hitbtc: typeof hitbtcPro;
         hollaex: typeof hollaexPro;
         htx: typeof htxPro;
@@ -505,6 +510,7 @@ declare const ccxt: {
     gate: typeof gate;
     gateio: typeof gateio;
     gemini: typeof gemini;
+    hashkey: typeof hashkey;
     hitbtc: typeof hitbtc;
     hitbtc3: typeof hitbtc3;
     hollaex: typeof hollaex;
@@ -555,5 +561,5 @@ declare const ccxt: {
     zaif: typeof zaif;
     zonda: typeof zonda;
 } & typeof functions & typeof errors;
-export { version, Exchange, exchanges, pro, Precise, functions, errors, BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, Int, int, Str, Strings, Num, Bool, IndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, OHLCV, OHLCVC, implicitReturnType, Market, Currency, Dictionary, MinMax, FeeInterface, TradingFeeInterface, MarketInterface, Trade, Order, OrderBook, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, WithdrawalResponse, DepositAddressResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarginMode, Greeks, Conversion, Option, LastPrice, Leverage, MarginModification, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, LeverageTiers, ace, alpaca, ascendex, bequant, bigone, binance, binancecoinm, binanceus, binanceusdm, bingx, bit2c, bitbank, bitbay, bitbns, bitcoincom, bitfinex, bitfinex2, bitflyer, bitget, bithumb, bitmart, bitmex, bitopro, bitpanda, bitrue, bitso, bitstamp, bitteam, bitvavo, bl3p, blockchaincom, blofin, btcalpha, btcbox, btcmarkets, btcturk, bybit, cex, coinbase, coinbaseadvanced, coinbaseexchange, coinbaseinternational, coincheck, coinex, coinlist, coinmate, coinmetro, coinone, coinsph, coinspot, cryptocom, currencycom, delta, deribit, digifinex, exmo, fmfwio, gate, gateio, gemini, hitbtc, hitbtc3, hollaex, htx, huobi, huobijp, hyperliquid, idex, independentreserve, indodax, kraken, krakenfutures, kucoin, kucoinfutures, kuna, latoken, lbank, luno, lykke, mercado, mexc, ndax, novadax, oceanex, okcoin, okx, onetrading, oxfun, p2b, paradex, paymium, phemex, poloniex, poloniexfutures, probit, timex, tokocrypto, tradeogre, upbit, vertex, wavesexchange, wazirx, whitebit, woo, woofipro, xt, yobit, zaif, zonda, };
+export { version, Exchange, exchanges, pro, Precise, functions, errors, BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, Int, int, Str, Strings, Num, Bool, IndexType, OrderSide, OrderType, MarketType, SubType, Dict, NullableDict, List, NullableList, Fee, OHLCV, OHLCVC, implicitReturnType, Market, Currency, Dictionary, MinMax, FeeInterface, TradingFeeInterface, MarketInterface, Trade, Order, OrderBook, Ticker, Transaction, Tickers, CurrencyInterface, Balance, BalanceAccount, Account, PartialBalances, Balances, DepositAddress, WithdrawalResponse, DepositAddressResponse, FundingRate, FundingRates, Position, BorrowInterest, LeverageTier, LedgerEntry, DepositWithdrawFeeNetwork, DepositWithdrawFee, TransferEntry, CrossBorrowRate, IsolatedBorrowRate, FundingRateHistory, OpenInterest, Liquidation, OrderRequest, CancellationRequest, FundingHistory, MarginMode, Greeks, Conversion, Option, LastPrice, Leverage, MarginModification, Leverages, LastPrices, Currencies, TradingFees, MarginModes, OptionChain, IsolatedBorrowRates, CrossBorrowRates, LeverageTiers, ace, alpaca, ascendex, bequant, bigone, binance, binancecoinm, binanceus, binanceusdm, bingx, bit2c, bitbank, bitbay, bitbns, bitcoincom, bitfinex, bitfinex2, bitflyer, bitget, bithumb, bitmart, bitmex, bitopro, bitpanda, bitrue, bitso, bitstamp, bitteam, bitvavo, bl3p, blockchaincom, blofin, btcalpha, btcbox, btcmarkets, btcturk, bybit, cex, coinbase, coinbaseadvanced, coinbaseexchange, coinbaseinternational, coincheck, coinex, coinlist, coinmate, coinmetro, coinone, coinsph, coinspot, cryptocom, currencycom, delta, deribit, digifinex, exmo, fmfwio, gate, gateio, gemini, hashkey, hitbtc, hitbtc3, hollaex, htx, huobi, huobijp, hyperliquid, idex, independentreserve, indodax, kraken, krakenfutures, kucoin, kucoinfutures, kuna, latoken, lbank, luno, lykke, mercado, mexc, ndax, novadax, oceanex, okcoin, okx, onetrading, oxfun, p2b, paradex, paymium, phemex, poloniex, poloniexfutures, probit, timex, tokocrypto, tradeogre, upbit, vertex, wavesexchange, wazirx, whitebit, woo, woofipro, xt, yobit, zaif, zonda, };
 export default ccxt;

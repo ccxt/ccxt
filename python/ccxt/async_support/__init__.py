@@ -122,6 +122,7 @@ from ccxt.async_support.fmfwio import fmfwio                                    
 from ccxt.async_support.gate import gate                                        # noqa: F401
 from ccxt.async_support.gateio import gateio                                    # noqa: F401
 from ccxt.async_support.gemini import gemini                                    # noqa: F401
+from ccxt.async_support.hashkey import hashkey                                  # noqa: F401
 from ccxt.async_support.hitbtc import hitbtc                                    # noqa: F401
 from ccxt.async_support.hitbtc3 import hitbtc3                                  # noqa: F401
 from ccxt.async_support.hollaex import hollaex                                  # noqa: F401
@@ -233,6 +234,7 @@ exchanges = [
     'gate',
     'gateio',
     'gemini',
+    'hashkey',
     'hitbtc',
     'hitbtc3',
     'hollaex',

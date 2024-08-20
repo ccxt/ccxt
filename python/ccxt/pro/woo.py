@@ -28,6 +28,7 @@ class woo(ccxt.async_support.woo):
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchPositions': True,
             },
             'urls': {

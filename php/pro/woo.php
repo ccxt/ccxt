@@ -26,6 +26,7 @@ class woo extends \ccxt\async\woo {
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchPositions' => true,
             ),
             'urls' => array(

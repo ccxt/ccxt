@@ -27,6 +27,7 @@ class woofipro(ccxt.async_support.woofipro):
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchPositions': True,
             },
             'urls': {

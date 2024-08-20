@@ -106,6 +106,7 @@ import fmfwio from  './src/fmfwio.js'
 import gate from  './src/gate.js'
 import gateio from  './src/gateio.js'
 import gemini from  './src/gemini.js'
+import hashkey from  './src/hashkey.js'
 import hitbtc from  './src/hitbtc.js'
 import hitbtc3 from  './src/hitbtc3.js'
 import hollaex from  './src/hollaex.js'
@@ -195,6 +196,7 @@ import exmoPro from  './src/pro/exmo.js'
 import gatePro from  './src/pro/gate.js'
 import gateioPro from  './src/pro/gateio.js'
 import geminiPro from  './src/pro/gemini.js'
+import hashkeyPro from  './src/pro/hashkey.js'
 import hitbtcPro from  './src/pro/hitbtc.js'
 import hollaexPro from  './src/pro/hollaex.js'
 import htxPro from  './src/pro/htx.js'
@@ -290,6 +292,7 @@ const exchanges = {
     'gate':                   gate,
     'gateio':                 gateio,
     'gemini':                 gemini,
+    'hashkey':                hashkey,
     'hitbtc':                 hitbtc,
     'hitbtc3':                hitbtc3,
     'hollaex':                hollaex,
@@ -379,6 +382,7 @@ const pro = {
     'gate':                   gatePro,
     'gateio':                 gateioPro,
     'gemini':                 geminiPro,
+    'hashkey':                hashkeyPro,
     'hitbtc':                 hitbtcPro,
     'hollaex':                hollaexPro,
     'htx':                    htxPro,
@@ -610,6 +614,7 @@ export {
     gate,
     gateio,
     gemini,
+    hashkey,
     hitbtc,
     hitbtc3,
     hollaex,

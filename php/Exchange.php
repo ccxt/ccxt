@@ -394,6 +394,7 @@ class Exchange {
         'gate',
         'gateio',
         'gemini',
+        'hashkey',
         'hitbtc',
         'hitbtc3',
         'hollaex',
