@@ -114,8 +114,8 @@ class Exchange(BaseExchange):
 
         if self.own_session and self.session is None:
             # Pass this SSL context to aiohttp and create a TCPConnector
-            self.TCPconnector = aiohttp.TCPConnector(ssl=self.ssl_context, loop=self.asyncio_loop, enable_cleanup_closed=True)
-            self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=self.TCPconnector, trust_env=self.aiohttp_trust_env)
+            self.tcp_connector = aiohttp.TCPConnector(ssl=self.ssl_context, loop=self.asyncio_loop, enable_cleanup_closed=True)
+            self.session = aiohttp.ClientSession(loop=self.asyncio_loop, connector=self.tcp_connector, trust_env=self.aiohttp_trust_env)
 
     async def close(self):
         await self.ws_close()
@@ -128,9 +128,9 @@ class Exchange(BaseExchange):
         await self.sleep(100)  # avoid https://github.com/ccxt/ccxt/issues/9218
 
     async def close_connector(self):
-        if self.TCPconnector is not None:
-            await self.TCPconnector.close()
-            self.TCPconnector = None
+        if self.tcp_connector is not None:
+            await self.tcp_connector.close()
+            self.tcp_connector = None
         if self.aiohttp_socks_connector is not None:
             await self.aiohttp_socks_connector.close()
             self.aiohttp_socks_connector = None

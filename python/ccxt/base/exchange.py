@@ -139,7 +139,7 @@ class Exchange(object):
     aiohttp_trust_env = False
     requests_trust_env = False
     session = None  # Session () by default
-    TCPconnector = None  # aiohttp.TCPConnector
+    tcp_connector = None  # aiohttp.TCPConnector
     aiohttp_socks_connector = None  
     socks_proxy_sessions = None
     verify = True  # SSL verification
