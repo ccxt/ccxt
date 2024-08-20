@@ -1008,7 +1008,7 @@ export default class bingx extends bingxRest {
         }
         const uuid = this.uuid ();
         let baseUrl = undefined;
-        let request: Dict = {};
+        let request = undefined;
         if (type === 'swap') {
             baseUrl = this.safeString (this.urls['api']['ws'], subType);
         } else {
@@ -1020,7 +1020,7 @@ export default class bingx extends bingxRest {
             };
         }
         const url = baseUrl + '?listenKey=' + this.options['listenKey'];
-        const orders = await this.watch (url, messageHash, this.extend (request, params), subscriptionHash);
+        const orders = await this.watch (url, messageHash, request, subscriptionHash);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -1064,7 +1064,7 @@ export default class bingx extends bingxRest {
         }
         const uuid = this.uuid ();
         let baseUrl = undefined;
-        let request: Dict = {};
+        let request = undefined;
         if (type === 'swap') {
             baseUrl = this.safeString (this.urls['api']['ws'], subType);
         } else {
@@ -1076,7 +1076,7 @@ export default class bingx extends bingxRest {
             };
         }
         const url = baseUrl + '?listenKey=' + this.options['listenKey'];
-        const trades = await this.watch (url, messageHash, this.extend (request, params), subscriptionHash);
+        const trades = await this.watch (url, messageHash, request, subscriptionHash);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
@@ -1087,9 +1087,10 @@ export default class bingx extends bingxRest {
         /**
          * @method
          * @name bingx#watchBalance
-         * @see https://bingx-api.github.io/docs/#/spot/socket/account.html#Subscription%20order%20update%20data
-         * @see https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/socket/account.html#Subscription%20account%20balance%20push
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
+         * @see https://bingx-api.github.io/docs/#/en-us/cswap/socket/account.html#Account%20balance%20and%20position%20update%20push
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
