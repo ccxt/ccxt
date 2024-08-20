@@ -125,7 +125,7 @@ class Exchange(BaseExchange):
             self.session = None
         await self.close_connector()
         await self.close_proxy_sessions()
-        await self.sleep(10)  # avoid https://github.com/ccxt/ccxt/issues/9218
+        await self.sleep(100)  # avoid https://github.com/ccxt/ccxt/issues/9218
 
     async def close_connector(self):
         if self.TCPconnector is not None:
