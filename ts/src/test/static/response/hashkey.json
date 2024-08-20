@@ -1,19 +1,20 @@
 {
-    "exchange": "oxfun",
+    "exchange": "hashkey",
     "options": {},
     "methods": {
         "fetchStatus": [
             {
-                "description": "Fill this with a description of the method call",
+                "description": "fetchstatus",
+                "disabled": true,
                 "method": "fetchStatus",
                 "input": [],
                 "httpResponse": {},
                 "parsedResponse": {
-                    "status": "ok",
-                    "updated": null,
-                    "eta": null,
-                    "url": null,
-                    "info": {}
+                  "status": "ok",
+                  "updated": null,
+                  "eta": null,
+                  "url": null,
+                  "info": {}
                 }
             }
         ],

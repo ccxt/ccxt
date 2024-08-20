@@ -98,7 +98,7 @@ export default class hashkey extends Exchange {
                 'fetchPositionsForSymbol': true,
                 'fetchPositionsHistory': false,
                 'fetchPremiumIndexOHLCV': false,
-                'fetchStatus': false,
+                'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
@@ -3948,7 +3948,7 @@ export default class hashkey extends Exchange {
         return this.parsePositions (response, [ symbol ]);
     }
 
-    parsePosition (position: Dict, market: Market = undefined): Position {
+    parsePosition (position: Dict, market: Market = undefined) {
         const marketId = this.safeString (position, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
