@@ -5927,7 +5927,7 @@ class Exchange(object):
                 response = None
                 if method == 'fetchAccounts':
                     response = getattr(self, method)(params)
-                elif method == 'getLeverageTiersPaginated':
+                elif method == 'getLeverageTiersPaginated' or method == 'fetchPositions':
                     response = getattr(self, method)(symbol, params)
                 else:
                     response = getattr(self, method)(symbol, since, maxEntriesPerRequest, params)
