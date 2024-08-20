@@ -1,3 +1,4 @@
+from __future__ import annotations
 from asyncio import Future
 import sys
 import types

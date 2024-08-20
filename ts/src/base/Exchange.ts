@@ -2429,7 +2429,6 @@ export default class Exchange {
         throw new NotSupported (this.id + ' watchLiquidations() is not supported yet');
     }
 
-
     async subscribeLiquidations (symbol: string, callback: ConsumerFunction, synchronous = true, params = {}): Promise<void> {
         /**
          * @method
