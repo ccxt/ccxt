@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import bittrexRest from '../bittrex.js';
-import { BadRequest } from '../base/errors.js';
+import { InvalidNonce, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import { inflateSync as inflate } from '../static_dependencies/fflake/browser.js';
@@ -665,7 +665,38 @@ export default class bittrex extends bittrexRest {
             // https://github.com/ccxt/ccxt/issues/6762
             const firstMessage = this.safeValue (messages, 0, {});
             const sequence = this.safeInteger (firstMessage, 'sequence');
-            this.spawnOrderBookSnapshot (client, message, subscription, sequence, snapshot);
+            const nonce = this.safeInteger (snapshot, 'nonce');
+            // if the received snapshot is earlier than the first cached delta
+            // then we cannot align it with the cached deltas and we need to
+            // retry synchronizing in maxAttempts
+            if ((sequence !== undefined) && (nonce < sequence)) {
+                const options = this.safeValue (this.options, 'fetchOrderBookSnapshot', {});
+                const maxAttempts = this.safeInteger (options, 'maxAttempts', 3);
+                let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
+                // retry to syncrhonize if we haven't reached maxAttempts yet
+                if (numAttempts < maxAttempts) {
+                    // safety guard
+                    if (messageHash in client.subscriptions) {
+                        numAttempts = this.sum (numAttempts, 1);
+                        subscription['numAttempts'] = numAttempts;
+                        client.subscriptions[messageHash] = subscription;
+                        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+                    }
+                } else {
+                    // throw upon failing to synchronize in maxAttempts
+                    throw new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + maxAttempts.toString () + ' attempts');
+                }
+            } else {
+                orderbook.reset (snapshot);
+                // unroll the accumulated deltas
+                // 3. Playback the cached Level 2 data flow.
+                for (let i = 0; i < messages.length; i++) {
+                    const message = messages[i];
+                    this.handleOrderBookMessage (client, message, orderbook);
+                }
+                this.orderbooks[symbol] = orderbook;
+                client.resolve (orderbook, messageHash);
+            }
         } catch (e) {
             client.reject (e, messageHash);
         }
