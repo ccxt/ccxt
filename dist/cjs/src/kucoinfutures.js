@@ -124,6 +124,7 @@ class kucoinfutures extends kucoinfutures$1 {
                         'contracts/{symbol}': 1,
                         'contracts/risk-limit/{symbol}': 1,
                         'ticker': 1,
+                        'allTickers': 1,
                         'level2/snapshot': 1.33,
                         'level2/depth{limit}': 1,
                         'level2/message/query': 1,
@@ -167,6 +168,7 @@ class kucoinfutures extends kucoinfutures$1 {
                         'trade-statistics': 1,
                         'trade-fees': 1,
                         'history-positions': 1,
+                        'getMaxOpenSize': 1,
                     },
                     'post': {
                         'withdrawals': 1,
@@ -312,6 +314,9 @@ class kucoinfutures extends kucoinfutures$1 {
                 // endpoint versions
                 'versions': {
                     'futuresPrivate': {
+                        'GET': {
+                            'getMaxOpenSize': 'v2',
+                        },
                         'POST': {
                             'transfer-out': 'v2',
                         },

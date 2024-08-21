@@ -115,6 +115,12 @@ abstract class cryptocom extends \ccxt\async\Exchange {
     public function v1_private_post_private_get_deposit_history($params = array()) {
         return $this->request('private/get-deposit-history', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
     }
+    public function v1_private_post_private_get_fee_rate($params = array()) {
+        return $this->request('private/get-fee-rate', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function v1_private_post_private_get_instrument_fee_rate($params = array()) {
+        return $this->request('private/get-instrument-fee-rate', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
     public function v1_private_post_private_staking_stake($params = array()) {
         return $this->request('private/staking/stake', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
@@ -456,6 +462,12 @@ abstract class cryptocom extends \ccxt\async\Exchange {
     }
     public function v1PrivatePostPrivateGetDepositHistory($params = array()) {
         return $this->request('private/get-deposit-history', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    public function v1PrivatePostPrivateGetFeeRate($params = array()) {
+        return $this->request('private/get-fee-rate', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
+    }
+    public function v1PrivatePostPrivateGetInstrumentFeeRate($params = array()) {
+        return $this->request('private/get-instrument-fee-rate', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 2));
     }
     public function v1PrivatePostPrivateStakingStake($params = array()) {
         return $this->request('private/staking/stake', array('v1', 'private'), 'POST', $params, null, null, array("cost" => 2));

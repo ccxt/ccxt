@@ -811,6 +811,11 @@ public partial class kucoinfutures : kucoin
         return await this.callAsync ("futuresPublicGetContractsRiskLimitSymbol",parameters);
     }
 
+    public async Task<object> futuresPublicGetAllTickers (object parameters = null)
+    {
+        return await this.callAsync ("futuresPublicGetAllTickers",parameters);
+    }
+
     public async Task<object> futuresPublicGetLevel2DepthLimit (object parameters = null)
     {
         return await this.callAsync ("futuresPublicGetLevel2DepthLimit",parameters);
@@ -954,6 +959,11 @@ public partial class kucoinfutures : kucoin
     public async Task<object> futuresPrivateGetHistoryPositions (object parameters = null)
     {
         return await this.callAsync ("futuresPrivateGetHistoryPositions",parameters);
+    }
+
+    public async Task<object> futuresPrivateGetGetMaxOpenSize (object parameters = null)
+    {
+        return await this.callAsync ("futuresPrivateGetGetMaxOpenSize",parameters);
     }
 
     public async Task<object> futuresPrivatePostTransferOut (object parameters = null)

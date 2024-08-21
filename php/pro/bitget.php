@@ -449,6 +449,36 @@ class bitget extends \ccxt\async\bitget {
         }) ();
     }
 
+    public function un_watch_order_book(string $symbol, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * unsubscribe from the orderbook $channel
+             * @see https://www.bitget.com/api-doc/spot/websocket/public/Depth-Channel
+             * @see https://www.bitget.com/api-doc/contract/websocket/public/Order-Book-Channel
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int} [$params->limit] orderbook $limit, default is null
+             * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $messageHash = 'unsubscribe:orderbook:' . $market['symbol'];
+            $channel = 'books';
+            $limit = $this->safe_integer($params, 'limit');
+            if (($limit === 1) || ($limit === 5) || ($limit === 15)) {
+                $params = $this->omit($params, 'limit');
+                $channel .= (string) $limit;
+            }
+            $instType = null;
+            list($instType, $params) = $this->get_inst_type($market, $params);
+            $args = array(
+                'instType' => $instType,
+                'channel' => $channel,
+                'instId' => $market['id'],
+            );
+            return Async\await($this->un_watch_public($messageHash, $args, $params));
+        }) ();
+    }
+
     public function watch_order_book_for_symbols(array $symbols, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $limit, $params) {
             /**
@@ -572,10 +602,11 @@ class bitget extends \ccxt\async\bitget {
                 $calculatedChecksum = $this->crc32($payload, true);
                 $responseChecksum = $this->safe_integer($rawOrderBook, 'checksum');
                 if ($calculatedChecksum !== $responseChecksum) {
-                    unset($client->subscriptions[$messageHash]);
-                    unset($this->orderbooks[$symbol]);
-                    $error = new ChecksumError ($this->id . ' ' . $this->orderbook_checksum_message($symbol));
-                    $client->reject ($error, $messageHash);
+                    // if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                    //     // unset($client->subscriptions[$messageHash]);
+                    //     // unset($this->orderbooks[$symbol]);
+                    // }
+                    $this->spawn(array($this, 'handle_check_sum_error'), $client, $symbol, $messageHash);
                     return;
                 }
             }
@@ -586,6 +617,14 @@ class bitget extends \ccxt\async\bitget {
             $this->orderbooks[$symbol] = $orderbook;
         }
         $client->resolve ($this->orderbooks[$symbol], $messageHash);
+    }
+
+    public function handle_check_sum_error(Client $client, string $symbol, string $messageHash) {
+        return Async\async(function () use ($client, $symbol, $messageHash) {
+            Async\await($this->un_watch_order_book($symbol));
+            $error = new ChecksumError ($this->id . ' ' . $this->orderbook_checksum_message($symbol));
+            $client->reject ($error, $messageHash);
+        }) ();
     }
 
     public function handle_delta($bookside, $delta) {
@@ -1638,6 +1677,18 @@ class bitget extends \ccxt\async\bitget {
         }) ();
     }
 
+    public function un_watch_public($messageHash, $args, $params = array ()) {
+        return Async\async(function () use ($messageHash, $args, $params) {
+            $url = $this->urls['api']['ws']['public'];
+            $request = array(
+                'op' => 'unsubscribe',
+                'args' => array( $args ),
+            );
+            $message = $this->extend($request, $params);
+            return Async\await($this->watch($url, $messageHash, $message, $messageHash));
+        }) ();
+    }
+
     public function watch_public_multiple($messageHashes, $argsArray, $params = array ()) {
         return Async\async(function () use ($messageHashes, $argsArray, $params) {
             $url = $this->urls['api']['ws']['public'];
@@ -1767,6 +1818,17 @@ class bitget extends \ccxt\async\bitget {
         //        "event" => "subscribe",
         //        "arg" => array( instType => 'SPOT', channel => "account", instId => "default" )
         //    }
+        // unsubscribe
+        //    {
+        //        "op":"unsubscribe",
+        //        "args":array(
+        //          {
+        //            "instType":"USDT-FUTURES",
+        //            "channel":"ticker",
+        //            "instId":"BTCUSDT"
+        //          }
+        //        )
+        //    }
         //
         if ($this->handle_error_message($client, $message)) {
             return;
@@ -1787,6 +1849,10 @@ class bitget extends \ccxt\async\bitget {
         }
         if ($event === 'subscribe') {
             $this->handle_subscription_status($client, $message);
+            return;
+        }
+        if ($event === 'unsubscribe') {
+            $this->handle_un_subscription_status($client, $message);
             return;
         }
         $methods = array(
@@ -1833,6 +1899,57 @@ class bitget extends \ccxt\async\bitget {
         //        "arg" => array( instType => 'SPOT', channel => "account", instId => "default" )
         //    }
         //
+        return $message;
+    }
+
+    public function handle_un_subscription_status(Client $client, $message) {
+        //
+        //  {
+        //      "op":"unsubscribe",
+        //      "args":array(
+        //        array(
+        //          "instType":"USDT-FUTURES",
+        //          "channel":"ticker",
+        //          "instId":"BTCUSDT"
+        //        ),
+        //        {
+        //          "instType":"USDT-FUTURES",
+        //          "channel":"candle1m",
+        //          "instId":"BTCUSDT"
+        //        }
+        //      )
+        //  }
+        //  or
+        // array("event":"unsubscribe","arg":array("instType":"SPOT","channel":"books","instId":"BTCUSDT"))
+        //
+        $argsList = $this->safe_list($message, 'args');
+        if ($argsList === null) {
+            $argsList = array( $this->safe_dict($message, 'arg', array()) );
+        }
+        for ($i = 0; $i < count($argsList); $i++) {
+            $arg = $argsList[$i];
+            $channel = $this->safe_string($arg, 'channel');
+            if ($channel === 'books') {
+                // for now only unWatchOrderBook is supporteod
+                $instType = $this->safe_string_lower($arg, 'instType');
+                $type = ($instType === 'spot') ? 'spot' : 'contract';
+                $instId = $this->safe_string($arg, 'instId');
+                $market = $this->safe_market($instId, null, null, $type);
+                $symbol = $market['symbol'];
+                $messageHash = 'unsubscribe:orderbook:' . $market['symbol'];
+                $subMessageHash = 'orderbook:' . $symbol;
+                if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
+                    unset($this->orderbooks[$symbol]);
+                }
+                if (is_array($client->subscriptions) && array_key_exists($subMessageHash, $client->subscriptions)) {
+                    unset($client->subscriptions[$subMessageHash]);
+                }
+                if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+                    unset($client->subscriptions[$messageHash]);
+                }
+                $client->resolve (true, $messageHash);
+            }
+        }
         return $message;
     }
 }

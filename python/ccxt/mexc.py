@@ -1158,7 +1158,7 @@ class mexc(Exchange, ImplicitAPI):
         #         "symbols": [
         #           {
         #                "symbol": "OGNUSDT",
-        #                "status": "ENABLED",
+        #                "status": "1",
         #                "baseAsset": "OGN",
         #                "baseAssetPrecision": "2",
         #                "quoteAsset": "USDT",
@@ -1203,7 +1203,7 @@ class mexc(Exchange, ImplicitAPI):
             status = self.safe_string(market, 'status')
             isSpotTradingAllowed = self.safe_value(market, 'isSpotTradingAllowed')
             active = False
-            if (status == 'ENABLED') and (isSpotTradingAllowed):
+            if (status == '1') and (isSpotTradingAllowed):
                 active = True
             isMarginTradingAllowed = self.safe_value(market, 'isMarginTradingAllowed')
             makerCommission = self.safe_number(market, 'makerCommission')

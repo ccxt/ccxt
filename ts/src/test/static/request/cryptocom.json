@@ -277,6 +277,26 @@
                     "BTC/USDT"
                 ]
             }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "fetchTradingFees",
+                "method": "fetchTradingFees",
+                "url": "https://api.crypto.com/exchange/v1/private/get-fee-rate",
+                "input": [],
+                "output": "{\"id\":\"1723991090189\",\"method\":\"private/get-fee-rate\",\"params\":{},\"api_key\":\"huWxoQvX5hxkocvHkZDJuw\",\"sig\":\"30be68d9479ac8996be698cb0a4a4eb1862aa67baff9996eec4eaa31bcd20bd4\",\"nonce\":\"1723991090189\"}"
+            }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "fetchTradingFee",
+                "method": "fetchTradingFee",
+                "url": "https://api.crypto.com/exchange/v1/private/get-instrument-fee-rate",
+                "input": [
+                  "BTC/USDT"
+                ],
+                "output": "{\"id\":\"1723991123913\",\"method\":\"private/get-instrument-fee-rate\",\"params\":{\"instrument_name\":\"BTC_USDT\"},\"api_key\":\"huWxoQvX5hxkocvHkZDJuw\",\"sig\":\"6498fafd8927c632bff4ec835a6c0e15f7f4e61ffc15f1be343379c183c7f224\",\"nonce\":\"1723991123913\"}"
+            }
         ]
     }
 }

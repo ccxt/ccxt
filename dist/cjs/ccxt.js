@@ -72,6 +72,7 @@ var fmfwio = require('./src/fmfwio.js');
 var gate = require('./src/gate.js');
 var gateio = require('./src/gateio.js');
 var gemini = require('./src/gemini.js');
+var hashkey = require('./src/hashkey.js');
 var hitbtc = require('./src/hitbtc.js');
 var hitbtc3 = require('./src/hitbtc3.js');
 var hollaex = require('./src/hollaex.js');
@@ -158,6 +159,7 @@ var exmo$1 = require('./src/pro/exmo.js');
 var gate$1 = require('./src/pro/gate.js');
 var gateio$1 = require('./src/pro/gateio.js');
 var gemini$1 = require('./src/pro/gemini.js');
+var hashkey$1 = require('./src/pro/hashkey.js');
 var hitbtc$1 = require('./src/pro/hitbtc.js');
 var hollaex$1 = require('./src/pro/hollaex.js');
 var htx$1 = require('./src/pro/htx.js');
@@ -194,7 +196,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.3.84';
+const version = '4.3.86';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -257,6 +259,7 @@ const exchanges = {
     'gate': gate,
     'gateio': gateio,
     'gemini': gemini,
+    'hashkey': hashkey,
     'hitbtc': hitbtc,
     'hitbtc3': hitbtc3,
     'hollaex': hollaex,
@@ -345,6 +348,7 @@ const pro = {
     'gate': gate$1,
     'gateio': gateio$1,
     'gemini': gemini$1,
+    'hashkey': hashkey$1,
     'hitbtc': hitbtc$1,
     'hollaex': hollaex$1,
     'htx': htx$1,
@@ -410,6 +414,7 @@ exports.InvalidAddress = errors.InvalidAddress;
 exports.InvalidNonce = errors.InvalidNonce;
 exports.InvalidOrder = errors.InvalidOrder;
 exports.InvalidProxySettings = errors.InvalidProxySettings;
+exports.ManualInteractionNeeded = errors.ManualInteractionNeeded;
 exports.MarginModeAlreadySet = errors.MarginModeAlreadySet;
 exports.MarketClosed = errors.MarketClosed;
 exports.NetworkError = errors.NetworkError;
@@ -487,6 +492,7 @@ exports.fmfwio = fmfwio;
 exports.gate = gate;
 exports.gateio = gateio;
 exports.gemini = gemini;
+exports.hashkey = hashkey;
 exports.hitbtc = hitbtc;
 exports.hitbtc3 = hitbtc3;
 exports.hollaex = hollaex;

@@ -239,7 +239,7 @@ public partial class binance : ccxt.binance
             for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object market = this.market(getValue(symbols, i));
-                ((IList<object>)subscriptionHashes).Add(add(getValue(market, "id"), "@forceOrder"));
+                ((IList<object>)subscriptionHashes).Add(add(getValue(market, "lowercaseId"), "@forceOrder"));
                 ((IList<object>)messageHashes).Add(add("liquidations::", getValue(symbols, i)));
             }
             streamHash = add(streamHash, add("::", String.Join(",", ((IList<object>)symbols).ToArray())));

@@ -169,6 +169,7 @@ interface kucoin {
     futuresPublicGetStatus (params?: {}): Promise<implicitReturnType>;
     futuresPublicGetLevel2MessageQuery (params?: {}): Promise<implicitReturnType>;
     futuresPublicGetContractsRiskLimitSymbol (params?: {}): Promise<implicitReturnType>;
+    futuresPublicGetAllTickers (params?: {}): Promise<implicitReturnType>;
     futuresPublicGetLevel2DepthLimit (params?: {}): Promise<implicitReturnType>;
     futuresPublicGetLevel3MessageQuery (params?: {}): Promise<implicitReturnType>;
     futuresPublicGetLevel3Snapshot (params?: {}): Promise<implicitReturnType>;
@@ -198,6 +199,7 @@ interface kucoin {
     futuresPrivateGetTradeStatistics (params?: {}): Promise<implicitReturnType>;
     futuresPrivateGetTradeFees (params?: {}): Promise<implicitReturnType>;
     futuresPrivateGetHistoryPositions (params?: {}): Promise<implicitReturnType>;
+    futuresPrivateGetGetMaxOpenSize (params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostTransferOut (params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostTransferIn (params?: {}): Promise<implicitReturnType>;
     futuresPrivatePostOrders (params?: {}): Promise<implicitReturnType>;
