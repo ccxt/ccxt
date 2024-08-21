@@ -1380,7 +1380,8 @@ class testMainClass extends baseMainTestClass {
             this.testOxfun (),
             this.testXT (),
             this.testVertex (),
-            this.testParadex ()
+            this.testParadex (),
+            this.testHashkey ()
         ];
         await Promise.all (promises);
         const successMessage = '[' + this.lang + '][TEST_SUCCESS] brokerId tests passed.';
@@ -1872,6 +1873,23 @@ class testMainClass extends baseMainTestClass {
             reqHeaders = exchange.last_request_headers;
         }
         assert (reqHeaders['PARADEX-PARTNER'] === id, 'paradex - id: ' + id + ' not in headers');
+        if (!this.isSynchronous) {
+            await close (exchange);
+        }
+        return true;
+    }
+
+    async testHashkey () {
+        const exchange = this.initOfflineExchange ('hashkey');
+        let reqHeaders = undefined;
+        const id = "10000700011";
+        try {
+            await exchange.createOrder ('BTC/USDT', 'limit', 'buy', 1, 20000);
+        } catch (e) {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert (reqHeaders['INPUT-SOURCE'] === id, 'hashkey - id: ' + id + ' not in headers.');
         if (!this.isSynchronous) {
             await close (exchange);
         }
