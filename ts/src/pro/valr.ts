@@ -868,7 +868,12 @@ export default class valr extends valrRest {
         if (this.inArray (orderStatus, [ 'Placed', 'Active', 'Order Modified', 'Partially Filled' ])) {
             status = 'open';
         } else if (this.inArray (orderStatus, [ 'Failed', 'Cancelled' ])) {
+            const failedReason = this.safeString (order, 'failedReason');
+            if (failedReason === 'Insufficient Balance') {
+                status = 'rejected';
+            } else {
             status = 'canceled';
+            }
         } else if (orderStatus === 'Filled') {
             status = 'closed';
         }
