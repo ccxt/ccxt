@@ -237,6 +237,7 @@
             },
             {
                 "description": "fetch my trades with since and until parameters",
+                "disabledCS": true,
                 "method": "fetchMyTrades",
                 "url": "https://api.kraken.com/0/private/TradesHistory",
                 "input": [
@@ -368,6 +369,7 @@
             },
             {
                 "description": "fetch BTC ledger with since and until parameters",
+                "disabledCS": true,
                 "method": "fetchLedger",
                 "url": "https://api.kraken.com/0/private/Ledgers",
                 "input": [

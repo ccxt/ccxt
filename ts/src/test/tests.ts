@@ -1230,6 +1230,10 @@ class testMainClass extends baseMainTestClass {
                 if (isDisabled) {
                     continue;
                 }
+                const isDisabledCSharp = exchange.safeBool (result, 'disabledCS', false);
+                if (isDisabledCSharp && (this.lang === 'C#')) {
+                    continue;
+                }
                 const type = exchange.safeString (exchangeData, 'outputType');
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
                 await this.testRequestStatically (exchange, method, result, type, skipKeys);
