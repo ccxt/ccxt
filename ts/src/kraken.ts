@@ -1127,6 +1127,7 @@ export default class kraken extends Exchange {
          * @param {int} [limit] max number of ledger entrys to return, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest ledger entry
+         * @param {int} [params.end] timestamp in seconds of the latest ledger entry
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         // https://www.kraken.com/features/api#get-ledgers-info
@@ -1140,7 +1141,7 @@ export default class kraken extends Exchange {
         if (since !== undefined) {
             request['start'] = this.parseToInt (since / 1000);
         }
-        const until = this.safeStringN (params, [ 'until', 'till', 'end' ]);
+        const until = this.safeStringN (params, [ 'until', 'till' ]);
         if (until !== undefined) {
             params = this.omit (params, [ 'until', 'till' ]);
             const untilDivided = Precise.stringDiv (until, '1000');
@@ -2145,6 +2146,7 @@ export default class kraken extends Exchange {
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest trade entry
+         * @param {int} [params.end] timestamp in seconds of the latest trade entry
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
@@ -2158,7 +2160,7 @@ export default class kraken extends Exchange {
         if (since !== undefined) {
             request['start'] = this.parseToInt (since / 1000);
         }
-        const until = this.safeStringN (params, [ 'until', 'till', 'end' ]);
+        const until = this.safeStringN (params, [ 'until', 'till' ]);
         if (until !== undefined) {
             params = this.omit (params, [ 'until', 'till' ]);
             const untilDivided = Precise.stringDiv (until, '1000');
@@ -2590,6 +2592,7 @@ export default class kraken extends Exchange {
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest transaction entry
+         * @param {int} [params.end] timestamp in seconds of the latest transaction entry
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         // https://www.kraken.com/en-us/help/api#deposit-status
@@ -2603,7 +2606,7 @@ export default class kraken extends Exchange {
             const sinceString = this.numberToString (since);
             request['start'] = Precise.stringDiv (sinceString, '1000');
         }
-        const until = this.safeStringN (params, [ 'until', 'till', 'end' ]);
+        const until = this.safeStringN (params, [ 'until', 'till' ]);
         if (until !== undefined) {
             params = this.omit (params, [ 'until', 'till' ]);
             const untilDivided = Precise.stringDiv (until, '1000');
@@ -2661,6 +2664,7 @@ export default class kraken extends Exchange {
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] timestamp in ms of the latest transaction entry
+         * @param {int} [params.end] timestamp in seconds of the latest transaction entry
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
@@ -2680,7 +2684,7 @@ export default class kraken extends Exchange {
             const sinceString = this.numberToString (since);
             request['start'] = Precise.stringDiv (sinceString, '1000');
         }
-        const until = this.safeStringN (params, [ 'until', 'till', 'end' ]);
+        const until = this.safeStringN (params, [ 'until', 'till' ]);
         if (until !== undefined) {
             params = this.omit (params, [ 'until', 'till' ]);
             const untilDivided = Precise.stringDiv (until, '1000');
