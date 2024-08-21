@@ -3833,12 +3833,14 @@ class binance extends Exchange {
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market, null, $marketType);
         $last = $this->safe_string($ticker, 'lastPrice');
+        $wAvg = $this->safe_string($ticker, 'weightedAvgPrice');
         $isCoinm = (is_array($ticker) && array_key_exists('baseVolume', $ticker));
         $baseVolume = null;
         $quoteVolume = null;
         if ($isCoinm) {
             $baseVolume = $this->safe_string($ticker, 'baseVolume');
-            $quoteVolume = $this->safe_string($ticker, 'volume');
+            // 'volume' field in inverse markets is not $quoteVolume, but traded amount (per contracts)
+            $quoteVolume = Precise::string_mul($baseVolume, $wAvg);
         } else {
             $baseVolume = $this->safe_string($ticker, 'volume');
             $quoteVolume = $this->safe_string_2($ticker, 'quoteVolume', 'amount');
@@ -3853,7 +3855,7 @@ class binance extends Exchange {
             'bidVolume' => $this->safe_string($ticker, 'bidQty'),
             'ask' => $this->safe_string($ticker, 'askPrice'),
             'askVolume' => $this->safe_string($ticker, 'askQty'),
-            'vwap' => $this->safe_string($ticker, 'weightedAvgPrice'),
+            'vwap' => $wAvg,
             'open' => $this->safe_string_2($ticker, 'openPrice', 'open'),
             'close' => $last,
             'last' => $last,

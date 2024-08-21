@@ -1202,6 +1202,7 @@ public class  Fmfwio: fmfwio { public Fmfwio(object args = null) : base(args) { 
 public class  Gate: gate { public Gate(object args = null) : base(args) { } }
 public class  Gateio: gateio { public Gateio(object args = null) : base(args) { } }
 public class  Gemini: gemini { public Gemini(object args = null) : base(args) { } }
+public class  Hashkey: hashkey { public Hashkey(object args = null) : base(args) { } }
 public class  Hitbtc: hitbtc { public Hitbtc(object args = null) : base(args) { } }
 public class  Hitbtc3: hitbtc3 { public Hitbtc3(object args = null) : base(args) { } }
 public class  Hollaex: hollaex { public Hollaex(object args = null) : base(args) { } }

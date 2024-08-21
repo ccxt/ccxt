@@ -115,6 +115,7 @@ public partial class kucoinfutures : kucoin
                         { "contracts/{symbol}", 1 },
                         { "contracts/risk-limit/{symbol}", 1 },
                         { "ticker", 1 },
+                        { "allTickers", 1 },
                         { "level2/snapshot", 1.33 },
                         { "level2/depth{limit}", 1 },
                         { "level2/message/query", 1 },
@@ -158,6 +159,7 @@ public partial class kucoinfutures : kucoin
                         { "trade-statistics", 1 },
                         { "trade-fees", 1 },
                         { "history-positions", 1 },
+                        { "getMaxOpenSize", 1 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "withdrawals", 1 },
@@ -274,6 +276,9 @@ public partial class kucoinfutures : kucoin
                 { "marginTypes", new Dictionary<string, object>() {} },
                 { "versions", new Dictionary<string, object>() {
                     { "futuresPrivate", new Dictionary<string, object>() {
+                        { "GET", new Dictionary<string, object>() {
+                            { "getMaxOpenSize", "v2" },
+                        } },
                         { "POST", new Dictionary<string, object>() {
                             { "transfer-out", "v2" },
                         } },

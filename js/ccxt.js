@@ -35,10 +35,10 @@ import { Exchange } from './src/base/Exchange.js';
 import { Precise } from './src/base/Precise.js';
 import * as functions from './src/base/functions.js';
 import * as errors from './src/base/errors.js';
-import { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending } from './src/base/errors.js';
+import { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError } from './src/base/errors.js';
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.3.84';
+const version = '4.3.86';
 Exchange.ccxtVersion = version;
 //-----------------------------------------------------------------------------
 import ace from './src/ace.js';
@@ -101,6 +101,7 @@ import fmfwio from './src/fmfwio.js';
 import gate from './src/gate.js';
 import gateio from './src/gateio.js';
 import gemini from './src/gemini.js';
+import hashkey from './src/hashkey.js';
 import hitbtc from './src/hitbtc.js';
 import hitbtc3 from './src/hitbtc3.js';
 import hollaex from './src/hollaex.js';
@@ -188,6 +189,7 @@ import exmoPro from './src/pro/exmo.js';
 import gatePro from './src/pro/gate.js';
 import gateioPro from './src/pro/gateio.js';
 import geminiPro from './src/pro/gemini.js';
+import hashkeyPro from './src/pro/hashkey.js';
 import hitbtcPro from './src/pro/hitbtc.js';
 import hollaexPro from './src/pro/hollaex.js';
 import htxPro from './src/pro/htx.js';
@@ -282,6 +284,7 @@ const exchanges = {
     'gate': gate,
     'gateio': gateio,
     'gemini': gemini,
+    'hashkey': hashkey,
     'hitbtc': hitbtc,
     'hitbtc3': hitbtc3,
     'hollaex': hollaex,
@@ -370,6 +373,7 @@ const pro = {
     'gate': gatePro,
     'gateio': gateioPro,
     'gemini': geminiPro,
+    'hashkey': hashkeyPro,
     'hitbtc': hitbtcPro,
     'hollaex': hollaexPro,
     'htx': htxPro,
@@ -416,6 +420,6 @@ pro.exchanges = Object.keys(pro);
 pro['Exchange'] = Exchange; // now the same for rest and ts
 //-----------------------------------------------------------------------------
 const ccxt = Object.assign({ version, Exchange, Precise, 'exchanges': Object.keys(exchanges), 'pro': pro }, exchanges, functions, errors);
-export { version, Exchange, exchanges, pro, Precise, functions, errors, BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, ace, alpaca, ascendex, bequant, bigone, binance, binancecoinm, binanceus, binanceusdm, bingx, bit2c, bitbank, bitbay, bitbns, bitcoincom, bitfinex, bitfinex2, bitflyer, bitget, bithumb, bitmart, bitmex, bitopro, bitpanda, bitrue, bitso, bitstamp, bitteam, bitvavo, bl3p, blockchaincom, blofin, btcalpha, btcbox, btcmarkets, btcturk, bybit, cex, coinbase, coinbaseadvanced, coinbaseexchange, coinbaseinternational, coincheck, coinex, coinlist, coinmate, coinmetro, coinone, coinsph, coinspot, cryptocom, currencycom, delta, deribit, digifinex, exmo, fmfwio, gate, gateio, gemini, hitbtc, hitbtc3, hollaex, htx, huobi, huobijp, hyperliquid, idex, independentreserve, indodax, kraken, krakenfutures, kucoin, kucoinfutures, kuna, latoken, lbank, luno, lykke, mercado, mexc, ndax, novadax, oceanex, okcoin, okx, onetrading, oxfun, p2b, paradex, paymium, phemex, poloniex, poloniexfutures, probit, timex, tokocrypto, tradeogre, upbit, vertex, wavesexchange, wazirx, whitebit, woo, woofipro, xt, yobit, zaif, zonda, };
+export { version, Exchange, exchanges, pro, Precise, functions, errors, BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError, ace, alpaca, ascendex, bequant, bigone, binance, binancecoinm, binanceus, binanceusdm, bingx, bit2c, bitbank, bitbay, bitbns, bitcoincom, bitfinex, bitfinex2, bitflyer, bitget, bithumb, bitmart, bitmex, bitopro, bitpanda, bitrue, bitso, bitstamp, bitteam, bitvavo, bl3p, blockchaincom, blofin, btcalpha, btcbox, btcmarkets, btcturk, bybit, cex, coinbase, coinbaseadvanced, coinbaseexchange, coinbaseinternational, coincheck, coinex, coinlist, coinmate, coinmetro, coinone, coinsph, coinspot, cryptocom, currencycom, delta, deribit, digifinex, exmo, fmfwio, gate, gateio, gemini, hashkey, hitbtc, hitbtc3, hollaex, htx, huobi, huobijp, hyperliquid, idex, independentreserve, indodax, kraken, krakenfutures, kucoin, kucoinfutures, kuna, latoken, lbank, luno, lykke, mercado, mexc, ndax, novadax, oceanex, okcoin, okx, onetrading, oxfun, p2b, paradex, paymium, phemex, poloniex, poloniexfutures, probit, timex, tokocrypto, tradeogre, upbit, vertex, wavesexchange, wazirx, whitebit, woo, woofipro, xt, yobit, zaif, zonda, };
 export default ccxt;
 //-----------------------------------------------------------------------------

@@ -1097,7 +1097,11 @@ class kraken(Exchange, ImplicitAPI):
             request['asset'] = currency['id']
         if since is not None:
             request['start'] = self.parse_to_int(since / 1000)
-        request, params = self.handle_until_option('end', request, params)
+        until = self.safe_string_n(params, ['until', 'till', 'end'])
+        if until is not None:
+            params = self.omit(params, ['until', 'till'])
+            untilDivided = Precise.string_div(until, '1000')
+            request['end'] = self.parse_to_int(Precise.string_add(untilDivided, '1'))
         response = await self.privatePostLedgers(self.extend(request, params))
         # { error: [],
         #   "result": {ledger: {'LPUAIB-TS774-UKHP7X': {  refid: "A2B4HBV-L4MDIE-JU4N3N",
@@ -1181,6 +1185,26 @@ class kraken(Exchange, ImplicitAPI):
         #         "misc": ''
         #     }
         #
+        # fetchMyTrades
+        #
+        #     {
+        #         "ordertxid": "OSJVN7-A2AE-63WZV",
+        #         "postxid": "TBP7O6-PNXI-CONU",
+        #         "pair": "XXBTZUSD",
+        #         "time": 1710429248.3052235,
+        #         "type": "sell",
+        #         "ordertype": "liquidation market",
+        #         "price": "72026.50000",
+        #         "cost": "7.20265",
+        #         "fee": "0.01873",
+        #         "vol": "0.00010000",
+        #         "margin": "1.44053",
+        #         "leverage": "5",
+        #         "misc": "closing",
+        #         "trade_id": 68230622,
+        #         "maker": False
+        #     }
+        #
         timestamp = None
         side = None
         type = None
@@ -1227,6 +1251,10 @@ class kraken(Exchange, ImplicitAPI):
         if market is not None:
             symbol = market['symbol']
         cost = self.safe_string(trade, 'cost')
+        maker = self.safe_bool(trade, 'maker')
+        takerOrMaker = None
+        if maker is not None:
+            takerOrMaker = 'maker' if maker else 'taker'
         return self.safe_trade({
             'id': id,
             'order': orderId,
@@ -1236,7 +1264,7 @@ class kraken(Exchange, ImplicitAPI):
             'symbol': symbol,
             'type': type,
             'side': side,
-            'takerOrMaker': None,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -1971,6 +1999,7 @@ class kraken(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest trade entry
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
@@ -1983,6 +2012,11 @@ class kraken(Exchange, ImplicitAPI):
         }
         if since is not None:
             request['start'] = self.parse_to_int(since / 1000)
+        until = self.safe_string_n(params, ['until', 'till', 'end'])
+        if until is not None:
+            params = self.omit(params, ['until', 'till'])
+            untilDivided = Precise.string_div(until, '1000')
+            request['end'] = self.parse_to_int(Precise.string_add(untilDivided, '1'))
         response = await self.privatePostTradesHistory(self.extend(request, params))
         #
         #     {
@@ -2001,7 +2035,10 @@ class kraken(Exchange, ImplicitAPI):
         #                     "fee": "0.000026",
         #                     "vol": "16.00000000",
         #                     "margin": "0.000000",
+        #                     "leverage": "5",
         #                     "misc": ""
+        #                     "trade_id": 68230622,
+        #                     "maker": False
         #                 },
         #                 ...
         #             },
@@ -2364,6 +2401,7 @@ class kraken(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch deposits for
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest transaction entry
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         # https://www.kraken.com/en-us/help/api#deposit-status
@@ -2373,7 +2411,13 @@ class kraken(Exchange, ImplicitAPI):
             currency = self.currency(code)
             request['asset'] = currency['id']
         if since is not None:
-            request['start'] = since
+            sinceString = self.number_to_string(since)
+            request['start'] = Precise.string_div(sinceString, '1000')
+        until = self.safe_string_n(params, ['until', 'till', 'end'])
+        if until is not None:
+            params = self.omit(params, ['until', 'till'])
+            untilDivided = Precise.string_div(until, '1000')
+            request['end'] = Precise.string_add(untilDivided, '1')
         response = await self.privatePostDepositStatus(self.extend(request, params))
         #
         #     { error: [],
@@ -2419,8 +2463,8 @@ class kraken(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch withdrawals for
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param dict [params.end]: End timestamp, withdrawals created strictly after will be not be included in the response
-        :param boolean [params.paginate]:  default False, when True will automatically paginate by calling self endpoint multiple times
+        :param int [params.until]: timestamp in ms of the latest transaction entry
+        :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
@@ -2434,7 +2478,13 @@ class kraken(Exchange, ImplicitAPI):
             currency = self.currency(code)
             request['asset'] = currency['id']
         if since is not None:
-            request['since'] = str(since)
+            sinceString = self.number_to_string(since)
+            request['start'] = Precise.string_div(sinceString, '1000')
+        until = self.safe_string_n(params, ['until', 'till', 'end'])
+        if until is not None:
+            params = self.omit(params, ['until', 'till'])
+            untilDivided = Precise.string_div(until, '1000')
+            request['end'] = Precise.string_add(untilDivided, '1')
         response = await self.privatePostWithdrawStatus(self.extend(request, params))
         #
         # with no pagination

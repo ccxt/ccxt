@@ -1157,7 +1157,7 @@ class mexc extends Exchange {
         //         "symbols" => array(
         //           array(
         //                "symbol" => "OGNUSDT",
-        //                "status" => "ENABLED",
+        //                "status" => "1",
         //                "baseAsset" => "OGN",
         //                "baseAssetPrecision" => "2",
         //                "quoteAsset" => "USDT",
@@ -1202,7 +1202,7 @@ class mexc extends Exchange {
             $status = $this->safe_string($market, 'status');
             $isSpotTradingAllowed = $this->safe_value($market, 'isSpotTradingAllowed');
             $active = false;
-            if (($status === 'ENABLED') && ($isSpotTradingAllowed)) {
+            if (($status === '1') && ($isSpotTradingAllowed)) {
                 $active = true;
             }
             $isMarginTradingAllowed = $this->safe_value($market, 'isMarginTradingAllowed');

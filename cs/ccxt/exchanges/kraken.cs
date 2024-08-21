@@ -1159,9 +1159,13 @@ public partial class kraken : Exchange
         {
             ((IDictionary<string,object>)request)["start"] = this.parseToInt(divide(since, 1000));
         }
-        var requestparametersVariable = this.handleUntilOption("end", request, parameters);
-        request = ((IList<object>)requestparametersVariable)[0];
-        parameters = ((IList<object>)requestparametersVariable)[1];
+        object until = this.safeStringN(parameters, new List<object>() {"until", "till", "end"});
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, new List<object>() {"until", "till"});
+            object untilDivided = Precise.stringDiv(until, "1000");
+            ((IDictionary<string,object>)request)["end"] = this.parseToInt(Precise.stringAdd(untilDivided, "1"));
+        }
         object response = await this.privatePostLedgers(this.extend(request, parameters));
         // {  error: [],
         //   "result": { ledger: { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
@@ -1257,6 +1261,26 @@ public partial class kraken : Exchange
         //         "misc": ''
         //     }
         //
+        // fetchMyTrades
+        //
+        //     {
+        //         "ordertxid": "OSJVN7-A2AE-63WZV",
+        //         "postxid": "TBP7O6-PNXI-CONU",
+        //         "pair": "XXBTZUSD",
+        //         "time": 1710429248.3052235,
+        //         "type": "sell",
+        //         "ordertype": "liquidation market",
+        //         "price": "72026.50000",
+        //         "cost": "7.20265",
+        //         "fee": "0.01873",
+        //         "vol": "0.00010000",
+        //         "margin": "1.44053",
+        //         "leverage": "5",
+        //         "misc": "closing",
+        //         "trade_id": 68230622,
+        //         "maker": false
+        //     }
+        //
         object timestamp = null;
         object side = null;
         object type = null;
@@ -1318,6 +1342,12 @@ public partial class kraken : Exchange
             symbol = getValue(market, "symbol");
         }
         object cost = this.safeString(trade, "cost");
+        object maker = this.safeBool(trade, "maker");
+        object takerOrMaker = null;
+        if (isTrue(!isEqual(maker, null)))
+        {
+            takerOrMaker = ((bool) isTrue(maker)) ? "maker" : "taker";
+        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
             { "order", orderId },
@@ -1327,7 +1357,7 @@ public partial class kraken : Exchange
             { "symbol", symbol },
             { "type", type },
             { "side", side },
-            { "takerOrMaker", null },
+            { "takerOrMaker", takerOrMaker },
             { "price", price },
             { "amount", amount },
             { "cost", cost },
@@ -2258,6 +2288,7 @@ public partial class kraken : Exchange
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trades structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.until] timestamp in ms of the latest trade entry
         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -2266,6 +2297,13 @@ public partial class kraken : Exchange
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["start"] = this.parseToInt(divide(since, 1000));
+        }
+        object until = this.safeStringN(parameters, new List<object>() {"until", "till", "end"});
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, new List<object>() {"until", "till"});
+            object untilDivided = Precise.stringDiv(until, "1000");
+            ((IDictionary<string,object>)request)["end"] = this.parseToInt(Precise.stringAdd(untilDivided, "1"));
         }
         object response = await this.privatePostTradesHistory(this.extend(request, parameters));
         //
@@ -2285,7 +2323,10 @@ public partial class kraken : Exchange
         //                     "fee": "0.000026",
         //                     "vol": "16.00000000",
         //                     "margin": "0.000000",
+        //                     "leverage": "5",
         //                     "misc": ""
+        //                     "trade_id": 68230622,
+        //                     "maker": false
         //                 },
         //                 ...
         //             },
@@ -2713,6 +2754,7 @@ public partial class kraken : Exchange
         * @param {int} [since] the earliest time in ms to fetch deposits for
         * @param {int} [limit] the maximum number of deposits structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.until] timestamp in ms of the latest transaction entry
         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         // https://www.kraken.com/en-us/help/api#deposit-status
@@ -2726,7 +2768,15 @@ public partial class kraken : Exchange
         }
         if (isTrue(!isEqual(since, null)))
         {
-            ((IDictionary<string,object>)request)["start"] = since;
+            object sinceString = this.numberToString(since);
+            ((IDictionary<string,object>)request)["start"] = Precise.stringDiv(sinceString, "1000");
+        }
+        object until = this.safeStringN(parameters, new List<object>() {"until", "till", "end"});
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, new List<object>() {"until", "till"});
+            object untilDivided = Precise.stringDiv(until, "1000");
+            ((IDictionary<string,object>)request)["end"] = Precise.stringAdd(untilDivided, "1");
         }
         object response = await this.privatePostDepositStatus(this.extend(request, parameters));
         //
@@ -2782,8 +2832,8 @@ public partial class kraken : Exchange
         * @param {int} [since] the earliest time in ms to fetch withdrawals for
         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {object} [params.end] End timestamp, withdrawals created strictly after will be not be included in the response
-        * @param {boolean} [params.paginate]  default false, when true will automatically paginate by calling this endpoint multiple times
+        * @param {int} [params.until] timestamp in ms of the latest transaction entry
+        * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -2805,7 +2855,15 @@ public partial class kraken : Exchange
         }
         if (isTrue(!isEqual(since, null)))
         {
-            ((IDictionary<string,object>)request)["since"] = ((object)since).ToString();
+            object sinceString = this.numberToString(since);
+            ((IDictionary<string,object>)request)["start"] = Precise.stringDiv(sinceString, "1000");
+        }
+        object until = this.safeStringN(parameters, new List<object>() {"until", "till", "end"});
+        if (isTrue(!isEqual(until, null)))
+        {
+            parameters = this.omit(parameters, new List<object>() {"until", "till"});
+            object untilDivided = Precise.stringDiv(until, "1000");
+            ((IDictionary<string,object>)request)["end"] = Precise.stringAdd(untilDivided, "1");
         }
         object response = await this.privatePostWithdrawStatus(this.extend(request, parameters));
         //

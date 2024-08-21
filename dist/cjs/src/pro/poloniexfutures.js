@@ -25,6 +25,7 @@ class poloniexfutures extends poloniexfutures$1 {
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchBalance': true,
                 'watchOrders': true,
                 'watchMyTrades': false,

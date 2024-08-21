@@ -1116,7 +1116,7 @@ export default class kraken extends Exchange {
          */
         // https://www.kraken.com/features/api#get-ledgers-info
         await this.loadMarkets();
-        let request = {};
+        const request = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -1125,7 +1125,12 @@ export default class kraken extends Exchange {
         if (since !== undefined) {
             request['start'] = this.parseToInt(since / 1000);
         }
-        [request, params] = this.handleUntilOption('end', request, params);
+        const until = this.safeStringN(params, ['until', 'till', 'end']);
+        if (until !== undefined) {
+            params = this.omit(params, ['until', 'till']);
+            const untilDivided = Precise.stringDiv(until, '1000');
+            request['end'] = this.parseToInt(Precise.stringAdd(untilDivided, '1'));
+        }
         const response = await this.privatePostLedgers(this.extend(request, params));
         // {  error: [],
         //   "result": { ledger: { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
@@ -1211,6 +1216,26 @@ export default class kraken extends Exchange {
         //         "misc": ''
         //     }
         //
+        // fetchMyTrades
+        //
+        //     {
+        //         "ordertxid": "OSJVN7-A2AE-63WZV",
+        //         "postxid": "TBP7O6-PNXI-CONU",
+        //         "pair": "XXBTZUSD",
+        //         "time": 1710429248.3052235,
+        //         "type": "sell",
+        //         "ordertype": "liquidation market",
+        //         "price": "72026.50000",
+        //         "cost": "7.20265",
+        //         "fee": "0.01873",
+        //         "vol": "0.00010000",
+        //         "margin": "1.44053",
+        //         "leverage": "5",
+        //         "misc": "closing",
+        //         "trade_id": 68230622,
+        //         "maker": false
+        //     }
+        //
         let timestamp = undefined;
         let side = undefined;
         let type = undefined;
@@ -1266,6 +1291,11 @@ export default class kraken extends Exchange {
             symbol = market['symbol'];
         }
         const cost = this.safeString(trade, 'cost');
+        const maker = this.safeBool(trade, 'maker');
+        let takerOrMaker = undefined;
+        if (maker !== undefined) {
+            takerOrMaker = maker ? 'maker' : 'taker';
+        }
         return this.safeTrade({
             'id': id,
             'order': orderId,
@@ -1275,7 +1305,7 @@ export default class kraken extends Exchange {
             'symbol': symbol,
             'type': type,
             'side': side,
-            'takerOrMaker': undefined,
+            'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
             'cost': cost,
@@ -2100,6 +2130,7 @@ export default class kraken extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest trade entry
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
@@ -2112,6 +2143,12 @@ export default class kraken extends Exchange {
         };
         if (since !== undefined) {
             request['start'] = this.parseToInt(since / 1000);
+        }
+        const until = this.safeStringN(params, ['until', 'till', 'end']);
+        if (until !== undefined) {
+            params = this.omit(params, ['until', 'till']);
+            const untilDivided = Precise.stringDiv(until, '1000');
+            request['end'] = this.parseToInt(Precise.stringAdd(untilDivided, '1'));
         }
         const response = await this.privatePostTradesHistory(this.extend(request, params));
         //
@@ -2131,7 +2168,10 @@ export default class kraken extends Exchange {
         //                     "fee": "0.000026",
         //                     "vol": "16.00000000",
         //                     "margin": "0.000000",
+        //                     "leverage": "5",
         //                     "misc": ""
+        //                     "trade_id": 68230622,
+        //                     "maker": false
         //                 },
         //                 ...
         //             },
@@ -2525,6 +2565,7 @@ export default class kraken extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest transaction entry
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         // https://www.kraken.com/en-us/help/api#deposit-status
@@ -2535,7 +2576,14 @@ export default class kraken extends Exchange {
             request['asset'] = currency['id'];
         }
         if (since !== undefined) {
-            request['start'] = since;
+            const sinceString = this.numberToString(since);
+            request['start'] = Precise.stringDiv(sinceString, '1000');
+        }
+        const until = this.safeStringN(params, ['until', 'till', 'end']);
+        if (until !== undefined) {
+            params = this.omit(params, ['until', 'till']);
+            const untilDivided = Precise.stringDiv(until, '1000');
+            request['end'] = Precise.stringAdd(untilDivided, '1');
         }
         const response = await this.privatePostDepositStatus(this.extend(request, params));
         //
@@ -2586,8 +2634,8 @@ export default class kraken extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {object} [params.end] End timestamp, withdrawals created strictly after will be not be included in the response
-         * @param {boolean} [params.paginate]  default false, when true will automatically paginate by calling this endpoint multiple times
+         * @param {int} [params.until] timestamp in ms of the latest transaction entry
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
@@ -2603,7 +2651,14 @@ export default class kraken extends Exchange {
             request['asset'] = currency['id'];
         }
         if (since !== undefined) {
-            request['since'] = since.toString();
+            const sinceString = this.numberToString(since);
+            request['start'] = Precise.stringDiv(sinceString, '1000');
+        }
+        const until = this.safeStringN(params, ['until', 'till', 'end']);
+        if (until !== undefined) {
+            params = this.omit(params, ['until', 'till']);
+            const untilDivided = Precise.stringDiv(until, '1000');
+            request['end'] = Precise.stringAdd(untilDivided, '1');
         }
         const response = await this.privatePostWithdrawStatus(this.extend(request, params));
         //

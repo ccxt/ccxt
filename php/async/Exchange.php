@@ -43,11 +43,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.3.84';
+$version = '4.3.86';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.3.84';
+    const VERSION = '4.3.86';
 
     public $browser;
     public $marketsLoading = null;
@@ -5545,7 +5545,7 @@ class Exchange extends \ccxt\Exchange {
                     $response = null;
                     if ($method === 'fetchAccounts') {
                         $response = Async\await($this->$method ($params));
-                    } elseif ($method === 'getLeverageTiersPaginated') {
+                    } elseif ($method === 'getLeverageTiersPaginated' || $method === 'fetchPositions') {
                         $response = Async\await($this->$method ($symbol, $params));
                     } else {
                         $response = Async\await($this->$method ($symbol, $since, $maxEntriesPerRequest, $params));

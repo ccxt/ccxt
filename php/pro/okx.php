@@ -455,7 +455,7 @@ class okx extends \ccxt\async\okx {
             /**
              * watch the public liquidations of a trading pair
              * @see https://www.okx.com/docs-v5/en/#public-data-websocket-liquidation-orders-$channel
-             * @param {string} symbol unified CCXT $market symbol
+             * @param {string} $symbol unified CCXT $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch liquidations for
              * @param {int} [$limit] the maximum number of liquidation structures to retrieve
              * @param {array} [$params] exchange specific parameters for the okx api endpoint
@@ -464,8 +464,14 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, true, true);
             $messageHash = 'liquidations';
+            $messageHashes = array();
             if ($symbols !== null) {
-                $messageHash .= '::' . implode(',', $symbols);
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $symbol = $symbols[$i];
+                    $messageHashes[] = $messageHash . '::' . $symbol;
+                }
+            } else {
+                $messageHashes[] = $messageHash;
             }
             $market = $this->get_market_from_symbols($symbols);
             $type = null;
@@ -478,9 +484,16 @@ class okx extends \ccxt\async\okx {
             }
             $uppercaseType = strtoupper($type);
             $request = array(
-                'instType' => $uppercaseType,
+                'op' => 'subscribe',
+                'args' => array(
+                    array(
+                        'channel' => $channel,
+                        'instType' => $uppercaseType,
+                    ),
+                ),
             );
-            $newLiquidations = Async\await($this->subscribe('public', $messageHash, $channel, null, $this->extend($request, $params)));
+            $url = $this->get_url($channel, 'public');
+            $newLiquidations = Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
             if ($this->newUpdates) {
                 return $newLiquidations;
             }
@@ -1435,6 +1448,13 @@ class okx extends \ccxt\async\okx {
         for ($i = 0; $i < count($data); $i++) {
             $rawPosition = $data[$i];
             $position = $this->parse_position($rawPosition);
+            if ($position['contracts'] === 0) {
+                $position['side'] = 'long';
+                $shortPosition = $this->clone($position);
+                $shortPosition['side'] = 'short';
+                $cache->append ($shortPosition);
+                $newPositions[] = $shortPosition;
+            }
             $newPositions[] = $position;
             $cache->append ($position);
         }

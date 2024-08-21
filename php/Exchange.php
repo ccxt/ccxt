@@ -43,7 +43,7 @@ use BN\BN;
 use Sop\ASN1\Type\UnspecifiedType;
 use Exception;
 
-$version = '4.3.84';
+$version = '4.3.86';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -62,7 +62,7 @@ const PAD_WITH_ZERO = 6;
 
 class Exchange {
 
-    const VERSION = '4.3.84';
+    const VERSION = '4.3.86';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -394,6 +394,7 @@ class Exchange {
         'gate',
         'gateio',
         'gemini',
+        'hashkey',
         'hitbtc',
         'hitbtc3',
         'hollaex',
@@ -7283,7 +7284,7 @@ class Exchange {
                 $response = null;
                 if ($method === 'fetchAccounts') {
                     $response = $this->$method ($params);
-                } elseif ($method === 'getLeverageTiersPaginated') {
+                } elseif ($method === 'getLeverageTiersPaginated' || $method === 'fetchPositions') {
                     $response = $this->$method ($symbol, $params);
                 } else {
                     $response = $this->$method ($symbol, $since, $maxEntriesPerRequest, $params);

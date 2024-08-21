@@ -832,7 +832,7 @@ class bitfinex(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-        :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param str[] [symbols]: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
@@ -841,7 +841,7 @@ class bitfinex(Exchange, ImplicitAPI):
         response = self.publicGetTickers(params)
         result: dict = {}
         for i in range(0, len(response)):
-            ticker = self.parse_ticker({'result': response[i]})
+            ticker = self.parse_ticker(response[i])
             symbol = ticker['symbol']
             result[symbol] = ticker
         return self.filter_by_array_tickers(result, 'symbol', symbols)
