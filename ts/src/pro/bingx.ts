@@ -1097,7 +1097,9 @@ export default class bingx extends bingxRest {
         await this.loadMarkets ();
         await this.authenticate ();
         let type = undefined;
+        let subType = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('watchBalance', undefined, params, 'linear');
         const isSpot = (type === 'spot');
         const spotSubHash = 'spot:balance';
         const swapSubHash = 'swap:private';
@@ -1105,17 +1107,21 @@ export default class bingx extends bingxRest {
         const swapMessageHash = 'swap:balance';
         const messageHash = isSpot ? spotMessageHash : swapMessageHash;
         const subscriptionHash = isSpot ? spotSubHash : swapSubHash;
-        const url = this.urls['api']['ws'][type] + '?listenKey=' + this.options['listenKey'];
         let request = undefined;
+        let baseUrl = undefined;
         const uuid = this.uuid ();
-        if (type === 'spot') {
+        if (type === 'swap') {
+            baseUrl = this.safeString (this.urls['api']['ws'], subType);
+        } else {
+            baseUrl = this.safeString (this.urls['api']['ws'], type);
             request = {
                 'id': uuid,
                 'dataType': 'ACCOUNT_UPDATE',
             };
         }
+        const url = baseUrl + '?listenKey=' + this.options['listenKey'];
         const client = this.client (url);
-        this.setBalanceCache (client, type, subscriptionHash, params);
+        this.setBalanceCache (client, type, subType, subscriptionHash, params);
         let fetchBalanceSnapshot = undefined;
         let awaitBalanceSnapshot = undefined;
         [ fetchBalanceSnapshot, params ] = this.handleOptionAndParams (params, 'watchBalance', 'fetchBalanceSnapshot', true);
@@ -1126,7 +1132,7 @@ export default class bingx extends bingxRest {
         return await this.watch (url, messageHash, request, subscriptionHash);
     }
 
-    setBalanceCache (client: Client, type, subscriptionHash, params) {
+    setBalanceCache (client: Client, type, subType, subscriptionHash, params) {
         if (subscriptionHash in client.subscriptions) {
             return;
         }
@@ -1135,15 +1141,15 @@ export default class bingx extends bingxRest {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
-                this.spawn (this.loadBalanceSnapshot, client, messageHash, type);
+                this.spawn (this.loadBalanceSnapshot, client, messageHash, type, subType);
             }
         } else {
             this.balance[type] = {};
         }
     }
 
-    async loadBalanceSnapshot (client, messageHash, type) {
-        const response = await this.fetchBalance ({ 'type': type });
+    async loadBalanceSnapshot (client, messageHash, type, subType) {
+        const response = await this.fetchBalance ({ 'type': type, 'subType': subType });
         this.balance[type] = this.extend (response, this.safeValue (this.balance, type, {}));
         // don't remove the future from the .futures cache
         const future = client.futures[messageHash];
@@ -1182,7 +1188,7 @@ export default class bingx extends bingxRest {
         try {
             await this.userAuthPrivatePutUserDataStream ({ 'listenKey': listenKey }); // extend the expiry
         } catch (error) {
-            const types = [ 'spot', 'swap' ];
+            const types = [ 'spot', 'linear', 'inverse' ];
             for (let i = 0; i < types.length; i++) {
                 const type = types[i];
                 const url = this.urls['api']['ws'][type] + '?listenKey=' + listenKey;
