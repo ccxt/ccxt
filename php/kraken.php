@@ -1115,7 +1115,12 @@ class kraken extends Exchange {
         if ($since !== null) {
             $request['start'] = $this->parse_to_int($since / 1000);
         }
-        list($request, $params) = $this->handle_until_option('end', $request, $params);
+        $until = $this->safe_string_n($params, array( 'until', 'till', 'end' ));
+        if ($until !== null) {
+            $params = $this->omit($params, array( 'until', 'till' ));
+            $untilDivided = Precise::string_div($until, '1000');
+            $request['end'] = $this->parse_to_int(Precise::string_add($untilDivided, '1'));
+        }
         $response = $this->privatePostLedgers ($this->extend($request, $params));
         // {  error => array(),
         //   "result" => { $ledger => { 'LPUAIB-TS774-UKHP7X' => array(   refid => "A2B4HBV-L4MDIE-JU4N3N",
@@ -2094,6 +2099,7 @@ class kraken extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] the maximum number of $trades structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest trade entry
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->load_markets();
@@ -2106,6 +2112,12 @@ class kraken extends Exchange {
         );
         if ($since !== null) {
             $request['start'] = $this->parse_to_int($since / 1000);
+        }
+        $until = $this->safe_string_n($params, array( 'until', 'till', 'end' ));
+        if ($until !== null) {
+            $params = $this->omit($params, array( 'until', 'till' ));
+            $untilDivided = Precise::string_div($until, '1000');
+            $request['end'] = $this->parse_to_int(Precise::string_add($untilDivided, '1'));
         }
         $response = $this->privatePostTradesHistory ($this->extend($request, $params));
         //
@@ -2518,6 +2530,7 @@ class kraken extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch deposits for
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest transaction entry
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         // https://www.kraken.com/en-us/help/api#deposit-status
@@ -2528,7 +2541,14 @@ class kraken extends Exchange {
             $request['asset'] = $currency['id'];
         }
         if ($since !== null) {
-            $request['start'] = $since;
+            $sinceString = $this->number_to_string($since);
+            $request['start'] = Precise::string_div($sinceString, '1000');
+        }
+        $until = $this->safe_string_n($params, array( 'until', 'till', 'end' ));
+        if ($until !== null) {
+            $params = $this->omit($params, array( 'until', 'till' ));
+            $untilDivided = Precise::string_div($until, '1000');
+            $request['end'] = Precise::string_add($untilDivided, '1');
         }
         $response = $this->privatePostDepositStatus ($this->extend($request, $params));
         //
@@ -2577,8 +2597,8 @@ class kraken extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch withdrawals for
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {array} [$params->end] End timestamp, withdrawals created strictly after will be not be included in the $response
-         * @param {boolean} [$params->paginate]  default false, when true will automatically $paginate by calling this endpoint multiple times
+         * @param {int} [$params->until] timestamp in ms of the latest transaction entry
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         $this->load_markets();
@@ -2594,7 +2614,14 @@ class kraken extends Exchange {
             $request['asset'] = $currency['id'];
         }
         if ($since !== null) {
-            $request['since'] = (string) $since;
+            $sinceString = $this->number_to_string($since);
+            $request['start'] = Precise::string_div($sinceString, '1000');
+        }
+        $until = $this->safe_string_n($params, array( 'until', 'till', 'end' ));
+        if ($until !== null) {
+            $params = $this->omit($params, array( 'until', 'till' ));
+            $untilDivided = Precise::string_div($until, '1000');
+            $request['end'] = Precise::string_add($untilDivided, '1');
         }
         $response = $this->privatePostWithdrawStatus ($this->extend($request, $params));
         //

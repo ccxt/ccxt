@@ -47,7 +47,6 @@ class hashkey(Exchange, ImplicitAPI):
             'version': 'v1',
             'certified': True,
             'pro': True,
-            'hostname': '/api-glb',
             'has': {
                 'CORS': None,
                 'spot': True,

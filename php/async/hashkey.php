@@ -26,7 +26,6 @@ class hashkey extends Exchange {
             'version' => 'v1',
             'certified' => true,
             'pro' => true,
-            'hostname' => '/api-glb',
             'has' => array(
                 'CORS' => null,
                 'spot' => true,

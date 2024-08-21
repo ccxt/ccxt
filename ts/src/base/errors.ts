@@ -234,7 +234,7 @@ class CancelPending extends OperationFailed {
         this.name = 'CancelPending';
     }
 }
-class UnsubscribeError extends Error {
+class UnsubscribeError extends BaseError {
     constructor (message: string) {
         super (message);
         this.name = 'UnsubscribeError';

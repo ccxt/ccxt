@@ -1119,6 +1119,10 @@ class testMainClass extends baseMainTestClass {
                 if ($is_disabled) {
                     continue;
                 }
+                $is_disabled_c_sharp = $exchange->safe_bool($result, 'disabledCS', false);
+                if ($is_disabled_c_sharp && ($this->lang === 'C#')) {
+                    continue;
+                }
                 $type = $exchange->safe_string($exchange_data, 'outputType');
                 $skip_keys = $exchange->safe_value($exchange_data, 'skipKeys', []);
                 $this->test_request_statically($exchange, $method, $result, $type, $skip_keys);
@@ -1263,7 +1267,7 @@ class testMainClass extends baseMainTestClass {
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_vertex(), $this->test_paradex()];
+        $promises = [$this->test_binance(), $this->test_okx(), $this->test_cryptocom(), $this->test_bybit(), $this->test_kucoin(), $this->test_kucoinfutures(), $this->test_bitget(), $this->test_mexc(), $this->test_htx(), $this->test_woo(), $this->test_bitmart(), $this->test_coinex(), $this->test_bingx(), $this->test_phemex(), $this->test_blofin(), $this->test_hyperliquid(), $this->test_coinbaseinternational(), $this->test_coinbase_advanced(), $this->test_woofi_pro(), $this->test_oxfun(), $this->test_xt(), $this->test_vertex(), $this->test_paradex(), $this->test_hashkey()];
         ($promises);
         $success_message = '[' . $this->lang . '][TEST_SUCCESS] brokerId tests passed.';
         dump('[INFO]' . $success_message);
@@ -1782,6 +1786,23 @@ class testMainClass extends baseMainTestClass {
             $req_headers = $exchange->last_request_headers;
         }
         assert($req_headers['PARADEX-PARTNER'] === $id, 'paradex - id: ' . $id . ' not in headers');
+        if (!$this->is_synchronous) {
+            close($exchange);
+        }
+        return true;
+    }
+
+    public function test_hashkey() {
+        $exchange = $this->init_offline_exchange('hashkey');
+        $req_headers = null;
+        $id = '10000700011';
+        try {
+            $exchange->create_order('BTC/USDT', 'limit', 'buy', 1, 20000);
+        } catch(\Throwable $e) {
+            // we expect an error here, we're only interested in the headers
+            $req_headers = $exchange->last_request_headers;
+        }
+        assert($req_headers['INPUT-SOURCE'] === $id, 'hashkey - id: ' . $id . ' not in headers.');
         if (!$this->is_synchronous) {
             close($exchange);
         }

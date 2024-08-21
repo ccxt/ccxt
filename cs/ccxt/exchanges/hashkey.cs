@@ -15,7 +15,6 @@ public partial class hashkey : Exchange
             { "version", "v1" },
             { "certified", true },
             { "pro", true },
-            { "hostname", "/api-glb" },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
                 { "spot", true },

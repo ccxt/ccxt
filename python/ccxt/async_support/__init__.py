@@ -59,6 +59,7 @@ from ccxt.base.errors import RequestTimeout                           # noqa: F4
 from ccxt.base.errors import BadResponse                              # noqa: F401
 from ccxt.base.errors import NullResponse                             # noqa: F401
 from ccxt.base.errors import CancelPending                            # noqa: F401
+from ccxt.base.errors import UnsubscribeError                         # noqa: F401
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 
 

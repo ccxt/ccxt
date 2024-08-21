@@ -1113,7 +1113,7 @@ class kraken extends kraken$1 {
          */
         // https://www.kraken.com/features/api#get-ledgers-info
         await this.loadMarkets();
-        let request = {};
+        const request = {};
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency(code);
@@ -1122,7 +1122,12 @@ class kraken extends kraken$1 {
         if (since !== undefined) {
             request['start'] = this.parseToInt(since / 1000);
         }
-        [request, params] = this.handleUntilOption('end', request, params);
+        const until = this.safeStringN(params, ['until', 'till', 'end']);
+        if (until !== undefined) {
+            params = this.omit(params, ['until', 'till']);
+            const untilDivided = Precise["default"].stringDiv(until, '1000');
+            request['end'] = this.parseToInt(Precise["default"].stringAdd(untilDivided, '1'));
+        }
         const response = await this.privatePostLedgers(this.extend(request, params));
         // {  error: [],
         //   "result": { ledger: { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
@@ -2122,6 +2127,7 @@ class kraken extends kraken$1 {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest trade entry
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
@@ -2134,6 +2140,12 @@ class kraken extends kraken$1 {
         };
         if (since !== undefined) {
             request['start'] = this.parseToInt(since / 1000);
+        }
+        const until = this.safeStringN(params, ['until', 'till', 'end']);
+        if (until !== undefined) {
+            params = this.omit(params, ['until', 'till']);
+            const untilDivided = Precise["default"].stringDiv(until, '1000');
+            request['end'] = this.parseToInt(Precise["default"].stringAdd(untilDivided, '1'));
         }
         const response = await this.privatePostTradesHistory(this.extend(request, params));
         //
@@ -2550,6 +2562,7 @@ class kraken extends kraken$1 {
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest transaction entry
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         // https://www.kraken.com/en-us/help/api#deposit-status
@@ -2560,7 +2573,14 @@ class kraken extends kraken$1 {
             request['asset'] = currency['id'];
         }
         if (since !== undefined) {
-            request['start'] = since;
+            const sinceString = this.numberToString(since);
+            request['start'] = Precise["default"].stringDiv(sinceString, '1000');
+        }
+        const until = this.safeStringN(params, ['until', 'till', 'end']);
+        if (until !== undefined) {
+            params = this.omit(params, ['until', 'till']);
+            const untilDivided = Precise["default"].stringDiv(until, '1000');
+            request['end'] = Precise["default"].stringAdd(untilDivided, '1');
         }
         const response = await this.privatePostDepositStatus(this.extend(request, params));
         //
@@ -2611,8 +2631,8 @@ class kraken extends kraken$1 {
          * @param {int} [since] the earliest time in ms to fetch withdrawals for
          * @param {int} [limit] the maximum number of withdrawals structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {object} [params.end] End timestamp, withdrawals created strictly after will be not be included in the response
-         * @param {boolean} [params.paginate]  default false, when true will automatically paginate by calling this endpoint multiple times
+         * @param {int} [params.until] timestamp in ms of the latest transaction entry
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets();
@@ -2628,7 +2648,14 @@ class kraken extends kraken$1 {
             request['asset'] = currency['id'];
         }
         if (since !== undefined) {
-            request['since'] = since.toString();
+            const sinceString = this.numberToString(since);
+            request['start'] = Precise["default"].stringDiv(sinceString, '1000');
+        }
+        const until = this.safeStringN(params, ['until', 'till', 'end']);
+        if (until !== undefined) {
+            params = this.omit(params, ['until', 'till']);
+            const untilDivided = Precise["default"].stringDiv(until, '1000');
+            request['end'] = Precise["default"].stringAdd(untilDivided, '1');
         }
         const response = await this.privatePostWithdrawStatus(this.extend(request, params));
         //

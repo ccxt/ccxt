@@ -22,7 +22,6 @@ class hashkey extends hashkey$1 {
             'version': 'v1',
             'certified': true,
             'pro': true,
-            'hostname': '/api-glb',
             'has': {
                 'CORS': undefined,
                 'spot': true,

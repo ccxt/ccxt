@@ -20,6 +20,7 @@ Current feature list:
 
 
 ## Sponsored Promotion
+[![hashkey-campaign](https://github.com/user-attachments/assets/1622ba7d-637d-41e3-9ad4-d61a6ea69881)](https://support.global.hashkey.com/hc/en-us/articles/15485543021468-Trade-Through-CCXT-to-Grab-up-to-1-000-USDT-30-Day-VIP5-Trial)
 
 ## See Also
 

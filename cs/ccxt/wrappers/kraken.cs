@@ -554,6 +554,12 @@ public partial class kraken
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest trade entry
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
@@ -742,6 +748,12 @@ public partial class kraken
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest transaction entry
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
@@ -797,15 +809,15 @@ public partial class kraken
     /// </description>
     /// </item>
     /// <item>
-    /// <term>params.end</term>
+    /// <term>params.until</term>
     /// <description>
-    /// object : End timestamp, withdrawals created strictly after will be not be included in the response
+    /// int : timestamp in ms of the latest transaction entry
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.paginate</term>
     /// <description>
-    /// boolean :  default false, when true will automatically paginate by calling this endpoint multiple times
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times
     /// </description>
     /// </item>
     /// </list>
