@@ -16,7 +16,7 @@ import socket
 # TODO: move to global test functions
 def tcp_kill():
     current_process = psutil.Process(os.getpid())
-    connections = current_process.net_connections(kind='tcp')
+    connections = current_process.connections(kind='tcp')
     for conn in connections:
         if conn.status == psutil.CONN_ESTABLISHED:
             sock = socket.fromfd(conn.fd, socket.AF_INET, socket.SOCK_STREAM)
@@ -133,8 +133,8 @@ async def test_reconnect():
     assert received_message
     received_message = False
     await ex.close()
-    assert received_error == False
-    assert received_message == False
+    assert not received_error
+    assert not received_message
 
 # Run the tests
 async def test_stream():
