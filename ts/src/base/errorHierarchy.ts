@@ -52,6 +52,7 @@ const errorHierarchy = {
             'CancelPending': {},
         },
     },
+    'UnsubscribeError': {},
 };
 
 export default errorHierarchy;
