@@ -1102,7 +1102,7 @@ export default class valr extends Exchange {
             if (failedReason === 'Insufficient Balance') {
                 status = 'rejected';
             } else {
-            status = 'canceled';
+                status = 'canceled';
             }
         } else if (orderStatus === 'Filled') {
             status = 'closed';
