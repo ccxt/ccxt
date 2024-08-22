@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import bybitRest from '../bybit.js';
-import { ArgumentsRequired, AuthenticationError, ExchangeError, BadRequest } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, ExchangeError, BadRequest, UnsubscribeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict, Liquidation } from '../base/types.js';
@@ -861,6 +861,46 @@ export default class bybit extends bybitRest {
             limit = trades.getLimit (tradeSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    async unWatchTradesForSymbols (symbols: Strings, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name bybit#unWatchTradesForSymbols
+         * @description unsubscribe from the trades channel
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
+         * @param {string[]} symbols unified symbol of the market to unwatch the trades for
+         * @returns {any} status of the unwatch request
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false, true);
+        const url = await this.getUrlByMarketType (symbols[0], false, 'unWatchTradesForSymbols', params);
+        const messageHashes = [];
+        const topics = [];
+        const subMessageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const topic = 'publicTrade.' + market['id'];
+            topics.push (topic);
+            const messageHash = 'unsubscribe:trade:' + symbol;
+            messageHashes.push (messageHash);
+            subMessageHashes.push ('trade:' + symbol);
+        }
+        return await this.unWatchTopics (url, messageHashes, subMessageHashes, topics, params);
+    }
+
+    async unWatchTrades (symbol: string, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name bybit#unWatchTrades
+         * @description unsubscribe from the trades channel
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/trade
+         * @param {string} symbol unified symbol of the market to unwatch the trades for
+         * @returns {any} status of the unwatch request
+         */
+        await this.loadMarkets ();
+        return await this.unWatchTradesForSymbols ([ symbol ], params);
     }
 
     handleTrades (client: Client, message) {
@@ -1975,6 +2015,22 @@ export default class bybit extends bybitRest {
         return await this.watchMultiple (url, messageHashes, message, topics);
     }
 
+    async unWatchTopics (url: string, messageHashes: string[], subMessageHashes: string[], topics, params = {}) {
+        const reqId = this.requestId ();
+        const request: Dict = {
+            'op': 'unsubscribe',
+            'req_id': reqId,
+            'args': topics,
+        };
+        const subscription = {
+            'id': reqId,
+            'messageHashes': messageHashes,
+            'subMessageHashes': subMessageHashes,
+        };
+        const message = this.extend (request, params);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes, subscription);
+    }
+
     async authenticate (url, params = {}) {
         this.checkRequiredCredentials ();
         const messageHash = 'authenticated';
@@ -2123,6 +2179,7 @@ export default class bybit extends bybitRest {
             'order.amend': this.handleOrderWs,
             'order.cancel': this.handleOrderWs,
             'auth': this.handleAuthenticate,
+            'unsubscribe': this.handleUnSubscribe,
         };
         const exacMethod = this.safeValue (methods, topic);
         if (exacMethod !== undefined) {
@@ -2214,6 +2271,54 @@ export default class bybit extends bybitRest {
         //        "msg": "Success"
         //    }
         //
+        return message;
+    }
+
+    handleUnSubscribe (client: Client, message) {
+        //
+        // {"success":true,"ret_msg":"","conn_id":"7188110e-6908-41e9-b863-6365127e92ad","req_id":"3","op":"unsubscribe"}
+        //
+        // client.subscription will be something like:
+        // {
+        //     "publicTrade.LTCUSDT":true,
+        //     "publicTrade.ADAUSDT":true,
+        //     "unsubscribe:trade:LTC/USDT:USDT": {
+        //        "id":4,
+        //         "subHash": "trade:LTC/USDT"
+        //     },
+        // }
+        const reqId = this.safeString (message, 'req_id');
+        const keys = Object.keys (client.subscriptions);
+        for (let i = 0; i < keys.length; i++) {
+            const messageHash = keys[i];
+            if (!(messageHash in client.subscriptions)) {
+                continue;
+                // the previous iteration can have deleted the messageHash from the subscriptions
+            }
+            if (messageHash.startsWith ('unsubscribe')) {
+                const subscription = client.subscriptions[messageHash];
+                const subId = this.safeString (subscription, 'id');
+                if (reqId !== subId) {
+                    continue;
+                }
+                const messageHashes = this.safeList (subscription, 'messageHashes', []);
+                const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+                for (let j = 0; j < messageHashes.length; j++) {
+                    const unsubHash = messageHashes[j];
+                    const subHash = subMessageHashes[j];
+                    if (unsubHash in client.subscriptions) {
+                        delete client.subscriptions[unsubHash];
+                    }
+                    if (subHash in client.subscriptions) {
+                        delete client.subscriptions[subHash];
+                    }
+                    const error = new UnsubscribeError (this.id + ' ' + messageHash);
+                    client.reject (error, subHash);
+                    client.resolve (true, unsubHash);
+                    // to do clean the cache?
+                }
+            }
+        }
         return message;
     }
 }
