@@ -763,7 +763,14 @@ public partial class bingx : Exchange
         }
         object fees = this.safeDict(this.fees, type, new Dictionary<string, object>() {});
         object contractSize = ((bool) isTrue((swap))) ? this.parseNumber("1") : null;
-        object isActive = isEqual(this.safeString(market, "status"), "1");
+        object isActive = false;
+        if (isTrue(isTrue((isEqual(this.safeString(market, "apiStateOpen"), "true"))) && isTrue((isEqual(this.safeString(market, "apiStateClose"), "true")))))
+        {
+            isActive = true; // swap active
+        } else if (isTrue(isTrue(this.safeBool(market, "apiStateSell")) && isTrue(this.safeBool(market, "apiStateBuy"))))
+        {
+            isActive = true; // spot active
+        }
         object isInverse = ((bool) isTrue((spot))) ? null : checkIsInverse;
         object isLinear = ((bool) isTrue((spot))) ? null : checkIsLinear;
         object timeOnline = this.safeInteger(market, "timeOnline");

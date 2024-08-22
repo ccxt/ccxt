@@ -750,7 +750,13 @@ export default class bingx extends Exchange {
         }
         const fees = this.safeDict(this.fees, type, {});
         const contractSize = (swap) ? this.parseNumber('1') : undefined;
-        const isActive = this.safeString(market, 'status') === '1';
+        let isActive = false;
+        if ((this.safeString(market, 'apiStateOpen') === 'true') && (this.safeString(market, 'apiStateClose') === 'true')) {
+            isActive = true; // swap active
+        }
+        else if (this.safeBool(market, 'apiStateSell') && this.safeBool(market, 'apiStateBuy')) {
+            isActive = true; // spot active
+        }
         const isInverse = (spot) ? undefined : checkIsInverse;
         const isLinear = (spot) ? undefined : checkIsLinear;
         let timeOnline = this.safeInteger(market, 'timeOnline');

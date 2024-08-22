@@ -746,7 +746,12 @@ class bingx extends Exchange {
         }
         $fees = $this->safe_dict($this->fees, $type, array());
         $contractSize = ($swap) ? $this->parse_number('1') : null;
-        $isActive = $this->safe_string($market, 'status') === '1';
+        $isActive = false;
+        if (($this->safe_string($market, 'apiStateOpen') === 'true') && ($this->safe_string($market, 'apiStateClose') === 'true')) {
+            $isActive = true; // $swap active
+        } elseif ($this->safe_bool($market, 'apiStateSell') && $this->safe_bool($market, 'apiStateBuy')) {
+            $isActive = true; // $spot active
+        }
         $isInverse = ($spot) ? null : $checkIsInverse;
         $isLinear = ($spot) ? null : $checkIsLinear;
         $timeOnline = $this->safe_integer($market, 'timeOnline');

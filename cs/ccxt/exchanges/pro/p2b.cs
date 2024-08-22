@@ -29,6 +29,7 @@ public partial class p2b : ccxt.p2b
                 { "watchTicker", true },
                 { "watchTickers", false },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", true },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
@@ -158,14 +159,47 @@ public partial class p2b : ccxt.p2b
         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
         */
         parameters ??= new Dictionary<string, object>();
+        return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
+    }
+
+    public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name p2b#watchTradesForSymbols
+        * @description get the list of most recent trades for a list of symbols
+        * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#deals
+        * @param {string[]} symbols unified symbol of the market to fetch trades for
+        * @param {int} [since] timestamp in ms of the earliest trade to fetch
+        * @param {int} [limit] the maximum amount of trades to fetch
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+        */
+        parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
-        object request = new List<object>() {getValue(market, "id")};
-        object messageHash = add("deals::", getValue(market, "symbol"));
-        object trades = await this.subscribe("deals.subscribe", messageHash, request, parameters);
+        symbols = this.marketSymbols(symbols, null, false, true, true);
+        object messageHashes = new List<object>() {};
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                ((IList<object>)messageHashes).Add(add("deals::", getValue(symbols, i)));
+            }
+        }
+        object marketIds = this.marketIds(symbols);
+        object url = getValue(getValue(this.urls, "api"), "ws");
+        object subscribe = new Dictionary<string, object>() {
+            { "method", "deals.subscribe" },
+            { "params", marketIds },
+            { "id", this.milliseconds() },
+        };
+        object query = this.extend(subscribe, parameters);
+        object trades = await this.watchMultiple(url, messageHashes, query, messageHashes);
         if (isTrue(this.newUpdates))
         {
-            limit = callDynamically(trades, "getLimit", new object[] {symbol, limit});
+            object first = this.safeValue(trades, 0);
+            object tradeSymbol = this.safeString(first, "symbol");
+            limit = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit});
         }
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
     }

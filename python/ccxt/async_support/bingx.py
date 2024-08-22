@@ -749,7 +749,11 @@ class bingx(Exchange, ImplicitAPI):
             symbol += ':' + settle
         fees = self.safe_dict(self.fees, type, {})
         contractSize = self.parse_number('1') if (swap) else None
-        isActive = self.safe_string(market, 'status') == '1'
+        isActive = False
+        if (self.safe_string(market, 'apiStateOpen') == 'true') and (self.safe_string(market, 'apiStateClose') == 'true'):
+            isActive = True  # swap active
+        elif self.safe_bool(market, 'apiStateSell') and self.safe_bool(market, 'apiStateBuy'):
+            isActive = True  # spot active
         isInverse = None if (spot) else checkIsInverse
         isLinear = None if (spot) else checkIsLinear
         timeOnline = self.safe_integer(market, 'timeOnline')
