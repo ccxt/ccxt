@@ -644,7 +644,7 @@ if ($exchange->has['watchOrderBook']) {
 ```
 <!-- tabs:end -->
 
-##### watchOrderBookForSymbols
+#### watchOrderBookForSymbols
 
 Similar to `watchOrderBook` but accepts an array of symbols so you can subscribe to multiple orderbooks in a single message.
 
