@@ -302,24 +302,11 @@ export default class coinex extends coinexRest {
         //         "id": null
         //     }
         //
-        let type = undefined;
-        const url = this.safeString (client, 'url');
-        if (url !== undefined) {
-            if (url === this.urls['api']['ws']['spot']) {
-                type = 'spot';
-            }
-            if (url === this.urls['api']['ws']['swap']) {
-                type = 'swap';
-            }
-        }
-        const defaultType = this.safeString (this.options, 'defaultType');
-        if (type === undefined) {
-            type = defaultType;
-        }
         const params = this.safeValue (message, 'params', []);
         const marketId = this.safeString (params, 0);
         const trades = this.safeValue (params, 1, []);
-        const market = this.safeMarket (marketId, undefined, undefined, type);
+        const defaultType = this.safeString (this.options, 'defaultType');
+        const market = this.safeMarket (marketId, undefined, undefined, defaultType);
         const symbol = market['symbol'];
         const messageHash = 'trades:' + symbol;
         let stored = this.safeValue (this.trades, symbol);
