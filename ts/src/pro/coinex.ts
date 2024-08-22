@@ -21,6 +21,7 @@ export default class coinex extends coinexRest {
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
                 'watchMyTrades': false, // can query but can't subscribe
                 'watchOrders': true,
                 'watchOrderBook': true,
@@ -301,11 +302,24 @@ export default class coinex extends coinexRest {
         //         "id": null
         //     }
         //
+        let type = undefined;
+        const url = this.safeString (client, 'url');
+        if (url !== undefined) {
+            if (url === this.urls['api']['ws']['spot']) {
+                type = 'spot';
+            }
+            if (url === this.urls['api']['ws']['swap']) {
+                type = 'swap';
+            }
+        }
+        const defaultType = this.safeString (this.options, 'defaultType');
+        if (type === undefined) {
+            type = defaultType;
+        }
         const params = this.safeValue (message, 'params', []);
         const marketId = this.safeString (params, 0);
         const trades = this.safeValue (params, 1, []);
-        const defaultType = this.safeString (this.options, 'defaultType');
-        const market = this.safeMarket (marketId, undefined, undefined, defaultType);
+        const market = this.safeMarket (marketId, undefined, undefined, type);
         const symbol = market['symbol'];
         const messageHash = 'trades:' + symbol;
         let stored = this.safeValue (this.trades, symbol);
@@ -471,15 +485,36 @@ export default class coinex extends coinexRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
+    }
+
+    async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name coinex#watchTradesForSymbols
+         * @description get the list of most recent trades for a list of symbols
+         * @param {string[]} symbols unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchTrades', market, params);
-        const url = this.urls['api']['ws'][type];
-        const messageHash = 'trades:' + symbol;
-        const subscriptionHash = 'trades';
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        let firstMarket = undefined;
+        const messageHashes = [];
         const subscribedSymbols = this.safeValue (this.options, 'watchTradesSubscriptions', []);
-        subscribedSymbols.push (market['id']);
+        if (symbols !== undefined) {
+            firstMarket = this.market (symbols[0]);
+            for (let i = 0; i < symbols.length; i++) {
+                const market = this.market (symbols[i]);
+                subscribedSymbols.push (market['id']);
+                messageHashes.push ('trades:' + symbols[i]);
+            }
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchTrades', firstMarket, params);
+        const url = this.urls['api']['ws'][type];
         const message: Dict = {
             'method': 'deals.subscribe',
             'params': subscribedSymbols,
@@ -487,7 +522,7 @@ export default class coinex extends coinexRest {
         };
         this.options['watchTradesSubscriptions'] = subscribedSymbols;
         const request = this.deepExtend (message, params);
-        const trades = await this.watch (url, messageHash, request, subscriptionHash);
+        const trades = await this.watchMultiple (url, messageHashes, request, messageHashes);
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
