@@ -142,7 +142,7 @@ class hashkey extends hashkey$1 {
                 'www': 'https://global.hashkey.com/',
                 'doc': 'https://hashkeyglobal-apidoc.readme.io/',
                 'fees': 'https://support.global.hashkey.com/hc/en-us/articles/13199900083612-HashKey-Global-Fee-Structure',
-                'referral': '',
+                'referral': 'https://global.hashkey.com/en-US/register/invite?invite_code=82FQUN',
             },
             'api': {
                 'public': {
