@@ -1102,6 +1102,7 @@ class kraken extends Exchange {
          * @param {int} [$limit] max number of $ledger entrys to return, default is null
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest $ledger entry
+         * @param {int} [$params->end] timestamp in seconds of the latest $ledger entry
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ledger-structure $ledger structure~
          */
         // https://www.kraken.com/features/api#get-ledgers-info
@@ -1115,7 +1116,7 @@ class kraken extends Exchange {
         if ($since !== null) {
             $request['start'] = $this->parse_to_int($since / 1000);
         }
-        $until = $this->safe_string_n($params, array( 'until', 'till', 'end' ));
+        $until = $this->safe_string_n($params, array( 'until', 'till' ));
         if ($until !== null) {
             $params = $this->omit($params, array( 'until', 'till' ));
             $untilDivided = Precise::string_div($until, '1000');
@@ -2100,6 +2101,7 @@ class kraken extends Exchange {
          * @param {int} [$limit] the maximum number of $trades structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest trade entry
+         * @param {int} [$params->end] timestamp in seconds of the latest trade entry
          * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
          */
         $this->load_markets();
@@ -2113,7 +2115,7 @@ class kraken extends Exchange {
         if ($since !== null) {
             $request['start'] = $this->parse_to_int($since / 1000);
         }
-        $until = $this->safe_string_n($params, array( 'until', 'till', 'end' ));
+        $until = $this->safe_string_n($params, array( 'until', 'till' ));
         if ($until !== null) {
             $params = $this->omit($params, array( 'until', 'till' ));
             $untilDivided = Precise::string_div($until, '1000');
@@ -2531,6 +2533,7 @@ class kraken extends Exchange {
          * @param {int} [$limit] the maximum number of deposits structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest transaction entry
+         * @param {int} [$params->end] timestamp in seconds of the latest transaction entry
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
         // https://www.kraken.com/en-us/help/api#deposit-status
@@ -2544,7 +2547,7 @@ class kraken extends Exchange {
             $sinceString = $this->number_to_string($since);
             $request['start'] = Precise::string_div($sinceString, '1000');
         }
-        $until = $this->safe_string_n($params, array( 'until', 'till', 'end' ));
+        $until = $this->safe_string_n($params, array( 'until', 'till' ));
         if ($until !== null) {
             $params = $this->omit($params, array( 'until', 'till' ));
             $untilDivided = Precise::string_div($until, '1000');
@@ -2598,6 +2601,7 @@ class kraken extends Exchange {
          * @param {int} [$limit] the maximum number of withdrawals structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest transaction entry
+         * @param {int} [$params->end] timestamp in seconds of the latest transaction entry
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times
          * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
          */
@@ -2617,7 +2621,7 @@ class kraken extends Exchange {
             $sinceString = $this->number_to_string($since);
             $request['start'] = Precise::string_div($sinceString, '1000');
         }
-        $until = $this->safe_string_n($params, array( 'until', 'till', 'end' ));
+        $until = $this->safe_string_n($params, array( 'until', 'till' ));
         if ($until !== null) {
             $params = $this->omit($params, array( 'until', 'till' ));
             $untilDivided = Precise::string_div($until, '1000');

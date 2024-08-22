@@ -1086,6 +1086,7 @@ class kraken(Exchange, ImplicitAPI):
         :param int [limit]: max number of ledger entrys to return, default is None
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest ledger entry
+        :param int [params.end]: timestamp in seconds of the latest ledger entry
         :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
         """
         # https://www.kraken.com/features/api#get-ledgers-info
@@ -1097,7 +1098,7 @@ class kraken(Exchange, ImplicitAPI):
             request['asset'] = currency['id']
         if since is not None:
             request['start'] = self.parse_to_int(since / 1000)
-        until = self.safe_string_n(params, ['until', 'till', 'end'])
+        until = self.safe_string_n(params, ['until', 'till'])
         if until is not None:
             params = self.omit(params, ['until', 'till'])
             untilDivided = Precise.string_div(until, '1000')
@@ -2000,6 +2001,7 @@ class kraken(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of trades structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest trade entry
+        :param int [params.end]: timestamp in seconds of the latest trade entry
         :returns Trade[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
@@ -2012,7 +2014,7 @@ class kraken(Exchange, ImplicitAPI):
         }
         if since is not None:
             request['start'] = self.parse_to_int(since / 1000)
-        until = self.safe_string_n(params, ['until', 'till', 'end'])
+        until = self.safe_string_n(params, ['until', 'till'])
         if until is not None:
             params = self.omit(params, ['until', 'till'])
             untilDivided = Precise.string_div(until, '1000')
@@ -2402,6 +2404,7 @@ class kraken(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of deposits structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest transaction entry
+        :param int [params.end]: timestamp in seconds of the latest transaction entry
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         # https://www.kraken.com/en-us/help/api#deposit-status
@@ -2413,7 +2416,7 @@ class kraken(Exchange, ImplicitAPI):
         if since is not None:
             sinceString = self.number_to_string(since)
             request['start'] = Precise.string_div(sinceString, '1000')
-        until = self.safe_string_n(params, ['until', 'till', 'end'])
+        until = self.safe_string_n(params, ['until', 'till'])
         if until is not None:
             params = self.omit(params, ['until', 'till'])
             untilDivided = Precise.string_div(until, '1000')
@@ -2464,6 +2467,7 @@ class kraken(Exchange, ImplicitAPI):
         :param int [limit]: the maximum number of withdrawals structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest transaction entry
+        :param int [params.end]: timestamp in seconds of the latest transaction entry
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times
         :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
@@ -2480,7 +2484,7 @@ class kraken(Exchange, ImplicitAPI):
         if since is not None:
             sinceString = self.number_to_string(since)
             request['start'] = Precise.string_div(sinceString, '1000')
-        until = self.safe_string_n(params, ['until', 'till', 'end'])
+        until = self.safe_string_n(params, ['until', 'till'])
         if until is not None:
             params = self.omit(params, ['until', 'till'])
             untilDivided = Precise.string_div(until, '1000')

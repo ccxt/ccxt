@@ -1143,6 +1143,7 @@ public partial class kraken : Exchange
         * @param {int} [limit] max number of ledger entrys to return, default is undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] timestamp in ms of the latest ledger entry
+        * @param {int} [params.end] timestamp in seconds of the latest ledger entry
         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
         */
         // https://www.kraken.com/features/api#get-ledgers-info
@@ -1159,7 +1160,7 @@ public partial class kraken : Exchange
         {
             ((IDictionary<string,object>)request)["start"] = this.parseToInt(divide(since, 1000));
         }
-        object until = this.safeStringN(parameters, new List<object>() {"until", "till", "end"});
+        object until = this.safeStringN(parameters, new List<object>() {"until", "till"});
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until", "till"});
@@ -2289,6 +2290,7 @@ public partial class kraken : Exchange
         * @param {int} [limit] the maximum number of trades structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] timestamp in ms of the latest trade entry
+        * @param {int} [params.end] timestamp in seconds of the latest trade entry
         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -2298,7 +2300,7 @@ public partial class kraken : Exchange
         {
             ((IDictionary<string,object>)request)["start"] = this.parseToInt(divide(since, 1000));
         }
-        object until = this.safeStringN(parameters, new List<object>() {"until", "till", "end"});
+        object until = this.safeStringN(parameters, new List<object>() {"until", "till"});
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until", "till"});
@@ -2755,6 +2757,7 @@ public partial class kraken : Exchange
         * @param {int} [limit] the maximum number of deposits structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] timestamp in ms of the latest transaction entry
+        * @param {int} [params.end] timestamp in seconds of the latest transaction entry
         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         // https://www.kraken.com/en-us/help/api#deposit-status
@@ -2771,7 +2774,7 @@ public partial class kraken : Exchange
             object sinceString = this.numberToString(since);
             ((IDictionary<string,object>)request)["start"] = Precise.stringDiv(sinceString, "1000");
         }
-        object until = this.safeStringN(parameters, new List<object>() {"until", "till", "end"});
+        object until = this.safeStringN(parameters, new List<object>() {"until", "till"});
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until", "till"});
@@ -2833,6 +2836,7 @@ public partial class kraken : Exchange
         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {int} [params.until] timestamp in ms of the latest transaction entry
+        * @param {int} [params.end] timestamp in seconds of the latest transaction entry
         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
@@ -2858,7 +2862,7 @@ public partial class kraken : Exchange
             object sinceString = this.numberToString(since);
             ((IDictionary<string,object>)request)["start"] = Precise.stringDiv(sinceString, "1000");
         }
-        object until = this.safeStringN(parameters, new List<object>() {"until", "till", "end"});
+        object until = this.safeStringN(parameters, new List<object>() {"until", "till"});
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until", "till"});

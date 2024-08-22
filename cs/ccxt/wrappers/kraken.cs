@@ -203,6 +203,12 @@ public partial class kraken
     /// int : timestamp in ms of the latest ledger entry
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.end</term>
+    /// <description>
+    /// int : timestamp in seconds of the latest ledger entry
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
@@ -560,6 +566,12 @@ public partial class kraken
     /// int : timestamp in ms of the latest trade entry
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.end</term>
+    /// <description>
+    /// int : timestamp in seconds of the latest trade entry
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>Trade[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
@@ -754,6 +766,12 @@ public partial class kraken
     /// int : timestamp in ms of the latest transaction entry
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.end</term>
+    /// <description>
+    /// int : timestamp in seconds of the latest transaction entry
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
@@ -812,6 +830,12 @@ public partial class kraken
     /// <term>params.until</term>
     /// <description>
     /// int : timestamp in ms of the latest transaction entry
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.end</term>
+    /// <description>
+    /// int : timestamp in seconds of the latest transaction entry
     /// </description>
     /// </item>
     /// <item>
