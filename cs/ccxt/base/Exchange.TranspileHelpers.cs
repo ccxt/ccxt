@@ -670,7 +670,8 @@ public partial class Exchange
         object parsedValue = null;
         try
         {
-            parsedValue = (Convert.ToInt64(a));
+            var floored = Math.Floor(Convert.ToDouble(a));
+            parsedValue = (Convert.ToInt64(floored));
         }
         catch (Exception e)
         {
