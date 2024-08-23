@@ -406,6 +406,7 @@ export default class coinex extends coinexRest {
         const market = this.safeMarket (marketId, undefined, undefined, defaultType);
         const symbol = market['symbol'];
         const messageHash = 'myTrades:' + symbol;
+        const messageWithType = 'myTrades:' + market['type'];
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -415,6 +416,7 @@ export default class coinex extends coinexRest {
         const parsed = this.parseWsTrade (data, market);
         stored.append (parsed);
         this.trades[symbol] = stored;
+        client.resolve (this.trades[symbol], messageWithType);
         client.resolve (this.trades[symbol], messageHash);
     }
 
@@ -1040,6 +1042,8 @@ export default class coinex extends coinexRest {
         const data = this.safeDict (message, 'data', {});
         const order = this.safeDict2 (data, 'order', 'stop', {});
         const parsedOrder = this.parseWsOrder (order);
+        const symbol = parsedOrder['symbol'];
+        const market = this.market (symbol);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
@@ -1047,8 +1051,9 @@ export default class coinex extends coinexRest {
         const orders = this.orders;
         orders.append (parsedOrder);
         let messageHash = 'orders';
-        client.resolve (this.orders, messageHash);
-        messageHash += ':' + parsedOrder['symbol'];
+        const messageWithType = messageHash + ':' + market['type'];
+        client.resolve (this.orders, messageWithType);
+        messageHash += ':' + symbol;
         client.resolve (this.orders, messageHash);
     }
 
