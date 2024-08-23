@@ -101,12 +101,12 @@ public partial class Exchange
         var res = await this.watchOrdersForSymbols(symbols, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
-    public async Task<Dictionary<string, Dictionary<string, OHLCV[]>>> WatchOHLCVForSymbols(List<List<string>> symbolsAndTimeframes, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<Dictionary<string, Dictionary<string, List<OHLCV>>>> WatchOHLCVForSymbols(List<List<string>> symbolsAndTimeframes, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.watchOHLCVForSymbols(symbolsAndTimeframes, since, limit, parameters);
-        return ((Dictionary<string, Dictionary<string, OHLCV[]>>)res);
+        return Helper.ConvertToDictionaryOHLCVList(res);
     }
     public async Task<ccxt.pro.IOrderBook> WatchOrderBookForSymbols(List<string> symbols, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
@@ -1133,12 +1133,12 @@ public partial class Exchange
         var res = await this.fetchTransfer(id, code, parameters);
         return new TransferEntry(res);
     }
-    public async Task<TransferEntries> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
+    public async Task<List<TransferEntry>> FetchTransfers(string code = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
         var limit = limit2 == 0 ? null : (object)limit2;
         var res = await this.fetchTransfers(code, since, limit, parameters);
-        return new TransferEntries(res);
+        return ((IList<object>)res).Select(item => new TransferEntry(item)).ToList<TransferEntry>();
     }
 }
 // class wrappers
@@ -1202,6 +1202,7 @@ public class  Fmfwio: fmfwio { public Fmfwio(object args = null) : base(args) { 
 public class  Gate: gate { public Gate(object args = null) : base(args) { } }
 public class  Gateio: gateio { public Gateio(object args = null) : base(args) { } }
 public class  Gemini: gemini { public Gemini(object args = null) : base(args) { } }
+public class  Hashkey: hashkey { public Hashkey(object args = null) : base(args) { } }
 public class  Hitbtc: hitbtc { public Hitbtc(object args = null) : base(args) { } }
 public class  Hitbtc3: hitbtc3 { public Hitbtc3(object args = null) : base(args) { } }
 public class  Hollaex: hollaex { public Hollaex(object args = null) : base(args) { } }
@@ -1231,6 +1232,7 @@ public class  Okx: okx { public Okx(object args = null) : base(args) { } }
 public class  Onetrading: onetrading { public Onetrading(object args = null) : base(args) { } }
 public class  Oxfun: oxfun { public Oxfun(object args = null) : base(args) { } }
 public class  P2b: p2b { public P2b(object args = null) : base(args) { } }
+public class  Paradex: paradex { public Paradex(object args = null) : base(args) { } }
 public class  Paymium: paymium { public Paymium(object args = null) : base(args) { } }
 public class  Phemex: phemex { public Phemex(object args = null) : base(args) { } }
 public class  Poloniex: poloniex { public Poloniex(object args = null) : base(args) { } }

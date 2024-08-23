@@ -10,6 +10,7 @@ use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
+use ccxt\InvalidNonce;
 use ccxt\ChecksumError;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -357,9 +358,9 @@ class okx extends \ccxt\async\okx {
     public function watch_ticker(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
-             * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-$channel
-             * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-             * @param {string} $symbol unified $symbol of the market to fetch the $ticker for
+             * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-data-ws-tickers-$channel
+             * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->channel] the $channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -367,6 +368,8 @@ class okx extends \ccxt\async\okx {
             $channel = null;
             list($channel, $params) = $this->handle_option_and_params($params, 'watchTicker', 'channel', 'tickers');
             $params['channel'] = $channel;
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $ticker = Async\await($this->watch_tickers(array( $symbol ), $params));
             return $this->safe_value($ticker, $symbol);
         }) ();
@@ -452,7 +455,7 @@ class okx extends \ccxt\async\okx {
             /**
              * watch the public liquidations of a trading pair
              * @see https://www.okx.com/docs-v5/en/#public-data-websocket-liquidation-orders-$channel
-             * @param {string} symbol unified CCXT $market symbol
+             * @param {string} $symbol unified CCXT $market $symbol
              * @param {int} [$since] the earliest time in ms to fetch liquidations for
              * @param {int} [$limit] the maximum number of liquidation structures to retrieve
              * @param {array} [$params] exchange specific parameters for the okx api endpoint
@@ -461,8 +464,14 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols, null, true, true);
             $messageHash = 'liquidations';
+            $messageHashes = array();
             if ($symbols !== null) {
-                $messageHash .= '::' . implode(',', $symbols);
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $symbol = $symbols[$i];
+                    $messageHashes[] = $messageHash . '::' . $symbol;
+                }
+            } else {
+                $messageHashes[] = $messageHash;
             }
             $market = $this->get_market_from_symbols($symbols);
             $type = null;
@@ -475,9 +484,16 @@ class okx extends \ccxt\async\okx {
             }
             $uppercaseType = strtoupper($type);
             $request = array(
-                'instType' => $uppercaseType,
+                'op' => 'subscribe',
+                'args' => array(
+                    array(
+                        'channel' => $channel,
+                        'instType' => $uppercaseType,
+                    ),
+                ),
             );
-            $newLiquidations = Async\await($this->subscribe('public', $messageHash, $channel, null, $this->extend($request, $params)));
+            $url = $this->get_url($channel, 'public');
+            $newLiquidations = Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
             if ($this->newUpdates) {
                 return $newLiquidations;
             }
@@ -927,7 +943,7 @@ class okx extends \ccxt\async\okx {
         }
     }
 
-    public function handle_order_book_message(Client $client, $message, $orderbook, $messageHash) {
+    public function handle_order_book_message(Client $client, $message, $orderbook, $messageHash, $market = null) {
         //
         //     {
         //         "asks" => array(
@@ -942,6 +958,9 @@ class okx extends \ccxt\async\okx {
         //         ),
         //         "instId" => "BTC-USDT",
         //         "ts" => "1626537446491"
+        //         "checksum" => -855196043,
+        //         "prevSeqId" => 123456,
+        //         "seqId" => 123457
         //     }
         //
         $asks = $this->safe_value($message, 'asks', array());
@@ -951,9 +970,12 @@ class okx extends \ccxt\async\okx {
         $this->handle_deltas($storedAsks, $asks);
         $this->handle_deltas($storedBids, $bids);
         $marketId = $this->safe_string($message, 'instId');
-        $symbol = $this->safe_symbol($marketId);
+        $symbol = $this->safe_symbol($marketId, $market);
         $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
+        $seqId = $this->safe_integer($message, 'seqId');
         if ($checksum) {
+            $prevSeqId = $this->safe_integer($message, 'prevSeqId');
+            $nonce = $orderbook['nonce'];
             $asksLength = count($storedAsks);
             $bidsLength = count($storedBids);
             $payloadArray = array();
@@ -970,14 +992,21 @@ class okx extends \ccxt\async\okx {
             $payload = implode(':', $payloadArray);
             $responseChecksum = $this->safe_integer($message, 'checksum');
             $localChecksum = $this->crc32($payload, true);
+            $error = null;
+            if ($prevSeqId !== -1 && $nonce !== $prevSeqId) {
+                $error = new InvalidNonce ($this->id . ' watchOrderBook received invalid nonce');
+            }
             if ($responseChecksum !== $localChecksum) {
                 $error = new ChecksumError ($this->id . ' ' . $this->orderbook_checksum_message($symbol));
+            }
+            if ($error !== null) {
                 unset($client->subscriptions[$messageHash]);
                 unset($this->orderbooks[$symbol]);
                 $client->reject ($error, $messageHash);
             }
         }
         $timestamp = $this->safe_integer($message, 'ts');
+        $orderbook['nonce'] = $seqId;
         $orderbook['timestamp'] = $timestamp;
         $orderbook['datetime'] = $this->iso8601($timestamp);
         return $orderbook;
@@ -1099,7 +1128,7 @@ class okx extends \ccxt\async\okx {
                 $orderbook = $this->orderbooks[$symbol];
                 for ($i = 0; $i < count($data); $i++) {
                     $update = $data[$i];
-                    $this->handle_order_book_message($client, $update, $orderbook, $messageHash);
+                    $this->handle_order_book_message($client, $update, $orderbook, $messageHash, $market);
                     $client->resolve ($orderbook, $messageHash);
                 }
             }
@@ -1419,6 +1448,13 @@ class okx extends \ccxt\async\okx {
         for ($i = 0; $i < count($data); $i++) {
             $rawPosition = $data[$i];
             $position = $this->parse_position($rawPosition);
+            if ($position['contracts'] === 0) {
+                $position['side'] = 'long';
+                $shortPosition = $this->clone($position);
+                $shortPosition['side'] = 'short';
+                $cache->append ($shortPosition);
+                $newPositions[] = $shortPosition;
+            }
             $newPositions[] = $position;
             $cache->append ($position);
         }
@@ -1681,7 +1717,7 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $url = $this->get_url('private', 'private');
-            $messageHash = (string) $this->nonce();
+            $messageHash = (string) $this->milliseconds();
             $op = null;
             list($op, $params) = $this->handle_option_and_params($params, 'createOrderWs', 'op', 'batch-orders');
             $args = $this->create_order_request($symbol, $type, $side, $amount, $price, $params);
@@ -1753,7 +1789,7 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $url = $this->get_url('private', 'private');
-            $messageHash = (string) $this->nonce();
+            $messageHash = (string) $this->milliseconds();
             $op = null;
             list($op, $params) = $this->handle_option_and_params($params, 'editOrderWs', 'op', 'amend-order');
             $args = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
@@ -1783,7 +1819,7 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $url = $this->get_url('private', 'private');
-            $messageHash = (string) $this->nonce();
+            $messageHash = (string) $this->milliseconds();
             $clientOrderId = $this->safe_string_2($params, 'clOrdId', 'clientOrderId');
             $params = $this->omit($params, array( 'clientOrderId', 'clOrdId' ));
             $arg = array(
@@ -1823,7 +1859,7 @@ class okx extends \ccxt\async\okx {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $url = $this->get_url('private', 'private');
-            $messageHash = (string) $this->nonce();
+            $messageHash = (string) $this->milliseconds();
             $args = array();
             for ($i = 0; $i < $idsLength; $i++) {
                 $arg = array(
@@ -1860,7 +1896,7 @@ class okx extends \ccxt\async\okx {
                 throw new BadRequest($this->id . 'cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.');
             }
             $url = $this->get_url('private', 'private');
-            $messageHash = (string) $this->nonce();
+            $messageHash = (string) $this->milliseconds();
             $request = array(
                 'id' => $messageHash,
                 'op' => 'mass-cancel',
@@ -1909,7 +1945,7 @@ class okx extends \ccxt\async\okx {
         $future->resolve (true);
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         // OKX does not support the built-in WebSocket protocol-level ping-pong.
         // Instead, it requires a custom text-based ping-pong mechanism.
         return 'ping';
@@ -1937,6 +1973,13 @@ class okx extends \ccxt\async\okx {
                 throw new ExchangeError($feedback);
             }
         } catch (Exception $e) {
+            // if the $message contains an $id, it means it is a response to a request
+            // so we only reject that promise, instead of deleting all futures, destroying the authentication future
+            $id = $this->safe_string($message, 'id');
+            if ($id !== null) {
+                $client->reject ($e, $id);
+                return false;
+            }
             $client->reject ($e);
             return false;
         }

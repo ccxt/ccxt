@@ -347,6 +347,8 @@ class okx extends okx$1 {
         let channel = undefined;
         [channel, params] = this.handleOptionAndParams(params, 'watchTicker', 'channel', 'tickers');
         params['channel'] = channel;
+        const market = this.market(symbol);
+        symbol = market['symbol'];
         const ticker = await this.watchTickers([symbol], params);
         return this.safeValue(ticker, symbol);
     }
@@ -437,9 +439,16 @@ class okx extends okx$1 {
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols, undefined, true, true);
-        let messageHash = 'liquidations';
+        const messageHash = 'liquidations';
+        const messageHashes = [];
         if (symbols !== undefined) {
-            messageHash += '::' + symbols.join(',');
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                messageHashes.push(messageHash + '::' + symbol);
+            }
+        }
+        else {
+            messageHashes.push(messageHash);
         }
         const market = this.getMarketFromSymbols(symbols);
         let type = undefined;
@@ -453,9 +462,16 @@ class okx extends okx$1 {
         }
         const uppercaseType = type.toUpperCase();
         const request = {
-            'instType': uppercaseType,
+            'op': 'subscribe',
+            'args': [
+                {
+                    'channel': channel,
+                    'instType': uppercaseType,
+                },
+            ],
         };
-        const newLiquidations = await this.subscribe('public', messageHash, channel, undefined, this.extend(request, params));
+        const url = this.getUrl(channel, 'public');
+        const newLiquidations = await this.watchMultiple(url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
             return newLiquidations;
         }
@@ -894,7 +910,7 @@ class okx extends okx$1 {
             this.handleDelta(bookside, deltas[i]);
         }
     }
-    handleOrderBookMessage(client, message, orderbook, messageHash) {
+    handleOrderBookMessage(client, message, orderbook, messageHash, market = undefined) {
         //
         //     {
         //         "asks": [
@@ -909,6 +925,9 @@ class okx extends okx$1 {
         //         ],
         //         "instId": "BTC-USDT",
         //         "ts": "1626537446491"
+        //         "checksum": -855196043,
+        //         "prevSeqId": 123456,
+        //         "seqId": 123457
         //     }
         //
         const asks = this.safeValue(message, 'asks', []);
@@ -918,9 +937,12 @@ class okx extends okx$1 {
         this.handleDeltas(storedAsks, asks);
         this.handleDeltas(storedBids, bids);
         const marketId = this.safeString(message, 'instId');
-        const symbol = this.safeSymbol(marketId);
+        const symbol = this.safeSymbol(marketId, market);
         const checksum = this.handleOption('watchOrderBook', 'checksum', true);
+        const seqId = this.safeInteger(message, 'seqId');
         if (checksum) {
+            const prevSeqId = this.safeInteger(message, 'prevSeqId');
+            const nonce = orderbook['nonce'];
             const asksLength = storedAsks.length;
             const bidsLength = storedBids.length;
             const payloadArray = [];
@@ -937,14 +959,21 @@ class okx extends okx$1 {
             const payload = payloadArray.join(':');
             const responseChecksum = this.safeInteger(message, 'checksum');
             const localChecksum = this.crc32(payload, true);
+            let error = undefined;
+            if (prevSeqId !== -1 && nonce !== prevSeqId) {
+                error = new errors.InvalidNonce(this.id + ' watchOrderBook received invalid nonce');
+            }
             if (responseChecksum !== localChecksum) {
-                const error = new errors.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
+                error = new errors.ChecksumError(this.id + ' ' + this.orderbookChecksumMessage(symbol));
+            }
+            if (error !== undefined) {
                 delete client.subscriptions[messageHash];
                 delete this.orderbooks[symbol];
                 client.reject(error, messageHash);
             }
         }
         const timestamp = this.safeInteger(message, 'ts');
+        orderbook['nonce'] = seqId;
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601(timestamp);
         return orderbook;
@@ -1066,7 +1095,7 @@ class okx extends okx$1 {
                 const orderbook = this.orderbooks[symbol];
                 for (let i = 0; i < data.length; i++) {
                     const update = data[i];
-                    this.handleOrderBookMessage(client, update, orderbook, messageHash);
+                    this.handleOrderBookMessage(client, update, orderbook, messageHash, market);
                     client.resolve(orderbook, messageHash);
                 }
             }
@@ -1378,6 +1407,13 @@ class okx extends okx$1 {
         for (let i = 0; i < data.length; i++) {
             const rawPosition = data[i];
             const position = this.parsePosition(rawPosition);
+            if (position['contracts'] === 0) {
+                position['side'] = 'long';
+                const shortPosition = this.clone(position);
+                shortPosition['side'] = 'short';
+                cache.append(shortPosition);
+                newPositions.push(shortPosition);
+            }
             newPositions.push(position);
             cache.append(position);
         }
@@ -1637,7 +1673,7 @@ class okx extends okx$1 {
         await this.loadMarkets();
         await this.authenticate();
         const url = this.getUrl('private', 'private');
-        const messageHash = this.nonce().toString();
+        const messageHash = this.milliseconds().toString();
         let op = undefined;
         [op, params] = this.handleOptionAndParams(params, 'createOrderWs', 'op', 'batch-orders');
         const args = this.createOrderRequest(symbol, type, side, amount, price, params);
@@ -1707,7 +1743,7 @@ class okx extends okx$1 {
         await this.loadMarkets();
         await this.authenticate();
         const url = this.getUrl('private', 'private');
-        const messageHash = this.nonce().toString();
+        const messageHash = this.milliseconds().toString();
         let op = undefined;
         [op, params] = this.handleOptionAndParams(params, 'editOrderWs', 'op', 'amend-order');
         const args = this.editOrderRequest(id, symbol, type, side, amount, price, params);
@@ -1736,7 +1772,7 @@ class okx extends okx$1 {
         await this.loadMarkets();
         await this.authenticate();
         const url = this.getUrl('private', 'private');
-        const messageHash = this.nonce().toString();
+        const messageHash = this.milliseconds().toString();
         const clientOrderId = this.safeString2(params, 'clOrdId', 'clientOrderId');
         params = this.omit(params, ['clientOrderId', 'clOrdId']);
         const arg = {
@@ -1776,7 +1812,7 @@ class okx extends okx$1 {
         await this.loadMarkets();
         await this.authenticate();
         const url = this.getUrl('private', 'private');
-        const messageHash = this.nonce().toString();
+        const messageHash = this.milliseconds().toString();
         const args = [];
         for (let i = 0; i < idsLength; i++) {
             const arg = {
@@ -1812,7 +1848,7 @@ class okx extends okx$1 {
             throw new errors.BadRequest(this.id + 'cancelAllOrdersWs is only applicable to Option in Portfolio Margin mode, and MMP privilege is required.');
         }
         const url = this.getUrl('private', 'private');
-        const messageHash = this.nonce().toString();
+        const messageHash = this.milliseconds().toString();
         const request = {
             'id': messageHash,
             'op': 'mass-cancel',
@@ -1883,6 +1919,13 @@ class okx extends okx$1 {
             }
         }
         catch (e) {
+            // if the message contains an id, it means it is a response to a request
+            // so we only reject that promise, instead of deleting all futures, destroying the authentication future
+            const id = this.safeString(message, 'id');
+            if (id !== undefined) {
+                client.reject(e, id);
+                return false;
+            }
             client.reject(e);
             return false;
         }

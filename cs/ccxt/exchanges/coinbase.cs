@@ -247,8 +247,8 @@ public partial class coinbase : Exchange
             } },
             { "fees", new Dictionary<string, object>() {
                 { "trading", new Dictionary<string, object>() {
-                    { "taker", this.parseNumber("0.006") },
-                    { "maker", this.parseNumber("0.004") },
+                    { "taker", this.parseNumber("0.012") },
+                    { "maker", this.parseNumber("0.006") },
                     { "tierBased", true },
                     { "percentage", true },
                     { "tiers", new Dictionary<string, object>() {
@@ -1417,6 +1417,10 @@ public partial class coinbase : Exchange
         object marketType = this.safeStringLower(market, "product_type");
         object tradingDisabled = this.safeBool(market, "trading_disabled");
         object stablePairs = this.safeList(this.options, "stablePairs", new List<object>() {});
+        object defaultTakerFee = this.safeNumber(getValue(this.fees, "trading"), "taker");
+        object defaultMakerFee = this.safeNumber(getValue(this.fees, "trading"), "maker");
+        object takerFee = ((bool) isTrue(this.inArray(id, stablePairs))) ? 0.00001 : this.safeNumber(feeTier, "taker_fee_rate", defaultTakerFee);
+        object makerFee = ((bool) isTrue(this.inArray(id, stablePairs))) ? 0 : this.safeNumber(feeTier, "maker_fee_rate", defaultMakerFee);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", add(add(bs, "/"), quote) },
@@ -1436,8 +1440,8 @@ public partial class coinbase : Exchange
             { "contract", false },
             { "linear", null },
             { "inverse", null },
-            { "taker", ((bool) isTrue(this.inArray(id, stablePairs))) ? 0.00001 : this.safeNumber(feeTier, "taker_fee_rate") },
-            { "maker", ((bool) isTrue(this.inArray(id, stablePairs))) ? 0 : this.safeNumber(feeTier, "maker_fee_rate") },
+            { "taker", takerFee },
+            { "maker", makerFee },
             { "contractSize", null },
             { "expiry", null },
             { "expiryDatetime", null },

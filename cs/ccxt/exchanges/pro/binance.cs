@@ -207,7 +207,7 @@ public partial class binance : ccxt.binance
         * @returns {object} an array of [liquidation structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        return this.watchLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
+        return await this.watchLiquidationsForSymbols(new List<object>() {symbol}, since, limit, parameters);
     }
 
     public async override Task<object> watchLiquidationsForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
@@ -239,7 +239,7 @@ public partial class binance : ccxt.binance
             for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object market = this.market(getValue(symbols, i));
-                ((IList<object>)subscriptionHashes).Add(add(getValue(market, "id"), "@forceOrder"));
+                ((IList<object>)subscriptionHashes).Add(add(getValue(market, "lowercaseId"), "@forceOrder"));
                 ((IList<object>)messageHashes).Add(add("liquidations::", getValue(symbols, i)));
             }
             streamHash = add(streamHash, add("::", String.Join(",", ((IList<object>)symbols).ToArray())));
@@ -576,6 +576,12 @@ public partial class binance : ccxt.binance
         /**
         * @method
         * @name binance#watchOrderBook
+        * @see https://binance-docs.github.io/apidocs/spot/en/#partial-book-depth-streams
+        * @see https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream
+        * @see https://binance-docs.github.io/apidocs/futures/en/#partial-book-depth-streams
+        * @see https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#partial-book-depth-streams
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
@@ -628,6 +634,12 @@ public partial class binance : ccxt.binance
         /**
         * @method
         * @name binance#watchOrderBookForSymbols
+        * @see https://binance-docs.github.io/apidocs/spot/en/#partial-book-depth-streams
+        * @see https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream
+        * @see https://binance-docs.github.io/apidocs/futures/en/#partial-book-depth-streams
+        * @see https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#partial-book-depth-streams
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
         * @param {string[]} symbols unified array of symbols
         * @param {int} [limit] the maximum amount of order book entries to return
@@ -1030,10 +1042,15 @@ public partial class binance : ccxt.binance
         * @method
         * @name binance#watchTradesForSymbols
         * @description get the list of most recent trades for a list of symbols
+        * @see https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
+        * @see https://binance-docs.github.io/apidocs/spot/en/#trade-streams
+        * @see https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
         * @param {string[]} symbols unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
         */
         parameters ??= new Dictionary<string, object>();
@@ -1049,8 +1066,11 @@ public partial class binance : ccxt.binance
             }
             streamHash = add(streamHash, add("::", String.Join(",", ((IList<object>)symbols).ToArray())));
         }
-        object options = this.safeValue(this.options, "watchTradesForSymbols", new Dictionary<string, object>() {});
-        object name = this.safeString(options, "name", "trade");
+        object name = null;
+        var nameparametersVariable = this.handleOptionAndParams(parameters, "watchTradesForSymbols", "name", "trade");
+        name = ((IList<object>)nameparametersVariable)[0];
+        parameters = ((IList<object>)nameparametersVariable)[1];
+        parameters = this.omit(parameters, "callerMethodName");
         object firstMarket = this.market(getValue(symbols, 0));
         object type = getValue(firstMarket, "type");
         if (isTrue(getValue(firstMarket, "contract")))
@@ -1095,13 +1115,19 @@ public partial class binance : ccxt.binance
         * @method
         * @name binance#watchTrades
         * @description get the list of most recent trades for a particular symbol
+        * @see https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
+        * @see https://binance-docs.github.io/apidocs/spot/en/#trade-streams
+        * @see https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
         * @param {int} [limit] the maximum amount of trades to fetch
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
         */
         parameters ??= new Dictionary<string, object>();
+        ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchTrades";
         return await this.watchTradesForSymbols(new List<object>() {symbol}, since, limit, parameters);
     }
 
@@ -1304,15 +1330,22 @@ public partial class binance : ccxt.binance
         * @method
         * @name binance#watchOHLCV
         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+        * @see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
         * @param {string} timeframe the length of time each candle represents
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
         * @param {int} [limit] the maximum amount of candles to fetch
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
         */
         timeframe ??= "1m";
         parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        symbol = getValue(market, "symbol");
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOHLCV";
         object result = await this.watchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframe}}, since, limit, parameters);
         return getValue(getValue(result, symbol), timeframe);
@@ -1324,10 +1357,14 @@ public partial class binance : ccxt.binance
         * @method
         * @name binance#watchOHLCVForSymbols
         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+        * @see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
         * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
         * @param {int} [limit] the maximum amount of candles to fetch
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
         */
         parameters ??= new Dictionary<string, object>();
@@ -1344,6 +1381,12 @@ public partial class binance : ccxt.binance
         {
             type = ((bool) isTrue(getValue(firstMarket, "linear"))) ? "future" : "delivery";
         }
+        object isSpot = (isEqual(type, "spot"));
+        object timezone = null;
+        var timezoneparametersVariable = this.handleParamString(parameters, "timezone", null);
+        timezone = ((IList<object>)timezoneparametersVariable)[0];
+        parameters = ((IList<object>)timezoneparametersVariable)[1];
+        object isUtc8 = isTrue((!isEqual(timezone, null))) && isTrue((isTrue((isEqual(timezone, "+08:00"))) || isTrue(Precise.stringEq(timezone, "8"))));
         object rawHashes = new List<object>() {};
         object messageHashes = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
@@ -1359,8 +1402,11 @@ public partial class binance : ccxt.binance
                 // weird behavior for index price kline we can't use the perp suffix
                 marketId = ((string)marketId).Replace((string)"_perp", (string)"");
             }
-            ((IList<object>)rawHashes).Add(add(add(add(add(marketId, "@"), klineType), "_"), interval));
-            ((IList<object>)messageHashes).Add(add(add(add("ohlcv::", symbolString), "::"), timeframeString));
+            object shouldUseUTC8 = (isTrue(isUtc8) && isTrue(isSpot));
+            object suffix = "@+08:00";
+            object utcSuffix = ((bool) isTrue(shouldUseUTC8)) ? suffix : "";
+            ((IList<object>)rawHashes).Add(add(add(add(add(add(marketId, "@"), klineType), "_"), interval), utcSuffix));
+            ((IList<object>)messageHashes).Add(add(add(add("ohlcv::", getValue(market, "symbol")), "::"), timeframeString));
         }
         object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/"), this.stream(type, "multipleOHLCV"));
         object requestId = this.requestId(url);
@@ -1372,6 +1418,7 @@ public partial class binance : ccxt.binance
         object subscribe = new Dictionary<string, object>() {
             { "id", requestId },
         };
+        parameters = this.omit(parameters, "callerMethodName");
         var symboltimeframecandlesVariable = await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscribe);
         var symbol = ((IList<object>) symboltimeframecandlesVariable)[0];
         var timeframe = ((IList<object>) symboltimeframecandlesVariable)[1];
@@ -1603,6 +1650,12 @@ public partial class binance : ccxt.binance
         /**
         * @method
         * @name binance#watchTicker
+        * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-mini-ticker-stream
+        * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-ticker-streams
+        * @see https://binance-docs.github.io/apidocs/futures/en/#all-market-mini-tickers-stream
+        * @see https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-ticker-streams
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#all-market-mini-tickers-stream
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-ticker-streams
         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         * @param {string} symbol unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1623,6 +1676,12 @@ public partial class binance : ccxt.binance
         /**
         * @method
         * @name binance#watchTickers
+        * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-mini-ticker-stream
+        * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-ticker-streams
+        * @see https://binance-docs.github.io/apidocs/futures/en/#all-market-mini-tickers-stream
+        * @see https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-ticker-streams
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#all-market-mini-tickers-stream
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-ticker-streams
         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1659,6 +1718,8 @@ public partial class binance : ccxt.binance
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
         */
         parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, true, false, true);
         object result = await this.watchMultiTickerHelper("watchBidsAsks", "bookTicker", symbols, parameters);
         if (isTrue(this.newUpdates))
         {
@@ -2267,7 +2328,7 @@ public partial class binance : ccxt.binance
         * @param {string|undefined} [params.type] 'future', 'delivery', 'savings', 'funding', or 'spot'
         * @param {string|undefined} [params.marginMode] 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
         * @param {string[]|undefined} [params.symbols] unified market symbols, only used in isolated margin mode
-        * @param {string|undefined} [params.method] method to use. Can be account.balance or account.status
+        * @param {string|undefined} [params.method] method to use. Can be account.balance, account.status, v2/account.balance or v2/account.status
         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -2307,8 +2368,17 @@ public partial class binance : ccxt.binance
         //
         //
         object messageHash = this.safeString(message, "id");
-        object result = this.safeDict(message, "result", new Dictionary<string, object>() {});
-        object rawBalance = this.safeList(result, 0, new List<object>() {});
+        object rawBalance = null;
+        if (isTrue(((getValue(message, "result") is IList<object>) || (getValue(message, "result").GetType().IsGenericType && getValue(message, "result").GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            // account.balance
+            rawBalance = this.safeList(message, "result", new List<object>() {});
+        } else
+        {
+            // account.status
+            object result = this.safeDict(message, "result", new Dictionary<string, object>() {});
+            rawBalance = this.safeList(result, "assets", new List<object>() {});
+        }
         object parsedBalances = this.parseBalanceCustom(rawBalance);
         callDynamically(client as WebSocketClient, "resolve", new object[] {parsedBalances, messageHash});
     }
@@ -2392,6 +2462,7 @@ public partial class binance : ccxt.binance
         * @param {string[]} [symbols] list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.returnRateLimits] set to true to return rate limit informations, defaults to false.
+        * @param {string|undefined} [params.method] method to use. Can be account.position or v2/account.position
         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -2414,9 +2485,13 @@ public partial class binance : ccxt.binance
         returnRateLimits = ((IList<object>)returnRateLimitsparametersVariable)[0];
         parameters = ((IList<object>)returnRateLimitsparametersVariable)[1];
         ((IDictionary<string,object>)payload)["returnRateLimits"] = returnRateLimits;
+        object method = null;
+        var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchPositionsWs", "method", "account.position");
+        method = ((IList<object>)methodparametersVariable)[0];
+        parameters = ((IList<object>)methodparametersVariable)[1];
         object message = new Dictionary<string, object>() {
             { "id", messageHash },
-            { "method", "account.position" },
+            { "method", method },
             { "params", this.signParams(this.extend(payload, parameters)) },
         };
         object subscription = new Dictionary<string, object>() {
@@ -3648,7 +3723,7 @@ public partial class binance : ccxt.binance
         this.setBalanceCache(client as WebSocketClient, type, isPortfolioMargin);
         this.setPositionsCache(client as WebSocketClient, type, symbols, isPortfolioMargin);
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-        object awaitPositionsSnapshot = this.safeBool("watchPositions", "awaitPositionsSnapshot", true);
+        object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
         object cache = this.safeValue(this.positions, type);
         if (isTrue(isTrue(isTrue(fetchPositionsSnapshot) && isTrue(awaitPositionsSnapshot)) && isTrue(isEqual(cache, null))))
         {

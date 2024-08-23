@@ -270,8 +270,8 @@ export default class coinbase extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'taker': this.parseNumber('0.006'),
-                    'maker': this.parseNumber('0.004'),
+                    'taker': this.parseNumber('0.012'),
+                    'maker': this.parseNumber('0.006'),
                     'tierBased': true,
                     'percentage': true,
                     'tiers': {
@@ -1376,6 +1376,10 @@ export default class coinbase extends Exchange {
         const marketType = this.safeStringLower(market, 'product_type');
         const tradingDisabled = this.safeBool(market, 'trading_disabled');
         const stablePairs = this.safeList(this.options, 'stablePairs', []);
+        const defaultTakerFee = this.safeNumber(this.fees['trading'], 'taker');
+        const defaultMakerFee = this.safeNumber(this.fees['trading'], 'maker');
+        const takerFee = this.inArray(id, stablePairs) ? 0.00001 : this.safeNumber(feeTier, 'taker_fee_rate', defaultTakerFee);
+        const makerFee = this.inArray(id, stablePairs) ? 0.0 : this.safeNumber(feeTier, 'maker_fee_rate', defaultMakerFee);
         return this.safeMarketStructure({
             'id': id,
             'symbol': base + '/' + quote,
@@ -1395,8 +1399,8 @@ export default class coinbase extends Exchange {
             'contract': false,
             'linear': undefined,
             'inverse': undefined,
-            'taker': this.inArray(id, stablePairs) ? 0.00001 : this.safeNumber(feeTier, 'taker_fee_rate'),
-            'maker': this.inArray(id, stablePairs) ? 0.0 : this.safeNumber(feeTier, 'maker_fee_rate'),
+            'taker': takerFee,
+            'maker': makerFee,
             'contractSize': undefined,
             'expiry': undefined,
             'expiryDatetime': undefined,

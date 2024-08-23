@@ -38,6 +38,7 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , shouldCreateResponseReport = process.argv.includes ('--response')
     , shouldCreateBoth = process.argv.includes ('--static')
     , raw = process.argv.includes ('--raw')
+    , noKeys = process.argv.includes ('--no-keys')
 
 //-----------------------------------------------------------------------------
 if (!raw) {
@@ -107,17 +108,19 @@ try {
         exchange.options['defaultType'] = 'option';
     }
 
-    // check auth keys in env var
-    const requiredCredentials = exchange.requiredCredentials;
-    for (const [credential, isRequired] of Object.entries (requiredCredentials)) {
-        if (isRequired && exchange[credential] === undefined) {
-            const credentialEnvName = (exchangeId + '_' + credential).toUpperCase () // example: KRAKEN_APIKEY
-            let credentialValue = process.env[credentialEnvName]
-            if (credentialValue) {
-                if (credentialValue.indexOf('---BEGIN') > -1) {
-                    credentialValue = credentialValue.replaceAll('\\n', '\n');
+    if (!noKeys) {
+        // check auth keys in env var
+        const requiredCredentials = exchange.requiredCredentials;
+        for (const [credential, isRequired] of Object.entries (requiredCredentials)) {
+            if (isRequired && exchange[credential] === undefined) {
+                const credentialEnvName = (exchangeId + '_' + credential).toUpperCase () // example: KRAKEN_APIKEY
+                let credentialValue = process.env[credentialEnvName]
+                if (credentialValue) {
+                    if (credentialValue.indexOf('---BEGIN') > -1) {
+                        credentialValue = credentialValue.replaceAll('\\n', '\n');
+                    }
+                    exchange[credential] = credentialValue
                 }
-                exchange[credential] = credentialValue
             }
         }
     }
@@ -374,10 +377,14 @@ async function run () {
                     }
 
                     if (debug) {
-                        const keys = Object.keys (httpsAgent.freeSockets)
-                        const firstKey = keys[0]
-                        let httpAgent = httpsAgent.freeSockets[firstKey];
-                        log (firstKey, httpAgent.length)
+                        if (httpsAgent.freeSockets) {
+                            const keys = Object.keys (httpsAgent.freeSockets)
+                            if (keys.length) {
+                                const firstKey = keys[0]
+                                let httpAgent = httpsAgent.freeSockets[firstKey];
+                                log (firstKey, httpAgent.length)
+                            }
+                        }
                     }
 
                     if (!poll && !isWsMethod){

@@ -1270,6 +1270,7 @@ public partial class bitget : Exchange
                 { "JADE", "Jade Protocol" },
                 { "DEGEN", "DegenReborn" },
                 { "TONCOIN", "TON" },
+                { "OMNI", "omni" },
             } },
             { "options", new Dictionary<string, object>() {
                 { "timeframes", new Dictionary<string, object>() {
@@ -5514,9 +5515,12 @@ public partial class bitget : Exchange
             response = parseJson(response);
         }
         object data = this.safeDict(response, "data");
-        if (isTrue(isTrue((!isEqual(data, null))) && !isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        if (isTrue((!isEqual(data, null))))
         {
-            return this.parseOrder(data, market);
+            if (!isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+            {
+                return this.parseOrder(data, market);
+            }
         }
         object dataList = this.safeList(response, "data", new List<object>() {});
         object first = this.safeDict(dataList, 0, new Dictionary<string, object>() {});

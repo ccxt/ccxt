@@ -204,7 +204,7 @@ class binance(ccxt.async_support.binance):
         :param dict [params]: exchange specific parameters for the bitmex api endpoint
         :returns dict: an array of `liquidation structures <https://github.com/ccxt/ccxt/wiki/Manual#liquidation-structure>`
         """
-        return self.watch_liquidations_for_symbols([symbol], since, limit, params)
+        return await self.watch_liquidations_for_symbols([symbol], since, limit, params)
 
     async def watch_liquidations_for_symbols(self, symbols: List[str] = None, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
         """
@@ -228,7 +228,7 @@ class binance(ccxt.async_support.binance):
         else:
             for i in range(0, len(symbols)):
                 market = self.market(symbols[i])
-                subscriptionHashes.append(market['id'] + '@forceOrder')
+                subscriptionHashes.append(market['lowercaseId'] + '@forceOrder')
                 messageHashes.append('liquidations::' + symbols[i])
             streamHash += '::' + ','.join(symbols)
         firstMarket = self.get_market_from_symbols(symbols)
@@ -513,6 +513,12 @@ class binance(ccxt.async_support.binance):
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
+        :see: https://binance-docs.github.io/apidocs/spot/en/#partial-book-depth-streams
+        :see: https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream
+        :see: https://binance-docs.github.io/apidocs/futures/en/#partial-book-depth-streams
+        :see: https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#partial-book-depth-streams
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
@@ -560,6 +566,12 @@ class binance(ccxt.async_support.binance):
 
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
+        :see: https://binance-docs.github.io/apidocs/spot/en/#partial-book-depth-streams
+        :see: https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream
+        :see: https://binance-docs.github.io/apidocs/futures/en/#partial-book-depth-streams
+        :see: https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#partial-book-depth-streams
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str[] symbols: unified array of symbols
         :param int [limit]: the maximum amount of order book entries to return
@@ -864,10 +876,15 @@ class binance(ccxt.async_support.binance):
     async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a list of symbols
+        :see: https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
+        :see: https://binance-docs.github.io/apidocs/spot/en/#trade-streams
+        :see: https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
         :param str[] symbols: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.name]: the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
         await self.load_markets()
@@ -878,8 +895,9 @@ class binance(ccxt.async_support.binance):
             if symbolsLength > 200:
                 raise BadRequest(self.id + ' watchTradesForSymbols() accepts 200 symbols at most. To watch more symbols call watchTradesForSymbols() multiple times')
             streamHash += '::' + ','.join(symbols)
-        options = self.safe_value(self.options, 'watchTradesForSymbols', {})
-        name = self.safe_string(options, 'name', 'trade')
+        name = None
+        name, params = self.handle_option_and_params(params, 'watchTradesForSymbols', 'name', 'trade')
+        params = self.omit(params, 'callerMethodName')
         firstMarket = self.market(symbols[0])
         type = firstMarket['type']
         if firstMarket['contract']:
@@ -914,12 +932,18 @@ class binance(ccxt.async_support.binance):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         get the list of most recent trades for a particular symbol
+        :see: https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
+        :see: https://binance-docs.github.io/apidocs/spot/en/#trade-streams
+        :see: https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
         :param str symbol: unified symbol of the market to fetch trades for
         :param int [since]: timestamp in ms of the earliest trade to fetch
         :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.name]: the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
+        params['callerMethodName'] = 'watchTrades'
         return await self.watch_trades_for_symbols([symbol], since, limit, params)
 
     def parse_ws_trade(self, trade, market=None) -> Trade:
@@ -1098,13 +1122,20 @@ class binance(ccxt.async_support.binance):
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :see: https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+        :see: https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param dict [params.timezone]: if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
+        await self.load_markets()
+        market = self.market(symbol)
+        symbol = market['symbol']
         params['callerMethodName'] = 'watchOHLCV'
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, params)
         return result[symbol][timeframe]
@@ -1112,10 +1143,14 @@ class binance(ccxt.async_support.binance):
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Int = None, limit: Int = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :see: https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+        :see: https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param dict [params.timezone]: if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
         :returns int[][]: A list of candles ordered, open, high, low, close, volume
         """
         await self.load_markets()
@@ -1127,6 +1162,10 @@ class binance(ccxt.async_support.binance):
         type = firstMarket['type']
         if firstMarket['contract']:
             type = 'future' if firstMarket['linear'] else 'delivery'
+        isSpot = (type == 'spot')
+        timezone = None
+        timezone, params = self.handle_param_string(params, 'timezone', None)
+        isUtc8 = (timezone is not None) and ((timezone == '+08:00') or Precise.string_eq(timezone, '8'))
         rawHashes = []
         messageHashes = []
         for i in range(0, len(symbolsAndTimeframes)):
@@ -1139,8 +1178,11 @@ class binance(ccxt.async_support.binance):
             if klineType == 'indexPriceKline':
                 # weird behavior for index price kline we can't use the perp suffix
                 marketId = marketId.replace('_perp', '')
-            rawHashes.append(marketId + '@' + klineType + '_' + interval)
-            messageHashes.append('ohlcv::' + symbolString + '::' + timeframeString)
+            shouldUseUTC8 = (isUtc8 and isSpot)
+            suffix = '@+08:00'
+            utcSuffix = suffix if shouldUseUTC8 else ''
+            rawHashes.append(marketId + '@' + klineType + '_' + interval + utcSuffix)
+            messageHashes.append('ohlcv::' + market['symbol'] + '::' + timeframeString)
         url = self.urls['api']['ws'][type] + '/' + self.stream(type, 'multipleOHLCV')
         requestId = self.request_id(url)
         request = {
@@ -1151,6 +1193,7 @@ class binance(ccxt.async_support.binance):
         subscribe = {
             'id': requestId,
         }
+        params = self.omit(params, 'callerMethodName')
         symbol, timeframe, candles = await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes, subscribe)
         if self.newUpdates:
             limit = candles.getLimit(symbol, limit)
@@ -1345,6 +1388,12 @@ class binance(ccxt.async_support.binance):
 
     async def watch_ticker(self, symbol: str, params={}) -> Ticker:
         """
+        :see: https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-mini-ticker-stream
+        :see: https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-ticker-streams
+        :see: https://binance-docs.github.io/apidocs/futures/en/#all-market-mini-tickers-stream
+        :see: https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-ticker-streams
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#all-market-mini-tickers-stream
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-ticker-streams
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1358,6 +1407,12 @@ class binance(ccxt.async_support.binance):
 
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
+        :see: https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-mini-ticker-stream
+        :see: https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-ticker-streams
+        :see: https://binance-docs.github.io/apidocs/futures/en/#all-market-mini-tickers-stream
+        :see: https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-ticker-streams
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#all-market-mini-tickers-stream
+        :see: https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-ticker-streams
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -1382,6 +1437,8 @@ class binance(ccxt.async_support.binance):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, True, False, True)
         result = await self.watch_multi_ticker_helper('watchBidsAsks', 'bookTicker', symbols, params)
         if self.newUpdates:
             return result
@@ -1836,7 +1893,7 @@ class binance(ccxt.async_support.binance):
         :param str|None [params.type]: 'future', 'delivery', 'savings', 'funding', or 'spot'
         :param str|None [params.marginMode]: 'cross' or 'isolated', for margin trading, uses self.options.defaultMarginMode if not passed, defaults to None/None/None
         :param str[]|None [params.symbols]: unified market symbols, only used in isolated margin mode
-        :param str|None [params.method]: method to use. Can be account.balance or account.status
+        :param str|None [params.method]: method to use. Can be account.balance, account.status, v2/account.balance or v2/account.status
         :returns dict: a `balance structure <https://docs.ccxt.com/#/?id=balance-structure>`
         """
         await self.load_markets()
@@ -1867,8 +1924,14 @@ class binance(ccxt.async_support.binance):
         #
         #
         messageHash = self.safe_string(message, 'id')
-        result = self.safe_dict(message, 'result', {})
-        rawBalance = self.safe_list(result, 0, [])
+        rawBalance = None
+        if isinstance(message['result'], list):
+            # account.balance
+            rawBalance = self.safe_list(message, 'result', [])
+        else:
+            # account.status
+            result = self.safe_dict(message, 'result', {})
+            rawBalance = self.safe_list(result, 'assets', [])
         parsedBalances = self.parseBalanceCustom(rawBalance)
         client.resolve(parsedBalances, messageHash)
 
@@ -1941,6 +2004,7 @@ class binance(ccxt.async_support.binance):
         :param str[] [symbols]: list of unified market symbols
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.returnRateLimits]: set to True to return rate limit informations, defaults to False.
+        :param str|None [params.method]: method to use. Can be account.position or v2/account.position
         :returns dict[]: a list of `position structure <https://docs.ccxt.com/#/?id=position-structure>`
         """
         await self.load_markets()
@@ -1956,9 +2020,11 @@ class binance(ccxt.async_support.binance):
         returnRateLimits = False
         returnRateLimits, params = self.handle_option_and_params(params, 'fetchPositionsWs', 'returnRateLimits', False)
         payload['returnRateLimits'] = returnRateLimits
+        method = None
+        method, params = self.handle_option_and_params(params, 'fetchPositionsWs', 'method', 'account.position')
         message: dict = {
             'id': messageHash,
-            'method': 'account.position',
+            'method': method,
             'params': self.sign_params(self.extend(payload, params)),
         }
         subscription: dict = {
@@ -2977,7 +3043,7 @@ class binance(ccxt.async_support.binance):
         self.set_balance_cache(client, type, isPortfolioMargin)
         self.set_positions_cache(client, type, symbols, isPortfolioMargin)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
-        awaitPositionsSnapshot = self.safe_bool('watchPositions', 'awaitPositionsSnapshot', True)
+        awaitPositionsSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
         cache = self.safe_value(self.positions, type)
         if fetchPositionsSnapshot and awaitPositionsSnapshot and cache is None:
             snapshot = await client.future(type + ':fetchPositionsSnapshot')

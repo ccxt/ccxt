@@ -263,8 +263,8 @@ class coinbase extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'taker' => $this->parse_number('0.006'),
-                    'maker' => $this->parse_number('0.004'),
+                    'taker' => $this->parse_number('0.012'),
+                    'maker' => $this->parse_number('0.006'), // array("pricing_tier":"Advanced 1","usd_from":"0","usd_to":"1000","taker_fee_rate":"0.012","maker_fee_rate":"0.006","aop_from":"","aop_to":"")
                     'tierBased' => true,
                     'percentage' => true,
                     'tiers' => array(
@@ -1362,6 +1362,10 @@ class coinbase extends Exchange {
         $marketType = $this->safe_string_lower($market, 'product_type');
         $tradingDisabled = $this->safe_bool($market, 'trading_disabled');
         $stablePairs = $this->safe_list($this->options, 'stablePairs', array());
+        $defaultTakerFee = $this->safe_number($this->fees['trading'], 'taker');
+        $defaultMakerFee = $this->safe_number($this->fees['trading'], 'maker');
+        $takerFee = $this->in_array($id, $stablePairs) ? 0.00001 : $this->safe_number($feeTier, 'taker_fee_rate', $defaultTakerFee);
+        $makerFee = $this->in_array($id, $stablePairs) ? 0.0 : $this->safe_number($feeTier, 'maker_fee_rate', $defaultMakerFee);
         return $this->safe_market_structure(array(
             'id' => $id,
             'symbol' => $base . '/' . $quote,
@@ -1381,8 +1385,8 @@ class coinbase extends Exchange {
             'contract' => false,
             'linear' => null,
             'inverse' => null,
-            'taker' => $this->in_array($id, $stablePairs) ? 0.00001 : $this->safe_number($feeTier, 'taker_fee_rate'),
-            'maker' => $this->in_array($id, $stablePairs) ? 0.0 : $this->safe_number($feeTier, 'maker_fee_rate'),
+            'taker' => $takerFee,
+            'maker' => $makerFee,
             'contractSize' => null,
             'expiry' => null,
             'expiryDatetime' => null,

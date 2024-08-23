@@ -673,6 +673,9 @@ class woofipro(Exchange, ImplicitAPI):
         amount = self.safe_string(trade, 'executed_quantity')
         order_id = self.safe_string(trade, 'order_id')
         fee = self.parse_token_and_fee_temp(trade, 'fee_asset', 'fee')
+        feeCost = self.safe_string(fee, 'cost')
+        if feeCost is not None:
+            fee['cost'] = feeCost
         cost = Precise.string_mul(price, amount)
         side = self.safe_string_lower(trade, 'side')
         id = self.safe_string(trade, 'id')

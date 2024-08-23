@@ -3,7 +3,7 @@
 import hyperliquidRest from '../hyperliquid.js';
 import { ExchangeError } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
-import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict } from '../base/types.js';
+import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
@@ -13,13 +13,16 @@ export default class hyperliquid extends hyperliquidRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
+                'createOrderWs': true,
+                'createOrdersWs': true,
+                'editOrderWs': true,
                 'watchBalance': false,
                 'watchMyTrades': true,
                 'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchOrders': true,
                 'watchTicker': false,
-                'watchTickers': false,
+                'watchTickers': true,
                 'watchTrades': true,
                 'watchPosition': false,
             },
@@ -48,6 +51,93 @@ export default class hyperliquid extends hyperliquidRest {
                 },
             },
         });
+    }
+
+    async createOrdersWs (orders: OrderRequest[], params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#createOrdersWs
+         * @description create a list of trade orders using WebSocket post request
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const url = this.urls['api']['ws']['public'];
+        const ordersRequest = this.createOrdersRequest (orders, params);
+        const wrapped = this.wrapAsPostAction (ordersRequest);
+        const request = this.safeDict (wrapped, 'request', {});
+        const requestId = this.safeString (wrapped, 'requestId');
+        const response = await this.watch (url, requestId, request, requestId);
+        const responseOjb = this.safeDict (response, 'response', {});
+        const data = this.safeDict (responseOjb, 'data', {});
+        const statuses = this.safeList (data, 'statuses', []);
+        return this.parseOrders (statuses, undefined);
+    }
+
+    async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#createOrder
+         * @description create a trade order using WebSocket post request
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.timeInForce] 'Gtc', 'Ioc', 'Alo'
+         * @param {bool} [params.postOnly] true or false whether the order is post-only
+         * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+         * @param {string} [params.slippage] the slippage for market order
+         * @param {string} [params.vaultAddress] the vault address for order
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const [ order, globalParams ] = this.parseCreateOrderArgs (symbol, type, side, amount, price, params);
+        const orders = await this.createOrdersWs ([ order as any ], globalParams);
+        return orders[0];
+    }
+
+    async editOrderWs (id: string, symbol: string, type: string, side: string, amount: Num = undefined, price: Num = undefined, params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#editOrder
+         * @description edit a trade order
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
+         * @param {string} id cancel order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.timeInForce] 'Gtc', 'Ioc', 'Alo'
+         * @param {bool} [params.postOnly] true or false whether the order is post-only
+         * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+         * @param {string} [params.vaultAddress] the vault address for order
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const url = this.urls['api']['ws']['public'];
+        const postRequest = this.editOrderRequest (id, symbol, type, side, amount, price, params);
+        const wrapped = this.wrapAsPostAction (postRequest);
+        const request = this.safeDict (wrapped, 'request', {});
+        const requestId = this.safeString (wrapped, 'requestId');
+        const response = await this.watch (url, requestId, request, requestId);
+        // response is the same as in this.editOrder
+        const responseObject = this.safeDict (response, 'response', {});
+        const dataObject = this.safeDict (responseObject, 'data', {});
+        const statuses = this.safeList (dataObject, 'statuses', []);
+        const first = this.safeDict (statuses, 0, {});
+        return this.parseOrder (first, market);
     }
 
     async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -125,6 +215,33 @@ export default class hyperliquid extends hyperliquidRest {
         client.resolve (orderbook, messageHash);
     }
 
+    async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name hyperliquid#watchTickers
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true);
+        const messageHash = 'tickers';
+        const url = this.urls['api']['ws']['public'];
+        const request: Dict = {
+            'method': 'subscribe',
+            'subscription': {
+                'type': 'webData2', // allMids
+                'user': '0x0000000000000000000000000000000000000000',
+            },
+        };
+        const tickers = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        if (this.newUpdates) {
+            return this.filterByArrayTickers (tickers, 'symbol', symbols);
+        }
+        return this.tickers;
+    }
+
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
@@ -159,6 +276,86 @@ export default class hyperliquid extends hyperliquidRest {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    handleWsTickers (client: Client, message) {
+        //
+        //     {
+        //         "channel": "webData2",
+        //         "data": {
+        //             "meta": {
+        //                 "universe": [
+        //                     {
+        //                         "szDecimals": 5,
+        //                         "name": "BTC",
+        //                         "maxLeverage": 50,
+        //                         "onlyIsolated": false
+        //                     },
+        //                     ...
+        //                 ],
+        //             },
+        //             "assetCtxs": [
+        //                 {
+        //                     "funding": "0.00003005",
+        //                     "openInterest": "2311.50778",
+        //                     "prevDayPx": "63475.0",
+        //                     "dayNtlVlm": "468043329.64289033",
+        //                     "premium": "0.00094264",
+        //                     "oraclePx": "64712.0",
+        //                     "markPx": "64774.0",
+        //                     "midPx": "64773.5",
+        //                     "impactPxs": [
+        //                         "64773.0",
+        //                         "64774.0"
+        //                     ]
+        //                 },
+        //                 ...
+        //             ],
+        //             "spotAssetCtxs": [
+        //                 {
+        //                     "prevDayPx": "0.20937",
+        //                     "dayNtlVlm": "11188888.61984999",
+        //                     "markPx": "0.19722",
+        //                     "midPx": "0.197145",
+        //                     "circulatingSupply": "598760557.12072003",
+        //                     "coin": "PURR/USDC"
+        //                 },
+        //                 ...
+        //             ],
+        //         }
+        //     }
+        //
+        // spot
+        const rawData = this.safeDict (message, 'data', {});
+        const spotAssets = this.safeList (rawData, 'spotAssetCtxs', []);
+        const parsedTickers = [];
+        for (let i = 0; i < spotAssets.length; i++) {
+            const assetObject = spotAssets[i];
+            const marketId = this.safeString (assetObject, 'coin');
+            const market = this.safeMarket (marketId, undefined, undefined, 'spot');
+            const ticker = this.parseWsTicker (assetObject, market);
+            parsedTickers.push (ticker);
+        }
+        // perpetuals
+        const meta = this.safeDict (rawData, 'meta', {});
+        const universe = this.safeList (meta, 'universe', []);
+        const assetCtxs = this.safeList (rawData, 'assetCtxs', []);
+        for (let i = 0; i < universe.length; i++) {
+            const data = this.extend (
+                this.safeDict (universe, i, {}),
+                this.safeDict (assetCtxs, i, {})
+            );
+            const id = data['name'] + '/USDC:USDC';
+            const market = this.safeMarket (id, undefined, undefined, 'swap');
+            const ticker = this.parseWsTicker (data, market);
+            parsedTickers.push (ticker);
+        }
+        const tickers = this.indexBy (parsedTickers, 'symbol');
+        client.resolve (tickers, 'tickers');
+    }
+
+    parseWsTicker (rawTicker, market: Market = undefined): Ticker {
+        return this.parseTicker (rawTicker, market);
     }
 
     handleMyTrades (client: Client, message) {
@@ -423,6 +620,23 @@ export default class hyperliquid extends hyperliquidRest {
         client.resolve (ohlcv, messageHash);
     }
 
+    handleWsPost (client: Client, message: any) {
+        //    {
+        //         channel: "post",
+        //         data: {
+        //             id: <number>,
+        //             response: {
+        //                  type: "info" | "action" | "error",
+        //                  payload: { ... }
+        //         }
+        //    }
+        const data = this.safeDict (message, 'data');
+        const id = this.safeString (data, 'id');
+        const response = this.safeDict (data, 'response');
+        const payload = this.safeDict (response, 'payload');
+        client.resolve (payload, id);
+    }
+
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         /**
          * @method
@@ -538,6 +752,8 @@ export default class hyperliquid extends hyperliquidRest {
             'candle': this.handleOHLCV,
             'orderUpdates': this.handleOrder,
             'userFills': this.handleMyTrades,
+            'webData2': this.handleWsTickers,
+            'post': this.handleWsPost,
         };
         const exacMethod = this.safeValue (methods, topic);
         if (exacMethod !== undefined) {
@@ -555,7 +771,7 @@ export default class hyperliquid extends hyperliquidRest {
         }
     }
 
-    ping (client) {
+    ping (client: Client) {
         return {
             'method': 'ping',
         };
@@ -569,5 +785,26 @@ export default class hyperliquid extends hyperliquidRest {
         //
         client.lastPong = this.safeInteger (message, 'pong');
         return message;
+    }
+
+    requestId (): number {
+        const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
+        this.options['requestId'] = requestId;
+        return requestId;
+    }
+
+    wrapAsPostAction (request: Dict): Dict {
+        const requestId = this.requestId ();
+        return {
+            'requestId': requestId,
+            'request': {
+                'method': 'post',
+                'id': requestId,
+                'request': {
+                    'type': 'action',
+                    'payload': request,
+                },
+            },
+        };
     }
 }

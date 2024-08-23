@@ -561,7 +561,7 @@ class cryptocom extends cryptocom$1 {
         const client = this.client(url);
         this.setPositionsCache(client, symbols);
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
-        const awaitPositionsSnapshot = this.safeBool('watchPositions', 'awaitPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.handleOption('watchPositions', 'awaitPositionsSnapshot', true);
         if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
             const snapshot = await client.future('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
@@ -886,6 +886,7 @@ class cryptocom extends cryptocom$1 {
         //        "message": "invalid channel {"channels":["trade.BTCUSD-PERP"]}"
         //    }
         //
+        const id = this.safeString(message, 'id');
         const errorCode = this.safeString(message, 'code');
         try {
             if (errorCode && errorCode !== '0') {
@@ -895,6 +896,7 @@ class cryptocom extends cryptocom$1 {
                 if (messageString !== undefined) {
                     this.throwBroadlyMatchedException(this.exceptions['broad'], messageString, feedback);
                 }
+                throw new errors.ExchangeError(feedback);
             }
             return false;
         }
@@ -907,7 +909,7 @@ class cryptocom extends cryptocom$1 {
                 }
             }
             else {
-                client.reject(e);
+                client.reject(e, id);
             }
             return true;
         }

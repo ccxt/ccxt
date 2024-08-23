@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\NetworkError;
 use ccxt\ChecksumError;
@@ -584,7 +585,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             $client = $this->client($url);
             $this->set_positions_cache($client, $symbols);
             $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
-            $awaitPositionsSnapshot = $this->safe_bool('watchPositions', 'awaitPositionsSnapshot', true);
+            $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
             if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $this->positions === null) {
                 $snapshot = Async\await($client->future ('fetchPositionsSnapshot'));
                 return $this->filter_by_symbols_since_limit($snapshot, $symbols, $since, $limit, true);
@@ -934,6 +935,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         //        "message" => "invalid channel array("channels":["trade.BTCUSD-PERP"])"
         //    }
         //
+        $id = $this->safe_string($message, 'id');
         $errorCode = $this->safe_string($message, 'code');
         try {
             if ($errorCode && $errorCode !== '0') {
@@ -943,6 +945,7 @@ class cryptocom extends \ccxt\async\cryptocom {
                 if ($messageString !== null) {
                     $this->throw_broadly_matched_exception($this->exceptions['broad'], $messageString, $feedback);
                 }
+                throw new ExchangeError($feedback);
             }
             return false;
         } catch (Exception $e) {
@@ -953,7 +956,7 @@ class cryptocom extends \ccxt\async\cryptocom {
                     unset($client->subscriptions[$messageHash]);
                 }
             } else {
-                $client->reject ($e);
+                $client->reject ($e, $id);
             }
             return true;
         }

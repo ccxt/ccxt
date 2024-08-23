@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.64'
+__version__ = '4.3.87'
 
 # -----------------------------------------------------------------------------
 
@@ -59,6 +59,12 @@ from ccxt.static_dependencies.ethereum import abi
 from ccxt.static_dependencies.ethereum import account
 from ccxt.static_dependencies.msgpack import packb
 
+# starknet
+from ccxt.static_dependencies.starknet.ccxt_utils import get_private_key_from_eth_signature
+from ccxt.static_dependencies.starknet.hash.address import compute_address
+from ccxt.static_dependencies.starknet.hash.selector import get_selector_from_name
+from ccxt.static_dependencies.starknet.hash.utils import message_signature, private_to_stark_key
+from ccxt.static_dependencies.starknet.utils.typed_data import TypedData as TypedDataDataclass
 
 # -----------------------------------------------------------------------------
 
@@ -104,11 +110,20 @@ from ccxt.base.types import Int
 
 # -----------------------------------------------------------------------------
 
+class SafeJSONEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Exception):
+            return {"name": obj.__class__.__name__}
+        try:
+            return super().default(obj)
+        except TypeError:
+            return f"TypeError: Object of type {type(obj).__name__} is not JSON serializable"
 
 class Exchange(object):
     """Base exchange class"""
     id = None
     name = None
+    countries = None
     version = None
     certified = False  # if certified by the CCXT dev team
     pro = False  # if it is integrated with CCXT Pro for WebSocket support
@@ -133,12 +148,18 @@ class Exchange(object):
     markets = None
     symbols = None
     codes = None
-    timeframes = None
+    timeframes = {}
+
     fees = {
         'trading': {
-            'percentage': True,  # subclasses should rarely have to redefine this
+            'tierBased': None,
+            'percentage': None,
+            'taker': None,
+            'maker': None,
         },
         'funding': {
+            'tierBased': None,
+            'percentage': None,
             'withdraw': {},
             'deposit': {},
         },
@@ -206,6 +227,7 @@ class Exchange(object):
     twofa = None
     markets_by_id = None
     currencies_by_id = None
+
     precision = None
     exceptions = None
     limits = {
@@ -226,6 +248,7 @@ class Exchange(object):
             'max': None,
         },
     }
+
     httpExceptions = {
         '422': ExchangeError,
         '418': DDoSProtection,
@@ -273,6 +296,8 @@ class Exchange(object):
     accounts = None
     positions = None
 
+    status = None
+
     requiredCredentials = {
         'apiKey': True,
         'secret': True,
@@ -287,117 +312,7 @@ class Exchange(object):
     }
 
     # API method metainfo
-    has = {
-        'publicAPI': True,
-        'privateAPI': True,
-        'CORS': None,
-        'spot': None,
-        'margin': None,
-        'swap': None,
-        'future': None,
-        'option': None,
-        'addMargin': None,
-        'cancelAllOrders': None,
-        'cancelOrder': True,
-        'cancelOrders': None,
-        'createDepositAddress': None,
-        'createLimitOrder': True,
-        'createMarketOrder': True,
-        'createOrder': True,
-        'createPostOnlyOrder': None,
-        'createReduceOnlyOrder': None,
-        'createStopOrder': None,
-        'createStopLimitOrder': None,
-        'createStopMarketOrder': None,
-        'editOrder': 'emulated',
-        'fetchAccounts': None,
-        'fetchBalance': True,
-        'fetchBidsAsks': None,
-        'fetchBorrowInterest': None,
-        'fetchBorrowRate': None,
-        'fetchBorrowRateHistory': None,
-        'fetchBorrowRatesPerSymbol': None,
-        'fetchBorrowRates': None,
-        'fetchCanceledOrders': None,
-        'fetchClosedOrder': None,
-        'fetchClosedOrders': None,
-        'fetchClosedOrdersWs': None,
-        'fetchConvertCurrencies': None,
-        'fetchConvertQuote': None,
-        'fetchConvertTrade': None,
-        'fetchConvertTradeHistory': None,
-        'fetchCrossBorrowRate': None,
-        'fetchCrossBorrowRates': None,
-        'fetchCurrencies': 'emulated',
-        'fetchCurrenciesWs': 'emulated',
-        'fetchDeposit': None,
-        'fetchDepositAddress': None,
-        'fetchDepositAddresses': None,
-        'fetchDepositAddressesByNetwork': None,
-        'fetchDeposits': None,
-        'fetchFundingHistory': None,
-        'fetchFundingRate': None,
-        'fetchFundingRateHistory': None,
-        'fetchFundingRates': None,
-        'fetchIndexOHLCV': None,
-        'fetchLastPrices': None,
-        'fetchL2OrderBook': True,
-        'fetchLedger': None,
-        'fetchLedgerEntry': None,
-        'fetchLeverageTiers': None,
-        'fetchMarketLeverageTiers': None,
-        'fetchMarkets': True,
-        'fetchMarkOHLCV': None,
-        'fetchMyTrades': None,
-        'fetchOHLCV': None,
-        'fetchOpenOrder': None,
-        'fetchOpenOrders': None,
-        'fetchOrder': None,
-        'fetchOrderBook': True,
-        'fetchOrderBooks': None,
-        'fetchOrders': None,
-        'fetchOrderTrades': None,
-        'fetchPermissions': None,
-        'fetchPosition': None,
-        'fetchPositions': None,
-        'fetchPositionsRisk': None,
-        'fetchPremiumIndexOHLCV': None,
-        'fetchStatus': None,
-        'fetchTicker': True,
-        'fetchTickers': None,
-        'fetchTime': None,
-        'fetchTrades': True,
-        'fetchTradingFee': None,
-        'fetchTradingFees': None,
-        'fetchTradingLimits': None,
-        'fetchTransactions': None,
-        'fetchTransfers': None,
-        'fetchWithdrawal': None,
-        'fetchWithdrawals': None,
-        'reduceMargin': None,
-        'setLeverage': None,
-        'setMargin': None,
-        'setMarginMode': None,
-        'setPositionMode': None,
-        'signIn': None,
-        'transfer': None,
-        'withdraw': None,
-        'watchOrderBook': None,
-        'watchOrders': None,
-        'watchMyTrades': None,
-        'watchTickers': None,
-        'watchTicker': None,
-        'watchTrades': None,
-        'watchTradesForSymbols': None,
-        'watchOrderBookForSymbols': None,
-        'watchOHLCVForSymbols': None,
-        'watchBalance': None,
-        'watchLiquidations': None,
-        'watchLiquidationsForSymbols': None,
-        'watchMyLiquidations': None,
-        'watchMyLiquidationsForSymbols': None,
-        'watchOHLCV': None,
-    }
+    has = {}
     precisionMode = DECIMAL_PLACES
     paddingMode = NO_PADDING
     minFundingAddressLength = 1  # used in check_address
@@ -453,6 +368,7 @@ class Exchange(object):
         self.trades = dict() if self.trades is None else self.trades
         self.transactions = dict() if self.transactions is None else self.transactions
         self.ohlcvs = dict() if self.ohlcvs is None else self.ohlcvs
+        self.liquidations = dict() if self.liquidations is None else self.liquidations
         self.currencies = dict() if self.currencies is None else self.currencies
         self.options = self.get_default_options() if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
         self.decimal_to_precision = decimal_to_precision
@@ -525,9 +441,6 @@ class Exchange(object):
 
     def __str__(self):
         return self.name
-
-    def describe(self):
-        return {}
 
     def throttle(self, cost=None):
         now = float(self.milliseconds())
@@ -1389,6 +1302,57 @@ class Exchange(object):
         return Exchange.binary_concat(b"\x19\x01", encodedData.header, encodedData.body)
 
     @staticmethod
+    def retrieve_stark_account (signature, accountClassHash, accountProxyClassHash):
+        privateKey = get_private_key_from_eth_signature(signature)
+        publicKey = private_to_stark_key(privateKey)
+        calldata = [
+            int(accountClassHash, 16),
+            get_selector_from_name("initialize"),
+            2,
+            publicKey,
+            0,
+        ]
+
+        address = compute_address(
+            class_hash=int(accountProxyClassHash, 16),
+            constructor_calldata=calldata,
+            salt=publicKey,
+        )
+        return {
+            'privateKey': privateKey,
+            'publicKey': publicKey,
+            'address': hex(address)
+        }
+
+    @staticmethod
+    def starknet_encode_structured_data (domain, messageTypes, messageData, address):
+        types = list(messageTypes.keys())
+        if len(types) > 1:
+            raise NotSupported('starknetEncodeStructuredData only support single type')
+
+        request = {
+            'domain': domain,
+            'primaryType': types[0],
+            'types': Exchange.extend({
+                'StarkNetDomain': [
+                    {'name': "name", 'type': "felt"},
+                    {'name': "chainId", 'type': "felt"},
+                    {'name': "version", 'type': "felt"},
+                ],
+            }, messageTypes),
+            'message': messageData,
+        }
+        typedDataClass = TypedDataDataclass.from_dict(request)
+        msgHash = typedDataClass.message_hash(int(address, 16))
+        return msgHash
+
+    @staticmethod
+    def starknet_sign (hash, pri):
+        # // TODO: unify to ecdsa
+        r, s = message_signature(hash, pri)
+        return Exchange.json([hex(r), hex(s)])
+
+    @staticmethod
     def packb(o):
         return packb(o)
 
@@ -1463,7 +1427,7 @@ class Exchange(object):
 
     @staticmethod
     def json(data, params=None):
-        return json.dumps(data, separators=(',', ':'))
+        return json.dumps(data, separators=(',', ':'), cls=SafeJSONEncoder)
 
     @staticmethod
     def is_json_encoded_object(input):
@@ -1507,14 +1471,6 @@ class Exchange(object):
             else:
                 return error
         return result
-
-    def check_address(self, address):
-        """Checks an address is not the same character repeated or an empty sequence"""
-        if address is None:
-            raise InvalidAddress(self.id + ' address is None')
-        if all(letter == address[0] for letter in address) or len(address) < self.minFundingAddressLength or ' ' in address:
-            raise InvalidAddress(self.id + ' address is invalid or has less than ' + str(self.minFundingAddressLength) + ' characters: "' + str(address) + '"')
-        return address
 
     def precision_from_string(self, str):
         # support string formats like '1e-4'
@@ -1812,6 +1768,320 @@ class Exchange(object):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    def describe(self):
+        return {
+            'id': None,
+            'name': None,
+            'countries': None,
+            'enableRateLimit': True,
+            'rateLimit': 2000,  # milliseconds = seconds * 1000
+            'timeout': self.timeout,  # milliseconds = seconds * 1000
+            'certified': False,  # if certified by the CCXT dev team
+            'pro': False,  # if it is integrated with CCXT Pro for WebSocket support
+            'alias': False,  # whether self exchange is an alias to another exchange
+            'dex': False,
+            'has': {
+                'publicAPI': True,
+                'privateAPI': True,
+                'CORS': None,
+                'sandbox': None,
+                'spot': None,
+                'margin': None,
+                'swap': None,
+                'future': None,
+                'option': None,
+                'addMargin': None,
+                'borrowCrossMargin': None,
+                'borrowIsolatedMargin': None,
+                'borrowMargin': None,
+                'cancelAllOrders': None,
+                'cancelAllOrdersWs': None,
+                'cancelOrder': True,
+                'cancelOrderWs': None,
+                'cancelOrders': None,
+                'cancelOrdersWs': None,
+                'closeAllPositions': None,
+                'closePosition': None,
+                'createDepositAddress': None,
+                'createLimitBuyOrder': None,
+                'createLimitBuyOrderWs': None,
+                'createLimitOrder': True,
+                'createLimitOrderWs': None,
+                'createLimitSellOrder': None,
+                'createLimitSellOrderWs': None,
+                'createMarketBuyOrder': None,
+                'createMarketBuyOrderWs': None,
+                'createMarketBuyOrderWithCost': None,
+                'createMarketBuyOrderWithCostWs': None,
+                'createMarketOrder': True,
+                'createMarketOrderWs': True,
+                'createMarketOrderWithCost': None,
+                'createMarketOrderWithCostWs': None,
+                'createMarketSellOrder': None,
+                'createMarketSellOrderWs': None,
+                'createMarketSellOrderWithCost': None,
+                'createMarketSellOrderWithCostWs': None,
+                'createOrder': True,
+                'createOrderWs': None,
+                'createOrders': None,
+                'createOrderWithTakeProfitAndStopLoss': None,
+                'createOrderWithTakeProfitAndStopLossWs': None,
+                'createPostOnlyOrder': None,
+                'createPostOnlyOrderWs': None,
+                'createReduceOnlyOrder': None,
+                'createReduceOnlyOrderWs': None,
+                'createStopLimitOrder': None,
+                'createStopLimitOrderWs': None,
+                'createStopLossOrder': None,
+                'createStopLossOrderWs': None,
+                'createStopMarketOrder': None,
+                'createStopMarketOrderWs': None,
+                'createStopOrder': None,
+                'createStopOrderWs': None,
+                'createTakeProfitOrder': None,
+                'createTakeProfitOrderWs': None,
+                'createTrailingAmountOrder': None,
+                'createTrailingAmountOrderWs': None,
+                'createTrailingPercentOrder': None,
+                'createTrailingPercentOrderWs': None,
+                'createTriggerOrder': None,
+                'createTriggerOrderWs': None,
+                'deposit': None,
+                'editOrder': 'emulated',
+                'editOrderWs': None,
+                'fetchAccounts': None,
+                'fetchBalance': True,
+                'fetchBalanceWs': None,
+                'fetchBidsAsks': None,
+                'fetchBorrowInterest': None,
+                'fetchBorrowRate': None,
+                'fetchBorrowRateHistories': None,
+                'fetchBorrowRateHistory': None,
+                'fetchBorrowRates': None,
+                'fetchBorrowRatesPerSymbol': None,
+                'fetchCanceledAndClosedOrders': None,
+                'fetchCanceledOrders': None,
+                'fetchClosedOrder': None,
+                'fetchClosedOrders': None,
+                'fetchClosedOrdersWs': None,
+                'fetchConvertCurrencies': None,
+                'fetchConvertQuote': None,
+                'fetchConvertTrade': None,
+                'fetchConvertTradeHistory': None,
+                'fetchCrossBorrowRate': None,
+                'fetchCrossBorrowRates': None,
+                'fetchCurrencies': 'emulated',
+                'fetchCurrenciesWs': 'emulated',
+                'fetchDeposit': None,
+                'fetchDepositAddress': None,
+                'fetchDepositAddresses': None,
+                'fetchDepositAddressesByNetwork': None,
+                'fetchDeposits': None,
+                'fetchDepositsWithdrawals': None,
+                'fetchDepositsWs': None,
+                'fetchDepositWithdrawFee': None,
+                'fetchDepositWithdrawFees': None,
+                'fetchFundingHistory': None,
+                'fetchFundingRate': None,
+                'fetchFundingRateHistory': None,
+                'fetchFundingRates': None,
+                'fetchGreeks': None,
+                'fetchIndexOHLCV': None,
+                'fetchIsolatedBorrowRate': None,
+                'fetchIsolatedBorrowRates': None,
+                'fetchMarginAdjustmentHistory': None,
+                'fetchIsolatedPositions': None,
+                'fetchL2OrderBook': True,
+                'fetchL3OrderBook': None,
+                'fetchLastPrices': None,
+                'fetchLedger': None,
+                'fetchLedgerEntry': None,
+                'fetchLeverage': None,
+                'fetchLeverages': None,
+                'fetchLeverageTiers': None,
+                'fetchLiquidations': None,
+                'fetchMarginMode': None,
+                'fetchMarginModes': None,
+                'fetchMarketLeverageTiers': None,
+                'fetchMarkets': True,
+                'fetchMarketsWs': None,
+                'fetchMarkOHLCV': None,
+                'fetchMyLiquidations': None,
+                'fetchMySettlementHistory': None,
+                'fetchMyTrades': None,
+                'fetchMyTradesWs': None,
+                'fetchOHLCV': None,
+                'fetchOHLCVWs': None,
+                'fetchOpenInterest': None,
+                'fetchOpenInterestHistory': None,
+                'fetchOpenOrder': None,
+                'fetchOpenOrders': None,
+                'fetchOpenOrdersWs': None,
+                'fetchOption': None,
+                'fetchOptionChain': None,
+                'fetchOrder': None,
+                'fetchOrderBook': True,
+                'fetchOrderBooks': None,
+                'fetchOrderBookWs': None,
+                'fetchOrders': None,
+                'fetchOrdersByStatus': None,
+                'fetchOrdersWs': None,
+                'fetchOrderTrades': None,
+                'fetchOrderWs': None,
+                'fetchPermissions': None,
+                'fetchPosition': None,
+                'fetchPositionHistory': None,
+                'fetchPositionsHistory': None,
+                'fetchPositionWs': None,
+                'fetchPositionMode': None,
+                'fetchPositions': None,
+                'fetchPositionsWs': None,
+                'fetchPositionsForSymbol': None,
+                'fetchPositionsForSymbolWs': None,
+                'fetchPositionsRisk': None,
+                'fetchPremiumIndexOHLCV': None,
+                'fetchSettlementHistory': None,
+                'fetchStatus': None,
+                'fetchTicker': True,
+                'fetchTickerWs': None,
+                'fetchTickers': None,
+                'fetchTickersWs': None,
+                'fetchTime': None,
+                'fetchTrades': True,
+                'fetchTradesWs': None,
+                'fetchTradingFee': None,
+                'fetchTradingFees': None,
+                'fetchTradingFeesWs': None,
+                'fetchTradingLimits': None,
+                'fetchTransactionFee': None,
+                'fetchTransactionFees': None,
+                'fetchTransactions': None,
+                'fetchTransfer': None,
+                'fetchTransfers': None,
+                'fetchUnderlyingAssets': None,
+                'fetchVolatilityHistory': None,
+                'fetchWithdrawAddresses': None,
+                'fetchWithdrawal': None,
+                'fetchWithdrawals': None,
+                'fetchWithdrawalsWs': None,
+                'fetchWithdrawalWhitelist': None,
+                'reduceMargin': None,
+                'repayCrossMargin': None,
+                'repayIsolatedMargin': None,
+                'setLeverage': None,
+                'setMargin': None,
+                'setMarginMode': None,
+                'setPositionMode': None,
+                'signIn': None,
+                'transfer': None,
+                'watchBalance': None,
+                'watchMyTrades': None,
+                'watchOHLCV': None,
+                'watchOHLCVForSymbols': None,
+                'watchOrderBook': None,
+                'watchOrderBookForSymbols': None,
+                'watchOrders': None,
+                'watchOrdersForSymbols': None,
+                'watchPosition': None,
+                'watchPositions': None,
+                'watchStatus': None,
+                'watchTicker': None,
+                'watchTickers': None,
+                'watchTrades': None,
+                'watchTradesForSymbols': None,
+                'watchLiquidations': None,
+                'watchLiquidationsForSymbols': None,
+                'watchMyLiquidations': None,
+                'watchMyLiquidationsForSymbols': None,
+                'withdraw': None,
+                'ws': None,
+            },
+            'urls': {
+                'logo': None,
+                'api': None,
+                'www': None,
+                'doc': None,
+                'fees': None,
+            },
+            'api': None,
+            'requiredCredentials': {
+                'apiKey': True,
+                'secret': True,
+                'uid': False,
+                'accountId': False,
+                'login': False,
+                'password': False,
+                'twofa': False,  # 2-factor authentication(one-time password key)
+                'privateKey': False,  # a "0x"-prefixed hexstring private key for a wallet
+                'walletAddress': False,  # the wallet address "0x"-prefixed hexstring
+                'token': False,  # reserved for HTTP auth in some cases
+            },
+            'markets': None,  # to be filled manually or by fetchMarkets
+            'currencies': {},  # to be filled manually or by fetchMarkets
+            'timeframes': None,  # redefine if the exchange has.fetchOHLCV
+            'fees': {
+                'trading': {
+                    'tierBased': None,
+                    'percentage': None,
+                    'taker': None,
+                    'maker': None,
+                },
+                'funding': {
+                    'tierBased': None,
+                    'percentage': None,
+                    'withdraw': {},
+                    'deposit': {},
+                },
+            },
+            'status': {
+                'status': 'ok',
+                'updated': None,
+                'eta': None,
+                'url': None,
+            },
+            'exceptions': None,
+            'httpExceptions': {
+                '422': ExchangeError,
+                '418': DDoSProtection,
+                '429': RateLimitExceeded,
+                '404': ExchangeNotAvailable,
+                '409': ExchangeNotAvailable,
+                '410': ExchangeNotAvailable,
+                '451': ExchangeNotAvailable,
+                '500': ExchangeNotAvailable,
+                '501': ExchangeNotAvailable,
+                '502': ExchangeNotAvailable,
+                '520': ExchangeNotAvailable,
+                '521': ExchangeNotAvailable,
+                '522': ExchangeNotAvailable,
+                '525': ExchangeNotAvailable,
+                '526': ExchangeNotAvailable,
+                '400': ExchangeNotAvailable,
+                '403': ExchangeNotAvailable,
+                '405': ExchangeNotAvailable,
+                '503': ExchangeNotAvailable,
+                '530': ExchangeNotAvailable,
+                '408': RequestTimeout,
+                '504': RequestTimeout,
+                '401': AuthenticationError,
+                '407': AuthenticationError,
+                '511': AuthenticationError,
+            },
+            'commonCurrencies': {
+                'XBT': 'BTC',
+                'BCC': 'BCH',
+                'BCHSV': 'BSV',
+            },
+            'precisionMode': TICK_SIZE,
+            'paddingMode': NO_PADDING,
+            'limits': {
+                'leverage': {'min': None, 'max': None},
+                'amount': {'min': None, 'max': None},
+                'price': {'min': None, 'max': None},
+                'cost': {'min': None, 'max': None},
+            },
+        }
+
     def safe_bool_n(self, dictionaryOrList, keys: List[IndexType], defaultValue: bool = None):
         """
          * @ignore
@@ -1848,8 +2118,9 @@ class Exchange(object):
         value = self.safe_value_n(dictionaryOrList, keys, defaultValue)
         if value is None:
             return defaultValue
-        if isinstance(value, dict):
-            return value
+        if (isinstance(value, dict)):
+            if not isinstance(value, list):
+                return value
         return defaultValue
 
     def safe_dict(self, dictionary, key: IndexType, defaultValue: dict = None):
@@ -1904,6 +2175,11 @@ class Exchange(object):
     def handle_delta(self, bookside, delta):
         raise NotSupported(self.id + ' handleDelta not supported yet')
 
+    def handle_deltas_with_keys(self, bookSide: Any, deltas, priceKey: IndexType = 0, amountKey: IndexType = 1, countOrIdKey: IndexType = 2):
+        for i in range(0, len(deltas)):
+            bidAsk = self.parse_bid_ask(deltas[i], priceKey, amountKey, countOrIdKey)
+            bookSide.storeArray(bidAsk)
+
     def get_cache_index(self, orderbook, deltas):
         # return the first index of the cache that can be applied to the orderbook or -1 if not possible
         return -1
@@ -1952,44 +2228,38 @@ class Exchange(object):
         httpsProxy = None
         socksProxy = None
         # httpProxy
-        if self.value_is_defined(self.httpProxy):
+        isHttpProxyDefined = self.value_is_defined(self.httpProxy)
+        isHttp_proxy_defined = self.value_is_defined(self.http_proxy)
+        if isHttpProxyDefined or isHttp_proxy_defined:
             usedProxies.append('httpProxy')
-            httpProxy = self.httpProxy
-        if self.value_is_defined(self.http_proxy):
-            usedProxies.append('http_proxy')
-            httpProxy = self.http_proxy
-        if self.httpProxyCallback is not None:
+            httpProxy = self.httpProxy if isHttpProxyDefined else self.http_proxy
+        ishttpProxyCallbackDefined = self.value_is_defined(self.httpProxyCallback)
+        ishttp_proxy_callback_defined = self.value_is_defined(self.http_proxy_callback)
+        if ishttpProxyCallbackDefined or ishttp_proxy_callback_defined:
             usedProxies.append('httpProxyCallback')
-            httpProxy = self.httpProxyCallback(url, method, headers, body)
-        if self.http_proxy_callback is not None:
-            usedProxies.append('http_proxy_callback')
-            httpProxy = self.http_proxy_callback(url, method, headers, body)
+            httpProxy = self.httpProxyCallback(url, method, headers, body) if ishttpProxyCallbackDefined else self.http_proxy_callback(url, method, headers, body)
         # httpsProxy
-        if self.value_is_defined(self.httpsProxy):
+        isHttpsProxyDefined = self.value_is_defined(self.httpsProxy)
+        isHttps_proxy_defined = self.value_is_defined(self.https_proxy)
+        if isHttpsProxyDefined or isHttps_proxy_defined:
             usedProxies.append('httpsProxy')
-            httpsProxy = self.httpsProxy
-        if self.value_is_defined(self.https_proxy):
-            usedProxies.append('https_proxy')
-            httpsProxy = self.https_proxy
-        if self.httpsProxyCallback is not None:
+            httpsProxy = self.httpsProxy if isHttpsProxyDefined else self.https_proxy
+        ishttpsProxyCallbackDefined = self.value_is_defined(self.httpsProxyCallback)
+        ishttps_proxy_callback_defined = self.value_is_defined(self.https_proxy_callback)
+        if ishttpsProxyCallbackDefined or ishttps_proxy_callback_defined:
             usedProxies.append('httpsProxyCallback')
-            httpsProxy = self.httpsProxyCallback(url, method, headers, body)
-        if self.https_proxy_callback is not None:
-            usedProxies.append('https_proxy_callback')
-            httpsProxy = self.https_proxy_callback(url, method, headers, body)
+            httpsProxy = self.httpsProxyCallback(url, method, headers, body) if ishttpsProxyCallbackDefined else self.https_proxy_callback(url, method, headers, body)
         # socksProxy
-        if self.value_is_defined(self.socksProxy):
+        isSocksProxyDefined = self.value_is_defined(self.socksProxy)
+        isSocks_proxy_defined = self.value_is_defined(self.socks_proxy)
+        if isSocksProxyDefined or isSocks_proxy_defined:
             usedProxies.append('socksProxy')
-            socksProxy = self.socksProxy
-        if self.value_is_defined(self.socks_proxy):
-            usedProxies.append('socks_proxy')
-            socksProxy = self.socks_proxy
-        if self.socksProxyCallback is not None:
+            socksProxy = self.socksProxy if isSocksProxyDefined else self.socks_proxy
+        issocksProxyCallbackDefined = self.value_is_defined(self.socksProxyCallback)
+        issocks_proxy_callback_defined = self.value_is_defined(self.socks_proxy_callback)
+        if issocksProxyCallbackDefined or issocks_proxy_callback_defined:
             usedProxies.append('socksProxyCallback')
-            socksProxy = self.socksProxyCallback(url, method, headers, body)
-        if self.socks_proxy_callback is not None:
-            usedProxies.append('socks_proxy_callback')
-            socksProxy = self.socks_proxy_callback(url, method, headers, body)
+            socksProxy = self.socksProxyCallback(url, method, headers, body) if issocksProxyCallbackDefined else self.socks_proxy_callback(url, method, headers, body)
         # check
         length = len(usedProxies)
         if length > 1:
@@ -2033,6 +2303,16 @@ class Exchange(object):
     def check_conflicting_proxies(self, proxyAgentSet, proxyUrlSet):
         if proxyAgentSet and proxyUrlSet:
             raise InvalidProxySettings(self.id + ' you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy')
+
+    def check_address(self, address: Str = None):
+        if address is None:
+            raise InvalidAddress(self.id + ' address is None')
+        # check the address is not the same letter like 'aaaaa' nor too short nor has a space
+        uniqChars = (self.unique(self.string_to_chars_array(address)))
+        length = len(uniqChars)  # py transpiler trick
+        if length == 1 or len(address) < self.minFundingAddressLength or address.find(' ') > -1:
+            raise InvalidAddress(self.id + ' address is invalid or has less than ' + str(self.minFundingAddressLength) + ' characters: "' + str(address) + '"')
+        return address
 
     def find_message_hashes(self, client, element: str):
         result = []
@@ -2225,7 +2505,7 @@ class Exchange(object):
     def parse_transfer(self, transfer: dict, currency: Currency = None):
         raise NotSupported(self.id + ' parseTransfer() is not supported yet')
 
-    def parse_account(self, account):
+    def parse_account(self, account: dict):
         raise NotSupported(self.id + ' parseAccount() is not supported yet')
 
     def parse_ledger_entry(self, item: dict, currency: Currency = None):
@@ -2462,7 +2742,7 @@ class Exchange(object):
             },
         }, currency)
 
-    def safe_market_structure(self, market=None):
+    def safe_market_structure(self, market: dict = None):
         cleanStructure = {
             'id': None,
             'lowercaseId': None,
@@ -2622,7 +2902,7 @@ class Exchange(object):
         superWithRestDescribe = self.deep_extend(extendedRestDescribe, wsBaseDescribe)
         return superWithRestDescribe
 
-    def safe_balance(self, balance: object):
+    def safe_balance(self, balance: dict):
         balances = self.omit(balance, ['info', 'timestamp', 'datetime', 'free', 'used', 'total'])
         codes = list(balances.keys())
         balance['free'] = {}
@@ -2656,7 +2936,7 @@ class Exchange(object):
             balance['debt'] = debtBalance
         return balance
 
-    def safe_order(self, order: object, market: Market = None):
+    def safe_order(self, order: dict, market: Market = None):
         # parses numbers
         # * it is important pass the trades rawTrades
         amount = self.omit_zero(self.safe_string(order, 'amount'))
@@ -2961,7 +3241,7 @@ class Exchange(object):
             'cost': self.parse_number(cost),
         }
 
-    def safe_liquidation(self, liquidation: object, market: Market = None):
+    def safe_liquidation(self, liquidation: dict, market: Market = None):
         contracts = self.safe_string(liquidation, 'contracts')
         contractSize = self.safe_string(market, 'contractSize')
         price = self.safe_string(liquidation, 'price')
@@ -2978,7 +3258,7 @@ class Exchange(object):
         liquidation['quoteValue'] = self.parse_number(quoteValue)
         return liquidation
 
-    def safe_trade(self, trade: object, market: Market = None):
+    def safe_trade(self, trade: dict, market: Market = None):
         amount = self.safe_string(trade, 'amount')
         price = self.safe_string(trade, 'price')
         cost = self.safe_string(trade, 'cost')
@@ -2992,39 +3272,52 @@ class Exchange(object):
                     multiplyPrice = Precise.string_div('1', price)
                 multiplyPrice = Precise.string_mul(multiplyPrice, contractSize)
             cost = Precise.string_mul(multiplyPrice, amount)
-        parseFee = self.safe_value(trade, 'fee') is None
-        parseFees = self.safe_value(trade, 'fees') is None
-        shouldParseFees = parseFee or parseFees
-        fees = []
-        fee = self.safe_value(trade, 'fee')
-        if shouldParseFees:
-            reducedFees = self.reduce_fees_by_currency(fees) if self.reduceFees else fees
-            reducedLength = len(reducedFees)
-            for i in range(0, reducedLength):
-                reducedFees[i]['cost'] = self.safe_number(reducedFees[i], 'cost')
-                if 'rate' in reducedFees[i]:
-                    reducedFees[i]['rate'] = self.safe_number(reducedFees[i], 'rate')
-            if not parseFee and (reducedLength == 0):
-                # copy fee to avoid modification by reference
-                feeCopy = self.deep_extend(fee)
-                feeCopy['cost'] = self.safe_number(feeCopy, 'cost')
-                if 'rate' in feeCopy:
-                    feeCopy['rate'] = self.safe_number(feeCopy, 'rate')
-                reducedFees.append(feeCopy)
-            if parseFees:
-                trade['fees'] = reducedFees
-            if parseFee and (reducedLength == 1):
-                trade['fee'] = reducedFees[0]
-            tradeFee = self.safe_value(trade, 'fee')
-            if tradeFee is not None:
-                tradeFee['cost'] = self.safe_number(tradeFee, 'cost')
-                if 'rate' in tradeFee:
-                    tradeFee['rate'] = self.safe_number(tradeFee, 'rate')
-                trade['fee'] = tradeFee
+        resultFee, resultFees = self.parsed_fee_and_fees(trade)
+        trade['fee'] = resultFee
+        trade['fees'] = resultFees
         trade['amount'] = self.parse_number(amount)
         trade['price'] = self.parse_number(price)
         trade['cost'] = self.parse_number(cost)
         return trade
+
+    def parsed_fee_and_fees(self, container: Any):
+        fee = self.safe_dict(container, 'fee')
+        fees = self.safe_list(container, 'fees')
+        feeDefined = fee is not None
+        feesDefined = fees is not None
+        # parsing only if at least one of them is defined
+        shouldParseFees = (feeDefined or feesDefined)
+        if shouldParseFees:
+            if feeDefined:
+                fee = self.parse_fee_numeric(fee)
+            if not feesDefined:
+                # just set it directly, no further processing needed
+                fees = [fee]
+            # 'fees' were set, so reparse them
+            reducedFees = self.reduce_fees_by_currency(fees) if self.reduceFees else fees
+            reducedLength = len(reducedFees)
+            for i in range(0, reducedLength):
+                reducedFees[i] = self.parse_fee_numeric(reducedFees[i])
+            fees = reducedFees
+            if reducedLength == 1:
+                fee = reducedFees[0]
+            elif reducedLength == 0:
+                fee = None
+        # in case `fee & fees` are None, set `fees` array
+        if fee is None:
+            fee = {
+                'cost': None,
+                'currency': None,
+            }
+        if fees is None:
+            fees = []
+        return [fee, fees]
+
+    def parse_fee_numeric(self, fee: Any):
+        fee['cost'] = self.safe_number(fee, 'cost')  # ensure numeric
+        if 'rate' in fee:
+            fee['rate'] = self.safe_number(fee, 'rate')
+        return fee
 
     def find_nearest_ceiling(self, arr: List[float], providedValue: float):
         #  i.e. findNearestCeiling([10, 30, 50],  23) returns 30
@@ -3094,12 +3387,13 @@ class Exchange(object):
         reduced = {}
         for i in range(0, len(fees)):
             fee = fees[i]
-            feeCurrencyCode = self.safe_string(fee, 'currency')
+            code = self.safe_string(fee, 'currency')
+            feeCurrencyCode = code is not code if None else str(i)
             if feeCurrencyCode is not None:
                 rate = self.safe_string(fee, 'rate')
-                cost = self.safe_value(fee, 'cost')
-                if Precise.string_eq(cost, '0'):
-                    # omit zero cost fees
+                cost = self.safe_string(fee, 'cost')
+                if cost is None:
+                    # omit None cost, does not make sense, however, don't omit '0' costs, still make sense
                     continue
                 if not (feeCurrencyCode in reduced):
                     reduced[feeCurrencyCode] = {}
@@ -3108,7 +3402,7 @@ class Exchange(object):
                     reduced[feeCurrencyCode][rateKey]['cost'] = Precise.string_add(reduced[feeCurrencyCode][rateKey]['cost'], cost)
                 else:
                     reduced[feeCurrencyCode][rateKey] = {
-                        'currency': feeCurrencyCode,
+                        'currency': code,
                         'cost': cost,
                     }
                     if rate is not None:
@@ -3120,7 +3414,7 @@ class Exchange(object):
             result = self.array_concat(result, reducedFeeValues)
         return result
 
-    def safe_ticker(self, ticker: object, market: Market = None):
+    def safe_ticker(self, ticker: dict, market: Market = None):
         open = self.omit_zero(self.safe_string(ticker, 'open'))
         close = self.omit_zero(self.safe_string(ticker, 'close'))
         last = self.omit_zero(self.safe_string(ticker, 'last'))
@@ -3140,7 +3434,13 @@ class Exchange(object):
             if change is None:
                 change = Precise.string_sub(last, open)
             if average is None:
-                average = Precise.string_div(Precise.string_add(last, open), '2')
+                precision = 18
+                if market is not None and self.is_tick_precision():
+                    marketPrecision = self.safe_dict(market, 'precision')
+                    precisionPrice = self.safe_string(marketPrecision, 'price')
+                    if precisionPrice is not None:
+                        precision = self.precision_from_string(precisionPrice)
+                average = Precise.string_div(Precise.string_add(last, open), '2', precision)
         if (percentage is None) and (change is not None) and (open is not None) and Precise.string_gt(open, '0'):
             percentage = Precise.string_mul(Precise.string_div(change, open), '100')
         if (change is None) and (percentage is not None) and (open is not None):
@@ -3455,7 +3755,7 @@ class Exchange(object):
             defaultNetworkCode = defaultNetworks[currencyCode]
         else:
             # otherwise, try to use the global-scope 'defaultNetwork' value(even if that network is not supported by currency, it doesn't make any problem, self will be just used "at first" if currency supports self network at all)
-            defaultNetwork = self.safe_dict(self.options, 'defaultNetwork')
+            defaultNetwork = self.safe_string(self.options, 'defaultNetwork')
             if defaultNetwork is not None:
                 defaultNetworkCode = defaultNetwork
         return defaultNetworkCode
@@ -3553,7 +3853,7 @@ class Exchange(object):
                 self.options['limitsLoaded'] = self.milliseconds()
         return self.markets
 
-    def safe_position(self, position):
+    def safe_position(self, position: dict):
         # simplified version of: /pull/12765/
         unrealizedPnlString = self.safe_string(position, 'unrealisedPnl')
         initialMarginString = self.safe_string(position, 'initialMargin')
@@ -3696,7 +3996,9 @@ class Exchange(object):
         ]
 
     def get_list_from_object_values(self, objects, key: IndexType):
-        newArray = self.to_array(objects)
+        newArray = objects
+        if not isinstance(objects, list):
+            newArray = self.to_array(objects)
         results = []
         for i in range(0, len(newArray)):
             results.append(newArray[i][key])
@@ -5544,7 +5846,7 @@ class Exchange(object):
                     errors = 0
                     result = self.array_concat(result, response)
                     last = self.safe_value(response, responseLength - 1)
-                    paginationTimestamp = self.safe_integer(last, 'timestamp') - 1
+                    paginationTimestamp = self.safe_integer(last, 'timestamp') + 1
                     if (until is not None) and (paginationTimestamp >= until):
                         break
             except Exception as e:
@@ -5625,7 +5927,7 @@ class Exchange(object):
                 response = None
                 if method == 'fetchAccounts':
                     response = getattr(self, method)(params)
-                elif method == 'getLeverageTiersPaginated':
+                elif method == 'getLeverageTiersPaginated' or method == 'fetchPositions':
                     response = getattr(self, method)(symbol, params)
                 else:
                     response = getattr(self, method)(symbol, since, maxEntriesPerRequest, params)
@@ -5721,7 +6023,7 @@ class Exchange(object):
             params = self.omit(params, ['until', 'till'])
         return [request, params]
 
-    def safe_open_interest(self, interest, market: Market = None):
+    def safe_open_interest(self, interest: dict, market: Market = None):
         symbol = self.safe_string(interest, 'symbol')
         if symbol is None:
             symbol = self.safe_string(market, 'symbol')
@@ -5931,7 +6233,7 @@ class Exchange(object):
     def parse_margin_modification(self, data: dict, market: Market = None):
         raise NotSupported(self.id + ' parseMarginModification() is not supported yet')
 
-    def parse_margin_modifications(self, response: List[object], symbols: List[str] = None, symbolKey: Str = None, marketType: MarketType = None):
+    def parse_margin_modifications(self, response: List[object], symbols: Strings = None, symbolKey: Str = None, marketType: MarketType = None):
         marginModifications = []
         for i in range(0, len(response)):
             info = response[i]

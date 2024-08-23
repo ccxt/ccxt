@@ -596,7 +596,7 @@ class hollaex extends \ccxt\async\hollaex {
         }
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         // hollaex does not support built-in ws protocol-level ping-pong
         return array( 'op' => 'ping' );
     }

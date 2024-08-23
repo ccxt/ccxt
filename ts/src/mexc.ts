@@ -6,7 +6,7 @@ import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, Exch
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency, Leverage, Num, Account, MarginModification, Currencies, TradingFees, Dict, TransferEntries, LeverageTier, LeverageTiers, int } from './base/types.js';
+import type { TransferEntry, IndexType, Int, OrderSide, Balances, OrderType, OHLCV, FundingRateHistory, Position, OrderBook, OrderRequest, FundingHistory, Order, Str, Trade, Transaction, Ticker, Tickers, Strings, Market, Currency, Leverage, Num, Account, MarginModification, Currencies, TradingFees, Dict, LeverageTier, LeverageTiers, int } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1170,7 +1170,7 @@ export default class mexc extends Exchange {
         //         "symbols": [
         //           {
         //                "symbol": "OGNUSDT",
-        //                "status": "ENABLED",
+        //                "status": "1",
         //                "baseAsset": "OGN",
         //                "baseAssetPrecision": "2",
         //                "quoteAsset": "USDT",
@@ -1215,7 +1215,7 @@ export default class mexc extends Exchange {
             const status = this.safeString (market, 'status');
             const isSpotTradingAllowed = this.safeValue (market, 'isSpotTradingAllowed');
             let active = false;
-            if ((status === 'ENABLED') && (isSpotTradingAllowed)) {
+            if ((status === '1') && (isSpotTradingAllowed)) {
                 active = true;
             }
             const isMarginTradingAllowed = this.safeValue (market, 'isMarginTradingAllowed');
@@ -5005,7 +5005,7 @@ export default class mexc extends Exchange {
         return undefined;
     }
 
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntries> {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         /**
          * @method
          * @name mexc#fetchTransfers
@@ -5245,7 +5245,7 @@ export default class mexc extends Exchange {
         const networks = this.safeDict (this.options, 'networks', {});
         let network = this.safeString2 (params, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString (networks, network, network); // handle ETH > ERC-20 alias
-        network = this.networkCodeToId (network);
+        network = this.networkIdToCode (network);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);

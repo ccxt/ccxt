@@ -3467,8 +3467,8 @@ class gate extends gate$1 {
         const side = this.safeString2(trade, 'side', 'type', contractSide);
         const orderId = this.safeString(trade, 'order_id');
         const feeAmount = this.safeString(trade, 'fee');
-        const gtFee = this.safeString(trade, 'gt_fee');
-        const pointFee = this.safeString(trade, 'point_fee');
+        const gtFee = this.omitZero(this.safeString(trade, 'gt_fee'));
+        const pointFee = this.omitZero(this.safeString(trade, 'point_fee'));
         const fees = [];
         if (feeAmount !== undefined) {
             const feeCurrencyId = this.safeString(trade, 'fee_currency');
@@ -4243,10 +4243,10 @@ class gate extends gate$1 {
             }
             else {
                 if (side === 'sell') {
-                    request['size'] = Precise["default"].stringNeg(this.amountToPrecision(symbol, amount));
+                    request['size'] = this.parseToNumeric(Precise["default"].stringNeg(this.amountToPrecision(symbol, amount)));
                 }
                 else {
-                    request['size'] = this.amountToPrecision(symbol, amount);
+                    request['size'] = this.parseToNumeric(this.amountToPrecision(symbol, amount));
                 }
             }
         }

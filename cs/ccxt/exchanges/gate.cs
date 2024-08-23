@@ -3634,8 +3634,8 @@ public partial class gate : Exchange
         object side = this.safeString2(trade, "side", "type", contractSide);
         object orderId = this.safeString(trade, "order_id");
         object feeAmount = this.safeString(trade, "fee");
-        object gtFee = this.safeString(trade, "gt_fee");
-        object pointFee = this.safeString(trade, "point_fee");
+        object gtFee = this.omitZero(this.safeString(trade, "gt_fee"));
+        object pointFee = this.omitZero(this.safeString(trade, "point_fee"));
         object fees = new List<object>() {};
         if (isTrue(!isEqual(feeAmount, null)))
         {
@@ -4512,10 +4512,10 @@ public partial class gate : Exchange
             {
                 if (isTrue(isEqual(side, "sell")))
                 {
-                    ((IDictionary<string,object>)request)["size"] = Precise.stringNeg(this.amountToPrecision(symbol, amount));
+                    ((IDictionary<string,object>)request)["size"] = this.parseToNumeric(Precise.stringNeg(this.amountToPrecision(symbol, amount)));
                 } else
                 {
-                    ((IDictionary<string,object>)request)["size"] = this.amountToPrecision(symbol, amount);
+                    ((IDictionary<string,object>)request)["size"] = this.parseToNumeric(this.amountToPrecision(symbol, amount));
                 }
             }
         }

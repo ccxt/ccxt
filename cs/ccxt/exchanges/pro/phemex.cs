@@ -23,6 +23,7 @@ public partial class phemex : ccxt.phemex
                 { "watchOrderBookForSymbols", false },
                 { "watchTradesForSymbols", false },
                 { "watchOHLCVForSymbols", false },
+                { "watchBalance", true },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "test", new Dictionary<string, object>() {

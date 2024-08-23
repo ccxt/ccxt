@@ -1137,7 +1137,8 @@ class hitbtc(ccxt.async_support.hitbtc):
         return message
 
     def handle_message(self, client: Client, message):
-        self.handle_error(client, message)
+        if self.handle_error(client, message):
+            return
         channel = self.safe_string_2(message, 'ch', 'method')
         if channel is not None:
             splitChannel = channel.split('/')
@@ -1206,11 +1207,22 @@ class hitbtc(ccxt.async_support.hitbtc):
         #
         error = self.safe_value(message, 'error')
         if error is not None:
-            code = self.safe_value(error, 'code')
-            errorMessage = self.safe_string(error, 'message')
-            description = self.safe_string(error, 'description')
-            feedback = self.id + ' ' + description
-            self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
-            self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
-            raise ExchangeError(feedback)  # unknown message
+            try:
+                code = self.safe_value(error, 'code')
+                errorMessage = self.safe_string(error, 'message')
+                description = self.safe_string(error, 'description')
+                feedback = self.id + ' ' + description
+                self.throw_exactly_matched_exception(self.exceptions['exact'], code, feedback)
+                self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
+                raise ExchangeError(feedback)  # unknown message
+            except Exception as e:
+                if isinstance(e, AuthenticationError):
+                    messageHash = 'authenticated'
+                    client.reject(e, messageHash)
+                    if messageHash in client.subscriptions:
+                        del client.subscriptions[messageHash]
+                else:
+                    id = self.safe_string(message, 'id')
+                    client.reject(e, id)
+                return True
         return None

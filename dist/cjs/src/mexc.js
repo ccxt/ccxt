@@ -1165,7 +1165,7 @@ class mexc extends mexc$1 {
         //         "symbols": [
         //           {
         //                "symbol": "OGNUSDT",
-        //                "status": "ENABLED",
+        //                "status": "1",
         //                "baseAsset": "OGN",
         //                "baseAssetPrecision": "2",
         //                "quoteAsset": "USDT",
@@ -1210,7 +1210,7 @@ class mexc extends mexc$1 {
             const status = this.safeString(market, 'status');
             const isSpotTradingAllowed = this.safeValue(market, 'isSpotTradingAllowed');
             let active = false;
-            if ((status === 'ENABLED') && (isSpotTradingAllowed)) {
+            if ((status === '1') && (isSpotTradingAllowed)) {
                 active = true;
             }
             const isMarginTradingAllowed = this.safeValue(market, 'isMarginTradingAllowed');
@@ -5235,7 +5235,7 @@ class mexc extends mexc$1 {
         const networks = this.safeDict(this.options, 'networks', {});
         let network = this.safeString2(params, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
-        network = this.networkCodeToId(network);
+        network = this.networkIdToCode(network);
         this.checkAddress(address);
         await this.loadMarkets();
         const currency = this.currency(code);

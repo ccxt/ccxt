@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, IndexType, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, TransferEntries
+from ccxt.base.types import Account, Balances, Currencies, Currency, IndexType, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1158,7 +1158,7 @@ class mexc(Exchange, ImplicitAPI):
         #         "symbols": [
         #           {
         #                "symbol": "OGNUSDT",
-        #                "status": "ENABLED",
+        #                "status": "1",
         #                "baseAsset": "OGN",
         #                "baseAssetPrecision": "2",
         #                "quoteAsset": "USDT",
@@ -1203,7 +1203,7 @@ class mexc(Exchange, ImplicitAPI):
             status = self.safe_string(market, 'status')
             isSpotTradingAllowed = self.safe_value(market, 'isSpotTradingAllowed')
             active = False
-            if (status == 'ENABLED') and (isSpotTradingAllowed):
+            if (status == '1') and (isSpotTradingAllowed):
                 active = True
             isMarginTradingAllowed = self.safe_value(market, 'isMarginTradingAllowed')
             makerCommission = self.safe_number(market, 'makerCommission')
@@ -4690,7 +4690,7 @@ class mexc(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' fetchTransfer() is not supported for ' + marketType)
         return None
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
         :param str code: unified currency code of the currency transferred
@@ -4908,7 +4908,7 @@ class mexc(Exchange, ImplicitAPI):
         networks = self.safe_dict(self.options, 'networks', {})
         network = self.safe_string_2(params, 'network', 'netWork')  # self line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network, network)  # handle ETH > ERC-20 alias
-        network = self.network_code_to_id(network)
+        network = self.network_id_to_code(network)
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)

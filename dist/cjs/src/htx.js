@@ -6293,6 +6293,7 @@ class htx extends htx$1 {
     async fetchDepositAddressesByNetwork(code, params = {}) {
         /**
          * @method
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003
          * @name huobi#fetchDepositAddressesByNetwork
          * @description fetch a dictionary of addresses for a currency, indexed by network
          * @param {string} code unified currency code of the currency for the deposit address
@@ -6326,6 +6327,7 @@ class htx extends htx$1 {
         /**
          * @method
          * @name huobi#fetchDepositAddress
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec50029-7773-11ed-9966-0242ac110003
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -6376,6 +6378,7 @@ class htx extends htx$1 {
         /**
          * @method
          * @name huobi#fetchDeposits
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4f050-7773-11ed-9966-0242ac110003
          * @description fetch all deposits made to an account
          * @param {string} code unified currency code
          * @param {int} [since] the earliest time in ms to fetch deposits for
@@ -6610,6 +6613,7 @@ class htx extends htx$1 {
         /**
          * @method
          * @name huobi#withdraw
+         * @see https://www.htx.com/en-us/opend/newApiPages/?id=7ec4cc41-7773-11ed-9966-0242ac110003
          * @description make a withdrawal
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw

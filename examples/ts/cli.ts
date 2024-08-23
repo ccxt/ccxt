@@ -36,12 +36,15 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , shouldCreateRequestReport = process.argv.includes ('--report')
     , shouldCreateResponseReport = process.argv.includes ('--response')
     , shouldCreateBoth = process.argv.includes ('--static')
+    , raw = process.argv.includes ('--raw')
+    , noKeys = process.argv.includes ('--no-keys')
 
 //-----------------------------------------------------------------------------
-
-log ((new Date ()).toISOString())
-log ('Node.js:', process.version)
-log ('CCXT v' + ccxt.version)
+if (!raw) {
+    log ((new Date ()).toISOString())
+    log ('Node.js:', process.version)
+    log ('CCXT v' + ccxt.version)
+}
 
 //-----------------------------------------------------------------------------
 
@@ -104,17 +107,19 @@ try {
         exchange.options['defaultType'] = 'option';
     }
 
-    // check auth keys in env var
-    const requiredCredentials = exchange.requiredCredentials;
-    for (const [credential, isRequired] of Object.entries (requiredCredentials)) {
-        if (isRequired && exchange[credential] === undefined) {
-            const credentialEnvName = (exchangeId + '_' + credential).toUpperCase () // example: KRAKEN_APIKEY
-            let credentialValue = process.env[credentialEnvName]
-            if (credentialValue) {
-                if (credentialValue.indexOf('---BEGIN') > -1) {
-                    credentialValue = (credentialValue as any).replaceAll('\\n', '\n');
+    if (!noKeys) {
+        // check auth keys in env var
+        const requiredCredentials = exchange.requiredCredentials;
+        for (const [credential, isRequired] of Object.entries (requiredCredentials)) {
+            if (isRequired && exchange[credential] === undefined) {
+                const credentialEnvName = (exchangeId + '_' + credential).toUpperCase () // example: KRAKEN_APIKEY
+                let credentialValue = process.env[credentialEnvName]
+                if (credentialValue) {
+                    if (credentialValue.indexOf('---BEGIN') > -1) {
+                        credentialValue = (credentialValue as any).replaceAll('\\n', '\n');
+                    }
+                    exchange[credential] = credentialValue
                 }
-                exchange[credential] = credentialValue
             }
         }
     }
@@ -199,6 +204,9 @@ function printUsage () {
 //-----------------------------------------------------------------------------
 
 const printHumanReadable = (exchange, result) => {
+    if (raw) {
+        return log (JSON.stringify(result))
+    }
     if (!no_table && Array.isArray (result) || table) {
         result = Object.values (result)
         let arrayOfObjects = (typeof result[0] === 'object')
@@ -321,7 +329,7 @@ async function run () {
 
             if (typeof exchange[methodName] === 'function') {
 
-                log (exchange.id + '.' + methodName, '(' + args.join (', ') + ')')
+                if (!raw) log (exchange.id + '.' + methodName, '(' + args.join (', ') + ')')
 
                 let start = exchange.milliseconds ()
                 let end = exchange.milliseconds ()
@@ -337,11 +345,11 @@ async function run () {
                     try {
                         const result = await exchange[methodName] (... args)
                         end = exchange.milliseconds ()
-                        if (!isWsMethod) {
+                        if (!isWsMethod && !raw) {
                             log (exchange.iso8601 (end), 'iteration', i++, 'passed in', end - start, 'ms\n')
                         }
-                        printHumanReadable (exchange, result)
-                        if (!isWsMethod) {
+                        printHumanReadable (exchange, JSON.parse(JSON.stringify(result)))
+                        if (!isWsMethod && !raw) {
                             log (exchange.iso8601 (end), 'iteration', i, 'passed in', end - start, 'ms\n')
                         }
                         if (shouldCreateRequestReport || shouldCreateBoth) {
@@ -366,10 +374,14 @@ async function run () {
                     }
 
                     if (debug) {
-                        const keys = Object.keys (httpsAgent.freeSockets)
-                        const firstKey = keys[0]
-                        let httpAgent = httpsAgent.freeSockets[firstKey] as any;
-                        log (firstKey, httpAgent.length)
+                        if (httpsAgent.freeSockets) {
+                            const keys = Object.keys (httpsAgent.freeSockets)
+                            if (keys.length) {
+                                const firstKey = keys[0]
+                                let httpAgent = httpsAgent.freeSockets[firstKey];
+                                log (firstKey, (httpAgent as any).length)
+                            }
+                        }
                     }
 
                     if (!poll && !isWsMethod){

@@ -1139,6 +1139,11 @@ class kucoin extends \ccxt\async\kucoin {
         $tradeId = $this->safe_string($trade, 'tradeId');
         $price = $this->safe_string($trade, 'matchPrice');
         $amount = $this->safe_string($trade, 'matchSize');
+        if ($price === null) {
+            // /spot/tradeFills
+            $price = $this->safe_string($trade, 'price');
+            $amount = $this->safe_string($trade, 'size');
+        }
         $order = $this->safe_string($trade, 'orderId');
         $timestamp = $this->safe_integer_product_2($trade, 'ts', 'time', 0.000001);
         $feeCurrency = $market['quote'];
@@ -1281,7 +1286,7 @@ class kucoin extends \ccxt\async\kucoin {
         }
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         // kucoin does not support built-in ws protocol-level ping-pong
         // instead it requires a custom json-based text ping-pong
         // https://docs.kucoin.com/#ping

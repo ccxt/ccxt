@@ -2480,6 +2480,9 @@ class bitmex extends Exchange {
                 // 'otpToken' => '123456', // requires if two-factor auth (OTP) is enabled
                 // 'fee' => 0.001, // bitcoin network fee
             );
+            if ($this->twofa !== null) {
+                $request['otpToken'] = $this->totp($this->twofa);
+            }
             $response = Async\await($this->privatePostUserRequestWithdrawal ($this->extend($request, $params)));
             //
             //     {

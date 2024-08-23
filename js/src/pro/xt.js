@@ -18,6 +18,7 @@ export default class xt extends xtRest {
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchBalance': true,
                 'watchOrders': true,
                 'watchMyTrades': true,

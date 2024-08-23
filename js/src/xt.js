@@ -11,6 +11,10 @@ import { TICK_SIZE } from './base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, NetworkError, NotSupported, OnMaintenance, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
+/**
+ * @class xt
+ * @augments Exchange
+ */
 export default class xt extends Exchange {
     describe() {
         return this.deepExtend(super.describe(), {
@@ -2105,7 +2109,6 @@ export default class xt extends Exchange {
             'fee': {
                 'currency': this.safeCurrencyCode(this.safeString2(trade, 'feeCurrency', 'feeCoin')),
                 'cost': this.safeString(trade, 'fee'),
-                'rate': undefined,
             },
         }, market);
     }

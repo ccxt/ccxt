@@ -1175,7 +1175,7 @@ class mexc extends Exchange {
             //         "symbols" => array(
             //           array(
             //                "symbol" => "OGNUSDT",
-            //                "status" => "ENABLED",
+            //                "status" => "1",
             //                "baseAsset" => "OGN",
             //                "baseAssetPrecision" => "2",
             //                "quoteAsset" => "USDT",
@@ -1220,7 +1220,7 @@ class mexc extends Exchange {
                 $status = $this->safe_string($market, 'status');
                 $isSpotTradingAllowed = $this->safe_value($market, 'isSpotTradingAllowed');
                 $active = false;
-                if (($status === 'ENABLED') && ($isSpotTradingAllowed)) {
+                if (($status === '1') && ($isSpotTradingAllowed)) {
                     $active = true;
                 }
                 $isMarginTradingAllowed = $this->safe_value($market, 'isMarginTradingAllowed');
@@ -5266,7 +5266,7 @@ class mexc extends Exchange {
             $networks = $this->safe_dict($this->options, 'networks', array());
             $network = $this->safe_string_2($params, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
             $network = $this->safe_string($networks, $network, $network); // handle ETH > ERC-20 alias
-            $network = $this->network_code_to_id($network);
+            $network = $this->network_id_to_code($network);
             $this->check_address($address);
             Async\await($this->load_markets());
             $currency = $this->currency($code);

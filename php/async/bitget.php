@@ -1316,6 +1316,7 @@ class bitget extends Exchange {
                 'JADE' => 'Jade Protocol',
                 'DEGEN' => 'DegenReborn',
                 'TONCOIN' => 'TON',
+                'OMNI' => 'omni', // conflict with Omni Network
             ),
             'options' => array(
                 'timeframes' => array(
@@ -5137,8 +5138,10 @@ class bitget extends Exchange {
                 $response = json_decode($response, $as_associative_array = true);
             }
             $data = $this->safe_dict($response, 'data');
-            if (($data !== null) && gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
-                return $this->parse_order($data, $market);
+            if (($data !== null)) {
+                if (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
+                    return $this->parse_order($data, $market);
+                }
             }
             $dataList = $this->safe_list($response, 'data', array());
             $first = $this->safe_dict($dataList, 0, array());
