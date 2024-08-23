@@ -330,8 +330,8 @@ public partial class Exchange
                                 CancellationToken.None);
         }
 
-        //private static async Task Sending(ClientWebSocket webSocket)
-        //{
+        // private static async Task Sending(ClientWebSocket webSocket)
+        // {
         //    try
         //    {
         //        while (webSocket.State == WebSocketState.Open)
@@ -349,7 +349,7 @@ public partial class Exchange
         //    {
         //        Console.WriteLine($"Sending error: {ex.Message}");
         //    }
-        //}
+        // }
 
         private void TryHandleMessage (string message)
         {
