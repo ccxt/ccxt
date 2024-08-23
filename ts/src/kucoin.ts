@@ -689,7 +689,7 @@ export default class kucoin extends Exchange {
                             'purchase/orders': 'v3',
                             'margin/symbols': 'v3',
                             'affiliate/inviter/statistics': 'v2',
-                            'asset/ndbroker/deposit/list': 'v1',                            
+                            'asset/ndbroker/deposit/list': 'v1',
                         },
                         'POST': {
                             // account
