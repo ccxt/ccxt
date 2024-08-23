@@ -7181,7 +7181,7 @@ class Exchange {
                     $errors = 0;
                     $result = $this->array_concat($result, $response);
                     $last = $this->safe_value($response, $responseLength - 1);
-                    $paginationTimestamp = $this->safe_integer($last, 'timestamp') - 1;
+                    $paginationTimestamp = $this->safe_integer($last, 'timestamp') + 1;
                     if (($until !== null) && ($paginationTimestamp >= $until)) {
                         break;
                     }
