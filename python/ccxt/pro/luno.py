@@ -19,6 +19,7 @@ class luno(ccxt.async_support.luno):
                 'watchTicker': False,
                 'watchTickers': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchMyTrades': False,
                 'watchOrders': None,  # is in beta
                 'watchOrderBook': True,

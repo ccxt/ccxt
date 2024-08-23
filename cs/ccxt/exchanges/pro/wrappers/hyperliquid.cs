@@ -37,6 +37,7 @@ public partial class hyperliquid
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -63,6 +64,7 @@ public partial class hyperliquid
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
     /// </summary>
     /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -82,6 +84,7 @@ public partial class hyperliquid
     /// watches information on multiple trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -121,6 +124,7 @@ public partial class hyperliquid
     /// watches information on multiple trades made in a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -154,6 +158,7 @@ public partial class hyperliquid
     /// watches historical candlestick data containing the open, high, low, close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -187,6 +192,7 @@ public partial class hyperliquid
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

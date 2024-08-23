@@ -5896,7 +5896,7 @@ class Exchange extends \ccxt\Exchange {
              */
             if ($this->has['fetchPositionsHistory']) {
                 $positions = Async\await($this->fetch_positions_history(array( $symbol ), $since, $limit, $params));
-                return $this->safe_dict($positions, 0);
+                return $positions;
             } else {
                 throw new NotSupported($this->id . ' fetchPositionHistory () is not supported yet');
             }

@@ -23,6 +23,7 @@ class hashkey(ccxt.async_support.hashkey):
                 'watchOrders': True,
                 'watchTicker': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchPositions': False,
             },
             'urls': {

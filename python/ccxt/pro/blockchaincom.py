@@ -23,6 +23,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
                 'watchTicker': True,
                 'watchTickers': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchMyTrades': False,
                 'watchOrders': True,
                 'watchOrderBook': True,

@@ -28,6 +28,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
                 'watchTicker': False,
                 'watchTickers': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchPosition': False,
             },
             'urls': {
@@ -137,6 +138,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
@@ -207,6 +209,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
     async def watch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
         :param str[] symbols: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -230,6 +233,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
     async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made by the user
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
@@ -390,6 +394,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
     async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
         """
         watches information on multiple trades made in a market
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
         :param str symbol: unified market symbol of the market trades were made in
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
@@ -514,6 +519,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
     async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
         """
         watches historical candlestick data containing the open, high, low, close price, and the volume of a market
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
@@ -594,6 +600,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
     async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
         watches information on multiple orders made by the user
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
