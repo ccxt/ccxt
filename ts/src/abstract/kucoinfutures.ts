@@ -226,6 +226,7 @@ interface kucoin {
     brokerGetBrokerNdAccount (params?: {}): Promise<implicitReturnType>;
     brokerGetBrokerNdAccountApikey (params?: {}): Promise<implicitReturnType>;
     brokerGetBrokerNdRebaseDownload (params?: {}): Promise<implicitReturnType>;
+    brokerGetAssetNdbrokerDepositList (params?: {}): Promise<implicitReturnType>;
     brokerGetBrokerNdTransferDetail (params?: {}): Promise<implicitReturnType>;
     brokerGetBrokerNdDepositDetail (params?: {}): Promise<implicitReturnType>;
     brokerGetBrokerNdWithdrawDetail (params?: {}): Promise<implicitReturnType>;

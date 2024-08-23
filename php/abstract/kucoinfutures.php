@@ -658,6 +658,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     public function broker_get_broker_nd_rebase_download($params = array()) {
         return $this->request('broker/nd/rebase/download', 'broker', 'GET', $params, null, null, array("cost" => 3));
     }
+    public function broker_get_asset_ndbroker_deposit_list($params = array()) {
+        return $this->request('asset/ndbroker/deposit/list', 'broker', 'GET', $params, null, null, array("cost" => 1));
+    }
     public function broker_get_broker_nd_transfer_detail($params = array()) {
         return $this->request('broker/nd/transfer/detail', 'broker', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1365,6 +1368,9 @@ abstract class kucoinfutures extends \ccxt\kucoin {
     }
     public function brokerGetBrokerNdRebaseDownload($params = array()) {
         return $this->request('broker/nd/rebase/download', 'broker', 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function brokerGetAssetNdbrokerDepositList($params = array()) {
+        return $this->request('asset/ndbroker/deposit/list', 'broker', 'GET', $params, null, null, array("cost" => 1));
     }
     public function brokerGetBrokerNdTransferDetail($params = array()) {
         return $this->request('broker/nd/transfer/detail', 'broker', 'GET', $params, null, null, array("cost" => 1));

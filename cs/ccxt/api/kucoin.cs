@@ -991,6 +991,11 @@ public partial class kucoin : Exchange
         return await this.callAsync ("brokerGetBrokerNdRebaseDownload",parameters);
     }
 
+    public async Task<object> brokerGetAssetNdbrokerDepositList (object parameters = null)
+    {
+        return await this.callAsync ("brokerGetAssetNdbrokerDepositList",parameters);
+    }
+
     public async Task<object> brokerGetBrokerNdTransferDetail (object parameters = null)
     {
         return await this.callAsync ("brokerGetBrokerNdTransferDetail",parameters);
