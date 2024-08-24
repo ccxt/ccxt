@@ -794,14 +794,13 @@ export default class coinex extends coinexRest {
         const timestamp = this.safeInteger (depth, 'updated_at');
         const currentOrderBook = this.safeValue (this.orderbooks, symbol);
         const fullOrderBook = this.safeBool (data, 'is_full', false);
-        const orderbook = depth;
         if (fullOrderBook) {
-            const snapshot = this.parseOrderBook (orderbook, symbol, timestamp);
+            const snapshot = this.parseOrderBook (depth, symbol, timestamp);
             if (currentOrderBook === undefined) {
                 this.orderbooks[symbol] = this.orderBook (snapshot);
             } else {
-                const ob = this.orderbooks[symbol];
-                ob.reset (snapshot);
+                const orderbook = this.orderbooks[symbol];
+                orderbook.reset (snapshot);
             }
         } else {
             const asks = this.safeList (depth, 'asks', []);
