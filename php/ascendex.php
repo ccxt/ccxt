@@ -1762,6 +1762,7 @@ class ascendex extends Exchange {
          * fetches information on an order made by the user
          * @see https://ascendex.github.io/ascendex-pro-api/#$query-order
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#$query-order-by-$id
+         * @param {string} $id the order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~

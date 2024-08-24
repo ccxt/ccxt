@@ -1272,6 +1272,7 @@ class bitfinex(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
         :see: https://docs.bitfinex.com/v1/reference/rest-auth-order-status
+        :param str id: the order id
         :param str symbol: not used by bitfinex fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`

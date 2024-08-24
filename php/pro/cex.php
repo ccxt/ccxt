@@ -1233,6 +1233,7 @@ class cex extends \ccxt\async\cex {
             /**
              * fetches information on an order made by the user
              * @see https://docs.cex.io/#ws-api-get-order
+             * @param {string} $id the order $id
              * @param {string} $symbol not used by cex fetchOrder
              * @param {array} [$params] extra parameters specific to the cex api endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~

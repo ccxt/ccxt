@@ -4835,6 +4835,7 @@ class bybit extends bybit$1 {
          * @name bybit#fetchOrderClassic
          * @description fetches information on an order made by the user *classic accounts only*
          * @see https://bybit-exchange.github.io/docs/v5/order/order-list
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -4868,6 +4869,7 @@ class bybit extends bybit$1 {
          * @name bybit#fetchOrderClassic
          * @description  *classic accounts only/ spot not supported*  fetches information on an order made by the user *classic accounts only*
          * @see https://bybit-exchange.github.io/docs/v5/order/order-list
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

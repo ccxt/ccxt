@@ -2039,6 +2039,7 @@ class bitrue extends Exchange {
              * @see https://github.com/Bitrue-exchange/Spot-official-api-docs#query-order-user_data
              * @see https://www.bitrue.com/api-docs#query-order-user_data-hmac-sha256
              * @see https://www.bitrue.com/api_docs_includes_file/delivery.html#query-order-user_data-hmac-sha256
+             * @param {string} $id the order $id
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~

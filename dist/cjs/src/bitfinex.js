@@ -1333,6 +1333,7 @@ class bitfinex extends bitfinex$1 {
          * @name bitfinex#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://docs.bitfinex.com/v1/reference/rest-auth-order-status
+         * @param {string} id the order id
          * @param {string} symbol not used by bitfinex fetchOrder
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
