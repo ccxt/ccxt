@@ -118,8 +118,8 @@ export default class onetrading extends Exchange {
             'urls': {
                 'logo': 'https://github.com/ccxt/ccxt/assets/43336371/bdbc26fd-02f2-4ca7-9f1e-17333690bb1c',
                 'api': {
-                    'public': 'https://api.onetrading.com/public',
-                    'private': 'https://api.onetrading.com/public',
+                    'public': 'https://api.onetrading.com/fast',
+                    'private': 'https://api.onetrading.com/fast',
                 },
                 'www': 'https://onetrading.com/',
                 'doc': [
@@ -137,38 +137,39 @@ export default class onetrading extends Exchange {
                         'order-book/{instrument_code}',
                         'market-ticker',
                         'market-ticker/{instrument_code}',
-                        'price-ticks/{instrument_code}',
+                        'price-ticks/{instrument_code}', // undocument
                         'time',
                     ],
                 },
                 'private': {
                     'get': [
                         'account/balances',
-                        'account/deposit/crypto/{currency_code}',
-                        'account/deposit/fiat/EUR',
-                        'account/deposits',
-                        'account/deposits/bitpanda',
-                        'account/withdrawals',
-                        'account/withdrawals/bitpanda',
                         'account/fees',
                         'account/orders',
                         'account/orders/{order_id}',
+                        'account/orders/client/{client_id}',
                         'account/orders/{order_id}/trades',
                         'account/trades',
-                        'account/trades/{trade_id}',
-                        'account/trading-volume',
+                        'account/deposit/crypto/{currency_code}', // undocument
+                        'account/deposit/fiat/EUR', // undocument
+                        'account/deposits', // undocument
+                        'account/deposits/bitpanda', // undocument
+                        'account/withdrawals', // undocument
+                        'account/withdrawals/bitpanda', // undocument
+                        'account/trades/{trade_id}', // undocument
+                        'account/trading-volume', // undocument
                     ],
                     'post': [
-                        'account/deposit/crypto',
-                        'account/withdraw/crypto',
-                        'account/withdraw/fiat',
-                        'account/fees',
                         'account/orders',
+                        'account/deposit/crypto', // undocument
+                        'account/withdraw/crypto', // undocument
+                        'account/withdraw/fiat', // undocument
+                        'account/fees', // undocument
                     ],
                     'delete': [
                         'account/orders',
                         'account/orders/{order_id}',
-                        'account/orders/client/{client_id}',
+                        'account/orders/client/{client_id}', // undocument
                     ],
                 },
             },
@@ -309,6 +310,7 @@ export default class onetrading extends Exchange {
          * @method
          * @name onetrading#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://docs.onetrading.com/#time
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -327,6 +329,7 @@ export default class onetrading extends Exchange {
          * @method
          * @name onetrading#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://docs.onetrading.com/#currencies
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -369,6 +372,7 @@ export default class onetrading extends Exchange {
          * @method
          * @name onetrading#fetchMarkets
          * @description retrieves data on all markets for onetrading
+         * @see https://docs.onetrading.com/#instruments
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -453,6 +457,8 @@ export default class onetrading extends Exchange {
          * @method
          * @name onetrading#fetchTradingFees
          * @description fetch the trading fees for multiple markets
+         * @see https://docs.onetrading.com/#fee-groups
+         * @see https://docs.onetrading.com/#fees
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
@@ -631,6 +637,7 @@ export default class onetrading extends Exchange {
          * @method
          * @name onetrading#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://docs.onetrading.com/#market-ticker-for-instrument
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -667,6 +674,7 @@ export default class onetrading extends Exchange {
          * @method
          * @name onetrading#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://docs.onetrading.com/#market-ticker
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -708,6 +716,7 @@ export default class onetrading extends Exchange {
          * @method
          * @name onetrading#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.onetrading.com/#order-book
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -835,6 +844,7 @@ export default class onetrading extends Exchange {
          * @method
          * @name onetrading#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.onetrading.com/#candlesticks
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -1021,6 +1031,7 @@ export default class onetrading extends Exchange {
          * @method
          * @name onetrading#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.onetrading.com/#balances
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
@@ -1598,6 +1609,7 @@ export default class onetrading extends Exchange {
          * @method
          * @name onetrading#cancelOrder
          * @description cancels an open order
+         * @see https://docs.onetrading.com/#close-order-by-order-id
          * @param {string} id order id
          * @param {string} symbol not used by bitmex cancelOrder ()
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1626,6 +1638,7 @@ export default class onetrading extends Exchange {
          * @method
          * @name onetrading#cancelAllOrders
          * @description cancel all open orders
+         * @see https://docs.onetrading.com/#close-all-orders
          * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1650,6 +1663,7 @@ export default class onetrading extends Exchange {
          * @method
          * @name onetrading#cancelOrders
          * @description cancel multiple orders
+         * @see https://docs.onetrading.com/#close-all-orders
          * @param {string[]} ids order ids
          * @param {string} symbol unified market symbol, default is undefined
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1673,6 +1687,7 @@ export default class onetrading extends Exchange {
          * @method
          * @name onetrading#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://docs.onetrading.com/#get-order
          * @param {string} symbol not used by onetrading fetchOrder
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1731,6 +1746,7 @@ export default class onetrading extends Exchange {
          * @method
          * @name onetrading#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://docs.onetrading.com/#get-orders
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch open orders for
          * @param {int} [limit] the maximum number of  open orders structures to retrieve
@@ -1852,6 +1868,7 @@ export default class onetrading extends Exchange {
          * @method
          * @name onetrading#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
+         * @see https://docs.onetrading.com/#get-orders
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
@@ -1869,6 +1886,7 @@ export default class onetrading extends Exchange {
          * @method
          * @name onetrading#fetchOrderTrades
          * @description fetch all the trades made from a single order
+         * @see https://docs.onetrading.com/#trades-for-order
          * @param {string} id order id
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
@@ -1929,6 +1947,7 @@ export default class onetrading extends Exchange {
          * @method
          * @name onetrading#fetchMyTrades
          * @description fetch all trades made by the user
+         * @see https://docs.onetrading.com/#all-trades
          * @param {string} symbol unified market symbol
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trades structures to retrieve
