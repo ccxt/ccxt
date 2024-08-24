@@ -3632,6 +3632,7 @@ export default class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20details
          * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20details
          * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
