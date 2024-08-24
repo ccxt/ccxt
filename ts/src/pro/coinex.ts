@@ -561,8 +561,10 @@ export default class coinex extends coinexRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
         const tickers = await this.watchTickers ([ symbol ], params);
-        return this.safeValue (tickers, symbol);
+        return tickers[market['symbol']];
     }
 
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
@@ -641,7 +643,9 @@ export default class coinex extends coinexRest {
         const messageHashes = [];
         let market = undefined;
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchTradesForSymbols', undefined, params);
+        let callerMethodName = undefined;
+        [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchTradesForSymbols');
+        [ type, params ] = this.handleMarketTypeAndParams (callerMethodName, undefined, params);
         const symbolsDefined = (symbols !== undefined);
         if (symbolsDefined) {
             for (let i = 0; i < symbols.length; i++) {
@@ -660,7 +664,6 @@ export default class coinex extends coinexRest {
             'params': { 'market_list': subscribedSymbols },
             'id': this.requestId (),
         };
-        params = this.omit (params, 'callerMethodName');
         const trades = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), subscriptionHashes);
         if (this.newUpdates) {
             return trades;
@@ -685,7 +688,9 @@ export default class coinex extends coinexRest {
         const messageHashes = [];
         let market = undefined;
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchOrderBookForSymbols', undefined, params);
+        let callerMethodName = undefined;
+        [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchOrderBookForSymbols');
+        [ type, params ] = this.handleMarketTypeAndParams (callerMethodName, undefined, params);
         const options = this.safeDict (this.options, 'watchOrderBook', {});
         const limits = this.safeList (options, 'limits', []);
         if (limit === undefined) {
@@ -720,7 +725,6 @@ export default class coinex extends coinexRest {
         };
         const subscriptionHashes = this.hash (this.encode (this.json (watchOrderBookSubscriptions)), sha256);
         const url = this.urls['api']['ws'][type];
-        params = this.omit (params, 'callerMethodName');
         const orderbooks = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), subscriptionHashes);
         if (this.newUpdates) {
             return orderbooks;
