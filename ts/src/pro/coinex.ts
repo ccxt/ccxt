@@ -637,7 +637,7 @@ export default class coinex extends coinexRest {
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         await this.loadMarkets ();
-        const subscribedSymbols = this.safeList (this.options, 'watchTradesSubscriptions', []);
+        const subscribedSymbols = [];
         const messageHashes = [];
         let market = undefined;
         let type = undefined;
@@ -660,7 +660,6 @@ export default class coinex extends coinexRest {
             'params': { 'market_list': subscribedSymbols },
             'id': this.requestId (),
         };
-        this.options['watchTradesSubscriptions'] = subscribedSymbols;
         params = this.omit (params, 'callerMethodName');
         const trades = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), subscriptionHashes);
         if (this.newUpdates) {
@@ -682,7 +681,7 @@ export default class coinex extends coinexRest {
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const watchOrderBookSubscriptions = this.safeDict (this.options, 'watchOrderBookSubscriptions', {});
+        const watchOrderBookSubscriptions: Dict = {};
         const messageHashes = [];
         let market = undefined;
         let type = undefined;
@@ -719,7 +718,6 @@ export default class coinex extends coinexRest {
             'params': { 'market_list': marketList },
             'id': this.requestId (),
         };
-        this.options['watchOrderBookSubscriptions'] = watchOrderBookSubscriptions;
         const subscriptionHashes = this.hash (this.encode (this.json (watchOrderBookSubscriptions)), sha256);
         const url = this.urls['api']['ws'][type];
         params = this.omit (params, 'callerMethodName');
