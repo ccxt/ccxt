@@ -619,24 +619,8 @@ export default class coinex extends coinexRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchTrades', market, params);
-        const url = this.urls['api']['ws'][type];
-        const messageHash = 'trades:' + symbol;
-        const subscriptionHash = 'trades';
-        const subscribedSymbols = this.safeList (this.options, 'watchTradesSubscriptions', []);
-        subscribedSymbols.push (market['id']);
-        const message: Dict = {
-            'method': 'deals.subscribe',
-            'params': { 'market_list': subscribedSymbols },
-            'id': this.requestId (),
-        };
-        this.options['watchTradesSubscriptions'] = subscribedSymbols;
-        const request = this.deepExtend (message, params);
-        const trades = await this.watch (url, messageHash, request, subscriptionHash);
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        params['callerMethodName'] = 'watchTrades';
+        return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -677,6 +661,7 @@ export default class coinex extends coinexRest {
             'id': this.requestId (),
         };
         this.options['watchTradesSubscriptions'] = subscribedSymbols;
+        params = this.omit (params, 'callerMethodName');
         const trades = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), subscriptionHashes);
         if (this.newUpdates) {
             return trades;
@@ -737,6 +722,7 @@ export default class coinex extends coinexRest {
         this.options['watchOrderBookSubscriptions'] = watchOrderBookSubscriptions;
         const subscriptionHashes = this.hash (this.encode (this.json (watchOrderBookSubscriptions)), sha256);
         const url = this.urls['api']['ws'][type];
+        params = this.omit (params, 'callerMethodName');
         const orderbooks = await this.watchMultiple (url, messageHashes, this.deepExtend (subscribe, params), subscriptionHashes);
         if (this.newUpdates) {
             return orderbooks;
@@ -756,42 +742,8 @@ export default class coinex extends coinexRest {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        symbol = market['symbol'];
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchOrderBook', market, params);
-        const url = this.urls['api']['ws'][type];
-        const name = 'orderbook';
-        const messageHash = name + ':' + symbol;
-        const options = this.safeDict (this.options, 'watchOrderBook', {});
-        const limits = this.safeList (options, 'limits', []);
-        if (limit === undefined) {
-            limit = this.safeInteger (options, 'defaultLimit', 50);
-        }
-        if (!this.inArray (limit, limits)) {
-            throw new NotSupported (this.id + ' watchOrderBook() limit must be one of ' + limits.join (', '));
-        }
-        const defaultAggregation = this.safeString (options, 'defaultAggregation', '0');
-        const aggregations = this.safeList (options, 'aggregations', []);
-        const aggregation = this.safeString (params, 'aggregation', defaultAggregation);
-        if (!this.inArray (aggregation, aggregations)) {
-            throw new NotSupported (this.id + ' watchOrderBook() aggregation must be one of ' + aggregations.join (', '));
-        }
-        params = this.omit (params, 'aggregation');
-        const watchOrderBookSubscriptions = this.safeValue (this.options, 'watchOrderBookSubscriptions', {});
-        watchOrderBookSubscriptions[symbol] = [ market['id'], limit, aggregation, true ];
-        const marketList = Object.values (watchOrderBookSubscriptions);
-        const subscribe: Dict = {
-            'method': 'depth.subscribe',
-            'params': { 'market_list': marketList },
-            'id': this.requestId (),
-        };
-        this.options['watchOrderBookSubscriptions'] = watchOrderBookSubscriptions;
-        const subscriptionHash = this.hash (this.encode (this.json (watchOrderBookSubscriptions)), sha256);
-        const request = this.deepExtend (subscribe, params);
-        const orderbook = await this.watch (url, messageHash, request, subscriptionHash, request);
-        return orderbook.limit ();
+        params['callerMethodName'] = 'watchOrderBook';
+        return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
     handleDelta (bookside, delta) {
