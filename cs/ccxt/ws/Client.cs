@@ -330,26 +330,26 @@ public partial class Exchange
                                 CancellationToken.None);
         }
 
-        private static async Task Sending(ClientWebSocket webSocket)
-        {
-            try
-            {
-                while (webSocket.State == WebSocketState.Open)
-                {
-                    string message = Console.ReadLine();
+        // private static async Task Sending(ClientWebSocket webSocket)
+        // {
+        //    try
+        //    {
+        //        while (webSocket.State == WebSocketState.Open)
+        //        {
+        //            string message = Console.ReadLine();
 
-                    if (!string.IsNullOrEmpty(message))
-                    {
-                        var bytes = Encoding.UTF8.GetBytes(message);
-                        await sendAsyncWrapper(webSocket, new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Sending error: {ex.Message}");
-            }
-        }
+        //            if (!string.IsNullOrEmpty(message))
+        //            {
+        //                var bytes = Encoding.UTF8.GetBytes(message);
+        //                await sendAsyncWrapper(webSocket, new ArraySegment<byte>(bytes), WebSocketMessageType.Text, true, CancellationToken.None);
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine($"Sending error: {ex.Message}");
+        //    }
+        // }
 
         private void TryHandleMessage (string message)
         {
