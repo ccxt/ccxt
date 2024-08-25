@@ -1178,6 +1178,9 @@ export default class bingx extends bingxRest {
             subscriptionHash = 'private';
             [ subType, params ] = this.handleSubTypeAndParams ('watchOrders', undefined, params, 'linear');
             urlType = (subType === 'linear') ? 'swap' : 'cswap';
+            if (type === 'swap' && subType === 'inverse') {
+                throw new NotSupported (this.id + ' watchMyTrades is not supported yet for ' + type + ' ' + subType + ' markets.');
+            }
         }
         if (market !== undefined) {
             messageHash += ':' + symbol;
@@ -1222,6 +1225,9 @@ export default class bingx extends bingxRest {
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params, 'swap');
         let subType = undefined;
+        if (type === 'swap' && subType === 'inverse') {
+            throw new NotSupported (this.id + ' watchMyTrades is not supported yet for ' + type + ' ' + subType + ' markets.');
+        }
         let messageHash = 'mytrades';
         const subscriptionHash = 'private';
         let urlType = 'spot';
@@ -1278,6 +1284,9 @@ export default class bingx extends bingxRest {
             messageHash = 'swap:balance';
             [ subType, params ] = this.handleSubTypeAndParams ('watchBalance', undefined, params);
             urlType = (subType === 'linear') ? 'swap' : 'cswap';
+            if (type === 'swap' && subType === 'inverse') {
+                throw new NotSupported (this.id + ' watchMyTrades is not supported yet for ' + type + ' ' + subType + ' markets.');
+            }
         }
         const url = this.urls['api']['ws'][urlType] + '?listenKey=' + this.options['listenKey'];
         let request = undefined;
