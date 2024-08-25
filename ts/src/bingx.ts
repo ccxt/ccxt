@@ -2297,7 +2297,7 @@ export default class bingx extends Exchange {
         }
         return this.safePosition ({
             'info': position,
-            'id': undefined,
+            'id': this.safeString (position, 'positionId'),
             'symbol': this.safeSymbol (marketId, market, '-', 'swap'),
             'notional': this.safeNumber (position, 'positionValue'),
             'marginMode': marginMode,
