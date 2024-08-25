@@ -751,7 +751,7 @@ export default class deribit extends deribitRest {
         // data contains a single OHLCV candle
         const parsed = this.parseWsOHLCV (ohlcv, market);
         stored.append (parsed);
-        const ohlcvs = this.createOHLCVObject (symbol, unifiedTimeframe, parsed);
+        const ohlcvs = this.createStreamOHLCV (symbol, unifiedTimeframe, parsed);
         this.streamProduce ('ohlcvs', ohlcvs);
         this.ohlcvs[symbol][unifiedTimeframe] = stored;
         const resolveData = [ symbol, unifiedTimeframe, stored ];

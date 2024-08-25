@@ -337,6 +337,7 @@ export default class krakenfutures extends krakenfuturesRest {
             position['datetime'] = this.iso8601 (timestamp);
             newPositions.push (position);
             cache.append (position);
+            this.streamProduce ('positions', position);
         }
         const messageHashes = this.findMessageHashes (client, 'positions::');
         for (let i = 0; i < messageHashes.length; i++) {
@@ -726,6 +727,7 @@ export default class krakenfutures extends krakenfuturesRest {
             if ((previousOrder === undefined) || (reason === 'edited_by_user')) {
                 const parsed = this.parseWsOrder (order);
                 orders.append (parsed);
+                this.streamProduce ('orders', parsed);
                 client.resolve (orders, messageHash);
                 client.resolve (orders, messageHash + ':' + symbol);
             } else {
@@ -768,6 +770,7 @@ export default class krakenfutures extends krakenfuturesRest {
                 }
                 // update the newUpdates count
                 orders.append (this.safeOrder (previousOrder));
+                this.streamProduce ('orders', this.safeOrder (previousOrder));
                 client.resolve (orders, messageHash + ':' + symbol);
                 client.resolve (orders, messageHash);
             }
@@ -781,6 +784,7 @@ export default class krakenfutures extends krakenfuturesRest {
                         orders[i] = this.extend (currentOrder, {
                             'status': 'canceled',
                         });
+                        this.streamProduce ('orders', orders[i]);
                         client.resolve (orders, 'orders');
                         client.resolve (orders, 'orders:' + currentOrder['symbol']);
                         break;
@@ -850,6 +854,7 @@ export default class krakenfutures extends krakenfuturesRest {
             const symbol = parsed['symbol'];
             symbols[symbol] = true;
             cachedOrders.append (parsed);
+            this.streamProduce ('orders', parsed);
         }
         const length = this.orders.length;
         if (length > 0) {
@@ -982,6 +987,7 @@ export default class krakenfutures extends krakenfuturesRest {
             const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
             const messageHash = this.getMessageHash ('ticker', undefined, symbol);
+            this.streamProduce ('tickers', ticker);
             client.resolve (ticker, messageHash);
         }
     }
@@ -1151,6 +1157,7 @@ export default class krakenfutures extends krakenfuturesRest {
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
         orderbook['symbol'] = symbol;
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 
@@ -1184,6 +1191,7 @@ export default class krakenfutures extends krakenfuturesRest {
         }
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 
@@ -1354,6 +1362,7 @@ export default class krakenfutures extends krakenfuturesRest {
             }
             this.balance['cash'] = holdingResult;
             this.balance['cash'] = this.safeBalance (this.balance['cash']);
+            this.streamProduce ('balances', holdingResult);
             client.resolve (holdingResult, messageHash);
         }
         if (futures !== undefined) {
@@ -1378,6 +1387,7 @@ export default class krakenfutures extends krakenfuturesRest {
             }
             this.balance['margin'] = futuresResult;
             this.balance['margin'] = this.safeBalance (this.balance['margin']);
+            this.streamProduce ('balances', this.balance['margin']);
             client.resolve (this.balance['margin'], messageHash + 'futures');
         }
         if (flexFutures !== undefined) {
@@ -1400,8 +1410,10 @@ export default class krakenfutures extends krakenfuturesRest {
             }
             this.balance['flex'] = flexFuturesResult;
             this.balance['flex'] = this.safeBalance (this.balance['flex']);
+            this.streamProduce ('balances', this.balance['flex']);
             client.resolve (this.balance['flex'], messageHash + 'flex_futures');
         }
+        this.streamProduce ('balances', this.balance);
         client.resolve (this.balance, messageHash);
     }
 
@@ -1444,6 +1456,7 @@ export default class krakenfutures extends krakenfuturesRest {
             const parsedTrade = this.parseWsMyTrade (trade);
             tradeSymbols[parsedTrade['symbol']] = true;
             stored.append (parsedTrade);
+            this.streamProduce ('trades', parsedTrade);
         }
         const tradeSymbolKeys = Object.keys (tradeSymbols);
         for (let i = 0; i < tradeSymbolKeys.length; i++) {
@@ -1544,6 +1557,7 @@ export default class krakenfutures extends krakenfuturesRest {
         try {
             throw new ExchangeError (this.id + ' ' + errMsg);
         } catch (error) {
+            this.streamProduce ('errors', undefined, error);
             client.reject (error);
         }
     }

@@ -1148,7 +1148,7 @@ export default class cex extends cexRest {
         for (let i = 0; i < sorted.length; i++) {
             const parsed = this.parseOHLCV (sorted[i], market);
             stored.append (parsed);
-            const ohlcvs = this.createOHLCVObject (symbol, 'unknown', parsed);
+            const ohlcvs = this.createStreamOHLCV (symbol, 'unknown', parsed);
             this.streamProduce ('ohlcvs', ohlcvs);
         }
         if (!(symbol in this.ohlcvs)) {
@@ -1189,7 +1189,7 @@ export default class cex extends cexRest {
         const pair = this.safeString (data, 'pair');
         const symbol = this.pairToSymbol (pair);
         const messageHash = 'ohlcv:' + symbol;
-        const ohlcv = [
+        const ohlcv: OHLCV = [
             this.safeTimestamp (data, 'time'),
             this.safeNumber (data, 'o'),
             this.safeNumber (data, 'h'),
@@ -1199,7 +1199,7 @@ export default class cex extends cexRest {
         ];
         const stored = this.safeValue (this.ohlcvs, symbol);
         stored.append (ohlcv);
-        const ohlcvs = this.createOHLCVObject (symbol, '1m', ohlcv);
+        const ohlcvs = this.createStreamOHLCV (symbol, '1m', ohlcv);
         this.streamProduce ('ohlcvs', ohlcvs);
         client.resolve (stored, messageHash);
     }
@@ -1221,7 +1221,7 @@ export default class cex extends cexRest {
         // const stored = this.safeValue (this.ohlcvs, symbol);
         const stored = this.ohlcvs[symbol]['unknown'];
         for (let i = 0; i < data.length; i++) {
-            const ohlcv = [
+            const ohlcv: OHLCV = [
                 this.safeTimestamp (data[i], 0),
                 this.safeNumber (data[i], 1),
                 this.safeNumber (data[i], 2),
@@ -1230,7 +1230,7 @@ export default class cex extends cexRest {
                 this.safeNumber (data[i], 5),
             ];
             stored.append (ohlcv);
-            const ohlcvs = this.createOHLCVObject (symbol, 'unknown', ohlcv);
+            const ohlcvs = this.createStreamOHLCV (symbol, undefined, ohlcv);
             this.streamProduce ('ohlcvs', ohlcvs);
         }
         const dataLength = data.length;

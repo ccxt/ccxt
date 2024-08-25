@@ -216,6 +216,7 @@ export default class luno extends lunoRest {
         }
         const nonce = this.safeInteger (message, 'sequence');
         orderbook['nonce'] = nonce;
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 

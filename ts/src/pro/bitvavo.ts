@@ -273,7 +273,7 @@ export default class bitvavo extends bitvavoRest {
         for (let i = 0; i < candles.length; i++) {
             const candle = candles[i];
             const parsed = this.parseOHLCV (candle, market);
-            const ohlcv = this.createOHLCVObject (symbol, timeframe, parsed);
+            const ohlcv = this.createStreamOHLCV (symbol, timeframe, parsed);
             this.streamProduce ('ohlcvs', ohlcv);
             stored.append (parsed);
         }

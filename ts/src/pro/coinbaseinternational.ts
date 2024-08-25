@@ -504,7 +504,7 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         for (let i = 0; i < data.length; i++) {
             const tick = data[i];
             const parsed = this.parseOHLCV (tick, market);
-            const ohlcvs = this.createOHLCVObject (symbol, timeframe, parsed);
+            const ohlcvs = this.createStreamOHLCV (symbol, timeframe, parsed);
             this.streamProduce ('ohlcvs', ohlcvs);
             stored.append (parsed);
         }

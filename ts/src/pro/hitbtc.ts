@@ -716,8 +716,8 @@ export default class hitbtc extends hitbtcRest {
             const ohlcvs = this.parseWsOHLCVs (data[marketId], market);
             for (let j = 0; j < ohlcvs.length; j++) {
                 stored.append (ohlcvs[j]);
-                const ohlcvsObj = this.createOHLCVObject (symbol, timeframe, ohlcvs[j]);
-                this.streamProduce ('ohlcv', ohlcvsObj);
+                const ohlcvsObj = this.createStreamOHLCV (symbol, timeframe, ohlcvs[j]);
+                this.streamProduce ('ohlcvs', ohlcvsObj);
             }
             const messageHash = 'candles::' + symbol;
             client.resolve (stored, messageHash);

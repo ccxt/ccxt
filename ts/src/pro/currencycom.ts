@@ -273,7 +273,7 @@ export default class currencycom extends currencycomRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const messageHash = destination + ':' + timeframe + ':' + symbol;
-        const result = [
+        const result: OHLCV = [
             this.safeInteger (payload, 't'),
             this.safeNumber (payload, 'o'),
             this.safeNumber (payload, 'h'),
@@ -281,7 +281,7 @@ export default class currencycom extends currencycomRest {
             this.safeNumber (payload, 'c'),
             undefined, // no volume v in OHLCV
         ];
-        const ohlcvs = this.createOHLCVObject (symbol, timeframe, result);
+        const ohlcvs = this.createStreamOHLCV (symbol, timeframe, result);
         this.streamProduce ('ohlcvs', ohlcvs);
         this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);

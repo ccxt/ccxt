@@ -431,7 +431,7 @@ export default class kraken extends krakenRest {
             let timestamp = this.safeFloat (candle, 1);
             timestamp -= duration;
             const ts = this.parseToInt (timestamp * 1000);
-            const result = [
+            const result: OHLCV = [
                 ts,
                 this.safeFloat (candle, 2),
                 this.safeFloat (candle, 3),
@@ -447,6 +447,8 @@ export default class kraken extends krakenRest {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append (result);
+            const ohlcvs = this.createStreamOHLCV (symbol, timeframe, result);
+            this.streamProduce ('ohlcvs', ohlcvs);
             client.resolve (stored, messageHash);
         }
     }
@@ -804,6 +806,7 @@ export default class kraken extends krakenRest {
             orderbook['symbol'] = symbol;
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
+            this.streamProduce ('orderbooks', orderbook);
             client.resolve (orderbook, messageHash);
         }
     }
@@ -975,6 +978,7 @@ export default class kraken extends krakenRest {
                     stored.append (parsed);
                     const symbol = parsed['symbol'];
                     symbols[symbol] = true;
+                    this.streamProduce ('myTrades', parsed);
                 }
             }
             const name = 'ownTrades';
@@ -1202,6 +1206,7 @@ export default class kraken extends krakenRest {
                         }
                     }
                     stored.append (newOrder);
+                    this.streamProduce ('orders', newOrder);
                     symbols[symbol] = true;
                 }
             }
@@ -1426,6 +1431,7 @@ export default class kraken extends krakenRest {
         const newBalance = this.deepExtend (oldBalance, balance);
         this.balance[type] = this.safeBalance (newBalance);
         const channel = this.safeString (message, 'channel');
+        this.streamProduce ('balances', this.balance[type]);
         client.resolve (this.balance[type], channel);
     }
 
@@ -1502,6 +1508,7 @@ export default class kraken extends krakenRest {
                 } else {
                     exception = new broad[broadKey] (errorMessage);
                 }
+                this.streamProduce ('errors', undefined, exception);
                 client.reject (exception, requestId);
                 return false;
             }

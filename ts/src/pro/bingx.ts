@@ -788,7 +788,7 @@ export default class bingx extends bingxRest {
             const candle = candles[i];
             const parsed = this.parseWsOHLCV (candle, market);
             stored.append (parsed);
-            const ohlcvs = this.createOHLCVObject (symbol, unifiedTimeframe, stored);
+            const ohlcvs = this.createStreamOHLCV (symbol, unifiedTimeframe, parsed);
             this.streamProduce ('ohlcvs', ohlcvs);
         }
         const resolveData = [ symbol, unifiedTimeframe, stored ];

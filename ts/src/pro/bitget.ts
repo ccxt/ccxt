@@ -407,7 +407,7 @@ export default class bitget extends bitgetRest {
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseWsOHLCV (data[i], market);
             stored.append (parsed);
-            const resolvedData = this.createOHLCVObject (symbol, timeframe, parsed);
+            const resolvedData = this.createStreamOHLCV (symbol, timeframe, parsed);
             this.streamProduce ('ohlcvs', resolvedData);
         }
         const messageHash = 'candles:' + timeframe + ':' + symbol;

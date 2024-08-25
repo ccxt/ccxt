@@ -646,7 +646,7 @@ export default class bybit extends bybitRest {
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseWsOHLCV (data[i]);
             stored.append (parsed);
-            const ohlcvs = this.createOHLCVObject (symbol, timeframe, stored);
+            const ohlcvs = this.createStreamOHLCV (symbol, timeframe, parsed);
             this.streamProduce ('ohlcvs', ohlcvs);
         }
         const messageHash = 'ohlcv::' + symbol + '::' + timeframe;

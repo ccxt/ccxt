@@ -196,7 +196,7 @@ export default class blockchaincom extends blockchaincomRest {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append (ohlcv);
-            const ohlcvs = this.createOHLCVObject (symbol, timeframe, ohlcv);
+            const ohlcvs = this.createStreamOHLCV (symbol, timeframe, ohlcv);
             this.streamProduce ('ohlcvs', ohlcvs);
             client.resolve (stored, messageHash);
         } else if (event !== 'subscribed') {

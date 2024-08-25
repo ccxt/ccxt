@@ -853,8 +853,8 @@ export default class gate extends gateRest {
                 this.ohlcvs[symbol][timeframeId] = stored;
             }
             stored.append (parsed);
-            const ohlcvs = this.createOHLCVObject (symbol, timeframe, parsed);
-            this.streamProduce ('ohlcv', ohlcvs);
+            const ohlcvs = this.createStreamOHLCV (symbol, timeframe, parsed);
+            this.streamProduce ('ohlcvs', ohlcvs);
             marketIds[symbol] = timeframe;
         }
         const keys = Object.keys (marketIds);

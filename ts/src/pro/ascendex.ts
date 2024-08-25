@@ -139,7 +139,7 @@ export default class ascendex extends ascendexRest {
             this.ohlcvs[symbol][timeframe] = stored;
         }
         stored.append (parsed);
-        const ohlcvs = this.createOHLCVObject (symbol, timeframe, parsed);
+        const ohlcvs = this.createStreamOHLCV (symbol, timeframe, parsed);
         this.streamProduce ('ohlcvs', ohlcvs);
         client.resolve (stored, messageHash);
         return message;

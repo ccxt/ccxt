@@ -353,7 +353,7 @@ export default class gemini extends geminiRest {
         for (let i = 0; i < changesLength; i++) {
             const index = changesLength - i - 1;
             const parsed = this.parseOHLCV (changes[index], market);
-            const ohlcvs = this.createOHLCVObject (symbol, timeframe, parsed);
+            const ohlcvs = this.createStreamOHLCV (symbol, timeframe, parsed);
             this.streamProduce ('ohlcvs', ohlcvs);
             stored.append (parsed);
         }

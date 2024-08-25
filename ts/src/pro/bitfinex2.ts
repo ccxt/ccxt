@@ -186,7 +186,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         for (let i = 0; i < ohlcvsLength; i++) {
             const ohlcv = ohlcvs[ohlcvsLength - i - 1];
             const parsed = this.parseOHLCV (ohlcv, market);
-            const resolved = this.createOHLCVObject (symbol, timeframe, parsed);
+            const resolved = this.createStreamOHLCV (symbol, timeframe, parsed);
             this.streamProduce ('ohlcvs', resolved);
             stored.append (parsed);
         }

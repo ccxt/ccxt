@@ -1361,7 +1361,7 @@ export default class binance extends binanceRest {
         const interval = this.safeString (kline, 'i');
         // use a reverse lookup in a static map instead
         const unifiedTimeframe = this.findTimeframe (interval);
-        const parsed = [
+        const parsed: OHLCV = [
             this.safeInteger (kline, 't'),
             this.safeFloat (kline, 'o'),
             this.safeFloat (kline, 'h'),
@@ -1382,7 +1382,7 @@ export default class binance extends binanceRest {
         }
         stored.append (parsed);
         const resolveData = [ symbol, unifiedTimeframe, stored ];
-        const ohlcvs = this.createOHLCVObject (symbol, unifiedTimeframe, stored);
+        const ohlcvs = this.createStreamOHLCV (symbol, unifiedTimeframe, parsed);
         this.streamProduce ('ohlcvs', ohlcvs);
         client.resolve (resolveData, messageHash);
     }

@@ -1117,7 +1117,7 @@ export default class bitmart extends bitmartRest {
                 }
                 stored.append (parsed);
                 const messageHash = channel + ':' + marketId;
-                const resolvedData = this.createOHLCVObject (symbol, timeframe, parsed);
+                const resolvedData = this.createStreamOHLCV (symbol, timeframe, parsed);
                 this.streamProduce ('ohlcvs', resolvedData);
                 client.resolve (stored, messageHash);
             }
@@ -1137,7 +1137,7 @@ export default class bitmart extends bitmartRest {
                 const candle = items[i];
                 const parsed = this.parseOHLCV (candle, market);
                 stored.append (parsed);
-                const resolvedData = this.createOHLCVObject (symbol, timeframe, parsed);
+                const resolvedData = this.createStreamOHLCV (symbol, timeframe, parsed);
                 this.streamProduce ('ohlcvs', resolvedData);
             }
             client.resolve (stored, channel);
