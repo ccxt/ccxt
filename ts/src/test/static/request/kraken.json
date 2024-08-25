@@ -453,12 +453,11 @@
             {
                 "description": "coin with space in id",
                 "method": "fetchDepositAddress",
-                "disabled": true,
                 "url": "https://api.kraken.com/0/private/DepositAddresses",
                 "input": [
                   "MATIC"
                 ],
-                "output": "nonce=1724594503685&asset=MATIC&method=Polygon+%28MATIC%29"
+                "output": "nonce=1724594503685&asset=MATIC&method=Polygon%20%28MATIC%29"
               }
         ],
         "fetchOHLCV": [
