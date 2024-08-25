@@ -2535,12 +2535,6 @@ public partial class ascendex : Exchange
         };
     }
 
-    public virtual object safeNetwork(object networkId)
-    {
-        object networksById = this.safeDict(this.options, "networksById");
-        return this.safeString(networksById, networkId, networkId);
-    }
-
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
     {
         /**

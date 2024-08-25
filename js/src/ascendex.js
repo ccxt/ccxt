@@ -2408,10 +2408,6 @@ export default class ascendex extends Exchange {
             'info': depositAddress,
         };
     }
-    safeNetwork(networkId) {
-        const networksById = this.safeDict(this.options, 'networksById');
-        return this.safeString(networksById, networkId, networkId);
-    }
     async fetchDepositAddress(code, params = {}) {
         /**
          * @method

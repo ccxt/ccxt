@@ -2284,10 +2284,6 @@ class ascendex(Exchange, ImplicitAPI):
             'info': depositAddress,
         }
 
-    def safe_network(self, networkId):
-        networksById = self.safe_dict(self.options, 'networksById')
-        return self.safe_string(networksById, networkId, networkId)
-
     async def fetch_deposit_address(self, code: str, params={}):
         """
         fetch the deposit address for a currency associated with self account

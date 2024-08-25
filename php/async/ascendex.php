@@ -2413,11 +2413,6 @@ class ascendex extends Exchange {
         );
     }
 
-    public function safe_network($networkId) {
-        $networksById = $this->safe_dict($this->options, 'networksById');
-        return $this->safe_string($networksById, $networkId, $networkId);
-    }
-
     public function fetch_deposit_address(string $code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
