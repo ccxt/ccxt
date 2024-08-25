@@ -1014,7 +1014,7 @@ class Exchange(object):
         if isinstance(params, dict):
             for key in params:
                 _encode_params(params[key], key)
-        return _urlencode.urlencode(result)
+        return _urlencode.urlencode(result, quote_via=_urlencode.quote)
 
     @staticmethod
     def rawencode(params={}):
