@@ -232,6 +232,8 @@ export default class p2b extends p2bRest {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append (parsed);
+            const ohlcvs = this.createStreamOHLCV (symbol, timeframe, parsed);
+            this.streamProduce ('ohlcvs', ohlcvs);
             client.resolve (stored, messageHash);
         }
         return message;
@@ -390,6 +392,7 @@ export default class p2b extends p2bRest {
             }
         }
         orderbook['symbol'] = symbol;
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 
@@ -420,7 +423,10 @@ export default class p2b extends p2bRest {
     handleErrorMessage (client: Client, message) {
         const error = this.safeString (message, 'error');
         if (error !== undefined) {
-            throw new ExchangeError (this.id + ' error: ' + this.json (error));
+            const err = new ExchangeError (this.id + ' error: ' + this.json (error));
+            this.streamProduce ('errors', undefined, err);
+            client.reject (err);
+            return true;
         }
         return false;
     }

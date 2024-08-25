@@ -567,6 +567,8 @@ export default class poloniex extends poloniexRest {
                 this.ohlcvs[symbol][timeframe] = stored;
             }
             stored.append (parsed);
+            const ohlcvs = this.createStreamOHLCV (symbol, timeframe, stored);
+            this.streamProduce ('ohlcvs', ohlcvs);
             client.resolve (stored, messageHash);
         }
         return message;
@@ -801,6 +803,7 @@ export default class poloniex extends poloniexRest {
                 if (eventType === 'place' || eventType === 'canceled') {
                     const parsed = this.parseWsOrder (order);
                     orders.append (parsed);
+                    this.streamProduce ('orders', parsed);
                 } else {
                     const previousOrders = this.safeValue (orders.hashmap, symbol, {});
                     const previousOrder = this.safeValue2 (previousOrders, orderId, clientOrderId);
@@ -852,6 +855,7 @@ export default class poloniex extends poloniexRest {
                     previousOrder['status'] = state;
                     // update the newUpdates count
                     orders.append (previousOrder);
+                    this.streamProduce ('orders', previousOrder);
                 }
                 marketIds.push (marketId);
             }
@@ -1079,6 +1083,7 @@ export default class poloniex extends poloniexRest {
                 orderbook['symbol'] = symbol;
                 orderbook['timestamp'] = timestamp;
                 orderbook['datetime'] = this.iso8601 (timestamp);
+                this.streamProduce ('orderbooks', orderbook);
                 client.resolve (orderbook, messageHash);
             }
         }
@@ -1107,6 +1112,7 @@ export default class poloniex extends poloniexRest {
         const data = this.safeValue (message, 'data', []);
         const messageHash = 'balances';
         this.balance = this.parseWsBalance (data);
+        this.streamProduce ('balances', this.balance);
         client.resolve (this.balance, messageHash);
     }
 
@@ -1156,6 +1162,7 @@ export default class poloniex extends poloniexRest {
         }
         const trades = this.myTrades;
         trades.append (parsedTrade);
+        this.streamProduce ('myTrades', parsedTrade);
         client.resolve (trades, messageHash);
         const symbolMessageHash = messageHash + ':' + symbol;
         client.resolve (trades, symbolMessageHash);
@@ -1259,6 +1266,7 @@ export default class poloniex extends poloniexRest {
                 this.throwBroadlyMatchedException (this.exceptions['broad'], error, feedback);
                 throw new ExchangeError (feedback);
             } catch (e) {
+                this.streamProduce ('errors', undefined, e);
                 if (e instanceof AuthenticationError) {
                     const messageHash = 'authenticated';
                     client.reject (e, messageHash);
@@ -1290,6 +1298,7 @@ export default class poloniex extends poloniexRest {
             client.resolve (message, messageHash);
         } else {
             const error = new AuthenticationError (this.id + ' ' + this.json (message));
+            this.streamProduce ('errors', undefined, error);
             client.reject (error, messageHash);
             if (messageHash in client.subscriptions) {
                 delete client.subscriptions[messageHash];

@@ -1626,6 +1626,24 @@ export default class Exchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    streamOHLCVS (message: Message) {
+        /**
+         * @ignore
+         * @method
+         * @description parses ohlcvs topic and produces to ohlcvs symbol and timeframe topics
+         */
+        const payload = message.payload;
+        const err = message.error;
+        const symbol = this.safeString (payload, 'symbol');
+        if (symbol !== undefined) {
+            this.streamProduce ('ohlcvs::' + symbol, payload, err);
+            const timeframe = this.safeString (payload, 'timeframe');
+            if (timeframe !== undefined) {
+                this.streamProduce ('ohlcvs::' + symbol + '::' + timeframe, payload, err);
+            }
+        }
+    }
+
     setupStream () {
         /**
          * @ignore
@@ -1642,7 +1660,7 @@ export default class Exchange {
         stream.subscribe ('positions', this.streamToSymbol ('positions'), true);
         stream.subscribe ('trades', this.streamToSymbol ('trades'), true);
         stream.subscribe ('myTrades', this.streamToSymbol ('myTrades'), true);
-        stream.subscribe ('ohlcvs', this.streamToSymbol ('ohlcvs'), true);
+        stream.subscribe ('ohlcvs', this.streamOHLCVS, true);
         stream.subscribe ('liquidations', this.streamToSymbol ('liquidations'), true);
         stream.subscribe ('myLiquidations', this.streamToSymbol ('myLiquidations'), true);
         const options = this.safeDict (this.options, 'streaming', {});
@@ -2619,10 +2637,10 @@ export default class Exchange {
             for (let i = 0; i < symbolsAndTimeframes.length; i++) {
                 const symbol = this.symbol (symbolsAndTimeframes[i][0]);
                 const timeframe = symbolsAndTimeframes[i][1];
-                stream.subscribe ('ohlcv' + '::' + symbol + '::' + timeframe, callback, synchronous);
+                stream.subscribe ('ohlcvs' + '::' + symbol + '::' + timeframe, callback, synchronous);
             }
             if (this.isEmpty (symbolsAndTimeframes)) {
-                stream.subscribe ('ohlcv', callback, synchronous);
+                stream.subscribe ('ohlcvs', callback, synchronous);
             }
         }
         stream.addWatchFunction ('watchOHLCVForSymbols', [ symbolsAndTimeframes, undefined, undefined, params ]);
@@ -3966,7 +3984,7 @@ export default class Exchange {
         symbol = this.symbol (symbol);
         const stream = this.stream;
         if (callback !== undefined) {
-            stream.subscribe ('ohlcv::' + symbol + '::' + timeframe, callback, synchronous);
+            stream.subscribe ('ohlcvs::' + symbol + '::' + timeframe, callback, synchronous);
         }
         stream.addWatchFunction ('watchOHLCV', [ symbol, timeframe, undefined, undefined, params ]);
         await this.watchOHLCV (symbol, timeframe, undefined, undefined, params);
@@ -6997,6 +7015,14 @@ export default class Exchange {
          * @description Typed wrapper for filterByArray that returns a dictionary of tickers
          */
         return this.filterByArray (objects, key, values, indexed) as Dictionary<Ticker>;
+    }
+
+    createStreamOHLCV (symbol: Str, timeframe: Str, data: OHLCV | OHLCVC): Dictionary<any> {
+        return {
+            'symbol': symbol,
+            'timeframe': timeframe,
+            'ohlcv': data,
+        };
     }
 
     createOHLCVObject (symbol: string, timeframe: string, data): Dictionary<Dictionary<OHLCV[]>> {

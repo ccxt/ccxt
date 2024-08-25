@@ -137,6 +137,7 @@ export default class vertex extends vertexRest {
         }
         const trades = this.trades[symbol];
         trades.append (trade);
+        this.streamProduce ('trades', trade);
         this.trades[symbol] = trades;
         client.resolve (trades, marketId + '@' + topic);
     }
@@ -215,6 +216,7 @@ export default class vertex extends vertexRest {
         const trades = this.myTrades;
         const parsed = this.parseWsTrade (message);
         trades.append (parsed);
+        this.streamProduce ('myTrades', parsed);
         client.resolve (trades, marketId + '@' + topic);
     }
 
@@ -377,6 +379,7 @@ export default class vertex extends vertexRest {
         const ticker = this.parseWsTicker (message, market);
         ticker['symbol'] = market['symbol'];
         this.tickers[market['symbol']] = ticker;
+        this.streamProduce ('tickers', ticker);
         client.resolve (ticker, marketId + '@best_bid_offer');
         return message;
     }
@@ -456,9 +459,11 @@ export default class vertex extends vertexRest {
                 }
             }
             this.orderbooks[symbol] = orderbook;
+            this.streamProduce ('orderbooks', orderbook);
             client.resolve (orderbook, messageHash);
         } catch (e) {
             delete client.subscriptions[messageHash];
+            this.streamProduce ('orderbooks::' + symbol, undefined, e);
             client.reject (e, messageHash);
         }
     }
@@ -499,6 +504,7 @@ export default class vertex extends vertexRest {
             const lastTimestamp = this.parseToInt (Precise.stringDiv (this.safeString (message, 'last_max_timestamp'), '1000000'));
             if (lastTimestamp > timestamp) {
                 this.handleOrderBookMessage (client, message, orderbook);
+                this.streamProduce ('orderbooks', orderbook);
                 client.resolve (orderbook, marketId + '@book_depth');
             }
         }
@@ -633,6 +639,7 @@ export default class vertex extends vertexRest {
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             cache.append (position);
+            this.streamProduce ('positions', position);
         }
         // don't remove the future from the .futures cache
         const future = client.futures[messageHash];
@@ -666,6 +673,7 @@ export default class vertex extends vertexRest {
         const market = this.safeMarket (marketId);
         const position = this.parseWsPosition (message, market);
         cache.append (position);
+        this.streamProduce ('positions', position);
         client.resolve (position, marketId + '@' + topic);
     }
 
@@ -939,6 +947,7 @@ export default class vertex extends vertexRest {
                 parsed['datetime'] = this.safeString (order, 'datetime');
             }
             cachedOrders.append (parsed);
+            this.streamProduce ('orders', parsed);
             client.resolve (this.orders, marketId + '@' + topic);
         }
     }
@@ -959,6 +968,7 @@ export default class vertex extends vertexRest {
             }
             return false;
         } catch (error) {
+            this.streamProduce ('errors', undefined, error);
             if (error instanceof AuthenticationError) {
                 const messageHash = 'authenticated';
                 client.reject (error, messageHash);
@@ -973,6 +983,7 @@ export default class vertex extends vertexRest {
     }
 
     handleMessage (client: Client, message) {
+        this.streamProduce ('raw', message);
         if (this.handleErrorMessage (client, message)) {
             return;
         }

@@ -443,6 +443,7 @@ export default class ndax extends ndaxRest {
         const name = 'SubscribeLevel2';
         const messageHash = name + ':' + marketId;
         this.orderbooks[symbol] = orderbook;
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 
@@ -478,6 +479,7 @@ export default class ndax extends ndaxRest {
         const orderbook = this.orderBook (snapshot, limit);
         this.orderbooks[symbol] = orderbook;
         const messageHash = this.safeString (subscription, 'messageHash');
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 

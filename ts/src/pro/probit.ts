@@ -85,6 +85,7 @@ export default class probit extends probitRest {
         //
         const messageHash = 'balance';
         this.parseWSBalance (message);
+        this.streamProduce ('balances', this.balance);
         client.resolve (this.balance, messageHash);
     }
 
@@ -302,6 +303,7 @@ export default class probit extends probitRest {
             const trade = trades[j];
             tradeSymbols[trade['symbol']] = true;
             stored.append (trade);
+            this.streamProduce ('myTrades', trade);
         }
         const unique = Object.keys (tradeSymbols);
         for (let i = 0; i < unique.length; i++) {
@@ -391,6 +393,7 @@ export default class probit extends probitRest {
             const order = this.parseOrder (rawOrder);
             orderSymbols[order['symbol']] = true;
             stored.append (order);
+            this.streamProduce ('orders', order);
         }
         const unique = Object.keys (orderSymbols);
         for (let i = 0; i < unique.length; i++) {
@@ -480,6 +483,7 @@ export default class probit extends probitRest {
         } else {
             this.handleDelta (orderbook, dataBySide);
         }
+        this.streamProduce ('orderbooks', orderbook);
         client.resolve (orderbook, messageHash);
     }
 
@@ -565,7 +569,12 @@ export default class probit extends probitRest {
         this.streamProduce ('raw', message);
         const errorCode = this.safeString (message, 'errorCode');
         if (errorCode !== undefined) {
-            this.handleErrorMessage (client, message);
+            try {
+                this.handleErrorMessage (client, message);
+            } catch (e) {
+                this.streamProduce ('errors', undefined, e);
+                client.reject (e);
+            }
             return;
         }
         const type = this.safeString (message, 'type');
@@ -587,6 +596,7 @@ export default class probit extends probitRest {
             return;
         }
         const error = new NotSupported (this.id + ' handleMessage: unknown message: ' + this.json (message));
+        this.streamProduce ('errors', undefined, error);
         client.reject (error);
     }
 

@@ -312,6 +312,8 @@ export default class mexc extends mexcRest {
             this.ohlcvs[symbol][timeframe] = stored;
         }
         stored.append (parsed);
+        const ohlcvs = this.createStreamOHLCV (symbol, timeframe, parsed);
+        this.streamProduce ('ohlcvs', ohlcvs);
         client.resolve (stored, messageHash);
     }
 
@@ -490,8 +492,10 @@ export default class mexc extends mexcRest {
             storedOrderBook['datetime'] = this.iso8601 (timestamp);
         } catch (e) {
             delete client.subscriptions[messageHash];
+            this.streamProduce ('orderbooks::' + symbol, undefined, e);
             client.reject (e, messageHash);
         }
+        this.streamProduce ('orderbooks', storedOrderBook);
         client.resolve (storedOrderBook, messageHash);
     }
 
@@ -694,6 +698,7 @@ export default class mexc extends mexcRest {
             this.myTrades = trades;
         }
         trades.append (trade);
+        this.streamProduce ('myTrades', trade);
         client.resolve (trades, messageHash);
         const symbolSpecificMessageHash = messageHash + ':' + symbol;
         client.resolve (trades, symbolSpecificMessageHash);
@@ -892,6 +897,7 @@ export default class mexc extends mexcRest {
             this.orders = orders;
         }
         orders.append (parsed);
+        this.streamProduce ('orders', parsed);
         client.resolve (orders, messageHash);
         const symbolSpecificMessageHash = messageHash + ':' + symbol;
         client.resolve (orders, symbolSpecificMessageHash);
@@ -1097,6 +1103,7 @@ export default class mexc extends mexcRest {
         account['used'] = this.safeString2 (data, 'l', 'frozenBalance');
         this.balance[type][code] = account;
         this.balance[type] = this.safeBalance (this.balance[type]);
+        this.streamProduce ('balances', this.balance[type]);
         client.resolve (this.balance[type], messageHash);
     }
 
@@ -1134,6 +1141,7 @@ export default class mexc extends mexcRest {
             const url = this.urls['api']['ws']['spot'] + '?listenKey=' + listenKey;
             const client = this.client (url);
             this.options['listenKey'] = undefined;
+            this.streamProduce ('errors', undefined, error);
             client.reject (error);
             delete this.clients[url];
         }
@@ -1173,6 +1181,7 @@ export default class mexc extends mexcRest {
         if (typeof message === 'string') {
             if (message === 'Invalid listen key') {
                 const error = new AuthenticationError (this.id + ' invalid listen key');
+                this.streamProduce ('errors', undefined, error);
                 client.reject (error);
             }
             return;
