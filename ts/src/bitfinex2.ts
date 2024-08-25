@@ -378,6 +378,25 @@ export default class bitfinex2 extends Exchange {
                 'withdraw': {
                     'includeFee': false,
                 },
+                'networks': {
+                    'BTC': 'BITCOIN',
+                    'LTC': 'LITECOIN',
+                    'ERC20': 'ETHEREUM',
+                    'OMNI': 'TETHERUSO',
+                    'LIQUID': 'TETHERUSL',
+                    'TRC20': 'TETHERUSX',
+                    'EOS': 'TETHERUSS',
+                    'AVAX': 'TETHERUSDTAVAX',
+                    'SOL': 'TETHERUSDTSOL',
+                    'ALGO': 'TETHERUSDTALG',
+                    'BCH': 'TETHERUSDTBCH',
+                    'KSM': 'TETHERUSDTKSM',
+                    'DVF': 'TETHERUSDTDVF',
+                    'OMG': 'TETHERUSDTOMG',
+                },
+                'networksById': {
+                    'TETHERUSE': 'ERC20',
+                },
             },
             'exceptions': {
                 'exact': {
@@ -793,7 +812,7 @@ export default class bitfinex2 extends Exchange {
                 const networkId = this.safeString (pair, 0);
                 const currencyId = this.safeString (this.safeValue (pair, 1, []), 0);
                 if (currencyId === cleanId) {
-                    const network = this.safeNetwork (networkId);
+                    const network = this.networkIdToCode (networkId);
                     networks[network] = {
                         'info': networkId,
                         'id': networkId.toLowerCase (),
@@ -819,27 +838,6 @@ export default class bitfinex2 extends Exchange {
             }
         }
         return result;
-    }
-
-    safeNetwork (networkId) {
-        const networksById: Dict = {
-            'BITCOIN': 'BTC',
-            'LITECOIN': 'LTC',
-            'ETHEREUM': 'ERC20',
-            'TETHERUSE': 'ERC20',
-            'TETHERUSO': 'OMNI',
-            'TETHERUSL': 'LIQUID',
-            'TETHERUSX': 'TRC20',
-            'TETHERUSS': 'EOS',
-            'TETHERUSDTAVAX': 'AVAX',
-            'TETHERUSDTSOL': 'SOL',
-            'TETHERUSDTALG': 'ALGO',
-            'TETHERUSDTBCH': 'BCH',
-            'TETHERUSDTKSM': 'KSM',
-            'TETHERUSDTDVF': 'DVF',
-            'TETHERUSDTOMG': 'OMG',
-        };
-        return this.safeString (networksById, networkId, networkId);
     }
 
     async fetchBalance (params = {}): Promise<Balances> {
@@ -2399,7 +2397,7 @@ export default class bitfinex2 extends Exchange {
             const currencyId = this.safeString (transaction, 1);
             code = this.safeCurrencyCode (currencyId, currency);
             const networkId = this.safeString (transaction, 2);
-            network = this.safeNetwork (networkId);
+            network = this.networkIdToCode (networkId);
             timestamp = this.safeInteger (transaction, 5);
             updated = this.safeInteger (transaction, 6);
             status = this.parseTransactionStatus (this.safeString (transaction, 9));
