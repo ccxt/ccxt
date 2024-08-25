@@ -565,7 +565,7 @@ export default class mexc extends Exchange {
                     'POKT': 'POKT',
                     'QKC': 'QKC',
                     'QTUM': 'QTUM',
-                    'RAP20': 'RAP20 (Rangers Mainnet)',
+                    'RAP20': 'RAP20' + ' (Rangers Mainnet)',
                     'REI': 'REI',
                     'RSK': 'RBTC',
                     'RVN': 'Ravencoin(RVN)',
