@@ -1794,19 +1794,6 @@ export default class cryptocom extends Exchange {
         }
     }
 
-    safeNetwork (networkId) {
-        const networksById: Dict = {
-            'BTC': 'BTC',
-            'ETH': 'ETH',
-            'SOL': 'SOL',
-            'BNB': 'BNB',
-            'CRONOS': 'CRONOS',
-            'MATIC': 'MATIC',
-            'OP': 'OP',
-        };
-        return this.safeString (networksById, networkId, networkId);
-    }
-
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
