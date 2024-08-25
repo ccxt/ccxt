@@ -327,15 +327,14 @@ export default class bingx extends bingxRest {
         await this.loadMarkets ();
         await this.authenticate ();
         let market = undefined;
+        const type = 'swap';
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
         if (!this.isEmpty (symbols)) {
             market = this.getMarketFromSymbols (symbols);
         }
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchPositions', market, params, 'swap');
         let subType = undefined;
-        [ subType, params ] = this.handleSubTypeAndParams ('watchPositions', undefined, params, 'linear');
-        if (type === 'spot' || subType === 'inverse') {
+        [ subType, params ] = this.handleSubTypeAndParams ('watchPositions', market, params, 'linear');
+        if (subType === 'inverse') {
             throw new NotSupported (this.id + ' watchPositions is not supported for spot or inverse markets');
         }
         let messageHash = 'positions';
@@ -372,7 +371,7 @@ export default class bingx extends bingxRest {
         if (subType in this.positions) {
             return;
         }
-        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
+        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         if (fetchPositionsSnapshot) {
             const messageHash = subType + ':fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
@@ -402,7 +401,7 @@ export default class bingx extends bingxRest {
         // don't remove the future from the .futures cache
         const future = client.futures[messageHash];
         future.resolve (cache);
-        client.resolve (cache, subType + ':positions');
+        client.resolve (cache, 'positions');
     }
 
     handlePositions (client, message) {
@@ -434,10 +433,7 @@ export default class bingx extends bingxRest {
         //         }
         //    }
         //
-        const subscriptions = Object.keys (client.subscriptions);
-        const subscription = subscriptions[0];
-        const cswapIndex = subscription.indexOf ('cswap');
-        const isLinear = (cswapIndex < 0);
+        const isLinear = (client.url.indexOf ('cswap') < 0);
         const accountType = isLinear ? 'linear' : 'inverse';
         if (this.positions === undefined) {
             this.positions = {};
@@ -458,7 +454,7 @@ export default class bingx extends bingxRest {
             newPositions.push (position);
             cache.append (position);
         }
-        const messageHashes = this.findMessageHashes (client, accountType + ':positions::');
+        const messageHashes = this.findMessageHashes (client, 'positions::');
         for (let i = 0; i < messageHashes.length; i++) {
             const messageHash = messageHashes[i];
             const parts = messageHash.split ('::');
@@ -469,7 +465,7 @@ export default class bingx extends bingxRest {
                 client.resolve (positions, messageHash);
             }
         }
-        client.resolve (newPositions, accountType + ':positions');
+        client.resolve (newPositions, 'positions');
     }
 
     parseWsPosition (position, market = undefined) {
