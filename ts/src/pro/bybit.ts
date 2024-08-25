@@ -1158,6 +1158,36 @@ export default class bybit extends bybitRest {
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
+    async unWatchMyTrades (symbol: Str = undefined, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name bybit#unWatchMyTrades
+         * @description unWatches information on multiple trades made by the user
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/private/execution
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.unifiedMargin] use unified margin account
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        const method = 'watchMyTrades';
+        const messageHash = 'unsubscribe:myTrades';
+        let subHash = 'myTrades';
+        await this.loadMarkets ();
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+            subHash += ':' + symbol;
+        }
+        const url = await this.getUrlByMarketType (symbol, true, method, params);
+        await this.authenticate (url);
+        const topicByMarket: Dict = {
+            'spot': 'ticketInfo',
+            'unified': 'execution',
+            'usdc': 'user.openapi.perp.trade',
+        };
+        const topic = this.safeValue (topicByMarket, this.getPrivateType (url));
+        return await this.unWatchTopics (url, 'myTrades', [ ], [ messageHash ], [ subHash ], [ topic ], params);
+    }
+
     handleMyTrades (client: Client, message) {
         //
         // spot
@@ -2433,6 +2463,15 @@ export default class bybit extends bybitRest {
                     delete this.orderbooks[symbol];
                 } else if (topic === 'ticker') {
                     delete this.tickers[symbol];
+                }
+            }
+        } else {
+            if (topic === 'myTrades') {
+                // don't reset this.myTrades directly here
+                // because in c# we need to use a different object
+                const keys = Object.keys (this.myTrades);
+                for (let i = 0; i < keys.length; i++) {
+                    delete this.myTrades[keys[i]];
                 }
             }
         }
