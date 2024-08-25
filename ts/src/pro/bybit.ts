@@ -5,7 +5,7 @@ import bybitRest from '../bybit.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, BadRequest, UnsubscribeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict, Liquidation } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict, Liquidation, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -735,6 +735,57 @@ export default class bybit extends bybitRest {
         return orderbook.limit ();
     }
 
+    async unWatchOrderBookForSymbols (symbols: Strings, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name bybit#unWatchOrderBookForSymbols
+         * @description unsubscribe from the orderbook channel
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+         * @param {string[]} symbols unified symbol of the market to unwatch the trades for
+         * @param {int} [params.limit] orderbook limit, default is undefined
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        let channel = 'orderbook.';
+        let limit = this.safeInteger (params, 'limit');
+        if (limit !== undefined) {
+            params = this.omit (params, 'limit');
+        } else {
+            const firstMarket = this.market (symbols[0]);
+            limit = firstMarket['spot'] ? 50 : 500;
+        }
+        channel += limit.toString ();
+        const subMessageHashes = [];
+        const messageHashes = [];
+        const topics = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const marketId = market['id'];
+            const topic = channel + '.' + marketId;
+            messageHashes.push ('unsubscribe:orderbook:' + symbol);
+            subMessageHashes.push ('orderbook:' + symbol);
+            topics.push (topic);
+        }
+        const url = await this.getUrlByMarketType (symbols[0], false, 'watchOrderBook', params);
+        return await this.unWatchTopics (url, 'orderbook', symbols, messageHashes, subMessageHashes, topics, params);
+    }
+
+    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name bybit#unWatchOrderBook
+         * @description unsubscribe from the orderbook channel
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+         * @param {string[]} symbols unified symbol of the market to unwatch the trades for
+         * @param {int} [params.limit] orderbook limit, default is undefined
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        return await this.unWatchOrderBookForSymbols ([ symbol ], params);
+    }
+
     handleOrderBook (client: Client, message) {
         //
         //     {
@@ -887,7 +938,7 @@ export default class bybit extends bybitRest {
             messageHashes.push (messageHash);
             subMessageHashes.push ('trade:' + symbol);
         }
-        return await this.unWatchTopics (url, messageHashes, subMessageHashes, topics, params);
+        return await this.unWatchTopics (url, 'trade', symbols, messageHashes, subMessageHashes, topics, params);
     }
 
     async unWatchTrades (symbol: string, params = {}): Promise<any> {
@@ -2015,7 +2066,7 @@ export default class bybit extends bybitRest {
         return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
-    async unWatchTopics (url: string, messageHashes: string[], subMessageHashes: string[], topics, params = {}) {
+    async unWatchTopics (url: string, topic: string, symbols: string[], messageHashes: string[], subMessageHashes: string[], topics, params = {}) {
         const reqId = this.requestId ();
         const request: Dict = {
             'op': 'unsubscribe',
@@ -2024,8 +2075,10 @@ export default class bybit extends bybitRest {
         };
         const subscription = {
             'id': reqId,
+            'topic': topic,
             'messageHashes': messageHashes,
             'subMessageHashes': subMessageHashes,
+            'symbols': symbols,
         };
         const message = this.extend (request, params);
         return await this.watchMultiple (url, messageHashes, message, messageHashes, subscription);
@@ -2315,10 +2368,25 @@ export default class bybit extends bybitRest {
                     const error = new UnsubscribeError (this.id + ' ' + messageHash);
                     client.reject (error, subHash);
                     client.resolve (true, unsubHash);
-                    // to do clean the cache?
+                    this.cleanCache (subscription);
                 }
             }
         }
         return message;
+    }
+
+    cleanCache (subscription: Dict) {
+        const topic = this.safeString (subscription, 'topic');
+        const symbols = this.safeList (subscription, 'symbols', []);
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            if (topic === 'trade') {
+                delete this.trades[symbol];
+            } else if (topic === 'orderbook') {
+                delete this.orderbooks[symbol];
+            } else if (topic === 'ticker') {
+                delete this.tickers[symbol];
+            }
+        }
     }
 }
