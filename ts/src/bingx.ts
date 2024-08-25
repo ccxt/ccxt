@@ -2297,7 +2297,7 @@ export default class bingx extends Exchange {
         }
         return this.safePosition ({
             'info': position,
-            'id': this.safeString (position, 'positionId'),
+            'id': undefined,
             'symbol': this.safeSymbol (marketId, market, '-', 'swap'),
             'notional': this.safeNumber (position, 'positionValue'),
             'marginMode': marginMode,
@@ -4235,9 +4235,13 @@ export default class bingx extends Exchange {
         //        "tranId":13526853623
         //    }
         //
+        const id = this.safeString (response, 'tranId');
+        if (id === undefined) {
+            throw new ExchangeError (this.id + ' transfer failed: ' + this.json (response));
+        }
         return {
             'info': response,
-            'id': this.safeString (response, 'tranId'),
+            'id': id,
             'timestamp': undefined,
             'datetime': undefined,
             'currency': code,
