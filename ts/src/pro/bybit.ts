@@ -1558,6 +1558,36 @@ export default class bybit extends bybitRest {
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
+    async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name bybit#unWatchOrders
+         * @description unWatches information on multiple orders made by the user
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/private/order
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.unifiedMargin] use unified margin account
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const method = 'watchOrders';
+        const messageHash = 'unsubscribe:orders';
+        let subHash = 'orders';
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+            subHash += ':' + symbol;
+        }
+        const url = await this.getUrlByMarketType (symbol, true, method, params);
+        await this.authenticate (url);
+        const topicsByMarket: Dict = {
+            'spot': [ 'order', 'stopOrder' ],
+            'unified': [ 'order' ],
+            'usdc': [ 'user.openapi.perp.order' ],
+        };
+        const topics = this.safeValue (topicsByMarket, this.getPrivateType (url));
+        return await this.unWatchTopics (url, 'orders', [ ], [ messageHash ], [ subHash ], topics, params);
+    }
+
     handleOrderWs (client: Client, message) {
         //
         //    {
@@ -2472,6 +2502,11 @@ export default class bybit extends bybitRest {
                 const keys = Object.keys (this.myTrades);
                 for (let i = 0; i < keys.length; i++) {
                     delete this.myTrades[keys[i]];
+                }
+            } else if (topic === 'orders') {
+                const orderSymbols = Object.keys (this.orders);
+                for (let i = 0; i < orderSymbols.length; i++) {
+                    delete this.orders[orderSymbols[i]];
                 }
             }
         }
