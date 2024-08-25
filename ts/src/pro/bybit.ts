@@ -5,7 +5,7 @@ import bybitRest from '../bybit.js';
 import { ArgumentsRequired, AuthenticationError, ExchangeError, BadRequest, UnsubscribeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict, Liquidation, int } from '../base/types.js';
+import type { Int, OHLCV, Str, Strings, Ticker, OrderBook, Order, Trade, Tickers, Position, Balances, OrderType, OrderSide, Num, Dict, Liquidation } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -395,6 +395,51 @@ export default class bybit extends bybitRest {
             return result;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
+    }
+
+    async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name bybit#unWatchTickers
+         * @description unWatches a price ticker
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const options = this.safeValue (this.options, 'watchTickers', {});
+        const topic = this.safeString (options, 'name', 'tickers');
+        const messageHashes = [];
+        const subMessageHashes = [];
+        const marketIds = this.marketIds (symbols);
+        const topics = [ ];
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const symbol = symbols[i];
+            topics.push (topic + '.' + marketId);
+            subMessageHashes.push ('ticker:' + symbol);
+            messageHashes.push ('unsubscribe:ticker:' + symbol);
+        }
+        const url = await this.getUrlByMarketType (symbols[0], false, 'watchTickers', params);
+        return await this.unWatchTopics (url, 'ticker', symbols, messageHashes, subMessageHashes, topics, params);
+    }
+
+    async unWatchTicker (symbols: string, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name bybit#unWatchTicker
+         * @description unWatches a price ticker
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        return await this.unWatchTickers ([ symbols ], params);
     }
 
     handleTicker (client: Client, message) {
@@ -2378,14 +2423,17 @@ export default class bybit extends bybitRest {
     cleanCache (subscription: Dict) {
         const topic = this.safeString (subscription, 'topic');
         const symbols = this.safeList (subscription, 'symbols', []);
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
-            if (topic === 'trade') {
-                delete this.trades[symbol];
-            } else if (topic === 'orderbook') {
-                delete this.orderbooks[symbol];
-            } else if (topic === 'ticker') {
-                delete this.tickers[symbol];
+        const symbolsLength = symbols.length;
+        if (symbolsLength > 0) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                if (topic === 'trade') {
+                    delete this.trades[symbol];
+                } else if (topic === 'orderbook') {
+                    delete this.orderbooks[symbol];
+                } else if (topic === 'ticker') {
+                    delete this.tickers[symbol];
+                }
             }
         }
     }
