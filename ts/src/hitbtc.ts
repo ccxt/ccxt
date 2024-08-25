@@ -850,7 +850,7 @@ export default class hitbtc extends Exchange {
             for (let j = 0; j < rawNetworks.length; j++) {
                 const rawNetwork = rawNetworks[j];
                 const networkId = this.safeString2 (rawNetwork, 'protocol', 'network');
-                const network = this.safeNetwork (networkId);
+                const network = this.networkIdToCode (networkId);
                 fee = this.safeNumber (rawNetwork, 'payout_fee');
                 const networkPrecision = this.safeNumber (rawNetwork, 'precision_payout');
                 const payinEnabledNetwork = this.safeBool (rawNetwork, 'payin_enabled', false);
@@ -905,14 +905,6 @@ export default class hitbtc extends Exchange {
             };
         }
         return result;
-    }
-
-    safeNetwork (networkId) {
-        if (networkId === undefined) {
-            return undefined;
-        } else {
-            return networkId.toUpperCase ();
-        }
     }
 
     async createDepositAddress (code: string, params = {}) {
