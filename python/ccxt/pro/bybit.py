@@ -10,10 +10,12 @@ import hashlib
 from ccxt.base.types import Balances, Int, Liquidation, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
+from typing import Any
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import UnsubscribeError
 
 
 class bybit(ccxt.async_support.bybit):
@@ -377,6 +379,44 @@ class bybit(ccxt.async_support.bybit):
             return result
         return self.filter_by_array(self.tickers, 'symbol', symbols)
 
+    async def un_watch_tickers(self, symbols: Strings = None, params={}) -> Any:
+        """
+        unWatches a price ticker
+        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
+        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
+        :param str[] symbols: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        options = self.safe_value(self.options, 'watchTickers', {})
+        topic = self.safe_string(options, 'name', 'tickers')
+        messageHashes = []
+        subMessageHashes = []
+        marketIds = self.market_ids(symbols)
+        topics = []
+        for i in range(0, len(marketIds)):
+            marketId = marketIds[i]
+            symbol = symbols[i]
+            topics.append(topic + '.' + marketId)
+            subMessageHashes.append('ticker:' + symbol)
+            messageHashes.append('unsubscribe:ticker:' + symbol)
+        url = await self.get_url_by_market_type(symbols[0], False, 'watchTickers', params)
+        return await self.un_watch_topics(url, 'ticker', symbols, messageHashes, subMessageHashes, topics, params)
+
+    async def un_watch_ticker(self, symbols: str, params={}) -> Any:
+        """
+        unWatches a price ticker
+        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/ticker
+        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/etp-ticker
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
+        """
+        await self.load_markets()
+        return await self.un_watch_tickers([symbols], params)
+
     def handle_ticker(self, client: Client, message):
         #
         # linear
@@ -689,6 +729,49 @@ class bybit(ccxt.async_support.bybit):
         orderbook = await self.watch_topics(url, messageHashes, topics, params)
         return orderbook.limit()
 
+    async def un_watch_order_book_for_symbols(self, symbols: Strings, params={}) -> Any:
+        """
+        unsubscribe from the orderbook channel
+        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+        :param str[] symbols: unified symbol of the market to unwatch the trades for
+        :param int [params.limit]: orderbook limit, default is None
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        channel = 'orderbook.'
+        limit = self.safe_integer(params, 'limit')
+        if limit is not None:
+            params = self.omit(params, 'limit')
+        else:
+            firstMarket = self.market(symbols[0])
+            limit = 50 if firstMarket['spot'] else 500
+        channel += str(limit)
+        subMessageHashes = []
+        messageHashes = []
+        topics = []
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            market = self.market(symbol)
+            marketId = market['id']
+            topic = channel + '.' + marketId
+            messageHashes.append('unsubscribe:orderbook:' + symbol)
+            subMessageHashes.append('orderbook:' + symbol)
+            topics.append(topic)
+        url = await self.get_url_by_market_type(symbols[0], False, 'watchOrderBook', params)
+        return await self.un_watch_topics(url, 'orderbook', symbols, messageHashes, subMessageHashes, topics, params)
+
+    async def un_watch_order_book(self, symbol: str, params={}) -> Any:
+        """
+        unsubscribe from the orderbook channel
+        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+        :param str[] symbols: unified symbol of the market to unwatch the trades for
+        :param int [params.limit]: orderbook limit, default is None
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        await self.load_markets()
+        return await self.un_watch_order_book_for_symbols([symbol], params)
+
     def handle_order_book(self, client: Client, message):
         #
         #     {
@@ -801,6 +884,39 @@ class bybit(ccxt.async_support.bybit):
             tradeSymbol = self.safe_string(first, 'symbol')
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+
+    async def un_watch_trades_for_symbols(self, symbols: Strings, params={}) -> Any:
+        """
+        unsubscribe from the trades channel
+        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/trade
+        :param str[] symbols: unified symbol of the market to unwatch the trades for
+        :returns any: status of the unwatch request
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False, True)
+        url = await self.get_url_by_market_type(symbols[0], False, 'unWatchTradesForSymbols', params)
+        messageHashes = []
+        topics = []
+        subMessageHashes = []
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            market = self.market(symbol)
+            topic = 'publicTrade.' + market['id']
+            topics.append(topic)
+            messageHash = 'unsubscribe:trade:' + symbol
+            messageHashes.append(messageHash)
+            subMessageHashes.append('trade:' + symbol)
+        return await self.un_watch_topics(url, 'trade', symbols, messageHashes, subMessageHashes, topics, params)
+
+    async def un_watch_trades(self, symbol: str, params={}) -> Any:
+        """
+        unsubscribe from the trades channel
+        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/trade
+        :param str symbol: unified symbol of the market to unwatch the trades for
+        :returns any: status of the unwatch request
+        """
+        await self.load_markets()
+        return await self.un_watch_trades_for_symbols([symbol], params)
 
     def handle_trades(self, client: Client, message):
         #
@@ -947,6 +1063,32 @@ class bybit(ccxt.async_support.bybit):
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
+
+    async def un_watch_my_trades(self, symbol: Str = None, params={}) -> Any:
+        """
+        unWatches information on multiple trades made by the user
+        :see: https://bybit-exchange.github.io/docs/v5/websocket/private/execution
+        :param str symbol: unified market symbol of the market orders were made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.unifiedMargin]: use unified margin account
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        method = 'watchMyTrades'
+        messageHash = 'unsubscribe:myTrades'
+        subHash = 'myTrades'
+        await self.load_markets()
+        if symbol is not None:
+            symbol = self.symbol(symbol)
+            subHash += ':' + symbol
+        url = await self.get_url_by_market_type(symbol, True, method, params)
+        await self.authenticate(url)
+        topicByMarket: dict = {
+            'spot': 'ticketInfo',
+            'unified': 'execution',
+            'usdc': 'user.openapi.perp.trade',
+        }
+        topic = self.safe_value(topicByMarket, self.get_private_type(url))
+        return await self.un_watch_topics(url, 'myTrades', [], [messageHash], [subHash], [topic], params)
 
     def handle_my_trades(self, client: Client, message):
         #
@@ -1280,6 +1422,32 @@ class bybit(ccxt.async_support.bybit):
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+
+    async def un_watch_orders(self, symbol: Str = None, params={}) -> Any:
+        """
+        unWatches information on multiple orders made by the user
+        :see: https://bybit-exchange.github.io/docs/v5/websocket/private/order
+        :param str symbol: unified market symbol of the market orders were made in
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param boolean [params.unifiedMargin]: use unified margin account
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        method = 'watchOrders'
+        messageHash = 'unsubscribe:orders'
+        subHash = 'orders'
+        if symbol is not None:
+            symbol = self.symbol(symbol)
+            subHash += ':' + symbol
+        url = await self.get_url_by_market_type(symbol, True, method, params)
+        await self.authenticate(url)
+        topicsByMarket: dict = {
+            'spot': ['order', 'stopOrder'],
+            'unified': ['order'],
+            'usdc': ['user.openapi.perp.order'],
+        }
+        topics = self.safe_value(topicsByMarket, self.get_private_type(url))
+        return await self.un_watch_topics(url, 'orders', [], [messageHash], [subHash], topics, params)
 
     def handle_order_ws(self, client: Client, message):
         #
@@ -1827,7 +1995,24 @@ class bybit(ccxt.async_support.bybit):
             'args': topics,
         }
         message = self.extend(request, params)
-        return await self.watch_multiple(url, messageHashes, message, topics)
+        return await self.watch_multiple(url, messageHashes, message, messageHashes)
+
+    async def un_watch_topics(self, url: str, topic: str, symbols: List[str], messageHashes: List[str], subMessageHashes: List[str], topics, params={}):
+        reqId = self.request_id()
+        request: dict = {
+            'op': 'unsubscribe',
+            'req_id': reqId,
+            'args': topics,
+        }
+        subscription = {
+            'id': reqId,
+            'topic': topic,
+            'messageHashes': messageHashes,
+            'subMessageHashes': subMessageHashes,
+            'symbols': symbols,
+        }
+        message = self.extend(request, params)
+        return await self.watch_multiple(url, messageHashes, message, messageHashes, subscription)
 
     async def authenticate(self, url, params={}):
         self.check_required_credentials()
@@ -1964,6 +2149,7 @@ class bybit(ccxt.async_support.bybit):
             'order.amend': self.handle_order_ws,
             'order.cancel': self.handle_order_ws,
             'auth': self.handle_authenticate,
+            'unsubscribe': self.handle_un_subscribe,
         }
         exacMethod = self.safe_value(methods, topic)
         if exacMethod is not None:
@@ -2046,3 +2232,68 @@ class bybit(ccxt.async_support.bybit):
         #    }
         #
         return message
+
+    def handle_un_subscribe(self, client: Client, message):
+        #
+        # {"success":true,"ret_msg":"","conn_id":"7188110e-6908-41e9-b863-6365127e92ad","req_id":"3","op":"unsubscribe"}
+        #
+        # client.subscription will be something like:
+        # {
+        #     "publicTrade.LTCUSDT":true,
+        #     "publicTrade.ADAUSDT":true,
+        #     "unsubscribe:trade:LTC/USDT:USDT": {
+        #        "id":4,
+        #         "subHash": "trade:LTC/USDT"
+        #     },
+        # }
+        reqId = self.safe_string(message, 'req_id')
+        keys = list(client.subscriptions.keys())
+        for i in range(0, len(keys)):
+            messageHash = keys[i]
+            if not (messageHash in client.subscriptions):
+                continue
+                # the previous iteration can have deleted the messageHash from the subscriptions
+            if messageHash.startswith('unsubscribe'):
+                subscription = client.subscriptions[messageHash]
+                subId = self.safe_string(subscription, 'id')
+                if reqId != subId:
+                    continue
+                messageHashes = self.safe_list(subscription, 'messageHashes', [])
+                subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])
+                for j in range(0, len(messageHashes)):
+                    unsubHash = messageHashes[j]
+                    subHash = subMessageHashes[j]
+                    if unsubHash in client.subscriptions:
+                        del client.subscriptions[unsubHash]
+                    if subHash in client.subscriptions:
+                        del client.subscriptions[subHash]
+                    error = UnsubscribeError(self.id + ' ' + messageHash)
+                    client.reject(error, subHash)
+                    client.resolve(True, unsubHash)
+                    self.clean_cache(subscription)
+        return message
+
+    def clean_cache(self, subscription: dict):
+        topic = self.safe_string(subscription, 'topic')
+        symbols = self.safe_list(subscription, 'symbols', [])
+        symbolsLength = len(symbols)
+        if symbolsLength > 0:
+            for i in range(0, len(symbols)):
+                symbol = symbols[i]
+                if topic == 'trade':
+                    del self.trades[symbol]
+                elif topic == 'orderbook':
+                    del self.orderbooks[symbol]
+                elif topic == 'ticker':
+                    del self.tickers[symbol]
+        else:
+            if topic == 'myTrades':
+                # don't reset self.myTrades directly here
+                # because in c# we need to use a different object
+                keys = list(self.myTrades.keys())
+                for i in range(0, len(keys)):
+                    del self.myTrades[keys[i]]
+            elif topic == 'orders':
+                orderSymbols = list(self.orders.keys())
+                for i in range(0, len(orderSymbols)):
+                    del self.orders[orderSymbols[i]]
