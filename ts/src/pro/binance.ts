@@ -3,7 +3,7 @@
 
 import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
-import { ChecksumError, ArgumentsRequired, BadRequest, NotSupported } from '../base/errors.js';
+import { ChecksumError, ArgumentsRequired, BadRequest, NotSupported, UnsubscribeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import type { Int, OrderSide, OrderType, Str, Strings, Trade, OrderBook, Order, Ticker, Tickers, OHLCV, Position, Balances, Num, Dict, Liquidation } from '../base/types.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
@@ -956,10 +956,54 @@ export default class binance extends binanceRest {
     }
 
     handleUnSubscription (client: Client, subscription: Dict) {
-        const symbols = this.safeList (subscription, 'symbols');
+        const messageHashes = this.safeList (subscription, 'messageHashes', []);
+        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+        for (let j = 0; j < messageHashes.length; j++) {
+            const unsubHash = messageHashes[j];
+            const subHash = subMessageHashes[j];
+            if (unsubHash in client.subscriptions) {
+                delete client.subscriptions[unsubHash];
+            }
+            if (subHash in client.subscriptions) {
+                delete client.subscriptions[subHash];
+            }
+            const error = new UnsubscribeError (this.id + ' ' + subHash);
+            client.reject (error, subHash);
+            client.resolve (true, unsubHash);
+            this.cleanCache (subscription);
+        }
+    }
+
+    cleanCache (subscription: Dict) {
         const topic = this.safeString (subscription, 'topic');
-        const messageHashes = this.safeList (subscription, 'messageHashes');
-        const subMessageHashes = this.safeList (subscription, 'subMessageHashes');
+        const symbols = this.safeList (subscription, 'symbols', []);
+        const symbolsLength = symbols.length;
+        if (symbolsLength > 0) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                if (topic === 'trade') {
+                    delete this.trades[symbol];
+                } else if (topic === 'orderbook') {
+                    delete this.orderbooks[symbol];
+                } else if (topic === 'ticker') {
+                    delete this.tickers[symbol];
+                }
+            }
+        } else {
+            if (topic === 'myTrades') {
+                // don't reset this.myTrades directly here
+                // because in c# we need to use a different object
+                const keys = Object.keys (this.myTrades);
+                for (let i = 0; i < keys.length; i++) {
+                    delete this.myTrades[keys[i]];
+                }
+            } else if (topic === 'orders') {
+                const orderSymbols = Object.keys (this.orders);
+                for (let i = 0; i < orderSymbols.length; i++) {
+                    delete this.orders[orderSymbols[i]];
+                }
+            }
+        }
     }
 
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -1080,8 +1124,9 @@ export default class binance extends binanceRest {
         };
         const subscription: Dict = {
             'unsubscribe': true,
-            'id': requestId,
+            'id': requestId.toString (),
             'subMessageHashes': subMessageHashes,
+            'messageHashes': messageHashes,
             'symbols': symbols,
             'topic': 'trade',
         };
