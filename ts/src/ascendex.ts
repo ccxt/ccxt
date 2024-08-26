@@ -1246,7 +1246,7 @@ export default class ascendex extends Exchange {
         //         }
         //     }
         //
-        const records = this.safeList (response, 'data', []);
+        const records = this.safeDict (response, 'data', {});
         const trades = this.safeList (records, 'data', []);
         return this.parseTrades (trades, market, since, limit);
     }
