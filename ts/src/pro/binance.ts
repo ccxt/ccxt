@@ -948,7 +948,18 @@ export default class binance extends binanceRest {
         if (method !== undefined) {
             method.call (this, client, message, subscription);
         }
+        const isUnSubMessage = this.safeBool (subscription, 'unsubscribe', false);
+        if (isUnSubMessage) {
+            this.handleUnSubscription (client, subscription);
+        }
         return message;
+    }
+
+    handleUnSubscription (client: Client, subscription: Dict) {
+        const symbols = this.safeList (subscription, 'symbols');
+        const topic = this.safeString (subscription, 'topic');
+        const messageHashes = this.safeList (subscription, 'messageHashes');
+        const subMessageHashes = this.safeList (subscription, 'subMessageHashes');
     }
 
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -1013,6 +1024,86 @@ export default class binance extends binanceRest {
             limit = trades.getLimit (tradeSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
+        /**
+         * @method
+         * @name binance#unWatchTradesForSymbols
+         * @description unsubscribes from the trades channel
+         * @see https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
+         * @see https://binance-docs.github.io/apidocs/spot/en/#trade-streams
+         * @see https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
+         * @param {string[]} symbols unified symbol of the market to fetch trades for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false, true, true);
+        let streamHash = 'multipleTrades';
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 200) {
+                throw new BadRequest (this.id + ' watchTradesForSymbols() accepts 200 symbols at most. To watch more symbols call watchTradesForSymbols() multiple times');
+            }
+            streamHash += '::' + symbols.join (',');
+        }
+        let name = undefined;
+        [ name, params ] = this.handleOptionAndParams (params, 'watchTradesForSymbols', 'name', 'trade');
+        params = this.omit (params, 'callerMethodName');
+        const firstMarket = this.market (symbols[0]);
+        let type = firstMarket['type'];
+        if (firstMarket['contract']) {
+            type = firstMarket['linear'] ? 'future' : 'delivery';
+        }
+        const subMessageHashes = [];
+        const subParams = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            subMessageHashes.push ('trade::' + symbol);
+            messageHashes.push ('unsubscribe:trade:' + symbol);
+            const rawHash = market['lowercaseId'] + '@' + name;
+            subParams.push (rawHash);
+        }
+        const query = this.omit (params, 'type');
+        const subParamsLength = subParams.length;
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, streamHash, subParamsLength);
+        const requestId = this.requestId (url);
+        const request: Dict = {
+            'method': 'UNSUBSCRIBE',
+            'params': subParams,
+            'id': requestId,
+        };
+        const subscription: Dict = {
+            'unsubscribe': true,
+            'id': requestId,
+            'subMessageHashes': subMessageHashes,
+            'symbols': symbols,
+            'topic': 'trade',
+        };
+        return await this.watchMultiple (url, messageHashes, this.extend (request, query), messageHashes, subscription);
+    }
+
+    async unWatchTrades (symbol: string, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name binance#unWatchTrades
+         * @description unsubscribes from the trades channel
+         * @see https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
+         * @see https://binance-docs.github.io/apidocs/spot/en/#trade-streams
+         * @see https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets ();
+        return await this.unWatchTradesForSymbols ([ symbol ], params);
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
