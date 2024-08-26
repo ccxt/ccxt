@@ -457,27 +457,46 @@
                 "method": "fetchTickers",
                 "input": [
                     [
-                        "BTC/USDT:USDT"
+                        "BTC/USDT:USDT",
+                        "ETH/USDT:USDT"
                     ]
                 ],
                 "httpResponse": {
                     "code": "0",
-                    "data": {
-                        "symbol": "BTC-PERP",
-                        "open": "64048.1",
-                        "close": "63318.9",
-                        "high": "65093.7",
-                        "low": "63198.3",
-                        "baseVol": "119663.1241",
-                        "ask": [
-                            "63319.1",
-                            "4.7064"
-                        ],
-                        "bid": [
-                            "63318.7",
-                            "2.6748"
-                        ]
-                    }
+                    "data": [
+                        {
+                            "symbol": "BTC-PERP",
+                            "open": "64152.2",
+                            "close": "63176.9",
+                            "high": "65093.7",
+                            "low": "63036.1",
+                            "baseVol": "161747.2677",
+                            "ask": [
+                                "63177.1",
+                                "3.13005"
+                            ],
+                            "bid": [
+                                "63176.8",
+                                "2.7378"
+                            ]
+                        },
+                        {
+                            "symbol": "ETH-PERP",
+                            "open": "2764.76",
+                            "close": "2674.32",
+                            "high": "2791.11",
+                            "low": "2670.08",
+                            "baseVol": "2145243.7",
+                            "ask": [
+                                "2674.34",
+                                "149.31"
+                            ],
+                            "bid": [
+                                "2674.26",
+                                "68.88"
+                            ]
+                        }
+                    ]
                 },
                 "parsedResponse": {
                     "BTC/USDT:USDT": {
@@ -485,35 +504,72 @@
                         "timestamp": null,
                         "datetime": null,
                         "high": 65093.7,
-                        "low": 63198.3,
-                        "bid": 63318.7,
-                        "bidVolume": 2.6748,
-                        "ask": 63319.1,
-                        "askVolume": 4.7064,
+                        "low": 63036.1,
+                        "bid": 63176.8,
+                        "bidVolume": 2.7378,
+                        "ask": 63177.1,
+                        "askVolume": 3.13005,
                         "vwap": null,
-                        "open": 64048.1,
-                        "close": 63318.9,
-                        "last": 63318.9,
+                        "open": 64152.2,
+                        "close": 63176.9,
+                        "last": 63176.9,
                         "previousClose": null,
-                        "change": -729.2,
-                        "percentage": -1.1385193315648707,
-                        "average": 63683.5,
+                        "change": -975.3,
+                        "percentage": -1.5202908084212232,
+                        "average": 63664.55,
                         "baseVolume": null,
                         "quoteVolume": null,
                         "info": {
                             "symbol": "BTC-PERP",
-                            "open": "64048.1",
-                            "close": "63318.9",
+                            "open": "64152.2",
+                            "close": "63176.9",
                             "high": "65093.7",
-                            "low": "63198.3",
-                            "baseVol": "119663.1241",
+                            "low": "63036.1",
+                            "baseVol": "161747.2677",
                             "ask": [
-                                "63319.1",
-                                "4.7064"
+                                "63177.1",
+                                "3.13005"
                             ],
                             "bid": [
-                                "63318.7",
-                                "2.6748"
+                                "63176.8",
+                                "2.7378"
+                            ]
+                        }
+                    },
+                    "ETH/USDT:USDT": {
+                        "symbol": "ETH/USDT:USDT",
+                        "timestamp": null,
+                        "datetime": null,
+                        "high": 2791.11,
+                        "low": 2670.08,
+                        "bid": 2674.26,
+                        "bidVolume": 68.88,
+                        "ask": 2674.34,
+                        "askVolume": 149.31,
+                        "vwap": null,
+                        "open": 2764.76,
+                        "close": 2674.32,
+                        "last": 2674.32,
+                        "previousClose": null,
+                        "change": -90.44,
+                        "percentage": -3.2711700111402076,
+                        "average": 2719.54,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "info": {
+                            "symbol": "ETH-PERP",
+                            "open": "2764.76",
+                            "close": "2674.32",
+                            "high": "2791.11",
+                            "low": "2670.08",
+                            "baseVol": "2145243.7",
+                            "ask": [
+                                "2674.34",
+                                "149.31"
+                            ],
+                            "bid": [
+                                "2674.26",
+                                "68.88"
                             ]
                         }
                     }
