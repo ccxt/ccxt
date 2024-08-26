@@ -1052,7 +1052,7 @@ export default class ascendex extends Exchange {
         const request: Dict = {};
         let market = undefined;
         if (symbols !== undefined) {
-            const symbol = this.safeString (symbols, 0);
+            const symbol = this.safeValue (symbols, 0);
             market = this.market (symbol);
             const marketIds = this.marketIds (symbols);
             request['symbol'] = marketIds.join (',');
