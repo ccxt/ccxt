@@ -1637,7 +1637,14 @@ export default class bitmart extends Exchange {
         //        'lastTradeID': 6802340762
         //    }
         //
-        const timestamp = this.safeIntegerN (trade, [ 'createTime', 'create_time', 1 ]);
+        let timestamp = undefined;
+        // shouldn't mix the use of string and integer keys for safeIntegerN
+        // it would throw KeyError in python, eg. safeIntegerN '{"c":1,"d":2}' '["a","b",1]'
+        if (Array.isArray (trade)) {
+            timestamp = this.safeInteger (trade, 1);
+        } else {
+            timestamp = this.safeInteger2 (trade, 'createTime', 'create_time');
+        }
         const isPublic = this.safeString (trade, 0);
         const isPublicTrade = (isPublic !== undefined);
         let amount = undefined;
