@@ -1068,22 +1068,20 @@ export default class ascendex extends Exchange {
         //
         //     {
         //         "code":0,
-        //         "data":[
-        //             {
-        //                 "symbol":"QTUM/BTC",
-        //                 "open":"0.00016537",
-        //                 "close":"0.00019077",
-        //                 "high":"0.000192",
-        //                 "low":"0.00016537",
-        //                 "volume":"846.6",
-        //                 "ask":["0.00018698","26.2"],
-        //                 "bid":["0.00018408","503.7"],
-        //                 "type":"spot"
-        //             }
-        //         ]
+        //         "data": {
+        //             "symbol":"QTUM/BTC",
+        //             "open":"0.00016537",
+        //             "close":"0.00019077",
+        //             "high":"0.000192",
+        //             "low":"0.00016537",
+        //             "volume":"846.6",
+        //             "ask":["0.00018698","26.2"],
+        //             "bid":["0.00018408","503.7"],
+        //             "type":"spot"
+        //         }
         //     }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeDict (response, 'data', {});
         if (!Array.isArray (data)) {
             return this.parseTickers ([ data ], symbols);
         }
