@@ -826,7 +826,7 @@ class Exchange(object):
             if isDataDict:
                 if key in dictionary_or_list and dictionary_or_list[key] is not None and dictionary_or_list[key] != '':
                     return dictionary_or_list[key]
-            elif isDataArray:
+            elif isDataArray and not isinstance(key, str):
                 if (key < len(dictionary_or_list)) and (dictionary_or_list[key] is not None) and (dictionary_or_list[key] != ''):
                     return dictionary_or_list[key]
         return None
