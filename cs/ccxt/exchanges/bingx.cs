@@ -763,7 +763,14 @@ public partial class bingx : Exchange
         }
         object fees = this.safeDict(this.fees, type, new Dictionary<string, object>() {});
         object contractSize = ((bool) isTrue((swap))) ? this.parseNumber("1") : null;
-        object isActive = isEqual(this.safeString(market, "status"), "1");
+        object isActive = false;
+        if (isTrue(isTrue((isEqual(this.safeString(market, "apiStateOpen"), "true"))) && isTrue((isEqual(this.safeString(market, "apiStateClose"), "true")))))
+        {
+            isActive = true; // swap active
+        } else if (isTrue(isTrue(this.safeBool(market, "apiStateSell")) && isTrue(this.safeBool(market, "apiStateBuy"))))
+        {
+            isActive = true; // spot active
+        }
         object isInverse = ((bool) isTrue((spot))) ? null : checkIsInverse;
         object isLinear = ((bool) isTrue((spot))) ? null : checkIsLinear;
         object timeOnline = this.safeInteger(market, "timeOnline");
@@ -1250,7 +1257,6 @@ public partial class bingx : Exchange
             { "fee", new Dictionary<string, object>() {
                 { "cost", this.parseNumber(Precise.stringAbs(this.safeString2(trade, "commission", "n"))) },
                 { "currency", currencyCode },
-                { "rate", null },
             } },
         }, market);
     }
@@ -3539,6 +3545,7 @@ public partial class bingx : Exchange
         * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20details
         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20details
         * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

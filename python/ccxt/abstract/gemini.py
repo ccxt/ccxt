@@ -56,3 +56,4 @@ class ImplicitAPI:
     private_post_v1_account_create = privatePostV1AccountCreate = Entry('v1/account/create', 'private', 'POST', {'cost': 1})
     private_post_v1_account_list = privatePostV1AccountList = Entry('v1/account/list', 'private', 'POST', {'cost': 1})
     private_post_v1_heartbeat = privatePostV1Heartbeat = Entry('v1/heartbeat', 'private', 'POST', {'cost': 1})
+    private_post_v1_roles = privatePostV1Roles = Entry('v1/roles', 'private', 'POST', {'cost': 1})

@@ -230,6 +230,7 @@ public partial class yobit : Exchange
                 { "XIN", "XINCoin" },
                 { "XMT", "SummitCoin" },
                 { "XRA", "Ratecoin" },
+                { "BCHN", "BSV" },
             } },
             { "options", new Dictionary<string, object>() {
                 { "maxUrlLength", 2048 },

@@ -1330,6 +1330,7 @@ class bitget(Exchange, ImplicitAPI):
                 'JADE': 'Jade Protocol',
                 'DEGEN': 'DegenReborn',
                 'TONCOIN': 'TON',
+                'OMNI': 'omni',  # conflict with Omni Network
             },
             'options': {
                 'timeframes': {
@@ -4769,6 +4770,7 @@ class bitget(Exchange, ImplicitAPI):
         fetches information on an order made by the user
         :see: https://www.bitget.com/api-doc/spot/trade/Get-Order-Info
         :see: https://www.bitget.com/api-doc/contract/trade/Get-Order-Details
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`

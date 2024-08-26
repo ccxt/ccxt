@@ -1108,6 +1108,7 @@ class coinbaseexchange extends Exchange {
             /**
              * @see https://docs.cloud.coinbase.com/exchange/reference/exchangerestapi_getorder
              * fetches information on an order made by the user
+             * @param {string} $id the order $id
              * @param {string} $symbol not used by coinbaseexchange fetchOrder
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~

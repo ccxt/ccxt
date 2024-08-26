@@ -195,5 +195,27 @@
             "withdraw": {}
         },
         "networks": {}
-    }
+    },
+    "MATIC": {
+        "id": "MATIC",
+        "code": "MATIC",
+        "info": {
+          "aclass": "currency",
+          "altname": "MATIC",
+          "decimals": "10",
+          "display_decimals": "5",
+          "collateral_value": "0.7",
+          "status": "enabled"
+        },
+        "name": "MATIC",
+        "active": true,
+        "precision": 1e-10,
+        "limits": {
+          "amount": {
+            "min": 1e-10
+          },
+          "withdraw": {}
+        },
+        "networks": {}
+      }
 }

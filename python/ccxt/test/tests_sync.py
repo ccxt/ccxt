@@ -140,24 +140,6 @@ class testMainClass(baseMainTestClass):
                 res += ' '
         return message + res
 
-    def exchange_hint(self, exchange, market=None):
-        market_type = exchange.safe_string_2(exchange.options, 'defaultType', 'type', '')
-        market_sub_type = exchange.safe_string_2(exchange.options, 'defaultSubType', 'subType')
-        if market is not None:
-            market_type = market['type']
-            if market['linear']:
-                market_sub_type = 'linear'
-            elif market['inverse']:
-                market_sub_type = 'inverse'
-            elif exchange.safe_value(market, 'quanto'):
-                market_sub_type = 'quanto'
-        is_ws = ('ws' in exchange.has)
-        ws_flag = '(WS)' if is_ws else ''
-        result = exchange.id + ' ' + ws_flag + ' ' + market_type
-        if market_sub_type is not None:
-            result = result + ' [subType: ' + market_sub_type + '] '
-        return result
-
     def test_method(self, method_name, exchange, args, is_public):
         # todo: temporary skip for c#
         if 'OrderBook' in method_name and self.ext == 'cs':
@@ -185,19 +167,20 @@ class testMainClass(baseMainTestClass):
         # exceptionally for `loadMarkets` call, we call it before it's even checked for "skip" as we need it to be called anyway (but can skip "test.loadMarket" for it)
         if is_load_markets:
             exchange.load_markets(True)
+        name = exchange.id
         if skip_message:
             if self.info:
-                dump(self.add_padding(skip_message, 25), self.exchange_hint(exchange), method_name)
+                dump(self.add_padding(skip_message, 25), name, method_name)
             return
         if self.info:
             args_stringified = '(' + exchange.json(args) + ')'  # args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
-            dump(self.add_padding('[INFO] TESTING', 25), self.exchange_hint(exchange), method_name, args_stringified)
+            dump(self.add_padding('[INFO] TESTING', 25), name, method_name, args_stringified)
         if self.is_synchronous:
             call_method_sync(self.test_files, method_name, exchange, skipped_properties_for_method, args)
         else:
             call_method(self.test_files, method_name, exchange, skipped_properties_for_method, args)
         if self.info:
-            dump(self.add_padding('[INFO] TESTING DONE', 25), self.exchange_hint(exchange), method_name)
+            dump(self.add_padding('[INFO] TESTING DONE', 25), name, method_name)
         # add to the list of successed tests
         if is_public:
             self.checked_public_tests[method_name] = True
@@ -291,7 +274,7 @@ class testMainClass(baseMainTestClass):
                                 return_success = True
                         # output the message
                         fail_type = '[TEST_FAILURE]' if should_fail else '[TEST_WARNING]'
-                        dump(fail_type, 'Method could not be tested due to a repeated Network/Availability issues', ' | ', self.exchange_hint(exchange), method_name, args_stringified, exception_message(e))
+                        dump(fail_type, 'Method could not be tested due to a repeated Network/Availability issues', ' | ', exchange.id, method_name, args_stringified, exception_message(e))
                         return return_success
                     else:
                         # wait and retry again
@@ -301,21 +284,21 @@ class testMainClass(baseMainTestClass):
                 else:
                     # if it's loadMarkets, then fail test, because it's mandatory for tests
                     if is_load_markets:
-                        dump('[TEST_FAILURE]', 'Exchange can not load markets', exception_message(e), self.exchange_hint(exchange), method_name, args_stringified)
+                        dump('[TEST_FAILURE]', 'Exchange can not load markets', exception_message(e), exchange.id, method_name, args_stringified)
                         return False
                     # if the specific arguments to the test method throws "NotSupported" exception
                     # then let's don't fail the test
                     if is_not_supported:
                         if self.info:
-                            dump('[INFO] NOT_SUPPORTED', exception_message(e), self.exchange_hint(exchange), method_name, args_stringified)
+                            dump('[INFO] NOT_SUPPORTED', exception_message(e), exchange.id, method_name, args_stringified)
                         return True
                     # If public test faces authentication error, we don't break (see comments under `testSafe` method)
                     if is_public and is_auth_error:
                         if self.info:
-                            dump('[INFO]', 'Authentication problem for public method', exception_message(e), self.exchange_hint(exchange), method_name, args_stringified)
+                            dump('[INFO]', 'Authentication problem for public method', exception_message(e), exchange.id, method_name, args_stringified)
                         return True
                     else:
-                        dump('[TEST_FAILURE]', exception_message(e), self.exchange_hint(exchange), method_name, args_stringified)
+                        dump('[TEST_FAILURE]', exception_message(e), exchange.id, method_name, args_stringified)
                         return False
         return True
 
@@ -381,9 +364,9 @@ class testMainClass(baseMainTestClass):
         test_prefix_string = 'PUBLIC_TESTS' if is_public_test else 'PRIVATE_TESTS'
         if len(failed_methods):
             errors_string = ', '.join(failed_methods)
-            dump('[TEST_FAILURE]', self.exchange_hint(exchange), test_prefix_string, 'Failed methods : ' + errors_string)
+            dump('[TEST_FAILURE]', exchange.id, test_prefix_string, 'Failed methods : ' + errors_string)
         if self.info:
-            dump(self.add_padding('[INFO] END ' + test_prefix_string + ' ' + self.exchange_hint(exchange), 25))
+            dump(self.add_padding('[INFO] END ' + test_prefix_string + ' ' + exchange.id, 25))
 
     def load_exchange(self, exchange):
         result = self.test_safe('loadMarkets', exchange, [], True)
@@ -843,7 +826,7 @@ class testMainClass(baseMainTestClass):
             self.assert_static_request_output(exchange, type, skip_keys, data['url'], request_url, call_output, output)
         except Exception as e:
             self.request_tests_failed = True
-            error_message = '[' + self.lang + '][STATIC_REQUEST_TEST_FAILURE]' + '[' + self.exchange_hint(exchange) + ']' + '[' + method + ']' + '[' + data['description'] + ']' + str(e)
+            error_message = '[' + self.lang + '][STATIC_REQUEST_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + str(e)
             dump('[TEST_FAILURE]' + error_message)
 
     def test_response_statically(self, exchange, method, skip_keys, data):
@@ -858,7 +841,7 @@ class testMainClass(baseMainTestClass):
                 self.assert_static_response_output(mocked_exchange, skip_keys, unified_result_sync, expected_result)
         except Exception as e:
             self.response_tests_failed = True
-            error_message = '[' + self.lang + '][STATIC_RESPONSE_TEST_FAILURE]' + '[' + self.exchange_hint(exchange) + ']' + '[' + method + ']' + '[' + data['description'] + ']' + str(e)
+            error_message = '[' + self.lang + '][STATIC_RESPONSE_TEST_FAILURE]' + '[' + exchange.id + ']' + '[' + method + ']' + '[' + data['description'] + ']' + str(e)
             dump('[TEST_FAILURE]' + error_message)
         set_fetch_response(exchange, None)  # reset state
 
@@ -933,6 +916,9 @@ class testMainClass(baseMainTestClass):
                     continue
                 is_disabled = exchange.safe_bool(result, 'disabled', False)
                 if is_disabled:
+                    continue
+                is_disabled_c_sharp = exchange.safe_bool(result, 'disabledCS', False)
+                if is_disabled_c_sharp and (self.lang == 'C#'):
                     continue
                 type = exchange.safe_string(exchange_data, 'outputType')
                 skip_keys = exchange.safe_value(exchange_data, 'skipKeys', [])
@@ -1050,7 +1036,7 @@ class testMainClass(baseMainTestClass):
         #  -----------------------------------------------------------------------------
         #  --- Init of brokerId tests functions-----------------------------------------
         #  -----------------------------------------------------------------------------
-        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_hyperliquid(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_oxfun(), self.test_xt(), self.test_vertex(), self.test_paradex()]
+        promises = [self.test_binance(), self.test_okx(), self.test_cryptocom(), self.test_bybit(), self.test_kucoin(), self.test_kucoinfutures(), self.test_bitget(), self.test_mexc(), self.test_htx(), self.test_woo(), self.test_bitmart(), self.test_coinex(), self.test_bingx(), self.test_phemex(), self.test_blofin(), self.test_hyperliquid(), self.test_coinbaseinternational(), self.test_coinbase_advanced(), self.test_woofi_pro(), self.test_oxfun(), self.test_xt(), self.test_vertex(), self.test_paradex(), self.test_hashkey()]
         (promises)
         success_message = '[' + self.lang + '][TEST_SUCCESS] brokerId tests passed.'
         dump('[INFO]' + success_message)
@@ -1495,6 +1481,20 @@ class testMainClass(baseMainTestClass):
         except Exception as e:
             req_headers = exchange.last_request_headers
         assert req_headers['PARADEX-PARTNER'] == id, 'paradex - id: ' + id + ' not in headers'
+        if not self.is_synchronous:
+            close(exchange)
+        return True
+
+    def test_hashkey(self):
+        exchange = self.init_offline_exchange('hashkey')
+        req_headers = None
+        id = '10000700011'
+        try:
+            exchange.create_order('BTC/USDT', 'limit', 'buy', 1, 20000)
+        except Exception as e:
+            # we expect an error here, we're only interested in the headers
+            req_headers = exchange.last_request_headers
+        assert req_headers['INPUT-SOURCE'] == id, 'hashkey - id: ' + id + ' not in headers.'
         if not self.is_synchronous:
             close(exchange)
         return True

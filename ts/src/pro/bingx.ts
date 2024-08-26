@@ -16,6 +16,7 @@ export default class bingx extends bingxRest {
             'has': {
                 'ws': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOHLCV': true,

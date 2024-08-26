@@ -12,6 +12,9 @@ public partial class hyperliquid : ccxt.hyperliquid
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
                 { "ws", true },
+                { "createOrderWs", true },
+                { "createOrdersWs", true },
+                { "editOrderWs", true },
                 { "watchBalance", false },
                 { "watchMyTrades", true },
                 { "watchOHLCV", true },
@@ -20,6 +23,7 @@ public partial class hyperliquid : ccxt.hyperliquid
                 { "watchTicker", false },
                 { "watchTickers", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchPosition", false },
             } },
             { "urls", new Dictionary<string, object>() {
@@ -47,12 +51,108 @@ public partial class hyperliquid : ccxt.hyperliquid
         });
     }
 
+    public async virtual Task<object> createOrdersWs(object orders, object parameters = null)
+    {
+        /**
+        * @method
+        * @name hyperliquid#createOrdersWs
+        * @description create a list of trade orders using WebSocket post request
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+        * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object ordersRequest = this.createOrdersRequest(orders, parameters);
+        object wrapped = this.wrapAsPostAction(ordersRequest);
+        object request = this.safeDict(wrapped, "request", new Dictionary<string, object>() {});
+        object requestId = this.safeString(wrapped, "requestId");
+        object response = await this.watch(url, requestId, request, requestId);
+        object responseOjb = this.safeDict(response, "response", new Dictionary<string, object>() {});
+        object data = this.safeDict(responseOjb, "data", new Dictionary<string, object>() {});
+        object statuses = this.safeList(data, "statuses", new List<object>() {});
+        return this.parseOrders(statuses, null);
+    }
+
+    public async override Task<object> createOrderWs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name hyperliquid#createOrder
+        * @description create a trade order using WebSocket post request
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} amount how much of currency you want to trade in units of base currency
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.timeInForce] 'Gtc', 'Ioc', 'Alo'
+        * @param {bool} [params.postOnly] true or false whether the order is post-only
+        * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+        * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+        * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+        * @param {string} [params.slippage] the slippage for market order
+        * @param {string} [params.vaultAddress] the vault address for order
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        var orderglobalParamsVariable = this.parseCreateOrderArgs(symbol, type, side, amount, price, parameters);
+        var order = ((IList<object>) orderglobalParamsVariable)[0];
+        var globalParams = ((IList<object>) orderglobalParamsVariable)[1];
+        object orders = await this.createOrdersWs(new List<object>() {((object)order)}, globalParams);
+        return getValue(orders, 0);
+    }
+
+    public async override Task<object> editOrderWs(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name hyperliquid#editOrder
+        * @description edit a trade order
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
+        * @param {string} id cancel order id
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} amount how much of currency you want to trade in units of base currency
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.timeInForce] 'Gtc', 'Ioc', 'Alo'
+        * @param {bool} [params.postOnly] true or false whether the order is post-only
+        * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+        * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+        * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+        * @param {string} [params.vaultAddress] the vault address for order
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
+        object postRequest = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
+        object wrapped = this.wrapAsPostAction(postRequest);
+        object request = this.safeDict(wrapped, "request", new Dictionary<string, object>() {});
+        object requestId = this.safeString(wrapped, "requestId");
+        object response = await this.watch(url, requestId, request, requestId);
+        // response is the same as in this.editOrder
+        object responseObject = this.safeDict(response, "response", new Dictionary<string, object>() {});
+        object dataObject = this.safeDict(responseObject, "data", new Dictionary<string, object>() {});
+        object statuses = this.safeList(dataObject, "statuses", new List<object>() {});
+        object first = this.safeDict(statuses, 0, new Dictionary<string, object>() {});
+        return this.parseOrder(first, market);
+    }
+
     public async override Task<object> watchOrderBook(object symbol, object limit = null, object parameters = null)
     {
         /**
         * @method
         * @name hyperliquid#watchOrderBook
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
         * @param {string} symbol unified symbol of the market to fetch the order book for
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -132,6 +232,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         * @method
         * @name hyperliquid#watchTickers
         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -162,6 +263,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         * @method
         * @name hyperliquid#watchMyTrades
         * @description watches information on multiple trades made by the user
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
@@ -348,6 +450,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         * @method
         * @name hyperliquid#watchTrades
         * @description watches information on multiple trades made in a market
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
         * @param {string} symbol unified market symbol of the market trades were made in
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trade structures to retrieve
@@ -492,6 +595,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         * @method
         * @name hyperliquid#watchOHLCV
         * @description watches historical candlestick data containing the open, high, low, close price, and the volume of a market
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
         * @param {string} timeframe the length of time each candle represents
         * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -564,12 +668,31 @@ public partial class hyperliquid : ccxt.hyperliquid
         callDynamically(client as WebSocketClient, "resolve", new object[] {ohlcv, messageHash});
     }
 
+    public virtual void handleWsPost(WebSocketClient client, object message)
+    {
+        //    {
+        //         channel: "post",
+        //         data: {
+        //             id: <number>,
+        //             response: {
+        //                  type: "info" | "action" | "error",
+        //                  payload: { ... }
+        //         }
+        //    }
+        object data = this.safeDict(message, "data");
+        object id = this.safeString(data, "id");
+        object response = this.safeDict(data, "response");
+        object payload = this.safeDict(response, "payload");
+        callDynamically(client as WebSocketClient, "resolve", new object[] {payload, id});
+    }
+
     public async override Task<object> watchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
     {
         /**
         * @method
         * @name hyperliquid#watchOrders
         * @description watches information on multiple orders made by the user
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
         * @param {string} symbol unified market symbol of the market orders were made in
         * @param {int} [since] the earliest time in ms to fetch orders for
         * @param {int} [limit] the maximum number of order structures to retrieve
@@ -696,6 +819,7 @@ public partial class hyperliquid : ccxt.hyperliquid
             { "orderUpdates", this.handleOrder },
             { "userFills", this.handleMyTrades },
             { "webData2", this.handleWsTickers },
+            { "post", this.handleWsPost },
         };
         object exacMethod = this.safeValue(methods, topic);
         if (isTrue(!isEqual(exacMethod, null)))
@@ -732,5 +856,28 @@ public partial class hyperliquid : ccxt.hyperliquid
         //
         client.lastPong = this.safeInteger(message, "pong");
         return message;
+    }
+
+    public virtual object requestId()
+    {
+        object requestId = this.sum(this.safeInteger(this.options, "requestId", 0), 1);
+        ((IDictionary<string,object>)this.options)["requestId"] = requestId;
+        return requestId;
+    }
+
+    public virtual object wrapAsPostAction(object request)
+    {
+        object requestId = this.requestId();
+        return new Dictionary<string, object>() {
+            { "requestId", requestId },
+            { "request", new Dictionary<string, object>() {
+                { "method", "post" },
+                { "id", requestId },
+                { "request", new Dictionary<string, object>() {
+                    { "type", "action" },
+                    { "payload", request },
+                } },
+            } },
+        };
     }
 }

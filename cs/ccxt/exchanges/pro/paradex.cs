@@ -17,6 +17,7 @@ public partial class paradex : ccxt.paradex
                 { "watchOrderBook", true },
                 { "watchOrders", false },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchBalance", false },
                 { "watchOHLCV", false },
             } },
@@ -127,6 +128,7 @@ public partial class paradex : ccxt.paradex
         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
         */
         parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
         object market = this.market(symbol);
         object messageHash = add(add("order_book.", getValue(market, "id")), ".snapshot@15@100ms");
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -247,6 +249,7 @@ public partial class paradex : ccxt.paradex
         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
         */
         parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
         object channel = "markets_summary";
         object url = getValue(getValue(this.urls, "api"), "ws");

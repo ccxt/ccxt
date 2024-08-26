@@ -279,26 +279,17 @@ class ascendex extends Exchange {
                     'SOL' => 'Solana',
                     'AVAX' => 'avalanche C chain',
                     'OMNI' => 'Omni',
-                    'TRC' => 'TRC20',
+                    // 'TRC' => 'TRC20',
                     'TRX' => 'TRC20',
-                    'ERC' => 'ERC20',
-                ),
-                'networksById' => array(
-                    'BEP20 (BSC)' => 'BSC',
-                    'arbitrum' => 'ARB',
-                    'Solana' => 'SOL',
-                    'avalanche C chain' => 'AVAX',
-                    'Omni' => 'OMNI',
                     'TRC20' => 'TRC20',
                     'ERC20' => 'ERC20',
                     'GO20' => 'GO20',
                     'BEP2' => 'BEP2',
-                    'Bitcoin' => 'BTC',
-                    'Bitcoin ABC' => 'BCH',
-                    'Litecoin' => 'LTC',
-                    'Matic Network' => 'MATIC',
-                    'xDai' => 'STAKE',
-                    'Akash' => 'AKT',
+                    'BTC' => 'Bitcoin',
+                    'BCH' => 'Bitcoin ABC',
+                    'LTC' => 'Litecoin',
+                    'MATIC' => 'Matic Network',
+                    'AKT' => 'Akash',
                 ),
             ),
             'exceptions' => array(
@@ -1762,6 +1753,7 @@ class ascendex extends Exchange {
          * fetches information on an order made by the user
          * @see https://ascendex.github.io/ascendex-pro-api/#$query-order
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#$query-order-by-$id
+         * @param {string} $id the order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
@@ -2366,11 +2358,6 @@ class ascendex extends Exchange {
             'network' => $network,
             'info' => $depositAddress,
         );
-    }
-
-    public function safe_network($networkId) {
-        $networksById = $this->safe_dict($this->options, 'networksById');
-        return $this->safe_string($networksById, $networkId, $networkId);
     }
 
     public function fetch_deposit_address(string $code, $params = array ()) {

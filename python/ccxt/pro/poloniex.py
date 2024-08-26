@@ -27,6 +27,7 @@ class poloniex(ccxt.async_support.poloniex):
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': True,
                 'watchBalance': True,
                 'watchStatus': False,
                 'watchOrders': True,
@@ -367,12 +368,40 @@ class poloniex(ccxt.async_support.poloniex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
+        return await self.watch_trades_for_symbols([symbol], since, limit, params)
+
+    async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+        """
+        get the list of most recent trades for a list of symbols
+        :see: https://api-docs.poloniex.com/spot/websocket/market-data#trades
+        :param str[] symbols: unified symbol of the market to fetch trades for
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        """
         await self.load_markets()
-        symbol = self.symbol(symbol)
+        symbols = self.market_symbols(symbols, None, False, True, True)
         name = 'trades'
-        trades = await self.subscribe(name, name, False, [symbol], params)
+        url = self.urls['api']['ws']['public']
+        marketIds = self.market_ids(symbols)
+        subscribe: dict = {
+            'event': 'subscribe',
+            'channel': [
+                name,
+            ],
+            'symbols': marketIds,
+        }
+        request = self.extend(subscribe, params)
+        messageHashes = []
+        if symbols is not None:
+            for i in range(0, len(symbols)):
+                messageHashes.append(name + '::' + symbols[i])
+        trades = await self.watch_multiple(url, messageHashes, request, messageHashes)
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
+            first = self.safe_value(trades, 0)
+            tradeSymbol = self.safe_string(first, 'symbol')
+            limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:

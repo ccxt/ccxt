@@ -284,26 +284,17 @@ export default class ascendex extends Exchange {
                     'SOL': 'Solana',
                     'AVAX': 'avalanche C chain',
                     'OMNI': 'Omni',
-                    'TRC': 'TRC20',
+                    // 'TRC': 'TRC20',
                     'TRX': 'TRC20',
-                    'ERC': 'ERC20',
-                },
-                'networksById': {
-                    'BEP20 (BSC)': 'BSC',
-                    'arbitrum': 'ARB',
-                    'Solana': 'SOL',
-                    'avalanche C chain': 'AVAX',
-                    'Omni': 'OMNI',
                     'TRC20': 'TRC20',
                     'ERC20': 'ERC20',
                     'GO20': 'GO20',
                     'BEP2': 'BEP2',
-                    'Bitcoin': 'BTC',
-                    'Bitcoin ABC': 'BCH',
-                    'Litecoin': 'LTC',
-                    'Matic Network': 'MATIC',
-                    'xDai': 'STAKE',
-                    'Akash': 'AKT',
+                    'BTC': 'Bitcoin',
+                    'BCH': 'Bitcoin ABC',
+                    'LTC': 'Litecoin',
+                    'MATIC': 'Matic Network',
+                    'AKT': 'Akash',
                 },
             },
             'exceptions': {
@@ -1797,6 +1788,7 @@ export default class ascendex extends Exchange {
          * @description fetches information on an order made by the user
          * @see https://ascendex.github.io/ascendex-pro-api/#query-order
          * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#query-order-by-id
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2409,11 +2401,6 @@ export default class ascendex extends Exchange {
             'network': network,
             'info': depositAddress,
         };
-    }
-
-    safeNetwork (networkId) {
-        const networksById = this.safeDict (this.options, 'networksById');
-        return this.safeString (networksById, networkId, networkId);
     }
 
     async fetchDepositAddress (code: string, params = {}) {

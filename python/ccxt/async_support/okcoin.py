@@ -598,6 +598,9 @@ class okcoin(Exchange, ImplicitAPI):
                 'defaultNetwork': 'ERC20',
                 'networks': {
                     'ERC20': 'Ethereum',
+                    'BTC': 'Bitcoin',
+                    'OMNI': 'Omni',
+                    'TRC20': 'TRON',
                 },
             },
             'commonCurrencies': {
@@ -725,14 +728,6 @@ class okcoin(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def safe_network(self, networkId):
-        networksById: dict = {
-            'Bitcoin': 'BTC',
-            'Omni': 'OMNI',
-            'TRON': 'TRC20',
-        }
-        return self.safe_string(networksById, networkId, networkId)
-
     async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
@@ -772,7 +767,7 @@ class okcoin(Exchange, ImplicitAPI):
                     if (networkId is not None) and (networkId.find('-') >= 0):
                         parts = networkId.split('-')
                         chainPart = self.safe_string(parts, 1, networkId)
-                        networkCode = self.safe_network(chainPart)
+                        networkCode = self.network_id_to_code(chainPart)
                         precision = self.parse_precision(self.safe_string(chain, 'wdTickSz'))
                         if maxPrecision is None:
                             maxPrecision = precision

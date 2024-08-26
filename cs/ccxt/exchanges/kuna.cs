@@ -879,7 +879,6 @@ public partial class kuna : Exchange
             { "fee", new Dictionary<string, object>() {
                 { "cost", this.safeString(trade, "fee") },
                 { "currency", this.safeCurrencyCode(this.safeString(trade, "feeCurrency")) },
-                { "rate", null },
             } },
         }, market);
     }

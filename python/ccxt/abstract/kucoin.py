@@ -198,6 +198,7 @@ class ImplicitAPI:
     broker_get_broker_nd_account = brokerGetBrokerNdAccount = Entry('broker/nd/account', 'broker', 'GET', {'cost': 2})
     broker_get_broker_nd_account_apikey = brokerGetBrokerNdAccountApikey = Entry('broker/nd/account/apikey', 'broker', 'GET', {'cost': 2})
     broker_get_broker_nd_rebase_download = brokerGetBrokerNdRebaseDownload = Entry('broker/nd/rebase/download', 'broker', 'GET', {'cost': 3})
+    broker_get_asset_ndbroker_deposit_list = brokerGetAssetNdbrokerDepositList = Entry('asset/ndbroker/deposit/list', 'broker', 'GET', {'cost': 1})
     broker_get_broker_nd_transfer_detail = brokerGetBrokerNdTransferDetail = Entry('broker/nd/transfer/detail', 'broker', 'GET', {'cost': 1})
     broker_get_broker_nd_deposit_detail = brokerGetBrokerNdDepositDetail = Entry('broker/nd/deposit/detail', 'broker', 'GET', {'cost': 1})
     broker_get_broker_nd_withdraw_detail = brokerGetBrokerNdWithdrawDetail = Entry('broker/nd/withdraw/detail', 'broker', 'GET', {'cost': 1})

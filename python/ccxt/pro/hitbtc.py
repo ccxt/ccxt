@@ -23,6 +23,7 @@ class hitbtc(ccxt.async_support.hitbtc):
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchOrderBook': True,
                 'watchBalance': True,
                 'watchOrders': True,
