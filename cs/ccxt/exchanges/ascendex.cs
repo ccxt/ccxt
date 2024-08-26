@@ -270,26 +270,16 @@ public partial class ascendex : Exchange
                     { "SOL", "Solana" },
                     { "AVAX", "avalanche C chain" },
                     { "OMNI", "Omni" },
-                    { "TRC", "TRC20" },
                     { "TRX", "TRC20" },
-                    { "ERC", "ERC20" },
-                } },
-                { "networksById", new Dictionary<string, object>() {
-                    { "BEP20 (BSC)", "BSC" },
-                    { "arbitrum", "ARB" },
-                    { "Solana", "SOL" },
-                    { "avalanche C chain", "AVAX" },
-                    { "Omni", "OMNI" },
                     { "TRC20", "TRC20" },
                     { "ERC20", "ERC20" },
                     { "GO20", "GO20" },
                     { "BEP2", "BEP2" },
-                    { "Bitcoin", "BTC" },
-                    { "Bitcoin ABC", "BCH" },
-                    { "Litecoin", "LTC" },
-                    { "Matic Network", "MATIC" },
-                    { "xDai", "STAKE" },
-                    { "Akash", "AKT" },
+                    { "BTC", "Bitcoin" },
+                    { "BCH", "Bitcoin ABC" },
+                    { "LTC", "Litecoin" },
+                    { "MATIC", "Matic Network" },
+                    { "AKT", "Akash" },
                 } },
             } },
             { "exceptions", new Dictionary<string, object>() {
@@ -2533,12 +2523,6 @@ public partial class ascendex : Exchange
             { "network", network },
             { "info", depositAddress },
         };
-    }
-
-    public virtual object safeNetwork(object networkId)
-    {
-        object networksById = this.safeDict(this.options, "networksById");
-        return this.safeString(networksById, networkId, networkId);
     }
 
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)

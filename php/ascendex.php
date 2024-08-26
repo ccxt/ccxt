@@ -279,26 +279,17 @@ class ascendex extends Exchange {
                     'SOL' => 'Solana',
                     'AVAX' => 'avalanche C chain',
                     'OMNI' => 'Omni',
-                    'TRC' => 'TRC20',
+                    // 'TRC' => 'TRC20',
                     'TRX' => 'TRC20',
-                    'ERC' => 'ERC20',
-                ),
-                'networksById' => array(
-                    'BEP20 (BSC)' => 'BSC',
-                    'arbitrum' => 'ARB',
-                    'Solana' => 'SOL',
-                    'avalanche C chain' => 'AVAX',
-                    'Omni' => 'OMNI',
                     'TRC20' => 'TRC20',
                     'ERC20' => 'ERC20',
                     'GO20' => 'GO20',
                     'BEP2' => 'BEP2',
-                    'Bitcoin' => 'BTC',
-                    'Bitcoin ABC' => 'BCH',
-                    'Litecoin' => 'LTC',
-                    'Matic Network' => 'MATIC',
-                    'xDai' => 'STAKE',
-                    'Akash' => 'AKT',
+                    'BTC' => 'Bitcoin',
+                    'BCH' => 'Bitcoin ABC',
+                    'LTC' => 'Litecoin',
+                    'MATIC' => 'Matic Network',
+                    'AKT' => 'Akash',
                 ),
             ),
             'exceptions' => array(
@@ -2367,11 +2358,6 @@ class ascendex extends Exchange {
             'network' => $network,
             'info' => $depositAddress,
         );
-    }
-
-    public function safe_network($networkId) {
-        $networksById = $this->safe_dict($this->options, 'networksById');
-        return $this->safe_string($networksById, $networkId, $networkId);
     }
 
     public function fetch_deposit_address(string $code, $params = array ()) {

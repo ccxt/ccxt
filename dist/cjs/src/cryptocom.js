@@ -1811,18 +1811,6 @@ class cryptocom extends cryptocom$1 {
             return depositAddresses[keys[0]];
         }
     }
-    safeNetwork(networkId) {
-        const networksById = {
-            'BTC': 'BTC',
-            'ETH': 'ETH',
-            'SOL': 'SOL',
-            'BNB': 'BNB',
-            'CRONOS': 'CRONOS',
-            'MATIC': 'MATIC',
-            'OP': 'OP',
-        };
-        return this.safeString(networksById, networkId, networkId);
-    }
     async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method

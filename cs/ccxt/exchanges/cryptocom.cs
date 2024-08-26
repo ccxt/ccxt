@@ -1951,20 +1951,6 @@ public partial class cryptocom : Exchange
         }
     }
 
-    public virtual object safeNetwork(object networkId)
-    {
-        object networksById = new Dictionary<string, object>() {
-            { "BTC", "BTC" },
-            { "ETH", "ETH" },
-            { "SOL", "SOL" },
-            { "BNB", "BNB" },
-            { "CRONOS", "CRONOS" },
-            { "MATIC", "MATIC" },
-            { "OP", "OP" },
-        };
-        return this.safeString(networksById, networkId, networkId);
-    }
-
     public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
     {
         /**
