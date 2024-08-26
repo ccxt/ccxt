@@ -1002,6 +1002,11 @@ export default class binance extends binanceRest {
                 for (let i = 0; i < orderSymbols.length; i++) {
                     delete this.orders[orderSymbols[i]];
                 }
+            } else if (topic === 'ticker') {
+                const tickerSymbols = Object.keys (this.tickers);
+                for (let i = 0; i < tickerSymbols.length; i++) {
+                    delete this.tickers[tickerSymbols[i]];
+                }
             }
         }
     }
@@ -1693,6 +1698,112 @@ export default class binance extends binanceRest {
             return newTickers;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
+    }
+
+    async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name binance#unWatchTickers
+         * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-mini-ticker-stream
+         * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-ticker-streams
+         * @see https://binance-docs.github.io/apidocs/futures/en/#all-market-mini-tickers-stream
+         * @see https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-ticker-streams
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#all-market-mini-tickers-stream
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-ticker-streams
+         * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        let channelName = undefined;
+        [ channelName, params ] = this.handleOptionAndParams (params, 'watchTickers', 'name', 'ticker');
+        if (channelName === 'bookTicker') {
+            throw new BadRequest (this.id + ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead');
+        }
+        await this.loadMarkets ();
+        const methodName = 'watchTickers';
+        symbols = this.marketSymbols (symbols, undefined, true, false, true);
+        let firstMarket = undefined;
+        let marketType = undefined;
+        const symbolsDefined = (symbols !== undefined);
+        if (symbolsDefined) {
+            firstMarket = this.market (symbols[0]);
+        }
+        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, firstMarket, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams (methodName, firstMarket, params);
+        let rawMarketType = undefined;
+        if (this.isLinear (marketType, subType)) {
+            rawMarketType = 'future';
+        } else if (this.isInverse (marketType, subType)) {
+            rawMarketType = 'delivery';
+        } else if (marketType === 'spot') {
+            rawMarketType = marketType;
+        } else {
+            throw new NotSupported (this.id + ' ' + methodName + '() does not support options markets');
+        }
+        const isBidAsk = (channelName === 'bookTicker');
+        const subscriptionArgs = [];
+        const subMessageHashes = [];
+        const messageHashes = [];
+        if (symbolsDefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.market (symbol);
+                subscriptionArgs.push (market['lowercaseId'] + '@' + channelName);
+                subMessageHashes.push (this.getMessageHash (channelName, market['symbol'], isBidAsk));
+                messageHashes.push ('unsubscribe:ticker:' + symbol);
+            }
+        } else {
+            if (isBidAsk) {
+                if (marketType === 'spot') {
+                    throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires symbols for this channel for spot markets');
+                }
+                subscriptionArgs.push ('!' + channelName);
+            } else {
+                subscriptionArgs.push ('!' + channelName + '@arr');
+            }
+            subMessageHashes.push (this.getMessageHash (channelName, undefined, isBidAsk));
+            messageHashes.push ('unsubscribe:ticker');
+        }
+        let streamHash = channelName;
+        if (symbolsDefined) {
+            streamHash = channelName + '::' + symbols.join (',');
+        }
+        const url = this.urls['api']['ws'][rawMarketType] + '/' + this.stream (rawMarketType, streamHash);
+        const requestId = this.requestId (url);
+        const request: Dict = {
+            'method': 'UNSUBSCRIBE',
+            'params': subscriptionArgs,
+            'id': requestId,
+        };
+        const subscription: Dict = {
+            'unsubscribe': true,
+            'id': requestId.toString (),
+            'subMessageHashes': subMessageHashes,
+            'messageHashes': subMessageHashes,
+            'symbols': symbols,
+            'topic': 'ticker',
+        };
+        return await this.watchMultiple (url, subMessageHashes, this.extend (request, params), subMessageHashes, subscription);
+    }
+
+    async unWatchTicker (symbol: string, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name binance#unWatchTicker
+         * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-mini-ticker-stream
+         * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-ticker-streams
+         * @see https://binance-docs.github.io/apidocs/futures/en/#all-market-mini-tickers-stream
+         * @see https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-ticker-streams
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#all-market-mini-tickers-stream
+         * @see https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-ticker-streams
+         * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        return await this.unWatchTickers ([ symbol ], params);
     }
 
     async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
