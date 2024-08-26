@@ -226,7 +226,7 @@
         ],
         "fetchTrades": [
             {
-                "description": "public spot trades",
+                "description": "Fetch trades",
                 "method": "fetchTrades",
                 "input": [
                     "BTC/USDT",
@@ -240,11 +240,11 @@
                         "symbol": "BTC/USDT",
                         "data": [
                             {
-                                "p": "73240.01",
-                                "q": "0.02000",
-                                "ts": "1710327661659",
-                                "bm": false,
-                                "seqnum": "72057643604627214"
+                                "p": "63633.03",
+                                "q": "0.08147",
+                                "ts": "1724680185653",
+                                "bm": true,
+                                "seqnum": "0"
                             }
                         ]
                     }
@@ -252,24 +252,27 @@
                 "parsedResponse": [
                     {
                         "info": {
-                            "p": "73240.01",
-                            "q": "0.02000",
-                            "ts": "1710327661659",
-                            "bm": false,
-                            "seqnum": "72057643604627214"
+                            "p": "63633.03",
+                            "q": "0.08147",
+                            "ts": "1724680185653",
+                            "bm": true,
+                            "seqnum": "0"
                         },
-                        "timestamp": 1710327661659,
-                        "datetime": "2024-03-13T11:01:01.659Z",
+                        "timestamp": 1724680185653,
+                        "datetime": "2024-08-26T13:49:45.653Z",
                         "symbol": "BTC/USDT",
                         "id": null,
                         "order": null,
                         "type": null,
                         "takerOrMaker": null,
-                        "side": "buy",
-                        "price": 73240.01,
-                        "amount": 0.02,
-                        "cost": 1464.8002,
-                        "fee": {"cost": null, "currency": null },
+                        "side": "sell",
+                        "price": 63633.03,
+                        "amount": 0.08147,
+                        "cost": 5184.1829541,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
                         "fees": []
                     }
                 ]
@@ -450,68 +453,69 @@
         ],
         "fetchTickers": [
             {
-                "description": "fetchTickers",
+                "description": "Fetch tickers",
                 "method": "fetchTickers",
-                "input": [
+                "input":
                     [
-                        "BTC/USDT:USDT"
-                    ]
-                ],
+                        "BTC/USDT"
+                    ],
                 "httpResponse": {
-                    "code": 0,
+                    "code": "0",
                     "data": {
-                        "symbol": "BTC-PERP",
-                        "open": "64851.7",
-                        "close": "64276.4",
-                        "high": "65102.7",
-                        "low": "63208",
-                        "baseVol": "26314.0671",
+                        "symbol": "BTC/USDT",
+                        "open": "64159.72",
+                        "close": "63710.79",
+                        "high": "65085.58",
+                        "low": "63240.28",
+                        "volume": "4287.4813",
                         "ask": [
-                            "64276.4",
-                            "2.09805"
+                            "63711.28",
+                            "0.29423"
                         ],
                         "bid": [
-                            "64276.1",
-                            "2.54895"
-                        ]
+                            "63633.2",
+                            "0.2959"
+                        ],
+                        "type": "spot"
                     }
                 },
                 "parsedResponse": {
-                    "BTC/USDT:USDT": {
-                        "symbol": "BTC/USDT:USDT",
+                    "BTC/USDT": {
+                        "symbol": "BTC/USDT",
                         "timestamp": null,
                         "datetime": null,
-                        "high": 65102.7,
-                        "low": 63208,
-                        "bid": 64276.1,
-                        "bidVolume": 2.54895,
-                        "ask": 64276.4,
-                        "askVolume": 2.09805,
+                        "high": 65085.58,
+                        "low": 63240.28,
+                        "bid": 63633.2,
+                        "bidVolume": 0.2959,
+                        "ask": 63711.28,
+                        "askVolume": 0.29423,
                         "vwap": null,
-                        "open": 64851.7,
-                        "close": 64276.4,
-                        "last": 64276.4,
+                        "open": 64159.72,
+                        "close": 63710.79,
+                        "last": 63710.79,
                         "previousClose": null,
-                        "change": -575.3,
-                        "percentage": -0.887100877849,
-                        "average": 64564.05,
-                        "baseVolume": null,
+                        "change": -448.93,
+                        "percentage": -0.6997069189204691,
+                        "average": 63935.255,
+                        "baseVolume": 4287.4813,
                         "quoteVolume": null,
                         "info": {
-                            "symbol": "BTC-PERP",
-                            "open": "64851.7",
-                            "close": "64276.4",
-                            "high": "65102.7",
-                            "low": "63208",
-                            "baseVol": "26314.0671",
+                            "symbol": "BTC/USDT",
+                            "open": "64159.72",
+                            "close": "63710.79",
+                            "high": "65085.58",
+                            "low": "63240.28",
+                            "volume": "4287.4813",
                             "ask": [
-                                "64276.4",
-                                "2.09805"
+                                "63711.28",
+                                "0.29423"
                             ],
                             "bid": [
-                                "64276.1",
-                                "2.54895"
-                            ]
+                                "63633.2",
+                                "0.2959"
+                            ],
+                            "type": "spot"
                         }
                     }
                 }
