@@ -6,7 +6,7 @@ import { ArgumentsRequired, AuthenticationError, ExchangeError, AccountSuspended
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode, MarginModification, Currencies, TradingFees, Dict, LeverageTier, LeverageTiers, int } from './base/types.js';
+import type { TransferEntry, FundingHistory, Int, OHLCV, Order, OrderSide, OrderType, OrderRequest, Str, Trade, Balances, Transaction, Ticker, OrderBook, Tickers, Strings, Num, Currency, Market, Leverage, Leverages, Account, MarginModes, MarginMode, MarginModification, Currencies, TradingFees, Dict, LeverageTier, LeverageTiers, int, List } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -3286,11 +3286,11 @@ export default class ascendex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const rows = this.safeList (data, 'data', []);
+        const rows = this.safeList (data, 'data', []) as List;
         return this.parseIncomes (rows, market, since, limit);
     }
 
-    parseIncome (income, market: Market = undefined) {
+    parseIncome (income: Dict, market: Market = undefined): FundingHistory {
         //
         //     {
         //         "timestamp": 1640476800000,
@@ -3309,6 +3309,7 @@ export default class ascendex extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'id': undefined,
             'amount': this.safeNumber (income, 'paymentInUSDT'),
+            'rate': this.safeNumber (income, 'fundingRate'),
         };
     }
 

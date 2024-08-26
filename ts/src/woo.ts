@@ -6,7 +6,7 @@ import { AuthenticationError, RateLimitExceeded, BadRequest, OperationFailed, Ex
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory } from './base/types.js';
+import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory, List } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -2667,7 +2667,7 @@ export default class woo extends Exchange {
         return undefined;
     }
 
-    parseIncome (income, market: Market = undefined) {
+    parseIncome (income: Dict, market: Market = undefined): FundingHistory {
         //
         //     {
         //         "id":666666,
@@ -2761,7 +2761,7 @@ export default class woo extends Exchange {
         //
         const meta = this.safeDict (response, 'meta', {});
         const cursor = this.safeInteger (meta, 'current_page');
-        const result = this.safeList (response, 'rows', []);
+        const result = this.safeList (response, 'rows', []) as List;
         const resultLength = result.length;
         if (resultLength > 0) {
             const lastItem = result[resultLength - 1];

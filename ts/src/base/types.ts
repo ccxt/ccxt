@@ -467,8 +467,9 @@ export interface FundingHistory {
     code: string;
     timestamp?: number
     datetime?: Str;
-    id: string;
-    amount: number;
+    id?: Str;
+    amount?: Num;
+    rate?: Num
 }
 
 export interface MarginMode {
