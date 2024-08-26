@@ -258,13 +258,18 @@ export default class coinex extends coinexRest {
          */
         await this.loadMarkets ();
         await this.authenticate (params);
-        const messageHash = 'balance';
+        let messageHash = 'balance';
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const url = this.urls['api']['ws'][type];
         let currencies = Object.keys (this.currencies_by_id);
         if (currencies === undefined) {
             currencies = [];
+        }
+        if (type === 'spot') {
+            messageHash += ':spot';
+        } else {
+            messageHash += ':swap';
         }
         const subscribe: Dict = {
             'method': 'balance.subscribe',
@@ -328,7 +333,10 @@ export default class coinex extends coinexRest {
             this.balance[code] = account;
             this.balance = this.safeBalance (this.balance);
         }
+        const defaultType = this.safeString2 (this.options, 'defaultType', 'type');
         const messageHash = 'balance';
+        const messageWithType = messageHash + ':' + defaultType;
+        client.resolve (this.balance, messageWithType);
         client.resolve (this.balance, messageHash);
     }
 
