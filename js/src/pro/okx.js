@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import okxRest from '../okx.js';
-import { ArgumentsRequired, BadRequest, ExchangeError, ChecksumError, AuthenticationError, InvalidNonce } from '../base/errors.js';
+import { ArgumentsRequired, BadRequest, ExchangeError, ChecksumError, AuthenticationError, InvalidNonce, UnsubscribeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
@@ -220,6 +220,48 @@ export default class okx extends okxRest {
         }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
+    async unWatchTradesForSymbols(symbols, params = {}) {
+        /**
+         * @method
+         * @name okx#unWatchTradesForSymbols
+         * @description unWatches from the stream channel
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const channel = 'trades';
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            messageHashes.push('unsubscribe:trades:' + symbol);
+            const marketId = this.marketId(symbol);
+            const topic = {
+                'channel': channel,
+                'instId': marketId,
+            };
+            topics.push(topic);
+        }
+        const request = {
+            'op': 'unsubscribe',
+            'args': topics,
+        };
+        const url = this.getUrl(channel, 'public');
+        return await this.watchMultiple(url, messageHashes, request, messageHashes);
+    }
+    async unWatchTrades(symbol, params = {}) {
+        /**
+         * @method
+         * @name okx#unWatchTradesForSymbols
+         * @description unWatches from the stream channel
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        return await this.unWatchTradesForSymbols([symbol], params);
+    }
     handleTrades(client, message) {
         //
         //     {
@@ -366,9 +408,8 @@ export default class okx extends okxRest {
          * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        if (this.isEmpty(symbols)) {
-            throw new ArgumentsRequired(this.id + ' watchTickers requires a list of symbols');
-        }
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
         let channel = undefined;
         [channel, params] = this.handleOptionAndParams(params, 'watchTickers', 'channel', 'tickers');
         const newTickers = await this.subscribeMultiple('public', channel, symbols, params);
@@ -894,6 +935,72 @@ export default class okx extends okxRest {
         const url = this.getUrl(depth, 'public');
         const orderbook = await this.watchMultiple(url, messageHashes, request, messageHashes);
         return orderbook.limit();
+    }
+    async unWatchOrderBookForSymbols(symbols, params = {}) {
+        /**
+         * @method
+         * @name okx#unWatchOrderBookForSymbols
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
+         * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string[]} symbols unified array of symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.limit] the maximum amount of order book entries to return
+         * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        let depth = undefined;
+        [depth, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'depth', 'books');
+        const limit = this.safeInteger(params, 'limit');
+        if (limit !== undefined) {
+            if (limit === 1) {
+                depth = 'bbo-tbt';
+            }
+            else if (limit > 1 && limit <= 5) {
+                depth = 'books5';
+            }
+            else if (limit === 50) {
+                depth = 'books50-l2-tbt'; // Make sure you have VIP4 and above
+            }
+            else if (limit === 400) {
+                depth = 'books';
+            }
+        }
+        const topics = [];
+        const subMessageHashes = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            subMessageHashes.push(depth + ':' + symbol);
+            messageHashes.push('unsubscribe:orderbook:' + symbol);
+            const marketId = this.marketId(symbol);
+            const topic = {
+                'channel': depth,
+                'instId': marketId,
+            };
+            topics.push(topic);
+        }
+        const request = {
+            'op': 'unsubscribe',
+            'args': topics,
+        };
+        const url = this.getUrl(depth, 'public');
+        return await this.watchMultiple(url, messageHashes, request, messageHashes);
+    }
+    async unWatchOrderBook(symbol, params = {}) {
+        /**
+         * @method
+         * @name okx#unWatchOrderBook
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
+         * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified array of symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.limit] the maximum amount of order book entries to return
+         * @param {string} [params.depth] okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        return await this.unWatchOrderBookForSymbols([symbol], params);
     }
     handleDelta(bookside, delta) {
         //
@@ -1990,6 +2097,7 @@ export default class okx extends okxRest {
                 // 'book': 'handleOrderBook',
                 'login': this.handleAuthenticate,
                 'subscribe': this.handleSubscriptionStatus,
+                'unsubscribe': this.handleUnsubscription,
                 'order': this.handlePlaceOrders,
                 'batch-orders': this.handlePlaceOrders,
                 'amend-order': this.handlePlaceOrders,
@@ -2034,6 +2142,56 @@ export default class okx extends okxRest {
             else {
                 method.call(this, client, message);
             }
+        }
+    }
+    handleUnSubscriptionTrades(client, symbol) {
+        const subMessageHash = 'trades:' + symbol;
+        const messageHash = 'unsubscribe:trades:' + symbol;
+        if (subMessageHash in client.subscriptions) {
+            delete client.subscriptions[subMessageHash];
+        }
+        if (messageHash in client.subscriptions) {
+            delete client.subscriptions[messageHash];
+        }
+        delete this.trades[symbol];
+        const error = new UnsubscribeError(this.id + ' ' + subMessageHash);
+        client.reject(error, subMessageHash);
+        client.resolve(true, messageHash);
+    }
+    handleUnsubscriptionOrderBook(client, symbol, channel) {
+        const subMessageHash = channel + ':' + symbol;
+        const messageHash = 'unsubscribe:orderbook:' + symbol;
+        if (subMessageHash in client.subscriptions) {
+            delete client.subscriptions[subMessageHash];
+        }
+        if (messageHash in client.subscriptions) {
+            delete client.subscriptions[messageHash];
+        }
+        delete this.orderbooks[symbol];
+        const error = new UnsubscribeError(this.id + ' ' + subMessageHash);
+        client.reject(error, subMessageHash);
+        client.resolve(true, messageHash);
+    }
+    handleUnsubscription(client, message) {
+        //
+        // {
+        //     "event": "unsubscribe",
+        //     "arg": {
+        //       "channel": "tickers",
+        //       "instId": "LTC-USD-200327"
+        //     },
+        //     "connId": "a4d3ae55"
+        // }
+        // arg might be an array or list
+        const arg = this.safeDict(message, 'arg', {});
+        const channel = this.safeString(arg, 'channel');
+        const marketId = this.safeString(arg, 'instId');
+        const symbol = this.safeSymbol(marketId);
+        if (channel === 'trades') {
+            this.handleUnSubscriptionTrades(client, symbol);
+        }
+        else if (channel.startsWith('bbo') || channel.startsWith('book')) {
+            this.handleUnsubscriptionOrderBook(client, symbol, channel);
         }
     }
 }
