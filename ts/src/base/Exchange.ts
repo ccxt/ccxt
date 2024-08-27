@@ -3866,8 +3866,8 @@ export default class Exchange {
     }
 
     safeNetwork (network) {
-        let withdrawEnabled = this.safeBool (network, 'withdraw');
-        let depositEnabled = this.safeBool (network, 'deposit');
+        const withdrawEnabled = this.safeBool (network, 'withdraw');
+        const depositEnabled = this.safeBool (network, 'deposit');
         const limits = this.safeDict (network, 'limits');
         const withdraw = this.safeDict (limits, 'withdraw');
         const deposit = this.safeDict (limits, 'deposit');
