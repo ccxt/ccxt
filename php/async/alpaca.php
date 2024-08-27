@@ -563,8 +563,8 @@ class alpaca extends Exchange {
             //       }
             //   }
             //
-            $orderbooks = $this->safe_value($response, 'orderbooks', array());
-            $rawOrderbook = $this->safe_value($orderbooks, $id, array());
+            $orderbooks = $this->safe_dict($response, 'orderbooks', array());
+            $rawOrderbook = $this->safe_dict($orderbooks, $id, array());
             $timestamp = $this->parse8601($this->safe_string($rawOrderbook, 't'));
             return $this->parse_order_book($rawOrderbook, $market['symbol'], $timestamp, 'b', 'a', 'p', 's');
         }) ();
