@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 public partial class Exchange
 {
     public ConcurrentDictionary<string, WebSocketClient> clients = new ConcurrentDictionary<string, WebSocketClient>();
+    public static ClientWebSocket ws = null;
 
     public ccxt.pro.OrderBook orderBook(object snapshot = null, object depth = null)
     {
