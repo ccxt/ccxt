@@ -478,6 +478,7 @@ export default class bingx extends bingxRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         let marketType = undefined;
         let subType = undefined;
         let url = undefined;
