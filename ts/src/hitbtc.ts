@@ -1419,6 +1419,7 @@ export default class hitbtc extends Exchange {
         const statuses: Dict = {
             'PENDING': 'pending',
             'FAILED': 'failed',
+            'ROLLED_BACK': 'failed',
             'SUCCESS': 'ok',
         };
         return this.safeString (statuses, status, status);
