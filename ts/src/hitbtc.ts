@@ -850,7 +850,7 @@ export default class hitbtc extends Exchange {
             for (let j = 0; j < rawNetworks.length; j++) {
                 const rawNetwork = rawNetworks[j];
                 const networkId = this.safeString2 (rawNetwork, 'protocol', 'network');
-                const network = this.networkIdToCode (networkId);
+                const network = this.networkIdToCode (networkId).toUpperCase ();
                 fee = this.safeNumber (rawNetwork, 'payout_fee');
                 const networkPrecision = this.safeNumber (rawNetwork, 'precision_payout');
                 const payinEnabledNetwork = this.safeBool (rawNetwork, 'payin_enabled', false);
@@ -3537,7 +3537,7 @@ export default class hitbtc extends Exchange {
         for (let j = 0; j < networks.length; j++) {
             const networkEntry = networks[j];
             const networkId = this.safeString (networkEntry, 'network');
-            const networkCode = this.networkIdToCode (networkId);
+            const networkCode = this.networkIdToCode (networkId).toUpperCase ();
             const withdrawFee = this.safeNumber (networkEntry, 'payout_fee');
             const isDefault = this.safeValue (networkEntry, 'default');
             const withdrawResult: Dict = {
