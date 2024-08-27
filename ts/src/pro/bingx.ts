@@ -1010,6 +1010,9 @@ export default class bingx extends bingxRest {
         let baseUrl = undefined;
         let request = undefined;
         if (type === 'swap') {
+            if (subType === 'inverse') {
+                throw new NotSupported (this.id + ' watchOrders is not supported for inverse swap markets yet');
+            }
             baseUrl = this.safeString (this.urls['api']['ws'], subType);
         } else {
             baseUrl = this.safeString (this.urls['api']['ws'], type);
@@ -1066,6 +1069,9 @@ export default class bingx extends bingxRest {
         let baseUrl = undefined;
         let request = undefined;
         if (type === 'swap') {
+            if (subType === 'inverse') {
+                throw new NotSupported (this.id + ' watchMyTrades is not supported for inverse swap markets yet');
+            }
             baseUrl = this.safeString (this.urls['api']['ws'], subType);
         } else {
             baseUrl = this.safeString (this.urls['api']['ws'], type);
@@ -1111,6 +1117,9 @@ export default class bingx extends bingxRest {
         let baseUrl = undefined;
         const uuid = this.uuid ();
         if (type === 'swap') {
+            if (subType === 'inverse') {
+                throw new NotSupported (this.id + ' watchBalance is not supported for inverse swap markets yet');
+            }
             baseUrl = this.safeString (this.urls['api']['ws'], subType);
         } else {
             baseUrl = this.safeString (this.urls['api']['ws'], type);
