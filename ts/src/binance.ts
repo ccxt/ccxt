@@ -3187,16 +3187,16 @@ export default class binance extends Exchange {
             }
         }
         const isMarginTradingAllowed = this.safeBool (market, 'isMarginTradingAllowed', false);
-        let marginMode = undefined;
+        let marginModes = undefined;
         if (spot) {
             const hasCrossMargin = this.inArray (id, this.options['crossMarginPairsData']);
             const hasIsolatedMargin = this.inArray (id, this.options['isolatedMarginPairsData']);
-            marginMode = {
+            marginModes = {
                 'cross': hasCrossMargin,
                 'isolated': hasIsolatedMargin,
             };
         } else if (linear || inverse) {
-            marginMode = {
+            marginModes = {
                 'cross': true,
                 'isolated': true,
             };
@@ -3229,7 +3229,7 @@ export default class binance extends Exchange {
             'type': unifiedType,
             'spot': spot,
             'margin': spot && isMarginTradingAllowed,
-            'marginMode': marginMode,
+            'marginModes': marginModes,
             'swap': swap,
             'future': future,
             'option': option,
