@@ -1714,7 +1714,7 @@ export default class bitso extends Exchange {
             'txid': this.safeString (details, 'tx_hash'),
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
-            'network': this.networkIdToCode (networkId),
+            'network': this.networkIdToCode (networkId).toUpperCase (),
             'addressFrom': receivingAddress,
             'address': (withdrawalAddress !== undefined) ? withdrawalAddress : receivingAddress,
             'addressTo': withdrawalAddress,
