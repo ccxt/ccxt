@@ -17,6 +17,7 @@ export default class okx extends okxRest {
                 'ws': true,
                 'watchTicker': true,
                 'watchTickers': true,
+                'watchBidsAsks': true,
                 'watchOrderBook': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': true,
@@ -457,6 +458,10 @@ export default class okx extends okxRest {
         //         ]
         //     }
         //
+        const bidsAsksMessageHashes = this.findMessageHashes (client, 'bidask::');
+        if (bidsAsksMessageHashes.length > 0) {
+            return this.handleBidAsk (client, message);
+        }
         const arg = this.safeValue (message, 'arg', {});
         const channel = this.safeString (arg, 'channel');
         const data = this.safeValue (message, 'data', []);
@@ -2022,6 +2027,97 @@ export default class okx extends okxRest {
         const messageHash = this.safeString (message, 'id');
         const data = this.safeValue (message, 'data', []);
         client.resolve (data, messageHash);
+    }
+
+    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name okx#watchBidsAsks
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
+         * @description watches best bid & ask for symbols
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        let channel = undefined;
+        [ channel, params ] = this.handleOptionAndParams (params, 'watchBidsAsks', 'channel', 'tickers');
+        const url = this.getUrl (channel, 'public');
+        const messageHash = 'bidask::' + symbols.join (',');
+        const args = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const marketId = this.marketId (symbols[i]);
+            const arg: Dict = {
+                'channel': channel,
+                'instId': marketId,
+            };
+            args.push (this.extend (arg, params));
+        }
+        const request: Dict = {
+            'op': 'subscribe',
+            'args': args,
+        };
+        const newTickers = await this.watch (url, messageHash, request, messageHash);
+        if (this.newUpdates) {
+            const tickers: Dict = {};
+            tickers[newTickers['symbol']] = newTickers;
+            return tickers;
+        }
+        return this.filterByArray (this.bidsasks, 'symbol', symbols);
+    }
+
+    handleBidAsk (client: Client, message) {
+        //
+        //     {
+        //         "arg": { channel: "tickers", instId: "BTC-USDT" },
+        //         "data": [
+        //             {
+        //                 "instType": "SPOT",
+        //                 "instId": "BTC-USDT",
+        //                 "last": "31500.1",
+        //                 "lastSz": "0.00001754",
+        //                 "askPx": "31500.1",
+        //                 "askSz": "0.00998144",
+        //                 "bidPx": "31500",
+        //                 "bidSz": "3.05652439",
+        //                 "open24h": "31697",
+        //                 "high24h": "32248",
+        //                 "low24h": "31165.6",
+        //                 "sodUtc0": "31385.5",
+        //                 "sodUtc8": "32134.9",
+        //                 "volCcy24h": "503403597.38138519",
+        //                 "vol24h": "15937.10781721",
+        //                 "ts": "1626526618762"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (message, 'data', []);
+        const ticker = this.safeDict (data, 0, {});
+        const parsedTicker = this.parseWsBidAsk (ticker);
+        const symbol = parsedTicker['symbol'];
+        this.bidsasks[symbol] = parsedTicker;
+        const messageHashes = this.findMessageHashes (client, 'bidask::');
+        const messageHash = this.safeString (messageHashes, 0);
+        client.resolve (parsedTicker, messageHash);
+    }
+
+    parseWsBidAsk (ticker, market = undefined) {
+        const marketId = this.safeString (ticker, 'instId');
+        market = this.safeMarket (marketId, market);
+        const symbol = this.safeString (market, 'symbol');
+        const timestamp = this.safeInteger (ticker, 'ts');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'ask': this.safeString (ticker, 'askPx'),
+            'askVolume': this.safeString (ticker, 'askSz'),
+            'bid': this.safeString (ticker, 'bidPx'),
+            'bidVolume': this.safeString (ticker, 'bidSz'),
+            'info': ticker,
+        }, market);
     }
 
     handleSubscriptionStatus (client: Client, message) {
