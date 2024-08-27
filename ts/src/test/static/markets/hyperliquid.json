@@ -277,8 +277,8 @@
         "taker": 0.00035,
         "maker": 0.0001,
         "precision": {
-            "amount": 1,
-            "price": 5
+            "amount": 2,
+            "price": 6
         },
         "limits": {
             "leverage": {},

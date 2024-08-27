@@ -614,7 +614,7 @@ export default class hyperliquid extends Exchange {
             'optionType': undefined,
             'precision': {
                 'amount': amountPrecision, // decimal places
-                'price': 8 - amountPrecision, // MAX_DECIMALS is 8
+                'price': 6 - amountPrecision, // MAX_DECIMALS is 6
             },
             'limits': {
                 'leverage': {
