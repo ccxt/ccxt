@@ -353,7 +353,7 @@ class Option(TypedDict):
 
 OptionChain = Dict[str, Option]
 
-class MarketMarginMode(TypedDict):
+class MarketMarginModes(TypedDict):
     cross: bool
     isolated: bool
 
@@ -370,7 +370,7 @@ class MarketInterface(TypedDict):
     subType: Str
     spot: bool
     margin: bool
-    marginMode: MarketMarginMode
+    marginModes: MarketMarginModes
     swap: bool
     future: bool
     option: bool

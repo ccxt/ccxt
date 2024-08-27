@@ -45,6 +45,7 @@ export interface TradingFeeInterface {
 }
 
 export type Fee = FeeInterface | undefined
+export type MarginModeForMarket = FeeInterface | undefined
 
 export interface MarketInterface {
     id: string;
@@ -85,7 +86,7 @@ export interface MarketInterface {
         price: Num
         cost?: Num
     };
-    marginMode?: {
+    marginModes?: {
         isolated: boolean
         cross: boolean
     };

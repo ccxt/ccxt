@@ -43,11 +43,11 @@ public struct Precision
         price = Exchange.SafeFloat(precision, "price");
     }
 }
-public struct MarketMarginMode
+public struct MarketMarginModes
 {
     public bool? cross;
     public bool? isolated;
-    public MarketMarginMode(object marginMode2)
+    public MarketMarginModes(object marginMode2)
     {
         var marginMode = (Dictionary<string, object>)marginMode2;
         cross = Exchange.SafeBool(marginMode, "cross");
@@ -164,7 +164,7 @@ public struct Market
     public string? feeSide;
 
     public Precision? precision;
-    public MarketMarginMode? marginMode;
+    public MarketMarginModes? marginModes;
 
     public Limits? limits;
     public Dictionary<string, object> info;
@@ -206,7 +206,7 @@ public struct Market
         limits = market.ContainsKey("limits") ? new Limits(market["limits"]) : null;
         info = Helper.GetInfo(market);
         created = Exchange.SafeInteger(market, "created");
-        marginMode = market.ContainsKey("marginMode") ? new MarketMarginMode(market["marginMode"]) : null;
+        marginModes = market.ContainsKey("marginModes") ? new MarketMarginModes(market["marginModes"]) : null;
     }
 }
 
