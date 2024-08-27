@@ -45,7 +45,6 @@ export interface TradingFeeInterface {
 }
 
 export type Fee = FeeInterface | undefined
-export type MarginModeForMarket = FeeInterface | undefined
 
 export interface MarketInterface {
     id: string;
