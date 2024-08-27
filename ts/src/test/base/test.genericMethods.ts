@@ -76,6 +76,7 @@ function testGenericMethods () {
         'strNumber': '3',
     };
     const inputDictKeys = [ 'i', 'f', 'bool', 'list', 'dict', 'str', 'strNumber' ];
+    const sortedKeys = [ 'bool', 'dict', 'f', 'i', 'list', 'str', 'strNumber' ];
     const inputDictValues = [ 1, 0.123, true, [ 1, 2, 3 ], { 'a': 1, 'b': '2' }, 'heLlo', '3' ];
 
     const inputList = [ 'Hi', 2, 2 ];
@@ -84,7 +85,7 @@ function testGenericMethods () {
     const uniqueList = [ 'Hi', 2 ];
     const concatenatedList = [ 'Hi', 2, 2, 'Hi', 2, 2 ];
 
-    const extendingDict = {
+    const inputDict2 = {
         'a': 1,
         'i': 100,
         'f': 100.0,
@@ -126,10 +127,10 @@ function testGenericMethods () {
     // assert (deepEquals (exchange.values (inputList), inputListValues));
 
     // extend
-    assert (deepEquals (exchange.extend (extendingDict, inputDict), extendedDict));
+    assert (deepEquals (exchange.extend (inputDict2, inputDict), extendedDict));
 
     // deepExtend
-    assert (deepEquals (exchange.deepExtend (extendingDict, inputDict), deepExtendedDict));
+    assert (deepEquals (exchange.deepExtend (inputDict2, inputDict), deepExtendedDict));
 
     // clone
     assert (deepEquals (exchange.clone (inputDict), inputDict));
@@ -153,6 +154,59 @@ function testGenericMethods () {
     assert (exchange.isEmpty ([]) === true);
     assert (exchange.isEmpty (inputDict) === false);
     assert (exchange.isEmpty (inputList) === false);
+
+    // keysort
+    const sortedDict = exchange.keysort (inputDict);
+    assert (deepEquals (Object.keys (sortedDict), sortedKeys));
+
+    // indexBy
+    const indexedDict = {
+        'heLlo': inputDict,
+        'hi': inputDict2,
+    };
+    let indexedResult = exchange.indexBy ([ inputDict, inputDict2 ], 'str');
+    assert (deepEquals (indexedDict, indexedResult));
+    const inputDict3 = {
+        'inputDict': inputDict,
+        'inputDict2': inputDict2,
+    };
+    indexedResult = exchange.indexBy (inputDict3, 'str');
+    assert (deepEquals (indexedDict, indexedResult));
+
+    // groupBy
+    const groupedDict = {
+        'heLlo': [ inputDict, deepExtendedDict ],
+        'hi': [ inputDict2 ],
+    };
+    let groupedResult = exchange.groupBy ([ inputDict,  inputDict2, deepExtendedDict ], 'str');
+    assert (deepEquals (groupedDict, groupedResult));
+    const inputDict4 = {
+        'inputDict': inputDict,
+        'inputDict2': inputDict2,
+        'deepExtendedDict': deepExtendedDict,
+    };
+    groupedResult = exchange.groupBy (inputDict4, 'str');
+    assert (deepEquals (groupedDict, groupedResult));
+
+    // filterBy
+    const filtered = [ inputDict, deepExtendedDict ];
+    let filteredResult = exchange.filterBy ([ inputDict,  inputDict2, deepExtendedDict ], 'str', 'heLlo');
+    assert (deepEquals (filtered, filteredResult));
+    filteredResult = exchange.filterBy (inputDict4, 'str', 'heLlo');
+    assert (deepEquals (filtered, filteredResult));
+
+    // sortBy
+    const sortedBy = [ inputDict, deepExtendedDict, inputDict2 ];
+    const sortedResult = exchange.sortBy ([ inputDict,  inputDict2, deepExtendedDict ], 'i');
+    assert (deepEquals (sortedBy, sortedResult));
+
+    // sortBy
+    const inputDict5 = {
+        'i': 1,
+        'strNumber': '1',
+    };
+    const sortedBy2 = [ inputDict5, inputDict, inputDict2 ];
+    const sortedBy2Result = exchange.sortBy2 ([ inputDict,  inputDict2, inputDict5 ], 'i', 'strNumber');
 }
 
 export default testGenericMethods;
