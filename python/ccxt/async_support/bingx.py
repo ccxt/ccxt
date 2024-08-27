@@ -749,7 +749,11 @@ class bingx(Exchange, ImplicitAPI):
             symbol += ':' + settle
         fees = self.safe_dict(self.fees, type, {})
         contractSize = self.parse_number('1') if (swap) else None
-        isActive = self.safe_string(market, 'status') == '1'
+        isActive = False
+        if (self.safe_string(market, 'apiStateOpen') == 'true') and (self.safe_string(market, 'apiStateClose') == 'true'):
+            isActive = True  # swap active
+        elif self.safe_bool(market, 'apiStateSell') and self.safe_bool(market, 'apiStateBuy'):
+            isActive = True  # spot active
         isInverse = None if (spot) else checkIsInverse
         isLinear = None if (spot) else checkIsLinear
         timeOnline = self.safe_integer(market, 'timeOnline')
@@ -1180,7 +1184,6 @@ class bingx(Exchange, ImplicitAPI):
             'fee': {
                 'cost': self.parse_number(Precise.string_abs(self.safe_string_2(trade, 'commission', 'n'))),
                 'currency': currencyCode,
-                'rate': None,
             },
         }, market)
 
@@ -3423,6 +3426,7 @@ class bingx(Exchange, ImplicitAPI):
         :see: https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20details
         :see: https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20details
         :see: https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`

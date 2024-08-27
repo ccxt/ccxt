@@ -598,6 +598,10 @@ class woo extends Exchange {
         $amount = $this->safe_string($trade, 'executed_quantity');
         $order_id = $this->safe_string($trade, 'order_id');
         $fee = $this->parse_token_and_fee_temp($trade, 'fee_asset', 'fee');
+        $feeCost = $this->safe_string($fee, 'cost');
+        if ($feeCost !== null) {
+            $fee['cost'] = $feeCost;
+        }
         $cost = Precise::string_mul($price, $amount);
         $side = $this->safe_string_lower($trade, 'side');
         $id = $this->safe_string($trade, 'id');
@@ -1327,6 +1331,7 @@ class woo extends Exchange {
          * @see https://docs.woo.org/#get-algo-order
          * @see https://docs.woo.org/#get-order
          * fetches information on an order made by the user
+         * @param {string} $id the order $id
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->stop] whether the order is a stop/algo order

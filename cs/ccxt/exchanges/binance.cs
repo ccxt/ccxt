@@ -40,7 +40,7 @@ public partial class binance : Exchange
                 { "createMarketSellOrderWithCost", true },
                 { "createOrder", true },
                 { "createOrders", true },
-                { "createOrderWithTakeProfitAndStopLoss", true },
+                { "createOrderWithTakeProfitAndStopLoss", false },
                 { "createPostOnlyOrder", true },
                 { "createReduceOnlyOrder", true },
                 { "createStopLimitOrder", true },
@@ -2747,7 +2747,7 @@ public partial class binance : Exchange
                     { "active", isTrue(depositEnable) && isTrue(withdrawEnable) },
                     { "deposit", depositEnable },
                     { "withdraw", withdrawEnable },
-                    { "fee", this.parseNumber(fee) },
+                    { "fee", withdrawFee },
                     { "precision", this.parseNumber(precisionTick) },
                     { "limits", new Dictionary<string, object>() {
                         { "withdraw", new Dictionary<string, object>() {
@@ -2755,7 +2755,7 @@ public partial class binance : Exchange
                             { "max", this.safeNumber(networkItem, "withdrawMax") },
                         } },
                         { "deposit", new Dictionary<string, object>() {
-                            { "min", null },
+                            { "min", this.safeNumber(networkItem, "depositDust") },
                             { "max", null },
                         } },
                     } },
@@ -3433,7 +3433,18 @@ public partial class binance : Exchange
         } else if (isTrue(this.isLinear(type, subType)))
         {
             type = "linear";
-            response = await this.fapiPrivateV3GetAccount(this.extend(request, query));
+            object useV2 = null;
+            var useV2parametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "useV2", false);
+            useV2 = ((IList<object>)useV2parametersVariable)[0];
+            parameters = ((IList<object>)useV2parametersVariable)[1];
+            parameters = this.extend(request, query);
+            if (!isTrue(useV2))
+            {
+                response = await this.fapiPrivateV3GetAccount(parameters);
+            } else
+            {
+                response = await this.fapiPrivateV2GetAccount(parameters);
+            }
         } else if (isTrue(this.isInverse(type, subType)))
         {
             type = "inverse";
@@ -3556,7 +3567,7 @@ public partial class binance : Exchange
         //
         // futures (fapi)
         //
-        //     fapiPrivateV2GetAccount
+        //     fapiPrivateV3GetAccount
         //
         //     {
         //         "feeTier":0,
@@ -3856,13 +3867,15 @@ public partial class binance : Exchange
         object marketId = this.safeString(ticker, "symbol");
         object symbol = this.safeSymbol(marketId, market, null, marketType);
         object last = this.safeString(ticker, "lastPrice");
+        object wAvg = this.safeString(ticker, "weightedAvgPrice");
         object isCoinm = (inOp(ticker, "baseVolume"));
         object baseVolume = null;
         object quoteVolume = null;
         if (isTrue(isCoinm))
         {
             baseVolume = this.safeString(ticker, "baseVolume");
-            quoteVolume = this.safeString(ticker, "volume");
+            // 'volume' field in inverse markets is not quoteVolume, but traded amount (per contracts)
+            quoteVolume = Precise.stringMul(baseVolume, wAvg);
         } else
         {
             baseVolume = this.safeString(ticker, "volume");
@@ -3878,7 +3891,7 @@ public partial class binance : Exchange
             { "bidVolume", this.safeString(ticker, "bidQty") },
             { "ask", this.safeString(ticker, "askPrice") },
             { "askVolume", this.safeString(ticker, "askQty") },
-            { "vwap", this.safeString(ticker, "weightedAvgPrice") },
+            { "vwap", wAvg },
             { "open", this.safeString2(ticker, "openPrice", "open") },
             { "close", last },
             { "last", last },
@@ -9209,6 +9222,7 @@ public partial class binance : Exchange
         * @see https://developers.binance.com/docs/wallet/asset/trade-fee
         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
+        * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Config
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.subType] "linear" or "inverse"
         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
@@ -9232,7 +9246,7 @@ public partial class binance : Exchange
             response = await this.sapiGetAssetTradeFee(parameters);
         } else if (isTrue(isLinear))
         {
-            response = await this.fapiPrivateV2GetAccount(parameters);
+            response = await this.fapiPrivateGetAccountConfig(parameters);
         } else if (isTrue(isInverse))
         {
             response = await this.dapiPrivateGetAccount(parameters);
@@ -10085,7 +10099,7 @@ public partial class binance : Exchange
         object liquidationPrice = this.parseNumber(liquidationPriceString);
         object collateralString = null;
         object marginMode = this.safeString(position, "marginType");
-        if (isTrue(isTrue(isEqual(marginMode, null)) && isTrue(isolatedMarginString)))
+        if (isTrue(isTrue(isEqual(marginMode, null)) && isTrue(!isEqual(isolatedMarginString, null))))
         {
             marginMode = ((bool) isTrue(Precise.stringEq(isolatedMarginString, "0"))) ? "cross" : "isolated";
         }
@@ -10624,6 +10638,7 @@ public partial class binance : Exchange
         * @param {string[]} [symbols] list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
+        * @param {bool} [params.useV2] set to true if you want to use the obsolete endpoint, where some more additional fields were provided
         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -10668,6 +10683,7 @@ public partial class binance : Exchange
         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V2
         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information
+        * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V3
         * @param {string[]} [symbols] list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions in a portfolio margin account
@@ -10750,10 +10766,12 @@ public partial class binance : Exchange
         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Position-Information
         * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-UM-Position-Information
         * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Query-CM-Position-Information
+        * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-Information-V3
         * @param {string[]|undefined} symbols list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions for a portfolio margin account
         * @param {string} [params.subType] "linear" or "inverse"
+        * @param {bool} [params.useV2] set to true if you want to use the obsolete endpoint, where some more additional fields were provided
         * @returns {object} data on the positions risk
         */
         parameters ??= new Dictionary<string, object>();
@@ -10787,7 +10805,18 @@ public partial class binance : Exchange
                 response = await this.papiGetUmPositionRisk(this.extend(request, parameters));
             } else
             {
-                response = await this.fapiPrivateV3GetPositionRisk(this.extend(request, parameters));
+                object useV2 = null;
+                var useV2parametersVariable = this.handleOptionAndParams(parameters, "fetchPositionsRisk", "useV2", false);
+                useV2 = ((IList<object>)useV2parametersVariable)[0];
+                parameters = ((IList<object>)useV2parametersVariable)[1];
+                parameters = this.extend(request, parameters);
+                if (!isTrue(useV2))
+                {
+                    response = await this.fapiPrivateV3GetPositionRisk(parameters);
+                } else
+                {
+                    response = await this.fapiPrivateV2GetPositionRisk(parameters);
+                }
             }
         } else if (isTrue(this.isInverse(type, subType)))
         {
@@ -11205,6 +11234,7 @@ public partial class binance : Exchange
         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
         * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-UM-Account-Detail
         * @see https://developers.binance.com/docs/derivatives/portfolio-margin/account/Get-CM-Account-Detail
+        * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
         * @param {string[]} [symbols] a list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.subType] "linear" or "inverse"
@@ -11233,7 +11263,7 @@ public partial class binance : Exchange
                 response = await this.papiGetUmAccount(parameters);
             } else
             {
-                response = await this.fapiPrivateV2GetAccount(parameters);
+                response = await this.fapiPrivateGetSymbolConfig(parameters);
             }
         } else if (isTrue(this.isInverse(type, subType)))
         {
@@ -11249,6 +11279,10 @@ public partial class binance : Exchange
             throw new NotSupported ((string)add(this.id, " fetchLeverages() supports linear and inverse contracts only")) ;
         }
         object leverages = this.safeList(response, "positions", new List<object>() {});
+        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            leverages = response;
+        }
         return this.parseLeverages(leverages, symbols, "symbol");
     }
 
@@ -11261,11 +11295,16 @@ public partial class binance : Exchange
         {
             marginMode = ((bool) isTrue(marginModeRaw)) ? "isolated" : "cross";
         }
+        object marginTypeRaw = this.safeStringLower(leverage, "marginType");
+        if (isTrue(!isEqual(marginTypeRaw, null)))
+        {
+            marginMode = ((bool) isTrue((isEqual(marginTypeRaw, "crossed")))) ? "cross" : "isolated";
+        }
         object side = this.safeStringLower(leverage, "positionSide");
         object longLeverage = null;
         object shortLeverage = null;
         object leverageValue = this.safeInteger(leverage, "leverage");
-        if (isTrue(isEqual(side, "both")))
+        if (isTrue(isTrue((isEqual(side, null))) || isTrue((isEqual(side, "both")))))
         {
             longLeverage = leverageValue;
             shortLeverage = leverageValue;
@@ -11798,7 +11837,7 @@ public partial class binance : Exchange
             if (isTrue(isTrue((isEqual(api, "sapi"))) && isTrue((isEqual(path, "asset/dust")))))
             {
                 query = this.urlencodeWithArrayRepeat(extendedParams);
-            } else if (isTrue(isTrue(isTrue(isTrue((isEqual(path, "batchOrders"))) || isTrue((isGreaterThanOrEqual(getIndexOf(path, "sub-account"), 0)))) || isTrue((isEqual(path, "capital/withdraw/apply")))) || isTrue((isGreaterThanOrEqual(getIndexOf(path, "staking"), 0)))))
+            } else if (isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(path, "batchOrders"))) || isTrue((isGreaterThanOrEqual(getIndexOf(path, "sub-account"), 0)))) || isTrue((isEqual(path, "capital/withdraw/apply")))) || isTrue((isGreaterThanOrEqual(getIndexOf(path, "staking"), 0)))) || isTrue((isGreaterThanOrEqual(getIndexOf(path, "simple-earn"), 0)))))
             {
                 if (isTrue(isTrue((isEqual(method, "DELETE"))) && isTrue((isEqual(path, "batchOrders")))))
                 {
@@ -13404,6 +13443,7 @@ public partial class binance : Exchange
         * @description fetches margin modes ("isolated" or "cross") that the market for the symbol in in, with symbol=undefined all markets for a subType (linear/inverse) are returned
         * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/account/Account-Information
         * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Account-Information-V2
+        * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Symbol-Config
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.subType] "linear" or "inverse"
@@ -13424,7 +13464,7 @@ public partial class binance : Exchange
         object response = null;
         if (isTrue(isEqual(subType, "linear")))
         {
-            response = await this.fapiPrivateV2GetAccount(parameters);
+            response = await this.fapiPrivateGetSymbolConfig(parameters);
         } else if (isTrue(isEqual(subType, "inverse")))
         {
             response = await this.dapiPrivateGetAccount(parameters);
@@ -13433,6 +13473,10 @@ public partial class binance : Exchange
             throw new BadRequest ((string)add(this.id, " fetchMarginModes () supports linear and inverse subTypes only")) ;
         }
         object assets = this.safeList(response, "positions", new List<object>() {});
+        if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
+        {
+            assets = response;
+        }
         return this.parseMarginModes(assets, symbols, "symbol", "swap");
     }
 
@@ -13440,11 +13484,21 @@ public partial class binance : Exchange
     {
         object marketId = this.safeString(marginMode, "symbol");
         market = this.safeMarket(marketId, market);
-        object isIsolated = this.safeBool(marginMode, "isolated");
+        object marginModeRaw = this.safeBool(marginMode, "isolated");
+        object reMarginMode = null;
+        if (isTrue(!isEqual(marginModeRaw, null)))
+        {
+            reMarginMode = ((bool) isTrue(marginModeRaw)) ? "isolated" : "cross";
+        }
+        object marginTypeRaw = this.safeStringLower(marginMode, "marginType");
+        if (isTrue(!isEqual(marginTypeRaw, null)))
+        {
+            reMarginMode = ((bool) isTrue((isEqual(marginTypeRaw, "crossed")))) ? "cross" : "isolated";
+        }
         return new Dictionary<string, object>() {
             { "info", marginMode },
             { "symbol", getValue(market, "symbol") },
-            { "marginMode", ((bool) isTrue(isIsolated)) ? "isolated" : "cross" },
+            { "marginMode", reMarginMode },
         };
     }
 
@@ -13834,7 +13888,7 @@ public partial class binance : Exchange
         {
             ((IDictionary<string,object>)request)["startTime"] = subtract(now, msInThirtyDays);
         }
-        object endTime = this.safeString2(parameters, "endTime", "until");
+        object endTime = this.safeInteger2(parameters, "endTime", "until");
         if (isTrue(!isEqual(endTime, null)))
         {
             ((IDictionary<string,object>)request)["endTime"] = endTime;
@@ -13861,6 +13915,10 @@ public partial class binance : Exchange
             response = await this.sapiGetAssetConvertTransferQueryByPage(this.extend(request, parameters));
         } else
         {
+            if (isTrue(isGreaterThan((subtract(getValue(request, "endTime"), getValue(request, "startTime"))), msInThirtyDays)))
+            {
+                throw new BadRequest ((string)add(this.id, " fetchConvertTradeHistory () the max interval between startTime and endTime is 30 days.")) ;
+            }
             if (isTrue(!isEqual(limit, null)))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;

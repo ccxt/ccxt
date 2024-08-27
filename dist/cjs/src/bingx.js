@@ -747,7 +747,13 @@ class bingx extends bingx$1 {
         }
         const fees = this.safeDict(this.fees, type, {});
         const contractSize = (swap) ? this.parseNumber('1') : undefined;
-        const isActive = this.safeString(market, 'status') === '1';
+        let isActive = false;
+        if ((this.safeString(market, 'apiStateOpen') === 'true') && (this.safeString(market, 'apiStateClose') === 'true')) {
+            isActive = true; // swap active
+        }
+        else if (this.safeBool(market, 'apiStateSell') && this.safeBool(market, 'apiStateBuy')) {
+            isActive = true; // spot active
+        }
         const isInverse = (spot) ? undefined : checkIsInverse;
         const isLinear = (spot) ? undefined : checkIsLinear;
         let timeOnline = this.safeInteger(market, 'timeOnline');
@@ -1209,7 +1215,6 @@ class bingx extends bingx$1 {
             'fee': {
                 'cost': this.parseNumber(Precise["default"].stringAbs(this.safeString2(trade, 'commission', 'n'))),
                 'currency': currencyCode,
-                'rate': undefined,
             },
         }, market);
     }
@@ -3641,6 +3646,7 @@ class bingx extends bingx$1 {
          * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20details
          * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20details
          * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

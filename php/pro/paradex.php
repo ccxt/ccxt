@@ -20,6 +20,7 @@ class paradex extends \ccxt\async\paradex {
                 'watchOrderBook' => true,
                 'watchOrders' => false,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchBalance' => false,
                 'watchOHLCV' => false,
             ),
@@ -120,6 +121,7 @@ class paradex extends \ccxt\async\paradex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} A dictionary of ~@link https://docs.ccxt.com/#/?id=order-book-structure order book structures~ indexed by $market symbols
              */
+            Async\await($this->load_markets());
             $market = $this->market($symbol);
             $messageHash = 'order_book.' . $market['id'] . '.snapshot@15@100ms';
             $url = $this->urls['api']['ws'];
@@ -231,6 +233,7 @@ class paradex extends \ccxt\async\paradex {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
              */
+            Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
             $channel = 'markets_summary';
             $url = $this->urls['api']['ws'];

@@ -7,9 +7,37 @@ public class  Hyperliquid: hyperliquid { public Hyperliquid(object args = null) 
 public partial class hyperliquid
 {
     /// <summary>
+    /// create a list of trade orders using WebSocket post request
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order"/>  <br/>
+    /// <list type="table">
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
+    public async Task<List<Order>> CreateOrdersWs(List<OrderRequest> orders, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.createOrdersWs(orders, parameters);
+        return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
+    }
+    public async Task<Order> CreateOrderWs(string symbol, string type, string side, double amount, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var price = price2 == 0 ? null : (object)price2;
+        var res = await this.createOrderWs(symbol, type, side, amount, price, parameters);
+        return new Order(res);
+    }
+    public async Task<Order> EditOrderWs(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var price = price2 == 0 ? null : (object)price2;
+        var res = await this.editOrderWs(id, symbol, type, side, amount, price, parameters);
+        return new Order(res);
+    }
+    /// <summary>
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -36,6 +64,7 @@ public partial class hyperliquid
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
     /// </summary>
     /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -55,6 +84,7 @@ public partial class hyperliquid
     /// watches information on multiple trades made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -94,6 +124,7 @@ public partial class hyperliquid
     /// watches information on multiple trades made in a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -127,6 +158,7 @@ public partial class hyperliquid
     /// watches historical candlestick data containing the open, high, low, close price, and the volume of a market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -160,6 +192,7 @@ public partial class hyperliquid
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

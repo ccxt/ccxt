@@ -685,6 +685,14 @@ public partial class vertex : Exchange
         object amount = null;
         object side = null;
         object fee = null;
+        object feeCost = this.convertFromX18(this.safeString(trade, "fee"));
+        if (isTrue(!isEqual(feeCost, null)))
+        {
+            fee = new Dictionary<string, object>() {
+                { "cost", feeCost },
+                { "currency", null },
+            };
+        }
         object id = this.safeString2(trade, "trade_id", "submission_idx");
         object order = this.safeString(trade, "digest");
         object timestamp = this.safeTimestamp(trade, "timestamp");
@@ -704,10 +712,6 @@ public partial class vertex : Exchange
             object subOrder = this.safeDict(trade, "order", new Dictionary<string, object>() {});
             price = this.convertFromX18(this.safeString(subOrder, "priceX18"));
             amount = this.convertFromX18(this.safeString(trade, "base_filled"));
-            fee = new Dictionary<string, object>() {
-                { "cost", this.convertFromX18(this.safeString(trade, "fee")) },
-                { "currency", null },
-            };
             if (isTrue(Precise.stringLt(amount, "0")))
             {
                 side = "sell";
@@ -2137,6 +2141,7 @@ public partial class vertex : Exchange
         * @name vertex#fetchOrder
         * @description fetches information on an order made by the user
         * @see https://docs.vertexprotocol.com/developer-resources/api/gateway/queries/order
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

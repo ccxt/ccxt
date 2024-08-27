@@ -760,6 +760,7 @@ class btcalpha(Exchange, ImplicitAPI):
         """
         :see: https://btc-alpha.github.io/api-docs/#retrieve-single-order
         fetches information on an order made by the user
+        :param str id: the order id
         :param str symbol: not used by btcalpha fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`

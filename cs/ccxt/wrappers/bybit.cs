@@ -1512,6 +1512,7 @@ public partial class bybit
     /// </summary>
     /// <remarks>
     /// See <see href="https://bybit-exchange.github.io/docs/v5/account/transaction-log"/>  <br/>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/account/contract-transaction-log"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -1531,6 +1532,12 @@ public partial class bybit
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : if inverse will use v5/account/contract-transaction-log
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
@@ -1545,7 +1552,7 @@ public partial class bybit
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.tokocrypto.com/apidocs/#withdraw-signed"/>  <br/>
+    /// See <see href="https://bybit-exchange.github.io/docs/v5/asset/withdraw"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

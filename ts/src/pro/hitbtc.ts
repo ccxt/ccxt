@@ -19,6 +19,7 @@ export default class hitbtc extends hitbtcRest {
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchOrderBook': true,
                 'watchBalance': true,
                 'watchOrders': true,

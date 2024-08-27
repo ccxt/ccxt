@@ -5269,7 +5269,7 @@ class coinex(Exchange, ImplicitAPI):
             'shortLeverage': leverageValue,
         }
 
-    async def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> Position:
+    async def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Position]:
         """
         fetches historical positions
         :see: https://docs.coinex.com/api/v2/futures/position/http/list-finished-position

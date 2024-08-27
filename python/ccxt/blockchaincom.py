@@ -1036,6 +1036,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
         :see: https://api.blockchain.com/v3/#getorderbyid
+        :param str id: the order id
         :param str symbol: not used by blockchaincom fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`

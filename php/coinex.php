@@ -5502,7 +5502,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function fetch_position_history(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): Position {
+    public function fetch_position_history(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical $positions
          * @see https://docs.coinex.com/api/v2/futures/position/http/list-finished-position

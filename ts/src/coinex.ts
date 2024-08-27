@@ -5602,7 +5602,7 @@ export default class coinex extends Exchange {
         } as Leverage;
     }
 
-    async fetchPositionHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position> {
+    async fetchPositionHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         /**
          * @method
          * @name coinex#fetchPositionHistory

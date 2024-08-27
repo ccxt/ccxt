@@ -795,8 +795,23 @@ class whitebit extends Exchange {
         //        "change" => "2.12" // in percent
         //    }
         //
+        // WS market_update
+        //
+        //     {
+        //         "open" => "52853.04",
+        //         "close" => "55913.88",
+        //         "high" => "56272",
+        //         "low" => "49549.67",
+        //         "volume" => "57331.067185",
+        //         "deal" => "3063860382.42985338",
+        //         "last" => "55913.88",
+        //         "period" => 86400
+        //     }
         $market = $this->safe_market(null, $market);
-        $last = $this->safe_string($ticker, 'last_price');
+        // $last price is provided as "last" or "last_price"
+        $last = $this->safe_string_2($ticker, 'last', 'last_price');
+        // if "close" is provided, use it, otherwise use <$last>
+        $close = $this->safe_string($ticker, 'close', $last);
         return $this->safe_ticker(array(
             'symbol' => $market['symbol'],
             'timestamp' => null,
@@ -809,7 +824,7 @@ class whitebit extends Exchange {
             'askVolume' => null,
             'vwap' => null,
             'open' => $this->safe_string($ticker, 'open'),
-            'close' => $last,
+            'close' => $close,
             'last' => $last,
             'previousClose' => null,
             'change' => null,

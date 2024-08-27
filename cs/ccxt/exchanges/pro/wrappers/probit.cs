@@ -96,6 +96,7 @@ public partial class probit
     /// get the list of trades associated with the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs-en.probit.com/reference/trade_history"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

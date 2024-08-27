@@ -3293,8 +3293,8 @@ class gate(Exchange, ImplicitAPI):
         side = self.safe_string_2(trade, 'side', 'type', contractSide)
         orderId = self.safe_string(trade, 'order_id')
         feeAmount = self.safe_string(trade, 'fee')
-        gtFee = self.safe_string(trade, 'gt_fee')
-        pointFee = self.safe_string(trade, 'point_fee')
+        gtFee = self.omit_zero(self.safe_string(trade, 'gt_fee'))
+        pointFee = self.omit_zero(self.safe_string(trade, 'point_fee'))
         fees = []
         if feeAmount is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_currency')
@@ -3968,9 +3968,9 @@ class gate(Exchange, ImplicitAPI):
                 request['amount'] = self.amount_to_precision(symbol, amount)
             else:
                 if side == 'sell':
-                    request['size'] = Precise.string_neg(self.amount_to_precision(symbol, amount))
+                    request['size'] = self.parse_to_numeric(Precise.string_neg(self.amount_to_precision(symbol, amount)))
                 else:
-                    request['size'] = self.amount_to_precision(symbol, amount)
+                    request['size'] = self.parse_to_numeric(self.amount_to_precision(symbol, amount))
         if price is not None:
             request['price'] = self.price_to_precision(symbol, price)
         if not market['spot']:

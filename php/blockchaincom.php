@@ -1086,6 +1086,7 @@ class blockchaincom extends Exchange {
         /**
          * fetches information on an order made by the user
          * @see https://api.blockchain.com/v3/#getorderbyid
+         * @param {string} $id the order $id
          * @param {string} $symbol not used by blockchaincom fetchOrder
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
