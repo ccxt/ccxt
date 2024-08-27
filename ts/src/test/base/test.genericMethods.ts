@@ -3,7 +3,7 @@
 
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
-import { isObject } from '../../base/functions.js';
+import { isArray, isDictionary } from '../../base/functions.js';
 
 function deepEquals (a, b) {
     const aKeys = Object.keys (a);
@@ -15,10 +15,12 @@ function deepEquals (a, b) {
     }
     for (let i = 0; i < arrayALength; i++) {
         const key = aKeys[i];
-        if (isObject (a[key])) {
-            if (isObject (b[key])) {
+        if (isDictionary (a[key])) {
+            if ((!isDictionary (b[key]) || (!deepEquals (a[key], b[key])))) {
                 return false;
-            } else if (!deepEquals (a[key], b[key])) {
+            }
+        } else if (isArray (a[key])) {
+            if ((!isArray (b[key]) || (!deepEquals (a[key], b[key])))) {
                 return false;
             }
         } else if (a[key] !== b[key]) {
@@ -46,9 +48,9 @@ function testGenericMethods () {
     const inputDictKeys = Object.keys (inputDict);
     const inputDictValues = Object.values (inputDict);
 
-    const inputList = [ 'Hi', 2 ];
-    const inputListKeys = [ '0', '1' ]; // todo check if it is good
-    const inputListValues = [ 'Hi', 2 ];
+    const inputList = [ 'Hi', 2, 2 ];
+    const inputListKeys = [ '0', '1', '2' ]; // todo check if it is good
+    const inputListValues = [ 'Hi', 2, 2 ];
 
     const extendingDict = {
         'a': 1,
@@ -103,3 +105,4 @@ function testGenericMethods () {
 }
 
 export default testGenericMethods;
+
