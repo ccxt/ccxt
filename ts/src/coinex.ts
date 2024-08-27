@@ -3740,7 +3740,7 @@ export default class coinex extends Exchange {
         const options = this.safeDict (this.options, 'fetchDepositAddress', {});
         const fillResponseFromRequest = this.safeBool (options, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
-            depositAddress['network'] = this.networkIdToCode (network, currency);
+            depositAddress['network'] = this.networkIdToCode (network, currency).toUpperCase ();
         }
         return depositAddress;
     }
