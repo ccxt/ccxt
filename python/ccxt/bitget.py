@@ -3846,7 +3846,7 @@ class bitget(Exchange, ImplicitAPI):
         if feeCostString is not None:
             # swap
             fee = {
-                'cost': self.parse_number(Precise.string_abs(feeCostString)),
+                'cost': self.parse_number(Precise.string_neg(feeCostString)),
                 'currency': market['settle'],
             }
         feeDetail = self.safe_value(order, 'feeDetail')
@@ -3860,7 +3860,7 @@ class bitget(Exchange, ImplicitAPI):
                     feeObject = feeValue
                     break
             fee = {
-                'cost': self.parse_number(Precise.string_abs(self.safe_string(feeObject, 'totalFee'))),
+                'cost': self.parse_number(Precise.string_neg(self.safe_string(feeObject, 'totalFee'))),
                 'currency': self.safe_currency_code(self.safe_string(feeObject, 'feeCoinCode')),
             }
         postOnly = None

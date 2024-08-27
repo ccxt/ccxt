@@ -1298,6 +1298,7 @@ public partial class hitbtc : Exchange
         object statuses = new Dictionary<string, object>() {
             { "PENDING", "pending" },
             { "FAILED", "failed" },
+            { "ROLLED_BACK", "failed" },
             { "SUCCESS", "ok" },
         };
         return this.safeString(statuses, status, status);
