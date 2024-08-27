@@ -22,8 +22,8 @@
         "maker": 0.0001,
         "contractSize": 1,
         "precision": {
-            "amount": 1,
-            "price": 5
+            "amount": 0,
+            "price": 6
         },
         "limits": {
             "leverage": {},
@@ -74,8 +74,8 @@
         "maker": 0.0001,
         "contractSize": 1,
         "precision": {
-            "amount": 0.00001,
-            "price": 5
+            "amount": 5,
+            "price": 1
         },
         "limits": {
             "leverage": {},
@@ -126,8 +126,8 @@
         "maker": 0.0001,
         "contractSize": 1,
         "precision": {
-            "amount": 0.01,
-            "price": 5
+            "amount": 2,
+            "price": 4
         },
         "limits": {
             "leverage": {},
@@ -178,8 +178,8 @@
         "maker": 0.0001,
         "contractSize": 1,
         "precision": {
-            "amount": 0.0001,
-            "price": 5
+            "amount": 4,
+            "price": 2
         },
         "limits": {
             "leverage": {},
@@ -230,8 +230,8 @@
         "maker": 0.0001,
         "contractSize": 1,
         "precision": {
-            "amount": 1,
-            "price": 5
+            "amount": 0,
+            "price": 6
         },
         "limits": {
             "leverage": {},
