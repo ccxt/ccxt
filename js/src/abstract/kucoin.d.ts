@@ -17,6 +17,7 @@ interface Exchange {
     publicGetTimestamp(params?: {}): Promise<implicitReturnType>;
     publicGetStatus(params?: {}): Promise<implicitReturnType>;
     publicGetMarkPriceSymbolCurrent(params?: {}): Promise<implicitReturnType>;
+    publicGetMarkPriceAllSymbols(params?: {}): Promise<implicitReturnType>;
     publicGetMarginConfig(params?: {}): Promise<implicitReturnType>;
     publicPostBulletPublic(params?: {}): Promise<implicitReturnType>;
     privateGetUserInfo(params?: {}): Promise<implicitReturnType>;
@@ -196,6 +197,7 @@ interface Exchange {
     brokerGetBrokerNdAccount(params?: {}): Promise<implicitReturnType>;
     brokerGetBrokerNdAccountApikey(params?: {}): Promise<implicitReturnType>;
     brokerGetBrokerNdRebaseDownload(params?: {}): Promise<implicitReturnType>;
+    brokerGetAssetNdbrokerDepositList(params?: {}): Promise<implicitReturnType>;
     brokerGetBrokerNdTransferDetail(params?: {}): Promise<implicitReturnType>;
     brokerGetBrokerNdDepositDetail(params?: {}): Promise<implicitReturnType>;
     brokerGetBrokerNdWithdrawDetail(params?: {}): Promise<implicitReturnType>;

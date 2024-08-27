@@ -20,6 +20,7 @@ class coinone(ccxt.async_support.coinone):
                 'watchOrderBook': True,
                 'watchOrders': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchOHLCV': False,
                 'watchTicker': True,
                 'watchTickers': False,
@@ -252,7 +253,7 @@ class coinone(ccxt.async_support.coinone):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -300,7 +301,7 @@ class coinone(ccxt.async_support.coinone):
         messageHash = 'trade:' + symbol
         client.resolve(stored, messageHash)
 
-    def parse_ws_trade(self, trade, market: Market = None) -> Trade:
+    def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         #     {
         #         "quote_currency": "KRW",
@@ -380,7 +381,7 @@ class coinone(ccxt.async_support.coinone):
                     method(client, message)
                     return
 
-    def ping(self, client):
+    def ping(self, client: Client):
         return {
             'request_type': 'PING',
         }

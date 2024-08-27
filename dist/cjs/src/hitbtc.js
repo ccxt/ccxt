@@ -1417,6 +1417,7 @@ class hitbtc extends hitbtc$1 {
         const statuses = {
             'PENDING': 'pending',
             'FAILED': 'failed',
+            'ROLLED_BACK': 'failed',
             'SUCCESS': 'ok',
         };
         return this.safeString(statuses, status, status);
@@ -2523,7 +2524,7 @@ class hitbtc extends hitbtc$1 {
     async fetchMarginModes(symbols = undefined, params = {}) {
         /**
          * @method
-         * @name hitbtc#fetchMarginMode
+         * @name hitbtc#fetchMarginModes
          * @description fetches margin mode of the user
          * @see https://api.hitbtc.com/#get-margin-position-parameters
          * @see https://api.hitbtc.com/#get-futures-position-parameters

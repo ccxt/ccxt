@@ -10,7 +10,7 @@ public partial class bithumb
     /// retrieves data on all markets for bithumb
     /// </summary>
     /// <remarks>
-    /// See <see href="https://apidocs.bithumb.com/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all"/>  <br/>
+    /// See <see href="https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -30,7 +30,7 @@ public partial class bithumb
     /// query for balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://apidocs.bithumb.com/reference/%EB%B3%B4%EC%9C%A0%EC%9E%90%EC%82%B0-%EC%A1%B0%ED%9A%8C"/>  <br/>
+    /// See <see href="https://apidocs.bithumb.com/v1.2.0/reference/%EB%B3%B4%EC%9C%A0%EC%9E%90%EC%82%B0-%EC%A1%B0%ED%9A%8C"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -50,7 +50,7 @@ public partial class bithumb
     /// fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://apidocs.bithumb.com/reference/%ED%98%B8%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C"/>  <br/>
+    /// See <see href="https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%B8%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -77,7 +77,7 @@ public partial class bithumb
     /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://apidocs.bithumb.com/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all"/>  <br/>
+    /// See <see href="https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C-all"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -97,7 +97,7 @@ public partial class bithumb
     /// fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://apidocs.bithumb.com/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C"/>  <br/>
+    /// See <see href="https://apidocs.bithumb.com/v1.2.0/reference/%ED%98%84%EC%9E%AC%EA%B0%80-%EC%A0%95%EB%B3%B4-%EC%A1%B0%ED%9A%8C"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -117,7 +117,7 @@ public partial class bithumb
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://apidocs.bithumb.com/reference/candlestick-rest-api"/>  <br/>
+    /// See <see href="https://apidocs.bithumb.com/v1.2.0/reference/candlestick-rest-api"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -151,7 +151,7 @@ public partial class bithumb
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://apidocs.bithumb.com/reference/%EC%B5%9C%EA%B7%BC-%EC%B2%B4%EA%B2%B0-%EB%82%B4%EC%97%AD"/>  <br/>
+    /// See <see href="https://apidocs.bithumb.com/v1.2.0/reference/%EC%B5%9C%EA%B7%BC-%EC%B2%B4%EA%B2%B0-%EB%82%B4%EC%97%AD"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -185,9 +185,9 @@ public partial class bithumb
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://apidocs.bithumb.com/reference/%EC%A7%80%EC%A0%95%EA%B0%80-%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0"/>  <br/>
-    /// See <see href="https://apidocs.bithumb.com/reference/%EC%8B%9C%EC%9E%A5%EA%B0%80-%EB%A7%A4%EC%88%98%ED%95%98%EA%B8%B0"/>  <br/>
-    /// See <see href="https://apidocs.bithumb.com/reference/%EC%8B%9C%EC%9E%A5%EA%B0%80-%EB%A7%A4%EB%8F%84%ED%95%98%EA%B8%B0"/>  <br/>
+    /// See <see href="https://apidocs.bithumb.com/v1.2.0/reference/%EC%A7%80%EC%A0%95%EA%B0%80-%EC%A3%BC%EB%AC%B8%ED%95%98%EA%B8%B0"/>  <br/>
+    /// See <see href="https://apidocs.bithumb.com/v1.2.0/reference/%EC%8B%9C%EC%9E%A5%EA%B0%80-%EB%A7%A4%EC%88%98%ED%95%98%EA%B8%B0"/>  <br/>
+    /// See <see href="https://apidocs.bithumb.com/v1.2.0/reference/%EC%8B%9C%EC%9E%A5%EA%B0%80-%EB%A7%A4%EB%8F%84%ED%95%98%EA%B8%B0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -214,7 +214,7 @@ public partial class bithumb
     /// fetches information on an order made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://apidocs.bithumb.com/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%83%81%EC%84%B8-%EC%A1%B0%ED%9A%8C"/>  <br/>
+    /// See <see href="https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%83%81%EC%84%B8-%EC%A1%B0%ED%9A%8C"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -234,7 +234,7 @@ public partial class bithumb
     /// fetch all unfilled currently open orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://apidocs.bithumb.com/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C"/>  <br/>
+    /// See <see href="https://apidocs.bithumb.com/v1.2.0/reference/%EA%B1%B0%EB%9E%98-%EC%A3%BC%EB%AC%B8%EB%82%B4%EC%97%AD-%EC%A1%B0%ED%9A%8C"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -268,7 +268,7 @@ public partial class bithumb
     /// cancels an open order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://apidocs.bithumb.com/reference/%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C%ED%95%98%EA%B8%B0"/>  <br/>
+    /// See <see href="https://apidocs.bithumb.com/v1.2.0/reference/%EC%A3%BC%EB%AC%B8-%EC%B7%A8%EC%86%8C%ED%95%98%EA%B8%B0"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -293,7 +293,7 @@ public partial class bithumb
     /// make a withdrawal
     /// </summary>
     /// <remarks>
-    /// See <see href="https://apidocs.bithumb.com/reference/%EC%BD%94%EC%9D%B8-%EC%B6%9C%EA%B8%88%ED%95%98%EA%B8%B0-%EA%B0%9C%EC%9D%B8"/>  <br/>
+    /// See <see href="https://apidocs.bithumb.com/v1.2.0/reference/%EC%BD%94%EC%9D%B8-%EC%B6%9C%EA%B8%88%ED%95%98%EA%B8%B0-%EA%B0%9C%EC%9D%B8"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

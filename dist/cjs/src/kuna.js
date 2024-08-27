@@ -885,7 +885,6 @@ class kuna extends kuna$1 {
             'fee': {
                 'cost': this.safeString(trade, 'fee'),
                 'currency': this.safeCurrencyCode(this.safeString(trade, 'feeCurrency')),
-                'rate': undefined,
             },
         }, market);
     }

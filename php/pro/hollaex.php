@@ -24,6 +24,7 @@ class hollaex extends \ccxt\async\hollaex {
                 'watchTicker' => false,
                 'watchTickers' => false, // for now
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
             ),
             'urls' => array(
                 'api' => array(
@@ -180,7 +181,7 @@ class hollaex extends \ccxt\async\hollaex {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $messageHash = 'usertrade';
@@ -596,7 +597,7 @@ class hollaex extends \ccxt\async\hollaex {
         }
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         // hollaex does not support built-in ws protocol-level ping-pong
         return array( 'op' => 'ping' );
     }

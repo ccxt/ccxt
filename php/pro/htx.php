@@ -12,6 +12,7 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\NetworkError;
 use ccxt\InvalidNonce;
+use ccxt\ChecksumError;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -35,6 +36,7 @@ class htx extends \ccxt\async\htx {
                 'watchTickers' => false,
                 'watchTicker' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchMyTrades' => true,
                 'watchBalance' => true,
                 'watchOHLCV' => true,
@@ -106,6 +108,7 @@ class htx extends \ccxt\async\htx {
                 'api' => 'api', // or api-aws for clients hosted on AWS
                 'watchOrderBook' => array(
                     'maxRetries' => 3,
+                    'checksum' => true,
                 ),
                 'ws' => array(
                     'gunzip' => true,
@@ -587,7 +590,10 @@ class htx extends \ccxt\async\htx {
             $orderbook['nonce'] = $version;
         }
         if (($prevSeqNum !== null) && $prevSeqNum > $orderbook['nonce']) {
-            throw new InvalidNonce($this->id . ' watchOrderBook() received a mesage out of order');
+            $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
+            if ($checksum) {
+                throw new ChecksumError($this->id . ' ' . $this->orderbook_checksum_message($symbol));
+            }
         }
         $spotConditon = $market['spot'] && ($prevSeqNum === $orderbook['nonce']);
         $nonSpotCondition = $market['contract'] && ($version - 1 === $orderbook['nonce']);
@@ -688,7 +694,7 @@ class htx extends \ccxt\async\htx {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             $this->check_required_credentials();
             Async\await($this->load_markets());

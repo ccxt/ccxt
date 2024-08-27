@@ -6,6 +6,7 @@ import { NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import Precise from '../base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -18,6 +19,7 @@ export default class onetrading extends onetradingRest {
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': false,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': true,
                 'watchOrders': true,
                 'watchOrderBook': true,
@@ -980,9 +982,9 @@ export default class onetrading extends onetradingRest {
             const previousOrderArray = this.filterByArray (this.orders, 'id', orderId, false);
             const previousOrder = this.safeValue (previousOrderArray, 0, {});
             symbol = previousOrder['symbol'];
-            const filled = this.safeNumber (update, 'filled_amount');
+            const filled = this.safeString (update, 'filled_amount');
             let status = this.parseWsOrderStatus (updateType);
-            if (updateType === 'ORDER_CLOSED' && filled === 0) {
+            if (updateType === 'ORDER_CLOSED' && Precise.stringEq (filled, '0')) {
                 status = 'canceled';
             }
             const orderObject: Dict = {

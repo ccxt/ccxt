@@ -93,6 +93,7 @@ public partial class gate : ccxt.gate
                     { "interval", "100ms" },
                     { "snapshotDelay", 10 },
                     { "snapshotMaxRetries", 3 },
+                    { "checksum", true },
                 } },
                 { "watchBalance", new Dictionary<string, object>() {
                     { "settle", "usdt" },
@@ -536,10 +537,14 @@ public partial class gate : ccxt.gate
             this.handleDelta(storedOrderBook, delta);
         } else
         {
-            var error = new InvalidNonce(add(this.id, " orderbook update has a nonce bigger than u"));
 
 
-            ((WebSocketClient)client).reject(error, messageHash);
+            object checksum = this.handleOption("watchOrderBook", "checksum", true);
+            if (isTrue(checksum))
+            {
+                var error = new ChecksumError(add(add(this.id, " "), this.orderbookChecksumMessage(symbol)));
+                ((WebSocketClient)client).reject(error, messageHash);
+            }
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {storedOrderBook, messageHash});
     }
@@ -967,7 +972,7 @@ public partial class gate : ccxt.gate
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trade structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1241,7 +1246,7 @@ public partial class gate : ccxt.gate
         var client = this.client(url);
         this.setPositionsCache(client as WebSocketClient, type, symbols);
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-        object awaitPositionsSnapshot = this.safeBool("watchPositions", "awaitPositionsSnapshot", true);
+        object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
         object cache = this.safeValue(this.positions, type);
         if (isTrue(isTrue(isTrue(fetchPositionsSnapshot) && isTrue(awaitPositionsSnapshot)) && isTrue(isEqual(cache, null))))
         {
@@ -1369,7 +1374,7 @@ public partial class gate : ccxt.gate
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.type] spot, margin, swap, future, or option. Required if listening to all symbols.
         * @param {boolean} [params.isInverse] if future, listen to inverse or linear contracts
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -1475,7 +1480,7 @@ public partial class gate : ccxt.gate
                 object status = this.safeString(parsed, "status");
                 if (isTrue(isEqual(status, null)))
                 {
-                    object left = this.safeNumber(info, "left");
+                    object left = this.safeInteger(info, "left");
                     ((IDictionary<string,object>)parsed)["status"] = ((bool) isTrue((isEqual(left, 0)))) ? "closed" : "canceled";
                 }
             }
@@ -1726,7 +1731,7 @@ public partial class gate : ccxt.gate
         object errs = this.safeDict(data, "errs");
         object error = this.safeDict(message, "error", errs);
         object code = this.safeString2(error, "code", "label");
-        object id = this.safeString2(message, "id", "requestId");
+        object id = this.safeStringN(message, new List<object>() {"id", "requestId", "request_id"});
         if (isTrue(!isEqual(error, null)))
         {
             object messageHash = this.safeString(((WebSocketClient)client).subscriptions, id);
@@ -1745,7 +1750,7 @@ public partial class gate : ccxt.gate
 
                 }
             }
-            if (isTrue(!isEqual(id, null)))
+            if (isTrue(isTrue((!isEqual(id, null))) && isTrue((inOp(((WebSocketClient)client).subscriptions, id)))))
             {
 
             }
@@ -2080,7 +2085,7 @@ public partial class gate : ccxt.gate
             { "event", eventVar },
             { "payload", payload },
         };
-        return await this.watch(url, messageHash, request, messageHash);
+        return await this.watch(url, messageHash, request, messageHash, requestId);
     }
 
     public async virtual Task<object> subscribePrivate(object url, object messageHash, object payload, object channel, object parameters, object requiresUid = null)
@@ -2132,6 +2137,6 @@ public partial class gate : ccxt.gate
             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)tempSubscriptionHash] = messageHash;
         }
         object message = this.extend(request, parameters);
-        return await this.watch(url, messageHash, message, messageHash);
+        return await this.watch(url, messageHash, message, messageHash, messageHash);
     }
 }

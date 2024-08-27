@@ -861,6 +861,7 @@ class bitmex(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
         :see: https://www.bitmex.com/api/explorer/#not /Order/Order_getOrders
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -2307,6 +2308,8 @@ class bitmex(Exchange, ImplicitAPI):
             # 'otpToken': '123456',  # requires if two-factor auth(OTP) is enabled
             # 'fee': 0.001,  # bitcoin network fee
         }
+        if self.twofa is not None:
+            request['otpToken'] = self.totp(self.twofa)
         response = await self.privatePostUserRequestWithdrawal(self.extend(request, params))
         #
         #     {

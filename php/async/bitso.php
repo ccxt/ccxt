@@ -101,7 +101,10 @@ class bitso extends Exchange {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87295554-11f98280-c50e-11ea-80d6-15b3bafa8cbf.jpg',
                 'api' => array(
-                    'rest' => 'https://api.bitso.com',
+                    'rest' => 'https://bitso.com/api',
+                ),
+                'test' => array(
+                    'rest' => 'https://stage.bitso.com/api',
                 ),
                 'www' => 'https://bitso.com',
                 'doc' => 'https://bitso.com/api_info',
@@ -1201,6 +1204,7 @@ class bitso extends Exchange {
             /**
              * fetches information on an order made by the user
              * @see https://docs.bitso.com/bitso-api/docs/look-up-orders
+             * @param {string} $id the order $id
              * @param {string} $symbol not used by bitso fetchOrder
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~

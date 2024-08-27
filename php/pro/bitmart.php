@@ -45,8 +45,8 @@ class bitmart extends \ccxt\async\bitmart {
                             'private' => 'wss://ws-manager-compress.{hostname}/user?protocol=1.1',
                         ),
                         'swap' => array(
-                            'public' => 'wss://openapi-ws.{hostname}/api?protocol=1.1',
-                            'private' => 'wss://openapi-ws.{hostname}/user?protocol=1.1',
+                            'public' => 'wss://openapi-ws-v2.{hostname}/api?protocol=1.1',
+                            'private' => 'wss://openapi-ws-v2.{hostname}/user?protocol=1.1',
                         ),
                     ),
                 ),
@@ -145,7 +145,7 @@ class bitmart extends \ccxt\async\bitmart {
         return Async\async(function () use ($params) {
             /**
              * @see https://developer-pro.bitmart.com/en/spot/#private-balance-change
-             * @see https://developer-pro.bitmart.com/en/futures/#private-assets-channel
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#private-assets-channel
              * watch balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
@@ -283,7 +283,7 @@ class bitmart extends \ccxt\async\bitmart {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * @see https://developer-pro.bitmart.com/en/spot/#public-trade-channel
-             * @see https://developer-pro.bitmart.com/en/futures/#public-trade-channel
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#public-trade-channel
              * get the list of most recent trades for a particular $symbol
              * @param {string} $symbol unified $symbol of the market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
@@ -336,6 +336,7 @@ class bitmart extends \ccxt\async\bitmart {
         return Async\async(function () use ($symbol, $params) {
             /**
              * @see https://developer-pro.bitmart.com/en/spot/#public-ticker-channel
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#public-ticker-channel
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -351,7 +352,7 @@ class bitmart extends \ccxt\async\bitmart {
     public function watch_tickers(?array $symbols = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * @see https://developer-pro.bitmart.com/en/futures/#overview
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#public-$ticker-channel
              * watches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
              * @param {string[]} $symbols unified symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -376,7 +377,7 @@ class bitmart extends \ccxt\async\bitmart {
             /**
              * watches information on multiple orders made by the user
              * @see https://developer-pro.bitmart.com/en/spot/#private-order-progress
-             * @see https://developer-pro.bitmart.com/en/futures/#private-order-channel
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#private-order-channel
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -506,7 +507,7 @@ class bitmart extends \ccxt\async\bitmart {
         $client->resolve ($newOrders, $messageHash);
     }
 
-    public function parse_ws_order($order, ?array $market = null) {
+    public function parse_ws_order(array $order, ?array $market = null) {
         //
         // spot
         //    {
@@ -778,8 +779,8 @@ class bitmart extends \ccxt\async\bitmart {
         $symbol = $market['symbol'];
         $openTimestamp = $this->safe_integer($position, 'create_time');
         $timestamp = $this->safe_integer($position, 'update_time');
-        $side = $this->safe_number($position, 'position_type');
-        $marginModeId = $this->safe_number($position, 'open_type');
+        $side = $this->safe_integer($position, 'position_type');
+        $marginModeId = $this->safe_integer($position, 'open_type');
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -881,7 +882,7 @@ class bitmart extends \ccxt\async\bitmart {
         return $symbol;
     }
 
-    public function parse_ws_trade($trade, ?array $market = null) {
+    public function parse_ws_trade(array $trade, ?array $market = null) {
         // spot
         //    {
         //        "price" => "52700.50",
@@ -1019,7 +1020,7 @@ class bitmart extends \ccxt\async\bitmart {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * @see https://developer-pro.bitmart.com/en/spot/#public-kline-channel
-             * @see https://developer-pro.bitmart.com/en/futures/#public-klinebin-channel
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#public-klinebin-channel
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
@@ -1147,7 +1148,7 @@ class bitmart extends \ccxt\async\bitmart {
             /**
              * @see https://developer-pro.bitmart.com/en/spot/#public-$depth-all-channel
              * @see https://developer-pro.bitmart.com/en/spot/#public-$depth-increase-channel
-             * @see https://developer-pro.bitmart.com/en/futures/#public-$depth-channel
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#public-$depth-channel
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
@@ -1349,7 +1350,7 @@ class bitmart extends \ccxt\async\bitmart {
                 $this->orderbooks[$symbol] = $ob;
             }
             $orderbook = $this->orderbooks[$symbol];
-            $way = $this->safe_number($data, 'way');
+            $way = $this->safe_integer($data, 'way');
             $side = ($way === 1) ? 'bids' : 'asks';
             if ($way === 1) {
                 $orderbook[$side] = new Bids (array(), $limit);

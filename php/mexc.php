@@ -560,7 +560,7 @@ class mexc extends Exchange {
                     'POKT' => 'POKT',
                     'QKC' => 'QKC',
                     'QTUM' => 'QTUM',
-                    'RAP20' => 'RAP20 (Rangers Mainnet)',
+                    'RAP20' => 'RAP20' . ' ' . '(Rangers Mainnet)',
                     'REI' => 'REI',
                     'RSK' => 'RBTC',
                     'RVN' => 'Ravencoin(RVN)',
@@ -710,69 +710,9 @@ class mexc extends Exchange {
                     // OKB <> OKT (for usdt it's exception) for OKC, PMEER, FLARE, STRD, ZEL, FUND, "NONE", CRING, FREETON, QTZ  (probably unique network is meant), HT, BSC(RACAV1), BSC(RACAV2), AMBROSUS, BAJUN, NOM. their individual info is at https://www.mexc.com/api/platform/asset/spot/{COINNAME}
                 ),
                 'networksById' => array(
-                    'Aleph Zero(AZERO)' => 'AZERO',
-                    'Alephium(ALPH)' => 'ALPH',
-                    'Algorand(ALGO)' => 'ALGO',
-                    'APTOS(APT)' => 'APT',
-                    'Arbitrum One(ARB)' => 'ARB',
-                    'Avalanche C Chain(AVAX CCHAIN)' => 'AVAXC',
-                    'Avalanche X Chain(AVAX XCHAIN)' => 'AVAXX',
-                    'BEP20(BSC)' => 'BSC',
-                    'Bitcoin Cash(BCH)' => 'BCH',
-                    'Bitcoin SV(BSV)' => 'BSV',
-                    'Bitcoin(BTC)' => 'BTC',
-                    'Bittensor(TAO)' => 'TAO',
-                    'BNB Beacon Chain(BEP2)' => 'BEP2',
                     'BNB Smart Chain(BEP20-RACAV1)' => 'BSC',
                     'BNB Smart Chain(BEP20-RACAV2)' => 'BSC',
                     'BNB Smart Chain(BEP20)' => 'BSC',
-                    'Cardano(ADA)' => 'ADA',
-                    'Celestia(TIA)' => 'TIA',
-                    'Chia(XCH)' => 'XCH',
-                    'Chiliz Chain(CHZ2)' => 'CHZ2',
-                    'Chiliz Legacy Chain(CHZ)' => 'CHZ',
-                    'Clore.ai(CLORE)' => 'CLORE',
-                    'Cosmos(ATOM)' => 'ATOM',
-                    'Dogechain(DC)' => 'DC',
-                    'Dogecoin(DOGE)' => 'DOGE',
-                    'Dymension(DYM)' => 'DYM',
-                    'Dynex(DNX)' => 'DNX',
-                    'Elysium(LAVA)' => 'LAVA',
-                    'Ethereum Classic(ETC)' => 'ETC',
-                    'Ethereum(ERC20)' => 'ERC20',
-                    'Fantom(FTM)' => 'FTM',
-                    'Hedera(HBAR)' => 'HBAR',
-                    'Index Chain' => 'INDEX',
-                    'Internet Computer(ICP)' => 'ICP',
-                    'Kaspa(KAS)' => 'KAS',
-                    'Klaytn(KLAY)' => 'KLAY',
-                    'Litecoin(LTC)' => 'LTC',
-                    'Mantle(MNT)' => 'MNT',
-                    'Mcoin Network' => 'MCOIN',
-                    'Meter(MTRG)' => 'MTRG',
-                    'Monero(XMR)' => 'XMR',
-                    'NEAR Protocol(NEAR)' => 'NEAR',
-                    'Neoxa Network' => 'NEOXA',
-                    'Neurai(XNA)' => 'XNA',
-                    'Omega Network(OMN)' => 'OMN',
-                    'Optimism(OP)' => 'OPTIMISM',
-                    'Polkadot(DOT)' => 'DOT',
-                    'Polygon(MATIC)' => 'MATIC',
-                    'RAP20 (Rangers Mainnet)' => 'RAP20',
-                    'Ravencoin(RVN)' => 'RVN',
-                    'Ripple(XRP)' => 'XRP',
-                    'Satoxcoin(SATOX)' => 'SATOX',
-                    'Solana(SOL)' => 'SOL',
-                    'Starknet(STARK)' => 'STARK',
-                    'Stellar(XLM)' => 'XLM',
-                    'Terra(LUNA)' => 'LUNA',
-                    'Toncoin(TON)' => 'TON',
-                    'Tron(TRC20)' => 'TRC20',
-                    'UGAS(Ultrain)' => 'UGAS',
-                    'VeChain(VET)' => 'VET',
-                    'Vexanium(VEX)' => 'VEX',
-                    'XPR Network' => 'XPR',
-                    'Zilliqa(ZIL)' => 'ZIL',
                     // TODO => uncomment below after deciding unified name
                     // 'PEPE COIN BSC':
                     // 'SMART BLOCKCHAIN':
@@ -793,24 +733,24 @@ class mexc extends Exchange {
             'commonCurrencies' => array(
                 'BEYONDPROTOCOL' => 'BEYOND',
                 'BIFI' => 'BIFIF',
-                'BYN' => 'BeyondFi',
+                'BYN' => 'BEYONDFI',
                 'COFI' => 'COFIX', // conflict with CoinFi
-                'DFI' => 'DfiStarter',
-                'DFT' => 'dFuture',
+                'DFI' => 'DFISTARTER',
+                'DFT' => 'DFUTURE',
                 'DRK' => 'DRK',
-                'EGC' => 'Egoras Credit',
+                'EGC' => 'EGORASCREDIT',
                 'FLUX1' => 'FLUX', // switched places
                 'FLUX' => 'FLUX1', // switched places
-                'FREE' => 'FreeRossDAO', // conflict with FREE Coin
+                'FREE' => 'FREEROSSDAO', // conflict with FREE Coin
                 'GAS' => 'GASDAO',
                 'GASNEO' => 'GAS',
-                'GMT' => 'GMT Token', // Conflict with GMT (STEPN)
+                'GMT' => 'GMTTOKEN', // Conflict with GMT (STEPN)
                 'STEPN' => 'GMT', // Conflict with GMT Token
-                'HERO' => 'Step Hero', // conflict with Metahero
-                'MIMO' => 'Mimosa',
-                'PROS' => 'Pros.Finance', // conflict with Prosper
-                'SIN' => 'Sin City Token',
-                'SOUL' => 'Soul Swap',
+                'HERO' => 'STEPHERO', // conflict with Metahero
+                'MIMO' => 'MIMOSA',
+                'PROS' => 'PROSFINANCE', // conflict with Prosper
+                'SIN' => 'SINCITYTOKEN',
+                'SOUL' => 'SOULSWAP',
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -1157,7 +1097,7 @@ class mexc extends Exchange {
         //         "symbols" => array(
         //           array(
         //                "symbol" => "OGNUSDT",
-        //                "status" => "ENABLED",
+        //                "status" => "1",
         //                "baseAsset" => "OGN",
         //                "baseAssetPrecision" => "2",
         //                "quoteAsset" => "USDT",
@@ -1202,7 +1142,7 @@ class mexc extends Exchange {
             $status = $this->safe_string($market, 'status');
             $isSpotTradingAllowed = $this->safe_value($market, 'isSpotTradingAllowed');
             $active = false;
-            if (($status === 'ENABLED') && ($isSpotTradingAllowed)) {
+            if (($status === '1') && ($isSpotTradingAllowed)) {
                 $active = true;
             }
             $isMarginTradingAllowed = $this->safe_value($market, 'isMarginTradingAllowed');
@@ -5151,9 +5091,10 @@ class mexc extends Exchange {
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $networks = $this->safe_value($this->options, 'networks', array());
+        $networks = $this->safe_dict($this->options, 'networks', array());
         $network = $this->safe_string_2($params, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string($networks, $network, $network); // handle ETH > ERC-20 alias
+        $network = $this->network_id_to_code($network);
         $this->check_address($address);
         $this->load_markets();
         $currency = $this->currency($code);

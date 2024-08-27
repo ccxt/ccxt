@@ -13,6 +13,7 @@ class bingx extends bingx$1 {
             'has': {
                 'ws': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOHLCV': true,
@@ -94,10 +95,10 @@ class bingx extends bingx$1 {
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const [marketType, query] = this.handleMarketTypeAndParams('watchTrades', market, params);
+        const [marketType, query] = this.handleMarketTypeAndParams('watchTicker', market, params);
         const url = this.safeValue(this.urls['api']['ws'], marketType);
         if (url === undefined) {
-            throw new errors.BadRequest(this.id + ' watchTrades is not supported for ' + marketType + ' markets.');
+            throw new errors.BadRequest(this.id + ' watchTicker is not supported for ' + marketType + ' markets.');
         }
         const subscriptionHash = market['id'] + '@ticker';
         const messageHash = this.getMessageHash('ticker', market['symbol']);
@@ -435,31 +436,33 @@ class bingx extends bingx$1 {
          * @method
          * @name bingx#watchTrades
          * @description watches information on multiple trades made in a market
-         * @see https://bingx-api.github.io/docs/#/spot/socket/market.html#Subscribe%20to%20tick-by-tick
-         * @see https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20the%20Latest%20Trade%20Detail
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#Subscription%20transaction%20by%20transaction
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20the%20Latest%20Trade%20Detail
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
          * @param {int} [limit] the maximum number of order structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+         * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
         const market = this.market(symbol);
-        const [marketType, query] = this.handleMarketTypeAndParams('watchTrades', market, params);
+        let marketType = undefined;
+        [marketType, params] = this.handleMarketTypeAndParams('watchTrades', market, params);
         const url = this.safeValue(this.urls['api']['ws'], marketType);
         if (url === undefined) {
             throw new errors.BadRequest(this.id + ' watchTrades is not supported for ' + marketType + ' markets.');
         }
-        const messageHash = market['id'] + '@trade';
+        const rawHash = market['id'] + '@trade';
+        const messageHash = 'trade::' + symbol;
         const uuid = this.uuid();
         const request = {
             'id': uuid,
-            'dataType': messageHash,
+            'dataType': rawHash,
         };
         if (marketType === 'swap') {
             request['reqType'] = 'sub';
         }
-        const trades = await this.watch(url, messageHash, this.extend(request, query), messageHash);
+        const trades = await this.watch(url, messageHash, this.extend(request, params), messageHash);
         if (this.newUpdates) {
             limit = trades.getLimit(symbol, limit);
         }
@@ -526,12 +529,13 @@ class bingx extends bingx$1 {
         //    }
         //
         const data = this.safeValue(message, 'data', []);
-        const messageHash = this.safeString(message, 'dataType');
-        const marketId = messageHash.split('@')[0];
+        const rawHash = this.safeString(message, 'dataType');
+        const marketId = rawHash.split('@')[0];
         const isSwap = client.url.indexOf('swap') >= 0;
         const marketType = isSwap ? 'swap' : 'spot';
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const symbol = market['symbol'];
+        const messageHash = 'trade::' + symbol;
         let trades = undefined;
         if (Array.isArray(data)) {
             trades = this.parseTrades(data, market);
@@ -555,8 +559,8 @@ class bingx extends bingx$1 {
          * @method
          * @name bingx#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @see https://bingx-api.github.io/docs/#/spot/socket/market.html#Subscribe%20Market%20Depth%20Data
-         * @see https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20Market%20Depth%20Data
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#Subscribe%20Market%20Depth%20Data
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20Market%20Depth%20Data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -787,8 +791,8 @@ class bingx extends bingx$1 {
          * @method
          * @name bingx#watchOHLCV
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @see https://bingx-api.github.io/docs/#/spot/socket/market.html#K%E7%BA%BF%20Streams
-         * @see https://bingx-api.github.io/docs/#/swapV2/socket/market.html#Subscribe%20K-Line%20Data
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/socket/market.html#K-line%20Streams
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market.html#Subscribe%20K-Line%20Data
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -831,8 +835,8 @@ class bingx extends bingx$1 {
         /**
          * @method
          * @name bingx#watchOrders
-         * @see https://bingx-api.github.io/docs/#/spot/socket/account.html#Subscription%20order%20update%20data
-         * @see https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/socket/account.html#Subscription%20order%20update%20data
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
@@ -878,14 +882,14 @@ class bingx extends bingx$1 {
         /**
          * @method
          * @name bingx#watchMyTrades
-         * @see https://bingx-api.github.io/docs/#/spot/socket/account.html#Subscription%20order%20update%20data
-         * @see https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/socket/account.html#Subscription%20order%20update%20data
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
          * @description watches information on multiple trades made by the user
          * @param {string} symbol unified market symbol of the market trades were made in
          * @param {int} [since] the earliest time in ms to trades orders for
          * @param {int} [limit] the maximum number of trades structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         await this.authenticate();
@@ -925,8 +929,8 @@ class bingx extends bingx$1 {
         /**
          * @method
          * @name bingx#watchBalance
-         * @see https://bingx-api.github.io/docs/#/spot/socket/account.html#Subscription%20order%20update%20data
-         * @see https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
+         * @see https://bingx-api.github.io/docs/#/en-us/spot/socket/account.html#Subscription%20account%20balance%20push
+         * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}

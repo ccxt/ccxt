@@ -21,6 +21,7 @@ class bingx extends \ccxt\async\bingx {
             'has' => array(
                 'ws' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchOrderBook' => true,
                 'watchOrderBookForSymbols' => true,
                 'watchOHLCV' => true,
@@ -102,10 +103,10 @@ class bingx extends \ccxt\async\bingx {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            list($marketType, $query) = $this->handle_market_type_and_params('watchTrades', $market, $params);
+            list($marketType, $query) = $this->handle_market_type_and_params('watchTicker', $market, $params);
             $url = $this->safe_value($this->urls['api']['ws'], $marketType);
             if ($url === null) {
-                throw new BadRequest($this->id . ' watchTrades is not supported for ' . $marketType . ' markets.');
+                throw new BadRequest($this->id . ' watchTicker is not supported for ' . $marketType . ' markets.');
             }
             $subscriptionHash = $market['id'] . '@ticker';
             $messageHash = $this->get_message_hash('ticker', $market['symbol']);
@@ -445,31 +446,33 @@ class bingx extends \ccxt\async\bingx {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $trades made in a $market
-             * @see https://bingx-api.github.io/docs/#/spot/socket/market->html#Subscribe%20to%20tick-by-tick
-             * @see https://bingx-api.github.io/docs/#/swapV2/socket/market->html#Subscribe%20the%20Latest%20Trade%20Detail
+             * @see https://bingx-api.github.io/docs/#/en-us/spot/socket/market->html#Subscription%20transaction%20by%20transaction
+             * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market->html#Subscribe%20the%20Latest%20Trade%20Detail
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            list($marketType, $query) = $this->handle_market_type_and_params('watchTrades', $market, $params);
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('watchTrades', $market, $params);
             $url = $this->safe_value($this->urls['api']['ws'], $marketType);
             if ($url === null) {
                 throw new BadRequest($this->id . ' watchTrades is not supported for ' . $marketType . ' markets.');
             }
-            $messageHash = $market['id'] . '@trade';
+            $rawHash = $market['id'] . '@trade';
+            $messageHash = 'trade::' . $symbol;
             $uuid = $this->uuid();
             $request = array(
                 'id' => $uuid,
-                'dataType' => $messageHash,
+                'dataType' => $rawHash,
             );
             if ($marketType === 'swap') {
                 $request['reqType'] = 'sub';
             }
-            $trades = Async\await($this->watch($url, $messageHash, $this->extend($request, $query), $messageHash));
+            $trades = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
             }
@@ -538,12 +541,13 @@ class bingx extends \ccxt\async\bingx {
         //    }
         //
         $data = $this->safe_value($message, 'data', array());
-        $messageHash = $this->safe_string($message, 'dataType');
-        $marketId = explode('@', $messageHash)[0];
+        $rawHash = $this->safe_string($message, 'dataType');
+        $marketId = explode('@', $rawHash)[0];
         $isSwap = mb_strpos($client->url, 'swap') !== false;
         $marketType = $isSwap ? 'swap' : 'spot';
         $market = $this->safe_market($marketId, null, null, $marketType);
         $symbol = $market['symbol'];
+        $messageHash = 'trade::' . $symbol;
         $trades = null;
         if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
             $trades = $this->parse_trades($data, $market);
@@ -566,8 +570,8 @@ class bingx extends \ccxt\async\bingx {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-             * @see https://bingx-api.github.io/docs/#/spot/socket/market->html#Subscribe%20Market%20Depth%20Data
-             * @see https://bingx-api.github.io/docs/#/swapV2/socket/market->html#Subscribe%20Market%20Depth%20Data
+             * @see https://bingx-api.github.io/docs/#/en-us/spot/socket/market->html#Subscribe%20Market%20Depth%20Data
+             * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market->html#Subscribe%20Market%20Depth%20Data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -802,8 +806,8 @@ class bingx extends \ccxt\async\bingx {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-             * @see https://bingx-api.github.io/docs/#/spot/socket/market->html#K%E7%BA%BF%20Streams
-             * @see https://bingx-api.github.io/docs/#/swapV2/socket/market->html#Subscribe%20K-Line%20Data
+             * @see https://bingx-api.github.io/docs/#/en-us/spot/socket/market->html#K-line%20Streams
+             * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/market->html#Subscribe%20K-Line%20Data
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -847,8 +851,8 @@ class bingx extends \ccxt\async\bingx {
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * @see https://bingx-api.github.io/docs/#/spot/socket/account.html#Subscription%20order%20update%20data
-             * @see https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
+             * @see https://bingx-api.github.io/docs/#/en-us/spot/socket/account.html#Subscription%20order%20update%20data
+             * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
              * watches information on multiple $orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -895,14 +899,14 @@ class bingx extends \ccxt\async\bingx {
     public function watch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * @see https://bingx-api.github.io/docs/#/spot/socket/account.html#Subscription%20order%20update%20data
-             * @see https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
+             * @see https://bingx-api.github.io/docs/#/en-us/spot/socket/account.html#Subscription%20order%20update%20data
+             * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
              * watches information on multiple $trades made by the user
              * @param {string} $symbol unified $market $symbol of the $market $trades were made in
              * @param {int} [$since] the earliest time in ms to $trades orders for
              * @param {int} [$limit] the maximum number of $trades structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
@@ -943,8 +947,8 @@ class bingx extends \ccxt\async\bingx {
     public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
-             * @see https://bingx-api.github.io/docs/#/spot/socket/account.html#Subscription%20order%20update%20data
-             * @see https://bingx-api.github.io/docs/#/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
+             * @see https://bingx-api.github.io/docs/#/en-us/spot/socket/account.html#Subscription%20account%20balance%20push
+             * @see https://bingx-api.github.io/docs/#/en-us/swapV2/socket/account.html#Account%20balance%20and%20position%20update%20push
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~

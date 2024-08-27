@@ -4,6 +4,7 @@ var gemini$1 = require('../gemini.js');
 var Cache = require('../base/ws/Cache.js');
 var errors = require('../base/errors.js');
 var sha512 = require('../static_dependencies/noble-hashes/sha512.js');
+var Precise = require('../base/Precise.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -470,10 +471,11 @@ class gemini extends gemini$1 {
             const entry = rawBidAskChanges[i];
             const rawSide = this.safeString(entry, 'side');
             const price = this.safeNumber(entry, 'price');
-            const size = this.safeNumber(entry, 'remaining');
-            if (size === 0) {
+            const sizeString = this.safeString(entry, 'remaining');
+            if (Precise["default"].stringEq(sizeString, '0')) {
                 continue;
             }
+            const size = this.parseNumber(sizeString);
             if (rawSide === 'bid') {
                 currentBidAsk['bid'] = price;
                 currentBidAsk['bidVolume'] = size;

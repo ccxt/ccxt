@@ -156,6 +156,7 @@ class kucoin extends Exchange {
                         'status' => 4.5, // 3PW
                         // margin trading
                         'mark-price/{symbol}/current' => 3, // 2PW
+                        'mark-price/all-symbols' => 3,
                         'margin/config' => 25, // 25SW
                     ),
                     'post' => array(
@@ -391,6 +392,7 @@ class kucoin extends Exchange {
                         'broker/nd/account' => 2,
                         'broker/nd/account/apikey' => 2,
                         'broker/nd/rebase/download' => 3,
+                        'asset/ndbroker/deposit/list' => 1,
                         'broker/nd/transfer/detail' => 1,
                         'broker/nd/deposit/detail' => 1,
                         'broker/nd/withdraw/detail' => 1,
@@ -641,6 +643,7 @@ class kucoin extends Exchange {
                             'currencies' => 'v3',
                             'currencies/{currency}' => 'v3',
                             'symbols' => 'v2',
+                            'mark-price/all-symbols' => 'v3',
                         ),
                     ),
                     'private' => array(
@@ -681,6 +684,7 @@ class kucoin extends Exchange {
                             'purchase/orders' => 'v3',
                             'margin/symbols' => 'v3',
                             'affiliate/inviter/statistics' => 'v2',
+                            'asset/ndbroker/deposit/list' => 'v1',
                         ),
                         'POST' => array(
                             // account
@@ -1509,21 +1513,28 @@ class kucoin extends Exchange {
             ),
             'networks' => array(),
         );
-        $isWithdrawEnabled = $this->safe_bool($fee, 'isWithdrawEnabled');
+        $isWithdrawEnabled = $this->safe_bool($fee, 'isWithdrawEnabled', true);
+        $minFee = null;
         if ($isWithdrawEnabled) {
-            $result['withdraw']['fee'] = $this->safe_number_2($fee, 'withdrawalMinFee', 'withdrawMinFee');
             $result['withdraw']['percentage'] = false;
-            $networkId = $this->safe_string($fee, 'chain');
-            if ($networkId) {
+            $chains = $this->safe_list($fee, 'chains', array());
+            for ($i = 0; $i < count($chains); $i++) {
+                $chain = $chains[$i];
+                $networkId = $this->safe_string($chain, 'chainId');
                 $networkCode = $this->network_id_to_code($networkId, $this->safe_string($currency, 'code'));
+                $withdrawFee = $this->safe_string($chain, 'withdrawalMinFee');
+                if ($minFee === null || (Precise::string_lt($withdrawFee, $minFee))) {
+                    $minFee = $withdrawFee;
+                }
                 $result['networks'][$networkCode] = array(
-                    'withdraw' => $result['withdraw'],
+                    'withdraw' => $this->parse_number($withdrawFee),
                     'deposit' => array(
                         'fee' => null,
                         'percentage' => null,
                     ),
                 );
             }
+            $result['withdraw']['fee'] = $this->parse_number($minFee);
         }
         return $result;
     }

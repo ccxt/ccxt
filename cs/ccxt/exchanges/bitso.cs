@@ -90,7 +90,10 @@ public partial class bitso : Exchange
             { "urls", new Dictionary<string, object>() {
                 { "logo", "https://user-images.githubusercontent.com/51840849/87295554-11f98280-c50e-11ea-80d6-15b3bafa8cbf.jpg" },
                 { "api", new Dictionary<string, object>() {
-                    { "rest", "https://api.bitso.com" },
+                    { "rest", "https://bitso.com/api" },
+                } },
+                { "test", new Dictionary<string, object>() {
+                    { "rest", "https://stage.bitso.com/api" },
                 } },
                 { "www", "https://bitso.com" },
                 { "doc", "https://bitso.com/api_info" },
@@ -1214,6 +1217,7 @@ public partial class bitso : Exchange
         * @name bitso#fetchOrder
         * @description fetches information on an order made by the user
         * @see https://docs.bitso.com/bitso-api/docs/look-up-orders
+        * @param {string} id the order id
         * @param {string} symbol not used by bitso fetchOrder
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

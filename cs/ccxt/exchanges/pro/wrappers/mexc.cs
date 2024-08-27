@@ -10,6 +10,8 @@ public partial class mexc
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -49,7 +51,7 @@ public partial class mexc
     /// watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mxcdevelop.github.io/apidocs/spot_v3_en/#kline-streams"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#kline-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -83,7 +85,8 @@ public partial class mexc
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mxcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -110,7 +113,8 @@ public partial class mexc
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mxcdevelop.github.io/apidocs/spot_v3_en/#trade-streams"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#trade-streams"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -144,7 +148,8 @@ public partial class mexc
     /// watches information on multiple trades made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-deals"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#spot-account-deals"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#private-channels"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -166,7 +171,7 @@ public partial class mexc
     /// </item>
     /// </list>
     /// </remarks>
-    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure.</returns>
+    /// <returns> <term>object[]</term> a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}.</returns>
     public async Task<List<Trade>> WatchMyTrades(string symbol = null, Int64? since2 = 0, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var since = since2 == 0 ? null : (object)since2;
@@ -178,8 +183,8 @@ public partial class mexc
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-orders"/>  <br/>
-    /// See <see href="https://mxcdevelop.github.io/apidocs/spot_v3_en/#margin-account-orders"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#spot-account-orders"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#margin-account-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -213,7 +218,7 @@ public partial class mexc
     /// watch balance and get the amount of funds available for trading or funds locked in orders
     /// </summary>
     /// <remarks>
-    /// See <see href="https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-upadte"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#spot-account-upadte"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

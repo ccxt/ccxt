@@ -46,6 +46,9 @@ class kucoin extends \ccxt\async\kucoin {
                     'snapshotMaxRetries' => 3,
                     'method' => '/market/level2', // '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50'
                 ),
+                'watchMyTrades' => array(
+                    'method' => '/spotMarket/tradeOrders',  // or '/spot/tradeFills'
+                ),
             ),
             'streaming' => array(
                 // kucoin does not support built-in ws protocol-level ping-pong
@@ -1021,11 +1024,13 @@ class kucoin extends \ccxt\async\kucoin {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @param {string} [$params->method] '/spotMarket/tradeOrders' or '/spot/tradeFills' default is '/spotMarket/tradeOrders'
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $url = Async\await($this->negotiate(true));
-            $topic = '/spotMarket/tradeOrders';
+            $topic = null;
+            list($topic, $params) = $this->handle_option_and_params($params, 'watchMyTrades', 'method', '/spotMarket/tradeOrders');
             $request = array(
                 'privateChannel' => true,
             );
@@ -1087,6 +1092,8 @@ class kucoin extends \ccxt\async\kucoin {
 
     public function parse_ws_trade($trade, $market = null) {
         //
+        // /spotMarket/tradeOrders
+        //
         //     {
         //         "symbol" => "KCS-USDT",
         //         "orderType" => "limit",
@@ -1108,6 +1115,22 @@ class kucoin extends \ccxt\async\kucoin {
         //         "ts" => 1670329987311000000
         //     }
         //
+        // /spot/tradeFills
+        //
+        //    {
+        //        "fee" => 0.00262148,
+        //        "feeCurrency" => "USDT",
+        //        "feeRate" => 0.001,
+        //        "orderId" => "62417436b29df8000183df2f",
+        //        "orderType" => "market",
+        //        "price" => 131.074,
+        //        "side" => "sell",
+        //        "size" => 0.02,
+        //        "symbol" => "LTC-USDT",
+        //        "time" => "1648456758734571745",
+        //        "tradeId" => "624174362e113d2f467b3043"
+        //    }
+        //
         $marketId = $this->safe_string($trade, 'symbol');
         $market = $this->safe_market($marketId, $market, '-');
         $symbol = $market['symbol'];
@@ -1116,8 +1139,16 @@ class kucoin extends \ccxt\async\kucoin {
         $tradeId = $this->safe_string($trade, 'tradeId');
         $price = $this->safe_string($trade, 'matchPrice');
         $amount = $this->safe_string($trade, 'matchSize');
+        if ($price === null) {
+            // /spot/tradeFills
+            $price = $this->safe_string($trade, 'price');
+            $amount = $this->safe_string($trade, 'size');
+        }
         $order = $this->safe_string($trade, 'orderId');
-        $timestamp = $this->safe_integer_product($trade, 'ts', 0.000001);
+        $timestamp = $this->safe_integer_product_2($trade, 'ts', 'time', 0.000001);
+        $feeCurrency = $market['quote'];
+        $feeRate = $this->safe_string($trade, 'feeRate');
+        $feeCost = $this->safe_string($trade, 'fee');
         return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -1131,7 +1162,11 @@ class kucoin extends \ccxt\async\kucoin {
             'price' => $price,
             'amount' => $amount,
             'cost' => null,
-            'fee' => null,
+            'fee' => array(
+                'cost' => $feeCost,
+                'rate' => $feeRate,
+                'currency' => $feeCurrency,
+            ),
         ), $market);
     }
 
@@ -1243,6 +1278,7 @@ class kucoin extends \ccxt\async\kucoin {
             'account.balance' => array($this, 'handle_balance'),
             'orderChange' => array($this, 'handle_order'),
             'stopOrder' => array($this, 'handle_order'),
+            '/spot/tradeFills' => array($this, 'handle_my_trade'),
         );
         $method = $this->safe_value($methods, $subject);
         if ($method !== null) {
@@ -1250,7 +1286,7 @@ class kucoin extends \ccxt\async\kucoin {
         }
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         // kucoin does not support built-in ws protocol-level ping-pong
         // instead it requires a custom json-based text ping-pong
         // https://docs.kucoin.com/#ping

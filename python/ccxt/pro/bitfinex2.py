@@ -11,7 +11,7 @@ from ccxt.async_support.base.ws.client import Client
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
-from ccxt.base.errors import InvalidNonce
+from ccxt.base.errors import ChecksumError
 from ccxt.base.precise import Precise
 
 
@@ -25,6 +25,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
                 'watchTickers': False,
                 'watchOrderBook': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchMyTrades': True,
                 'watchBalance': True,
                 'watchOHLCV': True,
@@ -42,9 +43,9 @@ class bitfinex2(ccxt.async_support.bitfinex2):
                 'watchOrderBook': {
                     'prec': 'P0',
                     'freq': 'F0',
+                    'checksum': True,
                 },
                 'ordersLimit': 1000,
-                'checksum': True,
             },
         })
 
@@ -205,7 +206,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         :param int [since]: the earliest time in ms to fetch trades for
         :param int [limit]: the maximum number of trade structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=trade-structure>`
         """
         await self.load_markets()
         messageHash = 'myTrade'
@@ -641,10 +642,12 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         localChecksum = self.crc32(payload, True)
         responseChecksum = self.safe_integer(message, 2)
         if responseChecksum != localChecksum:
-            error = InvalidNonce(self.id + ' invalid checksum')
             del client.subscriptions[messageHash]
             del self.orderbooks[symbol]
-            client.reject(error, messageHash)
+            checksum = self.handle_option('watchOrderBook', 'checksum', True)
+            if checksum:
+                error = ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
+                client.reject(error, messageHash)
 
     async def watch_balance(self, params={}) -> Balances:
         """
@@ -837,7 +840,7 @@ class bitfinex2(ccxt.async_support.bitfinex2):
         :param int [since]: the earliest time in ms to fetch orders for
         :param int [limit]: the maximum number of order structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+        :returns dict[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
         messageHash = 'orders'

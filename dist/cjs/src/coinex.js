@@ -3766,25 +3766,9 @@ class coinex extends coinex$1 {
         const options = this.safeDict(this.options, 'fetchDepositAddress', {});
         const fillResponseFromRequest = this.safeBool(options, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
-            depositAddress['network'] = this.safeNetworkCode(network, currency);
+            depositAddress['network'] = this.networkIdToCode(network, currency).toUpperCase();
         }
         return depositAddress;
-    }
-    safeNetwork(networkId, currency = undefined) {
-        const networks = this.safeValue(currency, 'networks', {});
-        const networksCodes = Object.keys(networks);
-        const networksCodesLength = networksCodes.length;
-        if (networkId === undefined && networksCodesLength === 1) {
-            return networks[networksCodes[0]];
-        }
-        return {
-            'id': networkId,
-            'network': (networkId === undefined) ? undefined : networkId.toUpperCase(),
-        };
-    }
-    safeNetworkCode(networkId, currency = undefined) {
-        const network = this.safeNetwork(networkId, currency);
-        return network['network'];
     }
     parseDepositAddress(depositAddress, currency = undefined) {
         //

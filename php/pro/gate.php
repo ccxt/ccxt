@@ -10,7 +10,7 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
-use ccxt\InvalidNonce;
+use ccxt\ChecksumError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -102,6 +102,7 @@ class gate extends \ccxt\async\gate {
                     'interval' => '100ms',
                     'snapshotDelay' => 10, // how many deltas to cache before fetching a snapshot
                     'snapshotMaxRetries' => 3,
+                    'checksum' => true,
                 ),
                 'watchBalance' => array(
                     'settle' => 'usdt', // or btc
@@ -496,10 +497,13 @@ class gate extends \ccxt\async\gate {
         } elseif ($nonce >= $deltaStart - 1) {
             $this->handle_delta($storedOrderBook, $delta);
         } else {
-            $error = new InvalidNonce ($this->id . ' orderbook update has a $nonce bigger than u');
             unset($client->subscriptions[$messageHash]);
             unset($this->orderbooks[$symbol]);
-            $client->reject ($error, $messageHash);
+            $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
+            if ($checksum) {
+                $error = new ChecksumError ($this->id . ' ' . $this->orderbook_checksum_message($symbol));
+                $client->reject ($error, $messageHash);
+            }
         }
         $client->resolve ($storedOrderBook, $messageHash);
     }
@@ -873,7 +877,7 @@ class gate extends \ccxt\async\gate {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $subType = null;
@@ -1117,7 +1121,7 @@ class gate extends \ccxt\async\gate {
             $client = $this->client($url);
             $this->set_positions_cache($client, $type, $symbols);
             $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', true);
-            $awaitPositionsSnapshot = $this->safe_bool('watchPositions', 'awaitPositionsSnapshot', true);
+            $awaitPositionsSnapshot = $this->handle_option('watchPositions', 'awaitPositionsSnapshot', true);
             $cache = $this->safe_value($this->positions, $type);
             if ($fetchPositionsSnapshot && $awaitPositionsSnapshot && $cache === null) {
                 return Async\await($client->future ($type . ':fetchPositionsSnapshot'));
@@ -1230,7 +1234,7 @@ class gate extends \ccxt\async\gate {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->type] spot, margin, swap, future, or option. Required if listening to all symbols.
              * @param {boolean} [$params->isInverse] if future, listen to inverse or linear contracts
-             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $market = null;
@@ -1323,7 +1327,7 @@ class gate extends \ccxt\async\gate {
             } elseif ($event === 'finish') {
                 $status = $this->safe_string($parsed, 'status');
                 if ($status === null) {
-                    $left = $this->safe_number($info, 'left');
+                    $left = $this->safe_integer($info, 'left');
                     $parsed['status'] = ($left === 0) ? 'closed' : 'canceled';
                 }
             }
@@ -1553,7 +1557,7 @@ class gate extends \ccxt\async\gate {
         $errs = $this->safe_dict($data, 'errs');
         $error = $this->safe_dict($message, 'error', $errs);
         $code = $this->safe_string_2($error, 'code', 'label');
-        $id = $this->safe_string_2($message, 'id', 'requestId');
+        $id = $this->safe_string_n($message, array( 'id', 'requestId', 'request_id' ));
         if ($error !== null) {
             $messageHash = $this->safe_string($client->subscriptions, $id);
             try {
@@ -1568,7 +1572,7 @@ class gate extends \ccxt\async\gate {
                     unset($client->subscriptions[$messageHash]);
                 }
             }
-            if ($id !== null) {
+            if (($id !== null) && (is_array($client->subscriptions) && array_key_exists($id, $client->subscriptions))) {
                 unset($client->subscriptions[$id]);
             }
             return true;
@@ -1872,7 +1876,7 @@ class gate extends \ccxt\async\gate {
                 'event' => $event,
                 'payload' => $payload,
             );
-            return Async\await($this->watch($url, $messageHash, $request, $messageHash));
+            return Async\await($this->watch($url, $messageHash, $request, $messageHash, $requestId));
         }) ();
     }
 
@@ -1918,7 +1922,7 @@ class gate extends \ccxt\async\gate {
                 $client->subscriptions[$tempSubscriptionHash] = $messageHash;
             }
             $message = $this->extend($request, $params);
-            return Async\await($this->watch($url, $messageHash, $message, $messageHash));
+            return Async\await($this->watch($url, $messageHash, $message, $messageHash, $messageHash));
         }) ();
     }
 }

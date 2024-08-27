@@ -363,7 +363,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         const client = this.client (url);
         this.setPositionCache (client, symbol);
         const fetchPositionSnapshot = this.handleOption ('watchPosition', 'fetchPositionSnapshot', true);
-        const awaitPositionSnapshot = this.safeBool ('watchPosition', 'awaitPositionSnapshot', true);
+        const awaitPositionSnapshot = this.handleOption ('watchPosition', 'awaitPositionSnapshot', true);
         const currentPosition = this.getCurrentPosition (symbol);
         if (fetchPositionSnapshot && awaitPositionSnapshot && currentPosition === undefined) {
             const snapshot = await client.future ('fetchPositionSnapshot:' + symbol);
@@ -1138,7 +1138,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         }
     }
 
-    ping (client) {
+    ping (client: Client) {
         // kucoin does not support built-in ws protocol-level ping-pong
         // instead it requires a custom json-based text ping-pong
         // https://docs.kucoin.com/#ping

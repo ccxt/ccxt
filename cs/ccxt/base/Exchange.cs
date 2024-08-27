@@ -2,6 +2,11 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Globalization;
 using System.Net;
+using StarkSharp.StarkCurve.Signature;
+using StarkSharp.Rpc.Utils;
+using StarkSharp.StarkSharp.Base.StarkSharp.Hash;
+using System.IO.Compression;
+using System.Numerics;
 
 namespace ccxt;
 
@@ -275,7 +280,19 @@ public partial class Exchange
                     // response = await httpClient.SendAsync(patchRequest);
                     response = await httpClient.SendAsync(request);
                 }
-                result = await response.Content.ReadAsStringAsync();
+
+                var responseEncoding = response.Content.Headers.ContentEncoding;
+                if (responseEncoding.Contains("gzip"))
+                {
+                    using var stream = await response.Content.ReadAsStreamAsync();
+                    using var decompressedStream = new GZipStream(stream, CompressionMode.Decompress);
+                    using var streamReader = new StreamReader(decompressedStream);
+                    result = await streamReader.ReadToEndAsync();
+                }
+                else
+                {
+                    result = await response.Content.ReadAsStringAsync();
+                }
             }
 
         }
@@ -494,9 +511,9 @@ public partial class Exchange
         return "";
     }
 
-    public bool checkAddress(object address)
+    public List<string> unique(object obj)
     {
-        return true;
+        return (obj as List<string>).ToList();
     }
 
     public int parseTimeframe(object timeframe2)
@@ -755,6 +772,161 @@ public partial class Exchange
         if (a is IDictionary<string, object>)
             return ((IDictionary<string, object>)a).Count == 0;
         return false;
+    }
+
+    public object retrieveStarkAccount(object signature, object accountClassHash, object accountProxyClassHash)
+    {
+        var signatureStr = signature.ToString();
+        var accountClassHashStr = accountClassHash.ToString();
+        var accountProxyClassHashStr = accountProxyClassHash.ToString();
+        BigInteger privatekey = ECDSA.EthSigToPrivate(signatureStr);
+        BigInteger publicKey = ECDSA.PrivateToStarkKey(privatekey);
+        // compute address
+        List<string> calldata = new List<string>{
+            accountClassHash.ToString(),
+            StarknetOps.CalculateFunctionSelector("initialize"),
+            "2",
+            publicKey.ToString("x"),
+            "0",
+        };
+        BigInteger accountAddress = Address.ComputeStarknetAddress(
+            accountProxyClassHash.ToString(),
+            calldata,
+            publicKey.ToString("x")
+        );
+        var account = createSafeDictionary();
+        account["privateKey"] = privatekey.ToString("x");
+        account["publicKey"] = add("0x", publicKey.ToString("x"));
+        account["address"] = add("0x", accountAddress.ToString("x"));
+        return account;
+    }
+
+    public object starknetSign(object msgHash, object privateKey)
+    {
+        var privateKeyString = privateKey.ToString().Replace("0x", "");
+        var msgHashStr = msgHash.ToString().Replace("0x", "");
+        var bigIntHash = BigInteger.Parse(msgHashStr, System.Globalization.NumberStyles.HexNumber);
+        var bigIntKey = BigInteger.Parse(privateKeyString, System.Globalization.NumberStyles.HexNumber);;
+        var res = ECDSA.Sign(bigIntHash, bigIntKey);
+        return this.json(new List<string> { res.R.ToString(), res.S.ToString() });
+    }
+
+    public object starknetEncodeStructuredData(object domain2, object messageTypes2, object messageData2, object address)
+    {
+        var domain = domain2 as IDictionary<string, object>;
+        var messageTypes = messageTypes2 as IDictionary<string, object>;
+        var messageTypesKeys = messageTypes.Keys.ToArray();
+        var domainValues = domain.Values.ToArray();
+        var domainTypes = new Dictionary<string, string>();
+        var messageData = messageData2 as IDictionary<string, object>;
+
+        var typeRaw = new TypedDataRaw(); // contains all domain + message info
+
+        // infer types from values
+        foreach (var key in domain.Keys)
+        {
+            // var type = domainValue.GetType();
+            var domainValue = domain[key];
+            if (domainValue is string && (domainValue as string).StartsWith("0x"))
+                domainTypes.Add(key, "address");
+            else if (domainValue is string)
+                domainTypes.Add(key, "string");
+            else
+                domainTypes.Add(key, "uint256"); // handle other use cases later
+        }
+
+        var types = new Dictionary<string, MemberDescription[]>();
+
+        // fill in domain types
+        var domainTypesDescription = new List<MemberDescription> { };
+        var domainValuesArray = new List<MemberValue> { };
+        var sip12Domain = new List<object[]> { };
+        sip12Domain.Add(new object[]{
+                "name",
+                "felt"
+        });
+        sip12Domain.Add(new object[]{
+                "chainId",
+                "felt"
+        });
+        sip12Domain.Add(new object[]{
+                "version",
+                "felt"
+        });
+        foreach (var d in sip12Domain)
+        {
+            var key = d[0] as string;
+            var type = d[1] as string;
+            for (var i = 0; i < domain.Count; i++)
+            {
+                if (String.Equals(key, domain.Keys.ElementAt(i)))
+                {
+                    var value = domainValues[i];
+                    var memberDescription = new MemberDescription();
+                    memberDescription.Name = key;
+                    memberDescription.Type = type;
+                    domainTypesDescription.Add(memberDescription);
+
+                    var memberValue = new MemberValue();
+                    memberValue.TypeName = type;
+                    memberValue.Value = value;
+                    domainValuesArray.Add(memberValue);
+                }
+            }
+        }
+        types["StarkNetDomain"] = domainTypesDescription.ToArray();
+        typeRaw.DomainRawValues = domainValuesArray.ToArray();
+
+        // fill in message types
+        var messageTypesDict = new Dictionary<string, string>();
+        var typeName = messageTypesKeys[0];
+        var messageTypesContent = messageTypes[typeName] as IList<object>;
+        var messageTypesDescription = new List<MemberDescription> { };
+        for (var i = 0; i < messageTypesContent.Count; i++)
+        {
+            var elem = messageTypesContent[i] as IDictionary<string, object>; // {\"name\":\"source\",\"type\":\"string\"}
+            var name = elem["name"] as string;
+            var type = elem["type"] as string;
+            messageTypesDict[name] = type;
+            // var key = messageTypesContent.Keys.ElementAt(i);
+            // var value = messageTypesContent.Values.ElementAt(i);
+            var member = new MemberDescription();
+            member.Name = name;
+            member.Type = type;
+            messageTypesDescription.Add(member);
+        }
+        types[typeName] = messageTypesDescription.ToArray();
+
+        // fill in message values
+        var messageValues = new List<MemberValue> { };
+        for (var i = 0; i < messageData.Count; i++)
+        {
+
+            var key = messageData.Keys.ElementAt(i);// for instance source
+            var type = messageTypesDict[key];
+            var value = messageData.Values.ElementAt(i); // 1
+            var member = new MemberValue();
+            member.TypeName = type;
+            member.Value = value;
+            messageValues.Add(member);
+        }
+        typeRaw.Message = messageValues.ToArray();
+        typeRaw.Types = types;
+        typeRaw.PrimaryType = typeName;
+
+        var encodedFromRaw = new TypedData().EncodeTypedDataRaw((typeRaw), address);
+
+        return encodedFromRaw;
+    }
+
+    public ECDSA.ECSignature Stark()
+    {
+        // debug only remove later
+        var msgHash = "111111";
+        var bytes = Exchange.StringToByteArray(msgHash);
+        var bigInt = new BigInteger(bytes);
+        var res = ECDSA.Sign(bigInt, bigInt);
+        return res;
     }
 
     public object spawn(object action, object[] args = null)

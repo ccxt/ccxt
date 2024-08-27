@@ -81,6 +81,12 @@ namespace ccxt;
         public MarketClosed(string message) : base(message) { }
         public MarketClosed(string message, OperationRejected inner) : base(message, inner) { }
     }
+   public class ManualInteractionNeeded : OperationRejected
+    {
+        public ManualInteractionNeeded() : base() { }
+        public ManualInteractionNeeded(string message) : base(message) { }
+        public ManualInteractionNeeded(string message, OperationRejected inner) : base(message, inner) { }
+    }
    public class InsufficientFunds : ExchangeError
     {
         public InsufficientFunds() : base() { }
@@ -201,6 +207,12 @@ namespace ccxt;
         public InvalidNonce(string message) : base(message) { }
         public InvalidNonce(string message, NetworkError inner) : base(message, inner) { }
     }
+   public class ChecksumError : InvalidNonce
+    {
+        public ChecksumError() : base() { }
+        public ChecksumError(string message) : base(message) { }
+        public ChecksumError(string message, InvalidNonce inner) : base(message, inner) { }
+    }
    public class RequestTimeout : NetworkError
     {
         public RequestTimeout() : base() { }
@@ -224,4 +236,10 @@ namespace ccxt;
         public CancelPending() : base() { }
         public CancelPending(string message) : base(message) { }
         public CancelPending(string message, OperationFailed inner) : base(message, inner) { }
+    }
+   public class UnsubscribeError : BaseError
+    {
+        public UnsubscribeError() : base() { }
+        public UnsubscribeError(string message) : base(message) { }
+        public UnsubscribeError(string message, BaseError inner) : base(message, inner) { }
     }

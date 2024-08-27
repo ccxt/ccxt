@@ -66,7 +66,7 @@ export default class coinbaseexchange extends Exchange {
     parseTransaction(transaction: Dict, currency?: Currency): Transaction;
     createDepositAddress(code: string, params?: {}): Promise<{
         currency: string;
-        address: any;
+        address: string;
         tag: string;
         info: any;
     }>;

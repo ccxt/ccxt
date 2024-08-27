@@ -26,6 +26,7 @@ class lbank(ccxt.async_support.lbank):
                 'watchTicker': True,
                 'watchTickers': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchMyTrades': False,
                 'watchOrders': True,
                 'watchOrderBook': True,

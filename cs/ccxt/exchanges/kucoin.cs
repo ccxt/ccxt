@@ -143,6 +143,7 @@ public partial class kucoin : Exchange
                         { "timestamp", 4.5 },
                         { "status", 4.5 },
                         { "mark-price/{symbol}/current", 3 },
+                        { "mark-price/all-symbols", 3 },
                         { "margin/config", 25 },
                     } },
                     { "post", new Dictionary<string, object>() {
@@ -354,6 +355,7 @@ public partial class kucoin : Exchange
                         { "broker/nd/account", 2 },
                         { "broker/nd/account/apikey", 2 },
                         { "broker/nd/rebase/download", 3 },
+                        { "asset/ndbroker/deposit/list", 1 },
                         { "broker/nd/transfer/detail", 1 },
                         { "broker/nd/deposit/detail", 1 },
                         { "broker/nd/withdraw/detail", 1 },
@@ -574,6 +576,7 @@ public partial class kucoin : Exchange
                             { "currencies", "v3" },
                             { "currencies/{currency}", "v3" },
                             { "symbols", "v2" },
+                            { "mark-price/all-symbols", "v3" },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
@@ -609,6 +612,7 @@ public partial class kucoin : Exchange
                             { "purchase/orders", "v3" },
                             { "margin/symbols", "v3" },
                             { "affiliate/inviter/statistics", "v2" },
+                            { "asset/ndbroker/deposit/list", "v1" },
                         } },
                         { "POST", new Dictionary<string, object>() {
                             { "sub/user/created", "v2" },
@@ -1359,23 +1363,31 @@ public partial class kucoin : Exchange
             } },
             { "networks", new Dictionary<string, object>() {} },
         };
-        object isWithdrawEnabled = this.safeBool(fee, "isWithdrawEnabled");
+        object isWithdrawEnabled = this.safeBool(fee, "isWithdrawEnabled", true);
+        object minFee = null;
         if (isTrue(isWithdrawEnabled))
         {
-            ((IDictionary<string,object>)getValue(result, "withdraw"))["fee"] = this.safeNumber2(fee, "withdrawalMinFee", "withdrawMinFee");
             ((IDictionary<string,object>)getValue(result, "withdraw"))["percentage"] = false;
-            object networkId = this.safeString(fee, "chain");
-            if (isTrue(networkId))
+            object chains = this.safeList(fee, "chains", new List<object>() {});
+            for (object i = 0; isLessThan(i, getArrayLength(chains)); postFixIncrement(ref i))
             {
+                object chain = getValue(chains, i);
+                object networkId = this.safeString(chain, "chainId");
                 object networkCode = this.networkIdToCode(networkId, this.safeString(currency, "code"));
+                object withdrawFee = this.safeString(chain, "withdrawalMinFee");
+                if (isTrue(isTrue(isEqual(minFee, null)) || isTrue((Precise.stringLt(withdrawFee, minFee)))))
+                {
+                    minFee = withdrawFee;
+                }
                 ((IDictionary<string,object>)getValue(result, "networks"))[(string)networkCode] = new Dictionary<string, object>() {
-                    { "withdraw", getValue(result, "withdraw") },
+                    { "withdraw", this.parseNumber(withdrawFee) },
                     { "deposit", new Dictionary<string, object>() {
                         { "fee", null },
                         { "percentage", null },
                     } },
                 };
             }
+            ((IDictionary<string,object>)getValue(result, "withdraw"))["fee"] = this.parseNumber(minFee);
         }
         return result;
     }

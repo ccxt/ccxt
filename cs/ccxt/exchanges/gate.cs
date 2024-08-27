@@ -584,21 +584,21 @@ public partial class gate : Exchange
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "88MPH", "MPH" },
-                { "AXIS", "Axis DeFi" },
-                { "BIFI", "Bitcoin File" },
-                { "BOX", "DefiBox" },
-                { "BYN", "BeyondFi" },
-                { "EGG", "Goose Finance" },
-                { "GTC", "Game.com" },
-                { "GTC_HT", "Game.com HT" },
-                { "GTC_BSC", "Game.com BSC" },
-                { "HIT", "HitChain" },
-                { "MM", "Million" },
-                { "MPH", "Morpher" },
-                { "POINT", "GatePoint" },
-                { "RAI", "Rai Reflex Index" },
-                { "SBTC", "Super Bitcoin" },
-                { "TNC", "Trinity Network Credit" },
+                { "AXIS", "AXISDEFI" },
+                { "BIFI", "BITCOINFILE" },
+                { "BOX", "DEFIBOX" },
+                { "BYN", "BEYONDFI" },
+                { "EGG", "GOOSEFINANCE" },
+                { "GTC", "GAMECOM" },
+                { "GTC_HT", "GAMECOM_HT" },
+                { "GTC_BSC", "GAMECOM_BSC" },
+                { "HIT", "HITCHAIN" },
+                { "MM", "MILLION" },
+                { "MPH", "MORPHER" },
+                { "POINT", "GATEPOINT" },
+                { "RAI", "RAIREFLEXINDEX" },
+                { "SBTC", "SUPERBITCOIN" },
+                { "TNC", "TRINITYNETWORKCREDIT" },
                 { "VAI", "VAIOT" },
                 { "TRAC", "TRACO" },
             } },
@@ -3634,8 +3634,8 @@ public partial class gate : Exchange
         object side = this.safeString2(trade, "side", "type", contractSide);
         object orderId = this.safeString(trade, "order_id");
         object feeAmount = this.safeString(trade, "fee");
-        object gtFee = this.safeString(trade, "gt_fee");
-        object pointFee = this.safeString(trade, "point_fee");
+        object gtFee = this.omitZero(this.safeString(trade, "gt_fee"));
+        object pointFee = this.omitZero(this.safeString(trade, "point_fee"));
         object fees = new List<object>() {};
         if (isTrue(!isEqual(feeAmount, null)))
         {
@@ -4512,10 +4512,10 @@ public partial class gate : Exchange
             {
                 if (isTrue(isEqual(side, "sell")))
                 {
-                    ((IDictionary<string,object>)request)["size"] = Precise.stringNeg(this.amountToPrecision(symbol, amount));
+                    ((IDictionary<string,object>)request)["size"] = this.parseToNumeric(Precise.stringNeg(this.amountToPrecision(symbol, amount)));
                 } else
                 {
-                    ((IDictionary<string,object>)request)["size"] = this.amountToPrecision(symbol, amount);
+                    ((IDictionary<string,object>)request)["size"] = this.parseToNumeric(this.amountToPrecision(symbol, amount));
                 }
             }
         }
@@ -5501,8 +5501,7 @@ public partial class gate : Exchange
         * @name gate#cancelOrdersForSymbols
         * @description cancel multiple orders for multiple symbols
         * @see https://www.gate.io/docs/developers/apiv4/en/#cancel-a-batch-of-orders-with-an-id-list
-        * @param {string[]} ids order ids
-        * @param {string} symbol unified symbol of the market the order was made in
+        * @param {CancellationRequest[]} orders list of order ids with symbol, example [{"id": "a", "symbol": "BTC/USDT"}, {"id": "b", "symbol": "ETH/USDT"}]
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string[]} [params.clientOrderIds] client order ids
         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}

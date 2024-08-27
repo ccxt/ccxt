@@ -159,6 +159,7 @@ class kucoin extends kucoin$1 {
                         'status': 4.5,
                         // margin trading
                         'mark-price/{symbol}/current': 3,
+                        'mark-price/all-symbols': 3,
                         'margin/config': 25, // 25SW
                     },
                     'post': {
@@ -394,6 +395,7 @@ class kucoin extends kucoin$1 {
                         'broker/nd/account': 2,
                         'broker/nd/account/apikey': 2,
                         'broker/nd/rebase/download': 3,
+                        'asset/ndbroker/deposit/list': 1,
                         'broker/nd/transfer/detail': 1,
                         'broker/nd/deposit/detail': 1,
                         'broker/nd/withdraw/detail': 1,
@@ -644,6 +646,7 @@ class kucoin extends kucoin$1 {
                             'currencies': 'v3',
                             'currencies/{currency}': 'v3',
                             'symbols': 'v2',
+                            'mark-price/all-symbols': 'v3',
                         },
                     },
                     'private': {
@@ -684,6 +687,7 @@ class kucoin extends kucoin$1 {
                             'purchase/orders': 'v3',
                             'margin/symbols': 'v3',
                             'affiliate/inviter/statistics': 'v2',
+                            'asset/ndbroker/deposit/list': 'v1',
                         },
                         'POST': {
                             // account
@@ -1519,21 +1523,28 @@ class kucoin extends kucoin$1 {
             },
             'networks': {},
         };
-        const isWithdrawEnabled = this.safeBool(fee, 'isWithdrawEnabled');
+        const isWithdrawEnabled = this.safeBool(fee, 'isWithdrawEnabled', true);
+        let minFee = undefined;
         if (isWithdrawEnabled) {
-            result['withdraw']['fee'] = this.safeNumber2(fee, 'withdrawalMinFee', 'withdrawMinFee');
             result['withdraw']['percentage'] = false;
-            const networkId = this.safeString(fee, 'chain');
-            if (networkId) {
+            const chains = this.safeList(fee, 'chains', []);
+            for (let i = 0; i < chains.length; i++) {
+                const chain = chains[i];
+                const networkId = this.safeString(chain, 'chainId');
                 const networkCode = this.networkIdToCode(networkId, this.safeString(currency, 'code'));
+                const withdrawFee = this.safeString(chain, 'withdrawalMinFee');
+                if (minFee === undefined || (Precise["default"].stringLt(withdrawFee, minFee))) {
+                    minFee = withdrawFee;
+                }
                 result['networks'][networkCode] = {
-                    'withdraw': result['withdraw'],
+                    'withdraw': this.parseNumber(withdrawFee),
                     'deposit': {
                         'fee': undefined,
                         'percentage': undefined,
                     },
                 };
             }
+            result['withdraw']['fee'] = this.parseNumber(minFee);
         }
         return result;
     }

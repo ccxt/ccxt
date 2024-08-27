@@ -37,6 +37,9 @@ declare class MarginModeAlreadySet extends NoChange {
 declare class MarketClosed extends OperationRejected {
     constructor(message: string);
 }
+declare class ManualInteractionNeeded extends OperationRejected {
+    constructor(message: string);
+}
 declare class InsufficientFunds extends ExchangeError {
     constructor(message: string);
 }
@@ -97,6 +100,9 @@ declare class OnMaintenance extends ExchangeNotAvailable {
 declare class InvalidNonce extends NetworkError {
     constructor(message: string);
 }
+declare class ChecksumError extends InvalidNonce {
+    constructor(message: string);
+}
 declare class RequestTimeout extends NetworkError {
     constructor(message: string);
 }
@@ -109,7 +115,10 @@ declare class NullResponse extends BadResponse {
 declare class CancelPending extends OperationFailed {
     constructor(message: string);
 }
-export { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, BadResponse, NullResponse, CancelPending };
+declare class UnsubscribeError extends BaseError {
+    constructor(message: string);
+}
+export { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError };
 declare const _default: {
     BaseError: typeof BaseError;
     ExchangeError: typeof ExchangeError;
@@ -124,6 +133,7 @@ declare const _default: {
     NoChange: typeof NoChange;
     MarginModeAlreadySet: typeof MarginModeAlreadySet;
     MarketClosed: typeof MarketClosed;
+    ManualInteractionNeeded: typeof ManualInteractionNeeded;
     InsufficientFunds: typeof InsufficientFunds;
     InvalidAddress: typeof InvalidAddress;
     AddressPending: typeof AddressPending;
@@ -144,9 +154,11 @@ declare const _default: {
     ExchangeNotAvailable: typeof ExchangeNotAvailable;
     OnMaintenance: typeof OnMaintenance;
     InvalidNonce: typeof InvalidNonce;
+    ChecksumError: typeof ChecksumError;
     RequestTimeout: typeof RequestTimeout;
     BadResponse: typeof BadResponse;
     NullResponse: typeof NullResponse;
     CancelPending: typeof CancelPending;
+    UnsubscribeError: typeof UnsubscribeError;
 };
 export default _default;

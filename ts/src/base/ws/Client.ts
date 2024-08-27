@@ -24,9 +24,9 @@ export default class Client {
     rejections: Dictionary<any>
 
     // @ts-ignore: 2564
-    messageQueue: Dictionary<string, any>
+    messageQueue: Dictionary<any>
 
-    useMessageQueue: boolean = true
+    useMessageQueue: boolean = false
 
     // @ts-ignore: 2564
     keepAlive: number
@@ -87,7 +87,7 @@ export default class Client {
             subscriptions: {},
             rejections: {}, // so that we can reject things in the future
             messageQueue: {}, // store unresolved messages per messageHash
-            useMessageQueue: true, // if false, messageQueue logic won't be used
+            useMessageQueue: false, // if false, messageQueue logic won't be used
             connected: undefined, // connection-related Future
             error: undefined, // stores low-level networking exception, if any
             connectionStarted: undefined, // initiation timestamp in milliseconds

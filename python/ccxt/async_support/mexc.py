@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.mexc import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Currencies, Currency, IndexType, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry, TransferEntries
+from ccxt.base.types import Account, Balances, Currencies, Currency, IndexType, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -577,7 +577,7 @@ class mexc(Exchange, ImplicitAPI):
                     'POKT': 'POKT',
                     'QKC': 'QKC',
                     'QTUM': 'QTUM',
-                    'RAP20': 'RAP20(Rangers Mainnet)',
+                    'RAP20': 'RAP20' + ' ' + '(Rangers Mainnet)',
                     'REI': 'REI',
                     'RSK': 'RBTC',
                     'RVN': 'Ravencoin(RVN)',
@@ -727,69 +727,9 @@ class mexc(Exchange, ImplicitAPI):
                     # OKB <> OKT(for usdt it's exception) for OKC, PMEER, FLARE, STRD, ZEL, FUND, "NONE", CRING, FREETON, QTZ  (probably unique network is meant), HT, BSC(RACAV1), BSC(RACAV2), AMBROSUS, BAJUN, NOM. their individual info is at https://www.mexc.com/api/platform/asset/spot/{COINNAME}
                 },
                 'networksById': {
-                    'Aleph Zero(AZERO)': 'AZERO',
-                    'Alephium(ALPH)': 'ALPH',
-                    'Algorand(ALGO)': 'ALGO',
-                    'APTOS(APT)': 'APT',
-                    'Arbitrum One(ARB)': 'ARB',
-                    'Avalanche C Chain(AVAX CCHAIN)': 'AVAXC',
-                    'Avalanche X Chain(AVAX XCHAIN)': 'AVAXX',
-                    'BEP20(BSC)': 'BSC',
-                    'Bitcoin Cash(BCH)': 'BCH',
-                    'Bitcoin SV(BSV)': 'BSV',
-                    'Bitcoin(BTC)': 'BTC',
-                    'Bittensor(TAO)': 'TAO',
-                    'BNB Beacon Chain(BEP2)': 'BEP2',
                     'BNB Smart Chain(BEP20-RACAV1)': 'BSC',
                     'BNB Smart Chain(BEP20-RACAV2)': 'BSC',
                     'BNB Smart Chain(BEP20)': 'BSC',
-                    'Cardano(ADA)': 'ADA',
-                    'Celestia(TIA)': 'TIA',
-                    'Chia(XCH)': 'XCH',
-                    'Chiliz Chain(CHZ2)': 'CHZ2',
-                    'Chiliz Legacy Chain(CHZ)': 'CHZ',
-                    'Clore.ai(CLORE)': 'CLORE',
-                    'Cosmos(ATOM)': 'ATOM',
-                    'Dogechain(DC)': 'DC',
-                    'Dogecoin(DOGE)': 'DOGE',
-                    'Dymension(DYM)': 'DYM',
-                    'Dynex(DNX)': 'DNX',
-                    'Elysium(LAVA)': 'LAVA',
-                    'Ethereum Classic(ETC)': 'ETC',
-                    'Ethereum(ERC20)': 'ERC20',
-                    'Fantom(FTM)': 'FTM',
-                    'Hedera(HBAR)': 'HBAR',
-                    'Index Chain': 'INDEX',
-                    'Internet Computer(ICP)': 'ICP',
-                    'Kaspa(KAS)': 'KAS',
-                    'Klaytn(KLAY)': 'KLAY',
-                    'Litecoin(LTC)': 'LTC',
-                    'Mantle(MNT)': 'MNT',
-                    'Mcoin Network': 'MCOIN',
-                    'Meter(MTRG)': 'MTRG',
-                    'Monero(XMR)': 'XMR',
-                    'NEAR Protocol(NEAR)': 'NEAR',
-                    'Neoxa Network': 'NEOXA',
-                    'Neurai(XNA)': 'XNA',
-                    'Omega Network(OMN)': 'OMN',
-                    'Optimism(OP)': 'OPTIMISM',
-                    'Polkadot(DOT)': 'DOT',
-                    'Polygon(MATIC)': 'MATIC',
-                    'RAP20(Rangers Mainnet)': 'RAP20',
-                    'Ravencoin(RVN)': 'RVN',
-                    'Ripple(XRP)': 'XRP',
-                    'Satoxcoin(SATOX)': 'SATOX',
-                    'Solana(SOL)': 'SOL',
-                    'Starknet(STARK)': 'STARK',
-                    'Stellar(XLM)': 'XLM',
-                    'Terra(LUNA)': 'LUNA',
-                    'Toncoin(TON)': 'TON',
-                    'Tron(TRC20)': 'TRC20',
-                    'UGAS(Ultrain)': 'UGAS',
-                    'VeChain(VET)': 'VET',
-                    'Vexanium(VEX)': 'VEX',
-                    'XPR Network': 'XPR',
-                    'Zilliqa(ZIL)': 'ZIL',
                     # TODO: uncomment below after deciding unified name
                     # 'PEPE COIN BSC':
                     # 'SMART BLOCKCHAIN':
@@ -810,24 +750,24 @@ class mexc(Exchange, ImplicitAPI):
             'commonCurrencies': {
                 'BEYONDPROTOCOL': 'BEYOND',
                 'BIFI': 'BIFIF',
-                'BYN': 'BeyondFi',
+                'BYN': 'BEYONDFI',
                 'COFI': 'COFIX',  # conflict with CoinFi
-                'DFI': 'DfiStarter',
-                'DFT': 'dFuture',
+                'DFI': 'DFISTARTER',
+                'DFT': 'DFUTURE',
                 'DRK': 'DRK',
-                'EGC': 'Egoras Credit',
+                'EGC': 'EGORASCREDIT',
                 'FLUX1': 'FLUX',  # switched places
                 'FLUX': 'FLUX1',  # switched places
-                'FREE': 'FreeRossDAO',  # conflict with FREE Coin
+                'FREE': 'FREEROSSDAO',  # conflict with FREE Coin
                 'GAS': 'GASDAO',
                 'GASNEO': 'GAS',
-                'GMT': 'GMT Token',  # Conflict with GMT(STEPN)
+                'GMT': 'GMTTOKEN',  # Conflict with GMT(STEPN)
                 'STEPN': 'GMT',  # Conflict with GMT Token
-                'HERO': 'Step Hero',  # conflict with Metahero
-                'MIMO': 'Mimosa',
-                'PROS': 'Pros.Finance',  # conflict with Prosper
-                'SIN': 'Sin City Token',
-                'SOUL': 'Soul Swap',
+                'HERO': 'STEPHERO',  # conflict with Metahero
+                'MIMO': 'MIMOSA',
+                'PROS': 'PROSFINANCE',  # conflict with Prosper
+                'SIN': 'SINCITYTOKEN',
+                'SOUL': 'SOULSWAP',
             },
             'exceptions': {
                 'exact': {
@@ -1158,7 +1098,7 @@ class mexc(Exchange, ImplicitAPI):
         #         "symbols": [
         #           {
         #                "symbol": "OGNUSDT",
-        #                "status": "ENABLED",
+        #                "status": "1",
         #                "baseAsset": "OGN",
         #                "baseAssetPrecision": "2",
         #                "quoteAsset": "USDT",
@@ -1203,7 +1143,7 @@ class mexc(Exchange, ImplicitAPI):
             status = self.safe_string(market, 'status')
             isSpotTradingAllowed = self.safe_value(market, 'isSpotTradingAllowed')
             active = False
-            if (status == 'ENABLED') and (isSpotTradingAllowed):
+            if (status == '1') and (isSpotTradingAllowed):
                 active = True
             isMarginTradingAllowed = self.safe_value(market, 'isMarginTradingAllowed')
             makerCommission = self.safe_number(market, 'makerCommission')
@@ -4690,7 +4630,7 @@ class mexc(Exchange, ImplicitAPI):
             raise BadRequest(self.id + ' fetchTransfer() is not supported for ' + marketType)
         return None
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
         :param str code: unified currency code of the currency transferred
@@ -4905,9 +4845,10 @@ class mexc(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
-        networks = self.safe_value(self.options, 'networks', {})
+        networks = self.safe_dict(self.options, 'networks', {})
         network = self.safe_string_2(params, 'network', 'netWork')  # self line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network, network)  # handle ETH > ERC-20 alias
+        network = self.network_id_to_code(network)
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)

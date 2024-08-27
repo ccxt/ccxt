@@ -18,6 +18,7 @@ export default class huobijp extends huobijpRest {
                 'watchTickers': false,
                 'watchTicker': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchBalance': false,
                 'watchOHLCV': true,
             },

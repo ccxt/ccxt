@@ -208,11 +208,12 @@ class Balances(Dict[str, Balance]):
 
 
 class OrderBook(TypedDict):
-    asks: List[Num]
-    bids: List[Num]
+    asks: List[List[Num]]
+    bids: List[List[Num]]
     datetime: Str
     timestamp: Int
     nonce: Int
+    symbol: Str
 
 
 class Transaction(TypedDict):
@@ -492,13 +493,30 @@ class LeverageTier:
     info: Dict[str, Any]
 
 
+class LedgerEntry:
+    id: Str
+    info: Any
+    timestamp: Int
+    datetime: Str
+    direction: Str
+    account: Str
+    referenceId: Str
+    referenceAccount: Str
+    type: Str
+    currency: Str
+    amount: Str
+    before: float
+    after: float
+    status: Str
+    fee: Fee
+
+
 FundingRates = Dict[Str, FundingRate]
 LastPrices = Dict[Str, LastPrice]
 Currencies = Dict[Str, CurrencyInterface]
 TradingFees = Dict[Str, TradingFeeInterface]
 IsolatedBorrowRates = Dict[Str, IsolatedBorrowRate]
 CrossBorrowRates = Dict[Str, CrossBorrowRate]
-TransferEntries = Dict[Str, TransferEntry]
 LeverageTiers = Dict[Str, List[LeverageTier]]
 
 Market = Optional[MarketInterface]

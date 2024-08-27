@@ -8,7 +8,7 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
-use ccxt\InvalidNonce;
+use ccxt\ChecksumError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -23,6 +23,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
                 'watchTickers' => false,
                 'watchOrderBook' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchMyTrades' => true,
                 'watchBalance' => true,
                 'watchOHLCV' => true,
@@ -40,9 +41,9 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
                 'watchOrderBook' => array(
                     'prec' => 'P0',
                     'freq' => 'F0',
+                    'checksum' => true,
                 ),
                 'ordersLimit' => 1000,
-                'checksum' => true,
             ),
         ));
     }
@@ -224,7 +225,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
              * @param {int} [$since] the earliest time in ms to fetch $trades for
              * @param {int} [$limit] the maximum number of trade structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=trade-structure trade structures~
              */
             Async\await($this->load_markets());
             $messageHash = 'myTrade';
@@ -699,10 +700,13 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
         $localChecksum = $this->crc32($payload, true);
         $responseChecksum = $this->safe_integer($message, 2);
         if ($responseChecksum !== $localChecksum) {
-            $error = new InvalidNonce ($this->id . ' invalid checksum');
             unset($client->subscriptions[$messageHash]);
             unset($this->orderbooks[$symbol]);
-            $client->reject ($error, $messageHash);
+            $checksum = $this->handle_option('watchOrderBook', 'checksum', true);
+            if ($checksum) {
+                $error = new ChecksumError ($this->id . ' ' . $this->orderbook_checksum_message($symbol));
+                $client->reject ($error, $messageHash);
+            }
         }
     }
 
@@ -916,7 +920,7 @@ class bitfinex2 extends \ccxt\async\bitfinex2 {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             $messageHash = 'orders';

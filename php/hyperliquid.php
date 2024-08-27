@@ -89,8 +89,8 @@ class hyperliquid extends Exchange {
                 'fetchPositions' => true,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
-                'fetchTicker' => false,
-                'fetchTickers' => false,
+                'fetchTicker' => 'emulated',
+                'fetchTickers' => true,
                 'fetchTime' => false,
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
@@ -245,8 +245,16 @@ class hyperliquid extends Exchange {
                 'withdraw' => null,
                 'networks' => null,
                 'fee' => null,
-                // 'fees' => fees,
-                'limits' => null,
+                'limits' => array(
+                    'amount' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'withdraw' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                ),
             );
         }
         return $result;
@@ -312,12 +320,12 @@ class hyperliquid extends Exchange {
         //
         //
         $meta = $this->safe_dict($response, 0, array());
-        $meta = $this->safe_list($meta, 'universe', array());
+        $universe = $this->safe_list($meta, 'universe', array());
         $assetCtxs = $this->safe_dict($response, 1, array());
         $result = array();
-        for ($i = 0; $i < count($meta); $i++) {
+        for ($i = 0; $i < count($universe); $i++) {
             $data = $this->extend(
-                $this->safe_dict($meta, $i, array()),
+                $this->safe_dict($universe, $i, array()),
                 $this->safe_dict($assetCtxs, $i, array())
             );
             $data['baseId'] = $i;
@@ -433,11 +441,13 @@ class hyperliquid extends Exchange {
         //
         // $response differs depending on the environment (mainnet vs sandbox)
         $first = $this->safe_dict($response, 0, array());
+        $second = $this->safe_list($response, 1, array());
         $meta = $this->safe_list_2($first, 'universe', 'spot_infos', array());
         $tokens = $this->safe_list_2($first, 'tokens', 'token_infos', array());
         $markets = array();
         for ($i = 0; $i < count($meta); $i++) {
             $market = $this->safe_dict($meta, $i, array());
+            $extraData = $this->safe_dict($second, $i, array());
             $marketName = $this->safe_string($market, 'name');
             // if (mb_strpos($marketName, '/') === false) {
             //     // there are some weird spot $markets in testnet, eg @2
@@ -514,7 +524,7 @@ class hyperliquid extends Exchange {
                     ),
                 ),
                 'created' => null,
-                'info' => $market,
+                'info' => $this->extend($extraData, $market),
             ));
         }
         return $markets;
@@ -742,6 +752,60 @@ class hyperliquid extends Exchange {
         return $this->parse_order_book($result, $market['symbol'], $timestamp, 'bids', 'asks', 'px', 'sz');
     }
 
+    public function fetch_tickers(?array $symbols = null, $params = array ()): array {
+        /**
+         * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
+         * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
+         * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
+         */
+        $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
+        // at this stage, to get tickers data, we use fetchMarkets endpoints
+        $response = $this->fetch_markets($params);
+        // same $response "fetchMarkets"
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $market = $response[$i];
+            $info = $market['info'];
+            $ticker = $this->parse_ticker($info, $market);
+            $symbol = $this->safe_string($ticker, 'symbol');
+            $result[$symbol] = $ticker;
+        }
+        return $this->filter_by_array_tickers($result, 'symbol', $symbols);
+    }
+
+    public function parse_ticker(array $ticker, ?array $market = null): array {
+        //
+        //     array(
+        //         "prevDayPx" => "3400.5",
+        //         "dayNtlVlm" => "511297257.47936022",
+        //         "markPx" => "3464.7",
+        //         "midPx" => "3465.05",
+        //         "oraclePx" => "3460.1", // only in swap
+        //         "openInterest" => "64638.1108", // only in swap
+        //         "premium" => "0.00141614", // only in swap
+        //         "funding" => "0.00008727", // only in swap
+        //         "impactPxs" => array( "3465.0", "3465.1" ), // only in swap
+        //         "coin" => "PURR", // only in spot
+        //         "circulatingSupply" => "998949190.03400207", // only in spot
+        //     ),
+        //
+        $bidAsk = $this->safe_list($ticker, 'impactPxs');
+        return $this->safe_ticker(array(
+            'symbol' => $market['symbol'],
+            'timestamp' => null,
+            'datetime' => null,
+            'previousClose' => $this->safe_number($ticker, 'prevDayPx'),
+            'close' => $this->safe_number($ticker, 'midPx'),
+            'bid' => $this->safe_number($bidAsk, 0),
+            'ask' => $this->safe_number($bidAsk, 1),
+            'quoteVolume' => $this->safe_number($ticker, 'dayNtlVlm'),
+            'info' => $ticker,
+        ), $market);
+    }
+
     public function fetch_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -759,9 +823,6 @@ class hyperliquid extends Exchange {
         $until = $this->safe_integer($params, 'until', $this->milliseconds());
         if ($since === null) {
             $since = 0;
-        }
-        if ($limit === null) {
-            $limit = 500;
         }
         $params = $this->omit($params, array( 'until' ));
         $request = array(
@@ -1015,44 +1076,61 @@ class hyperliquid extends Exchange {
         /**
          * create a trade $order
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-$order
-         * @param {string} $symbol unified $symbol of the $market to create an $order in
+         * @param {string} $symbol unified $symbol of the market to create an $order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in market $orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->timeInForce] 'Gtc', 'Ioc', 'Alo'
          * @param {bool} [$params->postOnly] true or false whether the $order is post-only
          * @param {bool} [$params->reduceOnly] true or false whether the $order is reduce-only
          * @param {float} [$params->triggerPrice] The $price at which a trigger $order is triggered at
          * @param {string} [$params->clientOrderId] client $order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
-         * @param {string} [$params->slippage] the slippage for $market $order
+         * @param {string} [$params->slippage] the slippage for market $order
          * @param {string} [$params->vaultAddress] the vault address for $order
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
          */
         $this->load_markets();
-        $market = $this->market($symbol);
-        $vaultAddress = $this->safe_string($params, 'vaultAddress');
-        $params = $this->omit($params, 'vaultAddress');
-        $symbol = $market['symbol'];
-        $order = array(
-            'symbol' => $symbol,
-            'type' => $type,
-            'side' => $side,
-            'amount' => $amount,
-            'price' => $price,
-            'params' => $params,
-        );
-        $globalParams = array();
-        if ($vaultAddress !== null) {
-            $globalParams['vaultAddress'] = $vaultAddress;
-        }
-        $response = $this->create_orders(array( $order ), $globalParams);
-        $first = $this->safe_dict($response, 0);
-        return $first;
+        list($order, $globalParams) = $this->parse_create_order_args($symbol, $type, $side, $amount, $price, $params);
+        $orders = $this->create_orders(array( $order ), $globalParams);
+        return $orders[0];
     }
 
     public function create_orders(array $orders, $params = array ()) {
+        /**
+         * create a list of trade $orders
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+         * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and $params
+         * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
+         */
+        $this->load_markets();
+        $request = $this->create_orders_request($orders, $params);
+        $response = $this->privatePostExchange ($request);
+        //
+        //     {
+        //         "status" => "ok",
+        //         "response" => {
+        //             "type" => "order",
+        //             "data" => {
+        //                 "statuses" => array(
+        //                     {
+        //                         "resting" => {
+        //                             "oid" => 5063830287
+        //                         }
+        //                     }
+        //                 )
+        //             }
+        //         }
+        //     }
+        //
+        $responseObj = $this->safe_dict($response, 'response', array());
+        $data = $this->safe_dict($responseObj, 'data', array());
+        $statuses = $this->safe_list($data, 'statuses', array());
+        return $this->parse_orders($statuses, null);
+    }
+
+    public function create_orders_request($orders, $params = array ()): array {
         /**
          * create a list of trade $orders
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
@@ -1060,7 +1138,6 @@ class hyperliquid extends Exchange {
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->check_required_credentials();
-        $this->load_markets();
         $defaultSlippage = $this->safe_string($this->options, 'defaultSlippage');
         $defaultSlippage = $this->safe_string($params, 'slippage', $defaultSlippage);
         $hasClientOrderId = false;
@@ -1177,28 +1254,7 @@ class hyperliquid extends Exchange {
             $params = $this->omit($params, 'vaultAddress');
             $request['vaultAddress'] = $vaultAddress;
         }
-        $response = $this->privatePostExchange ($request);
-        //
-        //     {
-        //         "status" => "ok",
-        //         "response" => {
-        //             "type" => "order",
-        //             "data" => {
-        //                 "statuses" => array(
-        //                     {
-        //                         "resting" => {
-        //                             "oid" => 5063830287
-        //                         }
-        //                     }
-        //                 )
-        //             }
-        //         }
-        //     }
-        //
-        $responseObj = $this->safe_dict($response, 'response', array());
-        $data = $this->safe_dict($responseObj, 'data', array());
-        $statuses = $this->safe_list($data, 'statuses', array());
-        return $this->parse_orders($statuses, null);
+        return $request;
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -1310,7 +1366,7 @@ class hyperliquid extends Exchange {
          * cancel multiple $orders for multiple symbols
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-$order-s
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#cancel-$order-s-by-cloid
-         * @param {CancellationRequest[]} $orders each $order should contain the parameters required by cancelOrder namely $id and $symbol
+         * @param {CancellationRequest[]} $orders each $order should contain the parameters required by cancelOrder namely $id and $symbol, example [array("id" => "a", "symbol" => "BTC/USDT"), array("id" => "b", "symbol" => "ETH/USDT")]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->vaultAddress] the vault address
          * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structures~
@@ -1415,31 +1471,11 @@ class hyperliquid extends Exchange {
         return $response;
     }
 
-    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
-        /**
-         * edit a trade order
-         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
-         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
-         * @param {string} $id cancel order $id
-         * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market' or 'limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->timeInForce] 'Gtc', 'Ioc', 'Alo'
-         * @param {bool} [$params->postOnly] true or false whether the order is post-only
-         * @param {bool} [$params->reduceOnly] true or false whether the order is reduce-only
-         * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
-         * @param {string} [$params->clientOrderId] client order $id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
-         * @param {string} [$params->vaultAddress] the vault address for order
-         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
-         */
+    public function edit_order_request(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         $this->check_required_credentials();
         if ($id === null) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires an $id argument');
         }
-        $this->load_markets();
         $market = $this->market($symbol);
         $type = strtoupper($type);
         $isMarket = ($type === 'MARKET');
@@ -1523,6 +1559,32 @@ class hyperliquid extends Exchange {
             $params = $this->omit($params, 'vaultAddress');
             $request['vaultAddress'] = $vaultAddress;
         }
+        return $request;
+    }
+
+    public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
+        /**
+         * edit a trade order
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
+         * @param {string} $id cancel order $id
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->timeInForce] 'Gtc', 'Ioc', 'Alo'
+         * @param {bool} [$params->postOnly] true or false whether the order is post-only
+         * @param {bool} [$params->reduceOnly] true or false whether the order is reduce-only
+         * @param {float} [$params->triggerPrice] The $price at which a trigger order is triggered at
+         * @param {string} [$params->clientOrderId] client order $id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+         * @param {string} [$params->vaultAddress] the vault address for order
+         * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = $this->edit_order_request($id, $symbol, $type, $side, $amount, $price, $params);
         $response = $this->privatePostExchange ($request);
         //
         //     {
@@ -2678,5 +2740,25 @@ class hyperliquid extends Exchange {
             $body = $this->json($params);
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+    }
+
+    public function parse_create_order_args(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
+        $market = $this->market($symbol);
+        $vaultAddress = $this->safe_string($params, 'vaultAddress');
+        $params = $this->omit($params, 'vaultAddress');
+        $symbol = $market['symbol'];
+        $order = array(
+            'symbol' => $symbol,
+            'type' => $type,
+            'side' => $side,
+            'amount' => $amount,
+            'price' => $price,
+            'params' => $params,
+        );
+        $globalParams = array();
+        if ($vaultAddress !== null) {
+            $globalParams['vaultAddress'] = $vaultAddress;
+        }
+        return array( $order, $globalParams );
     }
 }

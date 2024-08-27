@@ -1371,6 +1371,7 @@ class hitbtc(Exchange, ImplicitAPI):
         statuses: dict = {
             'PENDING': 'pending',
             'FAILED': 'failed',
+            'ROLLED_BACK': 'failed',
             'SUCCESS': 'ok',
         }
         return self.safe_string(statuses, status, status)

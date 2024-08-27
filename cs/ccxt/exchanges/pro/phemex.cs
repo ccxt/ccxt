@@ -23,6 +23,7 @@ public partial class phemex : ccxt.phemex
                 { "watchOrderBookForSymbols", false },
                 { "watchTradesForSymbols", false },
                 { "watchOHLCVForSymbols", false },
+                { "watchBalance", true },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "test", new Dictionary<string, object>() {
@@ -37,7 +38,7 @@ public partial class phemex : ccxt.phemex
                 { "OHLCVLimit", 1000 },
             } },
             { "streaming", new Dictionary<string, object>() {
-                { "keepAlive", 10000 },
+                { "keepAlive", 9000 },
             } },
         });
     }
@@ -793,7 +794,7 @@ public partial class phemex : ccxt.phemex
         * @param {int} [since] the earliest time in ms to fetch trades for
         * @param {int} [limit] the maximum number of trade structures to retrieve
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

@@ -20,6 +20,7 @@ export default class cex extends cexRest {
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': true,
                 'watchOrders': true,
                 'watchOrderBook': true,
@@ -1015,7 +1016,7 @@ export default class cex extends cexRest {
         //     }
         //
         const data = this.safeValue(message, 'data', {});
-        const incrementalId = this.safeNumber(data, 'id');
+        const incrementalId = this.safeInteger(data, 'id');
         const pair = this.safeString(data, 'pair', '');
         const symbol = this.pairToSymbol(pair);
         const storedOrderBook = this.safeValue(this.orderbooks, symbol);
@@ -1194,6 +1195,7 @@ export default class cex extends cexRest {
          * @name cex#fetchOrderWs
          * @description fetches information on an order made by the user
          * @see https://docs.cex.io/#ws-api-get-order
+         * @param {string} id the order id
          * @param {string} symbol not used by cex fetchOrder
          * @param {object} [params] extra parameters specific to the cex api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

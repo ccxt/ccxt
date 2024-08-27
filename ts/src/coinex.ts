@@ -7,7 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
-import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRate, Dict, TransferEntries, LeverageTiers, LeverageTier, int } from './base/types.js';
+import type { Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, OHLCV, Order, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, OrderRequest, TransferEntry, Leverage, Num, MarginModification, TradingFeeInterface, Currencies, TradingFees, Position, IsolatedBorrowRate, Dict, LeverageTiers, LeverageTier, int } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -3740,27 +3740,9 @@ export default class coinex extends Exchange {
         const options = this.safeDict (this.options, 'fetchDepositAddress', {});
         const fillResponseFromRequest = this.safeBool (options, 'fillResponseFromRequest', true);
         if (fillResponseFromRequest) {
-            depositAddress['network'] = this.safeNetworkCode (network, currency);
+            depositAddress['network'] = this.networkIdToCode (network, currency).toUpperCase ();
         }
         return depositAddress;
-    }
-
-    safeNetwork (networkId, currency: Currency = undefined) {
-        const networks = this.safeValue (currency, 'networks', {});
-        const networksCodes = Object.keys (networks);
-        const networksCodesLength = networksCodes.length;
-        if (networkId === undefined && networksCodesLength === 1) {
-            return networks[networksCodes[0]];
-        }
-        return {
-            'id': networkId,
-            'network': (networkId === undefined) ? undefined : networkId.toUpperCase (),
-        };
-    }
-
-    safeNetworkCode (networkId, currency: Currency = undefined) {
-        const network = this.safeNetwork (networkId, currency);
-        return network['network'];
     }
 
     parseDepositAddress (depositAddress, currency: Currency = undefined) {
@@ -4965,7 +4947,7 @@ export default class coinex extends Exchange {
         };
     }
 
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntries> {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         /**
          * @method
          * @name coinex#fetchTransfers
@@ -5602,7 +5584,7 @@ export default class coinex extends Exchange {
         } as Leverage;
     }
 
-    async fetchPositionHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position> {
+    async fetchPositionHistory (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
         /**
          * @method
          * @name coinex#fetchPositionHistory

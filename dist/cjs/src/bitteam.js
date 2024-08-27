@@ -1937,7 +1937,6 @@ class bitteam extends bitteam$1 {
         const fee = {
             'currency': this.safeCurrencyCode(feeCurrencyId),
             'cost': feeCost,
-            'rate': undefined,
         };
         const intTs = this.parseToInt(timestamp);
         return this.safeTrade({
