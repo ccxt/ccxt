@@ -3984,7 +3984,7 @@ export default class bitget extends Exchange {
         if (feeCostString !== undefined) {
             // swap
             fee = {
-                'cost': this.parseNumber (Precise.stringAbs (feeCostString)),
+                'cost': this.parseNumber (Precise.stringNeg (feeCostString)),
                 'currency': market['settle'],
             };
         }
@@ -4001,7 +4001,7 @@ export default class bitget extends Exchange {
                 }
             }
             fee = {
-                'cost': this.parseNumber (Precise.stringAbs (this.safeString (feeObject, 'totalFee'))),
+                'cost': this.parseNumber (Precise.stringNeg (this.safeString (feeObject, 'totalFee'))),
                 'currency': this.safeCurrencyCode (this.safeString (feeObject, 'feeCoinCode')),
             };
         }
