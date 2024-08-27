@@ -17,6 +17,8 @@ function deepEquals (a, b) {
     const arrayBLength = bKeys.length;
     if (arrayALength !== arrayBLength) {
         return false;
+    } else if (arrayALength === 0) {
+        return true;
     }
     for (let i = 0; i < arrayALength; i++) {
         const key = aKeys[i];
@@ -43,17 +45,6 @@ function uniqueArraysHaveSameEntries (a, b) {
             }
         }
         if (found === false) {
-            return false;
-        }
-    }
-    return true;
-}
-
-function equals (a, b) {
-    // does not check if b has more properties than a
-    // eslint-disable-next-line no-restricted-syntax
-    for (const prop of Object.keys (a)) {
-        if (a[prop] !== b[prop]) {
             return false;
         }
     }
@@ -118,13 +109,34 @@ function testGenericMethods () {
         'strNumber': '3',
     };
 
-    // keys no such property in python and php
+    // keys no such property in py and php
     // assert (deepEquals (exchange.keys (inputDict), inputDictKeys));
     // assert (deepEquals (exchange.keys (inputList), inputListKeys));
 
-    // values no such property in python and php
+    // values no such property in py and php
     // assert (deepEquals (exchange.values (inputDict), inputDictValues));
     // assert (deepEquals (exchange.values (inputList), inputListValues));
+
+    // flatten no such property in py
+    // const flattenList = [ 1, 2, 3, 4, 5, 6 ];
+    // const flattenResult = exchange.flatten ([ 1, [ 2, 3, [ 4, 5, [ 6 ] ] ] ]);
+    // assert (equals (flattenList, flattenResult));
+
+    // ordered can not be checked in ts
+
+    // merge no such property in py
+    // const mergeResult = exchange.merge (inputDict, inputDict2);
+    // const mergeDict = {
+    //     'i': 1,
+    //     'f': 0.123,
+    //     'bool': true,
+    //     'list': [ 1, 2, 3 ],
+    //     'dict': { 'a': 1, 'b': '2' },
+    //     'str': 'heLlo',
+    //     'strNumber': '3',
+    //     'a': 1,
+    // };
+    // assert (deepEquals (mergeDict, mergeResult));
 
     // extend
     assert (deepEquals (exchange.extend (inputDict2, inputDict), extendedDict));
@@ -200,13 +212,38 @@ function testGenericMethods () {
     const sortedResult = exchange.sortBy ([ inputDict,  inputDict2, deepExtendedDict ], 'i');
     assert (deepEquals (sortedBy, sortedResult));
 
-    // sortBy
+    // sortBy2
     const inputDict5 = {
         'i': 1,
         'strNumber': '1',
     };
     const sortedBy2 = [ inputDict5, inputDict, inputDict2 ];
     const sortedBy2Result = exchange.sortBy2 ([ inputDict,  inputDict2, inputDict5 ], 'i', 'strNumber');
+    assert (deepEquals (sortedBy2, sortedBy2Result));
+
+    // pluck
+    const pluckList = [ 'heLlo', 'hi', 'heLlo' ];
+    const pluckResult = exchange.pluck ([ inputDict, inputDict2, extendedDict ], 'str');
+    assert (deepEquals (pluckList, pluckResult));
+
+    // omit
+    assert (deepEquals ((exchange.omit ({}, 'foo')), {}));
+    assert (deepEquals ((exchange.omit ({ 'foo': 2 }, 'foo')), {}));
+    assert (deepEquals ((exchange.omit ({ 'foo': 2, 'bar': 3 }, 'foo')), { 'bar': 3 }));
+    assert (deepEquals ((exchange.omit ({ 'foo': 2, 'bar': 3 }, [ 'foo' ])), { 'bar': 3 }));
+    assert (deepEquals ((exchange.omit ({ 'foo': 2, 'bar': 3 }, [ 'foo', 'bar' ])), {}));
+    // assert (deepEquals ((exchange.omit ({ 'foo': 2, 'bar': 3 })), { 'foo': 2, 'bar': 3 })); two arguments required in php
+    // assert (deepEquals ((exchange.omit ({ 'foo': 2, 'bar': 3 }, 'foo', 'bar')), {})); AssertionError in php
+    // assert (deepEquals ((exchange.omit ({ 'foo': 2, 'bar': 3 }, [ 'foo' ], 'bar')), {})); AssertionError in php
+    assert (deepEquals ((exchange.omit ({ '5': 2, 'bar': 3 }, [ '5' ])), { 'bar': 3 }));
+    assert (deepEquals ((exchange.omit ({ '5': 2, 'bar': 3 }, '5')), { 'bar': 3 }));
+
+    // sum
+    // assert (exchange.sum () === undefined); 0 in py
+    assert (exchange.sum (2) === 2);
+    assert (exchange.sum (2, 30, 400) === 432);
+    assert (exchange.sum (2, undefined, [ 88 ], 30, 400, null) === 432);
+    // assert (exchange.sum (2, undefined, [ 88 ], 30, '7', 400, null) === 432); AssertionError in php (result is 439)
 }
 
 export default testGenericMethods;
