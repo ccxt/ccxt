@@ -27,6 +27,28 @@ function deepEquals (a, b) {
     return true;
 }
 
+function uniqueArraysHaveSameEntries (a, b) {
+    const aLength = a.length;
+    const bLength = b.length;
+    if (aLength !== bLength) {
+        return false;
+    }
+    for (let i = 0; i < aLength; i++) {
+        const entry = a[i];
+        let found = false;
+        for (let j = 0; j < bLength; j++) {
+            if (b[j] === entry) {
+                found = true;
+                break;
+            }
+        }
+        if (found === false) {
+            return false;
+        }
+    }
+    return true;
+}
+
 function equals (a, b) {
     // does not check if b has more properties than a
     // eslint-disable-next-line no-restricted-syntax
@@ -114,7 +136,7 @@ function testGenericMethods () {
     assert (deepEquals (exchange.clone (inputList), inputList));
 
     // unique the order of the elements in array is changing in py
-    // assert (deepEquals (exchange.unique (inputList), uniqueList));
+    assert (uniqueArraysHaveSameEntries (exchange.unique (inputList), uniqueList));
 
     // arrayConcat
     assert (deepEquals (exchange.arrayConcat (inputList, inputList), concatenatedList));
