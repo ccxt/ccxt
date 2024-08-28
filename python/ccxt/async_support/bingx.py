@@ -1036,8 +1036,7 @@ class bingx(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # spot
-        # fetchTrades
+        # spot fetchTrades
         #
         #    {
         #        "id": 43148253,
@@ -1047,8 +1046,8 @@ class bingx(Exchange, ImplicitAPI):
         #        "buyerMaker": False
         #    }
         #
-        # spot
-        # fetchMyTrades
+        # spot fetchMyTrades
+        #
         #     {
         #         "symbol": "LTC-USDT",
         #         "id": 36237072,
@@ -1063,8 +1062,7 @@ class bingx(Exchange, ImplicitAPI):
         #         "isMaker": False
         #     }
         #
-        # swap
-        # fetchTrades
+        # swap fetchTrades
         #
         #    {
         #        "time": 1672025549368,
@@ -1074,8 +1072,7 @@ class bingx(Exchange, ImplicitAPI):
         #        "quoteQty": "55723.87"
         #    }
         #
-        # swap
-        # fetchMyTrades
+        # swap fetchMyTrades
         #
         #    {
         #        "volume": "0.1",
@@ -1089,10 +1086,7 @@ class bingx(Exchange, ImplicitAPI):
         #        "filledTime": "2023-07-04T20:56:01.000+0800"
         #    }
         #
-        #
-        # ws
-        #
-        # spot
+        # ws spot
         #
         #    {
         #        "E": 1690214529432,
@@ -1105,7 +1099,7 @@ class bingx(Exchange, ImplicitAPI):
         #        "t": "57903921"
         #    }
         #
-        # swap
+        # ws linear swap
         #
         #    {
         #        "q": "0.0421",
@@ -1114,6 +1108,19 @@ class bingx(Exchange, ImplicitAPI):
         #        "m": False,
         #        "s": "BTC-USDT"
         #    }
+        #
+        # ws inverse swap
+        #
+        #     {
+        #         "e": "trade",
+        #         "E": 1722920589665,
+        #         "s": "BTC-USD",
+        #         "t": "39125001",
+        #         "p": "55360.0",
+        #         "q": "1",
+        #         "T": 1722920589582,
+        #         "m": False
+        #     }
         #
         # inverse swap fetchMyTrades
         #
