@@ -1178,7 +1178,7 @@ export default class coinex extends coinexRest {
         const timestamp = this.safeInteger (order, 'created_at');
         const marketId = this.safeString (order, 'market');
         const status = this.safeString (order, 'status');
-        const isSpot = ('magin_market' in order);
+        const isSpot = ('margin_market' in order);
         const defaultType = isSpot ? 'spot' : 'swap';
         market = this.safeMarket (marketId, market, undefined, defaultType);
         let fee = undefined;
