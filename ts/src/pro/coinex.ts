@@ -920,7 +920,12 @@ export default class coinex extends coinexRest {
             market = this.market (symbol);
             symbol = market['symbol'];
         }
-        const [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        if (type !== undefined) {
+            params['type'] = type;
+        }
+        await this.authenticate (params);
         if (symbol !== undefined) {
             marketList = [ market['id'] ];
             messageHash += ':' + symbol;
@@ -932,12 +937,6 @@ export default class coinex extends coinexRest {
                 messageHash += ':swap';
             }
         }
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
-        if (type !== undefined) {
-            params['type'] = type;
-        }
-        await this.authenticate (params);
         let method = undefined;
         if (stop) {
             method = 'stop.subscribe';
