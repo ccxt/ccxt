@@ -258,11 +258,8 @@ export default class coinex extends coinexRest {
          */
         await this.loadMarkets ();
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
-        if (type !== undefined) {
-            params['type'] = type;
-        }
-        await this.authenticate (params);
+        [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params, 'spot');
+        await this.authenticate (type);
         const url = this.urls['api']['ws'][type];
         let currencies = Object.keys (this.currencies_by_id);
         if (currencies === undefined) {
@@ -425,11 +422,8 @@ export default class coinex extends coinexRest {
             symbol = market['symbol'];
         }
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
-        if (type !== undefined) {
-            params['type'] = type;
-        }
-        await this.authenticate (params);
+        [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params, 'spot');
+        await this.authenticate (type);
         const url = this.urls['api']['ws'][type];
         const subscribedSymbols = [];
         let messageHash = 'myTrades';
@@ -1413,9 +1407,7 @@ export default class coinex extends coinexRest {
         }
     }
 
-    async authenticate (params = {}) {
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('authenticate', undefined, params);
+    async authenticate (type: string) {
         const url = this.urls['api']['ws'][type];
         const client = this.client (url);
         const time = this.milliseconds ();
