@@ -713,10 +713,8 @@ export default class coinex extends coinexRest {
         const subscribedSymbols = [];
         const messageHashes = [];
         let market = undefined;
-        let type = undefined;
         let callerMethodName = undefined;
         [ callerMethodName, params ] = this.handleParamString (params, 'callerMethodName', 'watchTradesForSymbols');
-        [ type, params ] = this.handleMarketTypeAndParams (callerMethodName, undefined, params);
         const symbolsDefined = (symbols !== undefined);
         if (symbolsDefined) {
             for (let i = 0; i < symbols.length; i++) {
@@ -728,6 +726,8 @@ export default class coinex extends coinexRest {
         } else {
             messageHashes.push ('trades');
         }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams (callerMethodName, market, params);
         const url = this.urls['api']['ws'][type];
         const subscriptionHashes = [ 'trades' ];
         const subscribe: Dict = {
