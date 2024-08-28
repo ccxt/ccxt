@@ -277,7 +277,7 @@
         "taker": 0.00035,
         "maker": 0.0001,
         "precision": {
-            "amount": 2,
+            "amount": 0,
             "price": 6
         },
         "limits": {

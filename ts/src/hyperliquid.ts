@@ -354,122 +354,74 @@ export default class hyperliquid extends Exchange {
          * @method
          * @name hyperliquid#fetchMarkets
          * @description retrieves data on all spot markets for hyperliquid
-         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint#retrieve-asset-contexts-includes-mark-price-current-funding-open-interest-etc
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/info-endpoint/spot
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
         const request: Dict = {
-            'type': 'spotMetaAndAssetCtxs',
+            'type': 'spotMeta',
         };
         const response = await this.publicPostInfo (this.extend (request, params));
         //
-        // [
-        //     {
-        //         'tokens': [
-        //             {
-        //                 'name': 'USDC',
-        //                 'szDecimals': '8',
-        //                 'weiDecimals': '8',
-        //             },
-        //             {
-        //                 'name': 'PURR',
-        //                 'szDecimals': '0',
-        //                 'weiDecimals': '5',
-        //             },
-        //         ],
-        //         'universe': [
-        //             {
-        //                 'name': 'PURR/USDC',
-        //                 'tokens': [
-        //                     1,
-        //                     0,
-        //                 ],
-        //             },
-        //         ],
-        //     },
-        //     [
+        // {
+        //     "tokens": [
         //         {
-        //             'dayNtlVlm': '264250385.14640012',
-        //             'markPx': '0.018314',
-        //             'midPx': '0.0182235',
-        //             'prevDayPx': '0.017427',
+        //             "name": "USDC",
+        //             "szDecimals": 8,
+        //             "weiDecimals" 8,
+        //             "index": 0,
+        //             "tokenId": "0x6d1e7cde53ba9467b783cb7c530ce054",
+        //             "isCanonical": true,
+        //             "evmContract":null,
+        //             "fullName":null
+        //         },
+        //         {
+        //             "name": "PURR",
+        //             "szDecimals": 0,
+        //             "weiDecimals": 5,
+        //             "index": 1,
+        //             "tokenId": "0xc1fb593aeffbeb02f85e0308e9956a90",
+        //             "isCanonical": true,
+        //             "evmContract":null,
+        //             "fullName":null
+        //         },
+        //         {
+        //             "name": "HFUN",
+        //             "szDecimals": 2,
+        //             "weiDecimals": 8,
+        //             "index": 2,
+        //             "tokenId": "0xbaf265ef389da684513d98d68edf4eae",
+        //             "isCanonical": false,
+        //             "evmContract":null,
+        //             "fullName":null
         //         },
         //     ],
-        // ];
-        // mainnet
-        // [
-        //     {
-        //        "canonical_tokens2":[
-        //           0,
-        //           1
-        //        ],
-        //        "spot_infos":[
-        //           {
-        //              "name":"PURR/USDC",
-        //              "tokens":[
-        //                 1,
-        //                 0
-        //              ]
-        //           }
-        //        ],
-        //        "token_id_to_token":[
-        //           [
-        //              "0x6d1e7cde53ba9467b783cb7c530ce054",
-        //              0
-        //           ],
-        //           [
-        //              "0xc1fb593aeffbeb02f85e0308e9956a90",
-        //              1
-        //           ]
-        //        ],
-        //        "token_infos":[
-        //           {
-        //              "deployer":null,
-        //              "spec":{
-        //                 "name":"USDC",
-        //                 "szDecimals":"8",
-        //                 "weiDecimals":"8"
-        //              },
-        //              "spots":[
-        //              ]
-        //           },
-        //           {
-        //              "deployer":null,
-        //              "spec":{
-        //                 "name":"PURR",
-        //                 "szDecimals":"0",
-        //                 "weiDecimals":"5"
-        //              },
-        //              "spots":[
-        //                 0
-        //              ]
-        //           }
-        //        ]
-        //     },
-        //     [
-        //        {
-        //           "dayNtlVlm":"35001170.16631",
-        //           "markPx":"0.15743",
-        //           "midPx":"0.157555",
-        //           "prevDayPx":"0.158"
-        //        }
+        //     "universe": [
+        //         {
+        //             "name": "PURR/USDC",
+        //             "tokens": [1, 0],
+        //             "index": 0,
+        //             "isCanonical": true
+        //         },
+        //         {
+        //             "tokens": [2, 0],
+        //             "name": "@1",
+        //             "index": 1,
+        //             "isCanonical": false
+        //         },
         //     ]
-        // ]
+        // }
         //
-        // response differs depending on the environment (mainnet vs sandbox)
-        const first = this.safeDict (response, 0, {});
-        const second = this.safeList (response, 1, []);
-        const meta = this.safeList2 (first, 'universe', 'spot_infos', []);
-        const tokens = this.safeList2 (first, 'tokens', 'token_infos', []);
+        const meta = this.safeList(response, 'universe', []);
+        const tokens = this.safeList(response, 'tokens', []);
         const markets = [];
         for (let i = 0; i < meta.length; i++) {
             const market = this.safeDict (meta, i, {});
-            const extraData = this.safeDict (second, i, {});
             const marketName = this.safeString (market, 'name');
-            // if (marketName.indexOf ('/') < 0) {
-            //     // there are some weird spot markets in testnet, eg @2
-            //     continue;
-            // }
+            if (marketName.indexOf ('/') < 0) {
+                // there are some weird spot markets in testnet, eg @2
+                continue;
+            }
             // const marketParts = marketName.split ('/');
             // const baseName = this.safeString (marketParts, 0);
             // const quoteId = this.safeString (marketParts, 1);
@@ -541,7 +493,7 @@ export default class hyperliquid extends Exchange {
                     },
                 },
                 'created': undefined,
-                'info': this.extend (extraData, market),
+                'info': market,
             }));
         }
         return markets;
