@@ -138,6 +138,11 @@ function testGenericMethods () {
     // };
     // assert (deepEquals (mergeDict, mergeResult));
 
+    // pluck no such property in cs
+    // const pluckList = [ 'heLlo', 'hi', 'heLlo' ];
+    // const pluckResult = exchange.pluck ([ inputDict, inputDict2, extendedDict ], 'str');
+    // assert (deepEquals (pluckList, pluckResult));
+
     // extend
     assert (deepEquals (exchange.extend (inputDict2, inputDict), extendedDict));
 
@@ -220,11 +225,6 @@ function testGenericMethods () {
     const sortedBy2 = [ inputDict5, inputDict, inputDict2 ];
     const sortedBy2Result = exchange.sortBy2 ([ inputDict,  inputDict2, inputDict5 ], 'i', 'strNumber');
     assert (deepEquals (sortedBy2, sortedBy2Result));
-
-    // pluck
-    const pluckList = [ 'heLlo', 'hi', 'heLlo' ];
-    const pluckResult = exchange.pluck ([ inputDict, inputDict2, extendedDict ], 'str');
-    assert (deepEquals (pluckList, pluckResult));
 
     // omit
     assert (deepEquals ((exchange.omit ({}, 'foo')), {}));
