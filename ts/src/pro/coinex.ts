@@ -257,15 +257,18 @@ export default class coinex extends coinexRest {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
-        await this.authenticate (params);
-        let messageHash = 'balances';
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
+        if (type !== undefined) {
+            params['type'] = type;
+        }
+        await this.authenticate (params);
         const url = this.urls['api']['ws'][type];
         let currencies = Object.keys (this.currencies_by_id);
         if (currencies === undefined) {
             currencies = [];
         }
+        let messageHash = 'balances';
         if (type === 'spot') {
             messageHash += ':spot';
         } else {
@@ -416,7 +419,6 @@ export default class coinex extends coinexRest {
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets ();
-        await this.authenticate ();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -424,6 +426,10 @@ export default class coinex extends coinexRest {
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
+        if (type !== undefined) {
+            params['type'] = type;
+        }
+        await this.authenticate (params);
         const url = this.urls['api']['ws'][type];
         const subscribedSymbols = [];
         let messageHash = 'myTrades';
@@ -907,11 +913,9 @@ export default class coinex extends coinexRest {
         await this.loadMarkets ();
         const stop = this.safeBool2 (params, 'trigger', 'stop');
         params = this.omit (params, [ 'trigger', 'stop' ]);
-        await this.authenticate (params);
         let messageHash = 'orders';
         let market = undefined;
         let marketList = undefined;
-        const [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
@@ -925,6 +929,12 @@ export default class coinex extends coinexRest {
                 messageHash += ':swap';
             }
         }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        if (type !== undefined) {
+            params['type'] = type;
+        }
+        await this.authenticate (params);
         let method = undefined;
         if (stop) {
             method = 'stop.subscribe';
@@ -937,7 +947,7 @@ export default class coinex extends coinexRest {
             'id': this.requestId (),
         };
         const url = this.urls['api']['ws'][type];
-        const request = this.deepExtend (message, query);
+        const request = this.deepExtend (message, params);
         const orders = await this.watch (url, messageHash, request, messageHash, request);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
