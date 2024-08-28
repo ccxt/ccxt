@@ -258,7 +258,7 @@ export default class coinex extends coinexRest {
          */
         await this.loadMarkets ();
         await this.authenticate (params);
-        let messageHash = 'balance';
+        let messageHash = 'balances';
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         const url = this.urls['api']['ws'][type];
@@ -320,24 +320,86 @@ export default class coinex extends coinexRest {
         //         "id": null
         //     }
         //
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
         const data = this.safeDict (message, 'data', {});
         const balances = this.safeList (data, 'balance_list', []);
-        for (let i = 0; i < balances.length; i++) {
-            const entry = balances[i];
-            this.balance['info'] = entry;
-            const currencyId = this.safeString (entry, 'ccy');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (entry, 'available');
-            account['used'] = this.safeString (entry, 'frozen');
-            this.balance[code] = account;
-            this.balance = this.safeBalance (this.balance);
+        const firstEntry = balances[0];
+        const updated = this.safeInteger (firstEntry, 'updated_at');
+        const unrealizedPnl = this.safeString (firstEntry, 'unrealized_pnl');
+        const isSpot = (updated !== undefined);
+        const isSwap = (unrealizedPnl !== undefined);
+        let info = undefined;
+        let account = undefined;
+        let rawBalances = [];
+        if (isSpot) {
+            account = 'spot';
+            for (let i = 0; i < balances.length; i++) {
+                rawBalances = this.arrayConcat (rawBalances, balances);
+            }
+            info = rawBalances;
         }
-        const defaultType = this.safeString2 (this.options, 'defaultType', 'type');
-        const messageHash = 'balance';
-        const messageWithType = messageHash + ':' + defaultType;
-        client.resolve (this.balance, messageWithType);
-        client.resolve (this.balance, messageHash);
+        if (isSwap) {
+            account = 'swap';
+            for (let i = 0; i < balances.length; i++) {
+                rawBalances = this.arrayConcat (rawBalances, balances);
+            }
+            info = rawBalances;
+        }
+        for (let i = 0; i < rawBalances.length; i++) {
+            const entry = rawBalances[i];
+            this.parseWsBalance (entry, account);
+        }
+        let messageHash = undefined;
+        if (account !== undefined) {
+            if (this.safeValue (this.balance, account) === undefined) {
+                this.balance[account] = {};
+            }
+            this.balance[account]['info'] = info;
+            this.balance[account] = this.safeBalance (this.balance[account]);
+            messageHash = 'balances:' + account;
+            client.resolve (this.balance[account], messageHash);
+        }
+    }
+
+    parseWsBalance (balance, accountType = undefined) {
+        //
+        // spot
+        //
+        //     {
+        //         "margin_market": "BTCUSDT",
+        //         "ccy": "BTC",
+        //         "available": "44.62207740",
+        //         "frozen": "0.00000000",
+        //         "updated_at": 1689152421692
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "ccy": "USDT",
+        //         "available": "97.92470982756335000001",
+        //         "frozen": "0.00000000000000000000",
+        //         "margin": "0.61442700000000000000",
+        //         "transferrable": "97.92470982756335000001",
+        //         "unrealized_pnl": "-0.00807000000000000000",
+        //         "equity": "97.92470982756335000001"
+        //     }
+        //
+        const account = this.account ();
+        const currencyId = this.safeString (balance, 'ccy');
+        const code = this.safeCurrencyCode (currencyId);
+        account['free'] = this.safeString (balance, 'available');
+        account['used'] = this.safeString (balance, 'frozen');
+        if (accountType !== undefined) {
+            if (this.safeValue (this.balance, accountType) === undefined) {
+                this.balance[accountType] = {};
+            }
+            this.balance[accountType][code] = account;
+        } else {
+            this.balance[code] = account;
+        }
     }
 
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
