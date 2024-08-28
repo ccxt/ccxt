@@ -911,10 +911,12 @@ export default class coinex extends coinexRest {
         let messageHash = 'orders';
         let market = undefined;
         let marketList = undefined;
-        const [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
+        }
+        const [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        if (symbol !== undefined) {
             marketList = [ market['id'] ];
             messageHash += ':' + symbol;
         } else {
