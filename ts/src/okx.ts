@@ -6548,7 +6548,8 @@ export default class okx extends Exchange {
                     borrowRateHistories[code] = [];
                 }
                 const borrowRateStructure = this.parseBorrowRate (item);
-                borrowRateHistories[code].push (borrowRateStructure);
+                const borrrowRateCode = borrowRateHistories[code];
+                borrrowRateCode.push (borrowRateStructure);
             }
         }
         const keys = Object.keys (borrowRateHistories);

@@ -4656,7 +4656,8 @@ export default class kucoin extends Exchange {
                     borrowRateHistories[code] = [];
                 }
                 const borrowRateStructure = this.parseBorrowRate (item);
-                borrowRateHistories[code].push (borrowRateStructure);
+                const borrowRateHistoriesCode = borrowRateHistories[code];
+                borrowRateHistoriesCode.push (borrowRateStructure);
             }
         }
         const keys = Object.keys (borrowRateHistories);
