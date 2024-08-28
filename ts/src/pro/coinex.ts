@@ -915,11 +915,8 @@ export default class coinex extends coinexRest {
             symbol = market['symbol'];
         }
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
-        if (type !== undefined) {
-            params['type'] = type;
-        }
-        await this.authenticate (params);
+        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params, 'spot');
+        await this.authenticate (type);
         if (symbol !== undefined) {
             marketList = [ market['id'] ];
             messageHash += ':' + symbol;
