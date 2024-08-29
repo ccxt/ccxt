@@ -2044,7 +2044,7 @@ export default class okx extends okxRest {
         let channel = undefined;
         [ channel, params ] = this.handleOptionAndParams (params, 'watchBidsAsks', 'channel', 'tickers');
         const url = this.getUrl (channel, 'public');
-        const messageHash = 'bidask::' + symbols.join (',');
+        const messageHashes = [];
         const args = [];
         for (let i = 0; i < symbols.length; i++) {
             const marketId = this.marketId (symbols[i]);
@@ -2053,12 +2053,13 @@ export default class okx extends okxRest {
                 'instId': marketId,
             };
             args.push (this.extend (arg, params));
+            messageHashes.push ('bidask::' + symbols[i]);
         }
         const request: Dict = {
             'op': 'subscribe',
             'args': args,
         };
-        const newTickers = await this.watch (url, messageHash, request, messageHash);
+        const newTickers = await this.watchMultiple (url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
             const tickers: Dict = {};
             tickers[newTickers['symbol']] = newTickers;
@@ -2098,8 +2099,7 @@ export default class okx extends okxRest {
         const parsedTicker = this.parseWsBidAsk (ticker);
         const symbol = parsedTicker['symbol'];
         this.bidsasks[symbol] = parsedTicker;
-        const messageHashes = this.findMessageHashes (client, 'bidask::');
-        const messageHash = this.safeString (messageHashes, 0);
+        const messageHash = 'bidask::' + symbol;
         client.resolve (parsedTicker, messageHash);
     }
 
