@@ -1437,7 +1437,7 @@ class bybit extends bybit$1 {
         const topic = 'liquidation.' + market['id'];
         const newLiquidation = await this.watchTopics(url, [messageHash], [topic], params);
         if (this.newUpdates) {
-            return [newLiquidation];
+            return newLiquidation;
         }
         return this.filterBySymbolsSinceLimit(this.liquidations, [symbol], since, limit, true);
     }

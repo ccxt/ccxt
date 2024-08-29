@@ -1471,7 +1471,7 @@ class bybit extends \ccxt\async\bybit {
             $topic = 'liquidation.' . $market['id'];
             $newLiquidation = Async\await($this->watch_topics($url, array( $messageHash ), array( $topic ), $params));
             if ($this->newUpdates) {
-                return array( $newLiquidation );
+                return $newLiquidation;
             }
             return $this->filter_by_symbols_since_limit($this->liquidations, array( $symbol ), $since, $limit, true);
         }) ();
