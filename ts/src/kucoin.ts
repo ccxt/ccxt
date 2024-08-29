@@ -6,7 +6,7 @@ import { ExchangeError, ExchangeNotAvailable, InsufficientFunds, OrderNotFound, 
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, Num, Account } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Order, OHLCV, Trade, Balances, OrderRequest, Str, Transaction, Ticker, OrderBook, Tickers, Strings, Currency, Market, Num, Bool, Account, Dict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -1077,17 +1077,17 @@ export default class kucoin extends Exchange {
 
     async loadMigrationStatus (force: boolean = false) {
         if (!('hfMigrated' in this.options) || force) {
-            const result = await this.privateGetMigrateUserAccountStatus ();
-            const data = this.safeDict (result, 'data', {});
-            const status = this.safeInteger (data, 'status');
+            const result: Dict = await this.privateGetMigrateUserAccountStatus ();
+            const data: Dict = this.safeDict (result, 'data', {});
+            const status: Int = this.safeInteger (data, 'status');
             this.options['hfMigrated'] = (status === 2);
         }
     }
 
-    async handleHfAndParams (params:any) {
+    async handleHfAndParams (params = {}) {
         await this.loadMigrationStatus ();
-        const migrated = this.safeBool (this.options, 'hfMigrated');
-        let loadedHf = undefined;
+        const migrated: Bool = this.safeBool (this.options, 'hfMigrated');
+        let loadedHf: Bool = undefined;
         if (migrated !== undefined) {
             if (migrated) {
                 loadedHf = true;
@@ -1095,7 +1095,7 @@ export default class kucoin extends Exchange {
                 loadedHf = false;
             }
         }
-        const hf = this.safeBool (params, 'hf', loadedHf);
+        const hf: Bool = this.safeBool (params, 'hf', loadedHf);
         params = this.omit (params, 'hf');
         return [ hf, params ];
     }
@@ -3532,7 +3532,7 @@ export default class kucoin extends Exchange {
         // here we handle HF differently : hf migrated users does not need to use the hf in query
         // while non migarted users (who wants to use HF) need to use the addition in query through params
         await this.handleHfAndParams ({});
-        const hf = this.safeBool (params, 'hf');
+        const hf: Bool = this.safeBool (params, 'hf');
         params = this.omit (params, 'hf');
         if (hf === true && this.options['hfMigrated'] !== true) {
             type = 'trade_hf';
