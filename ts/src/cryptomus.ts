@@ -6,7 +6,7 @@ import Exchange from './abstract/cryptomus.js';
 // import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Dict, Market, Strings, Ticker, Tickers } from './base/types.js';
+import type { Dict, Int, Market, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -99,7 +99,7 @@ export default class cryptomus extends Exchange {
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
                 'fetchTicker': false,
-                'fetchTickers': false,
+                'fetchTickers': true,
                 'fetchTime': false,
                 'fetchTrades': false,
                 'fetchTradingFee': false,
@@ -167,7 +167,9 @@ export default class cryptomus extends Exchange {
                 'networksById': {
                     // todo
                 },
-                'defaultNetwork': 'ERC20',
+                'fetchOrderBook': {
+                    'level': 0, // 0, 1, 2, 4 or 5
+                },
             },
             'commonCurrencies': {},
             'exceptions': {
@@ -299,6 +301,7 @@ export default class cryptomus extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.publicGetV1ExchangeMarketTickers (params);
+        // todo check
         const data = this.safeList (response, 'data');
         return this.parseTickers (data, symbols);
     }
@@ -340,8 +343,39 @@ export default class cryptomus extends Exchange {
         }, market);
     }
 
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name cryptomus#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://doc.cryptomus.com/personal/market-cap/orderbook
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.level] 0 or 1 or 2 or 3 or 4 or 5 - the level of volume
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'currencyPair': market['id'],
+        };
+        let level = 0;
+        [ level, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'leve', level);
+        request['level'] = level;
+        const response = await this.publicGetV1ExchangeMarketOrderBookCurrencyPair (this.extend (request, params));
+        //
+        // todo check
+        //
+        const result = this.safeDict (response, 'result');
+        const timestamp = this.safeInteger (result, 'timestamp');
+        return this.parseOrderBook (result, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + path;
+        const endpoint = this.implodeParams (path, params);
+        params = this.omit (params, this.extractParams (path));
+        let url = this.urls['api'][api] + '/' + endpoint;
         const query = this.urlencode (params);
         if (query.length !== 0) {
             url += '?' + query;
