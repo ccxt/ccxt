@@ -32,12 +32,13 @@ export default class mexc extends mexcRest {
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
             },
             'urls': {
                 'api': {
                     'ws': {
                         'spot': 'wss://wbs.mexc.com/ws',
-                        'swap': 'wss://contract.mexc.com/ws',
+                        'swap': 'wss://contract.mexc.com/edge',
                     },
                 },
             },
@@ -64,7 +65,7 @@ export default class mexc extends mexcRest {
             },
             'streaming': {
                 'ping': this.ping,
-                'keepAlive': 10000,
+                'keepAlive': 8000,
             },
             'exceptions': {},
         });
@@ -72,8 +73,10 @@ export default class mexc extends mexcRest {
     async watchTicker(symbol, params = {}) {
         /**
          * @method
-         * @name mexc3#watchTicker
+         * @name mexc#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -205,8 +208,8 @@ export default class mexc extends mexcRest {
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name mexc3#watchOHLCV
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#kline-streams
+         * @name mexc#watchOHLCV
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#kline-streams
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
@@ -351,8 +354,9 @@ export default class mexc extends mexcRest {
     async watchOrderBook(symbol, limit = undefined, params = {}) {
         /**
          * @method
-         * @name mexc3#watchOrderBook
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream
+         * @name mexc#watchOrderBook
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#diff-depth-stream
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int} [limit] the maximum amount of order book entries to return
@@ -511,8 +515,8 @@ export default class mexc extends mexcRest {
             return;
         }
         orderbook['nonce'] = deltaNonce;
-        const asks = this.safeValue(delta, 'asks', []);
-        const bids = this.safeValue(delta, 'bids', []);
+        const asks = this.safeList(delta, 'asks', []);
+        const bids = this.safeList(delta, 'bids', []);
         const asksOrderSide = orderbook['asks'];
         const bidsOrderSide = orderbook['bids'];
         this.handleBooksideDelta(asksOrderSide, asks);
@@ -521,8 +525,9 @@ export default class mexc extends mexcRest {
     async watchTrades(symbol, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name mexc3#watchTrades
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#trade-streams
+         * @name mexc#watchTrades
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#trade-streams
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#public-channels
          * @description get the list of most recent trades for a particular symbol
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -610,14 +615,15 @@ export default class mexc extends mexcRest {
     async watchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name mexc3#watchMyTrades
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-deals
+         * @name mexc#watchMyTrades
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#spot-account-deals
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#private-channels
          * @description watches information on multiple trades made by the user
          * @param {string} symbol unified market symbol of the market trades were made in
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         await this.loadMarkets();
         let messageHash = 'myTrades';
@@ -707,6 +713,21 @@ export default class mexc extends mexcRest {
         //        "v": "5"
         //    }
         //
+        //
+        //   d: {
+        //       p: '1.0005',
+        //       v: '5.71',
+        //       a: '5.712855',
+        //       S: 1,
+        //       T: 1714325698237,
+        //       t: 'edafcd9fdc2f426e82443d114691f724',
+        //       c: '',
+        //       i: 'C02__413321238354677760043',
+        //       m: 0,
+        //       st: 0,
+        //       n: '0.005712855',
+        //       N: 'USDT'
+        //   }
         let timestamp = this.safeInteger(trade, 'T');
         let tradeId = this.safeString(trade, 't');
         if (timestamp === undefined) {
@@ -718,6 +739,8 @@ export default class mexc extends mexcRest {
         const rawSide = this.safeString(trade, 'S');
         const side = (rawSide === '1') ? 'buy' : 'sell';
         const isMaker = this.safeInteger(trade, 'm');
+        const feeAmount = this.safeNumber(trade, 'n');
+        const feeCurrencyId = this.safeString(trade, 'N');
         return this.safeTrade({
             'info': trade,
             'id': tradeId,
@@ -731,15 +754,18 @@ export default class mexc extends mexcRest {
             'price': priceString,
             'amount': amountString,
             'cost': undefined,
-            'fee': undefined,
+            'fee': {
+                'cost': feeAmount,
+                'currency': this.safeCurrencyCode(feeCurrencyId),
+            },
         }, market);
     }
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
-         * @name mexc3#watchOrders
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-orders
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#margin-account-orders
+         * @name mexc#watchOrders
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#spot-account-orders
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#margin-account-orders
          * @description watches information on multiple orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
@@ -989,8 +1015,8 @@ export default class mexc extends mexcRest {
     async watchBalance(params = {}) {
         /**
          * @method
-         * @name mexc3#watchBalance
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#spot-account-upadte
+         * @name mexc#watchBalance
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#spot-account-upadte
          * @description watch balance and get the amount of funds available for trading or funds locked in orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}

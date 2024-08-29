@@ -346,13 +346,12 @@ class bitrue extends bitrue$1 {
         const symbol = market['symbol'];
         const timestamp = this.safeInteger(message, 'ts');
         const tick = this.safeValue(message, 'tick', {});
-        let orderbook = this.safeValue(this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.orderBook();
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.orderBook();
         }
+        const orderbook = this.orderbooks[symbol];
         const snapshot = this.parseOrderBook(tick, symbol, timestamp, 'buys', 'asks');
         orderbook.reset(snapshot);
-        this.orderbooks[symbol] = orderbook;
         const messageHash = 'orderbook:' + symbol;
         client.resolve(orderbook, messageHash);
     }
@@ -412,15 +411,7 @@ class bitrue extends bitrue$1 {
     async authenticate(params = {}) {
         const listenKey = this.safeValue(this.options, 'listenKey');
         if (listenKey === undefined) {
-            let response = undefined;
-            try {
-                response = await this.openPrivatePostPoseidonApiV1ListenKey(params);
-            }
-            catch (error) {
-                this.options['listenKey'] = undefined;
-                this.options['listenKeyUrl'] = undefined;
-                return undefined;
-            }
+            const response = await this.openPrivatePostPoseidonApiV1ListenKey(params);
             //
             //     {
             //         "msg": "succ",

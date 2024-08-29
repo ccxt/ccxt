@@ -15,7 +15,7 @@ public partial class testMainClass : BaseTest
     public Exchange exchange = new Exchange();
     public string rootDir = Tests.ccxtBaseDir + "/";
     public string rootDirForSkips = Tests.ccxtBaseDir + "/";
-    public object skipMethods = null;
+    public object skippedSettingsForExchange = null;
     public object skippedMethods = null;
     public object publicTests = null;
     public object checkedPublicTests = null;
@@ -28,7 +28,7 @@ public partial class testMainClass : BaseTest
     public bool verbose = Tests.verbose;
     public bool debug = Tests.debug;
     public static string httpsAgent = "";
-    public string ext = ".cs";
+    public string ext = "cs";
     public bool loadKeys = false;
 
     public bool staticTestsFailed = false;
@@ -75,6 +75,11 @@ public partial class testMainClass : BaseTest
     {
         initEnv();
 
+    }
+
+    dict getTestFilesSync(object properties, bool ws = false)
+    {
+        return null; // empty in c#
     }
 
     async Task<dict> getTestFiles(object properties, bool ws = false)
@@ -180,6 +185,10 @@ public partial class testMainClass : BaseTest
         return fileNameOnly;
     }
 
+    public object callMethodSync(object testFiles2, object methodName, object exchange, params object[] args) {
+        return null; // empty in c#
+    }
+
     public async Task<object> callMethod(object testFiles2, object methodName, object exchange, params object[] args)
     {
         var argsWithExchange = new List<object> { exchange };
@@ -227,6 +236,11 @@ public partial class testMainClass : BaseTest
         return awaittedResult;
     }
 
+    public object callExchangeMethodDynamicallySync(object exchange, object methodName, params object[] args)
+    {
+        throw new Exception("This functions shouldn't be used in C#");
+    }
+
     public static void addProxy(object exchange, object proxy)
     {
         exchange.GetType().GetProperty("httpProxy").SetValue(exchange, proxy);
@@ -242,12 +256,12 @@ public partial class testMainClass : BaseTest
         try
         {
             var propertyInfo = exchange.GetType().GetProperty(prop as string);
-            if (propertyInfo != null) 
+            if (propertyInfo != null)
             {
                 var value = propertyInfo.GetValue(exchange);
                 return value != null ? value : defaultValue;
             }
-            else 
+            else
             {
                 return defaultValue;
             }
@@ -286,6 +300,19 @@ public partial class testMainClass : BaseTest
     {
         var e = exc as Exception;
         return e.Message;
+    }
+
+    public System.Exception getRootException(Exception exc)
+    {
+        if (exc is System.AggregateException)
+        {
+            var inner = exc.InnerException;
+            if (inner != null)
+            {
+                return inner;
+            }
+        }
+        return exc;
     }
 
     public Exchange setFetchResponse(object exchange2, object response)

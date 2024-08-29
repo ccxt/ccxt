@@ -15,6 +15,7 @@ export default class poloniex extends poloniexRest {
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
@@ -36,7 +37,7 @@ export default class poloniex extends poloniexRest {
     handleMessage(client: Client, message: any): void;
     handleErrorMessage(client: Client, message: any): boolean;
     handleAuthenticate(client: Client, message: any): any;
-    ping(client: any): {
+    ping(client: Client): {
         event: string;
     };
 }

@@ -15,9 +15,8 @@ declare const errorHierarchy: {
                 NoChange: {
                     MarginModeAlreadySet: {};
                 };
-            };
-            BadResponse: {
-                NullResponse: {};
+                MarketClosed: {};
+                ManualInteractionNeeded: {};
             };
             InsufficientFunds: {};
             InvalidAddress: {
@@ -26,14 +25,14 @@ declare const errorHierarchy: {
             InvalidOrder: {
                 OrderNotFound: {};
                 OrderNotCached: {};
-                CancelPending: {};
                 OrderImmediatelyFillable: {};
                 OrderNotFillable: {};
                 DuplicateOrderId: {};
                 ContractUnavailable: {};
             };
             NotSupported: {};
-            ProxyError: {};
+            InvalidProxySettings: {};
+            ExchangeClosedByUser: {};
         };
         OperationFailed: {
             NetworkError: {
@@ -42,11 +41,17 @@ declare const errorHierarchy: {
                 ExchangeNotAvailable: {
                     OnMaintenance: {};
                 };
-                InvalidNonce: {};
+                InvalidNonce: {
+                    ChecksumError: {};
+                };
                 RequestTimeout: {};
             };
+            BadResponse: {
+                NullResponse: {};
+            };
+            CancelPending: {};
         };
-        ExchangeClosedByUser: {};
+        UnsubscribeError: {};
     };
 };
 export default errorHierarchy;

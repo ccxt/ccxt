@@ -268,7 +268,7 @@ class oceanex extends oceanex$1 {
         //         }
         //     }
         //
-        const data = this.safeValue(response, 'data', {});
+        const data = this.safeDict(response, 'data', {});
         return this.parseTicker(data, market);
     }
     async fetchTickers(symbols = undefined, params = {}) {
@@ -496,7 +496,7 @@ class oceanex extends oceanex$1 {
         //          ]
         //      }
         //
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseTrades(data, market, since, limit);
     }
     parseTrade(trade, market = undefined) {
@@ -630,7 +630,7 @@ class oceanex extends oceanex$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -646,7 +646,7 @@ class oceanex extends oceanex$1 {
             request['price'] = this.priceToPrecision(symbol, price);
         }
         const response = await this.privatePostOrders(this.extend(request, params));
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
         return this.parseOrder(data, market);
     }
     async fetchOrder(id, symbol = undefined, params = {}) {
@@ -794,10 +794,10 @@ class oceanex extends oceanex$1 {
             request['timestamp'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 10000);
         }
         const response = await this.publicPostK(this.extend(request, params));
-        const ohlcvs = this.safeValue(response, 'data', []);
+        const ohlcvs = this.safeList(response, 'data', []);
         return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
     }
     parseOrder(order, market = undefined) {
@@ -876,7 +876,7 @@ class oceanex extends oceanex$1 {
          */
         await this.loadMarkets();
         const response = await this.privatePostOrderDelete(this.extend({ 'id': id }, params));
-        const data = this.safeValue(response, 'data');
+        const data = this.safeDict(response, 'data');
         return this.parseOrder(data);
     }
     async cancelOrders(ids, symbol = undefined, params = {}) {
@@ -892,7 +892,7 @@ class oceanex extends oceanex$1 {
          */
         await this.loadMarkets();
         const response = await this.privatePostOrderDeleteMulti(this.extend({ 'ids': ids }, params));
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseOrders(data);
     }
     async cancelAllOrders(symbol = undefined, params = {}) {
@@ -907,7 +907,7 @@ class oceanex extends oceanex$1 {
          */
         await this.loadMarkets();
         const response = await this.privatePostOrdersClear(params);
-        const data = this.safeValue(response, 'data');
+        const data = this.safeList(response, 'data');
         return this.parseOrders(data);
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

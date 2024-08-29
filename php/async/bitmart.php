@@ -41,11 +41,12 @@ class bitmart extends Exchange {
                 'borrowIsolatedMargin' => true,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'cancelOrders' => false,
+                'cancelOrders' => true,
                 'createMarketBuyOrderWithCost' => true,
                 'createMarketOrderWithCost' => false,
                 'createMarketSellOrderWithCost' => false,
                 'createOrder' => true,
+                'createOrders' => true,
                 'createPostOnlyOrder' => true,
                 'createStopLimitOrder' => false,
                 'createStopMarketOrder' => false,
@@ -115,7 +116,8 @@ class bitmart extends Exchange {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg',
                 'api' => array(
-                    'rest' => 'https://api-cloud.{hostname}', // bitmart.info for Hong Kong users
+                    'spot' => 'https://api-cloud.{hostname}',
+                    'swap' => 'https://api-cloud-v2.{hostname}', // bitmart.info for Hong Kong users
                 ),
                 'www' => 'https://www.bitmart.com/',
                 'doc' => 'https://developer-pro.bitmart.com/',
@@ -185,7 +187,7 @@ class bitmart extends Exchange {
                         'spot/v2/orders' => 5,
                         'spot/v1/trades' => 5,
                         // newer order endpoint
-                        'spot/v2/trades' => 5,
+                        'spot/v2/trades' => 4,
                         'spot/v3/orders' => 5,
                         'spot/v2/order_detail' => 1,
                         // margin
@@ -205,6 +207,9 @@ class bitmart extends Exchange {
                         'contract/private/get-open-orders' => 1.2,
                         'contract/private/current-plan-order' => 1.2,
                         'contract/private/trades' => 10,
+                        'contract/private/position-risk' => 10,
+                        'contract/private/affilate/rebate-list' => 10,
+                        'contract/private/affilate/trade-list' => 10,
                     ),
                     'post' => array(
                         // sub-account endpoints
@@ -229,6 +234,8 @@ class bitmart extends Exchange {
                         'spot/v4/query/history-orders' => 5, // 12 times/2 sec = 6/s => 30/6 = 5
                         'spot/v4/query/trades' => 5, // 12 times/2 sec = 6/s => 30/6 = 5
                         'spot/v4/query/order-trades' => 5, // 12 times/2 sec = 6/s => 30/6 = 5
+                        'spot/v4/cancel_orders' => 3,
+                        'spot/v4/batch_orders' => 3,
                         // newer endpoint
                         'spot/v3/cancel_order' => 1,
                         'spot/v2/batch_orders' => 1,
@@ -496,8 +503,8 @@ class bitmart extends Exchange {
                     '40045' => '\\ccxt\\InvalidOrder', // 400, The order open type is invalid
                     '40046' => '\\ccxt\\PermissionDenied', // 403, The account is not opened futures
                     '40047' => '\\ccxt\\PermissionDenied', // 403, Services is not available in you countries and areas
-                    '40048' => '\\ccxt\\BadRequest', // 403, ClientOrderId only allows a combination of numbers and letters
-                    '40049' => '\\ccxt\\BadRequest', // 403, The maximum length of clientOrderId cannot exceed 32
+                    '40048' => '\\ccxt\\InvalidOrder', // 403, ClientOrderId only allows a combination of numbers and letters
+                    '40049' => '\\ccxt\\InvalidOrder', // 403, The maximum length of clientOrderId cannot exceed 32
                     '40050' => '\\ccxt\\InvalidOrder', // 403, Client OrderId duplicated with existing orders
                 ),
                 'broad' => array(),
@@ -875,36 +882,43 @@ class bitmart extends Exchange {
         return Async\async(function () use ($params) {
             $response = Async\await($this->publicGetContractPublicDetails ($params));
             //
-            //     {
-            //       "code" => 1000,
-            //       "message" => "Ok",
-            //       "trace" => "9b92a999-9463-4c96-91a4-93ad1cad0d72",
-            //       "data" => {
-            //       "symbols" => [array(
-            //             "symbol" => "BTCUSDT",
-            //             "product_type" => 1,
-            //             "open_timestamp" => 1594080000,
-            //             "expire_timestamp" => 0,
-            //             "settle_timestamp" => 0,
-            //             "base_currency" => "BTC",
-            //             "quote_currency" => "USDT",
-            //             "last_price" => "23920",
-            //             "volume_24h" => "18969368",
-            //             "turnover_24h" => "458933659.7858",
-            //             "index_price" => "23945.25191635",
-            //             "index_name" => "BTCUSDT",
-            //             "contract_size" => "0.001",
-            //             "min_leverage" => "1",
-            //             "max_leverage" => "100",
-            //             "price_precision" => "0.1",
-            //             "vol_precision" => "1",
-            //             "max_volume" => "500000",
-            //             "min_volume" => "1"
-            //           ),
-            //           ...
-            //         ]
-            //       }
+            // {
+            //     "code" => 1000,
+            //     "message" => "Ok",
+            //     "trace" => "9b92a999-9463-4c96-91a4-93ad1cad0d72",
+            //     "data" => {
+            //       "symbols" => array(
+            //         array(
+            //           "symbol" => "BTCUSDT",
+            //           "product_type" => 1,
+            //           "open_timestamp" => 1594080000,
+            //           "expire_timestamp" => 0,
+            //           "settle_timestamp" => 0,
+            //           "base_currency" => "BTC",
+            //           "quote_currency" => "USDT",
+            //           "last_price" => "23920",
+            //           "volume_24h" => "18969368",
+            //           "turnover_24h" => "458933659.7858",
+            //           "index_price" => "23945.25191635",
+            //           "index_name" => "BTCUSDT",
+            //           "contract_size" => "0.001",
+            //           "min_leverage" => "1",
+            //           "max_leverage" => "100",
+            //           "price_precision" => "0.1",
+            //           "vol_precision" => "1",
+            //           "max_volume" => "500000",
+            //           "min_volume" => "1",
+            //           "funding_rate" => "0.0001",
+            //           "expected_funding_rate" => "0.00011",
+            //           "open_interest" => "4134180870",
+            //           "open_interest_value" => "94100888927.0433258",
+            //           "high_24h" => "23900",
+            //           "low_24h" => "23100",
+            //           "change_24h" => "0.004"
+            //         ),
+            //       )
             //     }
+            // }
             //
             $data = $this->safe_value($response, 'data', array());
             $symbols = $this->safe_value($data, 'symbols', array());
@@ -981,9 +995,10 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#get-$contract-details
              * retrieves data on all markets for bitmart
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
@@ -994,7 +1009,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function fetch_currencies($params = array ()) {
+    public function fetch_currencies($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetches all available $currencies on an exchange
@@ -1061,7 +1076,7 @@ class bitmart extends Exchange {
             $request = array(
                 'currency' => $currency['id'],
             );
-            $response = Async\await($this->privateGetAccountV1WithdrawCharge (array_merge($request, $params)));
+            $response = Async\await($this->privateGetAccountV1WithdrawCharge ($this->extend($request, $params)));
             //
             //     {
             //         "message" => "OK",
@@ -1122,7 +1137,7 @@ class bitmart extends Exchange {
             $request = array(
                 'currency' => $currency['id'],
             );
-            $response = Async\await($this->privateGetAccountV1WithdrawCharge (array_merge($request, $params)));
+            $response = Async\await($this->privateGetAccountV1WithdrawCharge ($this->extend($request, $params)));
             //
             //     {
             //         "message" => "OK",
@@ -1141,29 +1156,48 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
-        // spot (REST)
+        // spot (REST) fetchTickers
         //
-        //      {
-        //          "symbol" => "SOLAR_USDT",
-        //          "last_price" => "0.020342",
-        //          "quote_volume_24h" => "56817.811802",
-        //          "base_volume_24h" => "2172060",
-        //          "high_24h" => "0.256000",
-        //          "low_24h" => "0.016980",
-        //          "open_24h" => "0.022309",
-        //          "close_24h" => "0.020342",
-        //          "best_ask" => "0.020389",
-        //          "best_ask_size" => "339.000000000000000000000000000000",
-        //          "best_bid" => "0.020342",
-        //          "best_bid_size" => "3369.000000000000000000000000000000",
-        //          "fluctuation" => "-0.0882",
-        //          "url" => "https://www.bitmart.com/trade?$symbol=SOLAR_USDT",
-        //          "timestamp" => 1667403439367
-        //      }
+        //     {
+        //         'result' => array(
+        //             "AFIN_USDT",     // $symbol
+        //             "0.001047",      // $last
+        //             "11110",         // v_24h
+        //             "11.632170",     // qv_24h
+        //             "0.001048",      // open_24h
+        //             "0.001048",      // high_24h
+        //             "0.001047",      // low_24h
+        //             "-0.00095",      // price_change_24h
+        //             "0.001029",      // bid_px
+        //             "5555",          // bid_sz
+        //             "0.001041",      // ask_px
+        //             "5297",          // ask_sz
+        //             "1717122550482"  // $timestamp
+        //         )
+        //     }
+        //
+        // spot (REST) fetchTicker
+        //
+        //     {
+        //         "symbol" => "BTC_USDT",
+        //         "last" => "68500.00",
+        //         "v_24h" => "10491.65490",
+        //         "qv_24h" => "717178990.42",
+        //         "open_24h" => "68149.75",
+        //         "high_24h" => "69499.99",
+        //         "low_24h" => "67132.40",
+        //         "fluctuation" => "0.00514",
+        //         "bid_px" => "68500",
+        //         "bid_sz" => "0.00162",
+        //         "ask_px" => "68500.01",
+        //         "ask_sz" => "0.01722",
+        //         "ts" => "1717131391671"
+        //     }
         //
         // spot (WS)
+        //
         //      {
         //          "symbol":"BTC_USDT",
         //          "last_price":"146.24",
@@ -1176,40 +1210,76 @@ class bitmart extends Exchange {
         //
         // swap
         //
-        //      {
-        //          "contract_symbol":"DOGEUSDT",
-        //          "last_price":"0.130340",
-        //          "index_price":"0.13048245",
-        //          "last_funding_rate":"0.00002287",
-        //          "price_change_percent_24h":"-2.074",
-        //          "volume_24h":"113705028.59482228",
-        //          "url":"https://futures.bitmart.com/en?$symbol=DOGEUSDT",
-        //          "high_price":"0.134520",
-        //          "low_price":"0.128570",
-        //          "legal_coin_price":"0.1302699"
-        //      }
+        //     {
+        //       "symbol" => "BTCUSDT",
+        //       "product_type" => 1,
+        //       "open_timestamp" => 1594080000,
+        //       "expire_timestamp" => 0,
+        //       "settle_timestamp" => 0,
+        //       "base_currency" => "BTC",
+        //       "quote_currency" => "USDT",
+        //       "last_price" => "23920",
+        //       "volume_24h" => "18969368",
+        //       "turnover_24h" => "458933659.7858",
+        //       "index_price" => "23945.25191635",
+        //       "index_name" => "BTCUSDT",
+        //       "contract_size" => "0.001",
+        //       "min_leverage" => "1",
+        //       "max_leverage" => "100",
+        //       "price_precision" => "0.1",
+        //       "vol_precision" => "1",
+        //       "max_volume" => "500000",
+        //       "min_volume" => "1",
+        //       "funding_rate" => "0.0001",
+        //       "expected_funding_rate" => "0.00011",
+        //       "open_interest" => "4134180870",
+        //       "open_interest_value" => "94100888927.0433258",
+        //       "high_24h" => "23900",
+        //       "low_24h" => "23100",
+        //       "change_24h" => "0.004"
+        //  }
         //
-        $timestamp = $this->safe_integer($ticker, 'timestamp');
+        $result = $this->safe_list($ticker, 'result', array());
+        $average = $this->safe_string_2($ticker, 'avg_price', 'index_price');
+        $marketId = $this->safe_string_2($ticker, 'symbol', 'contract_symbol');
+        $timestamp = $this->safe_integer_2($ticker, 'timestamp', 'ts');
+        $last = $this->safe_string_2($ticker, 'last_price', 'last');
+        $percentage = $this->safe_string_2($ticker, 'price_change_percent_24h', 'change_24h');
+        $change = $this->safe_string($ticker, 'fluctuation');
+        $high = $this->safe_string_2($ticker, 'high_24h', 'high_price');
+        $low = $this->safe_string_2($ticker, 'low_24h', 'low_price');
+        $bid = $this->safe_string_2($ticker, 'best_bid', 'bid_px');
+        $bidVolume = $this->safe_string_2($ticker, 'best_bid_size', 'bid_sz');
+        $ask = $this->safe_string_2($ticker, 'best_ask', 'ask_px');
+        $askVolume = $this->safe_string_2($ticker, 'best_ask_size', 'ask_sz');
+        $open = $this->safe_string($ticker, 'open_24h');
+        $baseVolume = $this->safe_string_n($ticker, array( 'base_volume_24h', 'v_24h', 'volume_24h' ));
+        $quoteVolume = $this->safe_string_lower_n($ticker, array( 'quote_volume_24h', 'qv_24h', 'turnover_24h' ));
+        $listMarketId = $this->safe_string($result, 0);
+        if ($listMarketId !== null) {
+            $marketId = $listMarketId;
+            $timestamp = $this->safe_integer($result, 12);
+            $high = $this->safe_string($result, 5);
+            $low = $this->safe_string($result, 6);
+            $bid = $this->safe_string($result, 8);
+            $bidVolume = $this->safe_string($result, 9);
+            $ask = $this->safe_string($result, 10);
+            $askVolume = $this->safe_string($result, 11);
+            $open = $this->safe_string($result, 4);
+            $last = $this->safe_string($result, 1);
+            $change = $this->safe_string($result, 7);
+            $baseVolume = $this->safe_string($result, 2);
+            $quoteVolume = $this->safe_string_lower($result, 3);
+        }
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         if ($timestamp === null) {
             // $ticker from WS has a different field (in seconds)
             $timestamp = $this->safe_integer_product($ticker, 's_t', 1000);
         }
-        $marketId = $this->safe_string_2($ticker, 'symbol', 'contract_symbol');
-        $market = $this->safe_market($marketId, $market);
-        $symbol = $market['symbol'];
-        $last = $this->safe_string_2($ticker, 'close_24h', 'last_price');
-        $percentage = $this->safe_string($ticker, 'price_change_percent_24h');
         if ($percentage === null) {
-            $percentageRaw = $this->safe_string($ticker, 'fluctuation');
-            if (($percentageRaw !== null) && ($percentageRaw !== '0')) { // a few tickers show strictly '0' in fluctuation field
-                $direction = $percentageRaw[0];
-                $percentage = $direction . Precise::string_mul(str_replace($direction, '', $percentageRaw), '100');
-            } elseif ($percentageRaw === '0') {
-                $percentage = '0';
-            }
+            $percentage = Precise::string_mul($change, '100');
         }
-        $baseVolume = $this->safe_string($ticker, 'base_volume_24h');
-        $quoteVolume = $this->safe_string($ticker, 'quote_volume_24h');
         if ($quoteVolume === null) {
             if ($baseVolume === null) {
                 // this is swap
@@ -1221,25 +1291,22 @@ class bitmart extends Exchange {
                 $baseVolume = null;
             }
         }
-        $average = $this->safe_string_2($ticker, 'avg_price', 'index_price');
-        $high = $this->safe_string_2($ticker, 'high_24h', 'high_price');
-        $low = $this->safe_string_2($ticker, 'low_24h', 'low_price');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $high,
             'low' => $low,
-            'bid' => $this->safe_string($ticker, 'best_bid'),
-            'bidVolume' => $this->safe_string($ticker, 'best_bid_size'),
-            'ask' => $this->safe_string($ticker, 'best_ask'),
-            'askVolume' => $this->safe_string($ticker, 'best_ask_size'),
+            'bid' => $bid,
+            'bidVolume' => $bidVolume,
+            'ask' => $ask,
+            'askVolume' => $askVolume,
             'vwap' => null,
-            'open' => $this->safe_string($ticker, 'open_24h'),
+            'open' => $open,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => null,
+            'change' => $change,
             'percentage' => $percentage,
             'average' => $average,
             'baseVolume' => $baseVolume,
@@ -1252,6 +1319,8 @@ class bitmart extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @see https://developer-pro.bitmart.com/en/spot/#get-$ticker-of-a-trading-pair-v3
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structure~
@@ -1261,77 +1330,69 @@ class bitmart extends Exchange {
             $request = array();
             $response = null;
             if ($market['swap']) {
-                $request['contract_symbol'] = $market['id'];
-                $response = Async\await($this->publicGetContractV1Tickers (array_merge($request, $params)));
+                $request['symbol'] = $market['id'];
+                $response = Async\await($this->publicGetContractPublicDetails ($this->extend($request, $params)));
+                //
+                //      {
+                //          "message":"OK",
+                //          "code":1000,
+                //          "trace":"4a0ebceb-d3f7-45a3-8feb-f61e230e24cd",
+                //          "data":{
+                //              "tickers":array(
+                //                  {
+                //                      "contract_symbol":"DOGEUSDT",
+                //                      "last_price":"0.130180",
+                //                      "index_price":"0.13028635",
+                //                      "last_funding_rate":"0.00002025",
+                //                      "price_change_percent_24h":"-2.326",
+                //                      "volume_24h":"116789313.01797258",
+                //                      "url":"https://futures.bitmart.com/en?$symbol=DOGEUSDT",
+                //                      "high_price":"0.134520",
+                //                      "low_price":"0.128570",
+                //                      "legal_coin_price":"0.13017401"
+                //                  }
+                //              )
+                //          }
+                //      }
+                //
             } elseif ($market['spot']) {
                 $request['symbol'] = $market['id'];
-                $response = Async\await($this->publicGetSpotV1Ticker (array_merge($request, $params)));
+                $response = Async\await($this->publicGetSpotQuotationV3Ticker ($this->extend($request, $params)));
+                //
+                //     {
+                //         "code" => 1000,
+                //         "trace" => "f2194c2c202d2.99.1717535",
+                //         "message" => "success",
+                //         "data" => {
+                //             "symbol" => "BTC_USDT",
+                //             "last" => "68500.00",
+                //             "v_24h" => "10491.65490",
+                //             "qv_24h" => "717178990.42",
+                //             "open_24h" => "68149.75",
+                //             "high_24h" => "69499.99",
+                //             "low_24h" => "67132.40",
+                //             "fluctuation" => "0.00514",
+                //             "bid_px" => "68500",
+                //             "bid_sz" => "0.00162",
+                //             "ask_px" => "68500.01",
+                //             "ask_sz" => "0.01722",
+                //             "ts" => "1717131391671"
+                //         }
+                //     }
+                //
             } else {
                 throw new NotSupported($this->id . ' fetchTicker() does not support ' . $market['type'] . ' markets, only spot and swap markets are accepted');
             }
-            //
-            // spot
-            //
-            //     {
-            //         "message":"OK",
-            //         "code":1000,
-            //         "trace":"6aa5b923-2f57-46e3-876d-feca190e0b82",
-            //         "data":{
-            //             "tickers":array(
-            //                 {
-            //                     "symbol":"ETH_BTC",
-            //                     "last_price":"0.036037",
-            //                     "quote_volume_24h":"4380.6660000000",
-            //                     "base_volume_24h":"159.3582006712",
-            //                     "high_24h":"0.036972",
-            //                     "low_24h":"0.035524",
-            //                     "open_24h":"0.036561",
-            //                     "close_24h":"0.036037",
-            //                     "best_ask":"0.036077",
-            //                     "best_ask_size":"9.9500",
-            //                     "best_bid":"0.035983",
-            //                     "best_bid_size":"4.2792",
-            //                     "fluctuation":"-0.0143",
-            //                     "url":"https://www.bitmart.com/trade?$symbol=ETH_BTC"
-            //                 }
-            //             )
-            //         }
-            //     }
-            //
-            // swap
-            //
-            //      {
-            //          "message":"OK",
-            //          "code":1000,
-            //          "trace":"4a0ebceb-d3f7-45a3-8feb-f61e230e24cd",
-            //          "data":{
-            //              "tickers":array(
-            //                  {
-            //                      "contract_symbol":"DOGEUSDT",
-            //                      "last_price":"0.130180",
-            //                      "index_price":"0.13028635",
-            //                      "last_funding_rate":"0.00002025",
-            //                      "price_change_percent_24h":"-2.326",
-            //                      "volume_24h":"116789313.01797258",
-            //                      "url":"https://futures.bitmart.com/en?$symbol=DOGEUSDT",
-            //                      "high_price":"0.134520",
-            //                      "low_price":"0.128570",
-            //                      "legal_coin_price":"0.13017401"
-            //                  }
-            //              )
-            //          }
-            //      }
-            //
-            $data = $this->safe_value($response, 'data', array());
-            $tickers = $this->safe_value($data, 'tickers', array());
             // fails in naming for contract $tickers 'contract_symbol'
-            $tickersById = null;
+            $tickers = array();
+            $ticker = array();
             if ($market['spot']) {
-                $tickersById = $this->index_by($tickers, 'symbol');
-            } elseif ($market['swap']) {
-                $tickersById = $this->index_by($tickers, 'contract_symbol');
+                $ticker = $this->safe_dict($response, 'data', array());
+            } else {
+                $data = $this->safe_dict($response, 'data', array());
+                $tickers = $this->safe_list($data, 'symbols', array());
+                $ticker = $this->safe_value($tickers, 0, array());
             }
-            $ticker = $this->safe_value($tickersById, $market['id']);
             return $this->parse_ticker($ticker, $market);
         }) ();
     }
@@ -1340,7 +1401,8 @@ class bitmart extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each $market
-             * @see https://developer-pro.bitmart.com/en/spot/#get-$ticker-of-all-pairs-v2
+             * @see https://developer-pro.bitmart.com/en/spot/#get-$ticker-of-all-pairs-v3
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-details
              * @param {string[]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=$ticker-structure $ticker structures~
@@ -1356,17 +1418,90 @@ class bitmart extends Exchange {
             list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
             $response = null;
             if ($type === 'spot') {
-                $response = Async\await($this->publicGetSpotV2Ticker ($params));
+                $response = Async\await($this->publicGetSpotQuotationV3Tickers ($params));
+                //
+                //     {
+                //         "code" => 1000,
+                //         "trace" => "17c5e5d9ac49f9b71efca2bed55f1a.105.171225637482393",
+                //         "message" => "success",
+                //         "data" => array(
+                //             array(
+                //                 "AFIN_USDT",
+                //                 "0.001047",
+                //                 "11110",
+                //                 "11.632170",
+                //                 "0.001048",
+                //                 "0.001048",
+                //                 "0.001047",
+                //                 "-0.00095",
+                //                 "0.001029",
+                //                 "5555",
+                //                 "0.001041",
+                //                 "5297",
+                //                 "1717122550482"
+                //             ),
+                //         )
+                //     }
+                //
             } elseif ($type === 'swap') {
-                $response = Async\await($this->publicGetContractV1Tickers ($params));
+                $response = Async\await($this->publicGetContractPublicDetails ($params));
+                //
+                // {
+                //       "code" => 1000,
+                //       "message" => "Ok",
+                //       "trace" => "9b92a999-9463-4c96-91a4-93ad1cad0d72",
+                //       "data" => {
+                //         "symbols" => array(
+                //           array(
+                //             "symbol" => "BTCUSDT",
+                //             "product_type" => 1,
+                //             "open_timestamp" => 1594080000,
+                //             "expire_timestamp" => 0,
+                //             "settle_timestamp" => 0,
+                //             "base_currency" => "BTC",
+                //             "quote_currency" => "USDT",
+                //             "last_price" => "23920",
+                //             "volume_24h" => "18969368",
+                //             "turnover_24h" => "458933659.7858",
+                //             "index_price" => "23945.25191635",
+                //             "index_name" => "BTCUSDT",
+                //             "contract_size" => "0.001",
+                //             "min_leverage" => "1",
+                //             "max_leverage" => "100",
+                //             "price_precision" => "0.1",
+                //             "vol_precision" => "1",
+                //             "max_volume" => "500000",
+                //             "min_volume" => "1",
+                //             "funding_rate" => "0.0001",
+                //             "expected_funding_rate" => "0.00011",
+                //             "open_interest" => "4134180870",
+                //             "open_interest_value" => "94100888927.0433258",
+                //             "high_24h" => "23900",
+                //             "low_24h" => "23100",
+                //             "change_24h" => "0.004"
+                //           ),
+                //         )
+                //       }
+                //   }
+                //
             } else {
                 throw new NotSupported($this->id . ' fetchTickers() does not support ' . $type . ' markets, only spot and swap markets are accepted');
             }
-            $data = $this->safe_value($response, 'data', array());
-            $tickers = $this->safe_value($data, 'tickers', array());
+            $tickers = array();
+            if ($type === 'spot') {
+                $tickers = $this->safe_list($response, 'data', array());
+            } else {
+                $data = $this->safe_dict($response, 'data', array());
+                $tickers = $this->safe_list($data, 'symbols', array());
+            }
             $result = array();
             for ($i = 0; $i < count($tickers); $i++) {
-                $ticker = $this->parse_ticker($tickers[$i]);
+                $ticker = array();
+                if ($type === 'spot') {
+                    $ticker = $this->parse_ticker(array( 'result' => $tickers[$i] ));
+                } else {
+                    $ticker = $this->parse_ticker($tickers[$i]);
+                }
                 $symbol = $ticker['symbol'];
                 $result[$symbol] = $ticker;
             }
@@ -1380,6 +1515,7 @@ class bitmart extends Exchange {
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
              * @see https://developer-pro.bitmart.com/en/spot/#get-depth-v3
              * @see https://developer-pro.bitmart.com/en/futures/#get-$market-depth
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#get-$market-depth
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -1395,9 +1531,9 @@ class bitmart extends Exchange {
                 if ($limit !== null) {
                     $request['limit'] = $limit; // default 35, max 50
                 }
-                $response = Async\await($this->publicGetSpotQuotationV3Books (array_merge($request, $params)));
+                $response = Async\await($this->publicGetSpotQuotationV3Books ($this->extend($request, $params)));
             } elseif ($market['swap']) {
-                $response = Async\await($this->publicGetContractPublicDepth (array_merge($request, $params)));
+                $response = Async\await($this->publicGetContractPublicDepth ($this->extend($request, $params)));
             } else {
                 throw new NotSupported($this->id . ' fetchOrderBook() does not support ' . $market['type'] . ' markets, only spot and swap markets are accepted');
             }
@@ -1452,17 +1588,17 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // public fetchTrades spot ( $amount = count * price )
         //
-        //    {
-        //        "amount" => "818.94",
-        //        "order_time" => "1637601839035",    // ETH/USDT
-        //        "price" => "4221.99",
-        //        "count" => "0.19397",
-        //        "type" => "buy"
-        //    }
+        //     array(
+        //         "BTC_USDT",      // symbol
+        //         "1717212457302", // $timestamp
+        //         "67643.11",      // price
+        //         "0.00106",       // size
+        //         "sell"           // $side
+        //     )
         //
         // spot => fetchMyTrades
         //
@@ -1509,23 +1645,24 @@ class bitmart extends Exchange {
         //        'lastTradeID' => 6802340762
         //    }
         //
-        $timestamp = $this->safe_integer_n($trade, array( 'order_time', 'createTime', 'create_time' ));
-        $isPublicTrade = (is_array($trade) && array_key_exists('order_time', $trade));
+        $timestamp = $this->safe_integer_n($trade, array( 'createTime', 'create_time', 1 ));
+        $isPublic = $this->safe_string($trade, 0);
+        $isPublicTrade = ($isPublic !== null);
         $amount = null;
         $cost = null;
         $type = null;
         $side = null;
         if ($isPublicTrade) {
-            $amount = $this->safe_string($trade, 'count');
+            $amount = $this->safe_string_2($trade, 'count', 3);
             $cost = $this->safe_string($trade, 'amount');
-            $side = $this->safe_string($trade, 'type');
+            $side = $this->safe_string_2($trade, 'type', 4);
         } else {
             $amount = $this->safe_string_n($trade, array( 'size', 'vol', 'fillQty' ));
             $cost = $this->safe_string($trade, 'notional');
             $type = $this->safe_string($trade, 'type');
             $side = $this->parse_order_side($this->safe_string($trade, 'side'));
         }
-        $marketId = $this->safe_string($trade, 'symbol');
+        $marketId = $this->safe_string_2($trade, 'symbol', 0);
         $market = $this->safe_market($marketId, $market);
         $feeCostString = $this->safe_string_2($trade, 'fee', 'paid_fees');
         $fee = null;
@@ -1549,7 +1686,7 @@ class bitmart extends Exchange {
             'symbol' => $market['symbol'],
             'type' => $type,
             'side' => $side,
-            'price' => $this->safe_string_2($trade, 'price', 'fillPrice'),
+            'price' => $this->safe_string_n($trade, array( 'price', 'fillPrice', 2 )),
             'amount' => $amount,
             'cost' => $cost,
             'takerOrMaker' => $this->safe_string_lower_2($trade, 'tradeRole', 'exec_type'),
@@ -1560,12 +1697,13 @@ class bitmart extends Exchange {
     public function fetch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * get the list of most recent $trades for a particular $symbol
-             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+             * get a list of the most recent trades for a particular $symbol
+             * @see https://developer-pro.bitmart.com/en/spot/#get-recent-trades-v3
+             * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [$limit] the maximum amount of $trades to fetch
+             * @param {int} [$limit] the maximum number of trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
+             * @return {Trade[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -1575,30 +1713,28 @@ class bitmart extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetSpotV1SymbolsTrades (array_merge($request, $params)));
-            //
-            // spot
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->publicGetSpotQuotationV3Trades ($this->extend($request, $params)));
             //
             //     {
-            //         "message":"OK",
-            //         "code":1000,
-            //         "trace":"222d74c0-8f6d-49d9-8e1b-98118c50eeba",
-            //         "data":{
-            //             "trades":array(
-            //                 array(
-            //                     "amount":"0.005703",
-            //                     "order_time":1599652045394,
-            //                     "price":"0.034029",
-            //                     "count":"0.1676",
-            //                     "type":"sell"
-            //                 ),
-            //             )
-            //         }
+            //         "code" => 1000,
+            //         "trace" => "58031f9a5bd.111.17117",
+            //         "message" => "success",
+            //         "data" => array(
+            //             array(
+            //                 "BTC_USDT",
+            //                 "1717212457302",
+            //                 "67643.11",
+            //                 "0.00106",
+            //                 "sell"
+            //             ),
+            //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
-            $trades = $this->safe_value($data, 'trades', array());
-            return $this->parse_trades($trades, $market, $since, $limit);
+            $data = $this->safe_list($response, 'data', array());
+            return $this->parse_trades($data, $market, $since, $limit);
         }) ();
     }
 
@@ -1671,7 +1807,7 @@ class bitmart extends Exchange {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
              * @see https://developer-pro.bitmart.com/en/spot/#get-history-k-line-v3
-             * @see https://developer-pro.bitmart.com/en/futures/#get-k-line
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#get-k-line
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -1727,9 +1863,9 @@ class bitmart extends Exchange {
             }
             $response = null;
             if ($market['swap']) {
-                $response = Async\await($this->publicGetContractPublicKline (array_merge($request, $params)));
+                $response = Async\await($this->publicGetContractPublicKline ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->publicGetSpotQuotationV3Klines (array_merge($request, $params)));
+                $response = Async\await($this->publicGetSpotQuotationV3Klines ($this->extend($request, $params)));
             }
             //
             // spot
@@ -1764,7 +1900,7 @@ class bitmart extends Exchange {
             //         "trace" => "96c989db-e0f5-46f5-bba6-60cfcbde699b"
             //     }
             //
-            $ohlcv = $this->safe_value($response, 'data', array());
+            $ohlcv = $this->safe_list($response, 'data', array());
             return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $since, $limit);
         }) ();
     }
@@ -1813,7 +1949,7 @@ class bitmart extends Exchange {
                 if ($until !== null) {
                     $request['endTime'] = $until;
                 }
-                $response = Async\await($this->privatePostSpotV4QueryTrades (array_merge($request, $params)));
+                $response = Async\await($this->privatePostSpotV4QueryTrades ($this->extend($request, $params)));
             } elseif ($type === 'swap') {
                 if ($symbol === null) {
                     throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
@@ -1824,7 +1960,7 @@ class bitmart extends Exchange {
                 if ($until !== null) {
                     $request['end_time'] = $until;
                 }
-                $response = Async\await($this->privateGetContractPrivateTrades (array_merge($request, $params)));
+                $response = Async\await($this->privateGetContractPrivateTrades ($this->extend($request, $params)));
             } else {
                 throw new NotSupported($this->id . ' fetchMyTrades() does not support ' . $type . ' orders, only spot and swap orders are accepted');
             }
@@ -1879,7 +2015,7 @@ class bitmart extends Exchange {
             //         "trace" => "4cad855074634097ac6ba5257c47305d.62.16959616054873723"
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_trades($data, $market, $since, $limit);
         }) ();
     }
@@ -1900,8 +2036,8 @@ class bitmart extends Exchange {
             $request = array(
                 'orderId' => $id,
             );
-            $response = Async\await($this->privatePostSpotV4QueryOrderTrades (array_merge($request, $params)));
-            $data = $this->safe_value($response, 'data', array());
+            $response = Async\await($this->privatePostSpotV4QueryOrderTrades ($this->extend($request, $params)));
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_trades($data, null, $since, $limit);
         }) ();
     }
@@ -1964,6 +2100,7 @@ class bitmart extends Exchange {
              * query for balance and get the amount of funds available for trading or funds locked in orders
              * @see https://developer-pro.bitmart.com/en/spot/#get-spot-wallet-balance
              * @see https://developer-pro.bitmart.com/en/futures/#get-contract-assets-detail
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#get-contract-assets-keyed
              * @see https://developer-pro.bitmart.com/en/spot/#get-account-balance
              * @see https://developer-pro.bitmart.com/en/spot/#get-margin-account-details-isolated
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2088,7 +2225,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_trading_fee($fee, ?array $market = null) {
+    public function parse_trading_fee(array $fee, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "ETH_USDT",
@@ -2103,10 +2240,12 @@ class bitmart extends Exchange {
             'symbol' => $symbol,
             'maker' => $this->safe_number($fee, 'maker_fee_rate'),
             'taker' => $this->safe_number($fee, 'taker_fee_rate'),
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the trading fees for a $market
@@ -2122,7 +2261,7 @@ class bitmart extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->privateGetSpotV1TradeFee (array_merge($request, $params)));
+            $response = Async\await($this->privateGetSpotV1TradeFee ($this->extend($request, $params)));
             //
             //     {
             //         "message" => "OK",
@@ -2140,7 +2279,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder
         //
@@ -2246,7 +2385,7 @@ class bitmart extends Exchange {
         $trailingActivationPrice = $this->safe_number($order, 'activation_price');
         return $this->safe_order(array(
             'id' => $id,
-            'clientOrderId' => $this->safe_string($order, 'client_order_id'),
+            'clientOrderId' => $this->safe_string_2($order, 'client_order_id', 'clientOrderId'),
             'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -2334,11 +2473,12 @@ class bitmart extends Exchange {
              * @see https://developer-pro.bitmart.com/en/spot/#place-margin-$order
              * @see https://developer-pro.bitmart.com/en/futures/#submit-$order-signed
              * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-$order-signed
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-$order-signed
              * @param {string} $symbol unified $symbol of the $market to create an $order in
              * @param {string} $type 'market', 'limit' or 'trailing' for swap markets only
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
-             * @param {float} [$price] the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->marginMode] 'cross' or 'isolated'
              * @param {string} [$params->leverage] *swap only* leverage level
@@ -2400,17 +2540,88 @@ class bitmart extends Exchange {
         }) ();
     }
 
+    public function create_orders(array $orders, $params = array ()) {
+        return Async\async(function () use ($orders, $params) {
+            /**
+             * create a list of trade $orders
+             * @see https://developer-pro.bitmart.com/en/spot/#new-batch-$order-v4-signed
+             * @param {Array} $orders list of $orders to create, each object should contain the parameters required by createOrder, namely $symbol, $type, $side, $amount, $price and $params
+             * @param {array} [$params]  extra parameters specific to the exchange API endpoint
+             * @return {array} an ~@link https://docs.ccxt.com/#/?id=$order-structure $order structure~
+             */
+            Async\await($this->load_markets());
+            $ordersRequests = array();
+            $symbol = null;
+            $market = null;
+            for ($i = 0; $i < count($orders); $i++) {
+                $rawOrder = $orders[$i];
+                $marketId = $this->safe_string($rawOrder, 'symbol');
+                $market = $this->market($marketId);
+                if (!$market['spot']) {
+                    throw new NotSupported($this->id . ' createOrders() supports spot $orders only');
+                }
+                if ($symbol === null) {
+                    $symbol = $marketId;
+                } else {
+                    if ($symbol !== $marketId) {
+                        throw new BadRequest($this->id . ' createOrders() requires all $orders to have the same symbol');
+                    }
+                }
+                $type = $this->safe_string($rawOrder, 'type');
+                $side = $this->safe_string($rawOrder, 'side');
+                $amount = $this->safe_value($rawOrder, 'amount');
+                $price = $this->safe_value($rawOrder, 'price');
+                $orderParams = $this->safe_dict($rawOrder, 'params', array());
+                $orderRequest = $this->create_spot_order_request($marketId, $type, $side, $amount, $price, $orderParams);
+                $orderRequest = $this->omit($orderRequest, array( 'symbol' )); // not needed because it goes in the outter object
+                $ordersRequests[] = $orderRequest;
+            }
+            $request = array(
+                'symbol' => $market['id'],
+                'orderParams' => $ordersRequests,
+            );
+            $response = Async\await($this->privatePostSpotV4BatchOrders ($request));
+            //
+            // {
+            //     "message" => "OK",
+            //     "code" => 1000,
+            //     "trace" => "5fc697fb817a4b5396284786a9b2609a.263.17022620476480263",
+            //     "data" => {
+            //       "code" => 0,
+            //       "msg" => "success",
+            //       "data" => {
+            //         "orderIds" => array(
+            //           "212751308355553320"
+            //         )
+            //       }
+            //     }
+            // }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            $innderData = $this->safe_dict($data, 'data', array());
+            $orderIds = $this->safe_list($innderData, 'orderIds', array());
+            $parsedOrders = array();
+            for ($i = 0; $i < count($orderIds); $i++) {
+                $orderId = $orderIds[$i];
+                $order = $this->safe_order(array( 'id' => $orderId ), $market);
+                $parsedOrders[] = $order;
+            }
+            return $parsedOrders;
+        }) ();
+    }
+
     public function create_swap_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
         /**
          * @ignore
          * create a trade order
          * @see https://developer-pro.bitmart.com/en/futures/#submit-order-signed
          * @see https://developer-pro.bitmart.com/en/futures/#submit-plan-order-signed
+         * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-plan-order-signed
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market', 'limit' or 'trailing'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->leverage] $leverage level
          * @param {boolean} [$params->reduceOnly] *swap only* reduce only
@@ -2462,7 +2673,9 @@ class bitmart extends Exchange {
             $request['activation_price_type'] = $this->safe_integer($params, 'activation_price_type', 1);
         }
         if ($isTriggerOrder) {
-            $request['executive_price'] = $this->price_to_precision($symbol, $price);
+            if ($isLimitOrder || $price !== null) {
+                $request['executive_price'] = $this->price_to_precision($symbol, $price);
+            }
             $request['trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
             $request['price_type'] = $this->safe_integer($params, 'price_type', 1);
             if ($side === 'buy') {
@@ -2500,10 +2713,14 @@ class bitmart extends Exchange {
             $params = $this->omit($params, 'clientOrderId');
             $request['client_order_id'] = $clientOrderId;
         }
-        $leverage = $this->safe_integer($params, 'leverage', 1);
+        $leverage = $this->safe_integer($params, 'leverage');
         $params = $this->omit($params, array( 'timeInForce', 'postOnly', 'reduceOnly', 'leverage', 'trailingTriggerPrice', 'trailingPercent', 'triggerPrice', 'stopPrice' ));
-        $request['leverage'] = $this->number_to_string($leverage);
-        return array_merge($request, $params);
+        if ($leverage !== null) {
+            $request['leverage'] = $this->number_to_string($leverage);
+        } elseif ($isTriggerOrder) {
+            $request['leverage'] = '1'; // for plan orders $leverage is required, if not available default to 1
+        }
+        return $this->extend($request, $params);
     }
 
     public function create_spot_order_request(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array ()) {
@@ -2516,7 +2733,7 @@ class bitmart extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->marginMode] 'cross' or 'isolated'
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
@@ -2546,7 +2763,7 @@ class bitmart extends Exchange {
         } elseif ($isMarketOrder) {
             // for $market buy it requires the $amount of quote currency to spend
             if ($side === 'buy') {
-                $notional = $this->safe_number_2($params, 'cost', 'notional');
+                $notional = $this->safe_string_2($params, 'cost', 'notional');
                 $params = $this->omit($params, 'cost');
                 $createMarketBuyOrderRequiresPrice = true;
                 list($createMarketBuyOrderRequiresPrice, $params) = $this->handle_option_and_params($params, 'createOrder', 'createMarketBuyOrderRequiresPrice', true);
@@ -2556,10 +2773,10 @@ class bitmart extends Exchange {
                     } else {
                         $amountString = $this->number_to_string($amount);
                         $priceString = $this->number_to_string($price);
-                        $notional = $this->parse_number(Precise::string_mul($amountString, $priceString));
+                        $notional = Precise::string_mul($amountString, $priceString);
                     }
                 } else {
-                    $notional = ($notional === null) ? $amount : $notional;
+                    $notional = ($notional === null) ? $this->number_to_string($amount) : $notional;
                 }
                 $request['notional'] = $this->decimal_to_precision($notional, TRUNCATE, $market['precision']['price'], $this->precisionMode);
             } elseif ($side === 'sell') {
@@ -2572,7 +2789,12 @@ class bitmart extends Exchange {
         if ($ioc) {
             $request['type'] = 'ioc';
         }
-        return array_merge($request, $params);
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $params = $this->omit($params, 'clientOrderId');
+            $request['client_order_id'] = $clientOrderId;
+        }
+        return $this->extend($request, $params);
     }
 
     public function cancel_order(string $id, ?string $symbol = null, $params = array ()) {
@@ -2582,6 +2804,8 @@ class bitmart extends Exchange {
              * @see https://developer-pro.bitmart.com/en/futures/#cancel-$order-signed
              * @see https://developer-pro.bitmart.com/en/spot/#cancel-$order-v3-signed
              * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-$order-signed
+             * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-$order-signed
+             * @see https://developer-pro.bitmart.com/en/futures/#cancel-$order-signed
              * @see https://developer-pro.bitmart.com/en/futures/#cancel-plan-$order-signed
              * @param {string} $id $order $id
              * @param {string} $symbol unified $symbol of the $market the $order was made in
@@ -2607,14 +2831,14 @@ class bitmart extends Exchange {
             $params = $this->omit($params, array( 'clientOrderId' ));
             $response = null;
             if ($market['spot']) {
-                $response = Async\await($this->privatePostSpotV3CancelOrder (array_merge($request, $params)));
+                $response = Async\await($this->privatePostSpotV3CancelOrder ($this->extend($request, $params)));
             } else {
                 $stop = $this->safe_value_2($params, 'stop', 'trigger');
                 $params = $this->omit($params, array( 'stop', 'trigger' ));
                 if (!$stop) {
-                    $response = Async\await($this->privatePostContractPrivateCancelOrder (array_merge($request, $params)));
+                    $response = Async\await($this->privatePostContractPrivateCancelOrder ($this->extend($request, $params)));
                 } else {
-                    $response = Async\await($this->privatePostContractPrivateCancelPlanOrder (array_merge($request, $params)));
+                    $response = Async\await($this->privatePostContractPrivateCancelPlanOrder ($this->extend($request, $params)));
                 }
             }
             // swap
@@ -2645,7 +2869,7 @@ class bitmart extends Exchange {
             }
             $data = $this->safe_value($response, 'data');
             if ($data === true) {
-                return $this->parse_order($id, $market);
+                return $this->safe_order(array( 'id' => $id ), $market);
             }
             $succeeded = $this->safe_value($data, 'succeed');
             if ($succeeded !== null) {
@@ -2659,8 +2883,70 @@ class bitmart extends Exchange {
                     throw new InvalidOrder($this->id . ' cancelOrder() ' . $symbol . ' $order $id ' . $id . ' is filled or canceled');
                 }
             }
-            $order = $this->parse_order($id, $market);
-            return array_merge($order, array( 'id' => $id ));
+            $order = $this->safe_order(array( 'id' => $id, 'symbol' => $market['symbol'], 'info' => array()), $market);
+            return $order;
+        }) ();
+    }
+
+    public function cancel_orders(array $ids, ?string $symbol = null, $params = array ()) {
+        return Async\async(function () use ($ids, $symbol, $params) {
+            /**
+             * cancel multiple orders
+             * @see https://developer-pro.bitmart.com/en/spot/#cancel-batch-order-v4-signed
+             * @param {string[]} $ids order $ids
+             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {string[]} [$params->clientOrderIds] client order $ids
+             * @return {array} an list of ~@link https://docs.ccxt.com/#/?$id=order-structure order structures~
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['spot']) {
+                throw new NotSupported($this->id . ' cancelOrders() does not support ' . $market['type'] . ' orders, only spot orders are accepted');
+            }
+            $clientOrderIds = $this->safe_list($params, 'clientOrderIds');
+            $params = $this->omit($params, array( 'clientOrderIds' ));
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            if ($clientOrderIds !== null) {
+                $request['clientOrderIds'] = $clientOrderIds;
+            } else {
+                $request['orderIds'] = $ids;
+            }
+            $response = Async\await($this->privatePostSpotV4CancelOrders ($this->extend($request, $params)));
+            //
+            //  {
+            //      "message" => "OK",
+            //      "code" => 1000,
+            //      "trace" => "c4edbce860164203954f7c3c81d60fc6.309.17022669632770001",
+            //      "data" => {
+            //        "successIds" => array(
+            //          "213055379155243012"
+            //        ),
+            //        "failIds" => array(),
+            //        "totalCount" => 1,
+            //        "successCount" => 1,
+            //        "failedCount" => 0
+            //      }
+            //  }
+            //
+            $data = $this->safe_dict($response, 'data', array());
+            $allOrders = array();
+            $successIds = $this->safe_list($data, 'successIds', array());
+            for ($i = 0; $i < count($successIds); $i++) {
+                $id = $successIds[$i];
+                $allOrders[] = $this->safe_order(array( 'id' => $id, 'status' => 'canceled' ), $market);
+            }
+            $failIds = $this->safe_list($data, 'failIds', array());
+            for ($i = 0; $i < count($failIds); $i++) {
+                $id = $failIds[$i];
+                $allOrders[] = $this->safe_order(array( 'id' => $id, 'status' => 'failed' ), $market);
+            }
+            return $allOrders;
         }) ();
     }
 
@@ -2670,6 +2956,7 @@ class bitmart extends Exchange {
              * cancel all open orders in a $market
              * @see https://developer-pro.bitmart.com/en/spot/#cancel-all-orders
              * @see https://developer-pro.bitmart.com/en/futures/#cancel-all-orders-signed
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#cancel-all-orders-signed
              * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @param {string} [$params->side] *spot only* 'buy' or 'sell'
@@ -2686,12 +2973,12 @@ class bitmart extends Exchange {
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
             if ($type === 'spot') {
-                $response = Async\await($this->privatePostSpotV1CancelOrders (array_merge($request, $params)));
+                $response = Async\await($this->privatePostSpotV1CancelOrders ($this->extend($request, $params)));
             } elseif ($type === 'swap') {
                 if ($symbol === null) {
                     throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
                 }
-                $response = Async\await($this->privatePostContractPrivateCancelOrders (array_merge($request, $params)));
+                $response = Async\await($this->privatePostContractPrivateCancelOrders ($this->extend($request, $params)));
             }
             //
             // spot
@@ -2739,7 +3026,7 @@ class bitmart extends Exchange {
             } else {
                 $request['status'] = $status;
             }
-            $response = Async\await($this->privateGetSpotV3Orders (array_merge($request, $params)));
+            $response = Async\await($this->privateGetSpotV3Orders ($this->extend($request, $params)));
             //
             // spot
             //
@@ -2769,7 +3056,7 @@ class bitmart extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $orders = $this->safe_value($data, 'orders', array());
+            $orders = $this->safe_list($data, 'orders', array());
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();
     }
@@ -2821,12 +3108,12 @@ class bitmart extends Exchange {
                     $params = $this->omit($params, array( 'endTime' ));
                     $request['endTime'] = $until;
                 }
-                $response = Async\await($this->privatePostSpotV4QueryOpenOrders (array_merge($request, $params)));
+                $response = Async\await($this->privatePostSpotV4QueryOpenOrders ($this->extend($request, $params)));
             } elseif ($type === 'swap') {
                 $isStop = $this->safe_value_2($params, 'stop', 'trigger');
                 $params = $this->omit($params, array( 'stop', 'trigger' ));
                 if ($isStop) {
-                    $response = Async\await($this->privateGetContractPrivateCurrentPlanOrder (array_merge($request, $params)));
+                    $response = Async\await($this->privateGetContractPrivateCurrentPlanOrder ($this->extend($request, $params)));
                 } else {
                     $trailing = $this->safe_bool($params, 'trailing', false);
                     $orderType = $this->safe_string($params, 'orderType');
@@ -2837,7 +3124,7 @@ class bitmart extends Exchange {
                     if ($orderType !== null) {
                         $request['type'] = $orderType;
                     }
-                    $response = Async\await($this->privateGetContractPrivateGetOpenOrders (array_merge($request, $params)));
+                    $response = Async\await($this->privateGetContractPrivateGetOpenOrders ($this->extend($request, $params)));
                 }
             } else {
                 throw new NotSupported($this->id . ' fetchOpenOrders() does not support ' . $type . ' orders, only spot and swap orders are accepted');
@@ -2896,7 +3183,7 @@ class bitmart extends Exchange {
             //         "trace" => "7f9d94g10f9d4513bc08a7rfc3a5559a.71.16957022303515933"
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }
@@ -2906,6 +3193,7 @@ class bitmart extends Exchange {
             /**
              * @see https://developer-pro.bitmart.com/en/spot/#account-orders-v4-signed
              * @see https://developer-pro.bitmart.com/en/futures/#get-order-history-keyed
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-history-keyed
              * fetches information on multiple closed orders made by the user
              * @param {string} $symbol unified $market $symbol of the $market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
@@ -2946,11 +3234,11 @@ class bitmart extends Exchange {
             }
             $response = null;
             if ($type === 'spot') {
-                $response = Async\await($this->privatePostSpotV4QueryHistoryOrders (array_merge($request, $params)));
+                $response = Async\await($this->privatePostSpotV4QueryHistoryOrders ($this->extend($request, $params)));
             } else {
-                $response = Async\await($this->privateGetContractPrivateOrderHistory (array_merge($request, $params)));
+                $response = Async\await($this->privateGetContractPrivateOrderHistory ($this->extend($request, $params)));
             }
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
     }
@@ -2976,6 +3264,7 @@ class bitmart extends Exchange {
              * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-$id-v4-signed
              * @see https://developer-pro.bitmart.com/en/spot/#query-order-by-clientorderid-v4-signed
              * @see https://developer-pro.bitmart.com/en/futures/#get-order-detail-keyed
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#get-order-detail-keyed
              * @param {string} $id the $id of the order
              * @param {string} $symbol unified $symbol of the $market the order was made in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -2999,9 +3288,9 @@ class bitmart extends Exchange {
                     $request['orderId'] = $id;
                 }
                 if ($clientOrderId !== null) {
-                    $response = Async\await($this->privatePostSpotV4QueryClientOrder (array_merge($request, $params)));
+                    $response = Async\await($this->privatePostSpotV4QueryClientOrder ($this->extend($request, $params)));
                 } else {
-                    $response = Async\await($this->privatePostSpotV4QueryOrder (array_merge($request, $params)));
+                    $response = Async\await($this->privatePostSpotV4QueryOrder ($this->extend($request, $params)));
                 }
             } elseif ($type === 'swap') {
                 if ($symbol === null) {
@@ -3018,7 +3307,7 @@ class bitmart extends Exchange {
                 }
                 $request['symbol'] = $market['id'];
                 $request['order_id'] = $id;
-                $response = Async\await($this->privateGetContractPrivateOrder (array_merge($request, $params)));
+                $response = Async\await($this->privateGetContractPrivateOrder ($this->extend($request, $params)));
             }
             //
             // spot
@@ -3070,7 +3359,7 @@ class bitmart extends Exchange {
             //         "trace" => "4cad855075664097af6ba5257c47605d.63.14957831547451715"
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_order($data, $market);
         }) ();
     }
@@ -3100,7 +3389,7 @@ class bitmart extends Exchange {
                     $params = $this->omit($params, 'network');
                 }
             }
-            $response = Async\await($this->privateGetAccountV1DepositAddress (array_merge($request, $params)));
+            $response = Async\await($this->privateGetAccountV1DepositAddress ($this->extend($request, $params)));
             //
             //    {
             //        "message" => "OK",
@@ -3114,7 +3403,7 @@ class bitmart extends Exchange {
             //        }
             //    }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_deposit_address($data, $currency);
         }) ();
     }
@@ -3137,7 +3426,11 @@ class bitmart extends Exchange {
             $parts = explode('-', $chain);
             $partsLength = count($parts);
             $networkId = $this->safe_string($parts, $partsLength - 1);
-            $network = $this->safe_network_code($networkId, $currency);
+            if ($networkId === $this->safe_string($currency, 'name')) {
+                $network = $this->safe_string($currency, 'code');
+            } else {
+                $network = $this->network_id_to_code($networkId);
+            }
         }
         $this->check_address($address);
         return array(
@@ -3149,16 +3442,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function safe_network_code($networkId, $currency = null) {
-        $name = $this->safe_string($currency, 'name');
-        if ($networkId === $name) {
-            $code = $this->safe_string($currency, 'code');
-            return $code;
-        }
-        return $this->network_id_to_code($networkId);
-    }
-
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         return Async\async(function () use ($code, $amount, $address, $tag, $params) {
             /**
              * make a withdrawal
@@ -3193,7 +3477,7 @@ class bitmart extends Exchange {
                     $params = $this->omit($params, 'network');
                 }
             }
-            $response = Async\await($this->privatePostAccountV1WithdrawApply (array_merge($request, $params)));
+            $response = Async\await($this->privatePostAccountV1WithdrawApply ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 1000,
@@ -3206,7 +3490,7 @@ class bitmart extends Exchange {
             //
             $data = $this->safe_value($response, 'data');
             $transaction = $this->parse_transaction($data, $currency);
-            return array_merge($transaction, array(
+            return $this->extend($transaction, array(
                 'code' => $code,
                 'address' => $address,
                 'tag' => $tag,
@@ -3242,7 +3526,7 @@ class bitmart extends Exchange {
                     $params = $this->omit($params, 'network');
                 }
             }
-            $response = Async\await($this->privateGetAccountV2DepositWithdrawHistory (array_merge($request, $params)));
+            $response = Async\await($this->privateGetAccountV2DepositWithdrawHistory ($this->extend($request, $params)));
             //
             //     {
             //         "message":"OK",
@@ -3268,7 +3552,7 @@ class bitmart extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $records = $this->safe_value($data, 'records', array());
+            $records = $this->safe_list($data, 'records', array());
             return $this->parse_transactions($records, $currency, $since, $limit);
         }) ();
     }
@@ -3286,7 +3570,7 @@ class bitmart extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            $response = Async\await($this->privateGetAccountV1DepositWithdrawDetail (array_merge($request, $params)));
+            $response = Async\await($this->privateGetAccountV1DepositWithdrawDetail ($this->extend($request, $params)));
             //
             //     {
             //         "message":"OK",
@@ -3310,7 +3594,7 @@ class bitmart extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $record = $this->safe_value($data, 'record', array());
+            $record = $this->safe_dict($data, 'record', array());
             return $this->parse_transaction($record);
         }) ();
     }
@@ -3342,7 +3626,7 @@ class bitmart extends Exchange {
             $request = array(
                 'id' => $id,
             );
-            $response = Async\await($this->privateGetAccountV1DepositWithdrawDetail (array_merge($request, $params)));
+            $response = Async\await($this->privateGetAccountV1DepositWithdrawDetail ($this->extend($request, $params)));
             //
             //     {
             //         "message":"OK",
@@ -3366,7 +3650,7 @@ class bitmart extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $record = $this->safe_value($data, 'record', array());
+            $record = $this->safe_dict($data, 'record', array());
             return $this->parse_transaction($record);
         }) ();
     }
@@ -3385,7 +3669,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             '0' => 'pending', // Create
             '1' => 'pending', // Submitted, waiting for withdrawal
@@ -3397,7 +3681,7 @@ class bitmart extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // withdraw
         //
@@ -3491,7 +3775,7 @@ class bitmart extends Exchange {
                 'currency' => $currency['id'],
                 'amount' => $this->currency_to_precision($code, $amount),
             );
-            $response = Async\await($this->privatePostSpotV1MarginIsolatedRepay (array_merge($request, $params)));
+            $response = Async\await($this->privatePostSpotV1MarginIsolatedRepay ($this->extend($request, $params)));
             //
             //     {
             //         "message" => "OK",
@@ -3504,7 +3788,7 @@ class bitmart extends Exchange {
             //
             $data = $this->safe_value($response, 'data', array());
             $transaction = $this->parse_margin_loan($data, $currency);
-            return array_merge($transaction, array(
+            return $this->extend($transaction, array(
                 'amount' => $amount,
                 'symbol' => $symbol,
             ));
@@ -3530,7 +3814,7 @@ class bitmart extends Exchange {
                 'currency' => $currency['id'],
                 'amount' => $this->currency_to_precision($code, $amount),
             );
-            $response = Async\await($this->privatePostSpotV1MarginIsolatedBorrow (array_merge($request, $params)));
+            $response = Async\await($this->privatePostSpotV1MarginIsolatedBorrow ($this->extend($request, $params)));
             //
             //     {
             //         "message" => "OK",
@@ -3543,7 +3827,7 @@ class bitmart extends Exchange {
             //
             $data = $this->safe_value($response, 'data', array());
             $transaction = $this->parse_margin_loan($data, $currency);
-            return array_merge($transaction, array(
+            return $this->extend($transaction, array(
                 'amount' => $amount,
                 'symbol' => $symbol,
             ));
@@ -3575,7 +3859,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_isolated_borrow_rate(string $symbol, $params = array ()) {
+    public function fetch_isolated_borrow_rate(string $symbol, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the rate of interest to borrow a currency for margin trading
@@ -3589,7 +3873,7 @@ class bitmart extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->privateGetSpotV1MarginIsolatedPairs (array_merge($request, $params)));
+            $response = Async\await($this->privateGetSpotV1MarginIsolatedPairs ($this->extend($request, $params)));
             //
             //     {
             //         "message" => "OK",
@@ -3629,7 +3913,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_isolated_borrow_rate($info, ?array $market = null) {
+    public function parse_isolated_borrow_rate(array $info, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "BTC_USDT",
@@ -3672,7 +3956,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_isolated_borrow_rates($params = array ()) {
+    public function fetch_isolated_borrow_rates($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * fetch the borrow interest rates of all currencies, currently only works for isolated margin
@@ -3716,12 +4000,7 @@ class bitmart extends Exchange {
             //
             $data = $this->safe_value($response, 'data', array());
             $symbols = $this->safe_value($data, 'symbols', array());
-            $result = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $this->safe_value($symbols, $i);
-                $result[] = $this->parse_isolated_borrow_rate($symbol);
-            }
-            return $result;
+            return $this->parse_isolated_borrow_rates($symbols);
         }) ();
     }
 
@@ -3731,6 +4010,7 @@ class bitmart extends Exchange {
              * transfer $currency internally between wallets on the same account, currently only supports transfer between spot and margin
              * @see https://developer-pro.bitmart.com/en/spot/#margin-asset-transfer-signed
              * @see https://developer-pro.bitmart.com/en/futures/#transfer-signed
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#transfer-signed
              * @param {string} $code unified $currency $code
              * @param {float} $amount amount to transfer
              * @param {string} $fromAccount account to transfer from
@@ -3766,9 +4046,9 @@ class bitmart extends Exchange {
             }
             $response = null;
             if (($fromAccount === 'margin') || ($toAccount === 'margin')) {
-                $response = Async\await($this->privatePostSpotV1MarginIsolatedTransfer (array_merge($request, $params)));
+                $response = Async\await($this->privatePostSpotV1MarginIsolatedTransfer ($this->extend($request, $params)));
             } elseif (($fromAccount === 'swap') || ($toAccount === 'swap')) {
-                $response = Async\await($this->privatePostAccountV1TransferContract (array_merge($request, $params)));
+                $response = Async\await($this->privatePostAccountV1TransferContract ($this->extend($request, $params)));
             }
             //
             // margin
@@ -3795,13 +4075,13 @@ class bitmart extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            return array_merge($this->parse_transfer($data, $currency), array(
+            return $this->extend($this->parse_transfer($data, $currency), array(
                 'status' => $this->parse_transfer_status($this->safe_string_2($response, 'code', 'message')),
             ));
         }) ();
     }
 
-    public function parse_transfer_status($status) {
+    public function parse_transfer_status(?string $status): ?string {
         $statuses = array(
             '1000' => 'ok',
             'OK' => 'ok',
@@ -3826,7 +4106,7 @@ class bitmart extends Exchange {
         return $this->safe_string($types, $type, $type);
     }
 
-    public function parse_transfer($transfer, ?array $currency = null) {
+    public function parse_transfer(array $transfer, ?array $currency = null): array {
         //
         // margin
         //
@@ -3866,7 +4146,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+    public function fetch_transfers(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch a history of internal transfers made on an account, only transfers between spot and swap are supported
@@ -3898,13 +4178,13 @@ class bitmart extends Exchange {
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
+            $until = $this->safe_integer($params, 'until'); // unified in milliseconds
             $endTime = $this->safe_integer($params, 'time_end', $until); // exchange-specific in milliseconds
-            $params = $this->omit($params, array( 'till', 'until' ));
+            $params = $this->omit($params, array( 'until' ));
             if ($endTime !== null) {
                 $request['time_end'] = $endTime;
             }
-            $response = Async\await($this->privatePostAccountV1TransferContractList (array_merge($request, $params)));
+            $response = Async\await($this->privatePostAccountV1TransferContractList ($this->extend($request, $params)));
             //
             //     {
             //         "message" => "OK",
@@ -3925,7 +4205,7 @@ class bitmart extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $records = $this->safe_value($data, 'records', array());
+            $records = $this->safe_list($data, 'records', array());
             return $this->parse_transfers($records, $currency, $since, $limit);
         }) ();
     }
@@ -3956,7 +4236,7 @@ class bitmart extends Exchange {
             if ($since !== null) {
                 $request['start_time'] = $since;
             }
-            $response = Async\await($this->privateGetSpotV1MarginIsolatedBorrowRecord (array_merge($request, $params)));
+            $response = Async\await($this->privateGetSpotV1MarginIsolatedBorrowRecord ($this->extend($request, $params)));
             //
             //     {
             //         "message" => "OK",
@@ -3985,7 +4265,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_borrow_interest($info, ?array $market = null) {
+    public function parse_borrow_interest(array $info, ?array $market = null) {
         //
         //     {
         //         "borrow_id" => "1657664327844Lk5eJJugXmdHHZoe",
@@ -4018,7 +4298,7 @@ class bitmart extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * Retrieves the open interest of a currency
-             * @see https://developer-pro.bitmart.com/en/futures/#get-futures-openinterest
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#get-futures-openinterest
              * @param {string} $symbol Unified CCXT $market $symbol
              * @param {array} [$params] exchange specific parameters
              * @return {array} an open interest structurearray(@link https://docs.ccxt.com/#/?id=open-interest-structure)
@@ -4031,7 +4311,7 @@ class bitmart extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetContractPublicOpenInterest (array_merge($request, $params)));
+            $response = Async\await($this->publicGetContractPublicOpenInterest ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 1000,
@@ -4045,7 +4325,7 @@ class bitmart extends Exchange {
             //         "trace" => "7f9c94e10f9d4513bc08a7bfc2a5559a.72.16946575108274991"
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             return $this->parse_open_interest($data, $market);
         }) ();
     }
@@ -4076,6 +4356,7 @@ class bitmart extends Exchange {
             /**
              * set the level of $leverage for a $market
              * @see https://developer-pro.bitmart.com/en/futures/#submit-$leverage-signed
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#submit-$leverage-signed
              * @param {float} $leverage the rate of $leverage
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -4098,7 +4379,7 @@ class bitmart extends Exchange {
                 'leverage' => (string) $leverage,
                 'open_type' => $marginMode,
             );
-            return Async\await($this->privatePostContractPrivateSubmitLeverage (array_merge($request, $params)));
+            return Async\await($this->privatePostContractPrivateSubmitLeverage ($this->extend($request, $params)));
         }) ();
     }
 
@@ -4106,7 +4387,7 @@ class bitmart extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch the current funding rate
-             * @see https://developer-pro.bitmart.com/en/futures/#get-current-funding-rate
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-funding-rate
              * @param {string} $symbol unified $market $symbol
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=funding-rate-structure funding rate structure~
@@ -4119,7 +4400,7 @@ class bitmart extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetContractPublicFundingRate (array_merge($request, $params)));
+            $response = Async\await($this->publicGetContractPublicFundingRate ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 1000,
@@ -4175,6 +4456,7 @@ class bitmart extends Exchange {
             /**
              * fetch $data on a single open contract trade position
              * @see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-risk-details-keyed
              * @param {string} $symbol unified $market $symbol of the $market the position is held in
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=position-structure position structure~
@@ -4184,7 +4466,7 @@ class bitmart extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->privateGetContractPrivatePosition (array_merge($request, $params)));
+            $response = Async\await($this->privateGetContractPrivatePosition ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 1000,
@@ -4215,7 +4497,7 @@ class bitmart extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $first = $this->safe_value($data, 0, array());
+            $first = $this->safe_dict($data, 0, array());
             return $this->parse_position($first, $market);
         }) ();
     }
@@ -4225,6 +4507,7 @@ class bitmart extends Exchange {
             /**
              * fetch all open contract $positions
              * @see https://developer-pro.bitmart.com/en/futures/#get-current-position-keyed
+             * @see https://developer-pro.bitmart.com/en/futuresv2/#get-current-position-risk-details-keyed
              * @param {string[]|null} $symbols list of unified $market $symbols
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=position-structure position structures~
@@ -4242,7 +4525,7 @@ class bitmart extends Exchange {
                 // only supports $symbols or sending one symbol
                 $request['symbol'] = $market['id'];
             }
-            $response = Async\await($this->privateGetContractPrivatePosition (array_merge($request, $params)));
+            $response = Async\await($this->privateGetContractPrivatePosition ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 1000,
@@ -4282,7 +4565,7 @@ class bitmart extends Exchange {
         }) ();
     }
 
-    public function parse_position($position, ?array $market = null) {
+    public function parse_position(array $position, ?array $market = null) {
         //
         //     {
         //         "symbol" => "BTCUSDT",
@@ -4374,7 +4657,7 @@ class bitmart extends Exchange {
                 $request['start_time'] = $since;
             }
             list($request, $params) = $this->handle_until_option('end_time', $request, $params);
-            $response = Async\await($this->privateGetContractPrivateOrderHistory (array_merge($request, $params)));
+            $response = Async\await($this->privateGetContractPrivateOrderHistory ($this->extend($request, $params)));
             //
             //     {
             //         "code" => 1000,
@@ -4457,7 +4740,11 @@ class bitmart extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $baseUrl = $this->implode_hostname($this->urls['api']['rest']);
+        $parts = explode('/', $path);
+        // to do => refactor $api endpoints with spot/swap sections
+        $category = $this->safe_string($parts, 0, 'spot');
+        $market = ($category === 'spot' || $category === 'account') ? 'spot' : 'swap';
+        $baseUrl = $this->implode_hostname($this->urls['api'][$market]);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
         $query = $this->omit($params, $this->extract_params($path));
         $queryString = '';
@@ -4489,7 +4776,7 @@ class bitmart extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

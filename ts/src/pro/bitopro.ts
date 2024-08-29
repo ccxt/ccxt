@@ -5,7 +5,7 @@ import bitoproRest from '../bitopro.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha384 } from '../static_dependencies/noble-hashes/sha512.js';
-import type { Int, OrderBook, Trade, Ticker, Balances, Market, Str } from '../base/types.js';
+import type { Int, OrderBook, Trade, Ticker, Balances, Market, Str, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 // ----------------------------------------------------------------------------
@@ -23,6 +23,7 @@ export default class bitopro extends bitoproRest {
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
             },
             'urls': {
                 'ws': {
@@ -192,7 +193,7 @@ export default class bitopro extends bitoproRest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
@@ -252,7 +253,7 @@ export default class bitopro extends bitoproRest {
         client.resolve (trades, messageHash + ':' + symbol);
     }
 
-    parseWsTrade (trade, market: Market = undefined): Trade {
+    parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //     {
         //         "base": "usdt",
@@ -389,16 +390,17 @@ export default class bitopro extends bitoproRest {
         });
         const payload = this.stringToBase64 (rawData);
         const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha384);
-        const defaultOptions = {
+        const defaultOptions: Dict = {
             'ws': {
                 'options': {
                     'headers': {},
                 },
             },
         };
-        this.options = this.extend (defaultOptions, this.options);
+        // this.options = this.extend (defaultOptions, this.options);
+        this.extendExchangeOptions (defaultOptions);
         const originalHeaders = this.options['ws']['options']['headers'];
-        const headers = {
+        const headers: Dict = {
             'X-BITOPRO-API': 'ccxt',
             'X-BITOPRO-APIKEY': this.apiKey,
             'X-BITOPRO-PAYLOAD': payload,
@@ -449,7 +451,7 @@ export default class bitopro extends bitoproRest {
         const timestamp = this.safeInteger (message, 'timestamp');
         const datetime = this.safeString (message, 'datetime');
         const currencies = Object.keys (data);
-        const result = {
+        const result: Dict = {
             'info': data,
             'timestamp': timestamp,
             'datetime': datetime,
@@ -469,7 +471,7 @@ export default class bitopro extends bitoproRest {
     }
 
     handleMessage (client: Client, message) {
-        const methods = {
+        const methods: Dict = {
             'TRADE': this.handleTrade,
             'TICKER': this.handleTicker,
             'ORDER_BOOK': this.handleOrderBook,

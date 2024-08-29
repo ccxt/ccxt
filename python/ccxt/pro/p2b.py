@@ -36,6 +36,7 @@ class p2b(ccxt.async_support.p2b):
                 'watchTicker': True,
                 'watchTickers': False,  # in the docs but does not return anything when subscribed to
                 'watchTrades': True,
+                'watchTradesForSymbols': True,
             },
             'urls': {
                 'api': {
@@ -57,6 +58,7 @@ class p2b(ccxt.async_support.p2b):
                 'watchTickers': {
                     'name': 'state',  # or 'price'
                 },
+                'tickerSubs': self.create_safe_dictionary(),
             },
             'streaming': {
                 'ping': self.ping,
@@ -74,7 +76,7 @@ class p2b(ccxt.async_support.p2b):
         :returns dict: data from the websocket stream
         """
         url = self.urls['api']['ws']
-        subscribe = {
+        subscribe: dict = {
             'method': name,
             'params': request,
             'id': self.milliseconds(),
@@ -120,13 +122,14 @@ class p2b(ccxt.async_support.p2b):
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
         await self.load_markets()
-        watchTickerOptions = self.safe_value(self.options, 'watchTicker')
+        watchTickerOptions = self.safe_dict(self.options, 'watchTicker')
         name = self.safe_string(watchTickerOptions, 'name', 'state')  # or price
         name, params = self.handle_option_and_params(params, 'method', 'name', name)
         market = self.market(symbol)
-        request = [
-            market['id'],
-        ]
+        symbol = market['symbol']
+        self.options['tickerSubs'][market['id']] = True  # we need to re-subscribe to all tickers upon watching a new ticker
+        tickerSubs = self.options['tickerSubs']
+        request = list(tickerSubs.keys())
         messageHash = name + '::' + market['symbol']
         return await self.subscribe(name + '.subscribe', messageHash, request, params)
 
@@ -140,15 +143,37 @@ class p2b(ccxt.async_support.p2b):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
+        return await self.watch_trades_for_symbols([symbol], since, limit, params)
+
+    async def watch_trades_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+        """
+        get the list of most recent trades for a list of symbols
+        :see: https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#deals
+        :param str[] symbols: unified symbol of the market to fetch trades for
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        """
         await self.load_markets()
-        market = self.market(symbol)
-        request = [
-            market['id'],
-        ]
-        messageHash = 'deals::' + market['symbol']
-        trades = await self.subscribe('deals.subscribe', messageHash, request, params)
+        symbols = self.market_symbols(symbols, None, False, True, True)
+        messageHashes = []
+        if symbols is not None:
+            for i in range(0, len(symbols)):
+                messageHashes.append('deals::' + symbols[i])
+        marketIds = self.market_ids(symbols)
+        url = self.urls['api']['ws']
+        subscribe: dict = {
+            'method': 'deals.subscribe',
+            'params': marketIds,
+            'id': self.milliseconds(),
+        }
+        query = self.extend(subscribe, params)
+        trades = await self.watch_multiple(url, messageHashes, query, messageHashes)
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
+            first = self.safe_value(trades, 0)
+            tradeSymbol = self.safe_string(first, 'symbol')
+            limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -369,7 +394,7 @@ class p2b(ccxt.async_support.p2b):
             self.handle_pong(client, message)
             return
         method = self.safe_string(message, 'method')
-        methods = {
+        methods: dict = {
             'depth.update': self.handle_order_book,
             'price.update': self.handle_ticker,
             'kline.update': self.handle_ohlcv,
@@ -386,7 +411,7 @@ class p2b(ccxt.async_support.p2b):
             raise ExchangeError(self.id + ' error: ' + self.json(error))
         return False
 
-    def ping(self, client):
+    def ping(self, client: Client):
         """
         :see: https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#ping
          * @param client
@@ -407,3 +432,11 @@ class p2b(ccxt.async_support.p2b):
         #
         client.lastPong = self.safe_integer(message, 'id')
         return message
+
+    def on_error(self, client: Client, error):
+        self.options['tickerSubs'] = self.create_safe_dictionary()
+        self.on_error(client, error)
+
+    def on_close(self, client: Client, error):
+        self.options['tickerSubs'] = self.create_safe_dictionary()
+        self.on_close(client, error)

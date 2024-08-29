@@ -10,7 +10,7 @@ public partial class testMainClass : BaseTest
     async static public Task testFetchLeverageTiers(Exchange exchange, object skippedProperties, object symbol)
     {
         object method = "fetchLeverageTiers";
-        object tiers = await exchange.fetchLeverageTiers(symbol);
+        object tiers = await exchange.fetchLeverageTiers(new List<object>() {"symbol"});
         // const format = {
         //     'RAY/USDT': [
         //       {},

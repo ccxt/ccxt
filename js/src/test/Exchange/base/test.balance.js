@@ -5,8 +5,8 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 import assert from 'assert';
-import testSharedMethods from './test.sharedMethods.js';
 import Precise from '../../../base/Precise.js';
+import testSharedMethods from './test.sharedMethods.js';
 function testBalance(exchange, skippedProperties, method, entry) {
     const format = {
         'free': {},

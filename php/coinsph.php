@@ -88,7 +88,11 @@ class coinsph extends Exchange {
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
                 'fetchPosition' => false,
+                'fetchPositionHistory' => false,
+                'fetchPositionMode' => false,
                 'fetchPositions' => false,
+                'fetchPositionsForSymbol' => false,
+                'fetchPositionsHistory' => false,
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchStatus' => true,
@@ -467,7 +471,7 @@ class coinsph extends Exchange {
         return $this->safe_integer($response, 'serverTime');
     }
 
-    public function fetch_markets($params = array ()) {
+    public function fetch_markets($params = array ()): array {
         /**
          * retrieves data on all $markets for coinsph
          * @see https://coins-docs.github.io/rest-api/#exchange-information
@@ -629,11 +633,11 @@ class coinsph extends Exchange {
         $method = $this->safe_string($options, 'method', $defaultMethod);
         $tickers = null;
         if ($method === 'publicGetOpenapiQuoteV1TickerPrice') {
-            $tickers = $this->publicGetOpenapiQuoteV1TickerPrice (array_merge($request, $params));
+            $tickers = $this->publicGetOpenapiQuoteV1TickerPrice ($this->extend($request, $params));
         } elseif ($method === 'publicGetOpenapiQuoteV1TickerBookTicker') {
-            $tickers = $this->publicGetOpenapiQuoteV1TickerBookTicker (array_merge($request, $params));
+            $tickers = $this->publicGetOpenapiQuoteV1TickerBookTicker ($this->extend($request, $params));
         } else {
-            $tickers = $this->publicGetOpenapiQuoteV1Ticker24hr (array_merge($request, $params));
+            $tickers = $this->publicGetOpenapiQuoteV1Ticker24hr ($this->extend($request, $params));
         }
         return $this->parse_tickers($tickers, $symbols, $params);
     }
@@ -658,16 +662,16 @@ class coinsph extends Exchange {
         $method = $this->safe_string($options, 'method', $defaultMethod);
         $ticker = null;
         if ($method === 'publicGetOpenapiQuoteV1TickerPrice') {
-            $ticker = $this->publicGetOpenapiQuoteV1TickerPrice (array_merge($request, $params));
+            $ticker = $this->publicGetOpenapiQuoteV1TickerPrice ($this->extend($request, $params));
         } elseif ($method === 'publicGetOpenapiQuoteV1TickerBookTicker') {
-            $ticker = $this->publicGetOpenapiQuoteV1TickerBookTicker (array_merge($request, $params));
+            $ticker = $this->publicGetOpenapiQuoteV1TickerBookTicker ($this->extend($request, $params));
         } else {
-            $ticker = $this->publicGetOpenapiQuoteV1Ticker24hr (array_merge($request, $params));
+            $ticker = $this->publicGetOpenapiQuoteV1Ticker24hr ($this->extend($request, $params));
         }
         return $this->parse_ticker($ticker, $market);
     }
 
-    public function parse_ticker($ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         // publicGetOpenapiQuoteV1Ticker24hr
         //     {
@@ -763,7 +767,7 @@ class coinsph extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->publicGetOpenapiQuoteV1Depth (array_merge($request, $params));
+        $response = $this->publicGetOpenapiQuoteV1Depth ($this->extend($request, $params));
         //
         //     {
         //         "lastUpdateId" => "1667022157000699400",
@@ -815,7 +819,7 @@ class coinsph extends Exchange {
                 $request['limit'] = $limit;
             }
         }
-        $response = $this->publicGetOpenapiQuoteV1Klines (array_merge($request, $params));
+        $response = $this->publicGetOpenapiQuoteV1Klines ($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -870,7 +874,7 @@ class coinsph extends Exchange {
                 $request['limit'] = $limit;
             }
         }
-        $response = $this->publicGetOpenapiQuoteV1Trades (array_merge($request, $params));
+        $response = $this->publicGetOpenapiQuoteV1Trades ($this->extend($request, $params));
         //
         //     array(
         //         array(
@@ -912,7 +916,7 @@ class coinsph extends Exchange {
         } elseif ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetOpenapiV1MyTrades (array_merge($request, $params));
+        $response = $this->privateGetOpenapiV1MyTrades ($this->extend($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
@@ -933,10 +937,10 @@ class coinsph extends Exchange {
         $request = array(
             'orderId' => $id,
         );
-        return $this->fetch_my_trades($symbol, $since, $limit, array_merge($request, $params));
+        return $this->fetch_my_trades($symbol, $since, $limit, $this->extend($request, $params));
     }
 
-    public function parse_trade($trade, ?array $market = null): array {
+    public function parse_trade(array $trade, ?array $market = null): array {
         //
         // fetchTrades
         //     array(
@@ -1083,7 +1087,7 @@ class coinsph extends Exchange {
          * @param {string} $type 'market', 'limit', 'stop_loss', 'take_profit', 'stop_loss_limit', 'take_profit_limit' or 'limit_maker'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float} [$price] the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount for $market buy orders
          * @param {bool} [$params->test] set to true to test an order, no order will be created but the $request will be validated
@@ -1155,9 +1159,9 @@ class coinsph extends Exchange {
         $params = $this->omit($params, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
         $response = null;
         if ($testOrder) {
-            $response = $this->privatePostOpenapiV1OrderTest (array_merge($request, $params));
+            $response = $this->privatePostOpenapiV1OrderTest ($this->extend($request, $params));
         } else {
-            $response = $this->privatePostOpenapiV1Order (array_merge($request, $params));
+            $response = $this->privatePostOpenapiV1Order ($this->extend($request, $params));
         }
         //
         //     {
@@ -1207,7 +1211,7 @@ class coinsph extends Exchange {
             $request['orderId'] = $id;
         }
         $params = $this->omit($params, array( 'clientOrderId', 'origClientOrderId' ));
-        $response = $this->privateGetOpenapiV1Order (array_merge($request, $params));
+        $response = $this->privateGetOpenapiV1Order ($this->extend($request, $params));
         return $this->parse_order($response);
     }
 
@@ -1228,7 +1232,7 @@ class coinsph extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $response = $this->privateGetOpenapiV1OpenOrders (array_merge($request, $params));
+        $response = $this->privateGetOpenapiV1OpenOrders ($this->extend($request, $params));
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
@@ -1257,7 +1261,7 @@ class coinsph extends Exchange {
         } elseif ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetOpenapiV1HistoryOrders (array_merge($request, $params));
+        $response = $this->privateGetOpenapiV1HistoryOrders ($this->extend($request, $params));
         return $this->parse_orders($response, $market, $since, $limit);
     }
 
@@ -1279,7 +1283,7 @@ class coinsph extends Exchange {
             $request['orderId'] = $id;
         }
         $params = $this->omit($params, array( 'clientOrderId', 'origClientOrderId' ));
-        $response = $this->privateDeleteOpenapiV1Order (array_merge($request, $params));
+        $response = $this->privateDeleteOpenapiV1Order ($this->extend($request, $params));
         return $this->parse_order($response);
     }
 
@@ -1301,11 +1305,11 @@ class coinsph extends Exchange {
             $market = $this->market($symbol);
             $request['symbol'] = $market['id'];
         }
-        $response = $this->privateDeleteOpenapiV1OpenOrders (array_merge($request, $params));
+        $response = $this->privateDeleteOpenapiV1OpenOrders ($this->extend($request, $params));
         return $this->parse_orders($response, $market);
     }
 
-    public function parse_order($order, ?array $market = null): array {
+    public function parse_order(array $order, ?array $market = null): array {
         //
         // createOrder POST /openapi/v1/order
         //     {
@@ -1451,7 +1455,7 @@ class coinsph extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function parse_order_status($status) {
+    public function parse_order_status(?string $status) {
         $statuses = array(
             'NEW' => 'open',
             'FILLED' => 'closed',
@@ -1472,7 +1476,7 @@ class coinsph extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_trading_fee(string $symbol, $params = array ()) {
+    public function fetch_trading_fee(string $symbol, $params = array ()): array {
         /**
          * fetch the trading fees for a $market
          * @see https://coins-docs.github.io/rest-api/#trade-fee-user_data
@@ -1485,7 +1489,7 @@ class coinsph extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        $response = $this->privateGetOpenapiV1AssetTradeFee (array_merge($request, $params));
+        $response = $this->privateGetOpenapiV1AssetTradeFee ($this->extend($request, $params));
         //
         //     array(
         //       {
@@ -1499,7 +1503,7 @@ class coinsph extends Exchange {
         return $this->parse_trading_fee($tradingFee, $market);
     }
 
-    public function fetch_trading_fees($params = array ()) {
+    public function fetch_trading_fees($params = array ()): array {
         /**
          * fetch the trading fees for multiple markets
          * @see https://coins-docs.github.io/rest-api/#trade-$fee-user_data
@@ -1531,7 +1535,7 @@ class coinsph extends Exchange {
         return $result;
     }
 
-    public function parse_trading_fee($fee, ?array $market = null) {
+    public function parse_trading_fee(array $fee, ?array $market = null): array {
         //
         //     {
         //         "symbol" => "ETHUSDT",
@@ -1547,10 +1551,12 @@ class coinsph extends Exchange {
             'symbol' => $symbol,
             'maker' => $this->safe_number($fee, 'makerCommission'),
             'taker' => $this->safe_number($fee, 'takerCommission'),
+            'percentage' => null,
+            'tierBased' => null,
         );
     }
 
-    public function withdraw(string $code, float $amount, $address, $tag = null, $params = array ()) {
+    public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {
         /**
          * make a withdrawal to coins_ph account
          * @see https://coins-docs.github.io/rest-api/#withdrawuser_data
@@ -1583,7 +1589,7 @@ class coinsph extends Exchange {
             $request['withdrawOrderId'] = $tag;
         }
         $params = $this->omit($params, 'network');
-        $response = $this->privatePostOpenapiWalletV1WithdrawApply (array_merge($request, $params));
+        $response = $this->privatePostOpenapiWalletV1WithdrawApply ($this->extend($request, $params));
         return $this->parse_transaction($response, $currency);
     }
 
@@ -1611,7 +1617,7 @@ class coinsph extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetOpenapiWalletV1DepositHistory (array_merge($request, $params));
+        $response = $this->privateGetOpenapiWalletV1DepositHistory ($this->extend($request, $params));
         //
         // array(
         //     array(
@@ -1667,7 +1673,7 @@ class coinsph extends Exchange {
         if ($limit !== null) {
             $request['limit'] = $limit;
         }
-        $response = $this->privateGetOpenapiWalletV1WithdrawHistory (array_merge($request, $params));
+        $response = $this->privateGetOpenapiWalletV1WithdrawHistory ($this->extend($request, $params));
         //
         // array(
         //     array(
@@ -1705,7 +1711,7 @@ class coinsph extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function parse_transaction($transaction, ?array $currency = null): array {
+    public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
         // fetchDeposits
         //     {
@@ -1797,7 +1803,7 @@ class coinsph extends Exchange {
         );
     }
 
-    public function parse_transaction_status($status) {
+    public function parse_transaction_status(?string $status) {
         $statuses = array(
             '0' => 'pending',
             '1' => 'ok',
@@ -1828,7 +1834,7 @@ class coinsph extends Exchange {
             'network' => $networkId,
         );
         $params = $this->omit($params, 'network');
-        $response = $this->privateGetOpenapiWalletV1DepositAddress (array_merge($request, $params));
+        $response = $this->privateGetOpenapiWalletV1DepositAddress ($this->extend($request, $params));
         //
         //     {
         //         "coin" => "ETH",
@@ -1919,7 +1925,7 @@ class coinsph extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, $response, $requestHeaders, $requestBody) {
         if ($response === null) {
             return null;
         }

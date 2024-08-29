@@ -65,8 +65,13 @@ export default class ace extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': true,
+                'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
+                'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -196,10 +201,23 @@ export default class ace extends Exchange {
         return this.parseMarkets(response);
     }
     parseMarket(market) {
-        const baseId = this.safeString(market, 'base');
-        const base = this.safeCurrencyCode(baseId);
-        const quoteId = this.safeString(market, 'quote');
-        const quote = this.safeCurrencyCode(quoteId);
+        //
+        //     {
+        //         "symbol": "ADA/TWD",
+        //         "base": "ADA",
+        //         "baseCurrencyId": "122",
+        //         "quote": "TWD",
+        //         "quoteCurrencyId": "1",
+        //         "basePrecision": "2",
+        //         "quotePrecision": "3",
+        //         "minLimitBaseAmount": "1.0",
+        //         "maxLimitBaseAmount": "150000.0"
+        //     }
+        //
+        const baseId = this.safeString(market, 'baseCurrencyId');
+        const base = this.safeCurrencyCode(this.safeString(market, 'base'));
+        const quoteId = this.safeString(market, 'quoteCurrencyId');
+        const quote = this.safeCurrencyCode(this.safeString(market, 'quote'));
         const symbol = base + '/' + quote;
         return {
             'id': this.safeString(market, 'symbol'),
@@ -299,7 +317,7 @@ export default class ace extends Exchange {
         const market = this.market(symbol);
         const response = await this.publicGetOapiV2ListTradePrice(params);
         const marketId = market['id'];
-        const ticker = this.safeValue(response, marketId, {});
+        const ticker = this.safeDict(response, marketId, {});
         //
         //     {
         //         "BTC/USDT":{
@@ -337,7 +355,7 @@ export default class ace extends Exchange {
         for (let i = 0; i < pairs.length; i++) {
             const marketId = pairs[i];
             const market = this.safeMarket(marketId);
-            const rawTicker = this.safeValue(response, marketId);
+            const rawTicker = this.safeDict(response, marketId, {});
             const ticker = this.parseTicker(rawTicker, market);
             tickers.push(ticker);
         }
@@ -401,7 +419,7 @@ export default class ace extends Exchange {
         //         "status": 200
         //     }
         //
-        const orderBook = this.safeValue(response, 'attachment');
+        const orderBook = this.safeDict(response, 'attachment');
         return this.parseOrderBook(orderBook, market['symbol'], undefined, 'bids', 'asks');
     }
     parseOHLCV(ohlcv, market = undefined) {
@@ -460,7 +478,7 @@ export default class ace extends Exchange {
             request['startTime'] = since;
         }
         const response = await this.privatePostV2KlineGetKline(this.extend(request, params));
-        const data = this.safeValue(response, 'attachment', []);
+        const data = this.safeList(response, 'attachment', []);
         //
         //     {
         //         "attachment":[
@@ -542,9 +560,9 @@ export default class ace extends Exchange {
                     timestamp = timestamp - 28800000; // 8 hours
                 }
             }
-            const orderSide = this.safeNumber(order, 'buyOrSell');
+            const orderSide = this.safeString(order, 'buyOrSell');
             if (orderSide !== undefined) {
-                side = (orderSide === 1) ? 'buy' : 'sell';
+                side = (orderSide === '1') ? 'buy' : 'sell';
             }
             amount = this.safeString(order, 'num');
             price = this.safeString(order, 'price');
@@ -553,9 +571,9 @@ export default class ace extends Exchange {
             if (quoteId !== undefined && baseId !== undefined) {
                 symbol = baseId + '/' + quoteId;
             }
-            const orderType = this.safeNumber(order, 'type');
+            const orderType = this.safeString(order, 'type');
             if (orderType !== undefined) {
-                type = (orderType === 1) ? 'limit' : 'market';
+                type = (orderType === '1') ? 'limit' : 'market';
             }
             filled = this.safeString(order, 'tradeNum');
             remaining = this.safeString(order, 'remainNum');
@@ -596,7 +614,7 @@ export default class ace extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -623,7 +641,7 @@ export default class ace extends Exchange {
         //         "status": 200
         //     }
         //
-        const data = this.safeValue(response, 'attachment');
+        const data = this.safeDict(response, 'attachment');
         return this.parseOrder(data, market);
     }
     async cancelOrder(id, symbol = undefined, params = {}) {
@@ -658,6 +676,7 @@ export default class ace extends Exchange {
          * @name ace#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://github.com/ace-exchange/ace-official-api-docs/blob/master/api_v2.md#open-api---order-status
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -689,7 +708,7 @@ export default class ace extends Exchange {
         //         "status": 200
         //     }
         //
-        const data = this.safeValue(response, 'attachment');
+        const data = this.safeDict(response, 'attachment');
         return this.parseOrder(data, undefined);
     }
     async fetchOpenOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -718,7 +737,7 @@ export default class ace extends Exchange {
             request['size'] = limit;
         }
         const response = await this.privatePostV2OrderGetOrderList(this.extend(request, params));
-        const orders = this.safeValue(response, 'attachment');
+        const orders = this.safeList(response, 'attachment');
         //
         //     {
         //         "attachment": [
@@ -881,8 +900,8 @@ export default class ace extends Exchange {
         //         "status": 200
         //     }
         //
-        const data = this.safeValue(response, 'attachment');
-        const trades = this.safeValue(data, 'trades', []);
+        const data = this.safeDict(response, 'attachment');
+        const trades = this.safeList(data, 'trades', []);
         return this.parseTrades(trades, market, since, limit);
     }
     async fetchMyTrades(symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -941,7 +960,7 @@ export default class ace extends Exchange {
         //         "status": 200
         //     }
         //
-        const trades = this.safeValue(response, 'attachment', []);
+        const trades = this.safeList(response, 'attachment', []);
         return this.parseTrades(trades, market, since, limit);
     }
     parseBalance(response) {
@@ -984,7 +1003,7 @@ export default class ace extends Exchange {
          */
         await this.loadMarkets();
         const response = await this.privatePostV2CoinCustomerAccount(params);
-        const balances = this.safeValue(response, 'attachment', []);
+        const balances = this.safeList(response, 'attachment', []);
         //
         //     {
         //         "attachment":[
@@ -1015,14 +1034,17 @@ export default class ace extends Exchange {
             let auth = 'ACE_SIGN' + this.secret;
             const data = this.extend({
                 'apiKey': this.apiKey,
-                'timeStamp': nonce,
+                'timeStamp': this.numberToString(nonce),
             }, params);
-            const dataKeys = Object.keys(data);
-            const sortedDataKeys = this.sortBy(dataKeys, 0, false, '');
-            for (let i = 0; i < sortedDataKeys.length; i++) {
-                const key = sortedDataKeys[i];
-                auth += this.safeString(data, key);
+            const sortedData = this.keysort(data);
+            const values = Object.values(sortedData);
+            const stringifiedValues = [];
+            for (let i = 0; i < values.length; i++) {
+                const value = values[i];
+                const strValue = value.toString();
+                stringifiedValues.push(strValue);
             }
+            auth += stringifiedValues.join('');
             const signature = this.hash(this.encode(auth), sha256, 'hex');
             data['signKey'] = signature;
             headers = {

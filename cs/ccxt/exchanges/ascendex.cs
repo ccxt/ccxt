@@ -81,6 +81,7 @@ public partial class ascendex : Exchange
                 { "fetchWithdrawal", false },
                 { "fetchWithdrawals", true },
                 { "reduceMargin", true },
+                { "sandbox", true },
                 { "setLeverage", true },
                 { "setMarginMode", true },
                 { "setPositionMode", false },
@@ -269,26 +270,16 @@ public partial class ascendex : Exchange
                     { "SOL", "Solana" },
                     { "AVAX", "avalanche C chain" },
                     { "OMNI", "Omni" },
-                    { "TRC", "TRC20" },
                     { "TRX", "TRC20" },
-                    { "ERC", "ERC20" },
-                } },
-                { "networksById", new Dictionary<string, object>() {
-                    { "BEP20 (BSC)", "BSC" },
-                    { "arbitrum", "ARB" },
-                    { "Solana", "SOL" },
-                    { "avalanche C chain", "AVAX" },
-                    { "Omni", "OMNI" },
                     { "TRC20", "TRC20" },
                     { "ERC20", "ERC20" },
                     { "GO20", "GO20" },
                     { "BEP2", "BEP2" },
-                    { "Bitcoin", "BTC" },
-                    { "Bitcoin ABC", "BCH" },
-                    { "Litecoin", "LTC" },
-                    { "Matic Network", "MATIC" },
-                    { "xDai", "STAKE" },
-                    { "Akash", "AKT" },
+                    { "BTC", "Bitcoin" },
+                    { "BCH", "Bitcoin ABC" },
+                    { "LTC", "Litecoin" },
+                    { "MATIC", "Matic Network" },
+                    { "AKT", "Akash" },
                 } },
             } },
             { "exceptions", new Dictionary<string, object>() {
@@ -344,7 +335,7 @@ public partial class ascendex : Exchange
                     { "300013", typeof(InvalidOrder) },
                     { "300014", typeof(InvalidOrder) },
                     { "300020", typeof(InvalidOrder) },
-                    { "300021", typeof(InvalidOrder) },
+                    { "300021", typeof(AccountSuspended) },
                     { "300031", typeof(InvalidOrder) },
                     { "310001", typeof(InsufficientFunds) },
                     { "310002", typeof(InvalidOrder) },
@@ -439,9 +430,9 @@ public partial class ascendex : Exchange
         //         ]
         //     }
         //
-        object assetsData = this.safeValue(assets, "data", new List<object>() {});
-        object marginData = this.safeValue(margin, "data", new List<object>() {});
-        object cashData = this.safeValue(cash, "data", new List<object>() {});
+        object assetsData = this.safeList(assets, "data", new List<object>() {});
+        object marginData = this.safeList(margin, "data", new List<object>() {});
+        object cashData = this.safeList(cash, "data", new List<object>() {});
         object assetsById = this.indexBy(assetsData, "assetCode");
         object marginById = this.indexBy(marginData, "assetCode");
         object cashById = this.indexBy(cashData, "assetCode");
@@ -586,10 +577,10 @@ public partial class ascendex : Exchange
         //        ]
         //    }
         //
-        object productsData = this.safeValue(products, "data", new List<object>() {});
+        object productsData = this.safeList(products, "data", new List<object>() {});
         object productsById = this.indexBy(productsData, "symbol");
-        object cashData = this.safeValue(cash, "data", new List<object>() {});
-        object perpetualsData = this.safeValue(perpetuals, "data", new List<object>() {});
+        object cashData = this.safeList(cash, "data", new List<object>() {});
+        object perpetualsData = this.safeList(perpetuals, "data", new List<object>() {});
         object cashAndPerpetualsData = this.arrayConcat(cashData, perpetualsData);
         object cashAndPerpetualsById = this.indexBy(cashAndPerpetualsData, "symbol");
         object dataById = this.deepExtend(productsById, cashAndPerpetualsById);
@@ -599,7 +590,7 @@ public partial class ascendex : Exchange
         {
             object id = getValue(ids, i);
             object market = getValue(dataById, id);
-            object settleId = this.safeValue(market, "settlementAsset");
+            object settleId = this.safeString(market, "settlementAsset");
             object settle = this.safeCurrencyCode(settleId);
             object status = this.safeString(market, "status");
             object domain = this.safeString(market, "domain");
@@ -624,10 +615,10 @@ public partial class ascendex : Exchange
             object symbol = add(add(bs, "/"), quote);
             if (isTrue(swap))
             {
-                object lotSizeFilter = this.safeValue(market, "lotSizeFilter");
+                object lotSizeFilter = this.safeDict(market, "lotSizeFilter");
                 minQty = this.safeNumber(lotSizeFilter, "minQty");
                 maxQty = this.safeNumber(lotSizeFilter, "maxQty");
-                object priceFilter = this.safeValue(market, "priceFilter");
+                object priceFilter = this.safeDict(market, "priceFilter");
                 minPrice = this.safeNumber(priceFilter, "minPrice");
                 maxPrice = this.safeNumber(priceFilter, "maxPrice");
                 symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
@@ -713,7 +704,7 @@ public partial class ascendex : Exchange
         //        }
         //    }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.safeInteger(data, "requestReceiveAt");
     }
 
@@ -748,7 +739,7 @@ public partial class ascendex : Exchange
             //         }
             //     }
             //
-            object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+            object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
             accountGroup = this.safeString(data, "accountGroup");
             ((IDictionary<string,object>)this.options)["account-group"] = accountGroup;
         }
@@ -767,7 +758,7 @@ public partial class ascendex : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        object balances = this.safeValue(response, "data", new List<object>() {});
+        object balances = this.safeList(response, "data", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
@@ -787,7 +778,7 @@ public partial class ascendex : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        object balances = this.safeValue(response, "data", new List<object>() {});
+        object balances = this.safeList(response, "data", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
@@ -810,8 +801,8 @@ public partial class ascendex : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object collaterals = this.safeValue(data, "collaterals", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object collaterals = this.safeList(data, "collaterals", new List<object>() {});
         for (object i = 0; isLessThan(i, getArrayLength(collaterals)); postFixIncrement(ref i))
         {
             object balance = getValue(collaterals, i);
@@ -852,9 +843,9 @@ public partial class ascendex : Exchange
         object isCross = isEqual(marginMode, "cross");
         marketType = ((bool) isTrue((isTrue(isMargin) || isTrue(isCross)))) ? "margin" : marketType;
         parameters = this.omit(parameters, "margin");
-        object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
+        object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object accountCategory = this.safeString(accountsByType, marketType, "cash");
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
         object accountGroup = this.safeString(account, "id");
         object request = new Dictionary<string, object>() {
             { "account-group", accountGroup },
@@ -974,8 +965,8 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object orderbook = this.safeValue(data, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object orderbook = this.safeDict(data, "data", new Dictionary<string, object>() {});
         object timestamp = this.safeInteger(orderbook, "ts");
         object result = this.parseOrderBook(orderbook, symbol, timestamp);
         ((IDictionary<string,object>)result)["nonce"] = this.safeInteger(orderbook, "seqnum");
@@ -1003,8 +994,8 @@ public partial class ascendex : Exchange
         object delimiter = ((bool) isTrue((isEqual(type, "spot")))) ? "/" : null;
         object symbol = this.safeSymbol(marketId, market, delimiter);
         object close = this.safeString(ticker, "close");
-        object bid = this.safeValue(ticker, "bid", new List<object>() {});
-        object ask = this.safeValue(ticker, "ask", new List<object>() {});
+        object bid = this.safeList(ticker, "bid", new List<object>() {});
+        object ask = this.safeList(ticker, "ask", new List<object>() {});
         object open = this.safeString(ticker, "open");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -1063,7 +1054,7 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseTicker(data, market);
     }
 
@@ -1085,7 +1076,7 @@ public partial class ascendex : Exchange
         object market = null;
         if (isTrue(!isEqual(symbols, null)))
         {
-            object symbol = this.safeValue(symbols, 0);
+            object symbol = this.safeString(symbols, 0);
             market = this.market(symbol);
             object marketIds = this.marketIds(symbols);
             ((IDictionary<string,object>)request)["symbol"] = String.Join(",", ((IList<object>)marketIds).ToArray());
@@ -1105,22 +1096,20 @@ public partial class ascendex : Exchange
         //
         //     {
         //         "code":0,
-        //         "data":[
-        //             {
-        //                 "symbol":"QTUM/BTC",
-        //                 "open":"0.00016537",
-        //                 "close":"0.00019077",
-        //                 "high":"0.000192",
-        //                 "low":"0.00016537",
-        //                 "volume":"846.6",
-        //                 "ask":["0.00018698","26.2"],
-        //                 "bid":["0.00018408","503.7"],
-        //                 "type":"spot"
-        //             }
-        //         ]
+        //         "data": {
+        //             "symbol":"QTUM/BTC",
+        //             "open":"0.00016537",
+        //             "close":"0.00019077",
+        //             "high":"0.000192",
+        //             "low":"0.00016537",
+        //             "volume":"846.6",
+        //             "ask":["0.00018698","26.2"],
+        //             "bid":["0.00018408","503.7"],
+        //             "type":"spot"
+        //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         if (!isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             return this.parseTickers(new List<object>() {data}, symbols);
@@ -1145,7 +1134,7 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(ohlcv, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(ohlcv, "data", new Dictionary<string, object>() {});
         return new List<object> {this.safeInteger(data, "ts"), this.safeNumber(data, "o"), this.safeNumber(data, "h"), this.safeNumber(data, "l"), this.safeNumber(data, "c"), this.safeNumber(data, "v")};
     }
 
@@ -1173,7 +1162,7 @@ public partial class ascendex : Exchange
         // if since and limit are not specified
         // the exchange will return just 1 last candle by default
         object duration = this.parseTimeframe(timeframe);
-        object options = this.safeValue(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
+        object options = this.safeDict(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
         object defaultLimit = this.safeInteger(options, "limit", 500);
         if (isTrue(!isEqual(since, null)))
         {
@@ -1211,7 +1200,7 @@ public partial class ascendex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseOHLCVs(data, market, timeframe, since, limit);
     }
 
@@ -1289,8 +1278,8 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        object records = this.safeValue(response, "data", new List<object>() {});
-        object trades = this.safeValue(records, "data", new List<object>() {});
+        object records = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object trades = this.safeList(records, "data", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -1460,7 +1449,7 @@ public partial class ascendex : Exchange
                 { "currency", feeCurrencyCode },
             };
         }
-        object stopPrice = this.safeNumber(order, "stopPrice");
+        object stopPrice = this.omitZero(this.safeString(order, "stopPrice"));
         object reduceOnly = null;
         object execInst = this.safeString(order, "execInst");
         if (isTrue(isEqual(execInst, "reduceOnly")))
@@ -1511,7 +1500,7 @@ public partial class ascendex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.loadAccounts();
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
         object accountGroup = this.safeString(account, "id");
         object request = new Dictionary<string, object>() {
             { "account-group", accountGroup },
@@ -1533,20 +1522,22 @@ public partial class ascendex : Exchange
         //         }
         //      }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object fees = this.safeValue(data, "fees", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object fees = this.safeList(data, "fees", new List<object>() {});
         object result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
         {
             object fee = getValue(fees, i);
             object marketId = this.safeString(fee, "symbol");
             object symbol = this.safeSymbol(marketId, null, "/");
-            object takerMaker = this.safeValue(fee, "fee", new Dictionary<string, object>() {});
+            object takerMaker = this.safeDict(fee, "fee", new Dictionary<string, object>() {});
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", fee },
                 { "symbol", symbol },
                 { "maker", this.safeNumber(takerMaker, "maker") },
                 { "taker", this.safeNumber(takerMaker, "taker") },
+                { "percentage", null },
+                { "tierBased", null },
             };
         }
         return result;
@@ -1563,7 +1554,7 @@ public partial class ascendex : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much you want to trade in units of the base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
         * @param {bool} [params.postOnly] true or false
@@ -1580,14 +1571,14 @@ public partial class ascendex : Exchange
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("createOrderRequest", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
+        object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object accountCategory = this.safeString(accountsByType, marketType, "cash");
         if (isTrue(!isEqual(marginMode, null)))
         {
             accountCategory = "margin";
         }
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
-        object accountGroup = this.safeValue(account, "id");
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
+        object accountGroup = this.safeString(account, "id");
         object clientOrderId = this.safeString2(parameters, "clientOrderId", "id");
         object request = new Dictionary<string, object>() {
             { "account-group", accountGroup },
@@ -1603,7 +1594,7 @@ public partial class ascendex : Exchange
         object timeInForce = this.safeString(parameters, "timeInForce");
         object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
         object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
-        object stopPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
+        object stopPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         if (isTrue(isLimitOrder))
         {
             ((IDictionary<string,object>)request)["orderPrice"] = this.priceToPrecision(symbol, price);
@@ -1669,7 +1660,7 @@ public partial class ascendex : Exchange
         * @param {string} type "limit" or "market"
         * @param {string} side "buy" or "sell"
         * @param {float} amount the amount of currency to trade
-        * @param {float} [price] *ignored in "market" orders* the price at which the order is to be fullfilled at in units of the quote currency
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [params.timeInForce] "GTC", "IOC", "FOK", or "PO"
         * @param {bool} [params.postOnly] true or false
@@ -1756,8 +1747,8 @@ public partial class ascendex : Exchange
         //          }
         //      }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object order = this.safeValue2(data, "order", "info", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object order = this.safeDict2(data, "order", "info", new Dictionary<string, object>() {});
         return this.parseOrder(order, market);
     }
 
@@ -1798,9 +1789,9 @@ public partial class ascendex : Exchange
             }
             object type = this.safeString(rawOrder, "type");
             object side = this.safeString(rawOrder, "side");
-            object amount = this.safeValue(rawOrder, "amount");
-            object price = this.safeValue(rawOrder, "price");
-            object orderParams = this.safeValue(rawOrder, "params", new Dictionary<string, object>() {});
+            object amount = this.safeNumber(rawOrder, "amount");
+            object price = this.safeNumber(rawOrder, "price");
+            object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             object marginResult = this.handleMarginModeAndParams("createOrders", orderParams);
             object currentMarginMode = getValue(marginResult, 0);
             if (isTrue(!isEqual(currentMarginMode, null)))
@@ -1820,14 +1811,14 @@ public partial class ascendex : Exchange
             ((IList<object>)ordersRequests).Add(orderRequest);
         }
         object market = this.market(symbol);
-        object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
+        object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object accountCategory = this.safeString(accountsByType, getValue(market, "type"), "cash");
         if (isTrue(!isEqual(marginMode, null)))
         {
             accountCategory = "margin";
         }
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
-        object accountGroup = this.safeValue(account, "id");
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
+        object accountGroup = this.safeString(account, "id");
         object request = new Dictionary<string, object>() {};
         object response = null;
         if (isTrue(getValue(market, "swap")))
@@ -1862,8 +1853,8 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object info = this.safeValue(data, "info", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object info = this.safeList(data, "info", new List<object>() {});
         return this.parseOrders(info, market);
     }
 
@@ -1875,6 +1866,7 @@ public partial class ascendex : Exchange
         * @description fetches information on an order made by the user
         * @see https://ascendex.github.io/ascendex-pro-api/#query-order
         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#query-order-by-id
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1890,10 +1882,10 @@ public partial class ascendex : Exchange
         var typequeryVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
         var query = ((IList<object>) typequeryVariable)[1];
-        object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
+        object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object accountCategory = this.safeString(accountsByType, type, "cash");
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
-        object accountGroup = this.safeValue(account, "id");
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
+        object accountGroup = this.safeString(account, "id");
         object request = new Dictionary<string, object>() {
             { "account-group", accountGroup },
             { "account-category", accountCategory },
@@ -1978,7 +1970,7 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return this.parseOrder(data, market);
     }
 
@@ -2005,12 +1997,12 @@ public partial class ascendex : Exchange
             market = this.market(symbol);
             symbol = getValue(market, "symbol");
         }
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
-        object accountGroup = this.safeValue(account, "id");
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
+        object accountGroup = this.safeString(account, "id");
         var typequeryVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
         var query = ((IList<object>) typequeryVariable)[1];
-        object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
+        object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object accountCategory = this.safeString(accountsByType, type, "cash");
         object request = new Dictionary<string, object>() {
             { "account-group", accountGroup },
@@ -2095,7 +2087,7 @@ public partial class ascendex : Exchange
         //     ]
         // }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         if (isTrue(isEqual(accountCategory, "futures")))
         {
             return this.parseOrders(data, market, since, limit);
@@ -2128,8 +2120,8 @@ public partial class ascendex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.loadAccounts();
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
-        object accountGroup = this.safeValue(account, "id");
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
+        object accountGroup = this.safeString(account, "id");
         object request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
@@ -2140,7 +2132,7 @@ public partial class ascendex : Exchange
         var typequeryVariable = this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
         var query = ((IList<object>) typequeryVariable)[1];
-        object options = this.safeValue(this.options, "fetchClosedOrders", new Dictionary<string, object>() {});
+        object options = this.safeDict(this.options, "fetchClosedOrders", new Dictionary<string, object>() {});
         object defaultMethod = this.safeString(options, "method", "v2PrivateDataGetOrderHist");
         object method = this.getSupportedMapping(type, new Dictionary<string, object>() {
             { "spot", defaultMethod },
@@ -2156,7 +2148,7 @@ public partial class ascendex : Exchange
         {
             ((IDictionary<string,object>)request)["endTime"] = until;
         }
-        object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
+        object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object accountCategory = this.safeString(accountsByType, type, "cash"); // margin, futures
         object response = null;
         if (isTrue(isEqual(method, "v1PrivateAccountCategoryGetOrderHistCurrent")))
@@ -2280,11 +2272,11 @@ public partial class ascendex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data", new List<object>() {});
         object isArray = ((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         if (!isTrue(isArray))
         {
-            data = this.safeValue(data, "data", new List<object>() {});
+            data = this.safeList(data, "data", new List<object>() {});
         }
         return this.parseOrders(data, market, since, limit);
     }
@@ -2313,10 +2305,10 @@ public partial class ascendex : Exchange
         var typequeryVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
         var query = ((IList<object>) typequeryVariable)[1];
-        object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
+        object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object accountCategory = this.safeString(accountsByType, type, "cash");
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
-        object accountGroup = this.safeValue(account, "id");
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
+        object accountGroup = this.safeString(account, "id");
         object request = new Dictionary<string, object>() {
             { "account-group", accountGroup },
             { "account-category", accountCategory },
@@ -2408,8 +2400,8 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object order = this.safeValue2(data, "order", "info", new Dictionary<string, object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object order = this.safeDict2(data, "order", "info", new Dictionary<string, object>() {});
         return this.parseOrder(order, market);
     }
 
@@ -2423,7 +2415,7 @@ public partial class ascendex : Exchange
         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#cancel-all-open-orders
         * @param {string} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
         * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        * @returns {object[]} a list with a single [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} with the response assigned to the info property
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
@@ -2436,10 +2428,10 @@ public partial class ascendex : Exchange
         var typequeryVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
         var query = ((IList<object>) typequeryVariable)[1];
-        object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
+        object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object accountCategory = this.safeString(accountsByType, type, "cash");
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
-        object accountGroup = this.safeValue(account, "id");
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
+        object accountGroup = this.safeString(account, "id");
         object request = new Dictionary<string, object>() {
             { "account-group", accountGroup },
             { "account-category", accountCategory },
@@ -2495,7 +2487,9 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        return response;
+        return this.safeOrder(new Dictionary<string, object>() {
+            { "info", response },
+        });
     }
 
     public override object parseDepositAddress(object depositAddress, object currency = null)
@@ -2527,12 +2521,6 @@ public partial class ascendex : Exchange
             { "network", network },
             { "info", depositAddress },
         };
-    }
-
-    public virtual object safeNetwork(object networkId)
-    {
-        object networksById = this.safeDict(this.options, "networksById");
-        return this.safeString(networksById, networkId, networkId);
     }
 
     public async override Task<object> fetchDepositAddress(object code, object parameters = null)
@@ -2709,8 +2697,8 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object transactions = this.safeValue(data, "data", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object transactions = this.safeList(data, "data", new List<object>() {});
         return this.parseTransactions(transactions, currency, since, limit);
     }
 
@@ -2745,7 +2733,7 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        object destAddress = this.safeValue(transaction, "destAddress", new Dictionary<string, object>() {});
+        object destAddress = this.safeDict(transaction, "destAddress", new Dictionary<string, object>() {});
         object address = this.safeString(destAddress, "address");
         object tag = this.safeString(destAddress, "destTag");
         object timestamp = this.safeInteger(transaction, "time");
@@ -2795,7 +2783,7 @@ public partial class ascendex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.loadAccounts();
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
         object accountGroup = this.safeString(account, "id");
         object request = new Dictionary<string, object>() {
             { "account-group", accountGroup },
@@ -2840,8 +2828,8 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object position = this.safeValue(data, "contracts", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object position = this.safeList(data, "contracts", new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(position)); postFixIncrement(ref i))
         {
@@ -2997,8 +2985,8 @@ public partial class ascendex : Exchange
         //          }
         //      }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object contracts = this.safeValue(data, "contracts", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object contracts = this.safeList(data, "contracts", new List<object>() {});
         object result = this.parseFundingRates(contracts);
         return this.filterByArray(result, "symbol", symbols);
     }
@@ -3009,7 +2997,7 @@ public partial class ascendex : Exchange
         await this.loadMarkets();
         await this.loadAccounts();
         object market = this.market(symbol);
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
         object accountGroup = this.safeString(account, "id");
         amount = this.amountToPrecision(symbol, amount);
         object request = new Dictionary<string, object>() {
@@ -3035,17 +3023,28 @@ public partial class ascendex : Exchange
         });
     }
 
-    public virtual object parseMarginModification(object data, object market = null)
+    public override object parseMarginModification(object data, object market = null)
     {
+        //
+        // addMargin/reduceMargin
+        //
+        //     {
+        //          "code": 0
+        //     }
+        //
         object errorCode = this.safeString(data, "code");
         object status = ((bool) isTrue((isEqual(errorCode, "0")))) ? "ok" : "failed";
         return new Dictionary<string, object>() {
             { "info", data },
-            { "type", null },
-            { "amount", null },
-            { "code", getValue(market, "quote") },
             { "symbol", getValue(market, "symbol") },
+            { "type", null },
+            { "marginMode", "isolated" },
+            { "amount", null },
+            { "total", null },
+            { "code", getValue(market, "quote") },
             { "status", status },
+            { "timestamp", null },
+            { "datetime", null },
         };
     }
 
@@ -3107,7 +3106,7 @@ public partial class ascendex : Exchange
         {
             throw new BadSymbol ((string)add(this.id, " setLeverage() supports swap contracts only")) ;
         }
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
         object accountGroup = this.safeString(account, "id");
         object request = new Dictionary<string, object>() {
             { "account-group", accountGroup },
@@ -3146,7 +3145,7 @@ public partial class ascendex : Exchange
         await this.loadMarkets();
         await this.loadAccounts();
         object market = this.market(symbol);
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
         object accountGroup = this.safeString(account, "id");
         object request = new Dictionary<string, object>() {
             { "account-group", accountGroup },
@@ -3201,7 +3200,7 @@ public partial class ascendex : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data", new List<object>() {});
         symbols = this.marketSymbols(symbols);
         return this.parseLeverageTiers(data, symbols, "symbol");
     }
@@ -3235,7 +3234,7 @@ public partial class ascendex : Exchange
         //        ]
         //    }
         //
-        object marginRequirements = this.safeValue(info, "marginRequirements", new List<object>() {});
+        object marginRequirements = this.safeList(info, "marginRequirements", new List<object>() {});
         object id = this.safeString(info, "symbol");
         market = this.safeMarket(id, market);
         object tiers = new List<object>() {};
@@ -3277,7 +3276,7 @@ public partial class ascendex : Exchange
         //     ]
         // }
         //
-        object blockChains = this.safeValue(fee, "blockChain", new List<object>() {});
+        object blockChains = this.safeList(fee, "blockChain", new List<object>() {});
         object blockChainsLength = getArrayLength(blockChains);
         object result = new Dictionary<string, object>() {
             { "info", fee },
@@ -3330,7 +3329,7 @@ public partial class ascendex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         object response = await this.v2PublicGetAssets(parameters);
-        object data = this.safeValue(response, "data");
+        object data = this.safeList(response, "data");
         return this.parseDepositWithdrawFees(data, codes, "assetCode");
     }
 
@@ -3350,11 +3349,10 @@ public partial class ascendex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.loadAccounts();
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
         object accountGroup = this.safeString(account, "id");
         object currency = this.currency(code);
-        amount = this.currencyToPrecision(code, amount);
-        object accountsByType = this.safeValue(this.options, "accountsByType", new Dictionary<string, object>() {});
+        object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         object toId = this.safeString(accountsByType, toAccount, toAccount);
         if (isTrue(isTrue(!isEqual(fromId, "cash")) && isTrue(!isEqual(toId, "cash"))))
@@ -3363,7 +3361,7 @@ public partial class ascendex : Exchange
         }
         object request = new Dictionary<string, object>() {
             { "account-group", accountGroup },
-            { "amount", amount },
+            { "amount", this.currencyToPrecision(code, amount) },
             { "asset", getValue(currency, "id") },
             { "fromAccount", fromId },
             { "toAccount", toId },
@@ -3372,7 +3370,7 @@ public partial class ascendex : Exchange
         //
         //    { "code": "0" }
         //
-        object transferOptions = this.safeValue(this.options, "transfer", new Dictionary<string, object>() {});
+        object transferOptions = this.safeDict(this.options, "transfer", new Dictionary<string, object>() {});
         object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         object transfer = this.parseTransfer(response, currency);
         if (isTrue(fillResponseFromRequest))
@@ -3390,7 +3388,7 @@ public partial class ascendex : Exchange
         //
         //    { "code": "0" }
         //
-        object status = this.safeInteger(transfer, "code");
+        object status = this.safeString(transfer, "code");
         object currencyCode = this.safeCurrencyCode(null, currency);
         return new Dictionary<string, object>() {
             { "info", transfer },
@@ -3407,7 +3405,7 @@ public partial class ascendex : Exchange
 
     public virtual object parseTransferStatus(object status)
     {
-        if (isTrue(isEqual(status, 0)))
+        if (isTrue(isEqual(status, "0")))
         {
             return "ok";
         }
@@ -3439,7 +3437,7 @@ public partial class ascendex : Exchange
         {
             return await this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, parameters, "page", 25);
         }
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
         object accountGroup = this.safeString(account, "id");
         object request = new Dictionary<string, object>() {
             { "account-group", accountGroup },
@@ -3473,8 +3471,8 @@ public partial class ascendex : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-        object rows = this.safeValue(data, "data", new List<object>() {});
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object rows = this.safeList(data, "data", new List<object>() {});
         return this.parseIncomes(rows, market, since, limit);
     }
 
@@ -3505,7 +3503,7 @@ public partial class ascendex : Exchange
     {
         /**
         * @method
-        * @name ascendex#fetchMarginMode
+        * @name ascendex#fetchMarginModes
         * @description fetches the set margin mode of the user
         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#position
         * @param {string[]} [symbols] a list of unified market symbols
@@ -3515,7 +3513,7 @@ public partial class ascendex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.loadAccounts();
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
         object accountGroup = this.safeString(account, "id");
         object request = new Dictionary<string, object>() {
             { "account-group", accountGroup },
@@ -3591,7 +3589,7 @@ public partial class ascendex : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         await this.loadAccounts();
-        object account = this.safeValue(this.accounts, 0, new Dictionary<string, object>() {});
+        object account = this.safeDict(this.accounts, 0, new Dictionary<string, object>() {});
         object accountGroup = this.safeString(account, "id");
         object request = new Dictionary<string, object>() {
             { "account-group", accountGroup },

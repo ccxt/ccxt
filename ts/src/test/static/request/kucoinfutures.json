@@ -405,6 +405,25 @@
                 ]
             }
         ],
+        "fetchTickers": [
+            {
+                "description": "without args",
+                "method": "fetchTickers",
+                "url": "https://api-futures.kucoin.com/api/v1/contracts/active",
+                "input": []
+            },
+            {
+                "description": "+symbols",
+                "method": "fetchTickers",
+                "url": "https://api-futures.kucoin.com/api/v1/contracts/active",
+                "input": [
+                  [
+                    "BTC/USDT:USDT"
+                  ]
+                ]
+            }
+
+        ],
         "fetchOHLCV": [
             {
                 "description": "swap ohlcv",
@@ -413,6 +432,24 @@
                 "input": [
                     "BTC/USDT:USDT"
                 ]
+            }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "fetchTradingFee",
+                "method": "fetchTradingFee",
+                "url": "https://openapi-v2.kucoin.com/api/v1/trade-fees?symbols=XBTUSDTM",
+                "input": [
+                  "BTC/USDT:USDT"
+                ]
+            }
+        ],
+        "fetchPositionsHistory": [
+            {
+                "description": "fetchPositionsHistory",
+                "method": "fetchPositionsHistory",
+                "url": "https://api-futures.kucoin.com/api/v1/history-positions?limit=200",
+                "input": []
             }
         ]
     }

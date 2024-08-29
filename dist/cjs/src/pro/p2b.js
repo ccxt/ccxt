@@ -29,6 +29,7 @@ class p2b extends p2b$1 {
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': true,
             },
             'urls': {
                 'api': {
@@ -50,6 +51,7 @@ class p2b extends p2b$1 {
                 'watchTickers': {
                     'name': 'state', // or 'price'
                 },
+                'tickerSubs': this.createSafeDictionary(),
             },
             'streaming': {
                 'ping': this.ping,
@@ -120,13 +122,14 @@ class p2b extends p2b$1 {
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
-        const watchTickerOptions = this.safeValue(this.options, 'watchTicker');
+        const watchTickerOptions = this.safeDict(this.options, 'watchTicker');
         let name = this.safeString(watchTickerOptions, 'name', 'state'); // or price
         [name, params] = this.handleOptionAndParams(params, 'method', 'name', name);
         const market = this.market(symbol);
-        const request = [
-            market['id'],
-        ];
+        symbol = market['symbol'];
+        this.options['tickerSubs'][market['id']] = true; // we need to re-subscribe to all tickers upon watching a new ticker
+        const tickerSubs = this.options['tickerSubs'];
+        const request = Object.keys(tickerSubs);
         const messageHash = name + '::' + market['symbol'];
         return await this.subscribe(name + '.subscribe', messageHash, request, params);
     }
@@ -142,15 +145,41 @@ class p2b extends p2b$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
+        return await this.watchTradesForSymbols([symbol], since, limit, params);
+    }
+    async watchTradesForSymbols(symbols, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name p2b#watchTradesForSymbols
+         * @description get the list of most recent trades for a list of symbols
+         * @see https://github.com/P2B-team/P2B-WSS-Public/blob/main/wss_documentation.md#deals
+         * @param {string[]} symbols unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
         await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = [
-            market['id'],
-        ];
-        const messageHash = 'deals::' + market['symbol'];
-        const trades = await this.subscribe('deals.subscribe', messageHash, request, params);
+        symbols = this.marketSymbols(symbols, undefined, false, true, true);
+        const messageHashes = [];
+        if (symbols !== undefined) {
+            for (let i = 0; i < symbols.length; i++) {
+                messageHashes.push('deals::' + symbols[i]);
+            }
+        }
+        const marketIds = this.marketIds(symbols);
+        const url = this.urls['api']['ws'];
+        const subscribe = {
+            'method': 'deals.subscribe',
+            'params': marketIds,
+            'id': this.milliseconds(),
+        };
+        const query = this.extend(subscribe, params);
+        const trades = await this.watchMultiple(url, messageHashes, query, messageHashes);
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            const first = this.safeValue(trades, 0);
+            const tradeSymbol = this.safeString(first, 'symbol');
+            limit = trades.getLimit(tradeSymbol, limit);
         }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
@@ -428,6 +457,14 @@ class p2b extends p2b$1 {
         //
         client.lastPong = this.safeInteger(message, 'id');
         return message;
+    }
+    onError(client, error) {
+        this.options['tickerSubs'] = this.createSafeDictionary();
+        this.onError(client, error);
+    }
+    onClose(client, error) {
+        this.options['tickerSubs'] = this.createSafeDictionary();
+        this.onClose(client, error);
     }
 }
 

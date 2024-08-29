@@ -4,7 +4,8 @@
         "id",
         "sig",
         "api_key",
-        "nonce"
+        "nonce",
+        "end_ts"
     ],
     "outputType": "json",
     "methods": {
@@ -110,6 +111,26 @@
                 "output": "{\"id\":\"1699458295371\",\"method\":\"private/cancel-all-orders\",\"params\":{\"instrument_name\":\"LTC_USDT\"},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"0196ac28e1f10f0792150cdb51e3537f94cca1185abb5fa8a21a0ebf02296859\",\"nonce\":\"1699458295371\"}"
             }
         ],
+        "cancelOrdersForSymbols": [
+            {
+                "description": "cancelOrdersForSymbols",
+                "method": "cancelOrdersForSymbols",
+                "url": "https://api.crypto.com/exchange/v1/private/cancel-order-list",
+                "input": [
+                  [
+                    {
+                      "id": "6142909902150128699",
+                      "symbol": "LTC/USDT"
+                    },
+                    {
+                      "id": "6142909902150139975",
+                      "symbol": "ADA/USDT"
+                    }
+                  ]
+                ],
+                "output": "{\"id\":\"1713879348181\",\"method\":\"private/cancel-order-list\",\"params\":{\"contingency_type\":\"LIST\",\"order_list\":[{\"instrument_name\":\"LTC_USDT\",\"order_id\":\"6142909902150128699\"},{\"instrument_name\":\"ADA_USDT\",\"order_id\":\"6142909902150139975\"}]},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"3018f8bcb146d4533b42887cf56e168af05c6ac826759ba1e4d24979f621be40\",\"nonce\":\"1713879348181\"}"
+            }
+        ],
         "closePosition": [
             {
                 "description": "closes open positions for a market",
@@ -152,6 +173,15 @@
                 "url": "https://api.crypto.com/exchange/v1/private/get-deposit-history",
                 "input": [],
                 "output": "{\"id\":\"1699458296454\",\"method\":\"private/get-deposit-history\",\"params\":{},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"e38ac3b85e7ad6e4c4657a95e70f0d464e2655a9ebd087c69a8dc5e5b27ae75b\",\"nonce\":\"1699458296454\"}"
+            },
+            {
+                "description": "fetch USDC deposits",
+                "method": "fetchDeposits",
+                "url": "https://api.crypto.com/exchange/v1/private/get-deposit-history",
+                "input": [
+                  "USDC"
+                ],
+                "output": "{\"id\":\"1713525419306\",\"method\":\"private/get-deposit-history\",\"params\":{\"currency\":\"USDC\"},\"api_key\":\"vqk5FrbZiiV9bEbF76qBSc\",\"sig\":\"fca37d53c3eaa302b88121c87ce4146916061a968488a3d2da304196f3f93ea6\",\"nonce\":\"1713525419306\"}"
             }
         ],
         "fetchWithdrawals": [
@@ -242,10 +272,30 @@
             {
                 "description": "spot ohlcv",
                 "method": "fetchOHLCV",
-                "url": "https://api.crypto.com/exchange/v1/public/get-candlestick?instrument_name=BTC_USDT&timeframe=1m",
+                "url": "https://api.crypto.com/exchange/v1/public/get-candlestick?instrument_name=BTC_USDT&timeframe=1m&end_ts=1720773701964000",
                 "input": [
                     "BTC/USDT"
                 ]
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "fetchTradingFees",
+                "method": "fetchTradingFees",
+                "url": "https://api.crypto.com/exchange/v1/private/get-fee-rate",
+                "input": [],
+                "output": "{\"id\":\"1723991090189\",\"method\":\"private/get-fee-rate\",\"params\":{},\"api_key\":\"huWxoQvX5hxkocvHkZDJuw\",\"sig\":\"30be68d9479ac8996be698cb0a4a4eb1862aa67baff9996eec4eaa31bcd20bd4\",\"nonce\":\"1723991090189\"}"
+            }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "fetchTradingFee",
+                "method": "fetchTradingFee",
+                "url": "https://api.crypto.com/exchange/v1/private/get-instrument-fee-rate",
+                "input": [
+                  "BTC/USDT"
+                ],
+                "output": "{\"id\":\"1723991123913\",\"method\":\"private/get-instrument-fee-rate\",\"params\":{\"instrument_name\":\"BTC_USDT\"},\"api_key\":\"huWxoQvX5hxkocvHkZDJuw\",\"sig\":\"6498fafd8927c632bff4ec835a6c0e15f7f4e61ffc15f1be343379c183c7f224\",\"nonce\":\"1723991123913\"}"
             }
         ]
     }

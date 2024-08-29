@@ -147,6 +147,16 @@
                 "url": "https://www.okcoin.com/api/v5/public/time",
                 "input": []
             }
+        ],
+        "fetchOHLCV": [
+            {
+                "description": "without args",
+                "method": "fetchOHLCV",
+                "url": "https://www.okcoin.com/api/v5/market/candles?instId=BTC-USD&bar=1m",
+                "input": [
+                  "BTC/USD"
+                ]
+            }
         ]
     }
 }

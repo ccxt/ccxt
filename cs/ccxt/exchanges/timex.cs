@@ -60,8 +60,11 @@ public partial class timex : Exchange
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
                 { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
@@ -498,7 +501,7 @@ public partial class timex : Exchange
         //         }
         //     ]
         //
-        object ticker = this.safeValue(response, 0);
+        object ticker = this.safeDict(response, 0);
         return this.parseTicker(ticker, market);
     }
 
@@ -711,7 +714,7 @@ public partial class timex : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -777,7 +780,7 @@ public partial class timex : Exchange
         //     }
         //
         object orders = this.safeValue(response, "orders", new List<object>() {});
-        object order = this.safeValue(orders, 0, new Dictionary<string, object>() {});
+        object order = this.safeDict(orders, 0, new Dictionary<string, object>() {});
         return this.parseOrder(order, market);
     }
 
@@ -834,7 +837,7 @@ public partial class timex : Exchange
         }
         object orders = this.safeValue(response, "changedOrders", new List<object>() {});
         object firstOrder = this.safeValue(orders, 0, new Dictionary<string, object>() {});
-        object order = this.safeValue(firstOrder, "newOrder", new Dictionary<string, object>() {});
+        object order = this.safeDict(firstOrder, "newOrder", new Dictionary<string, object>() {});
         return this.parseOrder(order, market);
     }
 
@@ -852,7 +855,8 @@ public partial class timex : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        return await this.cancelOrders(new List<object>() {id}, symbol, parameters);
+        object orders = await this.cancelOrders(new List<object>() {id}, symbol, parameters);
+        return this.safeDict(orders, 0);
     }
 
     public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
@@ -897,7 +901,24 @@ public partial class timex : Exchange
         //         ],
         //         "unchangedOrders": [ "string" ],
         //     }
-        return response;
+        //
+        object changedOrders = this.safeList(response, "changedOrders", new List<object>() {});
+        object unchangedOrders = this.safeList(response, "unchangedOrders", new List<object>() {});
+        object orders = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(changedOrders)); postFixIncrement(ref i))
+        {
+            object newOrder = this.safeDict(getValue(changedOrders, i), "newOrder");
+            ((IList<object>)orders).Add(this.parseOrder(newOrder));
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(unchangedOrders)); postFixIncrement(ref i))
+        {
+            ((IList<object>)orders).Add(this.safeOrder(new Dictionary<string, object>() {
+                { "info", getValue(unchangedOrders, i) },
+                { "id", getValue(unchangedOrders, i) },
+                { "status", "unchanged" },
+            }));
+        }
+        return orders;
     }
 
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
@@ -951,7 +972,7 @@ public partial class timex : Exchange
         //     }
         //
         object order = this.safeValue(response, "order", new Dictionary<string, object>() {});
-        object trades = this.safeValue(response, "trades", new List<object>() {});
+        object trades = this.safeList(response, "trades", new List<object>() {});
         return this.parseOrder(this.extend(order, new Dictionary<string, object>() {
             { "trades", trades },
         }));
@@ -1011,7 +1032,7 @@ public partial class timex : Exchange
         //         ]
         //     }
         //
-        object orders = this.safeValue(response, "orders", new List<object>() {});
+        object orders = this.safeList(response, "orders", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -1074,7 +1095,7 @@ public partial class timex : Exchange
         //         ]
         //     }
         //
-        object orders = this.safeValue(response, "orders", new List<object>() {});
+        object orders = this.safeList(response, "orders", new List<object>() {});
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -1133,7 +1154,7 @@ public partial class timex : Exchange
         //         ]
         //     }
         //
-        object trades = this.safeValue(response, "trades", new List<object>() {});
+        object trades = this.safeList(response, "trades", new List<object>() {});
         return this.parseTrades(trades, market, since, limit);
     }
 
@@ -1152,6 +1173,8 @@ public partial class timex : Exchange
             { "symbol", this.safeSymbol(marketId, market) },
             { "maker", rate },
             { "taker", rate },
+            { "percentage", null },
+            { "tierBased", null },
         };
     }
 

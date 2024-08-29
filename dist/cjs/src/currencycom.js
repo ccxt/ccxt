@@ -101,6 +101,7 @@ class currencycom extends currencycom$1 {
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
                 'reduceMargin': undefined,
+                'sandbox': true,
                 'setLeverage': undefined,
                 'setMarginMode': undefined,
                 'setPositionMode': undefined,
@@ -985,7 +986,7 @@ class currencycom extends currencycom$1 {
             request['startTime'] = since;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default 500, max 1000
+            request['limit'] = Math.min(limit, 1000); // default 500, max 1000
         }
         const response = await this.publicGetV2Klines(this.extend(request, params));
         //
@@ -1270,7 +1271,7 @@ class currencycom extends currencycom$1 {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1934,7 +1935,7 @@ class currencycom extends currencycom$1 {
         //        ]
         //    }
         //
-        const data = this.safeValue(response, 'positions', []);
+        const data = this.safeList(response, 'positions', []);
         return this.parsePositions(data, symbols);
     }
     parsePosition(position, market = undefined) {

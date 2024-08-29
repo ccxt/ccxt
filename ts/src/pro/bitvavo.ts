@@ -5,7 +5,7 @@ import bitvavoRest from '../bitvavo.js';
 import { AuthenticationError, ArgumentsRequired, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num } from '../base/types.js';
+import { Int, Str, OrderSide, OrderType, OrderBook, Ticker, Trade, Order, OHLCV, Balances, Num, TradingFees, Dict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -67,7 +67,7 @@ export default class bitvavo extends bitvavoRest {
         const market = this.market (symbol);
         const messageHash = name + '@' + market['id'];
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'action': 'subscribe',
             'channels': [
                 {
@@ -199,7 +199,7 @@ export default class bitvavo extends bitvavoRest {
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const messageHash = name + '@' + marketId + '_' + interval;
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'action': 'subscribe',
             'channels': [
                 {
@@ -292,7 +292,7 @@ export default class bitvavo extends bitvavoRest {
         const name = 'book';
         const messageHash = name + '@' + market['id'];
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'action': 'subscribe',
             'channels': [
                 {
@@ -303,7 +303,7 @@ export default class bitvavo extends bitvavoRest {
                 },
             ],
         };
-        const subscription = {
+        const subscription: Dict = {
             'messageHash': messageHash,
             'name': name,
             'symbol': symbol,
@@ -399,7 +399,7 @@ export default class bitvavo extends bitvavoRest {
         const name = 'getBook';
         const messageHash = name + '@' + marketId;
         const url = this.urls['api']['ws'];
-        const request = {
+        const request: Dict = {
             'action': name,
             'market': marketId,
         };
@@ -496,7 +496,7 @@ export default class bitvavo extends bitvavoRest {
         const url = this.urls['api']['ws'];
         const name = 'account';
         const messageHash = 'order:' + symbol;
-        const request = {
+        const request: Dict = {
             'action': 'subscribe',
             'channels': [
                 {
@@ -521,7 +521,7 @@ export default class bitvavo extends bitvavoRest {
          * @param {int} [since] the earliest time in ms to fetch trades for
          * @param {int} [limit] the maximum number of trade structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=ortradeder-structure
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchMyTrades() requires a symbol argument');
@@ -534,7 +534,7 @@ export default class bitvavo extends bitvavoRest {
         const url = this.urls['api']['ws'];
         const name = 'account';
         const messageHash = 'myTrades:' + symbol;
-        const request = {
+        const request: Dict = {
             'action': 'subscribe',
             'channels': [
                 {
@@ -560,7 +560,7 @@ export default class bitvavo extends bitvavoRest {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
          * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
          * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
@@ -592,7 +592,7 @@ export default class bitvavo extends bitvavoRest {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} [amount] how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -631,7 +631,7 @@ export default class bitvavo extends bitvavoRest {
          */
         await this.loadMarkets ();
         await this.authenticate ();
-        const request = {};
+        const request: Dict = {};
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -666,6 +666,7 @@ export default class bitvavo extends bitvavoRest {
          * @name bitvavo#fetchOrderWs
          * @see https://docs.bitvavo.com/#tag/General/paths/~1assets/get
          * @description fetches information on an order made by the user
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -676,7 +677,7 @@ export default class bitvavo extends bitvavoRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const market = this.market (symbol);
-        const request = {
+        const request: Dict = {
             'orderId': id,
             'market': market['id'],
         };
@@ -726,7 +727,7 @@ export default class bitvavo extends bitvavoRest {
          */
         await this.loadMarkets ();
         await this.authenticate ();
-        const request = {
+        const request: Dict = {
             // 'market': market['id'], // rate limit 25 without a market, 1 with market specified
         };
         let market = undefined;
@@ -933,7 +934,7 @@ export default class bitvavo extends bitvavoRest {
         client.resolve (deposits, messageHash);
     }
 
-    async fetchTradingFeesWs (params = {}) {
+    async fetchTradingFeesWs (params = {}): Promise<TradingFees> {
         /**
          * @method
          * @name bitvavo#fetchTradingFeesWs
@@ -1118,7 +1119,7 @@ export default class bitvavo extends bitvavoRest {
     }
 
     buildMessageHash (action, params = {}) {
-        const methods = {
+        const methods: Dict = {
             'privateCreateOrder': this.actionAndMarketMessageHash,
             'privateUpdateOrder': this.actionAndOrderIdMessageHash,
             'privateCancelOrder': this.actionAndOrderIdMessageHash,
@@ -1235,7 +1236,7 @@ export default class bitvavo extends bitvavoRest {
         //     }
         //
         const subscriptions = this.safeValue (message, 'subscriptions', {});
-        const methods = {
+        const methods: Dict = {
             'book': this.handleOrderBookSubscriptions,
         };
         const names = Object.keys (subscriptions);
@@ -1261,14 +1262,14 @@ export default class bitvavo extends bitvavoRest {
             const auth = stringTimestamp + 'GET/' + this.version + '/websocket';
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
             const action = 'authenticate';
-            const request = {
+            const request: Dict = {
                 'action': action,
                 'key': this.apiKey,
                 'signature': signature,
                 'timestamp': timestamp,
             };
             const message = this.extend (request, params);
-            future = this.watch (url, messageHash, message);
+            future = await this.watch (url, messageHash, message, messageHash);
             client.subscriptions[messageHash] = future;
         }
         return future;
@@ -1369,7 +1370,7 @@ export default class bitvavo extends bitvavoRest {
         if (error !== undefined) {
             this.handleErrorMessage (client, message);
         }
-        const methods = {
+        const methods: Dict = {
             'subscribed': this.handleSubscriptionStatus,
             'book': this.handleOrderBook,
             'getBook': this.handleOrderBookSnapshot,

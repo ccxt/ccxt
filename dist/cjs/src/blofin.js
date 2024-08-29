@@ -20,6 +20,7 @@ class blofin extends blofin$1 {
             'countries': ['US'],
             'version': 'v1',
             'rateLimit': 100,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': false,
@@ -94,7 +95,7 @@ class blofin extends blofin$1 {
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
-                'fetchOrder': true,
+                'fetchOrder': undefined,
                 'fetchOrderBook': true,
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
@@ -144,11 +145,12 @@ class blofin extends blofin$1 {
                 '2h': '2H',
                 '4h': '4H',
                 '6h': '6H',
+                '8h': '8H',
                 '12h': '12H',
                 '1d': '1D',
+                '3d': '3D',
                 '1w': '1W',
                 '1M': '1M',
-                '3M': '3M',
             },
             'hostname': 'www.blofin.com',
             'urls': {
@@ -192,6 +194,8 @@ class blofin extends blofin$1 {
                         'trade/orders-tpsl-pending': 1,
                         'trade/orders-history': 1,
                         'trade/orders-tpsl-history': 1,
+                        'user/query-apikey': 1,
+                        'affiliate/basic': 1,
                     },
                     'post': {
                         'trade/order': 1,
@@ -487,6 +491,25 @@ class blofin extends blofin$1 {
         return this.parseOrderBook(first, symbol, timestamp);
     }
     parseTicker(ticker, market = undefined) {
+        //
+        // response similar for REST & WS
+        //
+        //     {
+        //         instId: "ADA-USDT",
+        //         ts: "1707736811486",
+        //         last: "0.5315",
+        //         lastSize: "4",
+        //         askPrice: "0.5318",
+        //         askSize: "248",
+        //         bidPrice: "0.5315",
+        //         bidSize: "63",
+        //         open24h: "0.5555",
+        //         high24h: "0.5563",
+        //         low24h: "0.5315",
+        //         volCurrency24h: "198560100",
+        //         vol24h: "1985601",
+        //     }
+        //
         const timestamp = this.safeInteger(ticker, 'ts');
         const marketId = this.safeString(ticker, 'instId');
         market = this.safeMarket(marketId, market, '-');
@@ -559,7 +582,8 @@ class blofin extends blofin$1 {
     }
     parseTrade(trade, market = undefined) {
         //
-        // fetch trades
+        // fetch trades (response similar for REST & WS)
+        //
         //   {
         //       "tradeId": "3263934920",
         //       "instId": "LTC-USDT",
@@ -568,6 +592,7 @@ class blofin extends blofin$1 {
         //       "side": "buy",
         //       "ts": "1707232020854"
         //   }
+        //
         // my trades
         //   {
         //       "instId": "LTC-USDT",
@@ -846,10 +871,12 @@ class blofin extends blofin$1 {
             return this.parseFundingBalance(response);
         }
         else {
-            return this.parseTradingBalance(response);
+            return this.parseBalance(response);
         }
     }
-    parseTradingBalance(response) {
+    parseBalance(response) {
+        //
+        // "data" similar for REST & WS
         //
         // {
         //     "code": "0",
@@ -871,7 +898,8 @@ class blofin extends blofin$1 {
         //                 "orderFrozen": "14920.994472632597427761",
         //                 "equityUsd": "10011254.077985990315787910",
         //                 "isolatedUnrealizedPnl": "-22.151999999999999999952",
-        //                 "bonus": "0"
+        //                 "bonus": "0" // present only in REST
+        //                 "unrealizedPnl": "0" // present only in WS
         //             }
         //         ]
         //     }
@@ -941,6 +969,8 @@ class blofin extends blofin$1 {
             // blofin returns the fees as negative values opposed to other exchanges, so the sign needs to be flipped
             'maker': this.parseNumber(Precise["default"].stringNeg(this.safeString2(fee, 'maker', 'makerU'))),
             'taker': this.parseNumber(Precise["default"].stringNeg(this.safeString2(fee, 'taker', 'takerU'))),
+            'percentage': undefined,
+            'tierBased': undefined,
         };
     }
     async fetchBalance(params = {}) {
@@ -1032,6 +1062,8 @@ class blofin extends blofin$1 {
     }
     parseOrder(order, market = undefined) {
         //
+        // response similar for REST & WS
+        //
         // {
         //     "orderId": "2075628533",
         //     "clientOrderId": "",
@@ -1059,6 +1091,9 @@ class blofin extends blofin$1 {
         //     "cancelSource": "not_canceled",
         //     "cancelSourceReason": null,
         //     "brokerId": "ec6dd3a7dd982d0b"
+        //     "filled_amount": "1.000000000000000000", // filledAmount in "ws" watchOrders
+        //     "cancelSource": "", // only in WS
+        //     "instType": "SWAP", // only in WS
         // }
         //
         const id = this.safeString2(order, 'tpslId', 'orderId');
@@ -1159,7 +1194,7 @@ class blofin extends blofin$1 {
          * @param {string} type 'market' or 'limit' or 'post_only' or 'ioc' or 'fok'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.reduceOnly] a mark to reduce the position size for margin, swap and future orders
          * @param {bool} [params.postOnly] true to place a post only order
@@ -1251,6 +1286,7 @@ class blofin extends blofin$1 {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.trigger] True if cancelling a trigger/conditional order/tp sl orders
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         if (symbol === undefined) {
@@ -1261,14 +1297,25 @@ class blofin extends blofin$1 {
         const request = {
             'instId': market['id'],
         };
+        const isTrigger = this.safeBoolN(params, ['stop', 'trigger', 'tpsl'], false);
         const clientOrderId = this.safeString(params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clientOrderId'] = clientOrderId;
         }
         else {
-            request['orderId'] = id;
+            if (!isTrigger) {
+                request['orderId'] = id.toString();
+            }
+            else {
+                request['tpslId'] = id.toString();
+            }
         }
-        const query = this.omit(params, ['orderId', 'clientOrderId']);
+        const query = this.omit(params, ['orderId', 'clientOrderId', 'stop', 'trigger', 'tpsl']);
+        if (isTrigger) {
+            const tpslResponse = await this.cancelOrders([id], symbol, params);
+            const first = this.safeDict(tpslResponse, 0);
+            return first;
+        }
         const response = await this.privatePostTradeCancelOrder(this.extend(request, query));
         const data = this.safeList(response, 'data', []);
         const order = this.safeDict(data, 0);
@@ -1796,6 +1843,32 @@ class blofin extends blofin$1 {
         return this.filterByArrayPositions(result, 'symbol', symbols, false);
     }
     parsePosition(position, market = undefined) {
+        //
+        // response similar for REST & WS
+        //
+        //     {
+        //         instType: 'SWAP',
+        //         instId: 'LTC-USDT',
+        //         marginMode: 'cross',
+        //         positionId: '644159',
+        //         positionSide: 'net',
+        //         positions: '1',
+        //         availablePositions: '1',
+        //         averagePrice: '68.16',
+        //         unrealizedPnl: '0.80631223',
+        //         unrealizedPnlRatio: '0.03548909463028169',
+        //         leverage: '3',
+        //         liquidationPrice: '10.116655172370356435',
+        //         markPrice: '68.96',
+        //         initialMargin: '22.988770743333333333',
+        //         margin: '', // this field might not exist in rest response
+        //         marginRatio: '152.523509620342499273',
+        //         maintenanceMargin: '0.34483156115',
+        //         adl: '4',
+        //         createTime: '1707235776528',
+        //         updateTime: '1707235776528'
+        //     }
+        //
         const marketId = this.safeString(position, 'instId');
         market = this.safeMarket(marketId, market);
         const symbol = market['symbol'];

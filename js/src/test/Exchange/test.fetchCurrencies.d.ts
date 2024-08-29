@@ -1,2 +1,3 @@
-declare function testFetchCurrencies(exchange: any, skippedProperties: any): Promise<void>;
+import { Exchange } from "../../../ccxt";
+declare function testFetchCurrencies(exchange: Exchange, skippedProperties: object): Promise<void>;
 export default testFetchCurrencies;

@@ -338,6 +338,7 @@ public partial class testMainClass : BaseTest
             object keyString = stringValue(key);
             if (isTrue(((key is int) || (key is long) || (key is Int32) || (key is Int64))))
             {
+                key = key;
                 assert(((entry is IList<object>) || (entry.GetType().IsGenericType && entry.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add("fee container is expected to be an array", logText));
                 assert(isLessThan(key, getArrayLength(entry)), add(add(add("fee key ", keyString), " was expected to be present in entry"), logText));
             } else
@@ -350,6 +351,11 @@ public partial class testMainClass : BaseTest
             if (isTrue(!isEqual(feeObject, null)))
             {
                 assert(inOp(feeObject, "cost"), add(add(keyString, " fee object should contain \"cost\" key"), logText));
+                if (isTrue(isEqual(getValue(feeObject, "cost"), null)))
+                {
+                    return;  // todo: remove undefined check to make stricter
+                }
+                assert((getValue(feeObject, "cost") is Int64 || getValue(feeObject, "cost") is int || getValue(feeObject, "cost") is float || getValue(feeObject, "cost") is double), add(add(keyString, " \"cost\" must be numeric type"), logText));
                 // assertGreaterOrEqual (exchange, skippedProperties, method, feeObject, 'cost', '0'); // fee might be negative in the case of a rebate or reward
                 assert(inOp(feeObject, "currency"), add(add(add("\"", keyString), "\" fee object should contain \"currency\" key"), logText));
                 assertCurrencyCode(exchange, skippedProperties, method, entry, getValue(feeObject, "currency"));
@@ -453,6 +459,16 @@ public partial class testMainClass : BaseTest
                 return;
             }
             assert(isGreaterThan(getArrayLength(entry), 0), add(add("response is expected to be a non-empty array", logText), " (add \"emptyResponse\" in skip-tests.json to skip this check)"));
+        }
+        public void assertRoundMinuteTimestamp(Exchange exchange, object skippedProperties, object method, object entry, object key)
+        {
+            if (isTrue(inOp(skippedProperties, key)))
+            {
+                return;
+            }
+            object logText = logTemplate(exchange, method, entry);
+            object ts = exchange.safeString(entry, key);
+            assert(isEqual(Precise.stringMod(ts, "60000"), "0"), add("timestamp should be a multiple of 60 seconds (1 minute)", logText));
         }
 
     }

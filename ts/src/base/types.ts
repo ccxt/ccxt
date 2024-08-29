@@ -1,5 +1,5 @@
 export type Int = number | undefined;
-
+export type int = number;
 export type Str = string | undefined;
 export type Strings = string[] | undefined;
 export type Num = number | undefined;
@@ -35,18 +35,27 @@ export interface FeeInterface {
     rate?: Num;
 }
 
+export interface TradingFeeInterface {
+    info: any;
+    symbol: Str;
+    maker: Num;
+    taker: Num;
+    percentage: Bool;
+    tierBased: Bool;
+}
+
 export type Fee = FeeInterface | undefined
 
 export interface MarketInterface {
-    id: string;
+    id: Str;
     numericId?: Num;
-    uppercaseId?: string;
-    lowercaseId?: string;
+    uppercaseId?: Str;
+    lowercaseId?: Str;
     symbol: string;
-    base: string;
-    quote: string;
-    baseId: string;
-    quoteId: string;
+    base: Str;
+    quote: Str;
+    baseId: Str;
+    quoteId: Str;
     active: Bool;
     type: MarketType;
     subType?: SubType;
@@ -68,13 +77,17 @@ export interface MarketInterface {
     optionType: Str;
     taker?: Num
     maker?: Num
-    percentage?: boolean | undefined;
-    tierBased?: boolean | undefined;
-    feeSide?: string | undefined;
+    percentage?: Bool;
+    tierBased?: Bool;
+    feeSide?: Str;
     precision: {
         amount: Num
         price: Num
         cost?: Num
+    };
+    marginMode?: {
+        isolated: boolean
+        cross: boolean
     };
     limits: {
         amount?: MinMax,
@@ -126,6 +139,8 @@ export interface Order {
     cost: number;
     trades: Trade[];
     fee: Fee;
+    reduceOnly: Bool;
+    postOnly: Bool;
     info: any;
 }
 
@@ -135,6 +150,7 @@ export interface OrderBook {
     datetime: Str;
     timestamp: Int;
     nonce: Int;
+    symbol: Str;
 }
 
 export interface Ticker {
@@ -189,8 +205,29 @@ export interface Tickers extends Dictionary<Ticker> {
 export interface CurrencyInterface {
     id: string;
     code: string;
-    numericId?: number;
+    numericId?: Int;
     precision: number;
+    type?: Str;
+    margin?: Bool;
+    name?: Str;
+    active?: Bool;
+    deposit?: Bool;
+    withdraw?: Bool;
+    fee?: Num;
+    limits: {
+        amount: {
+            min?: Num;
+            max?: Num;
+        },
+        withdraw: {
+            min?: Num;
+            max?: Num;
+        },
+    },
+    networks: {
+        string: any,
+    },
+    info: any;
 }
 
 export interface Balance {
@@ -261,6 +298,9 @@ export interface FundingRate {
     previousFundingRate?: number;
 }
 
+export interface FundingRates extends Dictionary<FundingRate> {
+}
+
 export interface Position {
     symbol: string;
     id?: Str;
@@ -280,7 +320,7 @@ export interface Position {
     liquidationPrice?: number;
     marginMode?: Str;
     hedged?: boolean;
-    maintenenceMargin?: number;
+    maintenanceMargin?: number;
     maintenanceMarginPercentage?: number;
     initialMargin?: number;
     initialMarginPercentage?: number;
@@ -356,13 +396,25 @@ export interface TransferEntry {
     status?: Str;
 }
 
-export interface BorrowRate {
+export interface CrossBorrowRate {
+    info: any;
     currency?: Str;
-    rate?: number;
+    rate: number;
     period?: number;
     timestamp?: number;
     datetime?: Str;
-    info: any;
+}
+
+export interface IsolatedBorrowRate {
+    info: any,
+    symbol: string,
+    base: string,
+    baseRate: number,
+    quote: string,
+    quoteRate: number,
+    period?: Int,
+    timestamp?: Int,
+    datetime?: Str,
 }
 
 export interface FundingRateHistory {
@@ -396,11 +448,17 @@ export interface Liquidation {
 
 export interface OrderRequest {
     symbol: string;
-    type: Str;
-    side: Str;
+    type: OrderType;
+    side: OrderSide;
     amount?: number;
     price?: number | undefined;
     params?: any;
+}
+
+export interface CancellationRequest {
+    id: string;
+    clientOrderId?: string;
+    symbol: string;
 }
 
 export interface FundingHistory {
@@ -441,6 +499,39 @@ export interface Greeks {
     info: any;
 }
 
+export interface Conversion {
+    info: any;
+    timestamp?: number
+    datetime?: string;
+    id: string;
+    fromCurrency: string;
+    fromAmount: number;
+    toCurrency: string;
+    toAmount: number;
+    price: number;
+    fee: number;
+}
+
+export interface Option {
+    info: any;
+    currency: string;
+    symbol: string;
+    timestamp?: number
+    datetime?: Str;
+    impliedVolatility: number;
+    openInterest: number;
+    bidPrice: number;
+    askPrice: number;
+    midPrice: number;
+    markPrice: number;
+    lastPrice: number;
+    underlyingPrice: number;
+    change: number;
+    percentage: number;
+    baseVolume: number;
+    quoteVolume: number;
+}
+
 export interface LastPrice {
     symbol: string,
     timestamp?: number,
@@ -458,13 +549,43 @@ export interface Leverage {
     shortLeverage: number;
 }
 
+export interface MarginModification {
+    'info': any,
+    'symbol': string,
+    'type': 'add' | 'reduce' | 'set' | undefined,
+    'marginMode': 'cross' | 'isolated' | undefined,
+    'amount': Num,
+    'total': Num,
+    'code': Str,
+    'status': Str,
+    'timestamp': Int,
+    'datetime': Str,
+}
+
 export interface Leverages extends Dictionary<Leverage> {
 }
 
 export interface LastPrices extends Dictionary<LastPrice> {
 }
+export interface Currencies extends Dictionary<CurrencyInterface> {
+}
+
+export interface TradingFees extends Dictionary<TradingFeeInterface> {
+}
 
 export interface MarginModes extends Dictionary<MarginMode> {
+}
+
+export interface OptionChain extends Dictionary<Option> {
+}
+
+export interface IsolatedBorrowRates extends Dictionary<IsolatedBorrowRates> {
+}
+
+export interface CrossBorrowRates extends Dictionary<CrossBorrowRates> {
+}
+
+export interface LeverageTiers extends Dictionary<LeverageTier[]> {
 }
 
 /** [ timestamp, open, high, low, close, volume ] */
@@ -477,3 +598,4 @@ export type implicitReturnType = any;
 
 export type Market = MarketInterface | undefined;
 export type Currency = CurrencyInterface | undefined;
+

@@ -526,12 +526,12 @@ class deribit extends \ccxt\async\deribit {
         $marketId = $this->safe_string($data, 'instrument_name');
         $symbol = $this->safe_symbol($marketId);
         $timestamp = $this->safe_integer($data, 'timestamp');
-        $storedOrderBook = $this->safe_value($this->orderbooks, $symbol);
-        if ($storedOrderBook === null) {
-            $storedOrderBook = $this->counted_order_book();
+        if (!(is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks))) {
+            $this->orderbooks[$symbol] = $this->counted_order_book();
         }
-        $asks = $this->safe_value($data, 'asks', array());
-        $bids = $this->safe_value($data, 'bids', array());
+        $storedOrderBook = $this->orderbooks[$symbol];
+        $asks = $this->safe_list($data, 'asks', array());
+        $bids = $this->safe_list($data, 'bids', array());
         $this->handle_deltas($storedOrderBook['asks'], $asks);
         $this->handle_deltas($storedOrderBook['bids'], $bids);
         $storedOrderBook['nonce'] = $timestamp;
@@ -544,8 +544,8 @@ class deribit extends \ccxt\async\deribit {
     }
 
     public function clean_order_book($data) {
-        $bids = $this->safe_value($data, 'bids', array());
-        $asks = $this->safe_value($data, 'asks', array());
+        $bids = $this->safe_list($data, 'bids', array());
+        $asks = $this->safe_list($data, 'asks', array());
         $cleanedBids = array();
         for ($i = 0; $i < count($bids); $i++) {
             $cleanedBids[] = [ $bids[$i][1], $bids[$i][2] ];
@@ -563,9 +563,9 @@ class deribit extends \ccxt\async\deribit {
         $price = $delta[1];
         $amount = $delta[2];
         if ($delta[0] === 'new' || $delta[0] === 'change') {
-            $bookside->store ($price, $amount, 1);
+            $bookside->storeArray (array( $price, $amount, 1 ));
         } elseif ($delta[0] === 'delete') {
-            $bookside->store ($price, $amount, 0);
+            $bookside->storeArray (array( $price, $amount, 0 ));
         }
     }
 
@@ -584,7 +584,7 @@ class deribit extends \ccxt\async\deribit {
              * @param {int} [$since] the earliest time in ms to fetch $orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
-             * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate($params));
@@ -941,33 +941,35 @@ class deribit extends \ccxt\async\deribit {
     }
 
     public function authenticate($params = array ()) {
-        $url = $this->urls['api']['ws'];
-        $client = $this->client($url);
-        $time = $this->milliseconds();
-        $timeString = $this->number_to_string($time);
-        $nonce = $timeString;
-        $messageHash = 'authenticated';
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
-            $this->check_required_credentials();
-            $requestId = $this->request_id();
-            $signature = $this->hmac($this->encode($timeString . '\n' . $nonce . '\n'), $this->encode($this->secret), 'sha256');
-            $request = array(
-                'jsonrpc' => '2.0',
-                'id' => $requestId,
-                'method' => 'public/auth',
-                'params' => array(
-                    'grant_type' => 'client_signature',
-                    'client_id' => $this->apiKey,
-                    'timestamp' => $time,
-                    'signature' => $signature,
-                    'nonce' => $nonce,
-                    'data' => '',
-                ),
-            );
-            $future = $this->watch($url, $messageHash, array_merge($request, $params));
-            $client->subscriptions[$messageHash] = $future;
-        }
-        return $future;
+        return Async\async(function () use ($params) {
+            $url = $this->urls['api']['ws'];
+            $client = $this->client($url);
+            $time = $this->milliseconds();
+            $timeString = $this->number_to_string($time);
+            $nonce = $timeString;
+            $messageHash = 'authenticated';
+            $future = $this->safe_value($client->subscriptions, $messageHash);
+            if ($future === null) {
+                $this->check_required_credentials();
+                $requestId = $this->request_id();
+                $signature = $this->hmac($this->encode($timeString . '\n' . $nonce . '\n'), $this->encode($this->secret), 'sha256');
+                $request = array(
+                    'jsonrpc' => '2.0',
+                    'id' => $requestId,
+                    'method' => 'public/auth',
+                    'params' => array(
+                        'grant_type' => 'client_signature',
+                        'client_id' => $this->apiKey,
+                        'timestamp' => $time,
+                        'signature' => $signature,
+                        'nonce' => $nonce,
+                        'data' => '',
+                    ),
+                );
+                $future = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+                $client->subscriptions[$messageHash] = $future;
+            }
+            return $future;
+        }) ();
     }
 }

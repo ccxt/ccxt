@@ -6,8 +6,8 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use ccxt\ArgumentsRequired;
 use ccxt\AuthenticationError;
+use ccxt\ArgumentsRequired;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -22,6 +22,7 @@ class okcoin extends \ccxt\async\okcoin {
                 'watchOrderBook' => true,
                 'watchOrders' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchBalance' => true,
                 'watchOHLCV' => true,
             ),
@@ -75,6 +76,7 @@ class okcoin extends \ccxt\async\okcoin {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             * @see https://www.okcoin.com/docs-v5/en/#websocket-api-public-channel-$trades-channel
              * @param {string} $symbol unified $symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
@@ -95,6 +97,7 @@ class okcoin extends \ccxt\async\okcoin {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple orders made by the user
+             * @see https://www.okcoin.com/docs-v5/en/#websocket-api-private-channel-order-channel
              * @param {string} $symbol unified market $symbol of the market orders were made in
              * @param {int} [$since] the earliest time in ms to fetch orders for
              * @param {int} [$limit] the maximum number of order structures to retrieve
@@ -183,6 +186,7 @@ class okcoin extends \ccxt\async\okcoin {
         return Async\async(function () use ($symbol, $params) {
             /**
              * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             * @see https://www.okcoin.com/docs-v5/en/#websocket-api-public-channel-tickers-channel
              * @param {string} $symbol unified $symbol of the market to fetch the ticker for
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structure~
@@ -266,6 +270,7 @@ class okcoin extends \ccxt\async\okcoin {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+             * @see https://www.okcoin.com/docs-v5/en/#websocket-api-public-channel-candlesticks-channel
              * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int} [$since] timestamp in ms of the earliest candle to fetch
@@ -335,6 +340,7 @@ class okcoin extends \ccxt\async\okcoin {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @see https://www.okcoin.com/docs-v5/en/#websocket-api-public-channel-order-book-channel
              * @param {string} $symbol unified $symbol of the market to fetch the order book for
              * @param {int} [$limit] the maximum amount of order book entries to return
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
@@ -473,36 +479,39 @@ class okcoin extends \ccxt\async\okcoin {
     }
 
     public function authenticate($params = array ()) {
-        $this->check_required_credentials();
-        $url = $this->urls['api']['ws'];
-        $messageHash = 'login';
-        $client = $this->client($url);
-        $future = $this->safe_value($client->subscriptions, $messageHash);
-        if ($future === null) {
-            $future = $client->future ('authenticated');
-            $timestamp = (string) $this->seconds();
-            $method = 'GET';
-            $path = '/users/self/verify';
-            $auth = $timestamp . $method . $path;
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
-            $request = array(
-                'op' => $messageHash,
-                'args' => array(
-                    $this->apiKey,
-                    $this->password,
-                    $timestamp,
-                    $signature,
-                ),
-            );
-            $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $future);
-        }
-        return $future;
+        return Async\async(function () use ($params) {
+            $this->check_required_credentials();
+            $url = $this->urls['api']['ws'];
+            $messageHash = 'login';
+            $client = $this->client($url);
+            $future = $this->safe_value($client->subscriptions, $messageHash);
+            if ($future === null) {
+                $future = $client->future ('authenticated');
+                $timestamp = (string) $this->seconds();
+                $method = 'GET';
+                $path = '/users/self/verify';
+                $auth = $timestamp . $method . $path;
+                $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
+                $request = array(
+                    'op' => $messageHash,
+                    'args' => array(
+                        $this->apiKey,
+                        $this->password,
+                        $timestamp,
+                        $signature,
+                    ),
+                );
+                $this->spawn(array($this, 'watch'), $url, $messageHash, $request, $messageHash, $future);
+            }
+            return Async\await($future);
+        }) ();
     }
 
     public function watch_balance($params = array ()): PromiseInterface {
         return Async\async(function () use ($params) {
             /**
              * watch balance and get the amount of funds available for trading or funds locked in orders
+             * @see https://www.okcoin.com/docs-v5/en/#websocket-api-private-channel-account-channel
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=balance-structure balance structure~
              */
@@ -638,7 +647,7 @@ class okcoin extends \ccxt\async\okcoin {
         return $message;
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         // okex does not support built-in ws protocol-level ping-pong
         // instead it requires custom text-based ping-pong
         return 'ping';

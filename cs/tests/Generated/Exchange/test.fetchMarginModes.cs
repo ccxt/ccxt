@@ -10,18 +10,15 @@ public partial class testMainClass : BaseTest
     async static public Task testFetchMarginModes(Exchange exchange, object skippedProperties, object symbol)
     {
         object method = "fetchMarginModes";
-        object marginModes = await exchange.fetchMarginModes(symbol);
+        object marginModes = await exchange.fetchMarginModes(new List<object>() {"symbol"});
         assert((marginModes is IDictionary<string, object>), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return an object. "), exchange.json(marginModes)));
         object marginModeKeys = new List<object>(((IDictionary<string,object>)marginModes).Keys);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, marginModes, symbol);
         for (object i = 0; isLessThan(i, getArrayLength(marginModeKeys)); postFixIncrement(ref i))
         {
-            object marginModesForSymbol = getValue(marginModes, getValue(marginModeKeys, i));
-            testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, marginModesForSymbol, symbol);
-            for (object j = 0; isLessThan(j, getArrayLength(marginModesForSymbol)); postFixIncrement(ref j))
-            {
-                testMarginMode(exchange, skippedProperties, method, getValue(marginModesForSymbol, j));
-            }
+            object marginMode = getValue(marginModes, getValue(marginModeKeys, i));
+            testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, marginMode, symbol);
+            testMarginMode(exchange, skippedProperties, method, marginMode);
         }
     }
 

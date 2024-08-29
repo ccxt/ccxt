@@ -73,8 +73,11 @@ export default class bitvavo extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionHistory': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
+                'fetchPositionsForSymbol': false,
+                'fetchPositionsHistory': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
@@ -935,6 +938,9 @@ export default class bitvavo extends Exchange {
             if (limit === undefined) {
                 limit = 1440;
             }
+            else {
+                limit = Math.min(limit, 1440);
+            }
             request['end'] = this.sum(since, limit * duration * 1000);
         }
         [request, params] = this.handleUntilOption('end', request, params);
@@ -1123,7 +1129,7 @@ export default class bitvavo extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
          * @param {string} [params.timeInForce] "GTC", "IOC", or "PO"
          * @param {float} [params.stopPrice] The price at which a trigger order is triggered at
@@ -1224,7 +1230,7 @@ export default class bitvavo extends Exchange {
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} [amount] how much of currency you want to trade in units of base currency
-         * @param {float} [price] the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the bitvavo api endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -1304,6 +1310,7 @@ export default class bitvavo extends Exchange {
          * @name bitvavo#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://docs.bitvavo.com/#tag/Trading-endpoints/paths/~1order/get
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

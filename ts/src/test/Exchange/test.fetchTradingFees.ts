@@ -1,8 +1,8 @@
-
+import { Exchange } from "../../../ccxt";
 import testTradingFee from './base/test.tradingFee.js';
 import testSharedMethods from './base/test.sharedMethods.js';
 
-async function testFetchTradingFees (exchange, skippedProperties) {
+async function testFetchTradingFees (exchange: Exchange, skippedProperties: object) {
     const method = 'fetchTradingFees';
     const fees = await exchange.fetchTradingFees ();
     const symbols = Object.keys (fees);

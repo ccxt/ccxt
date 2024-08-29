@@ -535,6 +535,18 @@ public partial class Exchange
         {
             return ((List<dict>)value).Count;
         }
+        else if (value is IList<IList<object>>)
+        {
+            return ((IList<IList<object>>)value).Count;
+        }
+        else if (value is List<List<object>>)
+        {
+            return ((List<List<object>>)value).Count;
+        }
+        else if (value is List<List<string>>)
+        {
+            return ((List<List<string>>)value).Count;
+        }
         else if (value is (string))
         {
             return ((string)value).Length; // fallback that should not be used
@@ -658,7 +670,8 @@ public partial class Exchange
         object parsedValue = null;
         try
         {
-            parsedValue = (Convert.ToInt64(a));
+            var floored = Math.Floor(Convert.ToDouble(a));
+            parsedValue = (Convert.ToInt64(floored));
         }
         catch (Exception e)
         {
@@ -746,6 +759,36 @@ public partial class Exchange
                 return null;
             }
             return ((IList<object>)value)[parsed];
+        }
+        else if (value is IList<IList<object>>)
+        {
+            int parsed = Convert.ToInt32(key);
+            var listLength = getArrayLength(value);
+            if (parsed >= listLength)
+            {
+                return null;
+            }
+            return ((IList<IList<object>>)value)[parsed];
+        }
+        else if (value is List<List<object>>)
+        {
+            int parsed = Convert.ToInt32(key);
+            var listLength = getArrayLength(value);
+            if (parsed >= listLength)
+            {
+                return null;
+            }
+            return ((List<List<object>>)value)[parsed];
+        }
+        else if (value is List<List<string>>)
+        {
+            int parsed = Convert.ToInt32(key);
+            var listLength = getArrayLength(value);
+            if (parsed >= listLength)
+            {
+                return null;
+            }
+            return ((List<List<string>>)value)[parsed];
         }
         else if (value is List<dict>)
         {
@@ -885,6 +928,12 @@ public partial class Exchange
                 return ((IDictionary<string, object>)obj).ContainsKey((string)key);
             else
                 return false;
+        }
+        else if (obj is System.Collections.IDictionary || (obj.GetType().IsGenericType && obj.GetType().GetGenericTypeDefinition() == typeof(Dictionary<,>))) // is the second cond needed?
+        {
+            // check if this is a dictionary regardless of the value type
+            IDictionary<string, object> dict = ConvertToDictionaryOfStringObject(obj);
+            return dict.ContainsKey((string)key);
         }
         else
         {

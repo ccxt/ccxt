@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.kuna import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
@@ -425,7 +425,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_value(response, 'data', {})
         return self.safe_integer(data, 'timestamp_miliseconds')
 
-    async def fetch_currencies(self, params={}):
+    async def fetch_currencies(self, params={}) -> Currencies:
         """
         fetches all available currencies on an exchange
         :see: https://docs.kuna.io/docs/get-information-about-available-currencies
@@ -462,13 +462,13 @@ class kuna(Exchange, ImplicitAPI):
 
     def parse_currencies(self, currencies, params={}):
         currencies = self.to_array(currencies)
-        result = {}
+        result: dict = {}
         for i in range(0, len(currencies)):
             currency = self.parse_currency(currencies[i])
             result[currency['code']] = currency
         return result
 
-    def parse_currency(self, currency):
+    def parse_currency(self, currency: dict):
         #
         #    {
         #        "code": "BTC",
@@ -517,7 +517,7 @@ class kuna(Exchange, ImplicitAPI):
             'networks': {},
         }
 
-    async def fetch_markets(self, params={}):
+    async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for kuna
         :see: https://docs.kuna.io/docs/get-all-traded-markets
@@ -618,7 +618,7 @@ class kuna(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pairs': market['id'],
         }
         if limit is not None:
@@ -650,10 +650,10 @@ class kuna(Exchange, ImplicitAPI):
         #          }
         #      }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_order_book(data, market['symbol'], None, 'bids', 'asks', 0, 1)
 
-    def parse_ticker(self, ticker, market: Market = None) -> Ticker:
+    def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
         #    {
         #        "pair": "BTC_USDT",                                   # Traded pair
@@ -704,7 +704,7 @@ class kuna(Exchange, ImplicitAPI):
             raise ArgumentsRequired(self.id + ' fetchTickers() requires a symbols argument')
         symbols = self.market_symbols(symbols)
         marketIds = self.market_ids(symbols)
-        request = {
+        request: dict = {
             'pairs': ','.join(marketIds),
         }
         response = await self.v4PublicGetMarketsPublicTickersPairsPairs(self.extend(request, params))
@@ -728,7 +728,7 @@ class kuna(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_tickers(data, symbols, params)
 
     async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
@@ -741,7 +741,7 @@ class kuna(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pairs': market['id'],
         }
         response = await self.v4PublicGetMarketsPublicTickersPairsPairs(self.extend(request, params))
@@ -766,7 +766,7 @@ class kuna(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_value(response, 'data', [])
-        ticker = self.safe_value(data, 0)
+        ticker = self.safe_dict(data, 0)
         return self.parse_ticker(ticker, market)
 
     async def fetch_l3_order_book(self, symbol: str, limit: Int = None, params={}):
@@ -792,7 +792,7 @@ class kuna(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
+        request: dict = {
             'pairs': market['id'],
         }
         if limit is not None:
@@ -817,7 +817,7 @@ class kuna(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
-    def parse_trade(self, trade, market: Market = None) -> Trade:
+    def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
         # fetchTrades(public)
         #
@@ -870,7 +870,6 @@ class kuna(Exchange, ImplicitAPI):
             'fee': {
                 'cost': self.safe_string(trade, 'fee'),
                 'currency': self.safe_currency_code(self.safe_string(trade, 'feeCurrency')),
-                'rate': None,
             },
         }, market)
 
@@ -885,7 +884,7 @@ class kuna(Exchange, ImplicitAPI):
         #        ...
         #    ]
         #
-        result = {'info': response}
+        result: dict = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
@@ -924,7 +923,7 @@ class kuna(Exchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
-        :param float [price]: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: the price at which a trigger order is triggered at
          *
@@ -938,7 +937,7 @@ class kuna(Exchange, ImplicitAPI):
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         params = self.omit(params, ['triggerPrice', 'stopPrice'])
         capitalizedType = self.capitalize(type)
-        request = {
+        request: dict = {
             'pair': market['id'],
             'orderSide': 'Bid' if (side == 'buy') else 'Ask',
             'quantity': self.number_to_string(amount),
@@ -968,7 +967,7 @@ class kuna(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_order(data, market)
 
     async def cancel_order(self, id: str, symbol: Str = None, params={}):
@@ -980,7 +979,7 @@ class kuna(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'orderId': id,
         }
         response = await self.v4PrivatePostOrderPrivateCancel(self.extend(request, params))
@@ -1008,7 +1007,7 @@ class kuna(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'orderIds': ids,
         }
         response = await self.v4PrivatePostOrderPrivateCancelMulti(self.extend(request, params))
@@ -1023,11 +1022,11 @@ class kuna(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_orders(data)
 
-    def parse_order_status(self, status):
-        statuses = {
+    def parse_order_status(self, status: Str):
+        statuses: dict = {
             'Canceled': 'canceled',
             'Closed': 'filled',
             'Pending': 'open',
@@ -1038,7 +1037,7 @@ class kuna(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    def parse_order(self, order, market: Market = None) -> Order:
+    def parse_order(self, order: dict, market: Market = None) -> Order:
         #
         # createOrder, fetchOrder, fetchOpenOrders, fetchOrdersByStatus
         #
@@ -1126,7 +1125,7 @@ class kuna(Exchange, ImplicitAPI):
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'id': id,
             'withTrades': True,
         }
@@ -1165,7 +1164,7 @@ class kuna(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_order(data)
 
     async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1186,7 +1185,7 @@ class kuna(Exchange, ImplicitAPI):
         until = self.safe_integer(params, 'until')
         params = self.omit(params, ['until'])
         market = None
-        request = {
+        request: dict = {
         }
         if symbol is not None:
             market = self.market(symbol)
@@ -1219,7 +1218,7 @@ class kuna(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
@@ -1259,7 +1258,7 @@ class kuna(Exchange, ImplicitAPI):
         until = self.safe_integer(params, 'until')
         params = self.omit(params, ['until'])
         market = None
-        request = {
+        request: dict = {
             'status': self.capitalize(status),
         }
         if symbol is not None:
@@ -1294,7 +1293,7 @@ class kuna(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_orders(data, market, since, limit)
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
@@ -1313,7 +1312,7 @@ class kuna(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = None
-        request = {}
+        request: dict = {}
         if symbol is not None:
             market = self.market(symbol)
             request['pair'] = market['id']
@@ -1337,10 +1336,10 @@ class kuna(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'data')
+        data = self.safe_list(response, 'data')
         return self.parse_trades(data, market, since, limit)
 
-    async def withdraw(self, code: str, amount: float, address, tag=None, params={}):
+    async def withdraw(self, code: str, amount: float, address: str, tag=None, params={}):
         """
         make a withdrawal
         :see: https://docs.kuna.io/docs/create-a-withdraw
@@ -1367,7 +1366,7 @@ class kuna(Exchange, ImplicitAPI):
             else:
                 chain = currency['id'].upper()
         networkId = self.network_code_to_id(chain)
-        request = {
+        request: dict = {
             'currency': networkId,
             'amount': amount,
             'address': address,
@@ -1384,7 +1383,7 @@ class kuna(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
@@ -1411,7 +1410,7 @@ class kuna(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        request = {}
+        request: dict = {}
         if code is not None:
             request['currency'] = code
         if since is not None:
@@ -1445,7 +1444,7 @@ class kuna(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency)
 
     async def fetch_withdrawal(self, id: str, code: Str = None, params={}):
@@ -1458,7 +1457,7 @@ class kuna(Exchange, ImplicitAPI):
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         await self.load_markets()
-        request = {
+        request: dict = {
             'withdrawId': id,
         }
         response = await self.v4PrivateGetWithdrawPrivateDetailsWithdrawId(self.extend(request, params))
@@ -1483,7 +1482,7 @@ class kuna(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data)
 
     async def create_deposit_address(self, code: str, params={}):
@@ -1496,7 +1495,7 @@ class kuna(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'source': currency['id'],
         }
         response = await self.v4PrivatePostDepositPrivateCryptoGenerateAddress(self.extend(request, params))
@@ -1509,7 +1508,7 @@ class kuna(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_deposit_address(data, currency)
 
     async def fetch_deposit_address(self, code: str, params={}):
@@ -1522,7 +1521,7 @@ class kuna(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         currency = self.currency(code)
-        request = {
+        request: dict = {
             'source': currency['id'].upper(),
         }
         response = await self.v4PrivateGetDepositPrivateCryptoAddress(self.extend(request, params))
@@ -1535,7 +1534,7 @@ class kuna(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_deposit_address(data, currency)
 
     def parse_deposit_address(self, depositAddress, currency: Currency = None):
@@ -1555,8 +1554,8 @@ class kuna(Exchange, ImplicitAPI):
             'tag': None,
         }
 
-    def parse_transaction_status(self, status):
-        statuses = {
+    def parse_transaction_status(self, status: Str):
+        statuses: dict = {
             'Created': 'pending',
             'Canceled': 'canceled',
             'PartiallyProcessed': 'pending',
@@ -1592,7 +1591,7 @@ class kuna(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        request = {}
+        request: dict = {}
         if code is not None:
             request['currency'] = code
         if since is not None:
@@ -1626,7 +1625,7 @@ class kuna(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency)
 
     async def fetch_deposit(self, id: str, code: Str = None, params={}):
@@ -1642,7 +1641,7 @@ class kuna(Exchange, ImplicitAPI):
         currency = None
         if code is not None:
             currency = self.currency(code)
-        request = {
+        request: dict = {
             'depositId': id,
         }
         response = await self.v4PrivateGetDepositPrivateDetailsDepositId(self.extend(request, params))
@@ -1667,10 +1666,10 @@ class kuna(Exchange, ImplicitAPI):
         #        }
         #    }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    def parse_transaction(self, transaction, currency: Currency = None) -> Transaction:
+    def parse_transaction(self, transaction: dict, currency: Currency = None) -> Transaction:
         #
         #    {
         #        "id": "a201cb3c-5830-57ac-ad2c-f6a588dd55eb",                               # Unique ID of deposit
@@ -1814,7 +1813,7 @@ class kuna(Exchange, ImplicitAPI):
             body = json.dumps(body)
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response, requestHeaders, requestBody):
         #
         #    {
         #        "errors": [

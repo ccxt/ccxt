@@ -13,6 +13,7 @@ class luno extends luno$1 {
                 'watchTicker': false,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': false,
                 'watchOrders': undefined,
                 'watchOrderBook': true,
@@ -190,12 +191,11 @@ class luno extends luno$1 {
         //
         const symbol = subscription['symbol'];
         const messageHash = 'orderbook:' + symbol;
-        const timestamp = this.safeString(message, 'timestamp');
-        let orderbook = this.safeValue(this.orderbooks, symbol);
-        if (orderbook === undefined) {
-            orderbook = this.indexedOrderBook({});
-            this.orderbooks[symbol] = orderbook;
+        const timestamp = this.safeInteger(message, 'timestamp');
+        if (!(symbol in this.orderbooks)) {
+            this.orderbooks[symbol] = this.indexedOrderBook({});
         }
+        const orderbook = this.orderbooks[symbol];
         const asks = this.safeValue(message, 'asks');
         if (asks !== undefined) {
             const snapshot = this.customParseOrderBook(message, symbol, timestamp, 'bids', 'asks', 'price', 'volume', 'id');

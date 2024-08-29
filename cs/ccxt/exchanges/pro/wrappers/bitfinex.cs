@@ -10,6 +10,7 @@ public partial class bitfinex
     /// get the list of most recent trades for a particular symbol
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitfinex.com/v1/reference/ws-public-trades"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>
@@ -43,6 +44,7 @@ public partial class bitfinex
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitfinex.com/v1/reference/ws-public-ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -62,6 +64,7 @@ public partial class bitfinex
     /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitfinex.com/v1/reference/ws-public-order-books"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>limit</term>
@@ -93,6 +96,8 @@ public partial class bitfinex
     /// watches information on multiple orders made by the user
     /// </summary>
     /// <remarks>
+    /// See <see href="https://docs.bitfinex.com/v1/reference/ws-auth-order-updates"/>  <br/>
+    /// See <see href="https://docs.bitfinex.com/v1/reference/ws-auth-order-snapshots"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>since</term>

@@ -58,8 +58,13 @@ public partial class bitopro : Exchange
                 { "fetchOrderBook", true },
                 { "fetchOrders", false },
                 { "fetchOrderTrades", false },
+                { "fetchPosition", false },
+                { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },
                 { "fetchPositions", false },
+                { "fetchPositionsForSymbol", false },
+                { "fetchPositionsHistory", false },
+                { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchTicker", true },
                 { "fetchTickers", true },
@@ -767,6 +772,9 @@ public partial class bitopro : Exchange
         if (isTrue(isEqual(limit, null)))
         {
             limit = 500;
+        } else
+        {
+            limit = mathMin(limit, 75000); // supports slightly more than 75k candles atm, but limit here to avoid errors
         }
         object timeframeInSeconds = this.parseTimeframe(timeframe);
         object alignedSince = null;
@@ -1026,7 +1034,7 @@ public partial class bitopro : Exchange
         * @param {string} type 'market' or 'limit'
         * @param {string} side 'buy' or 'sell'
         * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
@@ -1121,6 +1129,26 @@ public partial class bitopro : Exchange
         return this.parseOrder(response, market);
     }
 
+    public virtual object parseCancelOrders(object data)
+    {
+        object dataKeys = new List<object>(((IDictionary<string,object>)data).Keys);
+        object orders = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(dataKeys)); postFixIncrement(ref i))
+        {
+            object marketId = getValue(dataKeys, i);
+            object orderIds = getValue(data, marketId);
+            for (object j = 0; isLessThan(j, getArrayLength(orderIds)); postFixIncrement(ref j))
+            {
+                ((IList<object>)orders).Add(this.safeOrder(new Dictionary<string, object>() {
+                    { "info", getValue(orderIds, j) },
+                    { "id", getValue(orderIds, j) },
+                    { "symbol", this.safeSymbol(marketId) },
+                }));
+            }
+        }
+        return orders;
+    }
+
     public async virtual Task<object> cancelOrders(object ids, object symbol = null, object parameters = null)
     {
         /**
@@ -1154,7 +1182,8 @@ public partial class bitopro : Exchange
         //         }
         //     }
         //
-        return response;
+        object data = this.safeDict(response, "data");
+        return this.parseCancelOrders(data);
     }
 
     public async override Task<object> cancelAllOrders(object symbol = null, object parameters = null)
@@ -1181,7 +1210,7 @@ public partial class bitopro : Exchange
         {
             response = await this.privateDeleteOrdersAll(this.extend(request, parameters));
         }
-        object result = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         //
         //     {
         //         "data":{
@@ -1192,7 +1221,7 @@ public partial class bitopro : Exchange
         //         }
         //     }
         //
-        return result;
+        return this.parseCancelOrders(data);
     }
 
     public async override Task<object> fetchOrder(object id, object symbol = null, object parameters = null)
@@ -1202,6 +1231,7 @@ public partial class bitopro : Exchange
         * @name bitopro#fetchOrder
         * @description fetches information on an order made by the user
         * @see https://github.com/bitoex/bitopro-offical-api-docs/blob/master/api/v3/private/get_an_order_data.md
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -1760,7 +1790,7 @@ public partial class bitopro : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data", new List<object>() {});
         return this.parseDepositWithdrawFees(data, codes, "currency");
     }
 

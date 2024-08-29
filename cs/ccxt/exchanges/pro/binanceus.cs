@@ -43,14 +43,6 @@ public partial class binanceus : binance
                 { "defaultType", "spot" },
                 { "fetchMarkets", new List<object>() {"spot"} },
             } },
-            { "fees", new Dictionary<string, object>() {
-                { "trading", new Dictionary<string, object>() {
-                    { "tierBased", false },
-                    { "percentage", true },
-                    { "taker", 0 },
-                    { "maker", 0 },
-                } },
-            } },
         });
     }
 }
