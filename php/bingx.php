@@ -2506,15 +2506,20 @@ class bingx extends Exchange {
                 }
             }
             $positionSide = null;
-            if ($reduceOnly) {
-                $positionSide = ($side === 'buy') ? 'SHORT' : 'LONG';
+            $hedged = $this->safe_bool($params, 'hedged', false);
+            if ($hedged) {
+                if ($reduceOnly) {
+                    $positionSide = ($side === 'buy') ? 'SHORT' : 'LONG';
+                } else {
+                    $positionSide = ($side === 'buy') ? 'LONG' : 'SHORT';
+                }
             } else {
-                $positionSide = ($side === 'buy') ? 'LONG' : 'SHORT';
+                $positionSide = 'BOTH';
             }
             $request['positionSide'] = $positionSide;
             $request['quantity'] = ($market['inverse']) ? $amount : $this->parse_to_numeric($this->amount_to_precision($symbol, $amount)); // precision not available for inverse contracts
         }
-        $params = $this->omit($params, array( 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ));
+        $params = $this->omit($params, array( 'hedged', 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ));
         return $this->extend($request, $params);
     }
 
@@ -2545,6 +2550,7 @@ class bingx extends Exchange {
          * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the triggerPrice at which the attached stop loss order will be triggered
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
          * @param {boolean} [$params->test] *swap only* whether to use the $test endpoint or not, default is false
+         * @param {boolean} [$params->hedged] *swap only* whether the order is in hedged mode or one way mode
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
         $this->load_markets();

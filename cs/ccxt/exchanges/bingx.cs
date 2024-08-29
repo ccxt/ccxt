@@ -2543,17 +2543,24 @@ public partial class bingx : Exchange
                 }
             }
             object positionSide = null;
-            if (isTrue(reduceOnly))
+            object hedged = this.safeBool(parameters, "hedged", false);
+            if (isTrue(hedged))
             {
-                positionSide = ((bool) isTrue((isEqual(side, "buy")))) ? "SHORT" : "LONG";
+                if (isTrue(reduceOnly))
+                {
+                    positionSide = ((bool) isTrue((isEqual(side, "buy")))) ? "SHORT" : "LONG";
+                } else
+                {
+                    positionSide = ((bool) isTrue((isEqual(side, "buy")))) ? "LONG" : "SHORT";
+                }
             } else
             {
-                positionSide = ((bool) isTrue((isEqual(side, "buy")))) ? "LONG" : "SHORT";
+                positionSide = "BOTH";
             }
             ((IDictionary<string,object>)request)["positionSide"] = positionSide;
             ((IDictionary<string,object>)request)["quantity"] = ((bool) isTrue((getValue(market, "inverse")))) ? amount : this.parseToNumeric(this.amountToPrecision(symbol, amount)); // precision not available for inverse contracts
         }
-        parameters = this.omit(parameters, new List<object>() {"reduceOnly", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "takeProfit", "stopLoss", "clientOrderId"});
+        parameters = this.omit(parameters, new List<object>() {"hedged", "reduceOnly", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "takeProfit", "stopLoss", "clientOrderId"});
         return this.extend(request, parameters);
     }
 
@@ -2587,6 +2594,7 @@ public partial class bingx : Exchange
         * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
         * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
         * @param {boolean} [params.test] *swap only* whether to use the test endpoint or not, default is false
+        * @param {boolean} [params.hedged] *swap only* whether the order is in hedged mode or one way mode
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();

@@ -2405,13 +2405,17 @@ class bingx(Exchange, ImplicitAPI):
                     tpRequest['quantity'] = self.parse_to_numeric(self.amount_to_precision(symbol, tkQuantity))
                     request['takeProfit'] = self.json(tpRequest)
             positionSide = None
-            if reduceOnly:
-                positionSide = 'SHORT' if (side == 'buy') else 'LONG'
+            hedged = self.safe_bool(params, 'hedged', False)
+            if hedged:
+                if reduceOnly:
+                    positionSide = 'SHORT' if (side == 'buy') else 'LONG'
+                else:
+                    positionSide = 'LONG' if (side == 'buy') else 'SHORT'
             else:
-                positionSide = 'LONG' if (side == 'buy') else 'SHORT'
+                positionSide = 'BOTH'
             request['positionSide'] = positionSide
             request['quantity'] = amount if (market['inverse']) else self.parse_to_numeric(self.amount_to_precision(symbol, amount))  # precision not available for inverse contracts
-        params = self.omit(params, ['reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId'])
+        params = self.omit(params, ['hedged', 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId'])
         return self.extend(request, params)
 
     def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
@@ -2441,6 +2445,7 @@ class bingx(Exchange, ImplicitAPI):
         :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
         :param float [params.stopLoss.triggerPrice]: stop loss trigger price
         :param boolean [params.test]: *swap only* whether to use the test endpoint or not, default is False
+        :param boolean [params.hedged]: *swap only* whether the order is in hedged mode or one way mode
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.load_markets()
