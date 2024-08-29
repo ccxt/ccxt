@@ -6,7 +6,7 @@ import Exchange from './abstract/cryptomus.js';
 // import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-// import type { Account, Balances, Bool, Currencies, Currency, Dict, FundingRateHistory, LastPrice, LastPrices, Leverage, LeverageTier, LeverageTiers, Int, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry } from './base/types.js';
+import type { Dict, Market } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -79,7 +79,7 @@ export default class cryptomus extends Exchange {
                 'fetchLeverageTiers': false,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
-                'fetchMarkets': false,
+                'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
                 'fetchOHLCV': false,
@@ -154,7 +154,10 @@ export default class cryptomus extends Exchange {
             },
             'fees': {
                 'trading': {
-                    // todo
+                    'percentage': true,
+                    'feeSide': 'get',
+                    'maker': this.parseNumber ('0.02'),
+                    'taker': this.parseNumber ('0.02'),
                 },
             },
             'options': {
@@ -174,6 +177,112 @@ export default class cryptomus extends Exchange {
                 'broad': {},
             },
             'precisionMode': TICK_SIZE,
+        });
+    }
+
+    async fetchMarkets (params = {}): Promise<Market[]> {
+        /**
+         * @method
+         * @name cryptomus#fetchMarkets
+         * @description retrieves data on all markets for the exchange
+         * @see https://doc.cryptomus.com/personal/market-cap/tickers
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} an array of objects representing market data
+         */
+        const response = await this.publicGetV1ExchangeMarketTickers (params);
+        //
+        //     {
+        //         "data": [
+        //             {
+        //                 "currency_pair": "XMR_USDT",
+        //                 "last_price": "158.04829771",
+        //                 "base_volume": "0.35185785",
+        //                 "quote_volume": "55.523761128544"
+        //             },
+        //             {
+        //                 "currency_pair": "AVAX_USDT",
+        //                 "last_price": "23.80761382",
+        //                 "base_volume": "45.09235372",
+        //                 "quote_volume": "1073.5458110958"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data');
+        return this.parseMarkets (data);
+    }
+
+    parseMarket (market: Dict): Market {
+        //
+        //     {
+        //         "currency_pair": "XMR_USDT",
+        //         "last_price": "158.04829771",
+        //         "base_volume": "0.35185785",
+        //         "quote_volume": "55.523761128544"
+        //     }
+        //
+        const marketId = this.safeString (market, 'currency_pair');
+        const parts = marketId.split ('_');
+        const baseId = parts[0];
+        const quoteId = parts[1];
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const fees = this.safeDict (this.fees, 'trading');
+        return this.safeMarketStructure ({
+            'id': marketId,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'active': true,
+            'type': 'spot',
+            'subType': undefined,
+            'spot': true,
+            'margin': false,
+            'swap': false,
+            'future': false,
+            'option': false,
+            'contract': false,
+            'settle': undefined,
+            'settleId': undefined,
+            'contractSize': undefined,
+            'linear': undefined,
+            'inverse': undefined,
+            'taker': this.safeNumber (fees, 'taker'),
+            'maker': this.safeNumber (fees, 'maker'),
+            'percentage': this.safeBool (fees, 'percentage'),
+            'tierBased': undefined,
+            'feeSide': this.safeString (fees, 'feeSide'),
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': undefined,
+                'price': undefined,
+            },
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
         });
     }
 
