@@ -6,7 +6,7 @@ import Exchange from './abstract/cryptomus.js';
 // import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Dict, Market } from './base/types.js';
+import type { Dict, Market, Strings, Ticker, Tickers } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -284,6 +284,60 @@ export default class cryptomus extends Exchange {
             'created': undefined,
             'info': market,
         });
+    }
+
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name cryptomus#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://doc.cryptomus.com/personal/market-cap/tickers
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.publicGetV1ExchangeMarketTickers (params);
+        const data = this.safeList (response, 'data');
+        return this.parseTickers (data, symbols);
+    }
+
+    parseTicker (ticker, market: Market = undefined): Ticker {
+        //
+        //     {
+        //         "currency_pair": "XMR_USDT",
+        //         "last_price": "158.04829771",
+        //         "base_volume": "0.35185785",
+        //         "quote_volume": "55.523761128544"
+        //     }
+        //
+        const marketId = this.safeString (ticker, 's');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const last = this.safeString (ticker, 'last_price');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'high': undefined,
+            'low': undefined,
+            'bid': undefined,
+            'bidVolume': undefined,
+            'ask': undefined,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'base_volume'),
+            'quoteVolume': this.safeString (ticker, 'quote_volume'),
+            'info': ticker,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
