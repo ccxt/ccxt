@@ -6,7 +6,7 @@ import Exchange from './abstract/cryptomus.js';
 // import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Dict, Int, Market, OrderBook, Strings, Ticker, Tickers } from './base/types.js';
+import type { Dict, Int, Market, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -87,7 +87,7 @@ export default class cryptomus extends Exchange {
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
@@ -370,6 +370,63 @@ export default class cryptomus extends Exchange {
         const result = this.safeDict (response, 'result');
         const timestamp = this.safeInteger (result, 'timestamp');
         return this.parseOrderBook (result, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
+    }
+
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name cryptomus#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @see https://doc.cryptomus.com/personal/market-cap/trades
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch (maximum value is 100)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'currencyPair': market['id'],
+        };
+        const response = await this.publicGetV1ExchangeMarketTradesCurrencyPair (this.extend (request, params));
+        //
+        // todo check
+        //
+        const result = this.safeList (response, 'result');
+        return this.parseTrades (result, market, since, limit);
+    }
+
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        //     {
+        //         "trade_id": "01J017Q6B3JGHZRP9D2NZHVKFX",
+        //         "price": "59498.63487492",
+        //         "base_volume": "94.00784310",
+        //         "quote_volume": "0.00158000",
+        //         "timestamp": 1718028573,
+        //         "type": "sell"
+        //     }
+        //
+        const timestamp = this.safeTimestamp (trade, 'timestamp');
+        return this.safeTrade ({
+            'id': this.safeString (trade, 'trade_id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'side': this.safeString (trade, 'type'),
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString (trade, 'quote_volume'), // todo check
+            'cost': this.safeString (trade, 'base_volume'), // todo check
+            'takerOrMaker': undefined,
+            'type': undefined,
+            'order': undefined,
+            'fee': {
+                'currency': undefined,
+                'cost': undefined,
+            },
+            'info': trade,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
