@@ -3529,12 +3529,14 @@ export default class kucoin extends Exchange {
         const accountsByType = this.safeDict (this.options, 'accountsByType');
         let type = this.safeString (accountsByType, requestedType, requestedType);
         params = this.omit (params, 'type');
-        let hf = undefined;
-        [ hf, params ] = await this.handleHfAndParams (params);
-        if (hf) {
+        // here we handle HF differently : hf migrated users does not need to use the hf in query
+        // while non migarted users (who wants to use HF) need to use the addition in query through params
+        await this.handleHfAndParams ({});
+        const hf = this.safeBool (params, 'hf');
+        params = this.omit (params, 'hf');
+        if (hf === true && this.options['hfMigrated'] !== true) {
             type = 'trade_hf';
         }
-        params = this.omit (params, 'hf');
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
         let response = undefined;
         const request = {};
