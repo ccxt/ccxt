@@ -6,7 +6,7 @@ import Exchange from './abstract/cryptomus.js';
 // import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Dict, Int, Market, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Currencies, Dict, Int, Market, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -65,7 +65,7 @@ export default class cryptomus extends Exchange {
                 'fetchConvertQuote': false,
                 'fetchConvertTrade': false,
                 'fetchConvertTradeHistory': false,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': false,
@@ -101,7 +101,7 @@ export default class cryptomus extends Exchange {
                 'fetchTicker': false,
                 'fetchTickers': true,
                 'fetchTime': false,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransactions': false,
@@ -165,7 +165,21 @@ export default class cryptomus extends Exchange {
                     // todo
                 },
                 'networksById': {
-                    // todo
+                    'bsc': 'BEP20',
+                    'dash': 'DASH',
+                    'polygon': 'POLYGON',
+                    'arbitrum': 'ARB',
+                    'sol': 'SOL',
+                    'ton': 'TON',
+                    'eth': 'ERC20',
+                    'tron': 'TRC20',
+                    'ltc': 'LTC',
+                    'xmr': 'XMR',
+                    'bch': 'BCH',
+                    'doge': 'DOGE',
+                    'avalanche': 'AVAX',
+                    'btc': 'BTC',
+                    'rub': 'RUB',
                 },
                 'fetchOrderBook': {
                     'level': 0, // 0, 1, 2, 4 or 5
@@ -286,6 +300,145 @@ export default class cryptomus extends Exchange {
             'created': undefined,
             'info': market,
         });
+    }
+
+    async fetchCurrencies (params = {}): Promise<Currencies> {
+        /**
+         * @method
+         * @name cryptomus#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @see https://doc.cryptomus.com/personal/market-cap/assets
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        const response = await this.publicGetV1ExchangeMarketAssets (params);
+        //
+        //     {
+        //         'state': '0',
+        //         'result': [
+        //             {
+        //                 'currency_code': 'USDC',
+        //                 'network_code': 'bsc',
+        //                 'can_withdraw': true,
+        //                 'can_deposit': true,
+        //                 'min_withdraw': '1.00000000',
+        //                 'max_withdraw': '10000000.00000000',
+        //                 'max_deposit': '10000000.00000000',
+        //                 'min_deposit': '1.00000000'
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const coins = this.safeList (response, 'result');
+        const result: Dict = {};
+        for (let i = 0; i < coins.length; i++) {
+            const currency = coins[i];
+            const currencyId = this.safeString (currency, 'currency_code');
+            const code = this.safeCurrencyCode (currencyId);
+            const allowWithdraw = this.safeBool (currency, 'can_withdraw');
+            const allowDeposit = this.safeBool (currency, 'can_deposit');
+            const isActive = allowWithdraw && allowDeposit;
+            const networkId = this.safeString (currency, 'network_code');
+            const networksById = this.safeDict (this.options, 'networksById');
+            const networkName = this.safeString (networksById, networkId, networkId);
+            const minWithdraw = this.safeNumber (currency, 'min_withdraw');
+            const maxWithdraw = this.safeNumber (currency, 'max_withdraw');
+            const minDeposit = this.safeNumber (currency, 'min_deposit');
+            const maxDeposit = this.safeNumber (currency, 'max_deposit');
+            const network = {
+                'id': networkId,
+                'network': networkName,
+                'limits': {
+                    'withdraw': {
+                        'min': minWithdraw,
+                        'max': maxWithdraw,
+                    },
+                    'deposit': {
+                        'min': minDeposit,
+                        'max': maxDeposit,
+                    },
+                },
+                'active': isActive,
+                'deposit': allowDeposit,
+                'withdraw': allowWithdraw,
+                'fee': undefined,
+                'precision': undefined,
+                'info': currency,
+            };
+            const networks = {};
+            networks[networkName] = network;
+            if (!(code in result)) {
+                result[code] = {
+                    'id': currencyId,
+                    'code': code,
+                    'precision': undefined,
+                    'type': undefined,
+                    'name': undefined,
+                    'active': isActive,
+                    'deposit': allowDeposit,
+                    'withdraw': allowWithdraw,
+                    'fee': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': minWithdraw,
+                            'max': maxWithdraw,
+                        },
+                        'deposit': {
+                            'min': minDeposit,
+                            'max': maxDeposit,
+                        },
+                    },
+                    'networks': networks,
+                    'info': currency,
+                };
+            } else {
+                const parsed = result[code];
+                const parsedNetworks = this.safeDict (parsed, 'networks');
+                parsed['networks'] = this.extend (parsedNetworks, networks);
+                if (isActive) {
+                    parsed['active'] = true;
+                    parsed['deposit'] = true;
+                    parsed['withdraw'] = true;
+                } else {
+                    if (allowWithdraw) {
+                        parsed['withdraw'] = true;
+                    }
+                    if (allowDeposit) {
+                        parsed['deposit'] = true;
+                    }
+                }
+                const parsedLimits = this.safeDict (parsed, 'limits');
+                const withdrawLimits = {
+                    'min': undefined,
+                    'max': undefined,
+                };
+                const parsedWithdrawLimits = this.safeDict (parsedLimits, 'withdraw', withdrawLimits);
+                const depositLimits = {
+                    'min': undefined,
+                    'max': undefined,
+                };
+                const parsedDepositLimits = this.safeDict (parsedLimits, 'deposit', depositLimits);
+                if (minWithdraw) {
+                    withdrawLimits['min'] = parsedWithdrawLimits['min'] ? Math.min (parsedWithdrawLimits['min'], minWithdraw) : minWithdraw;
+                }
+                if (maxWithdraw) {
+                    withdrawLimits['max'] = parsedWithdrawLimits['max'] ? Math.max (parsedWithdrawLimits['max'], maxWithdraw) : maxWithdraw;
+                }
+                if (minDeposit) {
+                    depositLimits['min'] = parsedDepositLimits['min'] ? Math.min (parsedDepositLimits['min'], minDeposit) : minDeposit;
+                }
+                if (maxDeposit) {
+                    depositLimits['max'] = parsedDepositLimits['max'] ? Math.max (parsedDepositLimits['max'], maxDeposit) : maxDeposit;
+                }
+                const limits = {
+                    'withdraw': withdrawLimits,
+                    'deposit': depositLimits,
+                };
+                parsed['limits'] = limits;
+            }
+        }
+        return result;
     }
 
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
