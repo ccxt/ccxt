@@ -2149,15 +2149,17 @@ export default class kucoin extends Exchange {
         if (testOrder) {
             if (isMarginOrder) {
                 response = await this.privatePostMarginOrderTest (orderRequest);
+            } else if (hf) {
+                response = await this.privatePostHfOrdersTest (orderRequest);
             } else {
                 response = await this.privatePostOrdersTest (orderRequest);
             }
-        } else if (hf) {
-            response = await this.privatePostHfOrders (orderRequest);
         } else if (isTriggerOrder) {
             response = await this.privatePostStopOrder (orderRequest);
         } else if (isMarginOrder) {
             response = await this.privatePostMarginOrder (orderRequest);
+        } else if (hf) {
+            response = await this.privatePostHfOrders (orderRequest);
         } else {
             response = await this.privatePostOrders (orderRequest);
         }
