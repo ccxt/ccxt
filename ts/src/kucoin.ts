@@ -1791,7 +1791,8 @@ export default class kucoin extends Exchange {
         //         }
         //     }
         //
-        return this.parseTicker (response['data'], market);
+        const data = this.safeDict (response, 'data', {});
+        return this.parseTicker (data, market);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
@@ -4630,7 +4631,7 @@ export default class kucoin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data');
-        const rows = this.safeList (data, 'items');
+        const rows = this.safeList (data, 'items', []);
         return this.parseBorrowRateHistories (rows, codes, since, limit);
     }
 
@@ -4686,7 +4687,7 @@ export default class kucoin extends Exchange {
         //     }
         //
         const data = this.safeDict (response, 'data');
-        const rows = this.safeList (data, 'items');
+        const rows = this.safeList (data, 'items', []);
         return this.parseBorrowRateHistory (rows, code, since, limit);
     }
 
