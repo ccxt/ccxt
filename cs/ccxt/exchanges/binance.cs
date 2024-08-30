@@ -314,7 +314,7 @@ public partial class binance : Exchange
                         { "capital/deposit/hisrec", 0.1 },
                         { "capital/deposit/subAddress", 0.1 },
                         { "capital/deposit/subHisrec", 0.1 },
-                        { "capital/withdraw/history", 1800 },
+                        { "capital/withdraw/history", 2 },
                         { "capital/withdraw/address/list", 10 },
                         { "capital/contract/convertible-coins", 4.0002 },
                         { "convert/tradeFlow", 20.001 },
