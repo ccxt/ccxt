@@ -315,6 +315,11 @@ public partial class testMainClass : BaseTest
         return exc;
     }
 
+    public Exchange fetchInvalidationHook(object exchange2) {
+        // stub
+        return;
+    }
+
     public Exchange setFetchResponse(object exchange2, object response)
     {
         var exchange = exchange2 as Exchange;
