@@ -2616,6 +2616,9 @@ export default class kucoin extends Exchange {
         const stop = this.safeBool2 (params, 'stop', 'trigger', false);
         let hf = undefined;
         [ hf, params ] = await this.handleHfAndParams (params);
+        if (hf && (symbol === undefined)) {
+            throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus() requires a symbol parameter for hf orders');
+        }
         params = this.omit (params, [ 'stop', 'trigger', 'till', 'until' ]);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrdersByStatus', params);
         if (lowercaseStatus === 'open') {
