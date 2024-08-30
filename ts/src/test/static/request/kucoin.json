@@ -6,6 +6,9 @@
         "endAt"
     ],
     "outputType": "json",
+    "options": {
+        "hfMigrated": false  
+    },
     "methods": {
         "createOrder": [
             {
@@ -62,7 +65,7 @@
                         "hf": true
                     }
                 ],
-                "output": "{\"clientOid\":\"5d7a8110-1ea6-46e7-8d8f-1ba53267f20c\",\"side\":\"buy\",\"symbol\":\"LTC-USDT\",\"type\":\"market\",\"size\":\"0.1\",\"hf\":true}"
+                "output": "{\"clientOid\":\"5d7a8110-1ea6-46e7-8d8f-1ba53267f20c\",\"side\":\"buy\",\"symbol\":\"LTC-USDT\",\"type\":\"market\",\"size\":\"0.1\"}"
             },
             {
                 "description": "limit order with weird price/amoutn",
