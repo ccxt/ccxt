@@ -485,7 +485,7 @@ export default class woo extends Exchange {
             'swap': swap,
             'future': false,
             'option': false,
-            'active': undefined,
+            'active': this.safeString(market, 'is_trading') === '1',
             'contract': contract,
             'linear': linear,
             'inverse': undefined,

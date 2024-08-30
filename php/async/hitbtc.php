@@ -1428,6 +1428,7 @@ class hitbtc extends Exchange {
 
     public function parse_transaction_status(?string $status) {
         $statuses = array(
+            'CREATED' => 'pending',
             'PENDING' => 'pending',
             'FAILED' => 'failed',
             'ROLLED_BACK' => 'failed',

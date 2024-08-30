@@ -1418,6 +1418,7 @@ export default class hitbtc extends Exchange {
     }
     parseTransactionStatus(status) {
         const statuses = {
+            'CREATED': 'pending',
             'PENDING': 'pending',
             'FAILED': 'failed',
             'ROLLED_BACK': 'failed',
