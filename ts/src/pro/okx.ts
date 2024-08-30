@@ -129,9 +129,8 @@ export default class okx extends okxRest {
         }
         symbols = this.marketSymbols (symbols);
         const url = this.getUrl (channel, access);
-        let messageHash = channel;
+        const messageHashes = [];
         const args = [];
-        messageHash += '::' + symbols.join (',');
         for (let i = 0; i < symbols.length; i++) {
             const marketId = this.marketId (symbols[i]);
             const arg: Dict = {
@@ -139,12 +138,13 @@ export default class okx extends okxRest {
                 'instId': marketId,
             };
             args.push (this.extend (arg, params));
+            messageHashes.push (channel + '::' + symbols[i]);
         }
         const request: Dict = {
             'op': 'subscribe',
             'args': args,
         };
-        return await this.watch (url, messageHash, request, messageHash);
+        return await this.watchMultiple (url, messageHashes, request, messageHashes);
     }
 
     async subscribe (access, messageHash, channel, symbol, params = {}) {
