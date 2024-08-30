@@ -173,10 +173,10 @@ function fetchResetHook (exchange) {
     exchange.options['collectedUrls'] = [];
     if (!('fetchOverriden' in exchange.options)) {
         exchange.options['fetchOverriden'] = true;
-        const originalFetch = exchange.fetch.bind(exchange);
+        const originalFetch = exchange.fetch.bind (exchange);
         exchange.fetch = async function (url, method = 'GET', headers = undefined, body = undefined) {
-            exchange.options['collectedUrls'].push(url);
-            return await originalFetch(url, method, headers, body);
+            exchange.options['collectedUrls'].push (url);
+            return await originalFetch (url, method, headers, body);
         }
     }
 }
