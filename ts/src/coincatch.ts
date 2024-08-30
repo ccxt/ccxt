@@ -4,7 +4,7 @@
 import Exchange from './abstract/coincatch.js';
 import { } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Str } from './base/types.js';
+import type { Int, Str } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -253,6 +253,27 @@ export default class coincatch extends Exchange {
             },
             'precisionMode': TICK_SIZE,
         });
+    }
+
+    async fetchTime (params = {}): Promise<Int> {
+        /**
+         * @method
+         * @name coincatch#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://coincatch.github.io/github.io/en/spot/#get-server-time
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        const response = await this.publicGetApiSpotV1PublicTime (params);
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1725046822028,
+        //         "data": "1725046822028"
+        //     }
+        //
+        return this.safeInteger (response, 'requestTime');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
