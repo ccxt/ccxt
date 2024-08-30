@@ -4263,8 +4263,8 @@ export default class kucoin extends Exchange {
         await this.loadAccounts ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchLedger', 'paginate');
-        const isHf = this.safeBool (params, 'hf');
-        params = this.omit (params, 'hf');
+        let hf = undefined;
+        [ hf, params ] = await this.handleHfAndParams (params);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic ('fetchLedger', code, since, limit, params);
         }
@@ -4288,7 +4288,7 @@ export default class kucoin extends Exchange {
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchLedger', params);
         let response = undefined;
-        if (isHf) {
+        if (hf) {
             if (marginMode !== undefined) {
                 response = await this.privateGetHfMarginAccountLedgers (this.extend (request, params));
             } else {
