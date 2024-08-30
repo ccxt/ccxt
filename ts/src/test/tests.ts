@@ -36,6 +36,7 @@ import {
     getTestFilesSync,
     getTestFiles,
     setFetchResponse,
+    fetchInvalidationHook,
     isNullValue,
     close,
 } from './tests.helpers.js';
@@ -59,17 +60,13 @@ class testMainClass extends baseMainTestClass {
     async init (exchangeId, symbolArgv, methodArgv) {
         this.parseCliArgs ();
 
-        if (this.requestTests && this.responseTests) {
-            await this.runStaticRequestTests (exchangeId, symbolArgv);
-            await this.runStaticResponseTests (exchangeId, symbolArgv);
-            return;
+        if (this.requestTests) {
+            await this.runStaticRequestTests (exchangeId, symbolArgv); // symbol here is the testname
         }
         if (this.responseTests) {
             await this.runStaticResponseTests (exchangeId, symbolArgv);
-            return;
         }
-        if (this.requestTests) {
-            await this.runStaticRequestTests (exchangeId, symbolArgv); // symbol here is the testname
+        if (this.requestTests || this.responseTests) {
             return;
         }
         if (this.idTests) {
@@ -1034,7 +1031,7 @@ class testMainClass extends baseMainTestClass {
         return true; // c# requ
     }
 
-    assertStaticRequestOutput (exchange, type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput, newOutput) {
+    assertStaticRequestOutputInner (exchange, type: string, skipKeys: string[], storedUrl: string, requestUrl: string, storedOutput, newOutput) {
         if (storedUrl !== requestUrl) {
             // remove the host part from the url
             const firstPath = this.removeHostnamefromUrl (storedUrl);
@@ -1084,6 +1081,27 @@ class testMainClass extends baseMainTestClass {
         this.assertNewAndStoredOutput (exchange, skipKeys, newOutput, storedOutput);
     }
 
+    assertStaticRequestOutput (exchange, type: string, skipKeys: string[], storedUrls: any, requestUrls: any, storedOutput, newOutput) {
+        // if computer urls are array
+        if (Array.isArray (requestUrls)) {
+            if (!Array.isArray (storedUrls)) {
+                // if one url was stored in static tests (at this stage, most requests are stored with single url)
+                // in such case we only compare the stored url to the last computed url
+                const length = requestUrls.length;
+                const lastComputedUrl = requestUrls[length - 1];
+                this.assertStaticRequestOutputInner (exchange, type, skipKeys, storedUrls.toString (), lastComputedUrl.toString (), storedOutput, newOutput);
+            } else {
+                // if stored urls are also arrays (which should be the new standard from now) then they should match in length and values
+                for (let i = 0; i < requestUrls.length; i++) {
+                    this.assertStaticRequestOutputInner (exchange, type, skipKeys, storedUrls[i], requestUrls[i], storedOutput, newOutput);
+                }
+            }
+        } else {
+            // else if old standard, then do whatever we did before
+            this.assertStaticRequestOutputInner (exchange, type, skipKeys, storedUrls, requestUrls, storedOutput, newOutput);
+        }
+    }
+
     assertStaticResponseOutput (exchange: Exchange, skipKeys: string[], computedResult, storedResult) {
         this.assertNewAndStoredOutput (exchange, skipKeys, computedResult, storedResult, false);
     }
@@ -1105,23 +1123,34 @@ class testMainClass extends baseMainTestClass {
         return newInput;
     }
 
-    async testRequestStatically (exchange, method: string, data: object, type: string, skipKeys: string[]) {
+    async testRequestStatically (exchange, method: string, data: object, type: string, skipKeys: string[], exchangeData: object) {
         let output = undefined;
         let requestUrl = undefined;
-        try {
-            if (!this.isSynchronous) {
-                await callExchangeMethodDynamically (exchange, method, this.sanitizeDataInput (data['input']));
-            } else {
-                callExchangeMethodDynamicallySync (exchange, method, this.sanitizeDataInput (data['input']));
-            }
-        } catch (e) {
-            if (!(e instanceof InvalidProxySettings)) {
-                // if it's not a BadRequest, it means our request was not created succesfully
-                // so we might have an error in the request creation
-                throw e;
-            }
+        // in JS, we do extra things, not only first request, but all requested urls
+        // (other langs will follow gradually, but for this stage even JS is enough)
+        if (this.lang === 'JS') {
+            fetchInvalidationHook (exchange); // this runs only once
+            exchange.options['collectedUrls'] = [];
+            await callExchangeMethodDynamically (exchange, method, this.sanitizeDataInput (data['input']));
+            requestUrl = exchange.options['collectedUrls'];
             output = exchange.last_request_body;
-            requestUrl = exchange.last_request_url;
+        } else {
+            // in all langs except JS we only test first url (with fake proxy approach)
+            try {
+                if (!this.isSynchronous) {
+                    await callExchangeMethodDynamically (exchange, method, this.sanitizeDataInput (data['input']));
+                } else {
+                    callExchangeMethodDynamicallySync (exchange, method, this.sanitizeDataInput (data['input']));
+                }
+            } catch (e) {
+                if (!(e instanceof InvalidProxySettings)) {
+                    // if it's not a InvalidProxySettings, it means our request was not created succesfully
+                    // so we might have an error in the request creation
+                    throw e;
+                }
+                output = exchange.last_request_body;
+                requestUrl = exchange.last_request_url;
+            }
         }
         try {
             const callOutput = exchange.safeValue (data, 'output');
@@ -1200,6 +1229,7 @@ class testMainClass extends baseMainTestClass {
                 const oldExchangeOptions = exchange.options; // snapshot options;
                 const testExchangeOptions = exchange.safeValue (result, 'options', {});
                 // exchange.options = exchange.deepExtend (oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
+                this.resetedOptions (exchange, exchangeData); // reset specific options
                 exchange.extendExchangeOptions (exchange.deepExtend (oldExchangeOptions, testExchangeOptions));
                 const description = exchange.safeValue (result, 'description');
                 if ((testName !== undefined) && (testName !== description)) {
@@ -1215,7 +1245,7 @@ class testMainClass extends baseMainTestClass {
                 }
                 const type = exchange.safeString (exchangeData, 'outputType');
                 const skipKeys = exchange.safeValue (exchangeData, 'skipKeys', []);
-                await this.testRequestStatically (exchange, method, result, type, skipKeys);
+                await this.testRequestStatically (exchange, method, result, type, skipKeys, exchangeData);
                 // reset options
                 // exchange.options = exchange.deepExtend (oldExchangeOptions, {});
                 exchange.extendExchangeOptions (exchange.deepExtend (oldExchangeOptions, {}));
@@ -1307,6 +1337,14 @@ class testMainClass extends baseMainTestClass {
             sum = exchange.sum (sum, resultsLength);
         }
         return sum;
+    }
+
+    resetedOptions (exchange: Exchange, exchangeData: object) {
+        const resetOptionKeys = exchange.safeList (exchangeData, 'resetOptionsBeforeRequest');;
+        for (let i = 0; i < resetOptionKeys.length; i++) {
+            const key = resetOptionKeys[i];
+            exchange.options[key] = undefined;
+        }
     }
 
     async runStaticRequestTests (targetExchange: Str = undefined, testName: Str = undefined) {
