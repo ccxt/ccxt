@@ -79,6 +79,23 @@
                   65.423423423
                 ],
                 "output": "{\"clientOid\":\"fd193ee6-6822-4e6c-96c3-90e2490a678a\",\"side\":\"buy\",\"symbol\":\"LTC-USDT\",\"type\":\"limit\",\"size\":\"0.13\",\"price\":\"65.423\"}"
+            },
+            {
+                "description": "postOnly hf order",
+                "method": "createOrder",
+                "url": "https://api.kucoin.com/api/v1/hf/orders",
+                "input": [
+                  "ADA/USDT",
+                  "limit",
+                  "buy",
+                  20,
+                  0.3,
+                  {
+                    "postOnly": true,
+                    "hf": true
+                  }
+                ],
+                "output": "{\"clientOid\":\"5fd0d866-f3c7-439b-b299-dbe09375ea30\",\"side\":\"buy\",\"symbol\":\"ADA-USDT\",\"type\":\"limit\",\"size\":\"20\",\"price\":\"0.3\",\"postOnly\":true}"
             }
         ],
         "createOrders": [
@@ -249,6 +266,18 @@
                     {
                         "clientOrderId": "myorderid"
                     }
+                ]
+            },
+            {
+                "description": "cancel hf order",
+                "method": "cancelOrder",
+                "url": "https://api.kucoin.com/api/v1/hf/orders/66d1c3fb7a0f910007762fdc?symbol=ADA-USDT",
+                "input": [
+                  "66d1c3fb7a0f910007762fdc",
+                  "ADA/USDT",
+                  {
+                    "hf": true
+                  }
                 ]
             }
         ],
