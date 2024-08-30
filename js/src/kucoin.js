@@ -1214,7 +1214,7 @@ export default class kucoin extends Exchange {
         return result;
     }
     async loadMigrationStatus(force = false) {
-        if (!('hfMigrated' in this.options) || force) {
+        if (!('hfMigrated' in this.options) || (this.options['hfMigrated'] === undefined) || force) {
             const result = await this.privateGetMigrateUserAccountStatus();
             const data = this.safeDict(result, 'data', {});
             const status = this.safeInteger(data, 'status');
@@ -1780,7 +1780,8 @@ export default class kucoin extends Exchange {
         //         }
         //     }
         //
-        return this.parseTicker(response['data'], market);
+        const data = this.safeDict(response, 'data', {});
+        return this.parseTicker(data, market);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -3678,8 +3679,9 @@ export default class kucoin extends Exchange {
         //         }
         //     }
         //
-        const responseData = response['data']['items'];
-        return this.parseTransactions(responseData, currency, since, limit, { 'type': 'deposit' });
+        const data = this.safeDict(response, 'data', {});
+        const items = this.safeList(data, 'items', []);
+        return this.parseTransactions(items, currency, since, limit, { 'type': 'deposit' });
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -3763,8 +3765,9 @@ export default class kucoin extends Exchange {
         //         }
         //     }
         //
-        const responseData = response['data']['items'];
-        return this.parseTransactions(responseData, currency, since, limit, { 'type': 'withdrawal' });
+        const data = this.safeDict(response, 'data', {});
+        const items = this.safeList(data, 'items', []);
+        return this.parseTransactions(items, currency, since, limit, { 'type': 'withdrawal' });
     }
     parseBalanceHelper(entry) {
         const account = this.account();
@@ -4626,7 +4629,7 @@ export default class kucoin extends Exchange {
         //     }
         //
         const data = this.safeDict(response, 'data');
-        const rows = this.safeList(data, 'items');
+        const rows = this.safeList(data, 'items', []);
         return this.parseBorrowRateHistories(rows, codes, since, limit);
     }
     async fetchBorrowRateHistory(code, since = undefined, limit = undefined, params = {}) {
@@ -4681,7 +4684,7 @@ export default class kucoin extends Exchange {
         //     }
         //
         const data = this.safeDict(response, 'data');
-        const rows = this.safeList(data, 'items');
+        const rows = this.safeList(data, 'items', []);
         return this.parseBorrowRateHistory(rows, code, since, limit);
     }
     parseBorrowRateHistories(response, codes, since, limit) {

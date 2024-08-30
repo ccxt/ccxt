@@ -1223,7 +1223,7 @@ class kucoin extends Exchange {
 
     public function load_migration_status(bool $force = false) {
         return Async\async(function () use ($force) {
-            if (!(is_array($this->options) && array_key_exists('hfMigrated', $this->options)) || $force) {
+            if (!(is_array($this->options) && array_key_exists('hfMigrated', $this->options)) || ($this->options['hfMigrated'] === null) || $force) {
                 $result = Async\await($this->privateGetMigrateUserAccountStatus ());
                 $data = $this->safe_dict($result, 'data', array());
                 $status = $this->safe_integer($data, 'status');
@@ -1798,7 +1798,8 @@ class kucoin extends Exchange {
             //         }
             //     }
             //
-            return $this->parse_ticker($response['data'], $market);
+            $data = $this->safe_dict($response, 'data', array());
+            return $this->parse_ticker($data, $market);
         }) ();
     }
 
@@ -3688,8 +3689,9 @@ class kucoin extends Exchange {
             //         }
             //     }
             //
-            $responseData = $response['data']['items'];
-            return $this->parse_transactions($responseData, $currency, $since, $limit, array( 'type' => 'deposit' ));
+            $data = $this->safe_dict($response, 'data', array());
+            $items = $this->safe_list($data, 'items', array());
+            return $this->parse_transactions($items, $currency, $since, $limit, array( 'type' => 'deposit' ));
         }) ();
     }
 
@@ -3773,8 +3775,9 @@ class kucoin extends Exchange {
             //         }
             //     }
             //
-            $responseData = $response['data']['items'];
-            return $this->parse_transactions($responseData, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
+            $data = $this->safe_dict($response, 'data', array());
+            $items = $this->safe_list($data, 'items', array());
+            return $this->parse_transactions($items, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
         }) ();
     }
 
@@ -4637,7 +4640,7 @@ class kucoin extends Exchange {
             //     }
             //
             $data = $this->safe_dict($response, 'data');
-            $rows = $this->safe_list($data, 'items');
+            $rows = $this->safe_list($data, 'items', array());
             return $this->parse_borrow_rate_histories($rows, $codes, $since, $limit);
         }) ();
     }
@@ -4693,7 +4696,7 @@ class kucoin extends Exchange {
             //     }
             //
             $data = $this->safe_dict($response, 'data');
-            $rows = $this->safe_list($data, 'items');
+            $rows = $this->safe_list($data, 'items', array());
             return $this->parse_borrow_rate_history($rows, $code, $since, $limit);
         }) ();
     }

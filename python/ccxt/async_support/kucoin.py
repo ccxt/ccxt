@@ -1222,7 +1222,7 @@ class kucoin(Exchange, ImplicitAPI):
         return result
 
     async def load_migration_status(self, force: bool = False):
-        if not ('hfMigrated' in self.options) or force:
+        if not ('hfMigrated' in self.options) or (self.options['hfMigrated'] is None) or force:
             result: dict = await self.privateGetMigrateUserAccountStatus()
             data: dict = self.safe_dict(result, 'data', {})
             status: Int = self.safe_integer(data, 'status')
@@ -1755,7 +1755,8 @@ class kucoin(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        return self.parse_ticker(response['data'], market)
+        data = self.safe_dict(response, 'data', {})
+        return self.parse_ticker(data, market)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
@@ -3464,8 +3465,9 @@ class kucoin(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        responseData = response['data']['items']
-        return self.parse_transactions(responseData, currency, since, limit, {'type': 'deposit'})
+        data = self.safe_dict(response, 'data', {})
+        items = self.safe_list(data, 'items', [])
+        return self.parse_transactions(items, currency, since, limit, {'type': 'deposit'})
 
     async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
@@ -3541,8 +3543,9 @@ class kucoin(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        responseData = response['data']['items']
-        return self.parse_transactions(responseData, currency, since, limit, {'type': 'withdrawal'})
+        data = self.safe_dict(response, 'data', {})
+        items = self.safe_list(data, 'items', [])
+        return self.parse_transactions(items, currency, since, limit, {'type': 'withdrawal'})
 
     def parse_balance_helper(self, entry):
         account = self.account()
@@ -4346,7 +4349,7 @@ class kucoin(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_dict(response, 'data')
-        rows = self.safe_list(data, 'items')
+        rows = self.safe_list(data, 'items', [])
         return self.parse_borrow_rate_histories(rows, codes, since, limit)
 
     async def fetch_borrow_rate_history(self, code: str, since: Int = None, limit: Int = None, params={}):
@@ -4397,7 +4400,7 @@ class kucoin(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_dict(response, 'data')
-        rows = self.safe_list(data, 'items')
+        rows = self.safe_list(data, 'items', [])
         return self.parse_borrow_rate_history(rows, code, since, limit)
 
     def parse_borrow_rate_histories(self, response, codes, since, limit):

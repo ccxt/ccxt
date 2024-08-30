@@ -1211,7 +1211,7 @@ class kucoin extends kucoin$1 {
         return result;
     }
     async loadMigrationStatus(force = false) {
-        if (!('hfMigrated' in this.options) || force) {
+        if (!('hfMigrated' in this.options) || (this.options['hfMigrated'] === undefined) || force) {
             const result = await this.privateGetMigrateUserAccountStatus();
             const data = this.safeDict(result, 'data', {});
             const status = this.safeInteger(data, 'status');
@@ -1777,7 +1777,8 @@ class kucoin extends kucoin$1 {
         //         }
         //     }
         //
-        return this.parseTicker(response['data'], market);
+        const data = this.safeDict(response, 'data', {});
+        return this.parseTicker(data, market);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -3675,8 +3676,9 @@ class kucoin extends kucoin$1 {
         //         }
         //     }
         //
-        const responseData = response['data']['items'];
-        return this.parseTransactions(responseData, currency, since, limit, { 'type': 'deposit' });
+        const data = this.safeDict(response, 'data', {});
+        const items = this.safeList(data, 'items', []);
+        return this.parseTransactions(items, currency, since, limit, { 'type': 'deposit' });
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -3760,8 +3762,9 @@ class kucoin extends kucoin$1 {
         //         }
         //     }
         //
-        const responseData = response['data']['items'];
-        return this.parseTransactions(responseData, currency, since, limit, { 'type': 'withdrawal' });
+        const data = this.safeDict(response, 'data', {});
+        const items = this.safeList(data, 'items', []);
+        return this.parseTransactions(items, currency, since, limit, { 'type': 'withdrawal' });
     }
     parseBalanceHelper(entry) {
         const account = this.account();
@@ -4623,7 +4626,7 @@ class kucoin extends kucoin$1 {
         //     }
         //
         const data = this.safeDict(response, 'data');
-        const rows = this.safeList(data, 'items');
+        const rows = this.safeList(data, 'items', []);
         return this.parseBorrowRateHistories(rows, codes, since, limit);
     }
     async fetchBorrowRateHistory(code, since = undefined, limit = undefined, params = {}) {
@@ -4678,7 +4681,7 @@ class kucoin extends kucoin$1 {
         //     }
         //
         const data = this.safeDict(response, 'data');
-        const rows = this.safeList(data, 'items');
+        const rows = this.safeList(data, 'items', []);
         return this.parseBorrowRateHistory(rows, code, since, limit);
     }
     parseBorrowRateHistories(response, codes, since, limit) {

@@ -1028,7 +1028,7 @@ public partial class kucoin : Exchange
     public async virtual Task loadMigrationStatus(object force = null)
     {
         force ??= false;
-        if (isTrue(!isTrue((inOp(this.options, "hfMigrated"))) || isTrue(force)))
+        if (isTrue(isTrue(!isTrue((inOp(this.options, "hfMigrated"))) || isTrue((isEqual(getValue(this.options, "hfMigrated"), null)))) || isTrue(force)))
         {
             object result = await this.privateGetMigrateUserAccountStatus();
             object data = this.safeDict(result, "data", new Dictionary<string, object>() {});
@@ -1643,7 +1643,8 @@ public partial class kucoin : Exchange
         //         }
         //     }
         //
-        return this.parseTicker(getValue(response, "data"), market);
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        return this.parseTicker(data, market);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -3733,8 +3734,9 @@ public partial class kucoin : Exchange
         //         }
         //     }
         //
-        object responseData = getValue(getValue(response, "data"), "items");
-        return this.parseTransactions(responseData, currency, since, limit, new Dictionary<string, object>() {
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object items = this.safeList(data, "items", new List<object>() {});
+        return this.parseTransactions(items, currency, since, limit, new Dictionary<string, object>() {
             { "type", "deposit" },
         });
     }
@@ -3832,8 +3834,9 @@ public partial class kucoin : Exchange
         //         }
         //     }
         //
-        object responseData = getValue(getValue(response, "data"), "items");
-        return this.parseTransactions(responseData, currency, since, limit, new Dictionary<string, object>() {
+        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        object items = this.safeList(data, "items", new List<object>() {});
+        return this.parseTransactions(items, currency, since, limit, new Dictionary<string, object>() {
             { "type", "withdrawal" },
         });
     }
@@ -4761,7 +4764,7 @@ public partial class kucoin : Exchange
         //     }
         //
         object data = this.safeDict(response, "data");
-        object rows = this.safeList(data, "items");
+        object rows = this.safeList(data, "items", new List<object>() {});
         return this.parseBorrowRateHistories(rows, codes, since, limit);
     }
 
@@ -4823,7 +4826,7 @@ public partial class kucoin : Exchange
         //     }
         //
         object data = this.safeDict(response, "data");
-        object rows = this.safeList(data, "items");
+        object rows = this.safeList(data, "items", new List<object>() {});
         return this.parseBorrowRateHistory(rows, code, since, limit);
     }
 
