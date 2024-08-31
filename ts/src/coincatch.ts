@@ -4,7 +4,7 @@
 import Exchange from './abstract/coincatch.js';
 import { } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Currencies, Dict, Int, Market, Num, Str, Strings, Ticker, Tickers } from './base/types.js';
+import type { Currencies, Dict, Market, Num, Str, Strings, Ticker, Tickers } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -311,7 +311,7 @@ export default class coincatch extends Exchange {
         });
     }
 
-    async fetchTime (params = {}): Promise<Int> {
+    async fetchTime (params = {}) {
         /**
          * @method
          * @name coincatch#fetchTime
