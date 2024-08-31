@@ -4,7 +4,7 @@
 import Exchange from './abstract/coincatch.js';
 import { } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Int, Str } from './base/types.js';
+import type { Currencies, Dict, Int, List, Num, Str } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -18,9 +18,9 @@ export default class coincatch extends Exchange {
             'id': 'coincatch',
             'name': 'CoinCatch',
             'countries': [ 'BVI' ], // British Virgin Islands
-            'rateLimit': 20,
+            'rateLimit': 100,
             'version': 'v1',
-            'certified': true,
+            'certified': false,
             'pro': true,
             'has': {
                 'CORS': undefined,
@@ -63,7 +63,7 @@ export default class coincatch extends Exchange {
                 'fetchConvertQuote': false,
                 'fetchConvertTrade': false,
                 'fetchConvertTradeHistory': false,
-                'fetchCurrencies': false,
+                'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDeposits': false,
                 'fetchDepositsWithdrawals': false,
@@ -237,9 +237,8 @@ export default class coincatch extends Exchange {
                 },
             },
             'options': {
+                'currenciesByIdForParseMarket': undefined,
                 'broker': '',
-                'recvWindow': undefined,
-                'sandboxMode': false,
                 'networks': {
                 },
                 'networksById': {
@@ -273,7 +272,124 @@ export default class coincatch extends Exchange {
         //         "data": "1725046822028"
         //     }
         //
-        return this.safeInteger (response, 'requestTime');
+        return this.safeInteger (response, 'data');
+    }
+
+    async fetchCurrencies (params = {}): Promise<Currencies> {
+        /**
+         * @method
+         * @name coincatch#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @see https://coincatch.github.io/github.io/en/spot/#get-coin-list
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        const response = await this.publicGetApiSpotV1PublicCurrencies (params);
+        const data = this.safeList (response, 'data', []);
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1725102364202,
+        //         "data": [
+        //             {
+        //                 "coinId": "1",
+        //                 "coinName": "BTC",
+        //                 "transfer": "true",
+        //                 "chains": [
+        //                     {
+        //                         "chainId": "10",
+        //                         "chain": "BITCOIN",
+        //                         "needTag": "false",
+        //                         "withdrawable": "true",
+        //                         "rechargeable": "true",
+        //                         "withdrawFee": "0.0005",
+        //                         "extraWithDrawFee": "0",
+        //                         "depositConfirm": "1",
+        //                         "withdrawConfirm": "1",
+        //                         "minDepositAmount": "0.00001",
+        //                         "minWithdrawAmount": "0.001",
+        //                         "browserUrl": "https://blockchair.com/bitcoin/transaction/"
+        //                     }
+        //                 ]
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const result: Dict = {};
+        const spotCurrenciesIds: List = [];
+        for (let i = 0; i < data.length; i++) {
+            const currecy = data[i];
+            const currencyId = this.safeString (currecy, 'coinName');
+            spotCurrenciesIds.push (currencyId);
+            const code = this.safeCurrencyCode (currencyId);
+            let allowDeposit = false;
+            let allowWithdraw = false;
+            let minDeposit: Num = undefined;
+            let minWithdraw: Num = undefined;
+            const networks = this.safeList (currecy, 'chains');
+            // const networksById = this.safeDict (this.options, 'networksById');
+            const parsedNetworks: Dict = {};
+            for (let j = 0; j < networks.length; j++) {
+                const network = networks[j];
+                const networkId = this.safeString (network, 'chain');
+                // const networkName = this.safeString (networksById, networkId, networkId);
+                const networkDeposit = this.safeBool (network, 'rechargeable');
+                const networkWithdraw = this.safeBool (network, 'withdrawable');
+                const networkMinDeposit = this.safeNumber (network, 'minDepositAmount');
+                const networkMinWithdraw = this.safeNumber (network, 'minWithdrawAmount');
+                parsedNetworks[networkId] = {
+                    'id': networkId,
+                    'network': '', // todo
+                    'limits': {
+                        'deposit': {
+                            'min': networkMinDeposit,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': networkMinWithdraw,
+                            'max': undefined,
+                        },
+                    },
+                    'active': networkDeposit && networkWithdraw,
+                    'deposit': networkDeposit,
+                    'withdraw': networkWithdraw,
+                    'fee': this.safeNumber (network, 'withdrawFee'),
+                    'precision': undefined,
+                    'info': network,
+                };
+                allowDeposit = allowDeposit ? allowDeposit : networkDeposit;
+                allowWithdraw = allowWithdraw ? allowWithdraw : networkWithdraw;
+                minDeposit = minDeposit ? Math.min (networkMinDeposit, minDeposit) : networkMinDeposit;
+                minWithdraw = minWithdraw ? Math.min (networkMinWithdraw, minWithdraw) : networkMinWithdraw;
+            }
+            result[code] = {
+                'id': currencyId,
+                'code': code,
+                'precision': undefined,
+                'type': undefined,
+                'name': undefined,
+                'active': allowWithdraw && allowDeposit,
+                'deposit': allowDeposit,
+                'withdraw': allowWithdraw,
+                'fee': undefined,
+                'limits': {
+                    'deposit': {
+                        'min': minDeposit,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': minWithdraw,
+                        'max': undefined,
+                    },
+                },
+                'networks': parsedNetworks,
+                'info': currecy,
+            };
+        }
+        this.options['currenciesByIdForParseMarket'] = spotCurrenciesIds;
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
