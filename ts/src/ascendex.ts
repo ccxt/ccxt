@@ -498,7 +498,7 @@ export default class ascendex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const products = await this.v1PublicGetProducts (params);
+        const productsPromise = this.v1PublicGetProducts (params);
         //
         //     {
         //         "code": 0,
@@ -519,7 +519,7 @@ export default class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const cash = await this.v1PublicGetCashProducts (params);
+        const cashPromise = this.v1PublicGetCashProducts (params);
         //
         //     {
         //         "code": 0,
@@ -549,7 +549,7 @@ export default class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const perpetuals = await this.v2PublicGetFuturesContract (params);
+        const perpetualsPromise = this.v2PublicGetFuturesContract (params);
         //
         //    {
         //        "code": 0,
@@ -587,6 +587,7 @@ export default class ascendex extends Exchange {
         //        ]
         //    }
         //
+        const [ products, cash, perpetuals ] = await Promise.all ([ productsPromise, cashPromise, perpetualsPromise ]);
         const productsData = this.safeList (products, 'data', []);
         const productsById = this.indexBy (productsData, 'symbol');
         const cashData = this.safeList (cash, 'data', []);
