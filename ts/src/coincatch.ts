@@ -4,7 +4,7 @@
 import Exchange from './abstract/coincatch.js';
 import { } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Currencies, Dict, Int, Market, Num, Str } from './base/types.js';
+import type { Currencies, Dict, Int, Market, Num, Str, Strings, Ticker, Tickers } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -17,7 +17,7 @@ export default class coincatch extends Exchange {
         return this.deepExtend (super.describe (), {
             'id': 'coincatch',
             'name': 'CoinCatch',
-            'countries': [ 'BVI' ], // British Virgin Islands
+            'countries': [ 'VG' ], // British Virgin Islands
             'rateLimit': 100,
             'version': 'v1',
             'certified': false,
@@ -493,7 +493,7 @@ export default class coincatch extends Exchange {
         if (this.safeList (this.options, 'currencyIdsListForParseMarket') === undefined) {
             await this.fetchCurrencies ();
         }
-        const data = this.safeList (response, 'data');
+        const data = this.safeList (response, 'data', []);
         return this.parseMarkets (data);
     }
 
@@ -509,13 +509,13 @@ export default class coincatch extends Exchange {
         const tradingFees = this.safeDict (this.fees, 'trading');
         const fees = this.safeDict (tradingFees, 'spot');
         return this.safeMarketStructure ({
-            'id': marketId,
+            'id': marketId + '_SPBL', // todo check
             'symbol': base + '/' + quote,
             'base': base,
             'quote': quote,
             'baseId': baseId,
             'quoteId': quoteId,
-            'active': true,
+            'active': undefined, // todo check
             'type': 'spot',
             'subType': undefined,
             'spot': true,
@@ -589,6 +589,144 @@ export default class coincatch extends Exchange {
             'quoteId': quoteId,
         };
         return result;
+    }
+
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        /**
+         * @method
+         * @name coincatch#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://coincatch.github.io/github.io/en/spot/#get-single-ticker
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetApiSpotV1MarketTicker (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1725132487751,
+        //         "data": {
+        //             "symbol": "ETHUSDT",
+        //             "high24h": "2533.76",
+        //             "low24h": "2492.72",
+        //             "close": "2499.76",
+        //             "quoteVol": "21457850.7442",
+        //             "baseVol": "8517.1869",
+        //             "usdtVol": "21457850.744163",
+        //             "ts": "1725132487476",
+        //             "buyOne": "2499.75",
+        //             "sellOne": "2499.76",
+        //             "bidSz": "0.5311",
+        //             "askSz": "4.5806",
+        //             "openUtc0": "2525.69",
+        //             "changeUtc": "-0.01027",
+        //             "change": "-0.00772"
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseTicker (data, market);
+    }
+
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name hashkey#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-24hr-ticker-price-change
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const response = await this.publicGetApiSpotV1MarketTickers (params);
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1725114040155,
+        //         "data": [
+        //             {
+        //                 "symbol": "BTCUSDT",
+        //                 "high24h": "59461.34",
+        //                 "low24h": "57723.23",
+        //                 "close": "59056.02",
+        //                 "quoteVol": "18240112.23368",
+        //                 "baseVol": "309.05564",
+        //                 "usdtVol": "18240112.2336744",
+        //                 "ts": "1725114038951",
+        //                 "buyOne": "59055.85",
+        //                 "sellOne": "59057.45",
+        //                 "bidSz": "0.0139",
+        //                 "askSz": "0.0139",
+        //                 "openUtc0": "59126.71",
+        //                 "changeUtc": "-0.0012",
+        //                 "change": "0.01662"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseTickers (data, symbols);
+    }
+
+    parseTicker (ticker, market: Market = undefined): Ticker {
+        //
+        // spot
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "high24h": "59461.34",
+        //         "low24h": "57723.23",
+        //         "close": "59056.02",
+        //         "quoteVol": "18240112.23368",
+        //         "baseVol": "309.05564",
+        //         "usdtVol": "18240112.2336744",
+        //         "ts": "1725114038951",
+        //         "buyOne": "59055.85",
+        //         "sellOne": "59057.45",
+        //         "bidSz": "0.0139",
+        //         "askSz": "0.0139",
+        //         "openUtc0": "59126.71",
+        //         "changeUtc": "-0.0012",
+        //         "change": "0.01662"
+        //     }
+        //
+        const timestamp = this.safeInteger (ticker, 'ts');
+        const marketId = this.safeString (ticker, 'symbol', '') + '_SPBL'; // todo check
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const last = this.safeString (ticker, 'close');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'high24h'),
+            'low': this.safeString (ticker, 'low24h'),
+            'bid': this.safeString (ticker, 'buyOne'),
+            'bidVolume': this.safeString (ticker, 'bidSz'),
+            'ask': this.safeString (ticker, 'sellOne'),
+            'askVolume': this.safeString (ticker, 'askSz'),
+            'vwap': undefined,
+            'open': undefined, // todo check
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': this.safeString (ticker, 'change'),
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'baseVol'),
+            'quoteVolume': this.safeString (ticker, 'quoteVol'),
+            'info': ticker,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
