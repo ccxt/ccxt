@@ -2549,20 +2549,15 @@ export default class bingx extends Exchange {
                 }
             }
             let positionSide = undefined;
-            const hedged = this.safeBool (params, 'hedged', false);
-            if (hedged) {
-                if (reduceOnly) {
-                    positionSide = (side === 'buy') ? 'SHORT' : 'LONG';
-                } else {
-                    positionSide = (side === 'buy') ? 'LONG' : 'SHORT';
-                }
+            if (reduceOnly) {
+                positionSide = (side === 'buy') ? 'SHORT' : 'LONG';
             } else {
-                positionSide = 'BOTH';
+                positionSide = (side === 'buy') ? 'LONG' : 'SHORT';
             }
             request['positionSide'] = positionSide;
             request['quantity'] = (market['inverse']) ? amount : this.parseToNumeric (this.amountToPrecision (symbol, amount)); // precision not available for inverse contracts
         }
-        params = this.omit (params, [ 'hedged', 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ]);
+        params = this.omit (params, [ 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ]);
         return this.extend (request, params);
     }
 
@@ -2595,7 +2590,6 @@ export default class bingx extends Exchange {
          * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
          * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
          * @param {boolean} [params.test] *swap only* whether to use the test endpoint or not, default is false
-         * @param {boolean} [params.hedged] *swap only* whether the order is in hedged mode or one way mode
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
