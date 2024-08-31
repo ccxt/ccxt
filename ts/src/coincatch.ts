@@ -4,7 +4,7 @@
 import Exchange from './abstract/coincatch.js';
 import { } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Currencies, Dict, Int, List, Num, Str } from './base/types.js';
+import type { Currencies, Dict, Int, Num, Str } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -242,6 +242,56 @@ export default class coincatch extends Exchange {
                 'networks': {
                 },
                 'networksById': {
+                    'BITCOIN': 'BTC',
+                    'ERC20': 'ERC20',
+                    'TRC20': 'TRC20',
+                    'BEP20': 'BEP20',
+                    'ArbitrumOne': 'ARB', // todo check
+                    'Optimism': 'OPTIMISM',
+                    'LTC': 'LTC',
+                    'BCH': 'BCH',
+                    'ETC': 'ETC',
+                    'SOL': 'SOL',
+                    'NEO3': 'NEO3',
+                    'stacks': 'STX',
+                    'Elrond': 'EGLD',
+                    'NEARProtocol': 'NEAR',
+                    'AcalaToken': 'ACA',
+                    'Klaytn': 'KLAY',
+                    'Fantom': 'FTM',
+                    'Terra': 'TERRA',
+                    'WAVES': 'WAVES',
+                    'TAO': 'TAO',
+                    'SUI': 'SUI',
+                    'SEI': 'SEI',
+                    'THORChain': 'RUNE', // todo check
+                    'ZIL': 'ZIL',
+                    'Solar': 'SXP', // todo check
+                    'FET': 'FET',
+                    'C-Chain': 'AVAX', // todo check
+                    'XRP': 'XRP',
+                    'EOS': 'EOS',
+                    'DOGECOIN': 'DOGE',
+                    'CAP20': 'CAP20', // todo check
+                    'Polygon': 'MATIC',
+                    'CSPR': 'CSPR',
+                    'Moonbeam': 'GLMR',
+                    'MINA': 'MINA',
+                    'CFXeSpace': 'CFX', // todo check
+                    'CFX': 'CFX',
+                    'StratisEVM': 'STRAT', // todo check
+                    'Celestia': 'TIA',
+                    'ChilizChain': 'ChilizChain', // todo check
+                    'Aptos': 'APT',
+                    'Ontology': 'ONT',
+                    'ICP': 'ICP',
+                    'Cardano': 'ADA',
+                    'FIL': 'FIL',
+                    'CELO': 'CELO',
+                    'DOT': 'DOT',
+                    'StellarLumens': 'XLM', // todo check
+                    'ATOM': 'ATOM',
+                    'CronosChain': 'CRO', // todo check
                 },
             },
             'commonCurrencies': {},
@@ -318,7 +368,7 @@ export default class coincatch extends Exchange {
         //     }
         //
         const result: Dict = {};
-        const spotCurrenciesIds: List = [];
+        const spotCurrenciesIds = [];
         for (let i = 0; i < data.length; i++) {
             const currecy = data[i];
             const currencyId = this.safeString (currecy, 'coinName');
@@ -329,19 +379,21 @@ export default class coincatch extends Exchange {
             let minDeposit: Num = undefined;
             let minWithdraw: Num = undefined;
             const networks = this.safeList (currecy, 'chains');
-            // const networksById = this.safeDict (this.options, 'networksById');
+            const networksById = this.safeDict (this.options, 'networksById');
             const parsedNetworks: Dict = {};
             for (let j = 0; j < networks.length; j++) {
                 const network = networks[j];
                 const networkId = this.safeString (network, 'chain');
-                // const networkName = this.safeString (networksById, networkId, networkId);
-                const networkDeposit = this.safeBool (network, 'rechargeable');
-                const networkWithdraw = this.safeBool (network, 'withdrawable');
+                const networkName = this.safeString (networksById, networkId, networkId);
+                const networkDepositString = this.safeString (network, 'rechargeable');
+                const networkDeposit = networkDepositString === 'true';
+                const networkWithdrawString = this.safeString (network, 'withdrawable');
+                const networkWithdraw = networkWithdrawString === 'true';
                 const networkMinDeposit = this.safeNumber (network, 'minDepositAmount');
                 const networkMinWithdraw = this.safeNumber (network, 'minWithdrawAmount');
                 parsedNetworks[networkId] = {
                     'id': networkId,
-                    'network': '', // todo
+                    'network': networkName,
                     'limits': {
                         'deposit': {
                             'min': networkMinDeposit,
