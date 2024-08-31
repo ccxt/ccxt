@@ -4,7 +4,7 @@
 import Exchange from './abstract/coincatch.js';
 import { } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Currencies, Dict, Market, Num, Str, Strings, Ticker, Tickers } from './base/types.js';
+import type { Currencies, Dict, Int, Market, Num, OrderBook, Str, Strings, Ticker, Tickers } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -18,7 +18,7 @@ export default class coincatch extends Exchange {
             'id': 'coincatch',
             'name': 'CoinCatch',
             'countries': [ 'VG' ], // British Virgin Islands
-            'rateLimit': 100,
+            'rateLimit': 50, // 20 times per second
             'version': 'v1',
             'certified': false,
             'pro': true,
@@ -85,7 +85,7 @@ export default class coincatch extends Exchange {
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
-                'fetchOrderBook': false,
+                'fetchOrderBook': true,
                 'fetchOrders': false,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
@@ -130,7 +130,7 @@ export default class coincatch extends Exchange {
                 'public': {
                     'get': {
                         'api/spot/v1/public/time': 1,
-                        'api/spot/v1/public/currencies': 1,
+                        'api/spot/v1/public/currencies': 20 / 3,
                         'api/spot/v1/market/ticker': 1,
                         'api/spot/v1/market/tickers': 1,
                         'api/spot/v1/market/fills': 1,
@@ -727,6 +727,53 @@ export default class coincatch extends Exchange {
             'quoteVolume': this.safeString (ticker, 'quoteVol'),
             'info': ticker,
         }, market);
+    }
+
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name coincatch#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://coincatch.github.io/github.io/en/spot/#get-merged-depth-data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int} [limit] the maximum amount of order book entries to return (maximum and default value is 100)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.precision] 'scale0' (default), 'scale1', 'scale2' or 'scale3' - price accuracy, according to the selected accuracy as the step size to return the cumulative depth
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const methodName = 'fetchOrderBook';
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let precision: Str = undefined;
+        [ precision, params ] = this.handleOptionAndParams (params, methodName, 'precision');
+        if (precision !== undefined) {
+            request['precision'] = precision;
+        }
+        const response = await this.publicGetApiSpotV1MarketMergeDepth (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1725137170814,
+        //         "data": {
+        //             "asks": [ [ 2507.07, 0.4248 ] ],
+        //             "bids": [ [ 2507.05, 0.1198 ] ],
+        //             "ts": "1725137170850",
+        //             "scale": "0.01",
+        //             "precision": "scale0",
+        //             "isMaxPrecision": "NO"
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const timestamp = this.safeInteger (data, 'ts');
+        return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
