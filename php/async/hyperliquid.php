@@ -1816,9 +1816,10 @@ class hyperliquid extends Exchange {
             list($userAddress, $params) = $this->handle_public_address('fetchOrder', $params);
             Async\await($this->load_markets());
             $market = $this->safe_market($symbol);
+            $isClientOrderId = strlen($id) >= 34;
             $request = array(
                 'type' => 'orderStatus',
-                'oid' => $this->parse_to_numeric($id),
+                'oid' => $isClientOrderId ? $id : $this->parse_to_numeric($id),
                 'user' => $userAddress,
             );
             $response = Async\await($this->publicPostInfo ($this->extend($request, $params)));
