@@ -338,7 +338,7 @@ class kucoinfutures(ccxt.async_support.kucoinfutures):
         client = self.client(url)
         self.set_position_cache(client, symbol)
         fetchPositionSnapshot = self.handle_option('watchPosition', 'fetchPositionSnapshot', True)
-        awaitPositionSnapshot = self.safe_bool('watchPosition', 'awaitPositionSnapshot', True)
+        awaitPositionSnapshot = self.handle_option('watchPosition', 'awaitPositionSnapshot', True)
         currentPosition = self.get_current_position(symbol)
         if fetchPositionSnapshot and awaitPositionSnapshot and currentPosition is None:
             snapshot = await client.future('fetchPositionSnapshot:' + symbol)

@@ -161,6 +161,7 @@ public partial class gemini : Exchange
                         { "v1/account/create", 1 },
                         { "v1/account/list", 1 },
                         { "v1/heartbeat", 1 },
+                        { "v1/roles", 1 },
                     } },
                 } },
             } },

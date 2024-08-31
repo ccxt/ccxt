@@ -1418,8 +1418,10 @@ export default class hitbtc extends Exchange {
     }
     parseTransactionStatus(status) {
         const statuses = {
+            'CREATED': 'pending',
             'PENDING': 'pending',
             'FAILED': 'failed',
+            'ROLLED_BACK': 'failed',
             'SUCCESS': 'ok',
         };
         return this.safeString(statuses, status, status);
@@ -2526,7 +2528,7 @@ export default class hitbtc extends Exchange {
     async fetchMarginModes(symbols = undefined, params = {}) {
         /**
          * @method
-         * @name hitbtc#fetchMarginMode
+         * @name hitbtc#fetchMarginModes
          * @description fetches margin mode of the user
          * @see https://api.hitbtc.com/#get-margin-position-parameters
          * @see https://api.hitbtc.com/#get-futures-position-parameters

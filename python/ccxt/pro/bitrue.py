@@ -401,13 +401,7 @@ class bitrue(ccxt.async_support.bitrue):
     async def authenticate(self, params={}):
         listenKey = self.safe_value(self.options, 'listenKey')
         if listenKey is None:
-            response = None
-            try:
-                response = await self.openPrivatePostPoseidonApiV1ListenKey(params)
-            except Exception as error:
-                self.options['listenKey'] = None
-                self.options['listenKeyUrl'] = None
-                return None
+            response = await self.openPrivatePostPoseidonApiV1ListenKey(params)
             #
             #     {
             #         "msg": "succ",

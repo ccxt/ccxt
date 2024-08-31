@@ -72,6 +72,7 @@ var fmfwio = require('./src/fmfwio.js');
 var gate = require('./src/gate.js');
 var gateio = require('./src/gateio.js');
 var gemini = require('./src/gemini.js');
+var hashkey = require('./src/hashkey.js');
 var hitbtc = require('./src/hitbtc.js');
 var hitbtc3 = require('./src/hitbtc3.js');
 var hollaex = require('./src/hollaex.js');
@@ -101,6 +102,7 @@ var okx = require('./src/okx.js');
 var onetrading = require('./src/onetrading.js');
 var oxfun = require('./src/oxfun.js');
 var p2b = require('./src/p2b.js');
+var paradex = require('./src/paradex.js');
 var paymium = require('./src/paymium.js');
 var phemex = require('./src/phemex.js');
 var poloniex = require('./src/poloniex.js');
@@ -141,6 +143,7 @@ var bitrue$1 = require('./src/pro/bitrue.js');
 var bitstamp$1 = require('./src/pro/bitstamp.js');
 var bitvavo$1 = require('./src/pro/bitvavo.js');
 var blockchaincom$1 = require('./src/pro/blockchaincom.js');
+var blofin$1 = require('./src/pro/blofin.js');
 var bybit$1 = require('./src/pro/bybit.js');
 var cex$1 = require('./src/pro/cex.js');
 var coinbase$1 = require('./src/pro/coinbase.js');
@@ -156,6 +159,7 @@ var exmo$1 = require('./src/pro/exmo.js');
 var gate$1 = require('./src/pro/gate.js');
 var gateio$1 = require('./src/pro/gateio.js');
 var gemini$1 = require('./src/pro/gemini.js');
+var hashkey$1 = require('./src/pro/hashkey.js');
 var hitbtc$1 = require('./src/pro/hitbtc.js');
 var hollaex$1 = require('./src/pro/hollaex.js');
 var htx$1 = require('./src/pro/htx.js');
@@ -177,6 +181,7 @@ var okx$1 = require('./src/pro/okx.js');
 var onetrading$1 = require('./src/pro/onetrading.js');
 var oxfun$1 = require('./src/pro/oxfun.js');
 var p2b$1 = require('./src/pro/p2b.js');
+var paradex$1 = require('./src/pro/paradex.js');
 var phemex$1 = require('./src/pro/phemex.js');
 var poloniex$1 = require('./src/pro/poloniex.js');
 var poloniexfutures$1 = require('./src/pro/poloniexfutures.js');
@@ -191,7 +196,7 @@ var xt$1 = require('./src/pro/xt.js');
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
-const version = '4.3.66';
+const version = '4.3.92';
 Exchange["default"].ccxtVersion = version;
 const exchanges = {
     'ace': ace,
@@ -254,6 +259,7 @@ const exchanges = {
     'gate': gate,
     'gateio': gateio,
     'gemini': gemini,
+    'hashkey': hashkey,
     'hitbtc': hitbtc,
     'hitbtc3': hitbtc3,
     'hollaex': hollaex,
@@ -283,6 +289,7 @@ const exchanges = {
     'onetrading': onetrading,
     'oxfun': oxfun,
     'p2b': p2b,
+    'paradex': paradex,
     'paymium': paymium,
     'phemex': phemex,
     'poloniex': poloniex,
@@ -325,6 +332,7 @@ const pro = {
     'bitstamp': bitstamp$1,
     'bitvavo': bitvavo$1,
     'blockchaincom': blockchaincom$1,
+    'blofin': blofin$1,
     'bybit': bybit$1,
     'cex': cex$1,
     'coinbase': coinbase$1,
@@ -340,6 +348,7 @@ const pro = {
     'gate': gate$1,
     'gateio': gateio$1,
     'gemini': gemini$1,
+    'hashkey': hashkey$1,
     'hitbtc': hitbtc$1,
     'hollaex': hollaex$1,
     'htx': htx$1,
@@ -361,6 +370,7 @@ const pro = {
     'onetrading': onetrading$1,
     'oxfun': oxfun$1,
     'p2b': p2b$1,
+    'paradex': paradex$1,
     'phemex': phemex$1,
     'poloniex': poloniex$1,
     'poloniexfutures': poloniexfutures$1,
@@ -404,6 +414,7 @@ exports.InvalidAddress = errors.InvalidAddress;
 exports.InvalidNonce = errors.InvalidNonce;
 exports.InvalidOrder = errors.InvalidOrder;
 exports.InvalidProxySettings = errors.InvalidProxySettings;
+exports.ManualInteractionNeeded = errors.ManualInteractionNeeded;
 exports.MarginModeAlreadySet = errors.MarginModeAlreadySet;
 exports.MarketClosed = errors.MarketClosed;
 exports.NetworkError = errors.NetworkError;
@@ -420,6 +431,7 @@ exports.OrderNotFound = errors.OrderNotFound;
 exports.PermissionDenied = errors.PermissionDenied;
 exports.RateLimitExceeded = errors.RateLimitExceeded;
 exports.RequestTimeout = errors.RequestTimeout;
+exports.UnsubscribeError = errors.UnsubscribeError;
 exports.errors = errors;
 exports.ace = ace;
 exports.alpaca = alpaca;
@@ -481,6 +493,7 @@ exports.fmfwio = fmfwio;
 exports.gate = gate;
 exports.gateio = gateio;
 exports.gemini = gemini;
+exports.hashkey = hashkey;
 exports.hitbtc = hitbtc;
 exports.hitbtc3 = hitbtc3;
 exports.hollaex = hollaex;
@@ -510,6 +523,7 @@ exports.okx = okx;
 exports.onetrading = onetrading;
 exports.oxfun = oxfun;
 exports.p2b = p2b;
+exports.paradex = paradex;
 exports.paymium = paymium;
 exports.phemex = phemex;
 exports.poloniex = poloniex;

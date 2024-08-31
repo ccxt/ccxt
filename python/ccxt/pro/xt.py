@@ -21,6 +21,7 @@ class xt(ccxt.async_support.xt):
                 'watchTicker': True,
                 'watchTickers': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchBalance': True,
                 'watchOrders': True,
                 'watchMyTrades': True,

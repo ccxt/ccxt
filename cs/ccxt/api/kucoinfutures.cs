@@ -441,6 +441,11 @@ public partial class kucoinfutures : kucoin
         return await this.callAsync ("privateGetBrokerApiRebaseDownload",parameters);
     }
 
+    public async Task<object> privateGetMigrateUserAccountStatus (object parameters = null)
+    {
+        return await this.callAsync ("privateGetMigrateUserAccountStatus",parameters);
+    }
+
     public async Task<object> privateGetAffiliateInviterStatistics (object parameters = null)
     {
         return await this.callAsync ("privateGetAffiliateInviterStatistics",parameters);
@@ -811,6 +816,11 @@ public partial class kucoinfutures : kucoin
         return await this.callAsync ("futuresPublicGetContractsRiskLimitSymbol",parameters);
     }
 
+    public async Task<object> futuresPublicGetAllTickers (object parameters = null)
+    {
+        return await this.callAsync ("futuresPublicGetAllTickers",parameters);
+    }
+
     public async Task<object> futuresPublicGetLevel2DepthLimit (object parameters = null)
     {
         return await this.callAsync ("futuresPublicGetLevel2DepthLimit",parameters);
@@ -956,6 +966,11 @@ public partial class kucoinfutures : kucoin
         return await this.callAsync ("futuresPrivateGetHistoryPositions",parameters);
     }
 
+    public async Task<object> futuresPrivateGetGetMaxOpenSize (object parameters = null)
+    {
+        return await this.callAsync ("futuresPrivateGetGetMaxOpenSize",parameters);
+    }
+
     public async Task<object> futuresPrivatePostTransferOut (object parameters = null)
     {
         return await this.callAsync ("futuresPrivatePostTransferOut",parameters);
@@ -1084,6 +1099,11 @@ public partial class kucoinfutures : kucoin
     public async Task<object> brokerGetBrokerNdRebaseDownload (object parameters = null)
     {
         return await this.callAsync ("brokerGetBrokerNdRebaseDownload",parameters);
+    }
+
+    public async Task<object> brokerGetAssetNdbrokerDepositList (object parameters = null)
+    {
+        return await this.callAsync ("brokerGetAssetNdbrokerDepositList",parameters);
     }
 
     public async Task<object> brokerGetBrokerNdTransferDetail (object parameters = null)

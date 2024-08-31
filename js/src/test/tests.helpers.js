@@ -134,6 +134,10 @@ async function callOverridenMethod(exchange, methodName, args) {
 function exceptionMessage(exc) {
     return '[' + exc.constructor.name + '] ' + exc.stack.slice(0, LOG_CHARS_LENGTH);
 }
+// stub for c#
+function getRootException(exc) {
+    return exc;
+}
 function exitScript(code = 0) {
     process.exit(code);
 }
@@ -199,5 +203,5 @@ AuthenticationError, NotSupported, ExchangeError, InvalidProxySettings, Exchange
 // shared
 getCliArgValue, 
 //
-baseMainTestClass, dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, callOverridenMethod, exceptionMessage, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFiles, getTestFilesSync, setFetchResponse, isNullValue, close, argvExchange, argvSymbol, argvMethod, };
+baseMainTestClass, dump, jsonParse, jsonStringify, convertAscii, ioFileExists, ioFileRead, ioDirRead, callMethod, callMethodSync, callExchangeMethodDynamically, callExchangeMethodDynamicallySync, callOverridenMethod, exceptionMessage, getRootException, exitScript, getExchangeProp, setExchangeProp, initExchange, getTestFiles, getTestFilesSync, setFetchResponse, isNullValue, close, argvExchange, argvSymbol, argvMethod, };
 export default {};

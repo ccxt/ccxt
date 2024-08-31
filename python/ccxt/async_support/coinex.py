@@ -6,7 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.coinex import ImplicitAPI
 import asyncio
-from ccxt.base.types import Balances, Currencies, Currency, Int, IsolatedBorrowRate, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, TransferEntries
+from ccxt.base.types import Balances, Currencies, Currency, Int, IsolatedBorrowRate, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, Order, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -3559,23 +3559,8 @@ class coinex(Exchange, ImplicitAPI):
         options = self.safe_dict(self.options, 'fetchDepositAddress', {})
         fillResponseFromRequest = self.safe_bool(options, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
-            depositAddress['network'] = self.safe_network_code(network, currency)
+            depositAddress['network'] = self.network_id_to_code(network, currency).upper()
         return depositAddress
-
-    def safe_network(self, networkId, currency: Currency = None):
-        networks = self.safe_value(currency, 'networks', {})
-        networksCodes = list(networks.keys())
-        networksCodesLength = len(networksCodes)
-        if networkId is None and networksCodesLength == 1:
-            return networks[networksCodes[0]]
-        return {
-            'id': networkId,
-            'network': None if (networkId is None) else networkId.upper(),
-        }
-
-    def safe_network_code(self, networkId, currency: Currency = None):
-        network = self.safe_network(networkId, currency)
-        return network['network']
 
     def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #
@@ -4680,7 +4665,7 @@ class coinex(Exchange, ImplicitAPI):
             'status': self.parse_transfer_status(self.safe_string_2(transfer, 'code', 'status')),
         }
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
         :see: https://docs.coinex.com/api/v2/assets/transfer/http/list-transfer-history
@@ -5269,7 +5254,7 @@ class coinex(Exchange, ImplicitAPI):
             'shortLeverage': leverageValue,
         }
 
-    async def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> Position:
+    async def fetch_position_history(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Position]:
         """
         fetches historical positions
         :see: https://docs.coinex.com/api/v2/futures/position/http/list-finished-position

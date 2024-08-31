@@ -151,8 +151,8 @@
                         },
                         "fees": [
                             {
-                                "cost": 0,
-                                "currency": "USDT"
+                                "currency":"USDT",
+                                "cost":0
                             }
                         ]
                     }
@@ -276,7 +276,7 @@
                         "price": 73238.7,
                         "amount": 0.000112,
                         "cost": 8.2027344,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "info": {
                             "a": null,
                             "f": null,
@@ -334,7 +334,7 @@
                     "previousClose": 72149.26,
                     "change": 1248.51,
                     "percentage": 1.73,
-                    "average": 72773.515,
+                    "average": 72773.51,
                     "baseVolume": 7729.258925,
                     "quoteVolume": 554877037.44,
                     "info": {

@@ -38,7 +38,7 @@
                         "price": 73238.2,
                         "amount": 0.0347,
                         "cost": 2541.36554,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "info": {
                             "date_ms": "1710327656856",
                             "amount": "0.0347",

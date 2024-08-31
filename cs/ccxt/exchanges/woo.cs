@@ -133,7 +133,7 @@ public partial class woo : Exchange
                 { "doc", new List<object>() {"https://docs.woo.org/"} },
                 { "fees", new List<object>() {"https://support.woo.org/hc/en-001/articles/4404611795353--Trading-Fees"} },
                 { "referral", new Dictionary<string, object>() {
-                    { "url", "https://x.woo.org/register?ref=YWOWC96B" },
+                    { "url", "https://x.woo.org/register?ref=DIJT0CNL" },
                     { "discount", 0.35 },
                 } },
             } },
@@ -480,7 +480,7 @@ public partial class woo : Exchange
             { "swap", swap },
             { "future", false },
             { "option", false },
-            { "active", null },
+            { "active", isEqual(this.safeString(market, "is_trading"), "1") },
             { "contract", contract },
             { "linear", linear },
             { "inverse", null },
@@ -611,6 +611,11 @@ public partial class woo : Exchange
         object amount = this.safeString(trade, "executed_quantity");
         object order_id = this.safeString(trade, "order_id");
         object fee = this.parseTokenAndFeeTemp(trade, "fee_asset", "fee");
+        object feeCost = this.safeString(fee, "cost");
+        if (isTrue(!isEqual(feeCost, null)))
+        {
+            ((IDictionary<string,object>)fee)["cost"] = feeCost;
+        }
         object cost = Precise.stringMul(price, amount);
         object side = this.safeStringLower(trade, "side");
         object id = this.safeString(trade, "id");
@@ -1447,6 +1452,7 @@ public partial class woo : Exchange
         * @see https://docs.woo.org/#get-algo-order
         * @see https://docs.woo.org/#get-order
         * @description fetches information on an order made by the user
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.stop] whether the order is a stop/algo order
@@ -2856,11 +2862,13 @@ public partial class woo : Exchange
         //
         object marketId = this.safeString(income, "symbol");
         object symbol = this.safeSymbol(marketId, market);
-        object amount = this.safeNumber(income, "funding_fee");
+        object amount = this.safeString(income, "funding_fee");
         object code = this.safeCurrencyCode("USD");
         object id = this.safeString(income, "id");
         object timestamp = this.safeTimestamp(income, "updated_time");
         object rate = this.safeNumber(income, "funding_rate");
+        object paymentType = this.safeString(income, "payment_type");
+        amount = ((bool) isTrue((isEqual(paymentType, "Pay")))) ? Precise.stringNeg(amount) : amount;
         return new Dictionary<string, object>() {
             { "info", income },
             { "symbol", symbol },
@@ -2868,7 +2876,7 @@ public partial class woo : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
             { "id", id },
-            { "amount", amount },
+            { "amount", this.parseNumber(amount) },
             { "rate", rate },
         };
     }

@@ -14,6 +14,7 @@ include_once __DIR__ . '/test_extend.php';
 include_once __DIR__ . '/test_language_specific.php';
 include_once __DIR__ . '/test_safe_methods.php';
 
+// import testJson from './test.json.js';
 function base_tests_init() {
     test_language_specific();
     test_extend();

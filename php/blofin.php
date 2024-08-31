@@ -17,6 +17,7 @@ class blofin extends Exchange {
             'countries' => array( 'US' ),
             'version' => 'v1',
             'rateLimit' => 100,
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => false,
@@ -91,7 +92,7 @@ class blofin extends Exchange {
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
-                'fetchOrder' => true,
+                'fetchOrder' => null,
                 'fetchOrderBook' => true,
                 'fetchOrderBooks' => false,
                 'fetchOrders' => false,
@@ -141,11 +142,12 @@ class blofin extends Exchange {
                 '2h' => '2H',
                 '4h' => '4H',
                 '6h' => '6H',
+                '8h' => '8H',
                 '12h' => '12H',
                 '1d' => '1D',
+                '3d' => '3D',
                 '1w' => '1W',
                 '1M' => '1M',
-                '3M' => '3M',
             ),
             'hostname' => 'www.blofin.com',
             'urls' => array(
@@ -486,6 +488,25 @@ class blofin extends Exchange {
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
+        //
+        // response similar for REST & WS
+        //
+        //     {
+        //         instId => "ADA-USDT",
+        //         ts => "1707736811486",
+        //         $last => "0.5315",
+        //         lastSize => "4",
+        //         askPrice => "0.5318",
+        //         askSize => "248",
+        //         bidPrice => "0.5315",
+        //         bidSize => "63",
+        //         open24h => "0.5555",
+        //         high24h => "0.5563",
+        //         low24h => "0.5315",
+        //         volCurrency24h => "198560100",
+        //         vol24h => "1985601",
+        //     }
+        //
         $timestamp = $this->safe_integer($ticker, 'ts');
         $marketId = $this->safe_string($ticker, 'instId');
         $market = $this->safe_market($marketId, $market, '-');
@@ -557,7 +578,8 @@ class blofin extends Exchange {
 
     public function parse_trade(array $trade, ?array $market = null): array {
         //
-        // fetch trades
+        // fetch trades (response similar for REST & WS)
+        //
         //   {
         //       "tradeId" => "3263934920",
         //       "instId" => "LTC-USDT",
@@ -566,6 +588,7 @@ class blofin extends Exchange {
         //       "side" => "buy",
         //       "ts" => "1707232020854"
         //   }
+        //
         // my trades
         //   {
         //       "instId" => "LTC-USDT",
@@ -842,11 +865,13 @@ class blofin extends Exchange {
         if ($type) {
             return $this->parse_funding_balance($response);
         } else {
-            return $this->parse_trading_balance($response);
+            return $this->parse_balance($response);
         }
     }
 
-    public function parse_trading_balance($response) {
+    public function parse_balance($response) {
+        //
+        // "data" similar for REST & WS
         //
         // {
         //     "code" => "0",
@@ -868,7 +893,8 @@ class blofin extends Exchange {
         //                 "orderFrozen" => "14920.994472632597427761",
         //                 "equityUsd" => "10011254.077985990315787910",
         //                 "isolatedUnrealizedPnl" => "-22.151999999999999999952",
-        //                 "bonus" => "0"
+        //                 "bonus" => "0" // present only in REST
+        //                 "unrealizedPnl" => "0" // present only in WS
         //             }
         //         )
         //     }
@@ -1033,6 +1059,8 @@ class blofin extends Exchange {
 
     public function parse_order(array $order, ?array $market = null): array {
         //
+        // response similar for REST & WS
+        //
         // {
         //     "orderId" => "2075628533",
         //     "clientOrderId" => "",
@@ -1060,6 +1088,9 @@ class blofin extends Exchange {
         //     "cancelSource" => "not_canceled",
         //     "cancelSourceReason" => null,
         //     "brokerId" => "ec6dd3a7dd982d0b"
+        //     "filled_amount" => "1.000000000000000000", // filledAmount in "ws" watchOrders
+        //     "cancelSource" => "", // only in WS
+        //     "instType" => "SWAP", // only in WS
         // }
         //
         $id = $this->safe_string_2($order, 'tpslId', 'orderId');
@@ -1794,6 +1825,32 @@ class blofin extends Exchange {
     }
 
     public function parse_position(array $position, ?array $market = null) {
+        //
+        // response similar for REST & WS
+        //
+        //     {
+        //         instType => 'SWAP',
+        //         instId => 'LTC-USDT',
+        //         $marginMode => 'cross',
+        //         positionId => '644159',
+        //         positionSide => 'net',
+        //         positions => '1',
+        //         availablePositions => '1',
+        //         averagePrice => '68.16',
+        //         unrealizedPnl => '0.80631223',
+        //         unrealizedPnlRatio => '0.03548909463028169',
+        //         leverage => '3',
+        //         $liquidationPrice => '10.116655172370356435',
+        //         markPrice => '68.96',
+        //         initialMargin => '22.988770743333333333',
+        //         margin => '', // this field might not exist in rest response
+        //         $marginRatio => '152.523509620342499273',
+        //         $maintenanceMargin => '0.34483156115',
+        //         adl => '4',
+        //         createTime => '1707235776528',
+        //         updateTime => '1707235776528'
+        //     }
+        //
         $marketId = $this->safe_string($position, 'instId');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];

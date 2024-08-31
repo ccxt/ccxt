@@ -6,7 +6,7 @@ import { ExchangeError, BadSymbol, AuthenticationError, InsufficientFunds, Inval
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, TransferEntries, LeverageTier, LeverageTiers, int } from './base/types.js';
+import type { TransferEntry, Balances, Currency, FundingHistory, FundingRateHistory, Int, Market, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, Transaction, MarginModification, Currencies, Dict, LeverageTier, LeverageTiers, int } from './base/types.js';
 
 // ----------------------------------------------------------------------------
 
@@ -2967,6 +2967,7 @@ export default class phemex extends Exchange {
          * @name phemex#fetchOrder
          * @see https://phemex-docs.github.io/#query-orders-by-ids
          * @description fetches information on an order made by the user
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2990,7 +2991,7 @@ export default class phemex extends Exchange {
         if (market['settle'] === 'USDT') {
             response = await this.privateGetApiDataGFuturesOrdersByOrderId (this.extend (request, params));
         } else if (market['spot']) {
-            response = await this.privateGetSpotOrdersActive (this.extend (request, params));
+            response = await this.privateGetApiDataSpotsOrdersByOrderId (this.extend (request, params));
         } else {
             response = await this.privateGetExchangeOrder (this.extend (request, params));
         }
@@ -3005,7 +3006,10 @@ export default class phemex extends Exchange {
                     throw new OrderNotFound (this.id + ' fetchOrder() ' + symbol + ' order with id ' + id + ' not found');
                 }
             }
-            order = this.safeValue (data, 0, {});
+            order = this.safeDict (data, 0, {});
+        } else if (market['spot']) {
+            const rows = this.safeList (data, 'rows', []);
+            order = this.safeDict (rows, 0, {});
         }
         return this.parseOrder (order, market);
     }
@@ -3043,7 +3047,7 @@ export default class phemex extends Exchange {
         } else if (market['swap']) {
             response = await this.privateGetExchangeOrderList (this.extend (request, params));
         } else {
-            response = await this.privateGetSpotOrders (this.extend (request, params));
+            response = await this.privateGetApiDataSpotsOrders (this.extend (request, params));
         }
         const data = this.safeValue (response, 'data', {});
         const rows = this.safeList (data, 'rows', data);
@@ -4537,7 +4541,7 @@ export default class phemex extends Exchange {
         return transfer;
     }
 
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntries> {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         /**
          * @method
          * @name phemex#fetchTransfers

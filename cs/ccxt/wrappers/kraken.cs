@@ -203,6 +203,12 @@ public partial class kraken
     /// int : timestamp in ms of the latest ledger entry
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.end</term>
+    /// <description>
+    /// int : timestamp in seconds of the latest ledger entry
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}.</returns>
@@ -281,7 +287,7 @@ public partial class kraken
     /// create a market order by providing the symbol, side and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Trading/operation/addOrder"/>  <br/>
+    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -301,7 +307,7 @@ public partial class kraken
     /// create a market buy order by providing the symbol, side and cost
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Trading/operation/addOrder"/>  <br/>
+    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -321,7 +327,7 @@ public partial class kraken
     /// create a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Trading/operation/addOrder"/>  <br/>
+    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Trading/operation/addOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -396,7 +402,7 @@ public partial class kraken
     /// edit a trade order
     /// </summary>
     /// <remarks>
-    /// See <see href="https://docs.kraken.com/rest/#tag/Trading/operation/editOrder"/>  <br/>
+    /// See <see href="https://docs.kraken.com/rest/#tag/Spot-Trading/operation/editOrder"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -552,6 +558,18 @@ public partial class kraken
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest trade entry
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.end</term>
+    /// <description>
+    /// int : timestamp in seconds of the latest trade entry
     /// </description>
     /// </item>
     /// </list>
@@ -742,6 +760,18 @@ public partial class kraken
     /// object : extra parameters specific to the exchange API endpoint
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest transaction entry
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.end</term>
+    /// <description>
+    /// int : timestamp in seconds of the latest transaction entry
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object[]</term> a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}.</returns>
@@ -797,15 +827,21 @@ public partial class kraken
     /// </description>
     /// </item>
     /// <item>
+    /// <term>params.until</term>
+    /// <description>
+    /// int : timestamp in ms of the latest transaction entry
+    /// </description>
+    /// </item>
+    /// <item>
     /// <term>params.end</term>
     /// <description>
-    /// object : End timestamp, withdrawals created strictly after will be not be included in the response
+    /// int : timestamp in seconds of the latest transaction entry
     /// </description>
     /// </item>
     /// <item>
     /// <term>params.paginate</term>
     /// <description>
-    /// boolean :  default false, when true will automatically paginate by calling this endpoint multiple times
+    /// boolean : default false, when true will automatically paginate by calling this endpoint multiple times
     /// </description>
     /// </item>
     /// </list>

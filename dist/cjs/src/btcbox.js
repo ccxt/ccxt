@@ -5,6 +5,7 @@ var errors = require('./base/errors.js');
 var Precise = require('./base/Precise.js');
 var number = require('./base/functions/number.js');
 var sha256 = require('./static_dependencies/noble-hashes/sha256.js');
+var md5 = require('./static_dependencies/noble-hashes/md5.js');
 
 //  ---------------------------------------------------------------------------
 //  ---------------------------------------------------------------------------
@@ -567,6 +568,7 @@ class btcbox extends btcbox$1 {
          * @name btcbox#fetchOrder
          * @description fetches information on an order made by the user
          * @see https://blog.btcbox.jp/en/archives/8762#toc16
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -676,7 +678,7 @@ class btcbox extends btcbox$1 {
                 'nonce': nonce,
             }, params);
             const request = this.urlencode(query);
-            const secret = this.hash(this.encode(this.secret), sha256.sha256);
+            const secret = this.hash(this.encode(this.secret), md5.md5);
             query['signature'] = this.hmac(this.encode(request), this.encode(secret), sha256.sha256);
             body = this.urlencode(query);
             headers = {

@@ -241,6 +241,7 @@ class kucoin extends kucoin$1 {
                         'purchase/orders': 10,
                         // broker
                         'broker/api/rebase/download': 3,
+                        'migrate/user/account/status': 3,
                         // affiliate
                         'affiliate/inviter/statistics': 30,
                     },
@@ -395,6 +396,7 @@ class kucoin extends kucoin$1 {
                         'broker/nd/account': 2,
                         'broker/nd/account/apikey': 2,
                         'broker/nd/rebase/download': 3,
+                        'asset/ndbroker/deposit/list': 1,
                         'broker/nd/transfer/detail': 1,
                         'broker/nd/deposit/detail': 1,
                         'broker/nd/withdraw/detail': 1,
@@ -684,8 +686,10 @@ class kucoin extends kucoin$1 {
                             'project/marketInterestRate': 'v3',
                             'redeem/orders': 'v3',
                             'purchase/orders': 'v3',
+                            'migrate/user/account/status': 'v3',
                             'margin/symbols': 'v3',
                             'affiliate/inviter/statistics': 'v2',
+                            'asset/ndbroker/deposit/list': 'v1',
                         },
                         'POST': {
                             // account
@@ -1206,6 +1210,30 @@ class kucoin extends kucoin$1 {
         }
         return result;
     }
+    async loadMigrationStatus(force = false) {
+        if (!('hfMigrated' in this.options) || (this.options['hfMigrated'] === undefined) || force) {
+            const result = await this.privateGetMigrateUserAccountStatus();
+            const data = this.safeDict(result, 'data', {});
+            const status = this.safeInteger(data, 'status');
+            this.options['hfMigrated'] = (status === 2);
+        }
+    }
+    async handleHfAndParams(params = {}) {
+        await this.loadMigrationStatus();
+        const migrated = this.safeBool(this.options, 'hfMigrated');
+        let loadedHf = undefined;
+        if (migrated !== undefined) {
+            if (migrated) {
+                loadedHf = true;
+            }
+            else {
+                loadedHf = false;
+            }
+        }
+        const hf = this.safeBool(params, 'hf', loadedHf);
+        params = this.omit(params, 'hf');
+        return [hf, params];
+    }
     async fetchCurrencies(params = {}) {
         /**
          * @method
@@ -1521,21 +1549,28 @@ class kucoin extends kucoin$1 {
             },
             'networks': {},
         };
-        const isWithdrawEnabled = this.safeBool(fee, 'isWithdrawEnabled');
+        const isWithdrawEnabled = this.safeBool(fee, 'isWithdrawEnabled', true);
+        let minFee = undefined;
         if (isWithdrawEnabled) {
-            result['withdraw']['fee'] = this.safeNumber2(fee, 'withdrawalMinFee', 'withdrawMinFee');
             result['withdraw']['percentage'] = false;
-            const networkId = this.safeString(fee, 'chain');
-            if (networkId) {
+            const chains = this.safeList(fee, 'chains', []);
+            for (let i = 0; i < chains.length; i++) {
+                const chain = chains[i];
+                const networkId = this.safeString(chain, 'chainId');
                 const networkCode = this.networkIdToCode(networkId, this.safeString(currency, 'code'));
+                const withdrawFee = this.safeString(chain, 'withdrawalMinFee');
+                if (minFee === undefined || (Precise["default"].stringLt(withdrawFee, minFee))) {
+                    minFee = withdrawFee;
+                }
                 result['networks'][networkCode] = {
-                    'withdraw': result['withdraw'],
+                    'withdraw': this.parseNumber(withdrawFee),
                     'deposit': {
                         'fee': undefined,
                         'percentage': undefined,
                     },
                 };
             }
+            result['withdraw']['fee'] = this.parseNumber(minFee);
         }
         return result;
     }
@@ -1742,7 +1777,8 @@ class kucoin extends kucoin$1 {
         //         }
         //     }
         //
-        return this.parseTicker(response['data'], market);
+        const data = this.safeDict(response, 'data', {});
+        return this.parseTicker(data, market);
     }
     parseOHLCV(ohlcv, market = undefined) {
         //
@@ -2080,7 +2116,8 @@ class kucoin extends kucoin$1 {
         const market = this.market(symbol);
         const testOrder = this.safeBool(params, 'test', false);
         params = this.omit(params, 'test');
-        const isHf = this.safeBool(params, 'hf', false);
+        let hf = undefined;
+        [hf, params] = await this.handleHfAndParams(params);
         const [triggerPrice, stopLossPrice, takeProfitPrice] = this.handleTriggerPrices(params);
         const tradeType = this.safeString(params, 'tradeType'); // keep it for backward compatibility
         const isTriggerOrder = (triggerPrice || stopLossPrice || takeProfitPrice);
@@ -2094,18 +2131,21 @@ class kucoin extends kucoin$1 {
             if (isMarginOrder) {
                 response = await this.privatePostMarginOrderTest(orderRequest);
             }
+            else if (hf) {
+                response = await this.privatePostHfOrdersTest(orderRequest);
+            }
             else {
                 response = await this.privatePostOrdersTest(orderRequest);
             }
-        }
-        else if (isHf) {
-            response = await this.privatePostHfOrders(orderRequest);
         }
         else if (isTriggerOrder) {
             response = await this.privatePostStopOrder(orderRequest);
         }
         else if (isMarginOrder) {
             response = await this.privatePostMarginOrder(orderRequest);
+        }
+        else if (hf) {
+            response = await this.privatePostHfOrders(orderRequest);
         }
         else {
             response = await this.privatePostOrders(orderRequest);
@@ -2207,8 +2247,8 @@ class kucoin extends kucoin$1 {
             'symbol': market['id'],
             'orderList': ordersRequests,
         };
-        const hf = this.safeBool(params, 'hf', false);
-        params = this.omit(params, 'hf');
+        let hf = undefined;
+        [hf, params] = await this.handleHfAndParams(params);
         let response = undefined;
         if (hf) {
             response = await this.privatePostHfOrdersMulti(this.extend(request, params));
@@ -2397,7 +2437,8 @@ class kucoin extends kucoin$1 {
         const request = {};
         const clientOrderId = this.safeString2(params, 'clientOid', 'clientOrderId');
         const stop = this.safeBool2(params, 'stop', 'trigger', false);
-        const hf = this.safeBool(params, 'hf', false);
+        let hf = undefined;
+        [hf, params] = await this.handleHfAndParams(params);
         if (hf) {
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol parameter for hf orders');
@@ -2406,7 +2447,7 @@ class kucoin extends kucoin$1 {
             request['symbol'] = market['id'];
         }
         let response = undefined;
-        params = this.omit(params, ['clientOid', 'clientOrderId', 'stop', 'hf', 'trigger']);
+        params = this.omit(params, ['clientOid', 'clientOrderId', 'stop', 'trigger']);
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
             if (stop) {
@@ -2510,8 +2551,9 @@ class kucoin extends kucoin$1 {
         await this.loadMarkets();
         const request = {};
         const stop = this.safeBool(params, 'stop', false);
-        const hf = this.safeBool(params, 'hf', false);
-        params = this.omit(params, ['stop', 'hf']);
+        let hf = undefined;
+        [hf, params] = await this.handleHfAndParams(params);
+        params = this.omit(params, 'stop');
         const [marginMode, query] = this.handleMarginModeAndParams('cancelAllOrders', params);
         if (symbol !== undefined) {
             request['symbol'] = this.marketId(symbol);
@@ -2568,8 +2610,12 @@ class kucoin extends kucoin$1 {
         let lowercaseStatus = status.toLowerCase();
         const until = this.safeInteger(params, 'until');
         const stop = this.safeBool2(params, 'stop', 'trigger', false);
-        const hf = this.safeBool(params, 'hf', false);
-        params = this.omit(params, ['stop', 'hf', 'until', 'trigger']);
+        let hf = undefined;
+        [hf, params] = await this.handleHfAndParams(params);
+        if (hf && (symbol === undefined)) {
+            throw new errors.ArgumentsRequired(this.id + ' fetchOrdersByStatus() requires a symbol parameter for hf orders');
+        }
+        params = this.omit(params, ['stop', 'trigger', 'till', 'until']);
         const [marginMode, query] = this.handleMarginModeAndParams('fetchOrdersByStatus', params);
         if (lowercaseStatus === 'open') {
             lowercaseStatus = 'active';
@@ -2747,7 +2793,8 @@ class kucoin extends kucoin$1 {
         const request = {};
         const clientOrderId = this.safeString2(params, 'clientOid', 'clientOrderId');
         const stop = this.safeBool2(params, 'stop', 'trigger', false);
-        const hf = this.safeBool(params, 'hf', false);
+        let hf = undefined;
+        [hf, params] = await this.handleHfAndParams(params);
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
@@ -2758,7 +2805,7 @@ class kucoin extends kucoin$1 {
             }
             request['symbol'] = market['id'];
         }
-        params = this.omit(params, ['stop', 'hf', 'clientOid', 'clientOrderId', 'trigger']);
+        params = this.omit(params, ['stop', 'clientOid', 'clientOrderId', 'trigger']);
         let response = undefined;
         if (clientOrderId !== undefined) {
             request['clientOid'] = clientOrderId;
@@ -3024,7 +3071,8 @@ class kucoin extends kucoin$1 {
             return await this.fetchPaginatedCallDynamic('fetchMyTrades', symbol, since, limit, params);
         }
         let request = {};
-        const hf = this.safeBool(params, 'hf', false);
+        let hf = undefined;
+        [hf, params] = await this.handleHfAndParams(params);
         if (hf && symbol === undefined) {
             throw new errors.ArgumentsRequired(this.id + ' fetchMyTrades() requires a symbol parameter for hf orders');
         }
@@ -3628,8 +3676,9 @@ class kucoin extends kucoin$1 {
         //         }
         //     }
         //
-        const responseData = response['data']['items'];
-        return this.parseTransactions(responseData, currency, since, limit, { 'type': 'deposit' });
+        const data = this.safeDict(response, 'data', {});
+        const items = this.safeList(data, 'items', []);
+        return this.parseTransactions(items, currency, since, limit, { 'type': 'deposit' });
     }
     async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
@@ -3713,8 +3762,9 @@ class kucoin extends kucoin$1 {
         //         }
         //     }
         //
-        const responseData = response['data']['items'];
-        return this.parseTransactions(responseData, currency, since, limit, { 'type': 'withdrawal' });
+        const data = this.safeDict(response, 'data', {});
+        const items = this.safeList(data, 'items', []);
+        return this.parseTransactions(items, currency, since, limit, { 'type': 'withdrawal' });
     }
     parseBalanceHelper(entry) {
         const account = this.account();
@@ -3751,11 +3801,11 @@ class kucoin extends kucoin$1 {
         const accountsByType = this.safeDict(this.options, 'accountsByType');
         let type = this.safeString(accountsByType, requestedType, requestedType);
         params = this.omit(params, 'type');
-        const isHf = this.safeBool(params, 'hf', false);
-        if (isHf) {
+        let hf = undefined;
+        [hf, params] = await this.handleHfAndParams(params);
+        if (hf) {
             type = 'trade_hf';
         }
-        params = this.omit(params, 'hf');
         const [marginMode, query] = this.handleMarginModeAndParams('fetchBalance', params);
         let response = undefined;
         const request = {};
@@ -4211,8 +4261,8 @@ class kucoin extends kucoin$1 {
         await this.loadAccounts();
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchLedger', 'paginate');
-        const isHf = this.safeBool(params, 'hf');
-        params = this.omit(params, 'hf');
+        let hf = undefined;
+        [hf, params] = await this.handleHfAndParams(params);
         if (paginate) {
             return await this.fetchPaginatedCallDynamic('fetchLedger', code, since, limit, params);
         }
@@ -4236,7 +4286,7 @@ class kucoin extends kucoin$1 {
         let marginMode = undefined;
         [marginMode, params] = this.handleMarginModeAndParams('fetchLedger', params);
         let response = undefined;
-        if (isHf) {
+        if (hf) {
             if (marginMode !== undefined) {
                 response = await this.privateGetHfMarginAccountLedgers(this.extend(request, params));
             }
@@ -4576,7 +4626,7 @@ class kucoin extends kucoin$1 {
         //     }
         //
         const data = this.safeDict(response, 'data');
-        const rows = this.safeList(data, 'items');
+        const rows = this.safeList(data, 'items', []);
         return this.parseBorrowRateHistories(rows, codes, since, limit);
     }
     async fetchBorrowRateHistory(code, since = undefined, limit = undefined, params = {}) {
@@ -4631,7 +4681,7 @@ class kucoin extends kucoin$1 {
         //     }
         //
         const data = this.safeDict(response, 'data');
-        const rows = this.safeList(data, 'items');
+        const rows = this.safeList(data, 'items', []);
         return this.parseBorrowRateHistory(rows, code, since, limit);
     }
     parseBorrowRateHistories(response, codes, since, limit) {

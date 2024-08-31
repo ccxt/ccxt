@@ -205,34 +205,6 @@ public partial class testMainClass : BaseTest
         return add(message, res);
     }
 
-    public virtual object exchangeHint(Exchange exchange, object market = null)
-    {
-        object marketType = exchange.safeString2(exchange.options, "defaultType", "type", "");
-        object marketSubType = exchange.safeString2(exchange.options, "defaultSubType", "subType");
-        if (isTrue(!isEqual(market, null)))
-        {
-            marketType = getValue(market, "type");
-            if (isTrue(getValue(market, "linear")))
-            {
-                marketSubType = "linear";
-            } else if (isTrue(getValue(market, "inverse")))
-            {
-                marketSubType = "inverse";
-            } else if (isTrue(isEqual(exchange.safeValue(market, "quanto"), true)))
-            {
-                marketSubType = "quanto";
-            }
-        }
-        object isWs = (inOp(exchange.has, "ws"));
-        object wsFlag = ((bool) isTrue(isWs)) ? "(WS)" : "";
-        object result = add(add(add(add(exchange.id, " "), wsFlag), " "), marketType);
-        if (isTrue(!isEqual(marketSubType, null)))
-        {
-            result = add(add(add(result, " [subType: "), marketSubType), "] ");
-        }
-        return result;
-    }
-
     public async virtual Task testMethod(object methodName, Exchange exchange, object args, object isPublic)
     {
         // todo: temporary skip for c#
@@ -274,18 +246,19 @@ public partial class testMainClass : BaseTest
         {
             await exchange.loadMarkets(true);
         }
+        object name = exchange.id;
         if (isTrue(skipMessage))
         {
             if (isTrue(this.info))
             {
-                dump(this.addPadding(skipMessage, 25), this.exchangeHint(exchange), methodName);
+                dump(this.addPadding(skipMessage, 25), name, methodName);
             }
             return;
         }
         if (isTrue(this.info))
         {
             object argsStringified = add(add("(", exchange.json(args)), ")"); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
-            dump(this.addPadding("[INFO] TESTING", 25), this.exchangeHint(exchange), methodName, argsStringified);
+            dump(this.addPadding("[INFO] TESTING", 25), name, methodName, argsStringified);
         }
         if (isTrue(this.isSynchronous))
         {
@@ -296,7 +269,7 @@ public partial class testMainClass : BaseTest
         }
         if (isTrue(this.info))
         {
-            dump(this.addPadding("[INFO] TESTING DONE", 25), this.exchangeHint(exchange), methodName);
+            dump(this.addPadding("[INFO] TESTING DONE", 25), name, methodName);
         }
         // add to the list of successed tests
         if (isTrue(isPublic))
@@ -387,8 +360,9 @@ public partial class testMainClass : BaseTest
             {
                 await this.testMethod(methodName, exchange, args, isPublic);
                 return true;
-            } catch(Exception e)
+            } catch(Exception ex)
             {
+                object e = getRootException(ex);
                 object isLoadMarkets = (isEqual(methodName, "loadMarkets"));
                 object isAuthError = (e is AuthenticationError);
                 object isNotSupported = (e is NotSupported);
@@ -431,7 +405,7 @@ public partial class testMainClass : BaseTest
                         }
                         // output the message
                         object failType = ((bool) isTrue(shouldFail)) ? "[TEST_FAILURE]" : "[TEST_WARNING]";
-                        dump(failType, "Method could not be tested due to a repeated Network/Availability issues", " | ", this.exchangeHint(exchange), methodName, argsStringified, exceptionMessage(e));
+                        dump(failType, "Method could not be tested due to a repeated Network/Availability issues", " | ", exchange.id, methodName, argsStringified, exceptionMessage(e));
                         return returnSuccess;
                     } else
                     {
@@ -445,7 +419,7 @@ public partial class testMainClass : BaseTest
                     // if it's loadMarkets, then fail test, because it's mandatory for tests
                     if (isTrue(isLoadMarkets))
                     {
-                        dump("[TEST_FAILURE]", "Exchange can not load markets", exceptionMessage(e), this.exchangeHint(exchange), methodName, argsStringified);
+                        dump("[TEST_FAILURE]", "Exchange can not load markets", exceptionMessage(e), exchange.id, methodName, argsStringified);
                         return false;
                     }
                     // if the specific arguments to the test method throws "NotSupported" exception
@@ -454,7 +428,7 @@ public partial class testMainClass : BaseTest
                     {
                         if (isTrue(this.info))
                         {
-                            dump("[INFO] NOT_SUPPORTED", exceptionMessage(e), this.exchangeHint(exchange), methodName, argsStringified);
+                            dump("[INFO] NOT_SUPPORTED", exceptionMessage(e), exchange.id, methodName, argsStringified);
                         }
                         return true;
                     }
@@ -463,12 +437,12 @@ public partial class testMainClass : BaseTest
                     {
                         if (isTrue(this.info))
                         {
-                            dump("[INFO]", "Authentication problem for public method", exceptionMessage(e), this.exchangeHint(exchange), methodName, argsStringified);
+                            dump("[INFO]", "Authentication problem for public method", exceptionMessage(e), exchange.id, methodName, argsStringified);
                         }
                         return true;
                     } else
                     {
-                        dump("[TEST_FAILURE]", exceptionMessage(e), this.exchangeHint(exchange), methodName, argsStringified);
+                        dump("[TEST_FAILURE]", exceptionMessage(e), exchange.id, methodName, argsStringified);
                         return false;
                     }
                 }
@@ -556,11 +530,11 @@ public partial class testMainClass : BaseTest
         if (isTrue(getArrayLength(failedMethods)))
         {
             object errorsString = String.Join(", ", ((IList<object>)failedMethods).ToArray());
-            dump("[TEST_FAILURE]", this.exchangeHint(exchange), testPrefixString, add("Failed methods : ", errorsString));
+            dump("[TEST_FAILURE]", exchange.id, testPrefixString, add("Failed methods : ", errorsString));
         }
         if (isTrue(this.info))
         {
-            dump(this.addPadding(add(add(add("[INFO] END ", testPrefixString), " "), this.exchangeHint(exchange)), 25));
+            dump(this.addPadding(add(add(add("[INFO] END ", testPrefixString), " "), exchange.id), 25));
         }
     }
 
@@ -1257,7 +1231,7 @@ public partial class testMainClass : BaseTest
         } catch(Exception e)
         {
             this.requestTestsFailed = true;
-            object errorMessage = add(add(add(add(add(add(add(add(add(add(add(add("[", this.lang), "][STATIC_REQUEST_TEST_FAILURE]"), "["), this.exchangeHint(exchange)), "]"), "["), method), "]"), "["), getValue(data, "description")), "]"), ((object)e).ToString());
+            object errorMessage = add(add(add(add(add(add(add(add(add(add(add(add("[", this.lang), "][STATIC_REQUEST_TEST_FAILURE]"), "["), exchange.id), "]"), "["), method), "]"), "["), getValue(data, "description")), "]"), ((object)e).ToString());
             dump(add("[TEST_FAILURE]", errorMessage));
         }
     }
@@ -1280,7 +1254,7 @@ public partial class testMainClass : BaseTest
         } catch(Exception e)
         {
             this.responseTestsFailed = true;
-            object errorMessage = add(add(add(add(add(add(add(add(add(add(add(add("[", this.lang), "][STATIC_RESPONSE_TEST_FAILURE]"), "["), this.exchangeHint(exchange)), "]"), "["), method), "]"), "["), getValue(data, "description")), "]"), ((object)e).ToString());
+            object errorMessage = add(add(add(add(add(add(add(add(add(add(add(add("[", this.lang), "][STATIC_RESPONSE_TEST_FAILURE]"), "["), exchange.id), "]"), "["), method), "]"), "["), getValue(data, "description")), "]"), ((object)e).ToString());
             dump(add("[TEST_FAILURE]", errorMessage));
         }
         setFetchResponse(exchange, null); // reset state
@@ -1376,6 +1350,11 @@ public partial class testMainClass : BaseTest
                 }
                 object isDisabled = exchange.safeBool(result, "disabled", false);
                 if (isTrue(isDisabled))
+                {
+                    continue;
+                }
+                object isDisabledCSharp = exchange.safeBool(result, "disabledCS", false);
+                if (isTrue(isTrue(isDisabledCSharp) && isTrue((isEqual(this.lang, "C#")))))
                 {
                     continue;
                 }
@@ -1555,7 +1534,7 @@ public partial class testMainClass : BaseTest
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testVertex()};
+        object promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBitmart(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testHyperliquid(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testOxfun(), this.testXT(), this.testVertex(), this.testParadex(), this.testHashkey()};
         await promiseAll(promises);
         object successMessage = add(add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
         dump(add("[INFO]", successMessage));
@@ -2129,6 +2108,76 @@ public partial class testMainClass : BaseTest
         object order = getValue(request, "place_order");
         object brokerId = getValue(order, "id");
         assert(isEqual(brokerId, id), add(add(add("vertex - id: ", ((object)id).ToString()), " different from  broker_id: "), ((object)brokerId).ToString()));
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
+        return true;
+    }
+
+    public async virtual Task<object> testParadex()
+    {
+        Exchange exchange = this.initOfflineExchange("paradex");
+        exchange.walletAddress = "0xc751489d24a33172541ea451bc253d7a9e98c781";
+        exchange.privateKey = "c33b1eb4b53108bf52e10f636d8c1236c04c33a712357ba3543ab45f48a5cb0b";
+        ((IDictionary<string,object>)exchange.options)["authToken"] = "token";
+        ((IDictionary<string,object>)exchange.options)["systemConfig"] = new Dictionary<string, object>() {
+            { "starknet_gateway_url", "https://potc-testnet-sepolia.starknet.io" },
+            { "starknet_fullnode_rpc_url", "https://pathfinder.api.testnet.paradex.trade/rpc/v0_7" },
+            { "starknet_chain_id", "PRIVATE_SN_POTC_SEPOLIA" },
+            { "block_explorer_url", "https://voyager.testnet.paradex.trade/" },
+            { "paraclear_address", "0x286003f7c7bfc3f94e8f0af48b48302e7aee2fb13c23b141479ba00832ef2c6" },
+            { "paraclear_decimals", 8 },
+            { "paraclear_account_proxy_hash", "0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9" },
+            { "paraclear_account_hash", "0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e" },
+            { "oracle_address", "0x2c6a867917ef858d6b193a0ff9e62b46d0dc760366920d631715d58baeaca1f" },
+            { "bridged_tokens", new List<object>() {new Dictionary<string, object>() {
+    { "name", "TEST USDC" },
+    { "symbol", "USDC" },
+    { "decimals", 6 },
+    { "l1_token_address", "0x29A873159D5e14AcBd63913D4A7E2df04570c666" },
+    { "l1_bridge_address", "0x8586e05adc0C35aa11609023d4Ae6075Cb813b4C" },
+    { "l2_token_address", "0x6f373b346561036d98ea10fb3e60d2f459c872b1933b50b21fe6ef4fda3b75e" },
+    { "l2_bridge_address", "0x46e9237f5408b5f899e72125dd69bd55485a287aaf24663d3ebe00d237fc7ef" },
+}} },
+            { "l1_core_contract_address", "0x582CC5d9b509391232cd544cDF9da036e55833Af" },
+            { "l1_operator_address", "0x11bACdFbBcd3Febe5e8CEAa75E0Ef6444d9B45FB" },
+            { "l1_chain_id", "11155111" },
+            { "liquidation_fee", "0.2" },
+        };
+        object reqHeaders = null;
+        object id = "CCXT";
+        assert(isEqual(getValue(exchange.options, "broker"), id), add(add("paradex - id: ", id), " not in options"));
+        await exchange.loadMarkets();
+        try
+        {
+            await exchange.createOrder("BTC/USD:USDC", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert(isEqual(getValue(reqHeaders, "PARADEX-PARTNER"), id), add(add("paradex - id: ", id), " not in headers"));
+        if (!isTrue(this.isSynchronous))
+        {
+            await close(exchange);
+        }
+        return true;
+    }
+
+    public async virtual Task<object> testHashkey()
+    {
+        Exchange exchange = this.initOfflineExchange("hashkey");
+        object reqHeaders = null;
+        object id = "10000700011";
+        try
+        {
+            await exchange.createOrder("BTC/USDT", "limit", "buy", 1, 20000);
+        } catch(Exception e)
+        {
+            // we expect an error here, we're only interested in the headers
+            reqHeaders = exchange.last_request_headers;
+        }
+        assert(isEqual(getValue(reqHeaders, "INPUT-SOURCE"), id), add(add("hashkey - id: ", id), " not in headers."));
         if (!isTrue(this.isSynchronous))
         {
             await close(exchange);

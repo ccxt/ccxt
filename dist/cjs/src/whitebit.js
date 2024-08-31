@@ -804,8 +804,23 @@ class whitebit extends whitebit$1 {
         //        "change": "2.12" // in percent
         //    }
         //
+        // WS market_update
+        //
+        //     {
+        //         "open": "52853.04",
+        //         "close": "55913.88",
+        //         "high": "56272",
+        //         "low": "49549.67",
+        //         "volume": "57331.067185",
+        //         "deal": "3063860382.42985338",
+        //         "last": "55913.88",
+        //         "period": 86400
+        //     }
         market = this.safeMarket(undefined, market);
-        const last = this.safeString(ticker, 'last_price');
+        // last price is provided as "last" or "last_price"
+        const last = this.safeString2(ticker, 'last', 'last_price');
+        // if "close" is provided, use it, otherwise use <last>
+        const close = this.safeString(ticker, 'close', last);
         return this.safeTicker({
             'symbol': market['symbol'],
             'timestamp': undefined,
@@ -818,7 +833,7 @@ class whitebit extends whitebit$1 {
             'askVolume': undefined,
             'vwap': undefined,
             'open': this.safeString(ticker, 'open'),
-            'close': last,
+            'close': close,
             'last': last,
             'previousClose': undefined,
             'change': undefined,
@@ -2618,9 +2633,11 @@ class whitebit extends whitebit$1 {
                     errorInfo = status;
                 }
                 else {
-                    const errorObject = this.safeValue(response, 'errors');
-                    if (errorObject !== undefined) {
-                        const errorKey = Object.keys(errorObject)[0];
+                    const errorObject = this.safeDict(response, 'errors', {});
+                    const errorKeys = Object.keys(errorObject);
+                    const errorsLength = errorKeys.length;
+                    if (errorsLength > 0) {
+                        const errorKey = errorKeys[0];
                         const errorMessageArray = this.safeValue(errorObject, errorKey, []);
                         const errorMessageLength = errorMessageArray.length;
                         errorInfo = (errorMessageLength > 0) ? errorMessageArray[0] : body;

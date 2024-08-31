@@ -1139,6 +1139,11 @@ class kucoin extends \ccxt\async\kucoin {
         $tradeId = $this->safe_string($trade, 'tradeId');
         $price = $this->safe_string($trade, 'matchPrice');
         $amount = $this->safe_string($trade, 'matchSize');
+        if ($price === null) {
+            // /spot/tradeFills
+            $price = $this->safe_string($trade, 'price');
+            $amount = $this->safe_string($trade, 'size');
+        }
         $order = $this->safe_string($trade, 'orderId');
         $timestamp = $this->safe_integer_product_2($trade, 'ts', 'time', 0.000001);
         $feeCurrency = $market['quote'];

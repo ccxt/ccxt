@@ -2855,30 +2855,9 @@ public partial class coinex : Exchange
         object fillResponseFromRequest = this.safeBool(options, "fillResponseFromRequest", true);
         if (isTrue(fillResponseFromRequest))
         {
-            ((IDictionary<string,object>)depositAddress)["network"] = this.safeNetworkCode(network, currency);
+            ((IDictionary<string,object>)depositAddress)["network"] = ((string)this.networkIdToCode(network, currency)).ToUpper();
         }
         return depositAddress;
-    }
-
-    public virtual object safeNetwork(object networkId, object currency = null)
-    {
-        object networks = this.safeValue(currency, "networks", new Dictionary<string, object>() {});
-        object networksCodes = new List<object>(((IDictionary<string,object>)networks).Keys);
-        object networksCodesLength = getArrayLength(networksCodes);
-        if (isTrue(isTrue(isEqual(networkId, null)) && isTrue(isEqual(networksCodesLength, 1))))
-        {
-            return getValue(networks, getValue(networksCodes, 0));
-        }
-        return new Dictionary<string, object>() {
-            { "id", networkId },
-            { "network", ((bool) isTrue((isEqual(networkId, null)))) ? null : ((string)networkId).ToUpper() },
-        };
-    }
-
-    public virtual object safeNetworkCode(object networkId, object currency = null)
-    {
-        object network = this.safeNetwork(networkId, currency);
-        return getValue(network, "network");
     }
 
     public override object parseDepositAddress(object depositAddress, object currency = null)

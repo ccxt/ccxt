@@ -48,6 +48,7 @@ class kucoinfutures extends kucoinfutures$1 {
                 'createTriggerOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
+                'fetchBidsAsks': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchClosedOrders': true,
@@ -124,6 +125,7 @@ class kucoinfutures extends kucoinfutures$1 {
                         'contracts/{symbol}': 1,
                         'contracts/risk-limit/{symbol}': 1,
                         'ticker': 1,
+                        'allTickers': 1,
                         'level2/snapshot': 1.33,
                         'level2/depth{limit}': 1,
                         'level2/message/query': 1,
@@ -167,6 +169,7 @@ class kucoinfutures extends kucoinfutures$1 {
                         'trade-statistics': 1,
                         'trade-fees': 1,
                         'history-positions': 1,
+                        'getMaxOpenSize': 1,
                     },
                     'post': {
                         'withdrawals': 1,
@@ -312,6 +315,9 @@ class kucoinfutures extends kucoinfutures$1 {
                 // endpoint versions
                 'versions': {
                     'futuresPrivate': {
+                        'GET': {
+                            'getMaxOpenSize': 'v2',
+                        },
                         'POST': {
                             'transfer-out': 'v2',
                         },
@@ -767,11 +773,20 @@ class kucoinfutures extends kucoinfutures$1 {
          * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-symbols-list
          * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.method] the method to use, futuresPublicGetAllTickers or futuresPublicGetContractsActive
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        const response = await this.futuresPublicGetContractsActive(params);
+        let method = undefined;
+        [method, params] = this.handleOptionAndParams(params, 'fetchTickers', 'method', 'futuresPublicGetContractsActive');
+        let response = undefined;
+        if (method === 'futuresPublicGetAllTickers') {
+            response = await this.futuresPublicGetAllTickers(params);
+        }
+        else {
+            response = await this.futuresPublicGetContractsActive(params);
+        }
         //
         //    {
         //        "code": "200000",
@@ -834,7 +849,7 @@ class kucoinfutures extends kucoinfutures$1 {
         //        }
         //    }
         //
-        const data = this.safeList(response, 'data', []);
+        const data = this.safeList(response, 'data');
         const tickers = this.parseTickers(data, symbols);
         return this.filterByArrayTickers(tickers, 'symbol', symbols);
     }
@@ -943,6 +958,20 @@ class kucoinfutures extends kucoinfutures$1 {
             'quoteVolume': this.safeString(ticker, 'turnoverOf24h'),
             'info': ticker,
         }, market);
+    }
+    async fetchBidsAsks(symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#fetchBidsAsks
+         * @description fetches the bid and ask price and volume for multiple markets
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        const request = {
+            'method': 'futuresPublicGetAllTickers',
+        };
+        return await this.fetchTickers(symbols, this.extend(request, params));
     }
     async fetchFundingHistory(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
