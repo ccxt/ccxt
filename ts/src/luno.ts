@@ -1013,8 +1013,7 @@ export default class luno extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
-        await this.loadMarkets ();
-        await this.loadAccounts ();
+        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
         let currency = undefined;
         let id = this.safeString (params, 'id'); // account id
         let min_row = this.safeValue (params, 'min_row');
