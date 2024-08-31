@@ -46,7 +46,7 @@ export interface TradingFeeInterface {
 
 export type Fee = FeeInterface | undefined
 
-export interface MarketMarginModes {
+export type MarketMarginModes = {
     isolated: boolean;
     cross: boolean;
 }
