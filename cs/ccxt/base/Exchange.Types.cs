@@ -187,7 +187,7 @@ public struct Market
     public string? feeSide;
 
     public Precision? precision;
-    public MarketMarginModes? marginModes;
+    public MarketMarginModes? marginMode;
 
     public Limits? limits;
     public Dictionary<string, object> info;
@@ -229,7 +229,7 @@ public struct Market
         limits = market.ContainsKey("limits") ? new Limits(market["limits"]) : null;
         info = Helper.GetInfo(market);
         created = Exchange.SafeInteger(market, "created");
-        marginModes = market.ContainsKey("marginModes") ? new MarketMarginModes(market["marginModes"]) : null;
+        marginMode = market.ContainsKey("marginMode") ? new MarketMarginModes(market["marginMode"]) : null;
     }
 }
 

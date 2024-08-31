@@ -3245,7 +3245,7 @@ export default class binance extends Exchange {
             'type': unifiedType,
             'spot': spot,
             'margin': spot && isMarginTradingAllowed,
-            'marginModes': marginModes,
+            'marginMode': marginModes,
             'swap': swap,
             'future': future,
             'option': option,
