@@ -2389,6 +2389,7 @@ export default class bingx extends Exchange {
          * @param {float} amount how much you want to trade in units of the base currency
          * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.hedged] *swap only* whether the order is in hedged mode or one way mode
          * @returns {object} request to be sent to the exchange
          */
         const market = this.market (symbol);
@@ -2549,15 +2550,20 @@ export default class bingx extends Exchange {
                 }
             }
             let positionSide = undefined;
-            if (reduceOnly) {
-                positionSide = (side === 'buy') ? 'SHORT' : 'LONG';
+            const hedged = this.safeBool (params, 'hedged', false);
+            if (hedged) {
+                if (reduceOnly) {
+                    positionSide = (side === 'buy') ? 'SHORT' : 'LONG';
+                } else {
+                    positionSide = (side === 'buy') ? 'LONG' : 'SHORT';
+                }
             } else {
-                positionSide = (side === 'buy') ? 'LONG' : 'SHORT';
+                positionSide = 'BOTH';
             }
             request['positionSide'] = positionSide;
             request['quantity'] = (market['inverse']) ? amount : this.parseToNumeric (this.amountToPrecision (symbol, amount)); // precision not available for inverse contracts
         }
-        params = this.omit (params, [ 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ]);
+        params = this.omit (params, [ 'hedged', 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ]);
         return this.extend (request, params);
     }
 
