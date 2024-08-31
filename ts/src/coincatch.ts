@@ -4,7 +4,7 @@
 import Exchange from './abstract/coincatch.js';
 import { } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Currencies, Dict, Int, Num, Str } from './base/types.js';
+import type { Currencies, Dict, Int, Market, Num, Str } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -77,7 +77,7 @@ export default class coincatch extends Exchange {
                 'fetchLeverageTiers': false,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
-                'fetchMarkets': false,
+                'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
                 'fetchOHLCV': false,
@@ -234,10 +234,17 @@ export default class coincatch extends Exchange {
             },
             'fees': {
                 'trading': {
+                    'spot': {
+                        'tierBased': false,
+                        'percentage': true,
+                        'feeSide': 'get',
+                        'maker': this.parseNumber ('0.001'),
+                        'taker': this.parseNumber ('0.001'),
+                    },
                 },
             },
             'options': {
-                'currenciesByIdForParseMarket': undefined,
+                'currencyIdsListForParseMarket': undefined,
                 'broker': '',
                 'networks': {
                 },
@@ -368,11 +375,11 @@ export default class coincatch extends Exchange {
         //     }
         //
         const result: Dict = {};
-        const spotCurrenciesIds = [];
+        const currenciesIds = [];
         for (let i = 0; i < data.length; i++) {
             const currecy = data[i];
             const currencyId = this.safeString (currecy, 'coinName');
-            spotCurrenciesIds.push (currencyId);
+            currenciesIds.push (currencyId);
             const code = this.safeCurrencyCode (currencyId);
             let allowDeposit = false;
             let allowWithdraw = false;
@@ -440,7 +447,147 @@ export default class coincatch extends Exchange {
                 'info': currecy,
             };
         }
-        this.options['currenciesByIdForParseMarket'] = spotCurrenciesIds;
+        if (this.safeList (this.options, 'currencyIdsListForParseMarket') === undefined) {
+            this.options['currencyIdsListForParseMarket'] = currenciesIds;
+        }
+        return result;
+    }
+
+    async fetchMarkets (params = {}): Promise<Market[]> {
+        /**
+         * @method
+         * @name coincatch#fetchMarkets
+         * @description retrieves data on all markets for the exchange
+         * @see https://coincatch.github.io/github.io/en/spot/#get-all-tickers
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} an array of objects representing market data
+         */
+        const response = await this.publicGetApiSpotV1MarketTickers (params);
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1725114040155,
+        //         "data": [
+        //             {
+        //                 "symbol": "BTCUSDT",
+        //                 "high24h": "59461.34",
+        //                 "low24h": "57723.23",
+        //                 "close": "59056.02",
+        //                 "quoteVol": "18240112.23368",
+        //                 "baseVol": "309.05564",
+        //                 "usdtVol": "18240112.2336744",
+        //                 "ts": "1725114038951",
+        //                 "buyOne": "59055.85",
+        //                 "sellOne": "59057.45",
+        //                 "bidSz": "0.0139",
+        //                 "askSz": "0.0139",
+        //                 "openUtc0": "59126.71",
+        //                 "changeUtc": "-0.0012",
+        //                 "change": "0.01662"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        if (this.safeList (this.options, 'currencyIdsListForParseMarket') === undefined) {
+            await this.fetchCurrencies ();
+        }
+        const data = this.safeList (response, 'data');
+        return this.parseMarkets (data);
+    }
+
+    parseMarket (market: Dict): Market {
+        //
+        //
+        const marketId = this.safeString (market, 'symbol');
+        const parsedMarketId = this.parseMarketId (marketId);
+        const baseId = this.safeString (parsedMarketId, 'baseId');
+        const quoteId = this.safeString (parsedMarketId, 'quoteId');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const tradingFees = this.safeDict (this.fees, 'trading');
+        const fees = this.safeDict (tradingFees, 'spot');
+        return this.safeMarketStructure ({
+            'id': marketId,
+            'symbol': base + '/' + quote,
+            'base': base,
+            'quote': quote,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'active': true,
+            'type': 'spot',
+            'subType': undefined,
+            'spot': true,
+            'margin': false, // todo check
+            'swap': false,
+            'future': false,
+            'option': false,
+            'contract': false,
+            'settle': undefined,
+            'settleId': undefined,
+            'contractSize': undefined,
+            'linear': undefined,
+            'inverse': undefined,
+            'taker': this.safeNumber (fees, 'taker'),
+            'maker': this.safeNumber (fees, 'maker'),
+            'percentage': this.safeBool (fees, 'percentage'),
+            'tierBased': this.safeBool (fees, 'tierBased'),
+            'feeSide': this.safeString (fees, 'feeSide'),
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'precision': {
+                'amount': undefined,
+                'price': undefined,
+            },
+            'limits': {
+                'amount': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'created': undefined,
+            'info': market,
+        });
+    }
+
+    parseMarketId (marketId) {
+        let baseId = undefined;
+        let quoteId = undefined;
+        const currencyIds = this.safeList (this.options, 'currencyIdsListForParseMarket', []);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const currencyId = currencyIds[i];
+            const entryIndex = marketId.indexOf (currencyId);
+            if (entryIndex > -1) {
+                const restId = marketId.replace (currencyId, '');
+                if (entryIndex === 0) {
+                    baseId = currencyId;
+                    quoteId = restId;
+                } else {
+                    baseId = restId;
+                    quoteId = currencyId;
+                }
+                break;
+            }
+        }
+        const result: Dict = {
+            'baseId': baseId,
+            'quoteId': quoteId,
+        };
         return result;
     }
 
