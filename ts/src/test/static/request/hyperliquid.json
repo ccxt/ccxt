@@ -557,12 +557,22 @@
                     }
                 ],
                 "output": "{\"type\":\"orderStatus\",\"oid\":3998833804,\"user\":\"0x15f43D1f2DeE81424aFd891943262aa90F22cc2A\"}"
+            },
+            {
+                "description": "fetchOrder with clientOrderId",
+                "method": "fetchOrder",
+                "url": "https://api.hyperliquid-testnet.xyz/info",
+                "input": [
+                  "0x1234567890abcdef1234567890abcded",
+                  "SOL/USDC:USDC"
+                ],
+                "output": "{\"type\":\"orderStatus\",\"oid\":\"0x1234567890abcdef1234567890abcded\",\"user\":\"0x3B3741c0EFf9C6b556Ec813e70589161F416662A\"}"
             }
         ],
         "fetchTrades": [
             {
                 "description": "fetchTrades",
-                "method": "fetchTrades",
+                "method": "fetchTradesxp",
                 "url": "https://api.hyperliquid.xyz/info",
                 "input": [
                     "ETH/USDC:USDC",
