@@ -3,8 +3,9 @@
 
 import Exchange from './abstract/coincatch.js';
 import { } from './base/errors.js';
+import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Currencies, Dict, Int, Market, Num, OrderBook, Str, Strings, Ticker, Tickers } from './base/types.js';
+import type { Currencies, Dict, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -80,7 +81,7 @@ export default class coincatch extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': false,
                 'fetchOpenOrders': false,
@@ -114,6 +115,18 @@ export default class coincatch extends Exchange {
                 'withdraw': false,
             },
             'timeframes': {
+                '1m': '1min',
+                '5m': '5min',
+                '15m': '15min',
+                '30m': '30min',
+                '1h': '1h',
+                '4h': '4h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '1day',
+                '3d': '3day',
+                '1w': '1week',
+                '1M': '1M',
             },
             'urls': {
                 'logo': '',
@@ -383,8 +396,8 @@ export default class coincatch extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             let allowDeposit = false;
             let allowWithdraw = false;
-            let minDeposit: Num = undefined;
-            let minWithdraw: Num = undefined;
+            let minDeposit: Str = undefined;
+            let minWithdraw: Str = undefined;
             const networks = this.safeList (currecy, 'chains');
             const networksById = this.safeDict (this.options, 'networksById');
             const parsedNetworks: Dict = {};
@@ -396,18 +409,18 @@ export default class coincatch extends Exchange {
                 const networkDeposit = networkDepositString === 'true';
                 const networkWithdrawString = this.safeString (network, 'withdrawable');
                 const networkWithdraw = networkWithdrawString === 'true';
-                const networkMinDeposit = this.safeNumber (network, 'minDepositAmount');
-                const networkMinWithdraw = this.safeNumber (network, 'minWithdrawAmount');
+                const networkMinDeposit = this.safeString (network, 'minDepositAmount');
+                const networkMinWithdraw = this.safeString (network, 'minWithdrawAmount');
                 parsedNetworks[networkId] = {
                     'id': networkId,
                     'network': networkName,
                     'limits': {
                         'deposit': {
-                            'min': networkMinDeposit,
+                            'min': this.parseNumber (networkMinDeposit),
                             'max': undefined,
                         },
                         'withdraw': {
-                            'min': networkMinWithdraw,
+                            'min': this.parseNumber (networkMinWithdraw),
                             'max': undefined,
                         },
                     },
@@ -420,8 +433,8 @@ export default class coincatch extends Exchange {
                 };
                 allowDeposit = allowDeposit ? allowDeposit : networkDeposit;
                 allowWithdraw = allowWithdraw ? allowWithdraw : networkWithdraw;
-                minDeposit = minDeposit ? Math.min (networkMinDeposit, minDeposit) : networkMinDeposit;
-                minWithdraw = minWithdraw ? Math.min (networkMinWithdraw, minWithdraw) : networkMinWithdraw;
+                minDeposit = minDeposit ? Precise.stringMin (networkMinDeposit, minDeposit) : networkMinDeposit;
+                minWithdraw = minWithdraw ? Precise.stringMin (networkMinWithdraw, minWithdraw) : networkMinWithdraw;
             }
             result[code] = {
                 'id': currencyId,
@@ -435,11 +448,11 @@ export default class coincatch extends Exchange {
                 'fee': undefined,
                 'limits': {
                     'deposit': {
-                        'min': minDeposit,
+                        'min': this.parseNumber (minDeposit),
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': minWithdraw,
+                        'min': this.parseNumber (minWithdraw),
                         'max': undefined,
                     },
                 },
@@ -774,6 +787,75 @@ export default class coincatch extends Exchange {
         const data = this.safeDict (response, 'data', {});
         const timestamp = this.safeInteger (data, 'ts');
         return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks');
+    }
+
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        /**
+         * @method
+         * @name coincatch#fetchOHLCV
+         * @see https://coincatch.github.io/github.io/en/spot/#get-candle-data
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch (default 100)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] timestamp in ms of the latest candle to fetch
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        const methodName = 'fetchOHLCV';
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        timeframe = this.safeString (this.timeframes, timeframe, timeframe);
+        const request: Dict = {
+            'symbol': market['id'],
+            'period': timeframe,
+        };
+        if (since !== undefined) {
+            request['after'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let until: Int = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
+        if (until !== undefined) {
+            request['before'] = until;
+        }
+        const response = await this.publicGetApiSpotV1MarketCandles (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1725142465742,
+        //         "data": [
+        //             {
+        //                 "open": "2518.6",
+        //                 "high": "2519.19",
+        //                 "low": "2518.42",
+        //                 "close": "2518.86",
+        //                 "quoteVol": "17193.239401",
+        //                 "baseVol": "6.8259",
+        //                 "usdtVol": "17193.239401",
+        //                 "ts": "1725142200000"
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
+        return [
+            this.safeInteger (ohlcv, 'ts'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber (ohlcv, 'baseVol'),
+        ];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
