@@ -389,7 +389,7 @@ export default class ascendex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const assets = await this.v1PublicGetAssets (params);
+        const assetsPromise = this.v1PublicGetAssets (params);
         //
         //     {
         //         "code":0,
@@ -406,7 +406,7 @@ export default class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const margin = await this.v1PublicGetMarginAssets (params);
+        const marginPromise = this.v1PublicGetMarginAssets (params);
         //
         //     {
         //         "code":0,
@@ -426,7 +426,7 @@ export default class ascendex extends Exchange {
         //         ]
         //     }
         //
-        const cash = await this.v1PublicGetCashAssets (params);
+        const cashPromise = this.v1PublicGetCashAssets (params);
         //
         //     {
         //         "code":0,
@@ -443,6 +443,7 @@ export default class ascendex extends Exchange {
         //         ]
         //     }
         //
+        const [ assets, margin, cash ] = await Promise.all ([ assetsPromise, marginPromise, cashPromise ]);
         const assetsData = this.safeList (assets, 'data', []);
         const marginData = this.safeList (margin, 'data', []);
         const cashData = this.safeList (cash, 'data', []);
