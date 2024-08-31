@@ -96,9 +96,9 @@ export default class coincatch extends Exchange {
                 'fetchPositionsHistory': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': false,
-                'fetchTicker': false,
-                'fetchTickers': false,
-                'fetchTime': false,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': false,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
@@ -638,9 +638,9 @@ export default class coincatch extends Exchange {
     async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
-         * @name hashkey#fetchTickers
+         * @name coincatch#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-         * @see https://hashkeyglobal-apidoc.readme.io/reference/get-24hr-ticker-price-change
+         * @see https://coincatch.github.io/github.io/en/spot/#get-all-tickers
          * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
