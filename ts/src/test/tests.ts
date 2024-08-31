@@ -60,13 +60,17 @@ class testMainClass extends baseMainTestClass {
     async init (exchangeId, symbolArgv, methodArgv) {
         this.parseCliArgs ();
 
-        if (this.requestTests) {
-            await this.runStaticRequestTests (exchangeId, symbolArgv); // symbol here is the testname
+        if (this.requestTests && this.responseTests) {
+            await this.runStaticRequestTests (exchangeId, symbolArgv);
+            await this.runStaticResponseTests (exchangeId, symbolArgv);
+            return;
         }
         if (this.responseTests) {
             await this.runStaticResponseTests (exchangeId, symbolArgv);
+            return;
         }
-        if (this.requestTests || this.responseTests) {
+        if (this.requestTests) {
+            await this.runStaticRequestTests (exchangeId, symbolArgv); // symbol here is the testname
             return;
         }
         if (this.idTests) {
@@ -1229,7 +1233,6 @@ class testMainClass extends baseMainTestClass {
                 const oldExchangeOptions = exchange.options; // snapshot options;
                 const testExchangeOptions = exchange.safeValue (result, 'options', {});
                 // exchange.options = exchange.deepExtend (oldExchangeOptions, testExchangeOptions); // custom options to be used in the tests
-                this.resetedOptions (exchange, exchangeData); // reset specific options
                 exchange.extendExchangeOptions (exchange.deepExtend (oldExchangeOptions, testExchangeOptions));
                 const description = exchange.safeValue (result, 'description');
                 if ((testName !== undefined) && (testName !== description)) {
@@ -1337,14 +1340,6 @@ class testMainClass extends baseMainTestClass {
             sum = exchange.sum (sum, resultsLength);
         }
         return sum;
-    }
-
-    resetedOptions (exchange: Exchange, exchangeData: object) {
-        const resetOptionKeys = exchange.safeList (exchangeData, 'resetOptionsBeforeRequest');;
-        for (let i = 0; i < resetOptionKeys.length; i++) {
-            const key = resetOptionKeys[i];
-            exchange.options[key] = undefined;
-        }
     }
 
     async runStaticRequestTests (targetExchange: Str = undefined, testName: Str = undefined) {
