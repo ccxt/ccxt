@@ -287,26 +287,17 @@ class ascendex extends Exchange {
                     'SOL' => 'Solana',
                     'AVAX' => 'avalanche C chain',
                     'OMNI' => 'Omni',
-                    'TRC' => 'TRC20',
+                    // 'TRC' => 'TRC20',
                     'TRX' => 'TRC20',
-                    'ERC' => 'ERC20',
-                ),
-                'networksById' => array(
-                    'BEP20 (BSC)' => 'BSC',
-                    'arbitrum' => 'ARB',
-                    'Solana' => 'SOL',
-                    'avalanche C chain' => 'AVAX',
-                    'Omni' => 'OMNI',
                     'TRC20' => 'TRC20',
                     'ERC20' => 'ERC20',
                     'GO20' => 'GO20',
                     'BEP2' => 'BEP2',
-                    'Bitcoin' => 'BTC',
-                    'Bitcoin ABC' => 'BCH',
-                    'Litecoin' => 'LTC',
-                    'Matic Network' => 'MATIC',
-                    'xDai' => 'STAKE',
-                    'Akash' => 'AKT',
+                    'BTC' => 'Bitcoin',
+                    'BCH' => 'Bitcoin ABC',
+                    'LTC' => 'Litecoin',
+                    'MATIC' => 'Matic Network',
+                    'AKT' => 'Akash',
                 ),
             ),
             'exceptions' => array(
@@ -454,9 +445,9 @@ class ascendex extends Exchange {
             //         )
             //     }
             //
-            $assetsData = $this->safe_value($assets, 'data', array());
-            $marginData = $this->safe_value($margin, 'data', array());
-            $cashData = $this->safe_value($cash, 'data', array());
+            $assetsData = $this->safe_list($assets, 'data', array());
+            $marginData = $this->safe_list($margin, 'data', array());
+            $cashData = $this->safe_list($cash, 'data', array());
             $assetsById = $this->index_by($assetsData, 'assetCode');
             $marginById = $this->index_by($marginData, 'assetCode');
             $cashById = $this->index_by($cashData, 'assetCode');
@@ -598,10 +589,10 @@ class ascendex extends Exchange {
             //        )
             //    }
             //
-            $productsData = $this->safe_value($products, 'data', array());
+            $productsData = $this->safe_list($products, 'data', array());
             $productsById = $this->index_by($productsData, 'symbol');
-            $cashData = $this->safe_value($cash, 'data', array());
-            $perpetualsData = $this->safe_value($perpetuals, 'data', array());
+            $cashData = $this->safe_list($cash, 'data', array());
+            $perpetualsData = $this->safe_list($perpetuals, 'data', array());
             $cashAndPerpetualsData = $this->array_concat($cashData, $perpetualsData);
             $cashAndPerpetualsById = $this->index_by($cashAndPerpetualsData, 'symbol');
             $dataById = $this->deep_extend($productsById, $cashAndPerpetualsById);
@@ -610,7 +601,7 @@ class ascendex extends Exchange {
             for ($i = 0; $i < count($ids); $i++) {
                 $id = $ids[$i];
                 $market = $dataById[$id];
-                $settleId = $this->safe_value($market, 'settlementAsset');
+                $settleId = $this->safe_string($market, 'settlementAsset');
                 $settle = $this->safe_currency_code($settleId);
                 $status = $this->safe_string($market, 'status');
                 $domain = $this->safe_string($market, 'domain');
@@ -633,10 +624,10 @@ class ascendex extends Exchange {
                 $quote = $this->safe_currency_code($quoteId);
                 $symbol = $base . '/' . $quote;
                 if ($swap) {
-                    $lotSizeFilter = $this->safe_value($market, 'lotSizeFilter');
+                    $lotSizeFilter = $this->safe_dict($market, 'lotSizeFilter');
                     $minQty = $this->safe_number($lotSizeFilter, 'minQty');
                     $maxQty = $this->safe_number($lotSizeFilter, 'maxQty');
-                    $priceFilter = $this->safe_value($market, 'priceFilter');
+                    $priceFilter = $this->safe_dict($market, 'priceFilter');
                     $minPrice = $this->safe_number($priceFilter, 'minPrice');
                     $maxPrice = $this->safe_number($priceFilter, 'maxPrice');
                     $symbol = $base . '/' . $quote . ':' . $settle;
@@ -720,7 +711,7 @@ class ascendex extends Exchange {
             //        }
             //    }
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_dict($response, 'data', array());
             return $this->safe_integer($data, 'requestReceiveAt');
         }) ();
     }
@@ -752,7 +743,7 @@ class ascendex extends Exchange {
                 //         }
                 //     }
                 //
-                $data = $this->safe_value($response, 'data', array());
+                $data = $this->safe_dict($response, 'data', array());
                 $accountGroup = $this->safe_string($data, 'accountGroup');
                 $this->options['account-group'] = $accountGroup;
             }
@@ -773,7 +764,7 @@ class ascendex extends Exchange {
             'timestamp' => null,
             'datetime' => null,
         );
-        $balances = $this->safe_value($response, 'data', array());
+        $balances = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $code = $this->safe_currency_code($this->safe_string($balance, 'asset'));
@@ -791,7 +782,7 @@ class ascendex extends Exchange {
             'timestamp' => null,
             'datetime' => null,
         );
-        $balances = $this->safe_value($response, 'data', array());
+        $balances = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $code = $this->safe_currency_code($this->safe_string($balance, 'asset'));
@@ -812,8 +803,8 @@ class ascendex extends Exchange {
             'timestamp' => null,
             'datetime' => null,
         );
-        $data = $this->safe_value($response, 'data', array());
-        $collaterals = $this->safe_value($data, 'collaterals', array());
+        $data = $this->safe_dict($response, 'data', array());
+        $collaterals = $this->safe_list($data, 'collaterals', array());
         for ($i = 0; $i < count($collaterals); $i++) {
             $balance = $collaterals[$i];
             $code = $this->safe_currency_code($this->safe_string($balance, 'asset'));
@@ -846,9 +837,9 @@ class ascendex extends Exchange {
             $isCross = $marginMode === 'cross';
             $marketType = ($isMargin || $isCross) ? 'margin' : $marketType;
             $params = $this->omit($params, 'margin');
-            $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+            $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
             $accountCategory = $this->safe_string($accountsByType, $marketType, 'cash');
-            $account = $this->safe_value($this->accounts, 0, array());
+            $account = $this->safe_dict($this->accounts, 0, array());
             $accountGroup = $this->safe_string($account, 'id');
             $request = array(
                 'account-group' => $accountGroup,
@@ -958,8 +949,8 @@ class ascendex extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
-            $orderbook = $this->safe_value($data, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
+            $orderbook = $this->safe_dict($data, 'data', array());
             $timestamp = $this->safe_integer($orderbook, 'ts');
             $result = $this->parse_order_book($orderbook, $symbol, $timestamp);
             $result['nonce'] = $this->safe_integer($orderbook, 'seqnum');
@@ -987,8 +978,8 @@ class ascendex extends Exchange {
         $delimiter = ($type === 'spot') ? '/' : null;
         $symbol = $this->safe_symbol($marketId, $market, $delimiter);
         $close = $this->safe_string($ticker, 'close');
-        $bid = $this->safe_value($ticker, 'bid', array());
-        $ask = $this->safe_value($ticker, 'ask', array());
+        $bid = $this->safe_list($ticker, 'bid', array());
+        $ask = $this->safe_list($ticker, 'ask', array());
         $open = $this->safe_string($ticker, 'open');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
@@ -1063,7 +1054,7 @@ class ascendex extends Exchange {
             $request = array();
             $market = null;
             if ($symbols !== null) {
-                $symbol = $this->safe_value($symbols, 0);
+                $symbol = $this->safe_string($symbols, 0);
                 $market = $this->market($symbol);
                 $marketIds = $this->market_ids($symbols);
                 $request['symbol'] = implode(',', $marketIds);
@@ -1079,22 +1070,20 @@ class ascendex extends Exchange {
             //
             //     {
             //         "code":0,
-            //         "data":[
-            //             {
-            //                 "symbol":"QTUM/BTC",
-            //                 "open":"0.00016537",
-            //                 "close":"0.00019077",
-            //                 "high":"0.000192",
-            //                 "low":"0.00016537",
-            //                 "volume":"846.6",
-            //                 "ask":["0.00018698","26.2"],
-            //                 "bid":["0.00018408","503.7"],
-            //                 "type":"spot"
-            //             }
-            //         ]
+            //         "data" => {
+            //             "symbol":"QTUM/BTC",
+            //             "open":"0.00016537",
+            //             "close":"0.00019077",
+            //             "high":"0.000192",
+            //             "low":"0.00016537",
+            //             "volume":"846.6",
+            //             "ask":["0.00018698","26.2"],
+            //             "bid":["0.00018408","503.7"],
+            //             "type":"spot"
+            //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             if (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
                 return $this->parse_tickers(array( $data ), $symbols);
             }
@@ -1118,7 +1107,7 @@ class ascendex extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($ohlcv, 'data', array());
+        $data = $this->safe_dict($ohlcv, 'data', array());
         return array(
             $this->safe_integer($data, 'ts'),
             $this->safe_number($data, 'o'),
@@ -1149,7 +1138,7 @@ class ascendex extends Exchange {
             // if $since and $limit are not specified
             // the exchange will return just 1 last candle by default
             $duration = $this->parse_timeframe($timeframe);
-            $options = $this->safe_value($this->options, 'fetchOHLCV', array());
+            $options = $this->safe_dict($this->options, 'fetchOHLCV', array());
             $defaultLimit = $this->safe_integer($options, 'limit', 500);
             if ($since !== null) {
                 $request['from'] = $since;
@@ -1257,7 +1246,7 @@ class ascendex extends Exchange {
             //         }
             //     }
             //
-            $records = $this->safe_value($response, 'data', array());
+            $records = $this->safe_dict($response, 'data', array());
             $trades = $this->safe_list($records, 'data', array());
             return $this->parse_trades($trades, $market, $since, $limit);
         }) ();
@@ -1466,7 +1455,7 @@ class ascendex extends Exchange {
              */
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
-            $account = $this->safe_value($this->accounts, 0, array());
+            $account = $this->safe_dict($this->accounts, 0, array());
             $accountGroup = $this->safe_string($account, 'id');
             $request = array(
                 'account-group' => $accountGroup,
@@ -1488,14 +1477,14 @@ class ascendex extends Exchange {
             //         }
             //      }
             //
-            $data = $this->safe_value($response, 'data', array());
-            $fees = $this->safe_value($data, 'fees', array());
+            $data = $this->safe_dict($response, 'data', array());
+            $fees = $this->safe_list($data, 'fees', array());
             $result = array();
             for ($i = 0; $i < count($fees); $i++) {
                 $fee = $fees[$i];
                 $marketId = $this->safe_string($fee, 'symbol');
                 $symbol = $this->safe_symbol($marketId, null, '/');
-                $takerMaker = $this->safe_value($fee, 'fee', array());
+                $takerMaker = $this->safe_dict($fee, 'fee', array());
                 $result[$symbol] = array(
                     'info' => $fee,
                     'symbol' => $symbol,
@@ -1529,13 +1518,13 @@ class ascendex extends Exchange {
         $marketType = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrderRequest', $params);
         list($marketType, $params) = $this->handle_market_type_and_params('createOrderRequest', $market, $params);
-        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
         $accountCategory = $this->safe_string($accountsByType, $marketType, 'cash');
         if ($marginMode !== null) {
             $accountCategory = 'margin';
         }
-        $account = $this->safe_value($this->accounts, 0, array());
-        $accountGroup = $this->safe_value($account, 'id');
+        $account = $this->safe_dict($this->accounts, 0, array());
+        $accountGroup = $this->safe_string($account, 'id');
         $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'id');
         $request = array(
             'account-group' => $accountGroup,
@@ -1553,7 +1542,7 @@ class ascendex extends Exchange {
         $timeInForce = $this->safe_string($params, 'timeInForce');
         $postOnly = $this->is_post_only($isMarketOrder, false, $params);
         $reduceOnly = $this->safe_bool($params, 'reduceOnly', false);
-        $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+        $stopPrice = $this->safe_string_2($params, 'triggerPrice', 'stopPrice');
         if ($isLimitOrder) {
             $request['orderPrice'] = $this->price_to_precision($symbol, $price);
         }
@@ -1688,8 +1677,8 @@ class ascendex extends Exchange {
             //          }
             //      }
             //
-            $data = $this->safe_value($response, 'data', array());
-            $order = $this->safe_value_2($data, 'order', 'info', array());
+            $data = $this->safe_dict($response, 'data', array());
+            $order = $this->safe_dict_2($data, 'order', 'info', array());
             return $this->parse_order($order, $market);
         }) ();
     }
@@ -1724,9 +1713,9 @@ class ascendex extends Exchange {
                 }
                 $type = $this->safe_string($rawOrder, 'type');
                 $side = $this->safe_string($rawOrder, 'side');
-                $amount = $this->safe_value($rawOrder, 'amount');
-                $price = $this->safe_value($rawOrder, 'price');
-                $orderParams = $this->safe_value($rawOrder, 'params', array());
+                $amount = $this->safe_number($rawOrder, 'amount');
+                $price = $this->safe_number($rawOrder, 'price');
+                $orderParams = $this->safe_dict($rawOrder, 'params', array());
                 $marginResult = $this->handle_margin_mode_and_params('createOrders', $orderParams);
                 $currentMarginMode = $marginResult[0];
                 if ($currentMarginMode !== null) {
@@ -1742,13 +1731,13 @@ class ascendex extends Exchange {
                 $ordersRequests[] = $orderRequest;
             }
             $market = $this->market($symbol);
-            $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+            $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
             $accountCategory = $this->safe_string($accountsByType, $market['type'], 'cash');
             if ($marginMode !== null) {
                 $accountCategory = 'margin';
             }
-            $account = $this->safe_value($this->accounts, 0, array());
-            $accountGroup = $this->safe_value($account, 'id');
+            $account = $this->safe_dict($this->accounts, 0, array());
+            $accountGroup = $this->safe_string($account, 'id');
             $request = array();
             $response = null;
             if ($market['swap']) {
@@ -1785,7 +1774,7 @@ class ascendex extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             $info = $this->safe_list($data, 'info', array());
             return $this->parse_orders($info, $market);
         }) ();
@@ -1809,10 +1798,10 @@ class ascendex extends Exchange {
                 $market = $this->market($symbol);
             }
             list($type, $query) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
-            $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+            $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
             $accountCategory = $this->safe_string($accountsByType, $type, 'cash');
-            $account = $this->safe_value($this->accounts, 0, array());
-            $accountGroup = $this->safe_value($account, 'id');
+            $account = $this->safe_dict($this->accounts, 0, array());
+            $accountGroup = $this->safe_string($account, 'id');
             $request = array(
                 'account-group' => $accountGroup,
                 'account-category' => $accountCategory,
@@ -1918,10 +1907,10 @@ class ascendex extends Exchange {
                 $market = $this->market($symbol);
                 $symbol = $market['symbol'];
             }
-            $account = $this->safe_value($this->accounts, 0, array());
-            $accountGroup = $this->safe_value($account, 'id');
+            $account = $this->safe_dict($this->accounts, 0, array());
+            $accountGroup = $this->safe_string($account, 'id');
             list($type, $query) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
-            $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+            $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
             $accountCategory = $this->safe_string($accountsByType, $type, 'cash');
             $request = array(
                 'account-group' => $accountGroup,
@@ -2003,7 +1992,7 @@ class ascendex extends Exchange {
             //     )
             // }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_list($response, 'data', array());
             if ($accountCategory === 'futures') {
                 return $this->parse_orders($data, $market, $since, $limit);
             }
@@ -2032,8 +2021,8 @@ class ascendex extends Exchange {
              */
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
-            $account = $this->safe_value($this->accounts, 0, array());
-            $accountGroup = $this->safe_value($account, 'id');
+            $account = $this->safe_dict($this->accounts, 0, array());
+            $accountGroup = $this->safe_string($account, 'id');
             $request = array(
                 // 'category' => $accountCategory,
                 // 'symbol' => $market['id'],
@@ -2051,7 +2040,7 @@ class ascendex extends Exchange {
                 $request['symbol'] = $market['id'];
             }
             list($type, $query) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
-            $options = $this->safe_value($this->options, 'fetchClosedOrders', array());
+            $options = $this->safe_dict($this->options, 'fetchClosedOrders', array());
             $defaultMethod = $this->safe_string($options, 'method', 'v2PrivateDataGetOrderHist');
             $method = $this->get_supported_mapping($type, array(
                 'spot' => $defaultMethod,
@@ -2065,7 +2054,7 @@ class ascendex extends Exchange {
             if ($until !== null) {
                 $request['endTime'] = $until;
             }
-            $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+            $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
             $accountCategory = $this->safe_string($accountsByType, $type, 'cash'); // margin, futures
             $response = null;
             if ($method === 'v1PrivateAccountCategoryGetOrderHistCurrent') {
@@ -2182,10 +2171,10 @@ class ascendex extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_list($response, 'data', array());
             $isArray = gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data));
             if (!$isArray) {
-                $data = $this->safe_value($data, 'data', array());
+                $data = $this->safe_list($data, 'data', array());
             }
             return $this->parse_orders($data, $market, $since, $limit);
         }) ();
@@ -2209,10 +2198,10 @@ class ascendex extends Exchange {
             Async\await($this->load_accounts());
             $market = $this->market($symbol);
             list($type, $query) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
-            $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+            $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
             $accountCategory = $this->safe_string($accountsByType, $type, 'cash');
-            $account = $this->safe_value($this->accounts, 0, array());
-            $accountGroup = $this->safe_value($account, 'id');
+            $account = $this->safe_dict($this->accounts, 0, array());
+            $accountGroup = $this->safe_string($account, 'id');
             $request = array(
                 'account-group' => $accountGroup,
                 'account-category' => $accountCategory,
@@ -2299,8 +2288,8 @@ class ascendex extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
-            $order = $this->safe_value_2($data, 'order', 'info', array());
+            $data = $this->safe_dict($response, 'data', array());
+            $order = $this->safe_dict_2($data, 'order', 'info', array());
             return $this->parse_order($order, $market);
         }) ();
     }
@@ -2322,10 +2311,10 @@ class ascendex extends Exchange {
                 $market = $this->market($symbol);
             }
             list($type, $query) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
-            $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+            $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
             $accountCategory = $this->safe_string($accountsByType, $type, 'cash');
-            $account = $this->safe_value($this->accounts, 0, array());
-            $accountGroup = $this->safe_value($account, 'id');
+            $account = $this->safe_dict($this->accounts, 0, array());
+            $accountGroup = $this->safe_string($account, 'id');
             $request = array(
                 'account-group' => $accountGroup,
                 'account-category' => $accountCategory,
@@ -2411,11 +2400,6 @@ class ascendex extends Exchange {
             'network' => $network,
             'info' => $depositAddress,
         );
-    }
-
-    public function safe_network($networkId) {
-        $networksById = $this->safe_dict($this->options, 'networksById');
-        return $this->safe_string($networksById, $networkId, $networkId);
     }
 
     public function fetch_deposit_address(string $code, $params = array ()) {
@@ -2584,7 +2568,7 @@ class ascendex extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             $transactions = $this->safe_list($data, 'data', array());
             return $this->parse_transactions($transactions, $currency, $since, $limit);
         }) ();
@@ -2619,7 +2603,7 @@ class ascendex extends Exchange {
         //         }
         //     }
         //
-        $destAddress = $this->safe_value($transaction, 'destAddress', array());
+        $destAddress = $this->safe_dict($transaction, 'destAddress', array());
         $address = $this->safe_string($destAddress, 'address');
         $tag = $this->safe_string($destAddress, 'destTag');
         $timestamp = $this->safe_integer($transaction, 'time');
@@ -2666,7 +2650,7 @@ class ascendex extends Exchange {
              */
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
-            $account = $this->safe_value($this->accounts, 0, array());
+            $account = $this->safe_dict($this->accounts, 0, array());
             $accountGroup = $this->safe_string($account, 'id');
             $request = array(
                 'account-group' => $accountGroup,
@@ -2711,8 +2695,8 @@ class ascendex extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
-            $position = $this->safe_value($data, 'contracts', array());
+            $data = $this->safe_dict($response, 'data', array());
+            $position = $this->safe_list($data, 'contracts', array());
             $result = array();
             for ($i = 0; $i < count($position); $i++) {
                 $result[] = $this->parse_position($position[$i]);
@@ -2861,8 +2845,8 @@ class ascendex extends Exchange {
             //          }
             //      }
             //
-            $data = $this->safe_value($response, 'data', array());
-            $contracts = $this->safe_value($data, 'contracts', array());
+            $data = $this->safe_dict($response, 'data', array());
+            $contracts = $this->safe_list($data, 'contracts', array());
             $result = $this->parse_funding_rates($contracts);
             return $this->filter_by_array($result, 'symbol', $symbols);
         }) ();
@@ -2873,7 +2857,7 @@ class ascendex extends Exchange {
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
             $market = $this->market($symbol);
-            $account = $this->safe_value($this->accounts, 0, array());
+            $account = $this->safe_dict($this->accounts, 0, array());
             $accountGroup = $this->safe_string($account, 'id');
             $amount = $this->amount_to_precision($symbol, $amount);
             $request = array(
@@ -2971,7 +2955,7 @@ class ascendex extends Exchange {
             if (!$market['swap']) {
                 throw new BadSymbol($this->id . ' setLeverage() supports swap contracts only');
             }
-            $account = $this->safe_value($this->accounts, 0, array());
+            $account = $this->safe_dict($this->accounts, 0, array());
             $accountGroup = $this->safe_string($account, 'id');
             $request = array(
                 'account-group' => $accountGroup,
@@ -3005,7 +2989,7 @@ class ascendex extends Exchange {
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
             $market = $this->market($symbol);
-            $account = $this->safe_value($this->accounts, 0, array());
+            $account = $this->safe_dict($this->accounts, 0, array());
             $accountGroup = $this->safe_string($account, 'id');
             $request = array(
                 'account-group' => $accountGroup,
@@ -3057,7 +3041,7 @@ class ascendex extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data');
+            $data = $this->safe_list($response, 'data', array());
             $symbols = $this->market_symbols($symbols);
             return $this->parse_leverage_tiers($data, $symbols, 'symbol');
         }) ();
@@ -3091,7 +3075,7 @@ class ascendex extends Exchange {
         //        )
         //    }
         //
-        $marginRequirements = $this->safe_value($info, 'marginRequirements', array());
+        $marginRequirements = $this->safe_list($info, 'marginRequirements', array());
         $id = $this->safe_string($info, 'symbol');
         $market = $this->safe_market($id, $market);
         $tiers = array();
@@ -3131,7 +3115,7 @@ class ascendex extends Exchange {
         //     )
         // }
         //
-        $blockChains = $this->safe_value($fee, 'blockChain', array());
+        $blockChains = $this->safe_list($fee, 'blockChain', array());
         $blockChainsLength = count($blockChains);
         $result = array(
             'info' => $fee,
@@ -3191,10 +3175,10 @@ class ascendex extends Exchange {
              */
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
-            $account = $this->safe_value($this->accounts, 0, array());
+            $account = $this->safe_dict($this->accounts, 0, array());
             $accountGroup = $this->safe_string($account, 'id');
             $currency = $this->currency($code);
-            $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+            $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
             $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
             $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
             if ($fromId !== 'cash' && $toId !== 'cash') {
@@ -3211,7 +3195,7 @@ class ascendex extends Exchange {
             //
             //    array( "code" => "0" )
             //
-            $transferOptions = $this->safe_value($this->options, 'transfer', array());
+            $transferOptions = $this->safe_dict($this->options, 'transfer', array());
             $fillResponseFromRequest = $this->safe_bool($transferOptions, 'fillResponseFromRequest', true);
             $transfer = $this->parse_transfer($response, $currency);
             if ($fillResponseFromRequest) {
@@ -3269,7 +3253,7 @@ class ascendex extends Exchange {
             if ($paginate) {
                 return Async\await($this->fetch_paginated_call_incremental('fetchFundingHistory', $symbol, $since, $limit, $params, 'page', 25));
             }
-            $account = $this->safe_value($this->accounts, 0, array());
+            $account = $this->safe_dict($this->accounts, 0, array());
             $accountGroup = $this->safe_string($account, 'id');
             $request = array(
                 'account-group' => $accountGroup,
@@ -3301,7 +3285,7 @@ class ascendex extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $data = $this->safe_dict($response, 'data', array());
             $rows = $this->safe_list($data, 'data', array());
             return $this->parse_incomes($rows, $market, $since, $limit);
         }) ();
@@ -3340,7 +3324,7 @@ class ascendex extends Exchange {
              */
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
-            $account = $this->safe_value($this->accounts, 0, array());
+            $account = $this->safe_dict($this->accounts, 0, array());
             $accountGroup = $this->safe_string($account, 'id');
             $request = array(
                 'account-group' => $accountGroup,
@@ -3413,7 +3397,7 @@ class ascendex extends Exchange {
              */
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
-            $account = $this->safe_value($this->accounts, 0, array());
+            $account = $this->safe_dict($this->accounts, 0, array());
             $accountGroup = $this->safe_string($account, 'id');
             $request = array(
                 'account-group' => $accountGroup,

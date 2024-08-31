@@ -3559,23 +3559,8 @@ class coinex(Exchange, ImplicitAPI):
         options = self.safe_dict(self.options, 'fetchDepositAddress', {})
         fillResponseFromRequest = self.safe_bool(options, 'fillResponseFromRequest', True)
         if fillResponseFromRequest:
-            depositAddress['network'] = self.safe_network_code(network, currency)
+            depositAddress['network'] = self.network_id_to_code(network, currency).upper()
         return depositAddress
-
-    def safe_network(self, networkId, currency: Currency = None):
-        networks = self.safe_value(currency, 'networks', {})
-        networksCodes = list(networks.keys())
-        networksCodesLength = len(networksCodes)
-        if networkId is None and networksCodesLength == 1:
-            return networks[networksCodes[0]]
-        return {
-            'id': networkId,
-            'network': None if (networkId is None) else networkId.upper(),
-        }
-
-    def safe_network_code(self, networkId, currency: Currency = None):
-        network = self.safe_network(networkId, currency)
-        return network['network']
 
     def parse_deposit_address(self, depositAddress, currency: Currency = None):
         #

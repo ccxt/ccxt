@@ -303,7 +303,7 @@
                 "description": "fetch order",
                 "method": "fetchOrder",
                 "input": [
-                    6463065738
+                    "6463065738"
                 ],
                 "httpResponse": {
                     "order": {

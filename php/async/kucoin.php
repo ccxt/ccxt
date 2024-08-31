@@ -247,6 +247,7 @@ class kucoin extends Exchange {
                         'purchase/orders' => 10, // 10SW
                         // broker
                         'broker/api/rebase/download' => 3,
+                        'migrate/user/account/status' => 3,
                         // affiliate
                         'affiliate/inviter/statistics' => 30,
                     ),
@@ -691,6 +692,7 @@ class kucoin extends Exchange {
                             'project/marketInterestRate' => 'v3',
                             'redeem/orders' => 'v3',
                             'purchase/orders' => 'v3',
+                            'migrate/user/account/status' => 'v3',
                             'margin/symbols' => 'v3',
                             'affiliate/inviter/statistics' => 'v2',
                             'asset/ndbroker/deposit/list' => 'v1',
@@ -1216,6 +1218,35 @@ class kucoin extends Exchange {
                 );
             }
             return $result;
+        }) ();
+    }
+
+    public function load_migration_status(bool $force = false) {
+        return Async\async(function () use ($force) {
+            if (!(is_array($this->options) && array_key_exists('hfMigrated', $this->options)) || ($this->options['hfMigrated'] === null) || $force) {
+                $result = Async\await($this->privateGetMigrateUserAccountStatus ());
+                $data = $this->safe_dict($result, 'data', array());
+                $status = $this->safe_integer($data, 'status');
+                $this->options['hfMigrated'] = ($status === 2);
+            }
+        }) ();
+    }
+
+    public function handle_hf_and_params($params = array ()) {
+        return Async\async(function () use ($params) {
+            Async\await($this->load_migration_status());
+            $migrated = $this->safe_bool($this->options, 'hfMigrated');
+            $loadedHf = null;
+            if ($migrated !== null) {
+                if ($migrated) {
+                    $loadedHf = true;
+                } else {
+                    $loadedHf = false;
+                }
+            }
+            $hf = $this->safe_bool($params, 'hf', $loadedHf);
+            $params = $this->omit($params, 'hf');
+            return array( $hf, $params );
         }) ();
     }
 
@@ -1767,7 +1798,8 @@ class kucoin extends Exchange {
             //         }
             //     }
             //
-            return $this->parse_ticker($response['data'], $market);
+            $data = $this->safe_dict($response, 'data', array());
+            return $this->parse_ticker($data, $market);
         }) ();
     }
 
@@ -2072,7 +2104,7 @@ class kucoin extends Exchange {
              * @see https://docs.kucoin.com/spot#place-a-new-order
              * @see https://docs.kucoin.com/spot#place-a-new-order-2
              * @see https://docs.kucoin.com/spot#place-a-margin-order
-             * @see https://docs.kucoin.com/spot-hf/#place-hf-order
+             * @see https://docs.kucoin.com/spot-hf/#place-$hf-order
              * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order-test
              * @see https://www.kucoin.com/docs/rest/margin-trading/orders/place-margin-order-test
              * @param {string} $symbol Unified CCXT $market $symbol
@@ -2103,7 +2135,7 @@ class kucoin extends Exchange {
              * @param {float} [$params->leverage] Leverage size of the order
              * @param {string} [$params->stp] '', // self trade prevention, CN, CO, CB or DC
              * @param {bool} [$params->autoBorrow] false, // The system will first borrow you funds at the optimal interest rate and then place an order for you
-             * @param {bool} [$params->hf] false, // true for hf order
+             * @param {bool} [$params->hf] false, // true for $hf order
              * @param {bool} [$params->test] set to true to test an order, no order will be created but the request will be validated
              * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
              */
@@ -2111,7 +2143,8 @@ class kucoin extends Exchange {
             $market = $this->market($symbol);
             $testOrder = $this->safe_bool($params, 'test', false);
             $params = $this->omit($params, 'test');
-            $isHf = $this->safe_bool($params, 'hf', false);
+            $hf = null;
+            list($hf, $params) = Async\await($this->handle_hf_and_params($params));
             list($triggerPrice, $stopLossPrice, $takeProfitPrice) = $this->handle_trigger_prices($params);
             $tradeType = $this->safe_string($params, 'tradeType'); // keep it for backward compatibility
             $isTriggerOrder = ($triggerPrice || $stopLossPrice || $takeProfitPrice);
@@ -2124,15 +2157,17 @@ class kucoin extends Exchange {
             if ($testOrder) {
                 if ($isMarginOrder) {
                     $response = Async\await($this->privatePostMarginOrderTest ($orderRequest));
+                } elseif ($hf) {
+                    $response = Async\await($this->privatePostHfOrdersTest ($orderRequest));
                 } else {
                     $response = Async\await($this->privatePostOrdersTest ($orderRequest));
                 }
-            } elseif ($isHf) {
-                $response = Async\await($this->privatePostHfOrders ($orderRequest));
             } elseif ($isTriggerOrder) {
                 $response = Async\await($this->privatePostStopOrder ($orderRequest));
             } elseif ($isMarginOrder) {
                 $response = Async\await($this->privatePostMarginOrder ($orderRequest));
+            } elseif ($hf) {
+                $response = Async\await($this->privatePostHfOrders ($orderRequest));
             } else {
                 $response = Async\await($this->privatePostOrders ($orderRequest));
             }
@@ -2236,8 +2271,8 @@ class kucoin extends Exchange {
                 'symbol' => $market['id'],
                 'orderList' => $ordersRequests,
             );
-            $hf = $this->safe_bool($params, 'hf', false);
-            $params = $this->omit($params, 'hf');
+            $hf = null;
+            list($hf, $params) = Async\await($this->handle_hf_and_params($params));
             $response = null;
             if ($hf) {
                 $response = Async\await($this->privatePostHfOrdersMulti ($this->extend($request, $params)));
@@ -2422,7 +2457,8 @@ class kucoin extends Exchange {
             $request = array();
             $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
             $stop = $this->safe_bool_2($params, 'stop', 'trigger', false);
-            $hf = $this->safe_bool($params, 'hf', false);
+            $hf = null;
+            list($hf, $params) = Async\await($this->handle_hf_and_params($params));
             if ($hf) {
                 if ($symbol === null) {
                     throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol parameter for $hf orders');
@@ -2431,7 +2467,7 @@ class kucoin extends Exchange {
                 $request['symbol'] = $market['id'];
             }
             $response = null;
-            $params = $this->omit($params, array( 'clientOid', 'clientOrderId', 'stop', 'hf', 'trigger' ));
+            $params = $this->omit($params, array( 'clientOid', 'clientOrderId', 'stop', 'trigger' ));
             if ($clientOrderId !== null) {
                 $request['clientOid'] = $clientOrderId;
                 if ($stop) {
@@ -2531,8 +2567,9 @@ class kucoin extends Exchange {
             Async\await($this->load_markets());
             $request = array();
             $stop = $this->safe_bool($params, 'stop', false);
-            $hf = $this->safe_bool($params, 'hf', false);
-            $params = $this->omit($params, array( 'stop', 'hf' ));
+            $hf = null;
+            list($hf, $params) = Async\await($this->handle_hf_and_params($params));
+            $params = $this->omit($params, 'stop');
             list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelAllOrders', $params);
             if ($symbol !== null) {
                 $request['symbol'] = $this->market_id($symbol);
@@ -2587,8 +2624,12 @@ class kucoin extends Exchange {
             $lowercaseStatus = strtolower($status);
             $until = $this->safe_integer($params, 'until');
             $stop = $this->safe_bool_2($params, 'stop', 'trigger', false);
-            $hf = $this->safe_bool($params, 'hf', false);
-            $params = $this->omit($params, array( 'stop', 'hf', 'until', 'trigger' ));
+            $hf = null;
+            list($hf, $params) = Async\await($this->handle_hf_and_params($params));
+            if ($hf && ($symbol === null)) {
+                throw new ArgumentsRequired($this->id . ' fetchOrdersByStatus() requires a $symbol parameter for $hf orders');
+            }
+            $params = $this->omit($params, array( 'stop', 'trigger', 'till', 'until' ));
             list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOrdersByStatus', $params);
             if ($lowercaseStatus === 'open') {
                 $lowercaseStatus = 'active';
@@ -2765,7 +2806,8 @@ class kucoin extends Exchange {
             $request = array();
             $clientOrderId = $this->safe_string_2($params, 'clientOid', 'clientOrderId');
             $stop = $this->safe_bool_2($params, 'stop', 'trigger', false);
-            $hf = $this->safe_bool($params, 'hf', false);
+            $hf = null;
+            list($hf, $params) = Async\await($this->handle_hf_and_params($params));
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
@@ -2776,7 +2818,7 @@ class kucoin extends Exchange {
                 }
                 $request['symbol'] = $market['id'];
             }
-            $params = $this->omit($params, array( 'stop', 'hf', 'clientOid', 'clientOrderId', 'trigger' ));
+            $params = $this->omit($params, array( 'stop', 'clientOid', 'clientOrderId', 'trigger' ));
             $response = null;
             if ($clientOrderId !== null) {
                 $request['clientOid'] = $clientOrderId;
@@ -3038,7 +3080,8 @@ class kucoin extends Exchange {
                 return Async\await($this->fetch_paginated_call_dynamic('fetchMyTrades', $symbol, $since, $limit, $params));
             }
             $request = array();
-            $hf = $this->safe_bool($params, 'hf', false);
+            $hf = null;
+            list($hf, $params) = Async\await($this->handle_hf_and_params($params));
             if ($hf && $symbol === null) {
                 throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol parameter for $hf orders');
             }
@@ -3646,8 +3689,9 @@ class kucoin extends Exchange {
             //         }
             //     }
             //
-            $responseData = $response['data']['items'];
-            return $this->parse_transactions($responseData, $currency, $since, $limit, array( 'type' => 'deposit' ));
+            $data = $this->safe_dict($response, 'data', array());
+            $items = $this->safe_list($data, 'items', array());
+            return $this->parse_transactions($items, $currency, $since, $limit, array( 'type' => 'deposit' ));
         }) ();
     }
 
@@ -3731,8 +3775,9 @@ class kucoin extends Exchange {
             //         }
             //     }
             //
-            $responseData = $response['data']['items'];
-            return $this->parse_transactions($responseData, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
+            $data = $this->safe_dict($response, 'data', array());
+            $items = $this->safe_list($data, 'items', array());
+            return $this->parse_transactions($items, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
         }) ();
     }
 
@@ -3771,11 +3816,11 @@ class kucoin extends Exchange {
             $accountsByType = $this->safe_dict($this->options, 'accountsByType');
             $type = $this->safe_string($accountsByType, $requestedType, $requestedType);
             $params = $this->omit($params, 'type');
-            $isHf = $this->safe_bool($params, 'hf', false);
-            if ($isHf) {
+            $hf = null;
+            list($hf, $params) = Async\await($this->handle_hf_and_params($params));
+            if ($hf) {
                 $type = 'trade_hf';
             }
-            $params = $this->omit($params, 'hf');
             list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchBalance', $params);
             $response = null;
             $request = array();
@@ -4230,8 +4275,8 @@ class kucoin extends Exchange {
             Async\await($this->load_accounts());
             $paginate = false;
             list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate');
-            $isHf = $this->safe_bool($params, 'hf');
-            $params = $this->omit($params, 'hf');
+            $hf = null;
+            list($hf, $params) = Async\await($this->handle_hf_and_params($params));
             if ($paginate) {
                 return Async\await($this->fetch_paginated_call_dynamic('fetchLedger', $code, $since, $limit, $params));
             }
@@ -4255,7 +4300,7 @@ class kucoin extends Exchange {
             $marginMode = null;
             list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLedger', $params);
             $response = null;
-            if ($isHf) {
+            if ($hf) {
                 if ($marginMode !== null) {
                     $response = Async\await($this->privateGetHfMarginAccountLedgers ($this->extend($request, $params)));
                 } else {
@@ -4595,7 +4640,7 @@ class kucoin extends Exchange {
             //     }
             //
             $data = $this->safe_dict($response, 'data');
-            $rows = $this->safe_list($data, 'items');
+            $rows = $this->safe_list($data, 'items', array());
             return $this->parse_borrow_rate_histories($rows, $codes, $since, $limit);
         }) ();
     }
@@ -4651,7 +4696,7 @@ class kucoin extends Exchange {
             //     }
             //
             $data = $this->safe_dict($response, 'data');
-            $rows = $this->safe_list($data, 'items');
+            $rows = $this->safe_list($data, 'items', array());
             return $this->parse_borrow_rate_history($rows, $code, $since, $limit);
         }) ();
     }

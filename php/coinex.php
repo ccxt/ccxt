@@ -3686,27 +3686,9 @@ class coinex extends Exchange {
         $options = $this->safe_dict($this->options, 'fetchDepositAddress', array());
         $fillResponseFromRequest = $this->safe_bool($options, 'fillResponseFromRequest', true);
         if ($fillResponseFromRequest) {
-            $depositAddress['network'] = $this->safe_network_code($network, $currency);
+            $depositAddress['network'] = strtoupper($this->network_id_to_code($network, $currency));
         }
         return $depositAddress;
-    }
-
-    public function safe_network($networkId, ?array $currency = null) {
-        $networks = $this->safe_value($currency, 'networks', array());
-        $networksCodes = is_array($networks) ? array_keys($networks) : array();
-        $networksCodesLength = count($networksCodes);
-        if ($networkId === null && $networksCodesLength === 1) {
-            return $networks[$networksCodes[0]];
-        }
-        return array(
-            'id' => $networkId,
-            'network' => ($networkId === null) ? null : strtoupper($networkId),
-        );
-    }
-
-    public function safe_network_code($networkId, ?array $currency = null) {
-        $network = $this->safe_network($networkId, $currency);
-        return $network['network'];
     }
 
     public function parse_deposit_address($depositAddress, ?array $currency = null) {

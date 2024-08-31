@@ -557,8 +557,8 @@ class alpaca extends alpaca$1 {
         //       }
         //   }
         //
-        const orderbooks = this.safeValue(response, 'orderbooks', {});
-        const rawOrderbook = this.safeValue(orderbooks, id, {});
+        const orderbooks = this.safeDict(response, 'orderbooks', {});
+        const rawOrderbook = this.safeDict(orderbooks, id, {});
         const timestamp = this.parse8601(this.safeString(rawOrderbook, 't'));
         return this.parseOrderBook(rawOrderbook, market['symbol'], timestamp, 'b', 'a', 'p', 's');
     }

@@ -50,6 +50,7 @@ export default class kucoinfutures extends kucoin {
                 'createTriggerOrder': true,
                 'fetchAccounts': true,
                 'fetchBalance': true,
+                'fetchBidsAsks': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchClosedOrders': true,
@@ -779,11 +780,19 @@ export default class kucoinfutures extends kucoin {
          * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-symbols-list
          * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.method] the method to use, futuresPublicGetAllTickers or futuresPublicGetContractsActive
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await this.futuresPublicGetContractsActive (params);
+        let method = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'method', 'futuresPublicGetContractsActive');
+        let response: Dict = undefined;
+        if (method === 'futuresPublicGetAllTickers') {
+            response = await this.futuresPublicGetAllTickers (params);
+        } else {
+            response = await this.futuresPublicGetContractsActive (params);
+        }
         //
         //    {
         //        "code": "200000",
@@ -846,7 +855,7 @@ export default class kucoinfutures extends kucoin {
         //        }
         //    }
         //
-        const data = this.safeList (response, 'data', []);
+        const data = this.safeList (response, 'data');
         const tickers = this.parseTickers (data, symbols);
         return this.filterByArrayTickers (tickers, 'symbol', symbols);
     }
@@ -956,6 +965,21 @@ export default class kucoinfutures extends kucoin {
             'quoteVolume': this.safeString (ticker, 'turnoverOf24h'),
             'info': ticker,
         }, market);
+    }
+
+    async fetchBidsAsks (symbols: Strings = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#fetchBidsAsks
+         * @description fetches the bid and ask price and volume for multiple markets
+         * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        const request = {
+            'method': 'futuresPublicGetAllTickers',
+        };
+        return await this.fetchTickers (symbols, this.extend (request, params));
     }
 
     async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {

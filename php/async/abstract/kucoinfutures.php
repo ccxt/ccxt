@@ -265,6 +265,9 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
     public function private_get_broker_api_rebase_download($params = array()) {
         return $this->request('broker/api/rebase/download', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
+    public function private_get_migrate_user_account_status($params = array()) {
+        return $this->request('migrate/user/account/status', 'private', 'GET', $params, null, null, array("cost" => 3));
+    }
     public function private_get_affiliate_inviter_statistics($params = array()) {
         return $this->request('affiliate/inviter/statistics', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
@@ -975,6 +978,9 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
     }
     public function privateGetBrokerApiRebaseDownload($params = array()) {
         return $this->request('broker/api/rebase/download', 'private', 'GET', $params, null, null, array("cost" => 3));
+    }
+    public function privateGetMigrateUserAccountStatus($params = array()) {
+        return $this->request('migrate/user/account/status', 'private', 'GET', $params, null, null, array("cost" => 3));
     }
     public function privateGetAffiliateInviterStatistics($params = array()) {
         return $this->request('affiliate/inviter/statistics', 'private', 'GET', $params, null, null, array("cost" => 30));

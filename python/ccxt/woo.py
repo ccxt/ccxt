@@ -481,7 +481,7 @@ class woo(Exchange, ImplicitAPI):
             'swap': swap,
             'future': False,
             'option': False,
-            'active': None,
+            'active': self.safe_string(market, 'is_trading') == '1',
             'contract': contract,
             'linear': linear,
             'inverse': None,

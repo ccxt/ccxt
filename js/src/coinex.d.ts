@@ -55,8 +55,6 @@ export default class coinex extends Exchange {
         tag: any;
         network: any;
     }>;
-    safeNetwork(networkId: any, currency?: Currency): any;
-    safeNetworkCode(networkId: any, currency?: Currency): any;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
         info: any;
         currency: string;

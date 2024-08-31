@@ -3945,7 +3945,7 @@ class bitget extends Exchange {
         if ($feeCostString !== null) {
             // swap
             $fee = array(
-                'cost' => $this->parse_number(Precise::string_abs($feeCostString)),
+                'cost' => $this->parse_number(Precise::string_neg($feeCostString)),
                 'currency' => $market['settle'],
             );
         }
@@ -3962,7 +3962,7 @@ class bitget extends Exchange {
                 }
             }
             $fee = array(
-                'cost' => $this->parse_number(Precise::string_abs($this->safe_string($feeObject, 'totalFee'))),
+                'cost' => $this->parse_number(Precise::string_neg($this->safe_string($feeObject, 'totalFee'))),
                 'currency' => $this->safe_currency_code($this->safe_string($feeObject, 'feeCoinCode')),
             );
         }

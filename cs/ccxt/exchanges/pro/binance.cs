@@ -699,6 +699,90 @@ public partial class binance : ccxt.binance
         return (orderbook as IOrderBook).limit();
     }
 
+    public async virtual Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#unWatchOrderBookForSymbols
+        * @see https://binance-docs.github.io/apidocs/spot/en/#partial-book-depth-streams
+        * @see https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream
+        * @see https://binance-docs.github.io/apidocs/futures/en/#partial-book-depth-streams
+        * @see https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#partial-book-depth-streams
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams
+        * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @param {string[]} symbols unified array of symbols
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false, true, true);
+        object firstMarket = this.market(getValue(symbols, 0));
+        object type = getValue(firstMarket, "type");
+        if (isTrue(getValue(firstMarket, "contract")))
+        {
+            type = ((bool) isTrue(getValue(firstMarket, "linear"))) ? "future" : "delivery";
+        }
+        object name = "depth";
+        object streamHash = "multipleOrderbook";
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            streamHash = add(streamHash, add("::", String.Join(",", ((IList<object>)symbols).ToArray())));
+        }
+        object watchOrderBookRate = this.safeString(this.options, "watchOrderBookRate", "100");
+        object subParams = new List<object>() {};
+        object subMessageHashes = new List<object>() {};
+        object messageHashes = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(symbols, i);
+            object market = this.market(symbol);
+            ((IList<object>)subMessageHashes).Add(add("orderbook::", symbol));
+            ((IList<object>)messageHashes).Add(add("unsubscribe:orderbook:", symbol));
+            object subscriptionHash = add(add(getValue(market, "lowercaseId"), "@"), name);
+            object symbolHash = add(add(add(subscriptionHash, "@"), watchOrderBookRate), "ms");
+            ((IList<object>)subParams).Add(symbolHash);
+        }
+        object messageHashesLength = getArrayLength(subMessageHashes);
+        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/"), this.stream(type, streamHash, messageHashesLength));
+        object requestId = this.requestId(url);
+        object request = new Dictionary<string, object>() {
+            { "method", "UNSUBSCRIBE" },
+            { "params", subParams },
+            { "id", requestId },
+        };
+        object subscription = new Dictionary<string, object>() {
+            { "unsubscribe", true },
+            { "id", ((object)requestId).ToString() },
+            { "symbols", symbols },
+            { "subMessageHashes", subMessageHashes },
+            { "messageHashes", messageHashes },
+            { "topic", "orderbook" },
+        };
+        return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, subscription);
+    }
+
+    public async virtual Task<object> unWatchOrderBook(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#unWatchOrderBook
+        * @see https://binance-docs.github.io/apidocs/spot/en/#partial-book-depth-streams
+        * @see https://binance-docs.github.io/apidocs/spot/en/#diff-depth-stream
+        * @see https://binance-docs.github.io/apidocs/futures/en/#partial-book-depth-streams
+        * @see https://binance-docs.github.io/apidocs/futures/en/#diff-book-depth-streams
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#partial-book-depth-streams
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#diff-book-depth-streams
+        * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @param {string} symbol unified array of symbols
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.unWatchOrderBookForSymbols(new List<object>() {symbol}, parameters);
+    }
+
     public async virtual Task<object> fetchOrderBookWs(object symbol, object limit = null, object parameters = null)
     {
         /**
@@ -1033,7 +1117,85 @@ public partial class binance : ccxt.binance
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message, subscription});
         }
+        object isUnSubMessage = this.safeBool(subscription, "unsubscribe", false);
+        if (isTrue(isUnSubMessage))
+        {
+            this.handleUnSubscription(client as WebSocketClient, subscription);
+        }
         return message;
+    }
+
+    public virtual void handleUnSubscription(WebSocketClient client, object subscription)
+    {
+        object messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
+        object subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
+        for (object j = 0; isLessThan(j, getArrayLength(messageHashes)); postFixIncrement(ref j))
+        {
+            object unsubHash = getValue(messageHashes, j);
+            object subHash = getValue(subMessageHashes, j);
+            if (isTrue(inOp(((WebSocketClient)client).subscriptions, unsubHash)))
+            {
+
+            }
+            if (isTrue(inOp(((WebSocketClient)client).subscriptions, subHash)))
+            {
+
+            }
+            var error = new UnsubscribeError(add(add(this.id, " "), subHash));
+            ((WebSocketClient)client).reject(error, subHash);
+            callDynamically(client as WebSocketClient, "resolve", new object[] {true, unsubHash});
+            this.cleanCache(subscription);
+        }
+    }
+
+    public virtual void cleanCache(object subscription)
+    {
+        object topic = this.safeString(subscription, "topic");
+        object symbols = this.safeList(subscription, "symbols", new List<object>() {});
+        object symbolsLength = getArrayLength(symbols);
+        if (isTrue(isGreaterThan(symbolsLength, 0)))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                object symbol = getValue(symbols, i);
+                if (isTrue(isEqual(topic, "trade")))
+                {
+
+                } else if (isTrue(isEqual(topic, "orderbook")))
+                {
+
+                } else if (isTrue(isEqual(topic, "ticker")))
+                {
+
+                }
+            }
+        } else
+        {
+            if (isTrue(isEqual(topic, "myTrades")))
+            {
+                // don't reset this.myTrades directly here
+                // because in c# we need to use a different object
+                object keys = new List<object>(((IDictionary<string,object>)this.myTrades).Keys);
+                for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+                {
+
+                }
+            } else if (isTrue(isEqual(topic, "orders")))
+            {
+                object orderSymbols = new List<object>(((IDictionary<string,object>)this.orders).Keys);
+                for (object i = 0; isLessThan(i, getArrayLength(orderSymbols)); postFixIncrement(ref i))
+                {
+
+                }
+            } else if (isTrue(isEqual(topic, "ticker")))
+            {
+                object tickerSymbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
+                for (object i = 0; isLessThan(i, getArrayLength(tickerSymbols)); postFixIncrement(ref i))
+                {
+
+                }
+            }
+        }
     }
 
     public async override Task<object> watchTradesForSymbols(object symbols, object since = null, object limit = null, object parameters = null)
@@ -1107,6 +1269,97 @@ public partial class binance : ccxt.binance
             limit = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit});
         }
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+    }
+
+    public async virtual Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#unWatchTradesForSymbols
+        * @description unsubscribes from the trades channel
+        * @see https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
+        * @see https://binance-docs.github.io/apidocs/spot/en/#trade-streams
+        * @see https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
+        * @param {string[]} symbols unified symbol of the market to fetch trades for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false, true, true);
+        object streamHash = "multipleTrades";
+        if (isTrue(!isEqual(symbols, null)))
+        {
+            object symbolsLength = getArrayLength(symbols);
+            if (isTrue(isGreaterThan(symbolsLength, 200)))
+            {
+                throw new BadRequest ((string)add(this.id, " watchTradesForSymbols() accepts 200 symbols at most. To watch more symbols call watchTradesForSymbols() multiple times")) ;
+            }
+            streamHash = add(streamHash, add("::", String.Join(",", ((IList<object>)symbols).ToArray())));
+        }
+        object name = null;
+        var nameparametersVariable = this.handleOptionAndParams(parameters, "watchTradesForSymbols", "name", "trade");
+        name = ((IList<object>)nameparametersVariable)[0];
+        parameters = ((IList<object>)nameparametersVariable)[1];
+        parameters = this.omit(parameters, "callerMethodName");
+        object firstMarket = this.market(getValue(symbols, 0));
+        object type = getValue(firstMarket, "type");
+        if (isTrue(getValue(firstMarket, "contract")))
+        {
+            type = ((bool) isTrue(getValue(firstMarket, "linear"))) ? "future" : "delivery";
+        }
+        object subMessageHashes = new List<object>() {};
+        object subParams = new List<object>() {};
+        object messageHashes = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(symbols, i);
+            object market = this.market(symbol);
+            ((IList<object>)subMessageHashes).Add(add("trade::", symbol));
+            ((IList<object>)messageHashes).Add(add("unsubscribe:trade:", symbol));
+            object rawHash = add(add(getValue(market, "lowercaseId"), "@"), name);
+            ((IList<object>)subParams).Add(rawHash);
+        }
+        object query = this.omit(parameters, "type");
+        object subParamsLength = getArrayLength(subParams);
+        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/"), this.stream(type, streamHash, subParamsLength));
+        object requestId = this.requestId(url);
+        object request = new Dictionary<string, object>() {
+            { "method", "UNSUBSCRIBE" },
+            { "params", subParams },
+            { "id", requestId },
+        };
+        object subscription = new Dictionary<string, object>() {
+            { "unsubscribe", true },
+            { "id", ((object)requestId).ToString() },
+            { "subMessageHashes", subMessageHashes },
+            { "messageHashes", messageHashes },
+            { "symbols", symbols },
+            { "topic", "trade" },
+        };
+        return await this.watchMultiple(url, messageHashes, this.extend(request, query), messageHashes, subscription);
+    }
+
+    public async virtual Task<object> unWatchTrades(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#unWatchTrades
+        * @description unsubscribes from the trades channel
+        * @see https://binance-docs.github.io/apidocs/spot/en/#aggregate-trade-streams
+        * @see https://binance-docs.github.io/apidocs/spot/en/#trade-streams
+        * @see https://binance-docs.github.io/apidocs/futures/en/#aggregate-trade-streams
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#aggregate-trade-streams
+        * @param {string} symbol unified symbol of the market to fetch trades for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.name] the name of the method to call, 'trade' or 'aggTrade', default is 'trade'
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        return await this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
     }
 
     public async override Task<object> watchTrades(object symbol, object since = null, object limit = null, object parameters = null)
@@ -1702,6 +1955,135 @@ public partial class binance : ccxt.binance
             return newTickers;
         }
         return this.filterByArray(this.tickers, "symbol", symbols);
+    }
+
+    public async virtual Task<object> unWatchTickers(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#unWatchTickers
+        * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-mini-ticker-stream
+        * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-ticker-streams
+        * @see https://binance-docs.github.io/apidocs/futures/en/#all-market-mini-tickers-stream
+        * @see https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-ticker-streams
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#all-market-mini-tickers-stream
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-ticker-streams
+        * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        object channelName = null;
+        var channelNameparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "name", "ticker");
+        channelName = ((IList<object>)channelNameparametersVariable)[0];
+        parameters = ((IList<object>)channelNameparametersVariable)[1];
+        if (isTrue(isEqual(channelName, "bookTicker")))
+        {
+            throw new BadRequest ((string)add(this.id, " deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead")) ;
+        }
+        await this.loadMarkets();
+        object methodName = "watchTickers";
+        symbols = this.marketSymbols(symbols, null, true, false, true);
+        object firstMarket = null;
+        object marketType = null;
+        object symbolsDefined = (!isEqual(symbols, null));
+        if (isTrue(symbolsDefined))
+        {
+            firstMarket = this.market(getValue(symbols, 0));
+        }
+        var marketTypeparametersVariable = this.handleMarketTypeAndParams(methodName, firstMarket, parameters);
+        marketType = ((IList<object>)marketTypeparametersVariable)[0];
+        parameters = ((IList<object>)marketTypeparametersVariable)[1];
+        object subType = null;
+        var subTypeparametersVariable = this.handleSubTypeAndParams(methodName, firstMarket, parameters);
+        subType = ((IList<object>)subTypeparametersVariable)[0];
+        parameters = ((IList<object>)subTypeparametersVariable)[1];
+        object rawMarketType = null;
+        if (isTrue(this.isLinear(marketType, subType)))
+        {
+            rawMarketType = "future";
+        } else if (isTrue(this.isInverse(marketType, subType)))
+        {
+            rawMarketType = "delivery";
+        } else if (isTrue(isEqual(marketType, "spot")))
+        {
+            rawMarketType = marketType;
+        } else
+        {
+            throw new NotSupported ((string)add(add(add(this.id, " "), methodName), "() does not support options markets")) ;
+        }
+        object isBidAsk = (isEqual(channelName, "bookTicker"));
+        object subscriptionArgs = new List<object>() {};
+        object subMessageHashes = new List<object>() {};
+        object messageHashes = new List<object>() {};
+        if (isTrue(symbolsDefined))
+        {
+            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            {
+                object symbol = getValue(symbols, i);
+                object market = this.market(symbol);
+                ((IList<object>)subscriptionArgs).Add(add(add(getValue(market, "lowercaseId"), "@"), channelName));
+                ((IList<object>)subMessageHashes).Add(this.getMessageHash(channelName, getValue(market, "symbol"), isBidAsk));
+                ((IList<object>)messageHashes).Add(add("unsubscribe:ticker:", symbol));
+            }
+        } else
+        {
+            if (isTrue(isBidAsk))
+            {
+                if (isTrue(isEqual(marketType, "spot")))
+                {
+                    throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires symbols for this channel for spot markets")) ;
+                }
+                ((IList<object>)subscriptionArgs).Add(add("!", channelName));
+            } else
+            {
+                ((IList<object>)subscriptionArgs).Add(add(add("!", channelName), "@arr"));
+            }
+            ((IList<object>)subMessageHashes).Add(this.getMessageHash(channelName, null, isBidAsk));
+            ((IList<object>)messageHashes).Add("unsubscribe:ticker");
+        }
+        object streamHash = channelName;
+        if (isTrue(symbolsDefined))
+        {
+            streamHash = add(add(channelName, "::"), String.Join(",", ((IList<object>)symbols).ToArray()));
+        }
+        object url = add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), rawMarketType), "/"), this.stream(rawMarketType, streamHash));
+        object requestId = this.requestId(url);
+        object request = new Dictionary<string, object>() {
+            { "method", "UNSUBSCRIBE" },
+            { "params", subscriptionArgs },
+            { "id", requestId },
+        };
+        object subscription = new Dictionary<string, object>() {
+            { "unsubscribe", true },
+            { "id", ((object)requestId).ToString() },
+            { "subMessageHashes", subMessageHashes },
+            { "messageHashes", subMessageHashes },
+            { "symbols", symbols },
+            { "topic", "ticker" },
+        };
+        return await this.watchMultiple(url, subMessageHashes, this.extend(request, parameters), subMessageHashes, subscription);
+    }
+
+    public async virtual Task<object> unWatchTicker(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name binance#unWatchTicker
+        * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-mini-ticker-stream
+        * @see https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-ticker-streams
+        * @see https://binance-docs.github.io/apidocs/futures/en/#all-market-mini-tickers-stream
+        * @see https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-ticker-streams
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#all-market-mini-tickers-stream
+        * @see https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-ticker-streams
+        * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+        * @param {string} symbol unified symbol of the market to fetch the ticker for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.unWatchTickers(new List<object>() {symbol}, parameters);
     }
 
     public async override Task<object> watchBidsAsks(object symbols = null, object parameters = null)

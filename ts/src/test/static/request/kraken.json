@@ -449,6 +449,17 @@
                 "output": "nonce=1723941781388&asset=USDT&end=1671133779"
             }
         ],
+        "fetchDepositAddress": [
+            {
+                "description": "coin with space in id",
+                "method": "fetchDepositAddress",
+                "url": "https://api.kraken.com/0/private/DepositAddresses",
+                "input": [
+                  "MATIC"
+                ],
+                "output": "nonce=1724594503685&asset=MATIC&method=Polygon%20%28MATIC%29"
+              }
+        ],
         "fetchOHLCV": [
             {
                 "description": "spot with since",

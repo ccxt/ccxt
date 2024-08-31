@@ -4183,7 +4183,7 @@ public partial class bitget : Exchange
         {
             // swap
             fee = new Dictionary<string, object>() {
-                { "cost", this.parseNumber(Precise.stringAbs(feeCostString)) },
+                { "cost", this.parseNumber(Precise.stringNeg(feeCostString)) },
                 { "currency", getValue(market, "settle") },
             };
         }
@@ -4203,7 +4203,7 @@ public partial class bitget : Exchange
                 }
             }
             fee = new Dictionary<string, object>() {
-                { "cost", this.parseNumber(Precise.stringAbs(this.safeString(feeObject, "totalFee"))) },
+                { "cost", this.parseNumber(Precise.stringNeg(this.safeString(feeObject, "totalFee"))) },
                 { "currency", this.safeCurrencyCode(this.safeString(feeObject, "feeCoinCode")) },
             };
         }

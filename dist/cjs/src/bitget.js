@@ -4001,7 +4001,7 @@ class bitget extends bitget$1 {
         if (feeCostString !== undefined) {
             // swap
             fee = {
-                'cost': this.parseNumber(Precise["default"].stringAbs(feeCostString)),
+                'cost': this.parseNumber(Precise["default"].stringNeg(feeCostString)),
                 'currency': market['settle'],
             };
         }
@@ -4018,7 +4018,7 @@ class bitget extends bitget$1 {
                 }
             }
             fee = {
-                'cost': this.parseNumber(Precise["default"].stringAbs(this.safeString(feeObject, 'totalFee'))),
+                'cost': this.parseNumber(Precise["default"].stringNeg(this.safeString(feeObject, 'totalFee'))),
                 'currency': this.safeCurrencyCode(this.safeString(feeObject, 'feeCoinCode')),
             };
         }
