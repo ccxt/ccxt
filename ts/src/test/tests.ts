@@ -1086,23 +1086,28 @@ class testMainClass extends baseMainTestClass {
     }
 
     assertStaticRequestOutput (exchange, type: string, skipKeys: string[], storedUrls: any, requestUrls: any, storedOutput, newOutput) {
-        // if computer urls are array
-        if (Array.isArray (requestUrls)) {
-            if (!Array.isArray (storedUrls)) {
-                // if one url was stored in static tests (at this stage, most requests are stored with single url)
-                // in such case we only compare the stored url to the last computed url
-                const length = requestUrls.length;
-                const lastComputedUrl = requestUrls[length - 1];
-                this.assertStaticRequestOutputInner (exchange, type, skipKeys, storedUrls.toString (), lastComputedUrl.toString (), storedOutput, newOutput);
-            } else {
-                // if stored urls are also arrays (which should be the new standard from now) then they should match in length and values
-                for (let i = 0; i < requestUrls.length; i++) {
-                    this.assertStaticRequestOutputInner (exchange, type, skipKeys, storedUrls[i], requestUrls[i], storedOutput, newOutput);
-                }
-            }
+        // else if old structure, then do whatever we did before
+        if (!Array.isArray (storedUrls) && !Array.isArray (requestUrls)) {
+            const storedUrl = storedUrls.toString ();
+            const computedUrl = requestUrls.toString ();
+            this.assertStaticRequestOutputInner (exchange, type, skipKeys, storedUrl, computedUrl, storedOutput, newOutput);
+        } else if (Array.isArray (storedUrls) && !Array.isArray (requestUrls)) {
+            const length = storedUrls.length;
+            const lastStoredUrl = storedUrls[length - 1];
+            const computedUrl = requestUrls.toString ();
+            this.assertStaticRequestOutputInner (exchange, type, skipKeys, lastStoredUrl, computedUrl, storedOutput, newOutput);
+        } else if (!Array.isArray (storedUrls) && Array.isArray (requestUrls)) {
+            // if one url was stored in static tests (at this stage, most requests are stored with single url)
+            // in such case we only compare the stored url to the last computed url
+            const length = requestUrls.length;
+            const lastComputedUrl = requestUrls[length - 1];
+            const storedUrl = storedUrls.toString ();
+            this.assertStaticRequestOutputInner (exchange, type, skipKeys, storedUrl, lastComputedUrl, storedOutput, newOutput);
         } else {
-            // else if old standard, then do whatever we did before
-            this.assertStaticRequestOutputInner (exchange, type, skipKeys, storedUrls, requestUrls, storedOutput, newOutput);
+            // if stored urls are also arrays (which should be the new standard from now) then they should match in length and values
+            for (let i = 0; i < requestUrls.length; i++) {
+                this.assertStaticRequestOutputInner (exchange, type, skipKeys, storedUrls[i], requestUrls[i], storedOutput, newOutput);
+            }
         }
     }
 
