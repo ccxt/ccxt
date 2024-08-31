@@ -1070,8 +1070,7 @@ export default class ndax extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
-        await this.loadAccounts ();
+        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
@@ -1202,8 +1201,7 @@ export default class ndax extends Exchange {
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
-        await this.loadAccounts ();
+        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
@@ -1363,8 +1361,7 @@ export default class ndax extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
-        await this.loadAccounts ();
+        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         const clientOrderId = this.safeInteger2 (params, 'ClientOrderId', 'clientOrderId');
@@ -1421,8 +1418,7 @@ export default class ndax extends Exchange {
 
     async editOrder (id: string, symbol: string, type:OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) {
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
-        await this.loadAccounts ();
+        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         const clientOrderId = this.safeInteger2 (params, 'ClientOrderId', 'clientOrderId');
@@ -1480,8 +1476,7 @@ export default class ndax extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
-        await this.loadAccounts ();
+        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
@@ -1567,8 +1562,7 @@ export default class ndax extends Exchange {
          * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
-        await this.loadAccounts ();
+        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
@@ -1608,8 +1602,7 @@ export default class ndax extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
-        await this.loadAccounts ();
+        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
         // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         // const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         // params = this.omit (params, [ 'accountId', 'AccountId' ]);
@@ -1649,8 +1642,7 @@ export default class ndax extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
-        await this.loadAccounts ();
+        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
@@ -1729,8 +1721,7 @@ export default class ndax extends Exchange {
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
-        await this.loadAccounts ();
+        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
@@ -1823,8 +1814,7 @@ export default class ndax extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
-        await this.loadAccounts ();
+        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
@@ -1903,8 +1893,7 @@ export default class ndax extends Exchange {
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
-        await this.loadAccounts ();
+        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
         // const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         // const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         // params = this.omit (params, [ 'accountId', 'AccountId' ]);
@@ -1983,8 +1972,7 @@ export default class ndax extends Exchange {
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
-        await this.loadAccounts ();
+        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
@@ -2075,8 +2063,7 @@ export default class ndax extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
-        await this.loadAccounts ();
+        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
@@ -2136,8 +2123,7 @@ export default class ndax extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
-        await this.loadAccounts ();
+        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
@@ -2348,8 +2334,7 @@ export default class ndax extends Exchange {
         }
         this.checkAddress (address);
         const omsId = this.safeInteger (this.options, 'omsId', 1);
-        await this.loadMarkets ();
-        await this.loadAccounts ();
+        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
         const defaultAccountId = this.safeInteger2 (this.options, 'accountId', 'AccountId', parseInt (this.accounts[0]['id']));
         const accountId = this.safeInteger2 (params, 'accountId', 'AccountId', defaultAccountId);
         params = this.omit (params, [ 'accountId', 'AccountId' ]);
