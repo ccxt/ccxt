@@ -1524,8 +1524,7 @@ export default class coinbaseexchange extends Exchange {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchLedger() requires a code param');
         }
-        await this.loadMarkets ();
-        await this.loadAccounts ();
+        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
         const currency = this.currency (code);
         const accountsByCurrencyCode = this.indexBy (this.accounts, 'code');
         const account = this.safeValue (accountsByCurrencyCode, code);
@@ -1573,8 +1572,7 @@ export default class coinbaseexchange extends Exchange {
          * @param {string} [params.id] account id, when defined, the endpoint used is '/accounts/{account_id}/transfers/' instead of '/transfers/'
          * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        await this.loadMarkets ();
-        await this.loadAccounts ();
+        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
         let currency = undefined;
         let id = this.safeString (params, 'id'); // account id
         if (id === undefined) {
