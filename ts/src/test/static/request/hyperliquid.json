@@ -564,7 +564,10 @@
                 "url": "https://api.hyperliquid-testnet.xyz/info",
                 "input": [
                   "0x1234567890abcdef1234567890abcded",
-                  "SOL/USDC:USDC"
+                  "SOL/USDC:USDC",
+                    {
+                        "user": "0x3B3741c0EFf9C6b556Ec813e70589161F416662A"
+                    }
                 ],
                 "output": "{\"type\":\"orderStatus\",\"oid\":\"0x1234567890abcdef1234567890abcded\",\"user\":\"0x3B3741c0EFf9C6b556Ec813e70589161F416662A\"}"
             }
