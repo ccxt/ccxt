@@ -1140,7 +1140,14 @@ class testMainClass extends baseMainTestClass {
         if (this.lang === 'JS') {
             fetchInvalidationHook (exchange); // this runs only once
             exchange.options['collectedUrls'] = [];
-            await callExchangeMethodDynamically (exchange, method, this.sanitizeDataInput (data['input']));
+            try {
+                await callExchangeMethodDynamically (exchange, method, this.sanitizeDataInput (data['input']));
+            } catch (e) {
+                // we do not need to process exceptions here, they are mostly TypeErrors because of imperfect parsing across lib
+                if (this.info) {
+                    dump ('[INFO] fetch failure info: ', exceptionMessage (e));
+                }
+            }
             requestUrl = exchange.options['collectedUrls'];
             output = exchange.last_request_body;
         } else {

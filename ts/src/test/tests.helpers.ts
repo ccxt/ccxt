@@ -229,7 +229,7 @@ function fetchInvalidationHook (exchange) {
         exchange.options['fetchOverriden'] = originalFetch;
         exchange.fetch = async function (url, method = 'GET', headers = undefined, body = undefined) {
             exchange.options['collectedUrls'].push (url);
-            return undefined;
+            return {};
         };
     }
 }
