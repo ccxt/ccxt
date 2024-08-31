@@ -875,8 +875,8 @@ export default class kraken extends krakenRest {
     }
 
     async watchPrivate (name, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
-        await this.loadMarkets ();
-        const token = await this.authenticate ();
+        const results = await Promise.all ([ this.loadMarkets (), this.authenticate () ]);
+        const token = results[1];
         const subscriptionHash = name;
         let messageHash = name;
         if (symbol !== undefined) {
