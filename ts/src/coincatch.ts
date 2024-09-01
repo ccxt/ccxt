@@ -917,7 +917,7 @@ export default class coincatch extends Exchange {
         //     {
         //         "symbol": "ETHUSDT_SPBL",
         //         "tradeId": "1214135619719827457",
-        //         "side": "buy",
+        //         "side": "Buy",
         //         "fillPrice": "2458.62",
         //         "fillQuantity": "0.4756",
         //         "fillTime": "1725198409967"
@@ -939,7 +939,7 @@ export default class coincatch extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': undefined,
-            'side': side,
+            'side': side.toLowerCase (),
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
