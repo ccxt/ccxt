@@ -7021,7 +7021,7 @@ export default class Exchange {
         return this.filterByArray (objects, key, values, indexed) as Dictionary<Ticker>;
     }
 
-    createStreamOHLCV (symbol: Str, timeframe: Str, data: OHLCV | OHLCVC): Dictionary<any> {
+    createStreamOHLCV (symbol: Str, timeframe: Str, data): Dictionary<any> {
         return {
             'symbol': symbol,
             'timeframe': timeframe,

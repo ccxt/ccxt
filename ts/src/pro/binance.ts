@@ -1361,7 +1361,7 @@ export default class binance extends binanceRest {
         const interval = this.safeString (kline, 'i');
         // use a reverse lookup in a static map instead
         const unifiedTimeframe = this.findTimeframe (interval);
-        const parsed: OHLCV = [
+        const parsed = [
             this.safeInteger (kline, 't'),
             this.safeFloat (kline, 'o'),
             this.safeFloat (kline, 'h'),

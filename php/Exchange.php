@@ -7548,7 +7548,7 @@ class Exchange {
         return $this->filter_by_array($objects, $key, $values, $indexed);
     }
 
-    public function create_stream_ohlcv(?string $symbol, ?string $timeframe, OHLCV | OHLCVC $data) {
+    public function create_stream_ohlcv(?string $symbol, ?string $timeframe, $data) {
         return array(
             'symbol' => $symbol,
             'timeframe' => $timeframe,
