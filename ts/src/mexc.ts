@@ -882,6 +882,8 @@ export default class mexc extends Exchange {
          * @method
          * @name mexc#fetchStatus
          * @description the latest known information on the availability of the exchange API
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#test-connectivity
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
          */
