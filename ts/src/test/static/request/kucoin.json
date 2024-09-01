@@ -96,6 +96,22 @@
                   }
                 ],
                 "output": "{\"clientOid\":\"5fd0d866-f3c7-439b-b299-dbe09375ea30\",\"side\":\"buy\",\"symbol\":\"ADA-USDT\",\"type\":\"limit\",\"size\":\"20\",\"price\":\"0.3\",\"postOnly\":true}"
+            },
+            {
+                "description": "order with hf sync endpoint",
+                "method": "createOrder",
+                "url": "https://api.kucoin.com/api/v1/hf/orders/sync",
+                "input": [
+                  "ADA/USDT",
+                  "limit",
+                  "buy",
+                  20,
+                  0.3,
+                  {
+                    "sync": true
+                  }
+                ],
+                "output": "{\"clientOid\":\"c7908cb9-5b75-41c4-92e9-30f61bf28d4e\",\"side\":\"buy\",\"symbol\":\"ADA-USDT\",\"type\":\"limit\",\"size\":\"20\",\"price\":\"0.3\"}"
             }
         ],
         "createOrders": [
@@ -277,6 +293,18 @@
                   "ADA/USDT",
                   {
                     "hf": true
+                  }
+                ]
+            },
+            {
+                "description": "cancelOrder with hf sync endpoint",
+                "method": "cancelOrder",
+                "url": "https://api.kucoin.com/api/v1/hf/orders/sync/66d41123cf24cf00072d3e52?symbol=ADA-USDT",
+                "input": [
+                  "66d41123cf24cf00072d3e52",
+                  "ADA/USDT",
+                  {
+                    "sync": true
                   }
                 ]
             }
