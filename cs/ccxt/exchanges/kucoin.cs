@@ -1982,6 +1982,7 @@ public partial class kucoin : Exchange
         * @see https://docs.kucoin.com/spot-hf/#place-hf-order
         * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order-test
         * @see https://www.kucoin.com/docs/rest/margin-trading/orders/place-margin-order-test
+        * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-place-hf-order
         * @param {string} symbol Unified CCXT market symbol
         * @param {string} type 'limit' or 'market'
         * @param {string} side 'buy' or 'sell'
@@ -2012,6 +2013,7 @@ public partial class kucoin : Exchange
         * @param {bool} [params.autoBorrow] false, // The system will first borrow you funds at the optimal interest rate and then place an order for you
         * @param {bool} [params.hf] false, // true for hf order
         * @param {bool} [params.test] set to true to test an order, no order will be created but the request will be validated
+        * @param {bool} [params.sync] set to true to use the hf sync call
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -2023,6 +2025,10 @@ public partial class kucoin : Exchange
         var hfparametersVariable = await this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
         parameters = ((IList<object>)hfparametersVariable)[1];
+        object useSync = false;
+        var useSyncparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "sync", false);
+        useSync = ((IList<object>)useSyncparametersVariable)[0];
+        parameters = ((IList<object>)useSyncparametersVariable)[1];
         var triggerPricestopLossPricetakeProfitPriceVariable = this.handleTriggerPrices(parameters);
         var triggerPrice = ((IList<object>) triggerPricestopLossPricetakeProfitPriceVariable)[0];
         var stopLossPrice = ((IList<object>) triggerPricestopLossPricetakeProfitPriceVariable)[1];
@@ -2053,6 +2059,9 @@ public partial class kucoin : Exchange
         } else if (isTrue(isMarginOrder))
         {
             response = await this.privatePostMarginOrder(orderRequest);
+        } else if (isTrue(useSync))
+        {
+            response = await this.privatePostHfOrdersSync(orderRequest);
         } else if (isTrue(hf))
         {
             response = await this.privatePostHfOrders(orderRequest);
@@ -2133,9 +2142,11 @@ public partial class kucoin : Exchange
         * @description create a list of trade orders
         * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-multiple-orders
         * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/place-multiple-hf-orders
+        * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-place-multiple-hf-orders
         * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
         * @param {object} [params]  extra parameters specific to the exchange API endpoint
         * @param {bool} [params.hf] false, // true for hf orders
+        * @param {bool} [params.sync] false, // true to use the hf sync call
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -2177,8 +2188,15 @@ public partial class kucoin : Exchange
         var hfparametersVariable = await this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
         parameters = ((IList<object>)hfparametersVariable)[1];
+        object useSync = false;
+        var useSyncparametersVariable = this.handleOptionAndParams(parameters, "createOrders", "sync", false);
+        useSync = ((IList<object>)useSyncparametersVariable)[0];
+        parameters = ((IList<object>)useSyncparametersVariable)[1];
         object response = null;
-        if (isTrue(hf))
+        if (isTrue(useSync))
+        {
+            response = await this.privatePostHfOrdersMultiSync(this.extend(request, parameters));
+        } else if (isTrue(hf))
         {
             response = await this.privatePostHfOrdersMulti(this.extend(request, parameters));
         } else
@@ -2384,11 +2402,14 @@ public partial class kucoin : Exchange
         * @see https://docs.kucoin.com/spot#cancel-single-order-by-clientoid-2
         * @see https://docs.kucoin.com/spot-hf/#cancel-orders-by-orderid
         * @see https://docs.kucoin.com/spot-hf/#cancel-order-by-clientoid
+        * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-cancel-hf-order-by-orderid
+        * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-cancel-hf-order-by-clientoid
         * @param {string} id order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {bool} [params.stop] True if cancelling a stop order
         * @param {bool} [params.hf] false, // true for hf order
+        * @param {bool} [params.sync] false, // true to use the hf sync call
         * @returns Response from the exchange
         */
         parameters ??= new Dictionary<string, object>();
@@ -2400,7 +2421,11 @@ public partial class kucoin : Exchange
         var hfparametersVariable = await this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
         parameters = ((IList<object>)hfparametersVariable)[1];
-        if (isTrue(hf))
+        object useSync = false;
+        var useSyncparametersVariable = this.handleOptionAndParams(parameters, "cancelOrder", "sync", false);
+        useSync = ((IList<object>)useSyncparametersVariable)[0];
+        parameters = ((IList<object>)useSyncparametersVariable)[1];
+        if (isTrue(isTrue(hf) || isTrue(useSync)))
         {
             if (isTrue(isEqual(symbol, null)))
             {
@@ -2417,6 +2442,9 @@ public partial class kucoin : Exchange
             if (isTrue(stop))
             {
                 response = await this.privateDeleteStopOrderCancelOrderByClientOid(this.extend(request, parameters));
+            } else if (isTrue(useSync))
+            {
+                response = await this.privateDeleteHfOrdersSyncClientOrderClientOid(this.extend(request, parameters));
             } else if (isTrue(hf))
             {
                 response = await this.privateDeleteHfOrdersClientOrderClientOid(this.extend(request, parameters));
@@ -2432,6 +2460,9 @@ public partial class kucoin : Exchange
             if (isTrue(stop))
             {
                 response = await this.privateDeleteStopOrderOrderId(this.extend(request, parameters));
+            } else if (isTrue(useSync))
+            {
+                response = await this.privateDeleteHfOrdersSyncOrderId(this.extend(request, parameters));
             } else if (isTrue(hf))
             {
                 response = await this.privateDeleteHfOrdersOrderId(this.extend(request, parameters));

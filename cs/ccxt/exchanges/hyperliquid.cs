@@ -326,7 +326,7 @@ public partial class hyperliquid : Exchange
         //
         object meta = this.safeDict(response, 0, new Dictionary<string, object>() {});
         object universe = this.safeList(meta, "universe", new List<object>() {});
-        object assetCtxs = this.safeDict(response, 1, new Dictionary<string, object>() {});
+        object assetCtxs = this.safeList(response, 1, new List<object>() {});
         object result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(universe)); postFixIncrement(ref i))
         {
@@ -709,7 +709,7 @@ public partial class hyperliquid : Exchange
                 object total = this.safeString(balance, "total");
                 object free = this.safeString(balance, "hold");
                 ((IDictionary<string,object>)account)["total"] = total;
-                ((IDictionary<string,object>)account)["free"] = free;
+                ((IDictionary<string,object>)account)["used"] = free;
                 ((IDictionary<string,object>)spotBalances)[(string)code] = account;
             }
             return this.safeBalance(spotBalances);

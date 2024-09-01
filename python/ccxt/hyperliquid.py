@@ -328,7 +328,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #
         meta = self.safe_dict(response, 0, {})
         universe = self.safe_list(meta, 'universe', [])
-        assetCtxs = self.safe_dict(response, 1, {})
+        assetCtxs = self.safe_list(response, 1, [])
         result = []
         for i in range(0, len(universe)):
             data = self.extend(
@@ -686,7 +686,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 total = self.safe_string(balance, 'total')
                 free = self.safe_string(balance, 'hold')
                 account['total'] = total
-                account['free'] = free
+                account['used'] = free
                 spotBalances[code] = account
             return self.safe_balance(spotBalances)
         data = self.safe_dict(response, 'marginSummary', {})

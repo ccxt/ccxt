@@ -321,7 +321,7 @@ class hyperliquid extends Exchange {
         //
         $meta = $this->safe_dict($response, 0, array());
         $universe = $this->safe_list($meta, 'universe', array());
-        $assetCtxs = $this->safe_dict($response, 1, array());
+        $assetCtxs = $this->safe_list($response, 1, array());
         $result = array();
         for ($i = 0; $i < count($universe); $i++) {
             $data = $this->extend(
@@ -686,7 +686,7 @@ class hyperliquid extends Exchange {
                 $total = $this->safe_string($balance, 'total');
                 $free = $this->safe_string($balance, 'hold');
                 $account['total'] = $total;
-                $account['free'] = $free;
+                $account['used'] = $free;
                 $spotBalances[$code] = $account;
             }
             return $this->safe_balance($spotBalances);

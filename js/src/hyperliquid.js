@@ -329,7 +329,7 @@ export default class hyperliquid extends Exchange {
         //
         const meta = this.safeDict(response, 0, {});
         const universe = this.safeList(meta, 'universe', []);
-        const assetCtxs = this.safeDict(response, 1, {});
+        const assetCtxs = this.safeList(response, 1, []);
         const result = [];
         for (let i = 0; i < universe.length; i++) {
             const data = this.extend(this.safeDict(universe, i, {}), this.safeDict(assetCtxs, i, {}));
@@ -692,7 +692,7 @@ export default class hyperliquid extends Exchange {
                 const total = this.safeString(balance, 'total');
                 const free = this.safeString(balance, 'hold');
                 account['total'] = total;
-                account['free'] = free;
+                account['used'] = free;
                 spotBalances[code] = account;
             }
             return this.safeBalance(spotBalances);
