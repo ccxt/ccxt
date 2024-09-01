@@ -1941,9 +1941,10 @@ public partial class hyperliquid : Exchange
         parameters = ((IList<object>)userAddressparametersVariable)[1];
         await this.loadMarkets();
         object market = this.safeMarket(symbol);
+        object isClientOrderId = isGreaterThanOrEqual(((string)id).Length, 34);
         object request = new Dictionary<string, object>() {
             { "type", "orderStatus" },
-            { "oid", this.parseToNumeric(id) },
+            { "oid", ((bool) isTrue(isClientOrderId)) ? id : this.parseToNumeric(id) },
             { "user", userAddress },
         };
         object response = await this.publicPostInfo(this.extend(request, parameters));

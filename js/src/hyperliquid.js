@@ -1787,9 +1787,10 @@ export default class hyperliquid extends Exchange {
         [userAddress, params] = this.handlePublicAddress('fetchOrder', params);
         await this.loadMarkets();
         const market = this.safeMarket(symbol);
+        const isClientOrderId = id.length >= 34;
         const request = {
             'type': 'orderStatus',
-            'oid': this.parseToNumeric(id),
+            'oid': isClientOrderId ? id : this.parseToNumeric(id),
             'user': userAddress,
         };
         const response = await this.publicPostInfo(this.extend(request, params));
