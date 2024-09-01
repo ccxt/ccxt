@@ -50,6 +50,7 @@ export interface MarketMarginModes {
     isolated: boolean;
     cross: boolean;
 }
+
 export interface MarketInterface {
     id: Str;
     numericId?: Num;
