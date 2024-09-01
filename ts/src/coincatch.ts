@@ -869,17 +869,27 @@ export default class coincatch extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch (default 100, max 500)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.tradeId] trade ID to fetch from
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
+        const methodName = 'fetchTrades';
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request: Dict = {
             'symbol': market['id'],
         };
+        if (since !== undefined) {
+            request['after'] = since;
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetApiSpotV1MarketFills (this.extend (request, params));
+        let until: Int = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
+        if (until !== undefined) {
+            request['before'] = until;
+        }
+        const response = await this.publicGetApiSpotV1MarketFillsHistory (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
