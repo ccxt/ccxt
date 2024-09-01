@@ -2,9 +2,9 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/coincatch.js';
-import { } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Currencies, Dict, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
@@ -100,7 +100,7 @@ export default class coincatch extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTime': true,
-                'fetchTrades': false,
+                'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransactions': false,
@@ -178,7 +178,6 @@ export default class coincatch extends Exchange {
                         'api/spot/v1/wallet/deposit-list': 1,
                         'api/spot/v1/account/getInfo': 1,
                         'api/spot/v1/account/assets': 1,
-                        'api/spot/v1/account/bills': 1,
                         'api/spot/v1/account/transferRecords': 1,
                         'api/mix/v1/account/account': 1,
                         'api/mix/v1/account/accounts': 1,
@@ -200,6 +199,7 @@ export default class coincatch extends Exchange {
                         'api/spot/v1/wallet/transfer-v2': 1,
                         'api/spot/v1/wallet/withdrawal-v2': 1,
                         'api/spot/v1/wallet/withdrawal-inner-v2': 1,
+                        'api/spot/v1/account/bills': 1,
                         'api/spot/v1/trade/orders': 1,
                         'api/spot/v1/trade/batch-orders': 1,
                         'api/spot/v1/trade/cancel-order': 1,
@@ -942,8 +942,36 @@ export default class coincatch extends Exchange {
         let url = this.urls['api'][api] + '/' + path;
         let query: Str = undefined;
         query = this.urlencode (params);
-        if (query.length !== 0) {
-            url += '?' + query;
+        if (api === 'public') {
+            if (query.length !== 0) {
+                url += '?' + query;
+            }
+        } else {
+            this.checkRequiredCredentials ();
+            let endpoint = '/' + path;
+            if (method !== 'GET') {
+                body = query;
+            } else {
+                if (query.length !== 0) {
+                    url += '?' + query;
+                    endpoint += '?' + query;
+                }
+            }
+            const timestamp = this.milliseconds ().toString ();
+            let endpart = '';
+            if (body !== undefined) {
+                body = this.json (query);
+                endpart = body;
+            }
+            const payload = timestamp + method + endpoint + endpart;
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
+            headers = {
+                'ACCESS-KEY': this.apiKey,
+                'ACCESS-SIGN': signature,
+                'ACCESS-TIMESTAMP': timestamp,
+                'ACCESS-PASSPHRASE': this.password,
+                'Content-Type': 'application/json',
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
