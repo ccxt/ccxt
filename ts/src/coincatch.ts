@@ -998,6 +998,72 @@ export default class coincatch extends Exchange {
         return this.safeBalance (result);
     }
 
+    async fetchDepositAddress (code: string, params = {}) {
+        /**
+         * @method
+         * @name coincatch#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @see https://coincatch.github.io/github.io/en/spot/#get-coin-address
+         * @param {string} code unified currency code
+         * @param {string} [params.network] network for fetch deposit address
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request: Dict = {
+            'coin': currency['id'],
+        };
+        let networkCode: Str = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode === undefined) {
+            networkCode = this.defaultNetworkCode (code);
+        }
+        request['chain'] = this.networkCodeToId (networkCode, code);
+        const response = await this.privateGetApiSpotV1WalletDepositAddress (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1725210515143,
+        //         "data": {
+        //             "coin": "USDT",
+        //             "address": "TKTUt7qiTaMgnTwZXjE3ZBkPB6LKhLPJyZ",
+        //             "chain": "TRC20",
+        //             "tag": null,
+        //             "url": "https://tronscan.org/#/transaction/"
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        const depositAddress = this.parseDepositAddress (data, currency);
+        return depositAddress;
+    }
+
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
+        //
+        //     {
+        //         "coin": "USDT",
+        //         "address": "TKTUt7qiTaMgnTwZXjE3ZBkPB6LKhLPJyZ",
+        //         "chain": "TRC20",
+        //         "tag": null,
+        //         "url": "https://tronscan.org/#/transaction/"
+        //     }
+        //
+        const address = this.safeString (depositAddress, 'address');
+        this.checkAddress (address);
+        const networkId = this.safeString (depositAddress, 'chain');
+        const network = this.safeString (this.options['networksById'], networkId, networkId);
+        const tag = this.safeString (depositAddress, 'tag');
+        return {
+            'currency': currency['code'],
+            'address': address,
+            'tag': tag,
+            'network': network,
+            'info': depositAddress,
+        };
+    }
+
     async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
