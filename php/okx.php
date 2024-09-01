@@ -1036,6 +1036,7 @@ class okx extends Exchange {
                     'ZEC' => 'Zcash',
                     'ZIL' => 'Zilliqa',
                     'ZKSYNC' => 'ZKSYNC',
+                    'OMNI' => 'Omni',
                     // 'NEON3' => 'N3', // tbd
                     // undetermined : "CELO-TOKEN", "Digital Cash", Khala
                     // todo => uncomment below after consensus
@@ -1586,15 +1587,6 @@ class okx extends Exchange {
         //
         $dataResponse = $this->safe_list($response, 'data', array());
         return $this->parse_markets($dataResponse);
-    }
-
-    public function safe_network($networkId) {
-        $networksById = array(
-            'Bitcoin' => 'BTC',
-            'Omni' => 'OMNI',
-            'TRON' => 'TRC20',
-        );
-        return $this->safe_string($networksById, $networkId, $networkId);
     }
 
     public function fetch_currencies($params = array ()): ?array {

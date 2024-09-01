@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.65'
+__version__ = '4.3.93'
 
 # -----------------------------------------------------------------------------
 
@@ -33,6 +33,7 @@ from ccxt.base.errors import OperationRejected                        # noqa: F4
 from ccxt.base.errors import NoChange                                 # noqa: F401
 from ccxt.base.errors import MarginModeAlreadySet                     # noqa: F401
 from ccxt.base.errors import MarketClosed                             # noqa: F401
+from ccxt.base.errors import ManualInteractionNeeded                  # noqa: F401
 from ccxt.base.errors import InsufficientFunds                        # noqa: F401
 from ccxt.base.errors import InvalidAddress                           # noqa: F401
 from ccxt.base.errors import AddressPending                           # noqa: F401
@@ -58,6 +59,7 @@ from ccxt.base.errors import RequestTimeout                           # noqa: F4
 from ccxt.base.errors import BadResponse                              # noqa: F401
 from ccxt.base.errors import NullResponse                             # noqa: F401
 from ccxt.base.errors import CancelPending                            # noqa: F401
+from ccxt.base.errors import UnsubscribeError                         # noqa: F401
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 
 
@@ -121,6 +123,7 @@ from ccxt.async_support.fmfwio import fmfwio                                    
 from ccxt.async_support.gate import gate                                        # noqa: F401
 from ccxt.async_support.gateio import gateio                                    # noqa: F401
 from ccxt.async_support.gemini import gemini                                    # noqa: F401
+from ccxt.async_support.hashkey import hashkey                                  # noqa: F401
 from ccxt.async_support.hitbtc import hitbtc                                    # noqa: F401
 from ccxt.async_support.hitbtc3 import hitbtc3                                  # noqa: F401
 from ccxt.async_support.hollaex import hollaex                                  # noqa: F401
@@ -150,6 +153,7 @@ from ccxt.async_support.okx import okx                                          
 from ccxt.async_support.onetrading import onetrading                            # noqa: F401
 from ccxt.async_support.oxfun import oxfun                                      # noqa: F401
 from ccxt.async_support.p2b import p2b                                          # noqa: F401
+from ccxt.async_support.paradex import paradex                                  # noqa: F401
 from ccxt.async_support.paymium import paymium                                  # noqa: F401
 from ccxt.async_support.phemex import phemex                                    # noqa: F401
 from ccxt.async_support.poloniex import poloniex                                # noqa: F401
@@ -231,6 +235,7 @@ exchanges = [
     'gate',
     'gateio',
     'gemini',
+    'hashkey',
     'hitbtc',
     'hitbtc3',
     'hollaex',
@@ -260,6 +265,7 @@ exchanges = [
     'onetrading',
     'oxfun',
     'p2b',
+    'paradex',
     'paymium',
     'phemex',
     'poloniex',

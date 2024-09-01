@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.bitget import ImplicitAPI
 import hashlib
 import json
-from ccxt.base.types import Balances, Conversion, CrossBorrowRate, Currencies, Currency, FundingHistory, Int, IsolatedBorrowRate, Leverage, LeverageTier, Liquidation, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry, TransferEntries
+from ccxt.base.types import Balances, Conversion, CrossBorrowRate, Currencies, Currency, FundingHistory, Int, IsolatedBorrowRate, Leverage, LeverageTier, Liquidation, MarginMode, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
@@ -1330,6 +1330,7 @@ class bitget(Exchange, ImplicitAPI):
                 'JADE': 'Jade Protocol',
                 'DEGEN': 'DegenReborn',
                 'TONCOIN': 'TON',
+                'OMNI': 'omni',  # conflict with Omni Network
             },
             'options': {
                 'timeframes': {
@@ -3845,7 +3846,7 @@ class bitget(Exchange, ImplicitAPI):
         if feeCostString is not None:
             # swap
             fee = {
-                'cost': self.parse_number(Precise.string_abs(feeCostString)),
+                'cost': self.parse_number(Precise.string_neg(feeCostString)),
                 'currency': market['settle'],
             }
         feeDetail = self.safe_value(order, 'feeDetail')
@@ -3859,7 +3860,7 @@ class bitget(Exchange, ImplicitAPI):
                     feeObject = feeValue
                     break
             fee = {
-                'cost': self.parse_number(Precise.string_abs(self.safe_string(feeObject, 'totalFee'))),
+                'cost': self.parse_number(Precise.string_neg(self.safe_string(feeObject, 'totalFee'))),
                 'currency': self.safe_currency_code(self.safe_string(feeObject, 'feeCoinCode')),
             }
         postOnly = None
@@ -4769,6 +4770,7 @@ class bitget(Exchange, ImplicitAPI):
         fetches information on an order made by the user
         :see: https://www.bitget.com/api-doc/spot/trade/Get-Order-Info
         :see: https://www.bitget.com/api-doc/contract/trade/Get-Order-Details
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`
@@ -4867,8 +4869,9 @@ class bitget(Exchange, ImplicitAPI):
         if isinstance(response, str):
             response = json.loads(response)
         data = self.safe_dict(response, 'data')
-        if (data is not None) and not isinstance(data, list):
-            return self.parse_order(data, market)
+        if (data is not None):
+            if not isinstance(data, list):
+                return self.parse_order(data, market)
         dataList = self.safe_list(response, 'data', [])
         first = self.safe_dict(dataList, 0, {})
         return self.parse_order(first, market)
@@ -6818,7 +6821,7 @@ class bitget(Exchange, ImplicitAPI):
             'info': interest,
         }, market)
 
-    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> TransferEntries:
+    def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
         """
         fetch a history of internal transfers made on an account
         :see: https://www.bitget.com/api-doc/spot/account/Get-Account-TransferRecords

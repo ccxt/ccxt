@@ -6,7 +6,7 @@ import { AuthenticationError, RateLimitExceeded, BadRequest, OperationFailed, Ex
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, TransferEntries, int, FundingHistory } from './base/types.js';
+import type { TransferEntry, Balances, Conversion, Currency, FundingRateHistory, Int, Market, MarginModification, MarketType, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Dict, Bool, Strings, Trade, Transaction, Leverage, Account, Currencies, TradingFees, int, FundingHistory } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -146,7 +146,7 @@ export default class woo extends Exchange {
                     'https://support.woo.org/hc/en-001/articles/4404611795353--Trading-Fees',
                 ],
                 'referral': {
-                    'url': 'https://x.woo.org/register?ref=YWOWC96B',
+                    'url': 'https://x.woo.org/register?ref=DIJT0CNL',
                     'discount': 0.35,
                 },
             },
@@ -485,7 +485,7 @@ export default class woo extends Exchange {
             'swap': swap,
             'future': false,
             'option': false,
-            'active': undefined,
+            'active': this.safeString (market, 'is_trading') === '1',
             'contract': contract,
             'linear': linear,
             'inverse': undefined,
@@ -612,6 +612,10 @@ export default class woo extends Exchange {
         const amount = this.safeString (trade, 'executed_quantity');
         const order_id = this.safeString (trade, 'order_id');
         const fee = this.parseTokenAndFeeTemp (trade, 'fee_asset', 'fee');
+        const feeCost = this.safeString (fee, 'cost');
+        if (feeCost !== undefined) {
+            fee['cost'] = feeCost;
+        }
         const cost = Precise.stringMul (price, amount);
         const side = this.safeStringLower (trade, 'side');
         const id = this.safeString (trade, 'id');
@@ -1365,6 +1369,7 @@ export default class woo extends Exchange {
          * @see https://docs.woo.org/#get-algo-order
          * @see https://docs.woo.org/#get-order
          * @description fetches information on an order made by the user
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.stop] whether the order is a stop/algo order
@@ -2363,7 +2368,7 @@ export default class woo extends Exchange {
         return transfer;
     }
 
-    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntries> {
+    async fetchTransfers (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<TransferEntry[]> {
         /**
          * @method
          * @name woo#fetchTransfers
@@ -2678,11 +2683,13 @@ export default class woo extends Exchange {
         //
         const marketId = this.safeString (income, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const amount = this.safeNumber (income, 'funding_fee');
+        let amount = this.safeString (income, 'funding_fee');
         const code = this.safeCurrencyCode ('USD');
         const id = this.safeString (income, 'id');
         const timestamp = this.safeTimestamp (income, 'updated_time');
         const rate = this.safeNumber (income, 'funding_rate');
+        const paymentType = this.safeString (income, 'payment_type');
+        amount = (paymentType === 'Pay') ? Precise.stringNeg (amount) : amount;
         return {
             'info': income,
             'symbol': symbol,
@@ -2690,7 +2697,7 @@ export default class woo extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'id': id,
-            'amount': amount,
+            'amount': this.parseNumber (amount),
             'rate': rate,
         };
     }

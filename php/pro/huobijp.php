@@ -20,6 +20,7 @@ class huobijp extends \ccxt\async\huobijp {
                 'watchTickers' => false, // for now
                 'watchTicker' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchBalance' => false, // for now
                 'watchOHLCV' => true,
             ),

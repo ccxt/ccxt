@@ -1024,6 +1024,10 @@ class kucoin(ccxt.async_support.kucoin):
         tradeId = self.safe_string(trade, 'tradeId')
         price = self.safe_string(trade, 'matchPrice')
         amount = self.safe_string(trade, 'matchSize')
+        if price is None:
+            # /spot/tradeFills
+            price = self.safe_string(trade, 'price')
+            amount = self.safe_string(trade, 'size')
         order = self.safe_string(trade, 'orderId')
         timestamp = self.safe_integer_product_2(trade, 'ts', 'time', 0.000001)
         feeCurrency = market['quote']
@@ -1155,7 +1159,7 @@ class kucoin(ccxt.async_support.kucoin):
         if method is not None:
             method(client, message)
 
-    def ping(self, client):
+    def ping(self, client: Client):
         # kucoin does not support built-in ws protocol-level ping-pong
         # instead it requires a custom json-based text ping-pong
         # https://docs.kucoin.com/#ping

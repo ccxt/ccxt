@@ -54,7 +54,7 @@
                         "price": 57464.04,
                         "amount": 0.00010087,
                         "cost": 5.7963977148,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     }
                 ]
@@ -110,7 +110,7 @@
                         "price": 64376,
                         "amount": 0.0001,
                         "cost": 6.4376,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     }
                 ]
@@ -558,7 +558,7 @@
                         "price": 66567.15,
                         "amount": 0.00132336,
                         "cost": 88.092303624,
-                        "fee": null,
+                        "fee": {"cost": null, "currency": null },
                         "fees": []
                     }
                 ]

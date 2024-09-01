@@ -23,6 +23,7 @@ export default class hollaex extends hollaexRest {
                 'watchTicker': false,
                 'watchTickers': false, // for now
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
             },
             'urls': {
                 'api': {
@@ -591,7 +592,7 @@ export default class hollaex extends hollaexRest {
         }
     }
 
-    ping (client) {
+    ping (client: Client) {
         // hollaex does not support built-in ws protocol-level ping-pong
         return { 'op': 'ping' };
     }

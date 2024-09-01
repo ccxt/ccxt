@@ -26,6 +26,7 @@ class bitopro(ccxt.async_support.bitopro):
                 'watchTicker': True,
                 'watchTickers': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
             },
             'urls': {
                 'ws': {

@@ -638,7 +638,7 @@ public partial class cryptocom : ccxt.cryptocom
         var client = this.client(url);
         this.setPositionsCache(client as WebSocketClient, symbols);
         object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-        object awaitPositionsSnapshot = this.safeBool("watchPositions", "awaitPositionsSnapshot", true);
+        object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
         if (isTrue(isTrue(isTrue(fetchPositionsSnapshot) && isTrue(awaitPositionsSnapshot)) && isTrue(isEqual(this.positions, null))))
         {
             object snapshot = await client.future("fetchPositionsSnapshot");
@@ -1013,6 +1013,7 @@ public partial class cryptocom : ccxt.cryptocom
         //        "message": "invalid channel {"channels":["trade.BTCUSD-PERP"]}"
         //    }
         //
+        object id = this.safeString(message, "id");
         object errorCode = this.safeString(message, "code");
         try
         {
@@ -1025,6 +1026,7 @@ public partial class cryptocom : ccxt.cryptocom
                 {
                     this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), messageString, feedback);
                 }
+                throw new ExchangeError ((string)feedback) ;
             }
             return false;
         } catch(Exception e)
@@ -1039,7 +1041,7 @@ public partial class cryptocom : ccxt.cryptocom
                 }
             } else
             {
-                ((WebSocketClient)client).reject(e);
+                ((WebSocketClient)client).reject(e, id);
             }
             return true;
         }

@@ -9,7 +9,6 @@ declare class testMainClass extends baseMainTestClass {
     loadCredentialsFromEnv(exchange: Exchange): void;
     expandSettings(exchange: Exchange): void;
     addPadding(message: string, size: any): string;
-    exchangeHint(exchange: any, market?: any): string;
     testMethod(methodName: string, exchange: any, args: any[], isPublic: boolean): Promise<void>;
     getSkips(exchange: Exchange, methodName: string): any;
     testSafe(methodName: any, exchange: any, args?: any[], isPublic?: boolean): Promise<any>;
@@ -66,5 +65,7 @@ declare class testMainClass extends baseMainTestClass {
     testOxfun(): Promise<boolean>;
     testXT(): Promise<boolean>;
     testVertex(): Promise<boolean>;
+    testParadex(): Promise<boolean>;
+    testHashkey(): Promise<boolean>;
 }
 export default testMainClass;

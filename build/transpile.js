@@ -845,7 +845,6 @@ class Transpiler {
             'TradingFees': /-> TradingFees:/,
             'Transaction': /-> (?:List\[)?Transaction/,
             'TransferEntry': /-> TransferEntry:/,
-            'TransferEntries': /-> TransferEntries:/,
         }
         const matches = []
         let match
@@ -2096,7 +2095,9 @@ class Transpiler {
             replace(/\.private_key/g, '.privateKey').
             replace(/\.api_key/g, '.apiKey');
         
-        const impHelper = `# -*- coding: utf-8 -*-\n\nimport asyncio\n\n\n` + 'from tests_helpers import get_cli_arg_value, dump, exit_script, get_test_files, init_exchange, set_exchange_prop, call_method, exception_message, io_file_exists, io_file_read, baseMainTestClass, AuthenticationError, NotSupported, OperationFailed, OnMaintenance, ExchangeNotAvailable, InvalidProxySettings, get_exchange_prop, close, json_parse, json_stringify, is_null_value, io_dir_read, convert_ascii, call_exchange_method_dynamically, set_fetch_response, call_exchange_method_dynamically_sync  # noqa: F401' + '\n\n';
+        let pythonImports = transpilerResult[2].imports.filter(x=>x.path.includes('./tests.helpers.js'));
+        pythonImports = pythonImports.map (x=> (x.name in errors || x.name === 'baseMainTestClass') ? x.name : unCamelCase(x.name));
+        const impHelper = `# -*- coding: utf-8 -*-\n\nimport asyncio\n\n\n` + 'from tests_helpers import ' + pythonImports.join (', ') + '  # noqa: F401' + '\n\n';
         let newPython = impHelper + python3;
         newPython = snakeCaseFunctions (newPython);
         overwriteSafe (files.pyFileAsync, newPython);
@@ -2723,7 +2724,7 @@ if (isMainEntry(import.meta.url)) {
     if (test) {
         transpiler.transpileTests ()
     } else if (errors) {
-        transpiler.transpileErrorHierarchy ({ tsFilename })
+        transpiler.transpileErrorHierarchy ()
     } else if (multiprocess) {
         parallelizeTranspiling (exchangeIds, undefined, force)
     } else {

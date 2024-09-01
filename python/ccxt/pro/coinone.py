@@ -20,6 +20,7 @@ class coinone(ccxt.async_support.coinone):
                 'watchOrderBook': True,
                 'watchOrders': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchOHLCV': False,
                 'watchTicker': True,
                 'watchTickers': False,
@@ -380,7 +381,7 @@ class coinone(ccxt.async_support.coinone):
                     method(client, message)
                     return
 
-    def ping(self, client):
+    def ping(self, client: Client):
         return {
             'request_type': 'PING',
         }

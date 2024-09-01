@@ -1564,6 +1564,7 @@ class bigone(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
         :see: https://open.big.one/docs/spot_orders.html#get-one-order
+        :param str id: the order id
         :param str symbol: not used by bigone fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`

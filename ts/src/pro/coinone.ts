@@ -17,6 +17,7 @@ export default class coinone extends coinoneRest {
                 'watchOrderBook': true,
                 'watchOrders': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchOHLCV': false,
                 'watchTicker': true,
                 'watchTickers': false,
@@ -406,7 +407,7 @@ export default class coinone extends coinoneRest {
         }
     }
 
-    ping (client) {
+    ping (client: Client) {
         return {
             'request_type': 'PING',
         };

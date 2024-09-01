@@ -39,7 +39,7 @@ export default class kucoin extends kucoinRest {
     watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: Client, message: any): void;
     handleSubject(client: Client, message: any): void;
-    ping(client: any): {
+    ping(client: Client): {
         id: any;
         type: string;
     };

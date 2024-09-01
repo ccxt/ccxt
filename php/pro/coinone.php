@@ -18,6 +18,7 @@ class coinone extends \ccxt\async\coinone {
                 'watchOrderBook' => true,
                 'watchOrders' => false,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchOHLCV' => false,
                 'watchTicker' => true,
                 'watchTickers' => false,
@@ -407,7 +408,7 @@ class coinone extends \ccxt\async\coinone {
         }
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         return array(
             'request_type' => 'PING',
         );

@@ -24,6 +24,7 @@ class hollaex extends \ccxt\async\hollaex {
                 'watchTicker' => false,
                 'watchTickers' => false, // for now
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
             ),
             'urls' => array(
                 'api' => array(
@@ -596,7 +597,7 @@ class hollaex extends \ccxt\async\hollaex {
         }
     }
 
-    public function ping($client) {
+    public function ping(Client $client) {
         // hollaex does not support built-in ws protocol-level ping-pong
         return array( 'op' => 'ping' );
     }

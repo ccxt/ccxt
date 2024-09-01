@@ -144,7 +144,7 @@ class woo extends woo$1 {
                     'https://support.woo.org/hc/en-001/articles/4404611795353--Trading-Fees',
                 ],
                 'referral': {
-                    'url': 'https://x.woo.org/register?ref=YWOWC96B',
+                    'url': 'https://x.woo.org/register?ref=DIJT0CNL',
                     'discount': 0.35,
                 },
             },
@@ -482,7 +482,7 @@ class woo extends woo$1 {
             'swap': swap,
             'future': false,
             'option': false,
-            'active': undefined,
+            'active': this.safeString(market, 'is_trading') === '1',
             'contract': contract,
             'linear': linear,
             'inverse': undefined,
@@ -607,6 +607,10 @@ class woo extends woo$1 {
         const amount = this.safeString(trade, 'executed_quantity');
         const order_id = this.safeString(trade, 'order_id');
         const fee = this.parseTokenAndFeeTemp(trade, 'fee_asset', 'fee');
+        const feeCost = this.safeString(fee, 'cost');
+        if (feeCost !== undefined) {
+            fee['cost'] = feeCost;
+        }
         const cost = Precise["default"].stringMul(price, amount);
         const side = this.safeStringLower(trade, 'side');
         const id = this.safeString(trade, 'id');
@@ -1362,6 +1366,7 @@ class woo extends woo$1 {
          * @see https://docs.woo.org/#get-algo-order
          * @see https://docs.woo.org/#get-order
          * @description fetches information on an order made by the user
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [params.stop] whether the order is a stop/algo order
@@ -2654,11 +2659,13 @@ class woo extends woo$1 {
         //
         const marketId = this.safeString(income, 'symbol');
         const symbol = this.safeSymbol(marketId, market);
-        const amount = this.safeNumber(income, 'funding_fee');
+        let amount = this.safeString(income, 'funding_fee');
         const code = this.safeCurrencyCode('USD');
         const id = this.safeString(income, 'id');
         const timestamp = this.safeTimestamp(income, 'updated_time');
         const rate = this.safeNumber(income, 'funding_rate');
+        const paymentType = this.safeString(income, 'payment_type');
+        amount = (paymentType === 'Pay') ? Precise["default"].stringNeg(amount) : amount;
         return {
             'info': income,
             'symbol': symbol,
@@ -2666,7 +2673,7 @@ class woo extends woo$1 {
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
             'id': id,
-            'amount': amount,
+            'amount': this.parseNumber(amount),
             'rate': rate,
         };
     }

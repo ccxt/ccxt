@@ -1124,8 +1124,13 @@ export default class kucoin extends kucoinRest {
         const type = this.safeString (trade, 'orderType');
         const side = this.safeString (trade, 'side');
         const tradeId = this.safeString (trade, 'tradeId');
-        const price = this.safeString (trade, 'matchPrice');
-        const amount = this.safeString (trade, 'matchSize');
+        let price = this.safeString (trade, 'matchPrice');
+        let amount = this.safeString (trade, 'matchSize');
+        if (price === undefined) {
+            // /spot/tradeFills
+            price = this.safeString (trade, 'price');
+            amount = this.safeString (trade, 'size');
+        }
         const order = this.safeString (trade, 'orderId');
         const timestamp = this.safeIntegerProduct2 (trade, 'ts', 'time', 0.000001);
         const feeCurrency = market['quote'];
@@ -1268,7 +1273,7 @@ export default class kucoin extends kucoinRest {
         }
     }
 
-    ping (client) {
+    ping (client: Client) {
         // kucoin does not support built-in ws protocol-level ping-pong
         // instead it requires a custom json-based text ping-pong
         // https://docs.kucoin.com/#ping

@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import cryptocomRest from '../cryptocom.js';
-import { AuthenticationError, ChecksumError, NetworkError } from '../base/errors.js';
+import { AuthenticationError, ChecksumError, ExchangeError, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 //  ---------------------------------------------------------------------------
@@ -564,7 +564,7 @@ export default class cryptocom extends cryptocomRest {
         const client = this.client(url);
         this.setPositionsCache(client, symbols);
         const fetchPositionsSnapshot = this.handleOption('watchPositions', 'fetchPositionsSnapshot', true);
-        const awaitPositionsSnapshot = this.safeBool('watchPositions', 'awaitPositionsSnapshot', true);
+        const awaitPositionsSnapshot = this.handleOption('watchPositions', 'awaitPositionsSnapshot', true);
         if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
             const snapshot = await client.future('fetchPositionsSnapshot');
             return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
@@ -889,6 +889,7 @@ export default class cryptocom extends cryptocomRest {
         //        "message": "invalid channel {"channels":["trade.BTCUSD-PERP"]}"
         //    }
         //
+        const id = this.safeString(message, 'id');
         const errorCode = this.safeString(message, 'code');
         try {
             if (errorCode && errorCode !== '0') {
@@ -898,6 +899,7 @@ export default class cryptocom extends cryptocomRest {
                 if (messageString !== undefined) {
                     this.throwBroadlyMatchedException(this.exceptions['broad'], messageString, feedback);
                 }
+                throw new ExchangeError(feedback);
             }
             return false;
         }
@@ -910,7 +912,7 @@ export default class cryptocom extends cryptocomRest {
                 }
             }
             else {
-                client.reject(e);
+                client.reject(e, id);
             }
             return true;
         }

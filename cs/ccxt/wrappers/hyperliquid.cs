@@ -96,6 +96,26 @@ public partial class hyperliquid
         return new OrderBook(res);
     }
     /// <summary>
+    /// fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices"/>  <br/>
+    /// <list type="table">
+    /// <item>
+    /// <term>params</term>
+    /// <description>
+    /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}.</returns>
+    public async Task<Tickers> FetchTickers(List<String> symbols = null, Dictionary<string, object> parameters = null)
+    {
+        var res = await this.fetchTickers(symbols, parameters);
+        return new Tickers(res);
+    }
+    /// <summary>
     /// fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
     /// </summary>
     /// <remarks>
@@ -271,6 +291,11 @@ public partial class hyperliquid
         var res = await this.createOrders(orders, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
+    public Dictionary<string, object> CreateOrdersRequest(object orders, Dictionary<string, object> parameters = null)
+    {
+        var res = this.createOrdersRequest(orders, parameters);
+        return ((Dictionary<string, object>)res);
+    }
     /// <summary>
     /// cancels an open order
     /// </summary>
@@ -387,6 +412,13 @@ public partial class hyperliquid
     public async Task<Dictionary<string, object>> CancelAllOrdersAfter(Int64 timeout, Dictionary<string, object> parameters = null)
     {
         var res = await this.cancelAllOrdersAfter(timeout, parameters);
+        return ((Dictionary<string, object>)res);
+    }
+    public Dictionary<string, object> EditOrderRequest(string id, string symbol, string type, string side, double? amount2 = 0, double? price2 = 0, Dictionary<string, object> parameters = null)
+    {
+        var amount = amount2 == 0 ? null : (object)amount2;
+        var price = price2 == 0 ? null : (object)price2;
+        var res = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
         return ((Dictionary<string, object>)res);
     }
     /// <summary>

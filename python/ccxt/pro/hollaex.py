@@ -28,6 +28,7 @@ class hollaex(ccxt.async_support.hollaex):
                 'watchTicker': False,
                 'watchTickers': False,  # for now
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
             },
             'urls': {
                 'api': {
@@ -546,7 +547,7 @@ class hollaex(ccxt.async_support.hollaex):
         if method is not None:
             method(client, message)
 
-    def ping(self, client):
+    def ping(self, client: Client):
         # hollaex does not support built-in ws protocol-level ping-pong
         return {'op': 'ping'}
 

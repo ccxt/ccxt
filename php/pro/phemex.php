@@ -29,6 +29,7 @@ class phemex extends \ccxt\async\phemex {
                 'watchOrderBookForSymbols' => false,
                 'watchTradesForSymbols' => false,
                 'watchOHLCVForSymbols' => false,
+                'watchBalance' => true,
             ),
             'urls' => array(
                 'test' => array(

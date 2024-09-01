@@ -9,6 +9,7 @@ import hashlib
 from ccxt.base.types import Balances, Int, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
+from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import NetworkError
 from ccxt.base.errors import ChecksumError
@@ -523,7 +524,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         client = self.client(url)
         self.set_positions_cache(client, symbols)
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', True)
-        awaitPositionsSnapshot = self.safe_bool('watchPositions', 'awaitPositionsSnapshot', True)
+        awaitPositionsSnapshot = self.handle_option('watchPositions', 'awaitPositionsSnapshot', True)
         if fetchPositionsSnapshot and awaitPositionsSnapshot and self.positions is None:
             snapshot = await client.future('fetchPositionsSnapshot')
             return self.filter_by_symbols_since_limit(snapshot, symbols, since, limit, True)
@@ -827,6 +828,7 @@ class cryptocom(ccxt.async_support.cryptocom):
         #        "message": "invalid channel {"channels":["trade.BTCUSD-PERP"]}"
         #    }
         #
+        id = self.safe_string(message, 'id')
         errorCode = self.safe_string(message, 'code')
         try:
             if errorCode and errorCode != '0':
@@ -835,6 +837,7 @@ class cryptocom(ccxt.async_support.cryptocom):
                 messageString = self.safe_value(message, 'message')
                 if messageString is not None:
                     self.throw_broadly_matched_exception(self.exceptions['broad'], messageString, feedback)
+                raise ExchangeError(feedback)
             return False
         except Exception as e:
             if isinstance(e, AuthenticationError):
@@ -843,7 +846,7 @@ class cryptocom(ccxt.async_support.cryptocom):
                 if messageHash in client.subscriptions:
                     del client.subscriptions[messageHash]
             else:
-                client.reject(e)
+                client.reject(e, id)
             return True
 
     def handle_subscribe(self, client: Client, message):

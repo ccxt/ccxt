@@ -332,9 +332,9 @@ class bitfinex2 extends Exchange {
                 // convert 'EXCHANGE LIMIT' to lowercase 'limit'
                 // everything else remains uppercase
                 'exchangeTypes' => array(
-                    // 'MARKET' => null,
+                    'MARKET' => 'market',
                     'EXCHANGE MARKET' => 'market',
-                    // 'LIMIT' => null,
+                    'LIMIT' => 'limit',
                     'EXCHANGE LIMIT' => 'limit',
                     // 'STOP' => null,
                     'EXCHANGE STOP' => 'market',
@@ -374,6 +374,25 @@ class bitfinex2 extends Exchange {
                 ),
                 'withdraw' => array(
                     'includeFee' => false,
+                ),
+                'networks' => array(
+                    'BTC' => 'BITCOIN',
+                    'LTC' => 'LITECOIN',
+                    'ERC20' => 'ETHEREUM',
+                    'OMNI' => 'TETHERUSO',
+                    'LIQUID' => 'TETHERUSL',
+                    'TRC20' => 'TETHERUSX',
+                    'EOS' => 'TETHERUSS',
+                    'AVAX' => 'TETHERUSDTAVAX',
+                    'SOL' => 'TETHERUSDTSOL',
+                    'ALGO' => 'TETHERUSDTALG',
+                    'BCH' => 'TETHERUSDTBCH',
+                    'KSM' => 'TETHERUSDTKSM',
+                    'DVF' => 'TETHERUSDTDVF',
+                    'OMG' => 'TETHERUSDTOMG',
+                ),
+                'networksById' => array(
+                    'TETHERUSE' => 'ERC20',
                 ),
             ),
             'exceptions' => array(
@@ -784,7 +803,7 @@ class bitfinex2 extends Exchange {
                 $networkId = $this->safe_string($pair, 0);
                 $currencyId = $this->safe_string($this->safe_value($pair, 1, array()), 0);
                 if ($currencyId === $cleanId) {
-                    $network = $this->safe_network($networkId);
+                    $network = $this->network_id_to_code($networkId);
                     $networks[$network] = array(
                         'info' => $networkId,
                         'id' => strtolower($networkId),
@@ -810,27 +829,6 @@ class bitfinex2 extends Exchange {
             }
         }
         return $result;
-    }
-
-    public function safe_network($networkId) {
-        $networksById = array(
-            'BITCOIN' => 'BTC',
-            'LITECOIN' => 'LTC',
-            'ETHEREUM' => 'ERC20',
-            'TETHERUSE' => 'ERC20',
-            'TETHERUSO' => 'OMNI',
-            'TETHERUSL' => 'LIQUID',
-            'TETHERUSX' => 'TRC20',
-            'TETHERUSS' => 'EOS',
-            'TETHERUSDTAVAX' => 'AVAX',
-            'TETHERUSDTSOL' => 'SOL',
-            'TETHERUSDTALG' => 'ALGO',
-            'TETHERUSDTBCH' => 'BCH',
-            'TETHERUSDTKSM' => 'KSM',
-            'TETHERUSDTDVF' => 'DVF',
-            'TETHERUSDTOMG' => 'OMG',
-        );
-        return $this->safe_string($networksById, $networkId, $networkId);
     }
 
     public function fetch_balance($params = array ()): array {
@@ -2348,7 +2346,7 @@ class bitfinex2 extends Exchange {
             $currencyId = $this->safe_string($transaction, 1);
             $code = $this->safe_currency_code($currencyId, $currency);
             $networkId = $this->safe_string($transaction, 2);
-            $network = $this->safe_network($networkId);
+            $network = $this->network_id_to_code($networkId);
             $timestamp = $this->safe_integer($transaction, 5);
             $updated = $this->safe_integer($transaction, 6);
             $status = $this->parse_transaction_status($this->safe_string($transaction, 9));

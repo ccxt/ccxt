@@ -85,8 +85,8 @@ public partial class hyperliquid : Exchange
                 { "fetchPositions", true },
                 { "fetchPositionsRisk", false },
                 { "fetchPremiumIndexOHLCV", false },
-                { "fetchTicker", false },
-                { "fetchTickers", false },
+                { "fetchTicker", "emulated" },
+                { "fetchTickers", true },
                 { "fetchTime", false },
                 { "fetchTrades", true },
                 { "fetchTradingFee", true },
@@ -325,12 +325,12 @@ public partial class hyperliquid : Exchange
         //
         //
         object meta = this.safeDict(response, 0, new Dictionary<string, object>() {});
-        meta = this.safeList(meta, "universe", new List<object>() {});
-        object assetCtxs = this.safeDict(response, 1, new Dictionary<string, object>() {});
+        object universe = this.safeList(meta, "universe", new List<object>() {});
+        object assetCtxs = this.safeList(response, 1, new List<object>() {});
         object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(meta)); postFixIncrement(ref i))
+        for (object i = 0; isLessThan(i, getArrayLength(universe)); postFixIncrement(ref i))
         {
-            object data = this.extend(this.safeDict(meta, i, new Dictionary<string, object>() {}), this.safeDict(assetCtxs, i, new Dictionary<string, object>() {}));
+            object data = this.extend(this.safeDict(universe, i, new Dictionary<string, object>() {}), this.safeDict(assetCtxs, i, new Dictionary<string, object>() {}));
             ((IDictionary<string,object>)data)["baseId"] = i;
             ((IList<object>)result).Add(data);
         }
@@ -448,12 +448,14 @@ public partial class hyperliquid : Exchange
         //
         // response differs depending on the environment (mainnet vs sandbox)
         object first = this.safeDict(response, 0, new Dictionary<string, object>() {});
+        object second = this.safeList(response, 1, new List<object>() {});
         object meta = this.safeList2(first, "universe", "spot_infos", new List<object>() {});
         object tokens = this.safeList2(first, "tokens", "token_infos", new List<object>() {});
         object markets = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(meta)); postFixIncrement(ref i))
         {
             object market = this.safeDict(meta, i, new Dictionary<string, object>() {});
+            object extraData = this.safeDict(second, i, new Dictionary<string, object>() {});
             object marketName = this.safeString(market, "name");
             // if (marketName.indexOf ('/') < 0) {
             //     // there are some weird spot markets in testnet, eg @2
@@ -530,7 +532,7 @@ public partial class hyperliquid : Exchange
                     } },
                 } },
                 { "created", null },
-                { "info", market },
+                { "info", this.extend(extraData, market) },
             }));
         }
         return markets;
@@ -707,7 +709,7 @@ public partial class hyperliquid : Exchange
                 object total = this.safeString(balance, "total");
                 object free = this.safeString(balance, "hold");
                 ((IDictionary<string,object>)account)["total"] = total;
-                ((IDictionary<string,object>)account)["free"] = free;
+                ((IDictionary<string,object>)account)["used"] = free;
                 ((IDictionary<string,object>)spotBalances)[(string)code] = account;
             }
             return this.safeBalance(spotBalances);
@@ -777,6 +779,66 @@ public partial class hyperliquid : Exchange
         return this.parseOrderBook(result, getValue(market, "symbol"), timestamp, "bids", "asks", "px", "sz");
     }
 
+    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name hyperliquid#fetchTickers
+        * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        * @see https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_getActiveAndIndices
+        * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        // at this stage, to get tickers data, we use fetchMarkets endpoints
+        object response = await this.fetchMarkets(parameters);
+        // same response as under "fetchMarkets"
+        object result = new Dictionary<string, object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object market = getValue(response, i);
+            object info = getValue(market, "info");
+            object ticker = this.parseTicker(info, market);
+            object symbol = this.safeString(ticker, "symbol");
+            ((IDictionary<string,object>)result)[(string)symbol] = ticker;
+        }
+        return this.filterByArrayTickers(result, "symbol", symbols);
+    }
+
+    public override object parseTicker(object ticker, object market = null)
+    {
+        //
+        //     {
+        //         "prevDayPx": "3400.5",
+        //         "dayNtlVlm": "511297257.47936022",
+        //         "markPx": "3464.7",
+        //         "midPx": "3465.05",
+        //         "oraclePx": "3460.1", // only in swap
+        //         "openInterest": "64638.1108", // only in swap
+        //         "premium": "0.00141614", // only in swap
+        //         "funding": "0.00008727", // only in swap
+        //         "impactPxs": [ "3465.0", "3465.1" ], // only in swap
+        //         "coin": "PURR", // only in spot
+        //         "circulatingSupply": "998949190.03400207", // only in spot
+        //     },
+        //
+        object bidAsk = this.safeList(ticker, "impactPxs");
+        return this.safeTicker(new Dictionary<string, object>() {
+            { "symbol", getValue(market, "symbol") },
+            { "timestamp", null },
+            { "datetime", null },
+            { "previousClose", this.safeNumber(ticker, "prevDayPx") },
+            { "close", this.safeNumber(ticker, "midPx") },
+            { "bid", this.safeNumber(bidAsk, 0) },
+            { "ask", this.safeNumber(bidAsk, 1) },
+            { "quoteVolume", this.safeNumber(ticker, "dayNtlVlm") },
+            { "info", ticker },
+        }, market);
+    }
+
     public async override Task<object> fetchOHLCV(object symbol, object timeframe = null, object since = null, object limit = null, object parameters = null)
     {
         /**
@@ -800,10 +862,6 @@ public partial class hyperliquid : Exchange
         if (isTrue(isEqual(since, null)))
         {
             since = 0;
-        }
-        if (isTrue(isEqual(limit, null)))
-        {
-            limit = 500;
         }
         parameters = this.omit(parameters, new List<object>() {"until"});
         object request = new Dictionary<string, object>() {
@@ -1112,26 +1170,11 @@ public partial class hyperliquid : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
-        object vaultAddress = this.safeString(parameters, "vaultAddress");
-        parameters = this.omit(parameters, "vaultAddress");
-        symbol = getValue(market, "symbol");
-        object order = new Dictionary<string, object>() {
-            { "symbol", ((string)symbol) },
-            { "type", type },
-            { "side", side },
-            { "amount", amount },
-            { "price", price },
-            { "params", parameters },
-        };
-        object globalParams = new Dictionary<string, object>() {};
-        if (isTrue(!isEqual(vaultAddress, null)))
-        {
-            ((IDictionary<string,object>)globalParams)["vaultAddress"] = vaultAddress;
-        }
-        object response = await this.createOrders(new List<object>() {order}, globalParams);
-        object first = this.safeDict(response, 0);
-        return first;
+        var orderglobalParamsVariable = this.parseCreateOrderArgs(symbol, type, side, amount, price, parameters);
+        var order = ((IList<object>) orderglobalParamsVariable)[0];
+        var globalParams = ((IList<object>) orderglobalParamsVariable)[1];
+        object orders = await this.createOrders(new List<object>() {((object)order)}, globalParams);
+        return getValue(orders, 0);
     }
 
     public async override Task<object> createOrders(object orders, object parameters = null)
@@ -1145,8 +1188,44 @@ public partial class hyperliquid : Exchange
         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
-        this.checkRequiredCredentials();
         await this.loadMarkets();
+        object request = this.createOrdersRequest(orders, parameters);
+        object response = await this.privatePostExchange(request);
+        //
+        //     {
+        //         "status": "ok",
+        //         "response": {
+        //             "type": "order",
+        //             "data": {
+        //                 "statuses": [
+        //                     {
+        //                         "resting": {
+        //                             "oid": 5063830287
+        //                         }
+        //                     }
+        //                 ]
+        //             }
+        //         }
+        //     }
+        //
+        object responseObj = this.safeDict(response, "response", new Dictionary<string, object>() {});
+        object data = this.safeDict(responseObj, "data", new Dictionary<string, object>() {});
+        object statuses = this.safeList(data, "statuses", new List<object>() {});
+        return this.parseOrders(statuses, null);
+    }
+
+    public virtual object createOrdersRequest(object orders, object parameters = null)
+    {
+        /**
+        * @method
+        * @name hyperliquid#createOrders
+        * @description create a list of trade orders
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#place-an-order
+        * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        this.checkRequiredCredentials();
         object defaultSlippage = this.safeString(this.options, "defaultSlippage");
         defaultSlippage = this.safeString(parameters, "slippage", defaultSlippage);
         object hasClientOrderId = false;
@@ -1277,28 +1356,7 @@ public partial class hyperliquid : Exchange
             parameters = this.omit(parameters, "vaultAddress");
             ((IDictionary<string,object>)request)["vaultAddress"] = vaultAddress;
         }
-        object response = await this.privatePostExchange(request);
-        //
-        //     {
-        //         "status": "ok",
-        //         "response": {
-        //             "type": "order",
-        //             "data": {
-        //                 "statuses": [
-        //                     {
-        //                         "resting": {
-        //                             "oid": 5063830287
-        //                         }
-        //                     }
-        //                 ]
-        //             }
-        //         }
-        //     }
-        //
-        object responseObj = this.safeDict(response, "response", new Dictionary<string, object>() {});
-        object data = this.safeDict(responseObj, "data", new Dictionary<string, object>() {});
-        object statuses = this.safeList(data, "statuses", new List<object>() {});
-        return this.parseOrders(statuses, null);
+        return request;
     }
 
     public async override Task<object> cancelOrder(object id, object symbol = null, object parameters = null)
@@ -1542,36 +1600,14 @@ public partial class hyperliquid : Exchange
         return response;
     }
 
-    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    public virtual object editOrderRequest(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
-        /**
-        * @method
-        * @name hyperliquid#editOrder
-        * @description edit a trade order
-        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
-        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
-        * @param {string} id cancel order id
-        * @param {string} symbol unified symbol of the market to create an order in
-        * @param {string} type 'market' or 'limit'
-        * @param {string} side 'buy' or 'sell'
-        * @param {float} amount how much of currency you want to trade in units of base currency
-        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
-        * @param {object} [params] extra parameters specific to the exchange API endpoint
-        * @param {string} [params.timeInForce] 'Gtc', 'Ioc', 'Alo'
-        * @param {bool} [params.postOnly] true or false whether the order is post-only
-        * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
-        * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
-        * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
-        * @param {string} [params.vaultAddress] the vault address for order
-        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
-        */
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         if (isTrue(isEqual(id, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires an id argument")) ;
         }
-        await this.loadMarkets();
         object market = this.market(symbol);
         type = ((string)type).ToUpper();
         object isMarket = (isEqual(type, "MARKET"));
@@ -1663,6 +1699,36 @@ public partial class hyperliquid : Exchange
             parameters = this.omit(parameters, "vaultAddress");
             ((IDictionary<string,object>)request)["vaultAddress"] = vaultAddress;
         }
+        return request;
+    }
+
+    public async override Task<object> editOrder(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name hyperliquid#editOrder
+        * @description edit a trade order
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-an-order
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#modify-multiple-orders
+        * @param {string} id cancel order id
+        * @param {string} symbol unified symbol of the market to create an order in
+        * @param {string} type 'market' or 'limit'
+        * @param {string} side 'buy' or 'sell'
+        * @param {float} amount how much of currency you want to trade in units of base currency
+        * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.timeInForce] 'Gtc', 'Ioc', 'Alo'
+        * @param {bool} [params.postOnly] true or false whether the order is post-only
+        * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+        * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+        * @param {string} [params.clientOrderId] client order id, (optional 128 bit hex string e.g. 0x1234567890abcdef1234567890abcdef)
+        * @param {string} [params.vaultAddress] the vault address for order
+        * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object market = this.market(symbol);
+        object request = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
         object response = await this.privatePostExchange(request);
         //
         //     {
@@ -1875,9 +1941,10 @@ public partial class hyperliquid : Exchange
         parameters = ((IList<object>)userAddressparametersVariable)[1];
         await this.loadMarkets();
         object market = this.safeMarket(symbol);
+        object isClientOrderId = isGreaterThanOrEqual(((string)id).Length, 34);
         object request = new Dictionary<string, object>() {
             { "type", "orderStatus" },
-            { "oid", this.parseToNumeric(id) },
+            { "oid", ((bool) isTrue(isClientOrderId)) ? id : this.parseToNumeric(id) },
             { "user", userAddress },
         };
         object response = await this.publicPostInfo(this.extend(request, parameters));
@@ -2959,5 +3026,28 @@ public partial class hyperliquid : Exchange
             { "body", body },
             { "headers", headers },
         };
+    }
+
+    public virtual object parseCreateOrderArgs(object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object market = this.market(symbol);
+        object vaultAddress = this.safeString(parameters, "vaultAddress");
+        parameters = this.omit(parameters, "vaultAddress");
+        symbol = getValue(market, "symbol");
+        object order = new Dictionary<string, object>() {
+            { "symbol", symbol },
+            { "type", type },
+            { "side", side },
+            { "amount", amount },
+            { "price", price },
+            { "params", parameters },
+        };
+        object globalParams = new Dictionary<string, object>() {};
+        if (isTrue(!isEqual(vaultAddress, null)))
+        {
+            ((IDictionary<string,object>)globalParams)["vaultAddress"] = vaultAddress;
+        }
+        return new List<object>() {order, globalParams};
     }
 }

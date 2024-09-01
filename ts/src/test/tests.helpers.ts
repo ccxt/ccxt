@@ -129,6 +129,11 @@ function ioDirRead (path) {
     return files;
 }
 
+async function callMethodSync (testFiles, methodName, exchange, skippedProperties: object, args) {
+    // empty in js
+    return {};
+}
+
 async function callMethod (testFiles, methodName, exchange, skippedProperties: object, args) {
     // used for calling methods from test files
     return await testFiles[methodName] (exchange, skippedProperties, ...args);
@@ -150,6 +155,11 @@ async function callOverridenMethod (exchange, methodName, args) {
 
 function exceptionMessage (exc) {
     return '[' + exc.constructor.name + '] ' + exc.stack.slice (0, LOG_CHARS_LENGTH);
+}
+
+// stub for c#
+function getRootException (exc) {
+    return exc;
 }
 
 function exitScript (code = 0) {
@@ -175,6 +185,11 @@ function initExchange (exchangeId, args, isWs = false): Exchange {
 async function importTestFile (filePath) {
     // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
     return (await import (pathToFileURL (filePath + '.js') as any) as any)['default'];
+}
+
+function getTestFilesSync (properties, ws = false) {
+    // empty in js
+    return {};
 }
 
 async function getTestFiles (properties, ws = false) {
@@ -218,7 +233,6 @@ async function close (exchange: Exchange) {
 
 
 export {
-    DIR_NAME,
     // errors
     AuthenticationError,
     NotSupported,
@@ -230,27 +244,27 @@ export {
     // shared
     getCliArgValue,
     //
-    proxyTestFileName,
     baseMainTestClass,
     dump,
     jsonParse,
     jsonStringify,
     convertAscii,
-    getTestName,
     ioFileExists,
     ioFileRead,
     ioDirRead,
     callMethod,
+    callMethodSync,
     callExchangeMethodDynamically,
     callExchangeMethodDynamicallySync,
     callOverridenMethod,
     exceptionMessage,
+    getRootException,
     exitScript,
     getExchangeProp,
     setExchangeProp,
     initExchange,
-    importTestFile,
     getTestFiles,
+    getTestFilesSync,
     setFetchResponse,
     isNullValue,
     close,

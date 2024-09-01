@@ -20,6 +20,7 @@ public partial class hollaex : ccxt.hollaex
                 { "watchTicker", false },
                 { "watchTickers", false },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "api", new Dictionary<string, object>() {
