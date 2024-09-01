@@ -5,7 +5,7 @@ import Exchange from './abstract/coincatch.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Currencies, Dict, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Currency, Currencies, Dict, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -55,7 +55,7 @@ export default class coincatch extends Exchange {
                 'createTrailingPercentOrder': false,
                 'createTriggerOrder': false,
                 'fetchAccounts': false,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchCanceledAndClosedOrders': false,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
@@ -66,7 +66,7 @@ export default class coincatch extends Exchange {
                 'fetchConvertTradeHistory': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
-                'fetchDeposits': false,
+                'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -105,7 +105,7 @@ export default class coincatch extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': false,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
                 'reduceMargin': false,
                 'sandbox': false,
                 'setLeverage': false,
@@ -265,6 +265,7 @@ export default class coincatch extends Exchange {
                     'BITCOIN': 'BTC',
                     'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
+                    'TRX(TRC20)': 'TRC20',
                     'BEP20': 'BEP20',
                     'ArbitrumOne': 'ARB', // todo check
                     'Optimism': 'OPTIMISM',
@@ -936,6 +937,240 @@ export default class coincatch extends Exchange {
             'fee': undefined,
             'info': trade,
         }, market);
+    }
+
+    async fetchBalance (params = {}): Promise<Balances> {
+        /**
+         * @method
+         * @name coincatch#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://coincatch.github.io/github.io/en/spot/#get-account-assets
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privateGetApiSpotV1AccountAssets (params);
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1725202685986,
+        //         "data": [
+        //             {
+        //                 "coinId": 2,
+        //                 "coinName": "USDT",
+        //                 "available": "99.20000000",
+        //                 "frozen": "0.00000000",
+        //                 "lock": "0.00000000",
+        //                 "uTime": "1724938746000"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseBalance (data);
+    }
+
+    parseBalance (balances): Balances {
+        //
+        //     {
+        //         "coinId": 2,
+        //         "coinName": "USDT",
+        //         "available": "99.20000000",
+        //         "frozen": "0.00000000",
+        //         "lock": "0.00000000",
+        //         "uTime": "1724938746000"
+        //     }
+        //
+        const result: Dict = {};
+        for (let i = 0; i < balances.length; i++) {
+            const balanceEntry = this.safeDict (balances, i, {});
+            const currencyId = this.safeString (balanceEntry, 'coinName');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeString (balanceEntry, 'available');
+            account['used'] = this.safeString (balanceEntry, 'frozen');
+            if (account['total'] !== '0' || account['used'] !== '0') {
+                result[code] = account;
+                result['info'] = balanceEntry;
+            }
+        }
+        return this.safeBalance (result);
+    }
+
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        /**
+         * @method
+         * @name coincatch#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @see https://coincatch.github.io/github.io/en/spot/#get-deposit-list
+         * @param {string} code unified currency code of the currency transferred
+         * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
+         * @param {int} [limit] the maximum number of transfer structures to retrieve (not used by exchange)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
+         * @param {int} [params.pageNo] pageNo default 1
+         * @param {int} [params.pageSize] pageSize (default 20, max 100)
+         * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
+         */
+        const methodName = 'fetchDeposits';
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let currency: Currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coin'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        let until: Int = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        const response = await this.privateGetApiSpotV1WalletDepositList (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1725205525239,
+        //         "data": [
+        //             {
+        //                 "id": "1213046466852196352",
+        //                 "txId": "824246b030cd84d56400661303547f43a1d9fef66cf968628dd5112f362053ff",
+        //                 "coin": "USDT",
+        //                 "type": "deposit",
+        //                 "amount": "99.20000000",
+        //                 "status": "success",
+        //                 "toAddress": "TKTUt7qiTaMgnTwZXjE3ZBkPB6LKhLPJyZ",
+        //                 "fee": null,
+        //                 "chain": "TRX(TRC20)",
+        //                 "confirm": null,
+        //                 "clientOid": null,
+        //                 "tag": null,
+        //                 "fromAddress": null,
+        //                 "dest": "on_chain",
+        //                 "cTime": "1724938735688",
+        //                 "uTime": "1724938746015"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit);
+    }
+
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        /**
+         * @method
+         * @name coincatch#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @see https://coincatch.github.io/github.io/en/spot/#get-withdraw-list-v2
+         * @param {string} code unified currency code of the currency transferred
+         * @param {int} [since] the earliest time in ms to fetch transfers for (default 24 hours ago)
+         * @param {int} [limit] the maximum number of transfer structures to retrieve (default 50, max 200)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch transfers for (default time now)
+         * @param {string} [params.clientOid] clientOid
+         * @param {string} [params.orderId] The response orderId
+         * @param {string} [params.idLessThan] Requests the content on the page before this ID (older data), the value input should be the orderId of the corresponding interface.
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        const methodName = 'fetchWithdrawals';
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let currency: Currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['coin'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        let until: Int = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        const response = await this.privateGetApiSpotV1WalletWithdrawalListV2 (this.extend (request, params));
+        // todo add after withdrawal
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit);
+    }
+
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
+        //
+        // fetchDeposits
+        //     {
+        //         "id": "1213046466852196352",
+        //         "txId": "824246b030cd84d56400661303547f43a1d9fef66cf968628dd5112f362053ff",
+        //         "coin": "USDT",
+        //         "type": "deposit",
+        //         "amount": "99.20000000",
+        //         "status": "success",
+        //         "toAddress": "TKTUt7qiTaMgnTwZXjE3ZBkPB6LKhLPJyZ",
+        //         "fee": null,
+        //         "chain": "TRX(TRC20)",
+        //         "confirm": null,
+        //         "clientOid": null,
+        //         "tag": null,
+        //         "fromAddress": null,
+        //         "dest": "on_chain",
+        //         "cTime": "1724938735688",
+        //         "uTime": "1724938746015"
+        //     }
+        //
+        const id = this.safeString (transaction, 'id');
+        let status = this.safeString (transaction, 'status');
+        if (status === 'success') {
+            status = 'ok';
+        }
+        const txid = this.safeString (transaction, 'txId');
+        const coin = this.safeString (transaction, 'coin');
+        const code = this.safeCurrencyCode (coin, currency);
+        const timestamp = this.safeInteger (transaction, 'cTime');
+        const amount = this.safeNumber (transaction, 'amount');
+        const networkId = this.safeString (transaction, 'chain');
+        const network = this.safeString (this.options['networksById'], networkId, networkId);
+        const addressTo = this.safeString (transaction, 'toAddress');
+        const addressFrom = this.safeString (transaction, 'fromAddress');
+        const tag = this.safeString (transaction, 'tag');
+        const type = this.safeString (transaction, 'type');
+        const feeCost = this.safeNumber (transaction, 'fee');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': code,
+            };
+        }
+        return {
+            'info': transaction,
+            'id': id,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': network,
+            'address': undefined,
+            'addressTo': addressTo,
+            'addressFrom': addressFrom,
+            'tag': tag,
+            'tagTo': undefined,
+            'tagFrom': undefined,
+            'type': type,
+            'amount': amount,
+            'currency': code,
+            'status': status,
+            'updated': undefined,
+            'internal': undefined,
+            'comment': undefined,
+            'fee': fee,
+        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
