@@ -5,7 +5,7 @@ import Exchange from './abstract/coincatch.js';
 import { } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { Currencies, Dict, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers } from './base/types.js';
+import type { Currencies, Dict, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -856,6 +856,86 @@ export default class coincatch extends Exchange {
             this.safeNumber (ohlcv, 'close'),
             this.safeNumber (ohlcv, 'baseVol'),
         ];
+    }
+
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name coincatch#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @see https://coincatch.github.io/github.io/en/spot/#get-recent-trades
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch (default 100, max 500)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetApiSpotV1MarketFills (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1725198410976,
+        //         "data": [
+        //             {
+        //                 "symbol": "ETHUSDT_SPBL",
+        //                 "tradeId": "1214135619719827457",
+        //                 "side": "buy",
+        //                 "fillPrice": "2458.62",
+        //                 "fillQuantity": "0.4756",
+        //                 "fillTime": "1725198409967"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
+    }
+
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        // fetchTrades
+        //     {
+        //         "symbol": "ETHUSDT_SPBL",
+        //         "tradeId": "1214135619719827457",
+        //         "side": "buy",
+        //         "fillPrice": "2458.62",
+        //         "fillQuantity": "0.4756",
+        //         "fillTime": "1725198409967"
+        //     }
+        //
+        //
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const id = this.safeString (trade, 'tradeId');
+        const timestamp = this.safeInteger (trade, 'fillTime');
+        const price = this.safeString (trade, 'fillPrice');
+        const amount = this.safeString (trade, 'fillQuantity');
+        const side = this.safeString (trade, 'side');
+        return this.safeTrade ({
+            'id': id,
+            'order': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'fee': undefined,
+            'info': trade,
+        }, market);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
