@@ -703,7 +703,7 @@ export default class hyperliquid extends Exchange {
                 const total = this.safeString (balance, 'total');
                 const free = this.safeString (balance, 'hold');
                 account['total'] = total;
-                account['free'] = free;
+                account['used'] = free;
                 spotBalances[code] = account;
             }
             return this.safeBalance (spotBalances);
