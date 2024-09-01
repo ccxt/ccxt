@@ -41,7 +41,6 @@ interface Exchange {
     privateGetApiSpotV1WalletDepositList (params?: {}): Promise<implicitReturnType>;
     privateGetApiSpotV1AccountGetInfo (params?: {}): Promise<implicitReturnType>;
     privateGetApiSpotV1AccountAssets (params?: {}): Promise<implicitReturnType>;
-    privateGetApiSpotV1AccountBills (params?: {}): Promise<implicitReturnType>;
     privateGetApiSpotV1AccountTransferRecords (params?: {}): Promise<implicitReturnType>;
     privateGetApiMixV1AccountAccount (params?: {}): Promise<implicitReturnType>;
     privateGetApiMixV1AccountAccounts (params?: {}): Promise<implicitReturnType>;
@@ -61,6 +60,7 @@ interface Exchange {
     privatePostApiSpotV1WalletTransferV2 (params?: {}): Promise<implicitReturnType>;
     privatePostApiSpotV1WalletWithdrawalV2 (params?: {}): Promise<implicitReturnType>;
     privatePostApiSpotV1WalletWithdrawalInnerV2 (params?: {}): Promise<implicitReturnType>;
+    privatePostApiSpotV1AccountBills (params?: {}): Promise<implicitReturnType>;
     privatePostApiSpotV1TradeOrders (params?: {}): Promise<implicitReturnType>;
     privatePostApiSpotV1TradeBatchOrders (params?: {}): Promise<implicitReturnType>;
     privatePostApiSpotV1TradeCancelOrder (params?: {}): Promise<implicitReturnType>;
