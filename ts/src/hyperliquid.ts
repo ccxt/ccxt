@@ -334,7 +334,7 @@ export default class hyperliquid extends Exchange {
         //
         const meta = this.safeDict (response, 0, {});
         const universe = this.safeList (meta, 'universe', []);
-        const assetCtxs = this.safeDict (response, 1, {});
+        const assetCtxs = this.safeList (response, 1, []);
         const result = [];
         for (let i = 0; i < universe.length; i++) {
             const data = this.extend (
