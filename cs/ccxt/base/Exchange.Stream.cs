@@ -42,4 +42,21 @@ public partial class Exchange
             }
         };
     }
+    public ConsumerFunction streamOHLCVS()
+    {
+        return async (Message message) =>
+        {
+            var payload = message.payload;
+            var err = message.error;
+            var symbol = this.safeString (payload, 'symbol');
+            var ohlcv = this.safeList (payload, 'ohlcv');
+            if (symbol !== undefined) {
+                this.streamProduce ('ohlcvs::' + symbol, ohlcv, err);
+                const timeframe = this.safeString (payload, 'timeframe');
+                if (timeframe !== undefined) {
+                    this.streamProduce ('ohlcvs::' + symbol + '::' + timeframe, ohlcv, err);
+                }
+            }
+        };
+    }
 }

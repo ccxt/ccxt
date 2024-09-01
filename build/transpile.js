@@ -120,6 +120,7 @@ class Transpiler {
             [ /\.parseTradingFees /g, '.parse_trading_fees'],
             [ /\.addWatchFunction /g, '.add_watch_function'],
             [ /\.activeWatchFunctions/g, '.active_watch_functions'],
+            [ /\.streamOHLCVS/g, '.stream_ohlcvs'],
             [ /\'use strict\';?\s+/g, '' ],
             [ /\.call\s*\(this, /g, '(' ],
             [ /this\.[a-zA-Z0-9_]+ \(/g, this.trimmedUnCamelCase.bind(this) ],
@@ -1479,7 +1480,7 @@ class Transpiler {
                 'Topic': 'string',
                 'ConsumerFunction': 'mixed',
             }
-            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LeverageTier|LeverageTiers|Conversion)( \| undefined)?$|\w+\[\]/
+            const phpArrayRegex = /^(?:Market|Currency|Account|AccountStructure|BalanceAccount|object|OHLCV|OHLCVC| Order|OrderBook|Tickers?|Trade|Transaction|Balances?|MarketInterface|TransferEntry|TransferEntries|Leverages|Leverage|Greeks|MarginModes|MarginMode|MarginModification|LastPrice|LastPrices|TradingFeeInterface|Currencies|TradingFees|CrossBorrowRate|IsolatedBorrowRate|FundingRates|FundingRate|LeverageTier|LeverageTiers|Conversion)( \| undefined)?$|\w+\[\]/
             let phpArgs = args.map (x => {
                 const parts = x.split (':')
                 if (parts.length === 1) {
@@ -1541,6 +1542,7 @@ class Transpiler {
                 'boolean': 'bool',
                 'Int': 'Int',
                 'OHLCV': 'list',
+                'OHLCVC': 'list',
                 'Dictionary<any>': 'dict',
                 'Dict': 'dict'
             }

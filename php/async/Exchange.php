@@ -359,6 +359,9 @@ class Exchange extends \ccxt\Exchange {
         $stream->subscribe ('positions', $this->stream_to_symbol('positions'), true);
         $stream->subscribe ('trades', $this->stream_to_symbol('trades'), true);
         $stream->subscribe ('myTrades', $this->stream_to_symbol('myTrades'), true);
+        $stream->subscribe ('ohlcvs', $this->stream_ohlcvs(), true);
+        $stream->subscribe ('liquidations', $this->stream_to_symbol('liquidations'), true);
+        $stream->subscribe ('myLiquidations', $this->stream_to_symbol('myLiquidations'), true);
         $options = $this->safe_dict($this->options, 'streaming', array());
         $reconnect = $this->safe_bool($options, 'autoreconnect', true);
         if ($reconnect) {
@@ -1134,8 +1137,52 @@ class Exchange extends \ccxt\Exchange {
         }) ();
     }
 
+    public function subscribe_liquidations(string $symbol, mixed $callback, $synchronous = true, $params = array ()) {
+        return Async\async(function () use ($symbol, $callback, $synchronous, $params) {
+            /**
+             * watch the public liquidations of a trading pair
+             * @param {string} $symbol unified CCXT market $symbol
+             * @param {Function} $callback Consumer function to be called with each update
+             * @param {boolean} $synchronous if set to true, the $callback will wait to finish before passing next message
+             * @param {array} [$params] exchange specific parameters for the bitmex api endpoint
+             */
+            Async\await($this->load_markets());
+            $stream = $this->stream;
+            if ($callback !== null) {
+                $stream->subscribe ('liquidations::' . $symbol, $callback, $synchronous);
+            }
+            $stream->add_watch_function('liquidations', array( $symbol, null, null, $params ));
+            Async\await($this->watch_liquidations($symbol, null, null, $params));
+        }) ();
+    }
+
     public function watch_liquidations_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()) {
         throw new NotSupported($this->id . ' watchLiquidationsForSymbols() is not supported yet');
+    }
+
+    public function subscribe_liquidations_for_symbols(array $symbols, mixed $callback, $synchronous = true, $params = array ()) {
+        return Async\async(function () use ($symbols, $callback, $synchronous, $params) {
+            /**
+             * watch the public liquidations of trading pairs
+             * @param {string[]} $symbols unified CCXT market symbol
+             * @param {Function} $callback Consumer function to be called with each update
+             * @param {boolean} $synchronous if set to true, the $callback will wait to finish before passing next message
+             * @param {array} [$params] exchange specific parameters for the bitmex api endpoint
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols, null, true);
+            $stream = $this->stream;
+            if ($callback !== null) {
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $stream->subscribe ('liquidations::' . $symbols[$i], $callback, $synchronous);
+                }
+                if ($this->is_empty($symbols)) {
+                    $stream->subscribe ('liquidations', $callback, $synchronous);
+                }
+            }
+            $stream->add_watch_function('watchLiquidationsForSymbols', array( $symbols, null, null, $params ));
+            Async\await($this->watch_trades_for_symbols($symbols, null, null, $params));
+        }) ();
     }
 
     public function watch_my_liquidations(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()) {
@@ -1279,10 +1326,10 @@ class Exchange extends \ccxt\Exchange {
                 for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
                     $symbol = $this->symbol($symbolsAndTimeframes[$i][0]);
                     $timeframe = $symbolsAndTimeframes[$i][1];
-                    $stream->subscribe ('ohlcv' . '::' . $symbol . '::' . $timeframe, $callback, $synchronous);
+                    $stream->subscribe ('ohlcvs' . '::' . $symbol . '::' . $timeframe, $callback, $synchronous);
                 }
                 if ($this->is_empty($symbolsAndTimeframes)) {
-                    $stream->subscribe ('ohlcv', $callback, $synchronous);
+                    $stream->subscribe ('ohlcvs', $callback, $synchronous);
                 }
             }
             $stream->add_watch_function('watchOHLCVForSymbols', array( $symbolsAndTimeframes, null, null, $params ));
@@ -2631,7 +2678,7 @@ class Exchange extends \ccxt\Exchange {
             $symbol = $this->symbol($symbol);
             $stream = $this->stream;
             if ($callback !== null) {
-                $stream->subscribe ('ohlcv::' . $symbol . '::' . $timeframe, $callback, $synchronous);
+                $stream->subscribe ('ohlcvs::' . $symbol . '::' . $timeframe, $callback, $synchronous);
             }
             $stream->add_watch_function('watchOHLCV', array( $symbol, $timeframe, null, null, $params ));
             Async\await($this->watch_ohlcv($symbol, $timeframe, null, null, $params));
@@ -5750,6 +5797,14 @@ class Exchange extends \ccxt\Exchange {
          * Typed wrapper for filterByArray that returns a dictionary of tickers
          */
         return $this->filter_by_array($objects, $key, $values, $indexed);
+    }
+
+    public function create_stream_ohlcv(?string $symbol, ?string $timeframe, OHLCV | OHLCVC $data) {
+        return array(
+            'symbol' => $symbol,
+            'timeframe' => $timeframe,
+            'ohlcv' => $data,
+        );
     }
 
     public function create_ohlcv_object(string $symbol, string $timeframe, $data) {

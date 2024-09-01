@@ -1502,6 +1502,28 @@ export default class Exchange {
         return callback.bind(this);
     }
 
+    streamOHLCVS () {
+        /**
+         * @ignore
+         * @method
+         * @description parses ohlcvs topic and produces to ohlcvs symbol and timeframe topics
+         */
+        const callback = (message: Message) => {
+            const payload = message.payload;
+            const err = message.error;
+            const symbol = this.safeString (payload, 'symbol');
+            const ohlcv = this.safeValue (payload, 'ohlcv');
+            if (symbol !== undefined) {
+                this.streamProduce ('ohlcvs::' + symbol, ohlcv, err);
+                const timeframe = this.safeString (payload, 'timeframe');
+                if (timeframe !== undefined) {
+                    this.streamProduce ('ohlcvs::' + symbol + '::' + timeframe, ohlcv, err);
+                }
+            }
+        }
+        return callback.bind(this);
+    }
+
     ethAbiEncode (types, args) {
         return this.base16ToBinary (ethers.encode (types, args).slice (2));
     }
@@ -1626,24 +1648,6 @@ export default class Exchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
-    streamOHLCVS (message: Message) {
-        /**
-         * @ignore
-         * @method
-         * @description parses ohlcvs topic and produces to ohlcvs symbol and timeframe topics
-         */
-        const payload = message.payload;
-        const err = message.error;
-        const symbol = this.safeString (payload, 'symbol');
-        if (symbol !== undefined) {
-            this.streamProduce ('ohlcvs::' + symbol, payload, err);
-            const timeframe = this.safeString (payload, 'timeframe');
-            if (timeframe !== undefined) {
-                this.streamProduce ('ohlcvs::' + symbol + '::' + timeframe, payload, err);
-            }
-        }
-    }
-
     setupStream () {
         /**
          * @ignore
@@ -1660,7 +1664,7 @@ export default class Exchange {
         stream.subscribe ('positions', this.streamToSymbol ('positions'), true);
         stream.subscribe ('trades', this.streamToSymbol ('trades'), true);
         stream.subscribe ('myTrades', this.streamToSymbol ('myTrades'), true);
-        stream.subscribe ('ohlcvs', this.streamOHLCVS, true);
+        stream.subscribe ('ohlcvs', this.streamOHLCVS (), true);
         stream.subscribe ('liquidations', this.streamToSymbol ('liquidations'), true);
         stream.subscribe ('myLiquidations', this.streamToSymbol ('myLiquidations'), true);
         const options = this.safeDict (this.options, 'streaming', {});

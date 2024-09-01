@@ -31,7 +31,7 @@ from ccxt.base.decimal_to_precision import decimal_to_precision
 from ccxt.base.decimal_to_precision import DECIMAL_PLACES, TICK_SIZE, NO_PADDING, TRUNCATE, ROUND, ROUND_UP, ROUND_DOWN, SIGNIFICANT_DIGITS
 from ccxt.base.decimal_to_precision import number_to_string
 from ccxt.base.precise import Precise
-from ccxt.base.types import BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, Strings, CancellationRequest, Bool, Topic
+from ccxt.base.types import BalanceAccount, Currency, IndexType, OrderSide, OrderType, Trade, OrderRequest, Market, MarketType, Str, Num, Strings, CancellationRequest, Bool, Topic 
 
 # -----------------------------------------------------------------------------
 
@@ -1775,13 +1775,17 @@ class Exchange(object):
         setup the stream object options and create subscriptions so the streams of multiple symbols publish to the individual ones
         """
         stream = self.stream
-        if self.stream is not None:
-            stream.subscribe('tickers', self.stream_to_symbol('tickers'), True)
-            stream.subscribe('orderbooks', self.stream_to_symbol('orderbooks'), True)
-            stream.subscribe('orders', self.stream_to_symbol('orders'), True)
-            stream.subscribe('positions', self.stream_to_symbol('positions'), True)
-            stream.subscribe('trades', self.stream_to_symbol('trades'), True)
-            stream.subscribe('myTrades', self.stream_to_symbol('myTrades'), True)
+        if self.stream is None:
+            return
+        stream.subscribe('tickers', self.stream_to_symbol('tickers'), True)
+        stream.subscribe('orderbooks', self.stream_to_symbol('orderbooks'), True)
+        stream.subscribe('orders', self.stream_to_symbol('orders'), True)
+        stream.subscribe('positions', self.stream_to_symbol('positions'), True)
+        stream.subscribe('trades', self.stream_to_symbol('trades'), True)
+        stream.subscribe('myTrades', self.stream_to_symbol('myTrades'), True)
+        stream.subscribe('ohlcvs', self.stream_ohlcvs(), True)
+        stream.subscribe('liquidations', self.stream_to_symbol('liquidations'), True)
+        stream.subscribe('myLiquidations', self.stream_to_symbol('myLiquidations'), True)
         options = self.safe_dict(self.options, 'streaming', {})
         reconnect = self.safe_bool(options, 'autoreconnect', True)
         if reconnect:
@@ -1805,7 +1809,7 @@ class Exchange(object):
         if self.verbose:
             self.log('Stream reconnecting active watch functions')
         stream = self.stream
-        activeFunctions = stream.activeWatchFunctions
+        activeFunctions = stream.active_watch_functions
         tasks = []
         for i in range(0, len(activeFunctions)):
             activeFunction = activeFunctions[i]
@@ -2463,8 +2467,42 @@ class Exchange(object):
             return self.watch_liquidations_for_symbols([symbol], since, limit, params)
         raise NotSupported(self.id + ' watchLiquidations() is not supported yet')
 
+    def subscribe_liquidations(self, symbol: str, callback: ConsumerFunction, synchronous=True, params={}):
+        """
+        watch the public liquidations of a trading pair
+        :param str symbol: unified CCXT market symbol
+        :param Function callback: Consumer function to be called with each update
+        :param boolean synchronous: if set to True, the callback will wait to finish before passing next message
+        :param dict [params]: exchange specific parameters for the bitmex api endpoint
+        """
+        self.load_markets()
+        stream = self.stream
+        if callback is not None:
+            stream.subscribe('liquidations::' + symbol, callback, synchronous)
+        stream.add_watch_function('liquidations', [symbol, None, None, params])
+        self.watch_liquidations(symbol, None, None, params)
+
     def watch_liquidations_for_symbols(self, symbols: List[str], since: Int = None, limit: Int = None, params={}):
         raise NotSupported(self.id + ' watchLiquidationsForSymbols() is not supported yet')
+
+    def subscribe_liquidations_for_symbols(self, symbols: List[str], callback: ConsumerFunction, synchronous=True, params={}):
+        """
+        watch the public liquidations of trading pairs
+        :param str[] symbols: unified CCXT market symbol
+        :param Function callback: Consumer function to be called with each update
+        :param boolean synchronous: if set to True, the callback will wait to finish before passing next message
+        :param dict [params]: exchange specific parameters for the bitmex api endpoint
+        """
+        self.load_markets()
+        symbols = self.market_symbols(symbols, None, True)
+        stream = self.stream
+        if callback is not None:
+            for i in range(0, len(symbols)):
+                stream.subscribe('liquidations::' + symbols[i], callback, synchronous)
+            if self.is_empty(symbols):
+                stream.subscribe('liquidations', callback, synchronous)
+        stream.add_watch_function('watchLiquidationsForSymbols', [symbols, None, None, params])
+        self.watch_trades_for_symbols(symbols, None, None, params)
 
     def watch_my_liquidations(self, symbol: str, since: Int = None, limit: Int = None, params={}):
         if self.has['watchMyLiquidationsForSymbols']:
@@ -2576,9 +2614,9 @@ class Exchange(object):
             for i in range(0, len(symbolsAndTimeframes)):
                 symbol = self.symbol(symbolsAndTimeframes[i][0])
                 timeframe = symbolsAndTimeframes[i][1]
-                stream.subscribe('ohlcv' + '::' + symbol + '::' + timeframe, callback, synchronous)
+                stream.subscribe('ohlcvs' + '::' + symbol + '::' + timeframe, callback, synchronous)
             if self.is_empty(symbolsAndTimeframes):
-                stream.subscribe('ohlcv', callback, synchronous)
+                stream.subscribe('ohlcvs', callback, synchronous)
         stream.add_watch_function('watchOHLCVForSymbols', [symbolsAndTimeframes, None, None, params])
         self.watch_ohlcv_for_symbols(symbolsAndTimeframes, None, None, params)
 
@@ -3689,7 +3727,7 @@ class Exchange(object):
         symbol = self.symbol(symbol)
         stream = self.stream
         if callback is not None:
-            stream.subscribe('ohlcv::' + symbol + '::' + timeframe, callback, synchronous)
+            stream.subscribe('ohlcvs::' + symbol + '::' + timeframe, callback, synchronous)
         stream.add_watch_function('watchOHLCV', [symbol, timeframe, None, None, params])
         self.watch_ohlcv(symbol, timeframe, None, None, params)
 
@@ -5174,7 +5212,6 @@ class Exchange(object):
     def subscribe_raw(self, callback: ConsumerFunction, synchronous: bool = True):
         """
         subscribe to all raw messages received from websocket
-        :param str[] symbols: unified symbols of the market to watch tickers
         :param Function callback: function to call when receiving an update
         :param boolean synchronous: if set to True, the callback will wait to finish before passing next message
         """
@@ -5184,7 +5221,6 @@ class Exchange(object):
     def subscribe_errors(self, callback: ConsumerFunction, synchronous: bool = True):
         """
         subscribe to all errors thrown by stream
-        :param str[] symbols: unified symbols of the market to watch tickers
         :param Function callback: function to call when receiving an update
         :param boolean synchronous: if set to True, the callback will wait to finish before passing next message
         """
@@ -6087,6 +6123,13 @@ class Exchange(object):
         Typed wrapper for filterByArray that returns a dictionary of tickers
         """
         return self.filter_by_array(objects, key, values, indexed)
+
+    def create_stream_ohlcv(self, symbol: Str, timeframe: Str, data: list | OHLCVC):
+        return {
+            'symbol': symbol,
+            'timeframe': timeframe,
+            'ohlcv': data,
+        }
 
     def create_ohlcv_object(self, symbol: str, timeframe: str, data):
         res = {}
