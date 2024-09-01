@@ -6124,7 +6124,7 @@ class Exchange(object):
         """
         return self.filter_by_array(objects, key, values, indexed)
 
-    def create_stream_ohlcv(self, symbol: Str, timeframe: Str, data: list | OHLCVC):
+    def create_stream_ohlcv(self, symbol: Str, timeframe: Str, data):
         return {
             'symbol': symbol,
             'timeframe': timeframe,

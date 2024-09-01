@@ -764,8 +764,8 @@ export default class coinbase extends coinbaseRest {
         };
         const type = this.safeString (message, 'type');
         if (type === 'error') {
-            const errorMessage = this.safeString (message, 'message');
-            const err = new ExchangeError (errorMessage);
+            const errorMessage = this.safeString (message, 'message', '');
+            const err = new ExchangeError (this.id + errorMessage);
             this.streamProduce ('error', err);
             throw err;
         }

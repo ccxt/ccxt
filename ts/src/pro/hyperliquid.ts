@@ -638,6 +638,7 @@ export default class hyperliquid extends hyperliquidRest {
             const err = new ExchangeError (this.id + ' ' + ret_msg);
             this.streamProduce ('errors', undefined, err);
             client.reject (err);
+            return true;
         } else {
             return false;
         }
