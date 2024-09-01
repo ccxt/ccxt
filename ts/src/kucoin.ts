@@ -2100,6 +2100,7 @@ export default class kucoin extends Exchange {
          * @see https://docs.kucoin.com/spot-hf/#place-hf-order
          * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-order-test
          * @see https://www.kucoin.com/docs/rest/margin-trading/orders/place-margin-order-test
+         * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-place-hf-order
          * @param {string} symbol Unified CCXT market symbol
          * @param {string} type 'limit' or 'market'
          * @param {string} side 'buy' or 'sell'
@@ -2130,6 +2131,7 @@ export default class kucoin extends Exchange {
          * @param {bool} [params.autoBorrow] false, // The system will first borrow you funds at the optimal interest rate and then place an order for you
          * @param {bool} [params.hf] false, // true for hf order
          * @param {bool} [params.test] set to true to test an order, no order will be created but the request will be validated
+         * @param {bool} [params.sync] set to true to use the hf sync call
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2138,6 +2140,8 @@ export default class kucoin extends Exchange {
         params = this.omit (params, 'test');
         let hf = undefined;
         [ hf, params ] = await this.handleHfAndParams (params);
+        let useSync = false;
+        [ useSync, params ] = this.handleOptionAndParams (params, 'createOrder', 'sync', false);
         const [ triggerPrice, stopLossPrice, takeProfitPrice ] = this.handleTriggerPrices (params);
         const tradeType = this.safeString (params, 'tradeType'); // keep it for backward compatibility
         const isTriggerOrder = (triggerPrice || stopLossPrice || takeProfitPrice);
@@ -2159,6 +2163,8 @@ export default class kucoin extends Exchange {
             response = await this.privatePostStopOrder (orderRequest);
         } else if (isMarginOrder) {
             response = await this.privatePostMarginOrder (orderRequest);
+        } else if (useSync) {
+            response = await this.privatePostHfOrdersSync (orderRequest);
         } else if (hf) {
             response = await this.privatePostHfOrders (orderRequest);
         } else {
@@ -2230,9 +2236,11 @@ export default class kucoin extends Exchange {
          * @description create a list of trade orders
          * @see https://www.kucoin.com/docs/rest/spot-trading/orders/place-multiple-orders
          * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/place-multiple-hf-orders
+         * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-place-multiple-hf-orders
          * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
          * @param {object} [params]  extra parameters specific to the exchange API endpoint
          * @param {bool} [params.hf] false, // true for hf orders
+         * @param {bool} [params.sync] false, // true to use the hf sync call
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets ();
@@ -2266,8 +2274,12 @@ export default class kucoin extends Exchange {
         };
         let hf = undefined;
         [ hf, params ] = await this.handleHfAndParams (params);
+        let useSync = false;
+        [ useSync, params ] = this.handleOptionAndParams (params, 'createOrders', 'sync', false);
         let response = undefined;
-        if (hf) {
+        if (useSync) {
+            response = await this.privatePostHfOrdersMultiSync (this.extend (request, params));
+        } else if (hf) {
             response = await this.privatePostHfOrdersMulti (this.extend (request, params));
         } else {
             response = await this.privatePostOrdersMulti (this.extend (request, params));
@@ -2439,11 +2451,14 @@ export default class kucoin extends Exchange {
          * @see https://docs.kucoin.com/spot#cancel-single-order-by-clientoid-2
          * @see https://docs.kucoin.com/spot-hf/#cancel-orders-by-orderid
          * @see https://docs.kucoin.com/spot-hf/#cancel-order-by-clientoid
+         * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-cancel-hf-order-by-orderid
+         * @see https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-cancel-hf-order-by-clientoid
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {bool} [params.stop] True if cancelling a stop order
          * @param {bool} [params.hf] false, // true for hf order
+         * @param {bool} [params.sync] false, // true to use the hf sync call
          * @returns Response from the exchange
          */
         await this.loadMarkets ();
@@ -2452,7 +2467,9 @@ export default class kucoin extends Exchange {
         const stop = this.safeBool2 (params, 'stop', 'trigger', false);
         let hf = undefined;
         [ hf, params ] = await this.handleHfAndParams (params);
-        if (hf) {
+        let useSync = false;
+        [ useSync, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'sync', false);
+        if (hf || useSync) {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol parameter for hf orders');
             }
@@ -2474,6 +2491,8 @@ export default class kucoin extends Exchange {
                 //        }
                 //    }
                 //
+            } else if (useSync) {
+                response = await this.privateDeleteHfOrdersSyncClientOrderClientOid (this.extend (request, params));
             } else if (hf) {
                 response = await this.privateDeleteHfOrdersClientOrderClientOid (this.extend (request, params));
                 //
@@ -2509,6 +2528,8 @@ export default class kucoin extends Exchange {
                 //        data: { cancelledOrderIds: [ 'vs8lgpiuaco91qk8003vebu9' ] }
                 //    }
                 //
+            } else if (useSync) {
+                response = await this.privateDeleteHfOrdersSyncOrderId (this.extend (request, params));
             } else if (hf) {
                 response = await this.privateDeleteHfOrdersOrderId (this.extend (request, params));
                 //
