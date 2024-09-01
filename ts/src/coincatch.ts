@@ -112,7 +112,7 @@ export default class coincatch extends Exchange {
                 'setMargin': false,
                 'setPositionMode': false,
                 'transfer': false,
-                'withdraw': false,
+                'withdraw': true,
             },
             'timeframes': {
                 '1m': '1min',
@@ -1101,6 +1101,44 @@ export default class coincatch extends Exchange {
         //
         const data = this.safeList (response, 'data', []);
         return this.parseTransactions (data, currency, since, limit);
+    }
+
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name coincatch#withdraw
+         * @description make a withdrawal
+         * @see https://coincatch.github.io/github.io/en/spot/#withdraw
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string} tag
+         * @param {string} [params.network] network for withdraw (mendatory parameter)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.remark] remark
+         * @param {string} [params.clientOid] custom id
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request: Dict = {
+            'coin': currency['id'],
+            'address': address,
+            'amount': amount,
+        };
+        if (tag !== undefined) {
+            request['tag'] = tag;
+        }
+        let networkCode: Str = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            request['chain'] = this.networkCodeToId (networkCode);
+        }
+        const response = await this.privatePostApiSpotV1WalletWithdrawalV2 (this.extend (request, params));
+        // todo add after withdrawal
+        //
+        return response;
     }
 
     parseTransaction (transaction, currency: Currency = undefined): Transaction {
