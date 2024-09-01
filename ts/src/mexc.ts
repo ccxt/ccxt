@@ -451,6 +451,9 @@ export default class mexc extends Exchange {
                 },
                 'networks': {
                     'TRC20': 'TRX',
+                    'TON':'TONCOIN',
+                    'AVAXC': 'AVAX_CCHAIN',
+                    'ERC20':'ETH'
                     // 'ABBC': 'ABBC',
                     // 'ACA': 'ACALA',
                     // 'ADA': 'Cardano(ADA)',
