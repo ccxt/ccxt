@@ -647,6 +647,53 @@
               }
         ],
         "fetchBalance": [
+          {
+            "description": "spot balance with used",
+            "method": "fetchBalance",
+            "input": [
+              {
+                "type": "spot"
+              }
+            ],
+            "httpResponse": {
+              "balances": [
+                {
+                  "coin": "USDC",
+                  "token": "0",
+                  "total": "50.0",
+                  "hold": "13.817",
+                  "entryNtl": "0.0"
+                }
+              ]
+            },
+            "parsedResponse": {
+              "info": {
+                "balances": [
+                  {
+                    "coin": "USDC",
+                    "token": "0",
+                    "total": "50.0",
+                    "hold": "13.817",
+                    "entryNtl": "0.0"
+                  }
+                ]
+              },
+              "USDC": {
+                "free": 13.817,
+                "used": 36.183,
+                "total": 50
+              },
+              "free": {
+                "USDC": 13.817
+              },
+              "used": {
+                "USDC": 36.183
+              },
+              "total": {
+                "USDC": 50
+              }
+            }
+            },
             {
                 "description": "spot balance",
                 "method": "fetchBalance",
@@ -823,6 +870,9 @@
                     "tierBased": null
                 }
             }
+        ],
+        "fetchTickers": [
+
         ]
     }
 }
