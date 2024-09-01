@@ -648,7 +648,7 @@
         ],
         "fetchBalance": [
           {
-            "description": "spot balance with used",
+            "description": "fetchBalance spot with used",
             "method": "fetchBalance",
             "input": [
               {
@@ -661,7 +661,7 @@
                   "coin": "USDC",
                   "token": "0",
                   "total": "50.0",
-                  "hold": "13.817",
+                  "hold": "10.0",
                   "entryNtl": "0.0"
                 }
               ]
@@ -673,88 +673,27 @@
                     "coin": "USDC",
                     "token": "0",
                     "total": "50.0",
-                    "hold": "13.817",
+                    "hold": "10.0",
                     "entryNtl": "0.0"
                   }
                 ]
               },
               "USDC": {
-                "free": 13.817,
-                "used": 36.183,
+                "free": 40,
+                "used": 10,
                 "total": 50
               },
               "free": {
-                "USDC": 13.817
+                "USDC": 40
               },
               "used": {
-                "USDC": 36.183
+                "USDC": 10
               },
               "total": {
                 "USDC": 50
               }
             }
-            },
-            {
-                "description": "spot balance",
-                "method": "fetchBalance",
-                "input": [
-                  {
-                    "type": "spot"
-                  }
-                ],
-                "httpResponse": {
-                  "balances": [
-                    {
-                      "coin": "USDC",
-                      "hold": "0.0",
-                      "total": "1481.844"
-                    },
-                    {
-                      "coin": "PURR",
-                      "hold": "0.0",
-                      "total": "999.65004"
-                    }
-                  ]
-                },
-                "parsedResponse": {
-                  "info": {
-                    "balances": [
-                      {
-                        "coin": "USDC",
-                        "hold": "0.0",
-                        "total": "1481.844"
-                      },
-                      {
-                        "coin": "PURR",
-                        "hold": "0.0",
-                        "total": "999.65004"
-                      }
-                    ]
-                  },
-                  "USDC": {
-                    "free": 0,
-                    "used": 1481.844,
-                    "total": 1481.844
-                  },
-                  "PURR": {
-                    "free": 0,
-                    "used": 999.65004,
-                    "total": 999.65004
-                  },
-                  "free": {
-                    "USDC": 0,
-                    "PURR": 0
-                  },
-                  "used": {
-                    "USDC": 1481.844,
-                    "PURR": 999.65004
-                  },
-                  "total": {
-                    "USDC": 1481.844,
-                    "PURR": 999.65004
-                  }
-                }
-            },
+          },
             {
                 "description": "swap balance",
                 "method": "fetchBalance",
