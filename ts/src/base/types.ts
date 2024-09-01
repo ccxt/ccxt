@@ -89,7 +89,7 @@ export interface MarketInterface {
         price: Num
         cost?: Num
     };
-    marginMode?: MarketMarginModes;
+    marginModes?: MarketMarginModes;
     limits: {
         amount?: MinMax,
         cost?: MinMax,

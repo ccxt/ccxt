@@ -371,7 +371,7 @@ class MarketInterface(TypedDict):
     subType: Str
     spot: bool
     margin: bool
-    marginMode: MarketMarginModes
+    marginModes: MarketMarginModes
     swap: bool
     future: bool
     option: bool

@@ -70,11 +70,11 @@ public struct MarketMarginModes
 {
     public bool? cross;
     public bool? isolated;
-    public MarketMarginModes(object marginMode2)
+    public MarketMarginModes(object marginModes2)
     {
-        var marginMode = (Dictionary<string, object>)marginMode2;
-        cross = Exchange.SafeBool(marginMode, "cross");
-        isolated = Exchange.SafeBool(marginMode, "isolated");
+        var marginModes = (Dictionary<string, object>)marginMode2;
+        cross = Exchange.SafeBool(marginModes, "cross");
+        isolated = Exchange.SafeBool(marginModes, "isolated");
     }
 }
 
@@ -187,7 +187,7 @@ public struct Market
     public string? feeSide;
 
     public Precision? precision;
-    public MarketMarginModes? marginMode;
+    public MarketMarginModes? marginModes;
 
     public Limits? limits;
     public Dictionary<string, object> info;
@@ -229,7 +229,7 @@ public struct Market
         limits = market.ContainsKey("limits") ? new Limits(market["limits"]) : null;
         info = Helper.GetInfo(market);
         created = Exchange.SafeInteger(market, "created");
-        marginMode = market.ContainsKey("marginMode") ? new MarketMarginModes(market["marginMode"]) : null;
+        marginModes = market.ContainsKey("marginModes") ? new MarketMarginModes(market["marginModes"]) : null;
     }
 }
 
