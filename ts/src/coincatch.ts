@@ -5,7 +5,7 @@ import Exchange from './abstract/coincatch.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currency, Currencies, Dict, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Bool, Currency, Currencies, Dict, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -146,8 +146,8 @@ export default class coincatch extends Exchange {
                         'api/spot/v1/public/currencies': 20 / 3,
                         'api/spot/v1/market/ticker': 1,
                         'api/spot/v1/market/tickers': 1,
-                        'api/spot/v1/market/fills': 1,
-                        'api/spot/v1/market/fills-history': 1,
+                        'api/spot/v1/market/fills': 2,
+                        'api/spot/v1/market/fills-history': 2,
                         'api/spot/v1/market/candles': 1,
                         'api/spot/v1/market/history-candles': 1,
                         'api/spot/v1/market/depth': 1,
@@ -172,12 +172,12 @@ export default class coincatch extends Exchange {
                 },
                 'private': {
                     'get': {
-                        'api/spot/v1/wallet/deposit-address': 1,
+                        'api/spot/v1/wallet/deposit-address': 4,
                         'pi/spot/v1/wallet/withdrawal-list': 1,
                         'api/spot/v1/wallet/withdrawal-list-v2': 1,
                         'api/spot/v1/wallet/deposit-list': 1,
                         'api/spot/v1/account/getInfo': 1,
-                        'api/spot/v1/account/assets': 1,
+                        'api/spot/v1/account/assets': 2,
                         'api/spot/v1/account/transferRecords': 1,
                         'api/mix/v1/account/account': 1,
                         'api/mix/v1/account/accounts': 1,
@@ -197,7 +197,7 @@ export default class coincatch extends Exchange {
                     },
                     'post': {
                         'api/spot/v1/wallet/transfer-v2': 1,
-                        'api/spot/v1/wallet/withdrawal-v2': 1,
+                        'api/spot/v1/wallet/withdrawal-v2': 4,
                         'api/spot/v1/wallet/withdrawal-inner-v2': 1,
                         'api/spot/v1/account/bills': 1,
                         'api/spot/v1/trade/orders': 1,
@@ -476,7 +476,7 @@ export default class coincatch extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        const response = await this.publicGetApiSpotV1MarketTickers (params);
+        let response = await this.publicGetApiSpotV1MarketTickers (params);
         //
         //     {
         //         "code": "00000",
@@ -507,42 +507,206 @@ export default class coincatch extends Exchange {
         if (this.safeList (this.options, 'currencyIdsListForParseMarket') === undefined) {
             await this.fetchCurrencies ();
         }
-        const data = this.safeList (response, 'data', []);
-        return this.parseMarkets (data);
+        const spotMarkets = this.safeList (response, 'data', []);
+        const request: Dict = {};
+        let productType: Str = undefined;
+        [ productType, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'productType', productType);
+        let swapMarkets = [];
+        if (productType !== undefined) {
+            request['productType'] = productType;
+            response = await this.publicGetApiMixV1MarketContracts (this.extend (request, params));
+            swapMarkets = this.safeList (response, 'data', []);
+        } else {
+            request['productType'] = 'umcbl';
+            response = await this.publicGetApiMixV1MarketContracts (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1725297439225,
+            //         "data": [
+            //             {
+            //                 "symbol": "BTCUSDT_UMCBL",
+            //                 "makerFeeRate": "0.0002",
+            //                 "takerFeeRate": "0.0006",
+            //                 "feeRateUpRatio": "0.005",
+            //                 "openCostUpRatio": "0.01",
+            //                 "quoteCoin": "USDT",
+            //                 "baseCoin": "BTC",
+            //                 "buyLimitPriceRatio": "0.01",
+            //                 "sellLimitPriceRatio": "0.01",
+            //                 "supportMarginCoins": [ "USDT" ],
+            //                 "minTradeNum": "0.001",
+            //                 "priceEndStep": "1",
+            //                 "volumePlace": "3",
+            //                 "pricePlace": "1",
+            //                 "sizeMultiplier": "0.001",
+            //                 "symbolType": "perpetual",
+            //                 "symbolStatus": "normal",
+            //                 "offTime": "-1",
+            //                 "limitOpenTime": "-1",
+            //                 "maintainTime": "",
+            //                 "symbolName": "BTCUSDT",
+            //                 "minTradeUSDT": null,
+            //                 "maxPositionNum": null,
+            //                 "maxOrderNum": null
+            //             }
+            //         ]
+            //     }
+            //
+            const swapUMCBL = this.safeList (response, 'data', []);
+            request['productType'] = 'dmcbl';
+            response = await this.publicGetApiMixV1MarketContracts (this.extend (request, params));
+            //
+            //     {
+            //         "code":"00000",
+            //         "msg":"success",
+            //         "requestTime":1725297439646,
+            //         "data":[
+            //             {
+            //                 "symbol":"BTCUSD_DMCBL",
+            //                 "makerFeeRate":"0.0002",
+            //                 "takerFeeRate":"0.0006",
+            //                 "feeRateUpRatio":"0.005",
+            //                 "openCostUpRatio":"0.01",
+            //                 "quoteCoin":"USD",
+            //                 "baseCoin":"BTC",
+            //                 "buyLimitPriceRatio":"0.01",
+            //                 "sellLimitPriceRatio":"0.01",
+            //                 "supportMarginCoins":[
+            //                     "BTC",
+            //                     "ETH"
+            //                 ],
+            //                 "minTradeNum":"0.001",
+            //                 "priceEndStep":"1",
+            //                 "volumePlace":"3",
+            //                 "pricePlace":"1",
+            //                 "sizeMultiplier":"0.001",
+            //                 "symbolType":"perpetual",
+            //                 "symbolStatus":"normal",
+            //                 "offTime":"-1",
+            //                 "limitOpenTime":"-1",
+            //                 "maintainTime":"",
+            //                 "symbolName":"BTCUSD",
+            //                 "minTradeUSDT":null,
+            //                 "maxPositionNum":null,
+            //                 "maxOrderNum":null
+            //             }
+            //         ]
+            //     }
+            const swapDMCBL = this.safeList (response, 'data', []);
+            swapMarkets = this.arrayConcat (swapUMCBL, swapDMCBL);
+        }
+        const markets = this.arrayConcat (spotMarkets, swapMarkets);
+        return this.parseMarkets (markets);
     }
 
     parseMarket (market: Dict): Market {
         //
+        // spot
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "high24h": "59461.34",
+        //         "low24h": "57723.23",
+        //         "close": "59056.02",
+        //         "quoteVol": "18240112.23368",
+        //         "baseVol": "309.05564",
+        //         "usdtVol": "18240112.2336744",
+        //         "ts": "1725114038951",
+        //         "buyOne": "59055.85",
+        //         "sellOne": "59057.45",
+        //         "bidSz": "0.0139",
+        //         "askSz": "0.0139",
+        //         "openUtc0": "59126.71",
+        //         "changeUtc": "-0.0012",
+        //         "change": "0.01662"
+        //     },
         //
-        const marketId = this.safeString (market, 'symbol');
-        const parsedMarketId = this.parseMarketId (marketId);
-        const baseId = this.safeString (parsedMarketId, 'baseId');
-        const quoteId = this.safeString (parsedMarketId, 'quoteId');
-        const base = this.safeCurrencyCode (baseId);
-        const quote = this.safeCurrencyCode (quoteId);
+        // swap
+        //     {
+        //         "symbol": "BTCUSDT_UMCBL",
+        //         "makerFeeRate": "0.0002",
+        //         "takerFeeRate": "0.0006",
+        //         "feeRateUpRatio": "0.005",
+        //         "openCostUpRatio": "0.01",
+        //         "quoteCoin": "USDT",
+        //         "baseCoin": "BTC",
+        //         "buyLimitPriceRatio": "0.01",
+        //         "sellLimitPriceRatio": "0.01",
+        //         "supportMarginCoins": [ "USDT" ],
+        //         "minTradeNum": "0.001",
+        //         "priceEndStep": "1",
+        //         "volumePlace": "3",
+        //         "pricePlace": "1",
+        //         "sizeMultiplier": "0.001",
+        //         "symbolType": "perpetual",
+        //         "symbolStatus": "normal",
+        //         "offTime": "-1",
+        //         "limitOpenTime": "-1",
+        //         "maintainTime": "",
+        //         "symbolName": "BTCUSDT",
+        //         "minTradeUSDT": null,
+        //         "maxPositionNum": null,
+        //         "maxOrderNum": null
+        //     }
+        //
+        let marketId = this.safeString (market, 'symbol');
         const tradingFees = this.safeDict (this.fees, 'trading');
         const fees = this.safeDict (tradingFees, 'spot');
+        let baseId = this.safeString (market, 'baseCoin');
+        let quoteId = this.safeString (market, 'quoteCoin');
+        let settleId: Str = undefined;
+        let suffix = '';
+        let settle: Str = undefined;
+        let type = 'spot';
+        let isLinear: Bool = false;
+        const isSpot = baseId === undefined; // for now spot markets have no properties baseCoin and quoteCoin
+        if (isSpot) {
+            const parsedMarketId = this.parseSpotMarketId (marketId);
+            baseId = this.safeString (parsedMarketId, 'baseId');
+            quoteId = this.safeString (parsedMarketId, 'quoteId');
+            marketId += '_SPBL'; // spot markets should have current suffix
+        } else {
+            type = 'swap';
+            fees['taker'] = this.safeNumber (market, 'takerFeeRate');
+            fees['maker'] = this.safeNumber (market, 'makerFeeRate');
+            const supportMarginCoins = this.safeList (market, 'supportMarginCoins', []);
+            settleId = this.safeString (supportMarginCoins, 0); // todo check for _DMCBL
+            settle = this.safeCurrencyCode (settleId);
+            suffix = ':' + settle;
+            isLinear = true; // todo check
+        }
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const symbol = base + '/' + quote + suffix;
+        const symbolStatus = this.safeString (market, 'symbolStatus');
+        const active = symbolStatus ? (symbolStatus === 'normal') : undefined;
+        const volumePlace = this.safeString (market, 'volumePlace');
+        const amountPrecisionString = this.parsePrecision (volumePlace);
+        const pricePlace = this.safeString (market, 'pricePlace');
+        const priceEndStep = this.safeString (market, 'priceEndStep');
+        const pricePrecisionString = Precise.stringMul (this.parsePrecision (pricePlace), priceEndStep);
         return this.safeMarketStructure ({
-            'id': marketId + '_SPBL', // todo check
-            'symbol': base + '/' + quote,
+            'id': marketId,
+            'symbol': symbol,
             'base': base,
             'quote': quote,
             'baseId': baseId,
             'quoteId': quoteId,
-            'active': undefined, // todo check
-            'type': 'spot',
-            'subType': undefined,
-            'spot': true,
-            'margin': false, // todo check
-            'swap': false,
+            'active': active,
+            'type': type,
+            'subType': isSpot ? undefined : 'linear', // todo check
+            'spot': isSpot,
+            'margin': isSpot ? false : undefined, // todo check
+            'swap': !isSpot,
             'future': false,
             'option': false,
             'contract': false,
-            'settle': undefined,
-            'settleId': undefined,
-            'contractSize': undefined,
-            'linear': undefined,
-            'inverse': undefined,
+            'settle': settle,
+            'settleId': settleId,
+            'contractSize': this.safeString (market, 'sizeMultiplier'),
+            'linear': isLinear,
+            'inverse': isSpot ? undefined : (!isLinear),
             'taker': this.safeNumber (fees, 'taker'),
             'maker': this.safeNumber (fees, 'maker'),
             'percentage': this.safeBool (fees, 'percentage'),
@@ -553,12 +717,12 @@ export default class coincatch extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': undefined,
-                'price': undefined,
+                'amount': this.parseNumber (amountPrecisionString),
+                'price': this.parseNumber (pricePrecisionString),
             },
             'limits': {
                 'amount': {
-                    'min': undefined,
+                    'min': this.safeNumber (market, 'minTradeNum'),
                     'max': undefined,
                 },
                 'price': {
@@ -579,7 +743,7 @@ export default class coincatch extends Exchange {
         });
     }
 
-    parseMarketId (marketId) {
+    parseSpotMarketId (marketId) {
         let baseId = undefined;
         let quoteId = undefined;
         const currencyIds = this.safeList (this.options, 'currencyIdsListForParseMarket', []);
@@ -805,6 +969,7 @@ export default class coincatch extends Exchange {
          * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         const methodName = 'fetchOHLCV';
+        // todo add pagination for spot
         await this.loadMarkets ();
         const market = this.market (symbol);
         timeframe = this.safeString (this.timeframes, timeframe, timeframe);
@@ -1189,8 +1354,8 @@ export default class coincatch extends Exchange {
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
          * @param {string} tag
-         * @param {string} [params.network] network for withdraw (mendatory parameter)
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} params.network network for withdraw (mandatory)
          * @param {string} [params.remark] remark
          * @param {string} [params.clientOid] custom id
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
