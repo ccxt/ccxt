@@ -3470,7 +3470,7 @@ class Exchange {
             if (currencyCode === undefined) {
                 const currencies = Object.values(this.currencies);
                 for (let i = 0; i < currencies.length; i++) {
-                    const currency = [i];
+                    const currency = currencies[i];
                     const networks = this.safeDict(currency, 'networks');
                     const network = this.safeDict(networks, networkCode);
                     networkId = this.safeString(network, 'id');

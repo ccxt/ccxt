@@ -3691,7 +3691,7 @@ class Exchange(object):
             if currencyCode is None:
                 currencies = list(self.currencies.values())
                 for i in range(0, len(currencies)):
-                    currency = [i]
+                    currency = currencies[i]
                     networks = self.safe_dict(currency, 'networks')
                     network = self.safe_dict(networks, networkCode)
                     networkId = self.safe_string(network, 'id')

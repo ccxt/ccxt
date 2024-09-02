@@ -2631,7 +2631,7 @@ class Exchange extends \ccxt\Exchange {
             if ($currencyCode === null) {
                 $currencies = is_array($this->currencies) ? array_values($this->currencies) : array();
                 for ($i = 0; $i < count($currencies); $i++) {
-                    $currency = array( $i );
+                    $currency = $currencies[$i];
                     $networks = $this->safe_dict($currency, 'networks');
                     $network = $this->safe_dict($networks, $networkCode);
                     $networkId = $this->safe_string($network, 'id');
