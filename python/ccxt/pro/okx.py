@@ -9,12 +9,14 @@ import hashlib
 from ccxt.base.types import Balances, Int, Liquidation, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
+from typing import Any
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import ChecksumError
+from ccxt.base.errors import UnsubscribeError
 
 
 class okx(ccxt.async_support.okx):
@@ -216,6 +218,43 @@ class okx(ccxt.async_support.okx):
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
+    async def un_watch_trades_for_symbols(self, symbols: List[str], params={}) -> Any:
+        """
+        unWatches from the stream channel
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        channel = 'trades'
+        topics = []
+        messageHashes = []
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            messageHashes.append('unsubscribe:trades:' + symbol)
+            marketId = self.market_id(symbol)
+            topic: dict = {
+                'channel': channel,
+                'instId': marketId,
+            }
+            topics.append(topic)
+        request: dict = {
+            'op': 'unsubscribe',
+            'args': topics,
+        }
+        url = self.get_url(channel, 'public')
+        return await self.watch_multiple(url, messageHashes, request, messageHashes)
+
+    async def un_watch_trades(self, symbol: str, params={}) -> Any:
+        """
+        unWatches from the stream channel
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        """
+        return await self.un_watch_trades_for_symbols([symbol], params)
+
     def handle_trades(self, client: Client, message):
         #
         #     {
@@ -349,8 +388,8 @@ class okx(ccxt.async_support.okx):
         :param str [params.channel]: the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
         """
-        if self.is_empty(symbols):
-            raise ArgumentsRequired(self.id + ' watchTickers requires a list of symbols')
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
         channel = None
         channel, params = self.handle_option_and_params(params, 'watchTickers', 'channel', 'tickers')
         newTickers = await self.subscribe_multiple('public', channel, symbols, params)
@@ -419,8 +458,13 @@ class okx(ccxt.async_support.okx):
         await self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True)
         messageHash = 'liquidations'
+        messageHashes = []
         if symbols is not None:
-            messageHash += '::' + ','.join(symbols)
+            for i in range(0, len(symbols)):
+                symbol = symbols[i]
+                messageHashes.append(messageHash + '::' + symbol)
+        else:
+            messageHashes.append(messageHash)
         market = self.get_market_from_symbols(symbols)
         type = None
         type, params = self.handle_market_type_and_params('watchliquidationsForSymbols', market, params)
@@ -431,9 +475,16 @@ class okx(ccxt.async_support.okx):
             type = 'futures'
         uppercaseType = type.upper()
         request = {
-            'instType': uppercaseType,
+            'op': 'subscribe',
+            'args': [
+                {
+                    'channel': channel,
+                    'instType': uppercaseType,
+                },
+            ],
         }
-        newLiquidations = await self.subscribe('public', messageHash, channel, None, self.extend(request, params))
+        url = self.get_url(channel, 'public')
+        newLiquidations = await self.watch_multiple(url, messageHashes, request, messageHashes)
         if self.newUpdates:
             return newLiquidations
         return self.filter_by_symbols_since_limit(self.liquidations, symbols, since, limit, True)
@@ -821,6 +872,62 @@ class okx(ccxt.async_support.okx):
         url = self.get_url(depth, 'public')
         orderbook = await self.watch_multiple(url, messageHashes, request, messageHashes)
         return orderbook.limit()
+
+    async def un_watch_order_book_for_symbols(self, symbols: List[str], params={}) -> Any:
+        """
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
+        unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str[] symbols: unified array of symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.limit]: the maximum amount of order book entries to return
+        :param str [params.depth]: okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        depth = None
+        depth, params = self.handle_option_and_params(params, 'watchOrderBook', 'depth', 'books')
+        limit = self.safe_integer(params, 'limit')
+        if limit is not None:
+            if limit == 1:
+                depth = 'bbo-tbt'
+            elif limit > 1 and limit <= 5:
+                depth = 'books5'
+            elif limit == 50:
+                depth = 'books50-l2-tbt'  # Make sure you have VIP4 and above
+            elif limit == 400:
+                depth = 'books'
+        topics = []
+        subMessageHashes = []
+        messageHashes = []
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            subMessageHashes.append(depth + ':' + symbol)
+            messageHashes.append('unsubscribe:orderbook:' + symbol)
+            marketId = self.market_id(symbol)
+            topic: dict = {
+                'channel': depth,
+                'instId': marketId,
+            }
+            topics.append(topic)
+        request: dict = {
+            'op': 'unsubscribe',
+            'args': topics,
+        }
+        url = self.get_url(depth, 'public')
+        return await self.watch_multiple(url, messageHashes, request, messageHashes)
+
+    async def un_watch_order_book(self, symbol: str, params={}) -> Any:
+        """
+        :see: https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-order-book-channel
+        unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified array of symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.limit]: the maximum amount of order book entries to return
+        :param str [params.depth]: okx order book depth, can be books, books5, books-l2-tbt, books50-l2-tbt, bbo-tbt
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        return await self.un_watch_order_book_for_symbols([symbol], params)
 
     def handle_delta(self, bookside, delta):
         #
@@ -1305,6 +1412,12 @@ class okx(ccxt.async_support.okx):
         for i in range(0, len(data)):
             rawPosition = data[i]
             position = self.parse_position(rawPosition)
+            if position['contracts'] == 0:
+                position['side'] = 'long'
+                shortPosition = self.clone(position)
+                shortPosition['side'] = 'short'
+                cache.append(shortPosition)
+                newPositions.append(shortPosition)
             newPositions.append(position)
             cache.append(position)
         messageHashes = self.find_message_hashes(client, channel + '::')
@@ -1830,6 +1943,7 @@ class okx(ccxt.async_support.okx):
                 # 'book': 'handleOrderBook',
                 'login': self.handle_authenticate,
                 'subscribe': self.handle_subscription_status,
+                'unsubscribe': self.handle_unsubscription,
                 'order': self.handle_place_orders,
                 'batch-orders': self.handle_place_orders,
                 'amend-order': self.handle_place_orders,
@@ -1869,3 +1983,47 @@ class okx(ccxt.async_support.okx):
                     self.handle_ohlcv(client, message)
             else:
                 method(client, message)
+
+    def handle_un_subscription_trades(self, client: Client, symbol: str):
+        subMessageHash = 'trades:' + symbol
+        messageHash = 'unsubscribe:trades:' + symbol
+        if subMessageHash in client.subscriptions:
+            del client.subscriptions[subMessageHash]
+        if messageHash in client.subscriptions:
+            del client.subscriptions[messageHash]
+        del self.trades[symbol]
+        error = UnsubscribeError(self.id + ' ' + subMessageHash)
+        client.reject(error, subMessageHash)
+        client.resolve(True, messageHash)
+
+    def handle_unsubscription_order_book(self, client: Client, symbol: str, channel: str):
+        subMessageHash = channel + ':' + symbol
+        messageHash = 'unsubscribe:orderbook:' + symbol
+        if subMessageHash in client.subscriptions:
+            del client.subscriptions[subMessageHash]
+        if messageHash in client.subscriptions:
+            del client.subscriptions[messageHash]
+        del self.orderbooks[symbol]
+        error = UnsubscribeError(self.id + ' ' + subMessageHash)
+        client.reject(error, subMessageHash)
+        client.resolve(True, messageHash)
+
+    def handle_unsubscription(self, client: Client, message):
+        #
+        # {
+        #     "event": "unsubscribe",
+        #     "arg": {
+        #       "channel": "tickers",
+        #       "instId": "LTC-USD-200327"
+        #     },
+        #     "connId": "a4d3ae55"
+        # }
+        # arg might be an array or list
+        arg = self.safe_dict(message, 'arg', {})
+        channel = self.safe_string(arg, 'channel')
+        marketId = self.safe_string(arg, 'instId')
+        symbol = self.safe_symbol(marketId)
+        if channel == 'trades':
+            self.handle_un_subscription_trades(client, symbol)
+        elif channel.startswith('bbo') or channel.startswith('book'):
+            self.handle_unsubscription_order_book(client, symbol, channel)

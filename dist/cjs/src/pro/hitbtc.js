@@ -15,6 +15,7 @@ class hitbtc extends hitbtc$1 {
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchOrderBook': true,
                 'watchBalance': true,
                 'watchOrders': true,

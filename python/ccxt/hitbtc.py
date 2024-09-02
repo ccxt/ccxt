@@ -1369,8 +1369,10 @@ class hitbtc(Exchange, ImplicitAPI):
 
     def parse_transaction_status(self, status: Str):
         statuses: dict = {
+            'CREATED': 'pending',
             'PENDING': 'pending',
             'FAILED': 'failed',
+            'ROLLED_BACK': 'failed',
             'SUCCESS': 'ok',
         }
         return self.safe_string(statuses, status, status)

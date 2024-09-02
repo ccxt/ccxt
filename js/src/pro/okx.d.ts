@@ -8,6 +8,8 @@ export default class okx extends okxRest {
     subscribe(access: any, messageHash: any, channel: any, symbol: any, params?: {}): Promise<any>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
     watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
+    unWatchTrades(symbol: string, params?: {}): Promise<any>;
     handleTrades(client: Client, message: any): void;
     watchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
     watchFundingRates(symbols: string[], params?: {}): Promise<FundingRates>;
@@ -26,6 +28,8 @@ export default class okx extends okxRest {
     handleOHLCV(client: Client, message: any): void;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
+    unWatchOrderBookForSymbols(symbols: string[], params?: {}): Promise<any>;
+    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBookMessage(client: Client, message: any, orderbook: any, messageHash: any, market?: any): any;
@@ -54,4 +58,7 @@ export default class okx extends okxRest {
     handlePong(client: Client, message: any): any;
     handleErrorMessage(client: Client, message: any): any;
     handleMessage(client: Client, message: any): void;
+    handleUnSubscriptionTrades(client: Client, symbol: string): void;
+    handleUnsubscriptionOrderBook(client: Client, symbol: string, channel: string): void;
+    handleUnsubscription(client: Client, message: any): void;
 }

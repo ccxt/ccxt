@@ -1619,6 +1619,7 @@ class woofipro(Exchange, ImplicitAPI):
         :see: https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-order_id
         :see: https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-client_order_id
         fetches information on an order made by the user
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: whether the order is a stop/algo order

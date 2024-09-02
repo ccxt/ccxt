@@ -317,6 +317,7 @@ public partial class kucoin
     /// See <see href="https://docs.kucoin.com/spot-hf/#place-hf-order"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/orders/place-order-test"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs/rest/margin-trading/orders/place-margin-order-test"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-place-hf-order"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>price</term>
@@ -438,6 +439,12 @@ public partial class kucoin
     /// bool : set to true to test an order, no order will be created but the request will be validated
     /// </description>
     /// </item>
+    /// <item>
+    /// <term>params.sync</term>
+    /// <description>
+    /// bool : set to true to use the hf sync call
+    /// </description>
+    /// </item>
     /// </list>
     /// </remarks>
     /// <returns> <term>object</term> an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}.</returns>
@@ -513,6 +520,7 @@ public partial class kucoin
     /// <remarks>
     /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/orders/place-multiple-orders"/>  <br/>
     /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/place-multiple-hf-orders"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-place-multiple-hf-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -524,6 +532,12 @@ public partial class kucoin
     /// <term>params.hf</term>
     /// <description>
     /// bool : false, // true for hf orders
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.sync</term>
+    /// <description>
+    /// bool : false, // true to use the hf sync call
     /// </description>
     /// </item>
     /// </list>
@@ -584,6 +598,8 @@ public partial class kucoin
     /// See <see href="https://docs.kucoin.com/spot#cancel-single-order-by-clientoid-2"/>  <br/>
     /// See <see href="https://docs.kucoin.com/spot-hf/#cancel-orders-by-orderid"/>  <br/>
     /// See <see href="https://docs.kucoin.com/spot-hf/#cancel-order-by-clientoid"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-cancel-hf-order-by-orderid"/>  <br/>
+    /// See <see href="https://www.kucoin.com/docs/rest/spot-trading/spot-hf-trade-pro-account/sync-cancel-hf-order-by-clientoid"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -601,6 +617,12 @@ public partial class kucoin
     /// <term>params.hf</term>
     /// <description>
     /// bool : false, // true for hf order
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.sync</term>
+    /// <description>
+    /// bool : false, // true to use the hf sync call
     /// </description>
     /// </item>
     /// </list>

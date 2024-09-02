@@ -20,6 +20,7 @@ public partial class bitopro : ccxt.bitopro
                 { "watchTicker", true },
                 { "watchTickers", false },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
             } },
             { "urls", new Dictionary<string, object>() {
                 { "ws", new Dictionary<string, object>() {

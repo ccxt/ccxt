@@ -33,6 +33,7 @@ class poloniexfutures(ccxt.async_support.poloniexfutures):
                 'watchTicker': True,
                 'watchTickers': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchBalance': True,
                 'watchOrders': True,
                 'watchMyTrades': False,

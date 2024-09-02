@@ -21,6 +21,7 @@ class paradex(ccxt.async_support.paradex):
                 'watchOrderBook': True,
                 'watchOrders': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchBalance': False,
                 'watchOHLCV': False,
             },

@@ -36,6 +36,7 @@ class htx extends \ccxt\async\htx {
                 'watchTickers' => false,
                 'watchTicker' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchMyTrades' => true,
                 'watchBalance' => true,
                 'watchOHLCV' => true,

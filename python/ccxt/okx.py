@@ -1062,6 +1062,7 @@ class okx(Exchange, ImplicitAPI):
                     'ZEC': 'Zcash',
                     'ZIL': 'Zilliqa',
                     'ZKSYNC': 'ZKSYNC',
+                    'OMNI': 'Omni',
                     # 'NEON3': 'N3',  # tbd
                     # undetermined : "CELO-TOKEN", "Digital Cash", Khala
                     # todo: uncomment below after consensus
@@ -1587,14 +1588,6 @@ class okx(Exchange, ImplicitAPI):
         #
         dataResponse = self.safe_list(response, 'data', [])
         return self.parse_markets(dataResponse)
-
-    def safe_network(self, networkId):
-        networksById: dict = {
-            'Bitcoin': 'BTC',
-            'Omni': 'OMNI',
-            'TRON': 'TRC20',
-        }
-        return self.safe_string(networksById, networkId, networkId)
 
     def fetch_currencies(self, params={}) -> Currencies:
         """
