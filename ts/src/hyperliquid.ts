@@ -9,7 +9,6 @@ import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
 import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, TradingFeeInterface, Ticker, Tickers } from './base/types.js';
-import { trace } from 'node:console';
 
 //  ---------------------------------------------------------------------------
 
