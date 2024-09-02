@@ -827,7 +827,8 @@ export default class ascendex extends Exchange {
          * @param {string} [params.marginMode] 'cross' or undefined, for spot margin trading, value of 'isolated' is invalid
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
-        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
+        await this.loadMarkets ();
+        await this.loadAccounts ();
         let marketType = undefined;
         let marginMode = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
@@ -1452,7 +1453,8 @@ export default class ascendex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/#/?id=fee-structure} indexed by market symbols
          */
-        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
+        await this.loadMarkets ();
+        await this.loadAccounts ();
         const account = this.safeDict (this.accounts, 0, {});
         const accountGroup = this.safeString (account, 'id');
         const request: Dict = {
@@ -1604,7 +1606,8 @@ export default class ascendex extends Exchange {
          * @param {float} [params.stopLoss.triggerPrice] *swap only* stop loss trigger price
          * @returns [An order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
+        await this.loadMarkets ();
+        await this.loadAccounts ();
         const market = this.market (symbol);
         const request = this.createOrderRequest (symbol, type, side, amount, price, params);
         let response = undefined;
@@ -1695,7 +1698,8 @@ export default class ascendex extends Exchange {
          * @param {float} [params.stopPrice] the price at which a trigger order is triggered at
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
+        await this.loadMarkets ();
+        await this.loadAccounts ();
         const ordersRequests = [];
         let symbol = undefined;
         let marginMode = undefined;
@@ -1789,7 +1793,8 @@ export default class ascendex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
+        await this.loadMarkets ();
+        await this.loadAccounts ();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -1897,7 +1902,8 @@ export default class ascendex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
+        await this.loadMarkets ();
+        await this.loadAccounts ();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2015,7 +2021,8 @@ export default class ascendex extends Exchange {
          * @param {int} [params.until] the latest time in ms to fetch orders for
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
+        await this.loadMarkets ();
+        await this.loadAccounts ();
         const account = this.safeDict (this.accounts, 0, {});
         const accountGroup = this.safeString (account, 'id');
         const request: Dict = {
@@ -2189,7 +2196,8 @@ export default class ascendex extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
-        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
+        await this.loadMarkets ();
+        await this.loadAccounts ();
         const market = this.market (symbol);
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
         const accountsByType = this.safeDict (this.options, 'accountsByType', {});
@@ -2298,7 +2306,8 @@ export default class ascendex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list with a single [order structure]{@link https://docs.ccxt.com/#/?id=order-structure} with the response assigned to the info property
          */
-        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
+        await this.loadMarkets ();
+        await this.loadAccounts ();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -2641,7 +2650,8 @@ export default class ascendex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
          */
-        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
+        await this.loadMarkets ();
+        await this.loadAccounts ();
         const account = this.safeDict (this.accounts, 0, {});
         const accountGroup = this.safeString (account, 'id');
         const request: Dict = {
@@ -2844,7 +2854,8 @@ export default class ascendex extends Exchange {
     }
 
     async modifyMarginHelper (symbol: string, amount, type, params = {}): Promise<MarginModification> {
-        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
+        await this.loadMarkets ();
+        await this.loadAccounts ();
         const market = this.market (symbol);
         const account = this.safeDict (this.accounts, 0, {});
         const accountGroup = this.safeString (account, 'id');
@@ -2938,7 +2949,8 @@ export default class ascendex extends Exchange {
         if ((leverage < 1) || (leverage > 100)) {
             throw new BadRequest (this.id + ' leverage should be between 1 and 100');
         }
-        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
+        await this.loadMarkets ();
+        await this.loadAccounts ();
         const market = this.market (symbol);
         if (!market['swap']) {
             throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
@@ -2974,7 +2986,8 @@ export default class ascendex extends Exchange {
         if (marginMode !== 'isolated' && marginMode !== 'crossed') {
             throw new BadRequest (this.id + ' setMarginMode() marginMode argument should be isolated or cross');
         }
-        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
+        await this.loadMarkets ();
+        await this.loadAccounts ();
         const market = this.market (symbol);
         const account = this.safeDict (this.accounts, 0, {});
         const accountGroup = this.safeString (account, 'id');
@@ -3160,7 +3173,8 @@ export default class ascendex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
-        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
+        await this.loadMarkets ();
+        await this.loadAccounts ();
         const account = this.safeDict (this.accounts, 0, {});
         const accountGroup = this.safeString (account, 'id');
         const currency = this.currency (code);
@@ -3232,7 +3246,8 @@ export default class ascendex extends Exchange {
          * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
          * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/#/?id=funding-history-structure}
          */
-        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
+        await this.loadMarkets ();
+        await this.loadAccounts ();
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
         if (paginate) {
@@ -3307,7 +3322,8 @@ export default class ascendex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a list of [margin mode structures]{@link https://docs.ccxt.com/#/?id=margin-mode-structure}
          */
-        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
+        await this.loadMarkets ();
+        await this.loadAccounts ();
         const account = this.safeDict (this.accounts, 0, {});
         const accountGroup = this.safeString (account, 'id');
         const request: Dict = {
@@ -3379,7 +3395,8 @@ export default class ascendex extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a list of [leverage structures]{@link https://docs.ccxt.com/#/?id=leverage-structure}
          */
-        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
+        await this.loadMarkets ();
+        await this.loadAccounts ();
         const account = this.safeDict (this.accounts, 0, {});
         const accountGroup = this.safeString (account, 'id');
         const request: Dict = {
