@@ -784,31 +784,66 @@ export default class coincatch extends Exchange {
         const request: Dict = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetApiSpotV1MarketTicker (this.extend (request, params));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1725132487751,
-        //         "data": {
-        //             "symbol": "ETHUSDT",
-        //             "high24h": "2533.76",
-        //             "low24h": "2492.72",
-        //             "close": "2499.76",
-        //             "quoteVol": "21457850.7442",
-        //             "baseVol": "8517.1869",
-        //             "usdtVol": "21457850.744163",
-        //             "ts": "1725132487476",
-        //             "buyOne": "2499.75",
-        //             "sellOne": "2499.76",
-        //             "bidSz": "0.5311",
-        //             "askSz": "4.5806",
-        //             "openUtc0": "2525.69",
-        //             "changeUtc": "-0.01027",
-        //             "change": "-0.00772"
-        //         }
-        //     }
-        //
+        let response = undefined;
+        if (market['spot']) {
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1725132487751,
+            //         "data": {
+            //             "symbol": "ETHUSDT",
+            //             "high24h": "2533.76",
+            //             "low24h": "2492.72",
+            //             "close": "2499.76",
+            //             "quoteVol": "21457850.7442",
+            //             "baseVol": "8517.1869",
+            //             "usdtVol": "21457850.744163",
+            //             "ts": "1725132487476",
+            //             "buyOne": "2499.75",
+            //             "sellOne": "2499.76",
+            //             "bidSz": "0.5311",
+            //             "askSz": "4.5806",
+            //             "openUtc0": "2525.69",
+            //             "changeUtc": "-0.01027",
+            //             "change": "-0.00772"
+            //         }
+            //     }
+            //
+            response = await this.publicGetApiSpotV1MarketTicker (this.extend (request, params));
+        } else if (market['swap']) {
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1725316687174,
+            //         "data": {
+            //             "symbol": "ETHUSDT_UMCBL",
+            //             "last": "2540.6",
+            //             "bestAsk": "2540.71",
+            //             "bestBid": "2540.38",
+            //             "bidSz": "12.1",
+            //             "askSz": "20",
+            //             "high24h": "2563.91",
+            //             "low24h": "2398.3",
+            //             "timestamp": "1725316687177",
+            //             "priceChangePercent": "0.01134",
+            //             "baseVolume": "706928.96",
+            //             "quoteVolume": "1756401737.8766",
+            //             "usdtVolume": "1756401737.8766",
+            //             "openUtc": "2424.49",
+            //             "chgUtc": "0.04789",
+            //             "indexPrice": "2541.977142",
+            //             "fundingRate": "0.00006",
+            //             "holdingAmount": "144688.49",
+            //             "deliveryStartTime": null,
+            //             "deliveryTime": null,
+            //             "deliveryStatus": "normal"
+            //         }
+            //     }
+            //
+            response = await this.publicGetApiMixV1MarketTicker (this.extend (request, params));
+        }
         const data = this.safeDict (response, 'data', {});
         return this.parseTicker (data, market);
     }
@@ -878,31 +913,58 @@ export default class coincatch extends Exchange {
         //         "change": "0.01662"
         //     }
         //
-        const timestamp = this.safeInteger (ticker, 'ts');
-        const marketId = this.safeString (ticker, 'symbol', '') + '_SPBL'; // todo check
+        // swap
+        //     {
+        //         "symbol": "ETHUSDT_UMCBL",
+        //         "last": "2540.6",
+        //         "bestAsk": "2540.71",
+        //         "bestBid": "2540.38",
+        //         "bidSz": "12.1",
+        //         "askSz": "20",
+        //         "high24h": "2563.91",
+        //         "low24h": "2398.3",
+        //         "timestamp": "1725316687177",
+        //         "priceChangePercent": "0.01134",
+        //         "baseVolume": "706928.96",
+        //         "quoteVolume": "1756401737.8766",
+        //         "usdtVolume": "1756401737.8766",
+        //         "openUtc": "2424.49",
+        //         "chgUtc": "0.04789",
+        //         "indexPrice": "2541.977142",
+        //         "fundingRate": "0.00006",
+        //         "holdingAmount": "144688.49",
+        //         "deliveryStartTime": null,
+        //         "deliveryTime": null,
+        //         "deliveryStatus": "normal"
+        //     }
+        //
+        const timestamp = this.safeInteger2 (ticker, 'ts', 'timestamp');
+        let marketId = this.safeString (ticker, 'symbol', '');
+        if (marketId.indexOf ('_') < 0) {
+            marketId += '_SPBL'; // spot markets from tickers endpoints have no suffix specific for market id
+        }
         market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
-        const last = this.safeString (ticker, 'close');
+        const last = this.safeString2 (ticker, 'close', 'last');
         return this.safeTicker ({
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeString (ticker, 'high24h'),
             'low': this.safeString (ticker, 'low24h'),
-            'bid': this.safeString (ticker, 'buyOne'),
+            'bid': this.safeString2 (ticker, 'buyOne', 'bestBid'),
             'bidVolume': this.safeString (ticker, 'bidSz'),
-            'ask': this.safeString (ticker, 'sellOne'),
+            'ask': this.safeString2 (ticker, 'sellOne', 'bestAsk'),
             'askVolume': this.safeString (ticker, 'askSz'),
             'vwap': undefined,
             'open': undefined, // todo check
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
-            'percentage': this.safeString (ticker, 'change'),
+            'change': undefined, // todo check
+            'percentage': this.safeString2 (ticker, 'change', 'priceChangePercent'),
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'baseVol'),
-            'quoteVolume': this.safeString (ticker, 'quoteVol'),
+            'baseVolume': this.safeString2 (ticker, 'baseVol', 'baseVolume'),
+            'quoteVolume': this.safeString2 (ticker, 'quoteVol', 'quoteVolume'),
             'info': ticker,
         }, market);
     }
