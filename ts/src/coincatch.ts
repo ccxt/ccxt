@@ -659,7 +659,7 @@ export default class coincatch extends Exchange {
         let suffix = '';
         let settle: Str = undefined;
         let type = 'spot';
-        let isLinear: Bool = false;
+        let isLinear: Bool = undefined;
         const isSpot = baseId === undefined; // for now spot markets have no properties baseCoin and quoteCoin
         if (isSpot) {
             const parsedMarketId = this.parseSpotMarketId (marketId);
