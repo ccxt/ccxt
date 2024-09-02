@@ -5075,7 +5075,8 @@ export default class htx extends Exchange {
          * @param {float} [params.cost] the quote quantity that can be used as an alternative for the amount for market buy orders
          * @returns {object} request to be sent to the exchange
          */
-        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
+        await this.loadMarkets ();
+        await this.loadAccounts ();
         const market = this.market (symbol);
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
