@@ -85,7 +85,7 @@ function updateMarketsOrCurrencies (exchange, type) {
             destination[key] = exchange.markets[key];
         } else {
             // if symbol or currency is removed from exchange
-            console.log ('Key no longer found in latest fetched ' + exchangeId + ' > ' + type);
+            console.log ('[info] can not update data for key, it is no longer found in latest fetched ' + exchangeId + ' > ' + type + ' > ' + key);
         }
     }
     const filePath = type === 'markets' ? filePathForMarkets : filePathForCurrencies;
