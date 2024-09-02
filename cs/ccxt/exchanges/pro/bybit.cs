@@ -1588,7 +1588,7 @@ public partial class bybit : ccxt.bybit
         object newLiquidation = await this.watchTopics(url, new List<object>() {messageHash}, new List<object>() {topic}, parameters);
         if (isTrue(this.newUpdates))
         {
-            return new List<object>() {newLiquidation};
+            return newLiquidation;
         }
         return this.filterBySymbolsSinceLimit(this.liquidations, new List<object>() {symbol}, since, limit, true);
     }

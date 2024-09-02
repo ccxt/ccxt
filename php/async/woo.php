@@ -485,7 +485,7 @@ class woo extends Exchange {
             'swap' => $swap,
             'future' => false,
             'option' => false,
-            'active' => null,
+            'active' => $this->safe_string($market, 'is_trading') === '1',
             'contract' => $contract,
             'linear' => $linear,
             'inverse' => null,

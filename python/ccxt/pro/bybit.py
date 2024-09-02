@@ -1337,7 +1337,7 @@ class bybit(ccxt.async_support.bybit):
         topic = 'liquidation.' + market['id']
         newLiquidation = await self.watch_topics(url, [messageHash], [topic], params)
         if self.newUpdates:
-            return [newLiquidation]
+            return newLiquidation
         return self.filter_by_symbols_since_limit(self.liquidations, [symbol], since, limit, True)
 
     def handle_liquidation(self, client: Client, message):

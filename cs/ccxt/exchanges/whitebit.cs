@@ -2764,10 +2764,12 @@ public partial class whitebit : Exchange
                     errorInfo = status;
                 } else
                 {
-                    object errorObject = this.safeValue(response, "errors");
-                    if (isTrue(!isEqual(errorObject, null)))
+                    object errorObject = this.safeDict(response, "errors", new Dictionary<string, object>() {});
+                    object errorKeys = new List<object>(((IDictionary<string,object>)errorObject).Keys);
+                    object errorsLength = getArrayLength(errorKeys);
+                    if (isTrue(isGreaterThan(errorsLength, 0)))
                     {
-                        object errorKey = getValue(new List<object>(((IDictionary<string,object>)errorObject).Keys), 0);
+                        object errorKey = getValue(errorKeys, 0);
                         object errorMessageArray = this.safeValue(errorObject, errorKey, new List<object>() {});
                         object errorMessageLength = getArrayLength(errorMessageArray);
                         errorInfo = ((bool) isTrue((isGreaterThan(errorMessageLength, 0)))) ? getValue(errorMessageArray, 0) : body;

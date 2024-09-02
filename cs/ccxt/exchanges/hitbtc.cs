@@ -1296,6 +1296,7 @@ public partial class hitbtc : Exchange
     public virtual object parseTransactionStatus(object status)
     {
         object statuses = new Dictionary<string, object>() {
+            { "CREATED", "pending" },
             { "PENDING", "pending" },
             { "FAILED", "failed" },
             { "ROLLED_BACK", "failed" },

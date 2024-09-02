@@ -1,5 +1,5 @@
 import coinexRest from '../coinex.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, Balances, Dict, int } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 export default class coinex extends coinexRest {
     describe(): any;
@@ -8,15 +8,17 @@ export default class coinex extends coinexRest {
     parseWSTicker(ticker: any, market?: any): Ticker;
     watchBalance(params?: {}): Promise<Balances>;
     handleBalance(client: Client, message: any): void;
+    parseWsBalance(balance: any, accountType?: any): void;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    handleMyTrades(client: Client, message: any): void;
     handleTrades(client: Client, message: any): void;
     parseWsTrade(trade: any, market?: any): Trade;
-    handleOHLCV(client: Client, message: any): void;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
     watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
-    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
-    fetchOHLCVWs(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
     handleDelta(bookside: any, delta: any): void;
     handleDeltas(bookside: any, deltas: any): void;
     handleOrderBook(client: Client, message: any): void;
@@ -24,8 +26,12 @@ export default class coinex extends coinexRest {
     handleOrders(client: Client, message: any): void;
     parseWsOrder(order: any, market?: any): Order;
     parseWsOrderStatus(status: any): string;
+    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
+    handleBidAsk(client: Client, message: any): void;
+    parseWsBidAsk(ticker: any, market?: any): Ticker;
     handleMessage(client: Client, message: any): void;
-    handleAuthenticationMessage(client: Client, message: any): any;
+    handleErrors(code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any): any;
+    handleAuthenticationMessage(client: Client, message: any): void;
     handleSubscriptionStatus(client: Client, message: any): void;
-    authenticate(params?: {}): Promise<any>;
+    authenticate(type: string): Promise<any>;
 }

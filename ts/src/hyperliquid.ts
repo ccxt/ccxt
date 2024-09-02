@@ -334,7 +334,7 @@ export default class hyperliquid extends Exchange {
         //
         const meta = this.safeDict (response, 0, {});
         const universe = this.safeList (meta, 'universe', []);
-        const assetCtxs = this.safeDict (response, 1, {});
+        const assetCtxs = this.safeList (response, 1, []);
         const result = [];
         for (let i = 0; i < universe.length; i++) {
             const data = this.extend (
@@ -703,7 +703,7 @@ export default class hyperliquid extends Exchange {
                 const total = this.safeString (balance, 'total');
                 const free = this.safeString (balance, 'hold');
                 account['total'] = total;
-                account['free'] = free;
+                account['used'] = free;
                 spotBalances[code] = account;
             }
             return this.safeBalance (spotBalances);
@@ -1818,9 +1818,10 @@ export default class hyperliquid extends Exchange {
         [ userAddress, params ] = this.handlePublicAddress ('fetchOrder', params);
         await this.loadMarkets ();
         const market = this.safeMarket (symbol);
+        const isClientOrderId = id.length >= 34;
         const request: Dict = {
             'type': 'orderStatus',
-            'oid': this.parseToNumeric (id),
+            'oid': isClientOrderId ? id : this.parseToNumeric (id),
             'user': userAddress,
         };
         const response = await this.publicPostInfo (this.extend (request, params));

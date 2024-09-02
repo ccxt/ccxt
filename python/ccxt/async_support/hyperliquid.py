@@ -329,7 +329,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #
         meta = self.safe_dict(response, 0, {})
         universe = self.safe_list(meta, 'universe', [])
-        assetCtxs = self.safe_dict(response, 1, {})
+        assetCtxs = self.safe_list(response, 1, [])
         result = []
         for i in range(0, len(universe)):
             data = self.extend(
@@ -687,7 +687,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 total = self.safe_string(balance, 'total')
                 free = self.safe_string(balance, 'hold')
                 account['total'] = total
-                account['free'] = free
+                account['used'] = free
                 spotBalances[code] = account
             return self.safe_balance(spotBalances)
         data = self.safe_dict(response, 'marginSummary', {})
@@ -1694,9 +1694,10 @@ class hyperliquid(Exchange, ImplicitAPI):
         userAddress, params = self.handle_public_address('fetchOrder', params)
         await self.load_markets()
         market = self.safe_market(symbol)
+        isClientOrderId = len(id) >= 34
         request: dict = {
             'type': 'orderStatus',
-            'oid': self.parse_to_numeric(id),
+            'oid': id if isClientOrderId else self.parse_to_numeric(id),
             'user': userAddress,
         }
         response = await self.publicPostInfo(self.extend(request, params))
