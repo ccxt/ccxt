@@ -64,6 +64,7 @@ export default class hyperliquid extends Exchange {
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
                 'fetchDeposits': false,
+                'fetchDepositsWithdrawals': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
@@ -2626,12 +2627,24 @@ export default class hyperliquid extends Exchange {
         //
         // { status: 'ok', response: { type: 'default' } }
         //
+        // fetchDepositsWithdrawals
+        // {
+        //     "time":1724762307531,
+        //     "hash":"0x620a234a7e0eb7930575040f59482a01050058b0802163b4767bfd9033e77781",
+        //     "delta":{
+        //         "type":"accountClassTransfer",
+        //         "usdc":"50.0",
+        //         "toPerp":false
+        //     }
+        // }
+        //
+        const timestamp = this.safeInteger (transaction, 'time');
         return {
             'info': transaction,
             'id': undefined,
-            'txid': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'txid': this.safeString (transaction, 'hash'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'network': undefined,
             'address': undefined,
             'addressTo': undefined,
@@ -2756,6 +2769,57 @@ export default class hyperliquid extends Exchange {
             'percentage': undefined,
             'tierBased': undefined,
         };
+    }
+
+    async fetchDepositsWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#fetchDepositsWithdrawals
+         * @description fetch history of deposits and withdrawals
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch transactions for
+         * @param {int} [limit] the maximum number of transaction structures to retrieve
+         * @param {int} [params.until] the latest time in ms to fetch transactions for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        await this.loadMarkets ();
+        if (code !== undefined) {
+            code = code.toUpperCase ();
+            if (code !== 'USDC') {
+                throw new NotSupported (this.id + 'fetchDepositsWithdrawals() only support USDC');
+            }
+        }
+        const currency = this.currency (code);
+        let userAddress = undefined;
+        [ userAddress, params ] = this.handlePublicAddress ('fetchDepositsWithdrawals', params);
+        const request: Dict = {
+            'type': 'userNonFundingLedgerUpdates',
+            'user': userAddress,
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+            params = this.omit (params, [ 'until' ]);
+        }
+        const response = await this.publicPostInfo (this.extend (request, params));
+        //
+        // [
+        //     {
+        //         "time":1724762307531,
+        //         "hash":"0x620a234a7e0eb7930575040f59482a01050058b0802163b4767bfd9033e77781",
+        //         "delta":{
+        //             "type":"accountClassTransfer",
+        //             "usdc":"50.0",
+        //             "toPerp":false
+        //         }
+        //     }
+        // ]
+        //
+        return this.parseTransactions (response, currency, since, limit);
     }
 
     formatVaultAddress (address: Str = undefined) {
