@@ -1131,7 +1131,8 @@ export default class huobijp extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
-        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
+        await this.loadMarkets ();
+        await this.loadAccounts ();
         const method = this.options['fetchBalanceMethod'];
         const request: Dict = {
             'id': this.accounts[0]['id'],
@@ -1421,7 +1422,8 @@ export default class huobijp extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
-        await Promise.all ([ this.loadMarkets (), this.loadAccounts () ]);
+        await this.loadMarkets ();
+        await this.loadAccounts ();
         const market = this.market (symbol);
         const request: Dict = {
             'account-id': this.accounts[0]['id'],
