@@ -1490,7 +1490,8 @@ export default class phemex extends phemexRest {
     }
 
     async subscribePrivate (type, messageHash, params = {}) {
-        await Promise.all ([ this.loadMarkets (), this.authenticate () ]);
+        await this.loadMarkets ();
+        await this.authenticate ();
         const url = this.urls['api']['ws'];
         const requestId = this.seconds ();
         const settleIsUSDT = (this.safeValue (params, 'settle', '') === 'USDT');
