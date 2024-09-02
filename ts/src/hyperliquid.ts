@@ -9,6 +9,7 @@ import { keccak_256 as keccak } from './static_dependencies/noble-hashes/sha3.js
 import { secp256k1 } from './static_dependencies/noble-curves/secp256k1.js';
 import { ecdsa } from './base/functions/crypto.js';
 import type { Market, TransferEntry, Balances, Int, OrderBook, OHLCV, Str, FundingRateHistory, Order, OrderType, OrderSide, Trade, Strings, Position, OrderRequest, Dict, Num, MarginModification, Currencies, CancellationRequest, int, Transaction, Currency, TradingFeeInterface, Ticker, Tickers } from './base/types.js';
+import { trace } from 'node:console';
 
 //  ---------------------------------------------------------------------------
 
@@ -2639,6 +2640,20 @@ export default class hyperliquid extends Exchange {
         // }
         //
         const timestamp = this.safeInteger (transaction, 'time');
+        const delta = this.safeDict (transaction, 'delta', {});
+        let fee = undefined;
+        const feeCost = this.safeInteger (delta, 'fee');
+        if (feeCost !== undefined) {
+            fee = {
+                currency: 'USDC',
+                cost: feeCost,
+            }
+        }
+        let internal = undefined;
+        const type = this.safeString (delta, 'type');
+        if (type !== undefined) {
+            internal = (type === 'internalTransfer');
+        }
         return {
             'info': transaction,
             'id': undefined,
@@ -2647,19 +2662,19 @@ export default class hyperliquid extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'network': undefined,
             'address': undefined,
-            'addressTo': undefined,
-            'addressFrom': undefined,
+            'addressTo': this.safeString (delta, 'destination'),
+            'addressFrom': this.safeString (delta, 'user'),
             'tag': undefined,
             'tagTo': undefined,
             'tagFrom': undefined,
             'type': undefined,
-            'amount': undefined,
+            'amount': this.safeInteger (delta, 'usdc'),
             'currency': undefined,
             'status': this.safeString (transaction, 'status'),
             'updated': undefined,
             'comment': undefined,
-            'internal': undefined,
-            'fee': undefined,
+            'internal': internal,
+            'fee': fee,
         };
     }
 
@@ -2784,13 +2799,6 @@ export default class hyperliquid extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
-        if (code !== undefined) {
-            code = code.toUpperCase ();
-            if (code !== 'USDC') {
-                throw new NotSupported (this.id + 'fetchDepositsWithdrawals() only support USDC');
-            }
-        }
-        const currency = this.currency (code);
         let userAddress = undefined;
         [ userAddress, params ] = this.handlePublicAddress ('fetchDepositsWithdrawals', params);
         const request: Dict = {
@@ -2819,7 +2827,7 @@ export default class hyperliquid extends Exchange {
         //     }
         // ]
         //
-        return this.parseTransactions (response, currency, since, limit);
+        return this.parseTransactions (response, undefined, since, limit);
     }
 
     formatVaultAddress (address: Str = undefined) {
