@@ -2648,7 +2648,8 @@ export default class coinbase extends Exchange {
     }
 
     async findAccountId (code, params = {}) {
-        await Promise.all ([ this.loadMarkets (), this.loadAccounts (false, params) ]);
+        await this.loadMarkets ();
+        await this.loadAccounts (false, params);
         for (let i = 0; i < this.accounts.length; i++) {
             const account = this.accounts[i];
             if (account['code'] === code) {
