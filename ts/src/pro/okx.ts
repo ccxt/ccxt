@@ -596,12 +596,27 @@ export default class okx extends okxRest {
         params = this.omit (params, [ 'stop', 'trigger' ]);
         await this.authenticate ({ 'access': isStop ? 'business' : 'private' });
         symbols = this.marketSymbols (symbols, undefined, true, true);
-        let messageHash = 'myLiquidations';
+        const messageHash = 'myLiquidations';
+        const messageHashes = [];
         if (symbols !== undefined) {
-            messageHash += '::' + symbols.join (',');
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                messageHashes.push (messageHash + '::' + symbol);
+            }
+        } else {
+            messageHashes.push (messageHash);
         }
         const channel = 'balance_and_position';
-        const newLiquidations = await this.subscribe ('private', messageHash, channel, undefined, params);
+        const request: Dict = {
+            'op': 'subscribe',
+            'args': [
+                {
+                    'channel': channel,
+                },
+            ],
+        };
+        const url = this.getUrl (channel, 'private');
+        const newLiquidations = await this.watchMultiple (url, messageHashes, this.deepExtend (request, params), messageHashes);
         if (this.newUpdates) {
             return newLiquidations;
         }
