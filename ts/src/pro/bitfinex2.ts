@@ -70,7 +70,8 @@ export default class bitfinex2 extends bitfinex2Rest {
     }
 
     async subscribePrivate (messageHash) {
-        await Promise.all ([ this.loadMarkets (), this.authenticate () ]);
+        await this.loadMarkets ();
+        await this.authenticate ();
         const url = this.urls['api']['ws']['private'];
         return await this.watch (url, messageHash, undefined, 1);
     }
