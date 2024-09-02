@@ -874,7 +874,12 @@ export default class hyperliquid extends Exchange {
         //         }
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        const results = [];
+        for (let i = 0; i < response.length; i++) {
+            results.push (this.parseOHLCV (response[i], market));
+        }
+        const sorted = this.sortBy (results, 0);
+        return this.filterBySinceLimit (sorted, since, limit, 0, true) as OHLCV[];
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
