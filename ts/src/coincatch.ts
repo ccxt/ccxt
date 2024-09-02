@@ -704,7 +704,7 @@ export default class coincatch extends Exchange {
             'contract': false,
             'settle': settle,
             'settleId': settleId,
-            'contractSize': this.safeString (market, 'sizeMultiplier'),
+            'contractSize': this.safeNumber (market, 'sizeMultiplier'),
             'linear': isLinear,
             'inverse': isSpot ? undefined : (!isLinear),
             'taker': this.safeNumber (fees, 'taker'),
