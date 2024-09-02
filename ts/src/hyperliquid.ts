@@ -2585,13 +2585,11 @@ export default class hyperliquid extends Exchange {
         if (vaultAddress !== undefined) {
             action = {
                 'type': 'vaultTransfer',
-                'vaultAddress': vaultAddress,
+                'vaultAddress': '0x' + vaultAddress,
                 'isDeposit': false,
                 'usd': amount,
             };
-            // TODO: check signature
-            // sig = this.buildWithdrawSig (action);
-            sig = this.signL1Action (action, nonce, vaultAddress);
+            sig = this.signL1Action (action, nonce);
         } else {
             const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
             const payload: Dict = {
