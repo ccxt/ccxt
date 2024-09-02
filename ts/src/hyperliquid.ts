@@ -2559,11 +2559,13 @@ export default class hyperliquid extends Exchange {
          * @name hyperliquid#withdraw
          * @description make a withdrawal (only support USDC)
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#initiate-a-withdrawal-request
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#deposit-or-withdraw-from-a-vault
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
          * @param {string} tag
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.vaultAddress] vault address withdraw from
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         this.checkRequiredCredentials ();
@@ -2575,24 +2577,41 @@ export default class hyperliquid extends Exchange {
                 throw new NotSupported (this.id + 'withdraw() only support USDC');
             }
         }
-        const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+        const vaultAddress = this.formatVaultAddress (this.safeString (params, 'vaultAddress'));
+        params = this.omit (params, 'vaultAddress');
         const nonce = this.milliseconds ();
-        const payload: Dict = {
-            'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
-            'destination': address,
-            'amount': amount.toString (),
-            'time': nonce,
-        };
-        const sig = this.buildWithdrawSig (payload);
-        const request: Dict = {
-            'action': {
+        let action: Dict = {};
+        let sig = undefined;
+        if (vaultAddress !== undefined) {
+            action = {
+                'type': 'vaultTransfer',
+                'vaultAddress': vaultAddress,
+                'isDeposit': false,
+                'usd': amount,
+            };
+            // TODO: check signature
+            // sig = this.buildWithdrawSig (action);
+            sig = this.signL1Action (action, nonce, vaultAddress);
+        } else {
+            const isSandboxMode = this.safeBool (this.options, 'sandboxMode', false);
+            const payload: Dict = {
+                'hyperliquidChain': isSandboxMode ? 'Testnet' : 'Mainnet',
+                'destination': address,
+                'amount': amount.toString (),
+                'time': nonce,
+            };
+            sig = this.buildWithdrawSig (payload);
+            action = {
                 'hyperliquidChain': payload['hyperliquidChain'],
                 'signatureChainId': '0x66eee', // check this out
                 'destination': address,
                 'amount': amount.toString (),
                 'time': nonce,
                 'type': 'withdraw3',
-            },
+            };
+        }
+        const request: Dict = {
+            'action': action,
             'nonce': nonce,
             'signature': sig,
         };
