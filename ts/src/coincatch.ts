@@ -2,6 +2,7 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/coincatch.js';
+import { NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
@@ -512,91 +513,85 @@ export default class coincatch extends Exchange {
         let productType: Str = undefined;
         [ productType, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'productType', productType);
         let swapMarkets = [];
-        if (productType !== undefined) {
-            request['productType'] = productType;
-            response = await this.publicGetApiMixV1MarketContracts (this.extend (request, params));
-            swapMarkets = this.safeList (response, 'data', []);
-        } else {
-            request['productType'] = 'umcbl';
-            response = await this.publicGetApiMixV1MarketContracts (this.extend (request, params));
-            //
-            //     {
-            //         "code": "00000",
-            //         "msg": "success",
-            //         "requestTime": 1725297439225,
-            //         "data": [
-            //             {
-            //                 "symbol": "BTCUSDT_UMCBL",
-            //                 "makerFeeRate": "0.0002",
-            //                 "takerFeeRate": "0.0006",
-            //                 "feeRateUpRatio": "0.005",
-            //                 "openCostUpRatio": "0.01",
-            //                 "quoteCoin": "USDT",
-            //                 "baseCoin": "BTC",
-            //                 "buyLimitPriceRatio": "0.01",
-            //                 "sellLimitPriceRatio": "0.01",
-            //                 "supportMarginCoins": [ "USDT" ],
-            //                 "minTradeNum": "0.001",
-            //                 "priceEndStep": "1",
-            //                 "volumePlace": "3",
-            //                 "pricePlace": "1",
-            //                 "sizeMultiplier": "0.001",
-            //                 "symbolType": "perpetual",
-            //                 "symbolStatus": "normal",
-            //                 "offTime": "-1",
-            //                 "limitOpenTime": "-1",
-            //                 "maintainTime": "",
-            //                 "symbolName": "BTCUSDT",
-            //                 "minTradeUSDT": null,
-            //                 "maxPositionNum": null,
-            //                 "maxOrderNum": null
-            //             }
-            //         ]
-            //     }
-            //
-            const swapUMCBL = this.safeList (response, 'data', []);
-            request['productType'] = 'dmcbl';
-            response = await this.publicGetApiMixV1MarketContracts (this.extend (request, params));
-            //
-            //     {
-            //         "code":"00000",
-            //         "msg":"success",
-            //         "requestTime":1725297439646,
-            //         "data":[
-            //             {
-            //                 "symbol":"BTCUSD_DMCBL",
-            //                 "makerFeeRate":"0.0002",
-            //                 "takerFeeRate":"0.0006",
-            //                 "feeRateUpRatio":"0.005",
-            //                 "openCostUpRatio":"0.01",
-            //                 "quoteCoin":"USD",
-            //                 "baseCoin":"BTC",
-            //                 "buyLimitPriceRatio":"0.01",
-            //                 "sellLimitPriceRatio":"0.01",
-            //                 "supportMarginCoins":[
-            //                     "BTC",
-            //                     "ETH"
-            //                 ],
-            //                 "minTradeNum":"0.001",
-            //                 "priceEndStep":"1",
-            //                 "volumePlace":"3",
-            //                 "pricePlace":"1",
-            //                 "sizeMultiplier":"0.001",
-            //                 "symbolType":"perpetual",
-            //                 "symbolStatus":"normal",
-            //                 "offTime":"-1",
-            //                 "limitOpenTime":"-1",
-            //                 "maintainTime":"",
-            //                 "symbolName":"BTCUSD",
-            //                 "minTradeUSDT":null,
-            //                 "maxPositionNum":null,
-            //                 "maxOrderNum":null
-            //             }
-            //         ]
-            //     }
-            const swapDMCBL = this.safeList (response, 'data', []);
-            swapMarkets = this.arrayConcat (swapUMCBL, swapDMCBL);
-        }
+        request['productType'] = 'umcbl';
+        response = await this.publicGetApiMixV1MarketContracts (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1725297439225,
+        //         "data": [
+        //             {
+        //                 "symbol": "BTCUSDT_UMCBL",
+        //                 "makerFeeRate": "0.0002",
+        //                 "takerFeeRate": "0.0006",
+        //                 "feeRateUpRatio": "0.005",
+        //                 "openCostUpRatio": "0.01",
+        //                 "quoteCoin": "USDT",
+        //                 "baseCoin": "BTC",
+        //                 "buyLimitPriceRatio": "0.01",
+        //                 "sellLimitPriceRatio": "0.01",
+        //                 "supportMarginCoins": [ "USDT" ],
+        //                 "minTradeNum": "0.001",
+        //                 "priceEndStep": "1",
+        //                 "volumePlace": "3",
+        //                 "pricePlace": "1",
+        //                 "sizeMultiplier": "0.001",
+        //                 "symbolType": "perpetual",
+        //                 "symbolStatus": "normal",
+        //                 "offTime": "-1",
+        //                 "limitOpenTime": "-1",
+        //                 "maintainTime": "",
+        //                 "symbolName": "BTCUSDT",
+        //                 "minTradeUSDT": null,
+        //                 "maxPositionNum": null,
+        //                 "maxOrderNum": null
+        //             }
+        //         ]
+        //     }
+        //
+        const swapUMCBL = this.safeList (response, 'data', []);
+        request['productType'] = 'dmcbl';
+        response = await this.publicGetApiMixV1MarketContracts (this.extend (request, params));
+        //
+        //     {
+        //         "code":"00000",
+        //         "msg":"success",
+        //         "requestTime":1725297439646,
+        //         "data":[
+        //             {
+        //                 "symbol":"BTCUSD_DMCBL",
+        //                 "makerFeeRate":"0.0002",
+        //                 "takerFeeRate":"0.0006",
+        //                 "feeRateUpRatio":"0.005",
+        //                 "openCostUpRatio":"0.01",
+        //                 "quoteCoin":"USD",
+        //                 "baseCoin":"BTC",
+        //                 "buyLimitPriceRatio":"0.01",
+        //                 "sellLimitPriceRatio":"0.01",
+        //                 "supportMarginCoins":[
+        //                     "BTC",
+        //                     "ETH"
+        //                 ],
+        //                 "minTradeNum":"0.001",
+        //                 "priceEndStep":"1",
+        //                 "volumePlace":"3",
+        //                 "pricePlace":"1",
+        //                 "sizeMultiplier":"0.001",
+        //                 "symbolType":"perpetual",
+        //                 "symbolStatus":"normal",
+        //                 "offTime":"-1",
+        //                 "limitOpenTime":"-1",
+        //                 "maintainTime":"",
+        //                 "symbolName":"BTCUSD",
+        //                 "minTradeUSDT":null,
+        //                 "maxPositionNum":null,
+        //                 "maxOrderNum":null
+        //             }
+        //         ]
+        //     }
+        const swapDMCBL = this.safeList (response, 'data', []);
+        swapMarkets = this.arrayConcat (swapUMCBL, swapDMCBL);
         const markets = this.arrayConcat (spotMarkets, swapMarkets);
         return this.parseMarkets (markets);
     }
@@ -843,6 +838,8 @@ export default class coincatch extends Exchange {
             //     }
             //
             response = await this.publicGetApiMixV1MarketTicker (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' ' + 'fetchTicker() is not supported for ' + market['type'] + ' type of markets');
         }
         const data = this.safeDict (response, 'data', {});
         return this.parseTicker (data, market);
@@ -856,38 +853,89 @@ export default class coincatch extends Exchange {
          * @see https://coincatch.github.io/github.io/en/spot/#get-all-tickers
          * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'spot' or 'swap' (default 'spot')
+         * @param {string} [params.productType] 'umcbl' or 'dmcbl' (default 'umcbl') - USDT perpetual contract or Universal margin perpetual contract
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
+        const methodName = 'fetchTickers';
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
-        const response = await this.publicGetApiSpotV1MarketTickers (params);
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1725114040155,
-        //         "data": [
-        //             {
-        //                 "symbol": "BTCUSDT",
-        //                 "high24h": "59461.34",
-        //                 "low24h": "57723.23",
-        //                 "close": "59056.02",
-        //                 "quoteVol": "18240112.23368",
-        //                 "baseVol": "309.05564",
-        //                 "usdtVol": "18240112.2336744",
-        //                 "ts": "1725114038951",
-        //                 "buyOne": "59055.85",
-        //                 "sellOne": "59057.45",
-        //                 "bidSz": "0.0139",
-        //                 "askSz": "0.0139",
-        //                 "openUtc0": "59126.71",
-        //                 "changeUtc": "-0.0012",
-        //                 "change": "0.01662"
-        //             },
-        //             ...
-        //         ]
-        //     }
-        //
+        symbols = this.marketSymbols (symbols, undefined, true, true);
+        const market = this.getMarketFromSymbols (symbols);
+        let marketType = 'spot';
+        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
+        let response = undefined;
+        if (marketType === 'spot') {
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1725114040155,
+            //         "data": [
+            //             {
+            //                 "symbol": "BTCUSDT",
+            //                 "high24h": "59461.34",
+            //                 "low24h": "57723.23",
+            //                 "close": "59056.02",
+            //                 "quoteVol": "18240112.23368",
+            //                 "baseVol": "309.05564",
+            //                 "usdtVol": "18240112.2336744",
+            //                 "ts": "1725114038951",
+            //                 "buyOne": "59055.85",
+            //                 "sellOne": "59057.45",
+            //                 "bidSz": "0.0139",
+            //                 "askSz": "0.0139",
+            //                 "openUtc0": "59126.71",
+            //                 "changeUtc": "-0.0012",
+            //                 "change": "0.01662"
+            //             },
+            //             ...
+            //         ]
+            //     }
+            //
+            response = await this.publicGetApiSpotV1MarketTickers (params);
+        } else if (marketType === 'swap') {
+            let productType = 'umcbl';
+            [ productType, params ] = this.handleOptionAndParams (params, methodName, 'productType', productType);
+            const request: Dict = {
+                'productType': productType,
+            };
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1725320291340,
+            //         "data": [
+            //             {
+            //                 "symbol": "BTCUSDT_UMCBL",
+            //                 "last": "59110.5",
+            //                 "bestAsk": "59113.2",
+            //                 "bestBid": "59109.5",
+            //                 "bidSz": "1.932",
+            //                 "askSz": "0.458",
+            //                 "high24h": "59393.5",
+            //                 "low24h": "57088.5",
+            //                 "timestamp": "1725320291347",
+            //                 "priceChangePercent": "0.01046",
+            //                 "baseVolume": "59667.001",
+            //                 "quoteVolume": "3472522256.9927",
+            //                 "usdtVolume": "3472522256.9927",
+            //                 "openUtc": "57263",
+            //                 "chgUtc": "0.03231",
+            //                 "indexPrice": "59151.25442",
+            //                 "fundingRate": "0.00007",
+            //                 "holdingAmount": "25995.377",
+            //                 "deliveryStartTime": null,
+            //                 "deliveryTime": null,
+            //                 "deliveryStatus": "normal"}
+            //             },
+            //             ...
+            //         ]
+            //     }
+            //
+            response = await this.publicGetApiMixV1MarketTickers (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
+        }
         const data = this.safeList (response, 'data', []);
         return this.parseTickers (data, symbols);
     }
