@@ -76,91 +76,91 @@
             }
         ],
         "fetchClosedOrders": [
-            {
-                "description": "fetchClosedOrders",
-                "method": "fetchClosedOrders",
-                "input": [
-                    "SOL/USDC:USDC",
-                    null,
-                    1
-                ],
-                "httpResponse": [
-                    {
-                        "order": {
-                            "children": [],
-                            "cloid": null,
-                            "coin": "SOL",
-                            "isPositionTpsl": false,
-                            "isTrigger": false,
-                            "limitPx": "60.0",
-                            "oid": "6928553534",
-                            "orderType": "Limit",
-                            "origSz": "0.1",
-                            "reduceOnly": false,
-                            "side": "B",
-                            "sz": "0.1",
-                            "tif": "Gtc",
-                            "timestamp": "1709643776949",
-                            "triggerCondition": "N/A",
-                            "triggerPx": "0.0"
-                        },
-                        "status": "open",
-                        "statusTimestamp": "1709643776949"
-                    }
-                ],
-                "parsedResponse": [
-                    {
-                        "info": {
-                            "order": {
-                                "children": [],
-                                "cloid": null,
-                                "coin": "SOL",
-                                "isPositionTpsl": false,
-                                "isTrigger": false,
-                                "limitPx": "60.0",
-                                "oid": "6928553534",
-                                "orderType": "Limit",
-                                "origSz": "0.1",
-                                "reduceOnly": false,
-                                "side": "B",
-                                "sz": "0.1",
-                                "tif": "Gtc",
-                                "timestamp": "1709643776949",
-                                "triggerCondition": "N/A",
-                                "triggerPx": "0.0"
-                            },
-                            "status": "open",
-                            "statusTimestamp": "1709643776949"
-                        },
-                        "id": "6928553534",
-                        "clientOrderId": null,
-                        "timestamp": 1709643776949,
-                        "datetime": "2024-03-05T13:02:56.949Z",
-                        "lastTradeTimestamp": null,
-                        "lastUpdateTimestamp": null,
-                        "symbol": "SOL/USDC:USDC",
-                        "type": "limit",
-                        "timeInForce": "GTC",
-                        "postOnly": false,
-                        "reduceOnly": false,
-                        "side": "buy",
-                        "price": 60,
-                        "triggerPrice": null,
-                        "amount": 0.1,
-                        "cost": null,
-                        "average": null,
-                        "filled": null,
-                        "remaining": null,
-                        "status": "open",
-                        "fee": null,
-                        "trades": [],
-                        "fees": [],
-                        "stopPrice": null,
-                        "takeProfitPrice": null,
-                        "stopLossPrice": null
-                    }
-                ]
-            }
+          {
+            "description": "closedOrders swap",
+            "method": "fetchClosedOrders",
+            "input": [
+              "SOL/USDC:USDC",
+              null,
+              1
+            ],
+            "httpResponse": [
+              {
+                "order": {
+                  "coin": "SOL",
+                  "side": "B",
+                  "limitPx": "183.75",
+                  "sz": "0.0",
+                  "oid": "9893803368",
+                  "timestamp": "1718099116378",
+                  "triggerCondition": "N/A",
+                  "isTrigger": false,
+                  "triggerPx": "0.0",
+                  "children": [],
+                  "isPositionTpsl": false,
+                  "reduceOnly": false,
+                  "orderType": "Limit",
+                  "origSz": "0.1",
+                  "tif": "Ioc",
+                  "cloid": null
+                },
+                "status": "filled",
+                "statusTimestamp": "1718099116378"
+              }
+            ],
+            "parsedResponse": [
+              {
+                "info": {
+                  "order": {
+                    "coin": "SOL",
+                    "side": "B",
+                    "limitPx": "183.75",
+                    "sz": "0.0",
+                    "oid": "9893803368",
+                    "timestamp": "1718099116378",
+                    "triggerCondition": "N/A",
+                    "isTrigger": false,
+                    "triggerPx": "0.0",
+                    "children": [],
+                    "isPositionTpsl": false,
+                    "reduceOnly": false,
+                    "orderType": "Limit",
+                    "origSz": "0.1",
+                    "tif": "Ioc",
+                    "cloid": null
+                  },
+                  "status": "filled",
+                  "statusTimestamp": "1718099116378"
+                },
+                "id": "9893803368",
+                "clientOrderId": null,
+                "timestamp": 1718099116378,
+                "datetime": "2024-06-11T09:45:16.378Z",
+                "lastTradeTimestamp": null,
+                "lastUpdateTimestamp": null,
+                "symbol": "SOL/USDC:USDC",
+                "type": "limit",
+                "timeInForce": "IOC",
+                "postOnly": false,
+                "reduceOnly": false,
+                "side": "buy",
+                "price": 183.75,
+                "triggerPrice": null,
+                "amount": 0.1,
+                "cost": 18.375,
+                "average": null,
+                "filled": 0.1,
+                "remaining": 0,
+                "status": "closed",
+                "fee": null,
+                "trades": [],
+                "fees": [],
+                "stopPrice": null,
+                "takeProfitPrice": null,
+                "stopLossPrice": null
+              }
+            ]
+          }
         ],
         "fetchOpenOrders": [
             {
@@ -210,9 +210,9 @@
                         "amount": 0.1,
                         "cost": null,
                         "average": null,
-                        "filled": null,
-                        "remaining": null,
-                        "status": null,
+                        "filled": 0,
+                        "remaining": 0.1,
+                        "status": "open",
                         "fee": null,
                         "trades": [],
                         "fees": [],
@@ -286,8 +286,8 @@
                   "cost": null,
                   "average": null,
                   "filled": null,
-                  "remaining": null,
-                  "status": null,
+                  "remaining": 40,
+                  "status": "open",
                   "fee": null,
                   "trades": [],
                   "fees": [],
@@ -367,10 +367,10 @@
                     "side": "buy",
                     "price": 1100,
                     "triggerPrice": null,
-                    "amount": null,
-                    "cost": null,
+                    "amount": 0.2,
+                    "cost": 220,
                     "average": null,
-                    "filled": null,
+                    "filled": 0.2,
                     "remaining": 0,
                     "status": "closed",
                     "fee": null,
@@ -450,10 +450,10 @@
                   "side": "buy",
                   "price": 0.01995,
                   "triggerPrice": null,
-                  "amount": null,
-                  "cost": null,
+                  "amount": 1000,
+                  "cost": 19.95,
                   "average": null,
-                  "filled": null,
+                  "filled": 1000,
                   "remaining": 0,
                   "status": "closed",
                   "fee": null,

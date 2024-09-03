@@ -1769,7 +1769,7 @@ export default class hyperliquid extends Exchange {
             const order = response[i];
             const extendOrder = {};
             if (this.safeString (order, 'status') === undefined) {
-                extendOrder['status'] = 'open';
+                extendOrder['ccxtStatus'] = 'open';
             }
             orderWithStatus.push (this.extend (order, extendOrder));
         }
@@ -1826,7 +1826,7 @@ export default class hyperliquid extends Exchange {
          */
         await this.loadMarkets ();
         const orders = await this.fetchOrders (symbol, undefined, undefined, params); // don't filter here because we don't want to catch open orders
-        const closedOrders = this.filterByArray (orders, 'status', [ 'canceled', 'closed' ], false);
+        const closedOrders = this.filterByArray (orders, 'status', [ 'canceled', 'closed', 'rejected' ], false);
         return this.filterBySymbolSinceLimit (closedOrders, symbol, since, limit) as Order[];
     }
 
@@ -2032,7 +2032,8 @@ export default class hyperliquid extends Exchange {
         }
         const symbol = market['symbol'];
         const timestamp = this.safeInteger2 (order, 'timestamp', 'statusTimestamp');
-        const status = this.safeString (order, 'status');
+        const status = this.safeString2 (order, 'status', 'ccxtStatus');
+        order = this.omit (order, [ 'ccxtStatus' ]);
         let side = this.safeString (entry, 'side');
         if (side !== undefined) {
             side = (side === 'A') ? 'sell' : 'buy';
