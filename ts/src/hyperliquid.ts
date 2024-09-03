@@ -63,7 +63,7 @@ export default class hyperliquid extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': false,
                 'fetchDepositAddresses': false,
-                'fetchDeposits': false,
+                'fetchDeposits': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': false,
@@ -105,7 +105,7 @@ export default class hyperliquid extends Exchange {
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'repayCrossMargin': false,
                 'repayIsolatedMargin': false,
@@ -2621,27 +2621,53 @@ export default class hyperliquid extends Exchange {
         //
         // { status: 'ok', response: { type: 'default' } }
         //
+        // fetchDeposits / fetchWithdrawals
+        // {
+        //     "time":1724762307531,
+        //     "hash":"0x620a234a7e0eb7930575040f59482a01050058b0802163b4767bfd9033e77781",
+        //     "delta":{
+        //         "type":"accountClassTransfer",
+        //         "usdc":"50.0",
+        //         "toPerp":false
+        //     }
+        // }
+        //
+        const timestamp = this.safeInteger (transaction, 'time');
+        const delta = this.safeDict (transaction, 'delta', {});
+        let fee = undefined;
+        const feeCost = this.safeInteger (delta, 'fee');
+        if (feeCost !== undefined) {
+            fee = {
+                currency: 'USDC',
+                cost: feeCost,
+            }
+        }
+        let internal = undefined;
+        const type = this.safeString (delta, 'type');
+        if (type !== undefined) {
+            internal = (type === 'internalTransfer');
+        }
         return {
             'info': transaction,
             'id': undefined,
-            'txid': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'txid': this.safeString (transaction, 'hash'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'network': undefined,
             'address': undefined,
-            'addressTo': undefined,
-            'addressFrom': undefined,
+            'addressTo': this.safeString (delta, 'destination'),
+            'addressFrom': this.safeString (delta, 'user'),
             'tag': undefined,
             'tagTo': undefined,
             'tagFrom': undefined,
             'type': undefined,
-            'amount': undefined,
+            'amount': this.safeInteger (delta, 'usdc'),
             'currency': undefined,
             'status': this.safeString (transaction, 'status'),
             'updated': undefined,
             'comment': undefined,
-            'internal': undefined,
-            'fee': undefined,
+            'internal': internal,
+            'fee': fee,
         };
     }
 
@@ -2846,6 +2872,56 @@ export default class hyperliquid extends Exchange {
             'accountClassTransfer': 'transfer',
         };
         return this.safeString (ledgerType, type, type);
+    }
+
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name hyperliquid#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch deposits for
+         * @param {int} [limit] the maximum number of deposits structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        await this.loadMarkets ();
+        let userAddress = undefined;
+        [ userAddress, params ] = this.handlePublicAddress ('fetchDepositsWithdrawals', params);
+        const request: Dict = {
+            'type': 'userNonFundingLedgerUpdates',
+            'user': userAddress,
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+            params = this.omit (params, [ 'until' ]);
+        }
+        const response = await this.publicPostInfo (this.extend (request, params));
+        //
+        // [
+        //     {
+        //         "time":1724762307531,
+        //         "hash":"0x620a234a7e0eb7930575040f59482a01050058b0802163b4767bfd9033e77781",
+        //         "delta":{
+        //             "type":"accountClassTransfer",
+        //             "usdc":"50.0",
+        //             "toPerp":false
+        //         }
+        //     }
+        // ]
+        //
+        const records = [];
+        for (let i=0; i<response.length; i++) {
+            const record = response[i];
+            record['type'] = record['delta']['type'];
+            records.push (record);
+        }
+        const deposits = this.filterByArray (records, 'type', [ 'deposit' ], false);
+        return this.parseTransactions (deposits, undefined, since, limit);
     }
 
     formatVaultAddress (address: Str = undefined) {
