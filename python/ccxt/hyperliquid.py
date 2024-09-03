@@ -69,7 +69,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': False,
                 'fetchDepositAddresses': False,
-                'fetchDeposits': False,
+                'fetchDeposits': True,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': False,
@@ -79,7 +79,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'fetchIndexOHLCV': False,
                 'fetchIsolatedBorrowRate': False,
                 'fetchIsolatedBorrowRates': False,
-                'fetchLedger': False,
+                'fetchLedger': True,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
                 'fetchLiquidations': False,
@@ -111,7 +111,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'fetchTransfer': False,
                 'fetchTransfers': False,
                 'fetchWithdrawal': False,
-                'fetchWithdrawals': False,
+                'fetchWithdrawals': True,
                 'reduceMargin': True,
                 'repayCrossMargin': False,
                 'repayIsolatedMargin': False,
@@ -2433,11 +2433,13 @@ class hyperliquid(Exchange, ImplicitAPI):
         """
         make a withdrawal(only support USDC)
         :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#initiate-a-withdrawal-request
+        :see: https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#deposit-or-withdraw-from-a-vault
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
         :param str tag:
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.vaultAddress]: vault address withdraw from
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
         self.check_required_credentials()
@@ -2447,24 +2449,38 @@ class hyperliquid(Exchange, ImplicitAPI):
             code = code.upper()
             if code != 'USDC':
                 raise NotSupported(self.id + 'withdraw() only support USDC')
-        isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
+        vaultAddress = self.format_vault_address(self.safe_string(params, 'vaultAddress'))
+        params = self.omit(params, 'vaultAddress')
         nonce = self.milliseconds()
-        payload: dict = {
-            'hyperliquidChain': 'Testnet' if isSandboxMode else 'Mainnet',
-            'destination': address,
-            'amount': str(amount),
-            'time': nonce,
-        }
-        sig = self.build_withdraw_sig(payload)
-        request: dict = {
-            'action': {
+        action: dict = {}
+        sig = None
+        if vaultAddress is not None:
+            action = {
+                'type': 'vaultTransfer',
+                'vaultAddress': '0x' + vaultAddress,
+                'isDeposit': False,
+                'usd': amount,
+            }
+            sig = self.sign_l1_action(action, nonce)
+        else:
+            isSandboxMode = self.safe_bool(self.options, 'sandboxMode', False)
+            payload: dict = {
+                'hyperliquidChain': 'Testnet' if isSandboxMode else 'Mainnet',
+                'destination': address,
+                'amount': str(amount),
+                'time': nonce,
+            }
+            sig = self.build_withdraw_sig(payload)
+            action = {
                 'hyperliquidChain': payload['hyperliquidChain'],
                 'signatureChainId': '0x66eee',  # check self out
                 'destination': address,
                 'amount': str(amount),
                 'time': nonce,
                 'type': 'withdraw3',
-            },
+            }
+        request: dict = {
+            'action': action,
             'nonce': nonce,
             'signature': sig,
         }
@@ -2475,27 +2491,51 @@ class hyperliquid(Exchange, ImplicitAPI):
         #
         # {status: 'ok', response: {type: 'default'}}
         #
+        # fetchDeposits / fetchWithdrawals
+        # {
+        #     "time":1724762307531,
+        #     "hash":"0x620a234a7e0eb7930575040f59482a01050058b0802163b4767bfd9033e77781",
+        #     "delta":{
+        #         "type":"accountClassTransfer",
+        #         "usdc":"50.0",
+        #         "toPerp":false
+        #     }
+        # }
+        #
+        timestamp = self.safe_integer(transaction, 'time')
+        delta = self.safe_dict(transaction, 'delta', {})
+        fee = None
+        feeCost = self.safe_integer(delta, 'fee')
+        if feeCost is not None:
+            fee = {
+                'currency': 'USDC',
+                'cost': feeCost,
+            }
+        internal = None
+        type = self.safe_string(delta, 'type')
+        if type is not None:
+            internal = (type == 'internalTransfer')
         return {
             'info': transaction,
             'id': None,
-            'txid': None,
-            'timestamp': None,
-            'datetime': None,
+            'txid': self.safe_string(transaction, 'hash'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
             'network': None,
             'address': None,
-            'addressTo': None,
-            'addressFrom': None,
+            'addressTo': self.safe_string(delta, 'destination'),
+            'addressFrom': self.safe_string(delta, 'user'),
             'tag': None,
             'tagTo': None,
             'tagFrom': None,
             'type': None,
-            'amount': None,
+            'amount': self.safe_integer(delta, 'usdc'),
             'currency': None,
             'status': self.safe_string(transaction, 'status'),
             'updated': None,
             'comment': None,
-            'internal': None,
-            'fee': None,
+            'internal': internal,
+            'fee': fee,
         }
 
     def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
@@ -2601,6 +2641,183 @@ class hyperliquid(Exchange, ImplicitAPI):
             'percentage': None,
             'tierBased': None,
         }
+
+    def fetch_ledger(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetch the history of changes, actions done by the user or operations that altered the balance of the user
+        :param str code: unified currency code
+        :param int [since]: timestamp in ms of the earliest ledger entry
+        :param int [limit]: max number of ledger entrys to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest ledger entry
+        :returns dict: a `ledger structure <https://docs.ccxt.com/#/?id=ledger-structure>`
+        """
+        self.load_markets()
+        userAddress = None
+        userAddress, params = self.handle_public_address('fetchLedger', params)
+        request: dict = {
+            'type': 'userNonFundingLedgerUpdates',
+            'user': userAddress,
+        }
+        if since is not None:
+            request['startTime'] = since
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            request['endTime'] = until
+            params = self.omit(params, ['until'])
+        response = self.publicPostInfo(self.extend(request, params))
+        #
+        # [
+        #     {
+        #         "time":1724762307531,
+        #         "hash":"0x620a234a7e0eb7930575040f59482a01050058b0802163b4767bfd9033e77781",
+        #         "delta":{
+        #             "type":"accountClassTransfer",
+        #             "usdc":"50.0",
+        #             "toPerp":false
+        #         }
+        #     }
+        # ]
+        #
+        return self.parse_ledger(response, None, since, limit)
+
+    def parse_ledger_entry(self, item: dict, currency: Currency = None):
+        #
+        # {
+        #     "time":1724762307531,
+        #     "hash":"0x620a234a7e0eb7930575040f59482a01050058b0802163b4767bfd9033e77781",
+        #     "delta":{
+        #         "type":"accountClassTransfer",
+        #         "usdc":"50.0",
+        #         "toPerp":false
+        #     }
+        # }
+        #
+        timestamp = self.safe_integer(item, 'time')
+        delta = self.safe_dict(item, 'delta', {})
+        fee = None
+        feeCost = self.safe_integer(delta, 'fee')
+        if feeCost is not None:
+            fee = {
+                'currency': 'USDC',
+                'cost': feeCost,
+            }
+        type = self.safe_string(delta, 'type')
+        amount = self.safe_string(delta, 'usdc')
+        return {
+            'id': self.safe_string(item, 'hash'),
+            'direction': None,
+            'account': None,
+            'referenceAccount': self.safe_string(delta, 'user'),
+            'referenceId': self.safe_string(item, 'hash'),
+            'type': self.parse_ledger_entry_type(type),
+            'currency': None,
+            'amount': self.parse_number(amount),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'before': None,
+            'after': None,
+            'status': None,
+            'fee': fee,
+            'info': item,
+        }
+
+    def parse_ledger_entry_type(self, type):
+        ledgerType: dict = {
+            'internalTransfer': 'transfer',
+            'accountClassTransfer': 'transfer',
+        }
+        return self.safe_string(ledgerType, type, type)
+
+    def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str code: unified currency code
+        :param int [since]: the earliest time in ms to fetch deposits for
+        :param int [limit]: the maximum number of deposits structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch withdrawals for
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        self.load_markets()
+        userAddress = None
+        userAddress, params = self.handle_public_address('fetchDepositsWithdrawals', params)
+        request: dict = {
+            'type': 'userNonFundingLedgerUpdates',
+            'user': userAddress,
+        }
+        if since is not None:
+            request['startTime'] = since
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            request['endTime'] = until
+            params = self.omit(params, ['until'])
+        response = self.publicPostInfo(self.extend(request, params))
+        #
+        # [
+        #     {
+        #         "time":1724762307531,
+        #         "hash":"0x620a234a7e0eb7930575040f59482a01050058b0802163b4767bfd9033e77781",
+        #         "delta":{
+        #             "type":"accountClassTransfer",
+        #             "usdc":"50.0",
+        #             "toPerp":false
+        #         }
+        #     }
+        # ]
+        #
+        records = self.extract_type_from_delta(response)
+        deposits = self.filter_by_array(records, 'type', ['deposit'], False)
+        return self.parse_transactions(deposits, None, since, limit)
+
+    def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+        """
+        fetch all withdrawals made from an account
+        :param str code: unified currency code
+        :param int [since]: the earliest time in ms to fetch withdrawals for
+        :param int [limit]: the maximum number of withdrawals structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: the latest time in ms to fetch withdrawals for
+        :returns dict[]: a list of `transaction structures <https://docs.ccxt.com/#/?id=transaction-structure>`
+        """
+        self.load_markets()
+        userAddress = None
+        userAddress, params = self.handle_public_address('fetchDepositsWithdrawals', params)
+        request: dict = {
+            'type': 'userNonFundingLedgerUpdates',
+            'user': userAddress,
+        }
+        if since is not None:
+            request['startTime'] = since
+        until = self.safe_integer(params, 'until')
+        if until is not None:
+            request['endTime'] = until
+            params = self.omit(params, ['until'])
+        response = self.publicPostInfo(self.extend(request, params))
+        #
+        # [
+        #     {
+        #         "time":1724762307531,
+        #         "hash":"0x620a234a7e0eb7930575040f59482a01050058b0802163b4767bfd9033e77781",
+        #         "delta":{
+        #             "type":"accountClassTransfer",
+        #             "usdc":"50.0",
+        #             "toPerp":false
+        #         }
+        #     }
+        # ]
+        #
+        records = self.extract_type_from_delta(response)
+        withdrawals = self.filter_by_array(records, 'type', ['withdraw'], False)
+        return self.parse_transactions(withdrawals, None, since, limit)
+
+    def extract_type_from_delta(self, data=[]):
+        records = []
+        for i in range(0, len(data)):
+            record = data[i]
+            record['type'] = record['delta']['type']
+            records.append(record)
+        return records
 
     def format_vault_address(self, address: Str = None):
         if address is None:

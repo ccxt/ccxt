@@ -53,7 +53,7 @@ public partial class hyperliquid : Exchange
                 { "fetchCurrencies", true },
                 { "fetchDepositAddress", false },
                 { "fetchDepositAddresses", false },
-                { "fetchDeposits", false },
+                { "fetchDeposits", true },
                 { "fetchDepositWithdrawFee", "emulated" },
                 { "fetchDepositWithdrawFees", false },
                 { "fetchFundingHistory", false },
@@ -63,7 +63,7 @@ public partial class hyperliquid : Exchange
                 { "fetchIndexOHLCV", false },
                 { "fetchIsolatedBorrowRate", false },
                 { "fetchIsolatedBorrowRates", false },
-                { "fetchLedger", false },
+                { "fetchLedger", true },
                 { "fetchLeverage", false },
                 { "fetchLeverageTiers", false },
                 { "fetchLiquidations", false },
@@ -95,7 +95,7 @@ public partial class hyperliquid : Exchange
                 { "fetchTransfer", false },
                 { "fetchTransfers", false },
                 { "fetchWithdrawal", false },
-                { "fetchWithdrawals", false },
+                { "fetchWithdrawals", true },
                 { "reduceMargin", true },
                 { "repayCrossMargin", false },
                 { "repayIsolatedMargin", false },
@@ -2814,11 +2814,13 @@ public partial class hyperliquid : Exchange
         * @name hyperliquid#withdraw
         * @description make a withdrawal (only support USDC)
         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#initiate-a-withdrawal-request
+        * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#deposit-or-withdraw-from-a-vault
         * @param {string} code unified currency code
         * @param {float} amount the amount to withdraw
         * @param {string} address the address to withdraw to
         * @param {string} tag
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.vaultAddress] vault address withdraw from
         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -2833,24 +2835,41 @@ public partial class hyperliquid : Exchange
                 throw new NotSupported ((string)add(this.id, "withdraw() only support USDC")) ;
             }
         }
-        object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        object vaultAddress = this.formatVaultAddress(this.safeString(parameters, "vaultAddress"));
+        parameters = this.omit(parameters, "vaultAddress");
         object nonce = this.milliseconds();
-        object payload = new Dictionary<string, object>() {
-            { "hyperliquidChain", ((bool) isTrue(isSandboxMode)) ? "Testnet" : "Mainnet" },
-            { "destination", address },
-            { "amount", ((object)amount).ToString() },
-            { "time", nonce },
-        };
-        object sig = this.buildWithdrawSig(payload);
-        object request = new Dictionary<string, object>() {
-            { "action", new Dictionary<string, object>() {
+        object action = new Dictionary<string, object>() {};
+        object sig = null;
+        if (isTrue(!isEqual(vaultAddress, null)))
+        {
+            action = new Dictionary<string, object>() {
+                { "type", "vaultTransfer" },
+                { "vaultAddress", add("0x", vaultAddress) },
+                { "isDeposit", false },
+                { "usd", amount },
+            };
+            sig = this.signL1Action(action, nonce);
+        } else
+        {
+            object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+            object payload = new Dictionary<string, object>() {
+                { "hyperliquidChain", ((bool) isTrue(isSandboxMode)) ? "Testnet" : "Mainnet" },
+                { "destination", address },
+                { "amount", ((object)amount).ToString() },
+                { "time", nonce },
+            };
+            sig = this.buildWithdrawSig(payload);
+            action = new Dictionary<string, object>() {
                 { "hyperliquidChain", getValue(payload, "hyperliquidChain") },
                 { "signatureChainId", "0x66eee" },
                 { "destination", address },
                 { "amount", ((object)amount).ToString() },
                 { "time", nonce },
                 { "type", "withdraw3" },
-            } },
+            };
+        }
+        object request = new Dictionary<string, object>() {
+            { "action", action },
             { "nonce", nonce },
             { "signature", sig },
         };
@@ -2863,27 +2882,55 @@ public partial class hyperliquid : Exchange
         //
         // { status: 'ok', response: { type: 'default' } }
         //
+        // fetchDeposits / fetchWithdrawals
+        // {
+        //     "time":1724762307531,
+        //     "hash":"0x620a234a7e0eb7930575040f59482a01050058b0802163b4767bfd9033e77781",
+        //     "delta":{
+        //         "type":"accountClassTransfer",
+        //         "usdc":"50.0",
+        //         "toPerp":false
+        //     }
+        // }
+        //
+        object timestamp = this.safeInteger(transaction, "time");
+        object delta = this.safeDict(transaction, "delta", new Dictionary<string, object>() {});
+        object fee = null;
+        object feeCost = this.safeInteger(delta, "fee");
+        if (isTrue(!isEqual(feeCost, null)))
+        {
+            fee = new Dictionary<string, object>() {
+                { "currency", "USDC" },
+                { "cost", feeCost },
+            };
+        }
+        object intern = null;
+        object type = this.safeString(delta, "type");
+        if (isTrue(!isEqual(type, null)))
+        {
+            intern = (isEqual(type, "internalTransfer"));
+        }
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", null },
-            { "txid", null },
-            { "timestamp", null },
-            { "datetime", null },
+            { "txid", this.safeString(transaction, "hash") },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
             { "network", null },
             { "address", null },
-            { "addressTo", null },
-            { "addressFrom", null },
+            { "addressTo", this.safeString(delta, "destination") },
+            { "addressFrom", this.safeString(delta, "user") },
             { "tag", null },
             { "tagTo", null },
             { "tagFrom", null },
             { "type", null },
-            { "amount", null },
+            { "amount", this.safeInteger(delta, "usdc") },
             { "currency", null },
             { "status", this.safeString(transaction, "status") },
             { "updated", null },
             { "comment", null },
-            { "internal", null },
-            { "fee", null },
+            { "internal", intern },
+            { "fee", fee },
         };
     }
 
@@ -2998,6 +3045,227 @@ public partial class hyperliquid : Exchange
             { "percentage", null },
             { "tierBased", null },
         };
+    }
+
+    public async override Task<object> fetchLedger(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name hyperliquid#fetchLedger
+        * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
+        * @param {string} code unified currency code
+        * @param {int} [since] timestamp in ms of the earliest ledger entry
+        * @param {int} [limit] max number of ledger entrys to return
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.until] timestamp in ms of the latest ledger entry
+        * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/#/?id=ledger-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object userAddress = null;
+        var userAddressparametersVariable = this.handlePublicAddress("fetchLedger", parameters);
+        userAddress = ((IList<object>)userAddressparametersVariable)[0];
+        parameters = ((IList<object>)userAddressparametersVariable)[1];
+        object request = new Dictionary<string, object>() {
+            { "type", "userNonFundingLedgerUpdates" },
+            { "user", userAddress },
+        };
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        }
+        object until = this.safeInteger(parameters, "until");
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["endTime"] = until;
+            parameters = this.omit(parameters, new List<object>() {"until"});
+        }
+        object response = await this.publicPostInfo(this.extend(request, parameters));
+        //
+        // [
+        //     {
+        //         "time":1724762307531,
+        //         "hash":"0x620a234a7e0eb7930575040f59482a01050058b0802163b4767bfd9033e77781",
+        //         "delta":{
+        //             "type":"accountClassTransfer",
+        //             "usdc":"50.0",
+        //             "toPerp":false
+        //         }
+        //     }
+        // ]
+        //
+        return this.parseLedger(response, null, since, limit);
+    }
+
+    public override object parseLedgerEntry(object item, object currency = null)
+    {
+        //
+        // {
+        //     "time":1724762307531,
+        //     "hash":"0x620a234a7e0eb7930575040f59482a01050058b0802163b4767bfd9033e77781",
+        //     "delta":{
+        //         "type":"accountClassTransfer",
+        //         "usdc":"50.0",
+        //         "toPerp":false
+        //     }
+        // }
+        //
+        object timestamp = this.safeInteger(item, "time");
+        object delta = this.safeDict(item, "delta", new Dictionary<string, object>() {});
+        object fee = null;
+        object feeCost = this.safeInteger(delta, "fee");
+        if (isTrue(!isEqual(feeCost, null)))
+        {
+            fee = new Dictionary<string, object>() {
+                { "currency", "USDC" },
+                { "cost", feeCost },
+            };
+        }
+        object type = this.safeString(delta, "type");
+        object amount = this.safeString(delta, "usdc");
+        return new Dictionary<string, object>() {
+            { "id", this.safeString(item, "hash") },
+            { "direction", null },
+            { "account", null },
+            { "referenceAccount", this.safeString(delta, "user") },
+            { "referenceId", this.safeString(item, "hash") },
+            { "type", this.parseLedgerEntryType(type) },
+            { "currency", null },
+            { "amount", this.parseNumber(amount) },
+            { "timestamp", timestamp },
+            { "datetime", this.iso8601(timestamp) },
+            { "before", null },
+            { "after", null },
+            { "status", null },
+            { "fee", fee },
+            { "info", item },
+        };
+    }
+
+    public virtual object parseLedgerEntryType(object type)
+    {
+        object ledgerType = new Dictionary<string, object>() {
+            { "internalTransfer", "transfer" },
+            { "accountClassTransfer", "transfer" },
+        };
+        return this.safeString(ledgerType, type, type);
+    }
+
+    public async override Task<object> fetchDeposits(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name hyperliquid#fetchDeposits
+        * @description fetch all deposits made to an account
+        * @param {string} code unified currency code
+        * @param {int} [since] the earliest time in ms to fetch deposits for
+        * @param {int} [limit] the maximum number of deposits structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.until] the latest time in ms to fetch withdrawals for
+        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object userAddress = null;
+        var userAddressparametersVariable = this.handlePublicAddress("fetchDepositsWithdrawals", parameters);
+        userAddress = ((IList<object>)userAddressparametersVariable)[0];
+        parameters = ((IList<object>)userAddressparametersVariable)[1];
+        object request = new Dictionary<string, object>() {
+            { "type", "userNonFundingLedgerUpdates" },
+            { "user", userAddress },
+        };
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        }
+        object until = this.safeInteger(parameters, "until");
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["endTime"] = until;
+            parameters = this.omit(parameters, new List<object>() {"until"});
+        }
+        object response = await this.publicPostInfo(this.extend(request, parameters));
+        //
+        // [
+        //     {
+        //         "time":1724762307531,
+        //         "hash":"0x620a234a7e0eb7930575040f59482a01050058b0802163b4767bfd9033e77781",
+        //         "delta":{
+        //             "type":"accountClassTransfer",
+        //             "usdc":"50.0",
+        //             "toPerp":false
+        //         }
+        //     }
+        // ]
+        //
+        object records = this.extractTypeFromDelta(response);
+        object deposits = this.filterByArray(records, "type", new List<object>() {"deposit"}, false);
+        return this.parseTransactions(deposits, null, since, limit);
+    }
+
+    public async override Task<object> fetchWithdrawals(object code = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name hyperliquid#fetchWithdrawals
+        * @description fetch all withdrawals made from an account
+        * @param {string} code unified currency code
+        * @param {int} [since] the earliest time in ms to fetch withdrawals for
+        * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {int} [params.until] the latest time in ms to fetch withdrawals for
+        * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object userAddress = null;
+        var userAddressparametersVariable = this.handlePublicAddress("fetchDepositsWithdrawals", parameters);
+        userAddress = ((IList<object>)userAddressparametersVariable)[0];
+        parameters = ((IList<object>)userAddressparametersVariable)[1];
+        object request = new Dictionary<string, object>() {
+            { "type", "userNonFundingLedgerUpdates" },
+            { "user", userAddress },
+        };
+        if (isTrue(!isEqual(since, null)))
+        {
+            ((IDictionary<string,object>)request)["startTime"] = since;
+        }
+        object until = this.safeInteger(parameters, "until");
+        if (isTrue(!isEqual(until, null)))
+        {
+            ((IDictionary<string,object>)request)["endTime"] = until;
+            parameters = this.omit(parameters, new List<object>() {"until"});
+        }
+        object response = await this.publicPostInfo(this.extend(request, parameters));
+        //
+        // [
+        //     {
+        //         "time":1724762307531,
+        //         "hash":"0x620a234a7e0eb7930575040f59482a01050058b0802163b4767bfd9033e77781",
+        //         "delta":{
+        //             "type":"accountClassTransfer",
+        //             "usdc":"50.0",
+        //             "toPerp":false
+        //         }
+        //     }
+        // ]
+        //
+        object records = this.extractTypeFromDelta(response);
+        object withdrawals = this.filterByArray(records, "type", new List<object>() {"withdraw"}, false);
+        return this.parseTransactions(withdrawals, null, since, limit);
+    }
+
+    public virtual object extractTypeFromDelta(object data = null)
+    {
+        data ??= new List<object>();
+        object records = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        {
+            object record = getValue(data, i);
+            ((IDictionary<string,object>)record)["type"] = getValue(getValue(record, "delta"), "type");
+            ((IList<object>)records).Add(record);
+        }
+        return records;
     }
 
     public virtual object formatVaultAddress(object address = null)

@@ -5988,7 +5988,7 @@ export default class bybit extends Exchange {
             }
         }
         else {
-            response = await this.privateGetV2PrivateWalletFundRecords(this.extend(request, params));
+            response = await this.privateGetV5AccountContractTransactionLog(this.extend(request, params));
         }
         //
         //     {

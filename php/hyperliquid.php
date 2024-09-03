@@ -57,7 +57,7 @@ class hyperliquid extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => false,
                 'fetchDepositAddresses' => false,
-                'fetchDeposits' => false,
+                'fetchDeposits' => true,
                 'fetchDepositWithdrawFee' => 'emulated',
                 'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => false,
@@ -67,7 +67,7 @@ class hyperliquid extends Exchange {
                 'fetchIndexOHLCV' => false,
                 'fetchIsolatedBorrowRate' => false,
                 'fetchIsolatedBorrowRates' => false,
-                'fetchLedger' => false,
+                'fetchLedger' => true,
                 'fetchLeverage' => false,
                 'fetchLeverageTiers' => false,
                 'fetchLiquidations' => false,
@@ -99,7 +99,7 @@ class hyperliquid extends Exchange {
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
                 'fetchWithdrawal' => false,
-                'fetchWithdrawals' => false,
+                'fetchWithdrawals' => true,
                 'reduceMargin' => true,
                 'repayCrossMargin' => false,
                 'repayIsolatedMargin' => false,
@@ -2554,11 +2554,13 @@ class hyperliquid extends Exchange {
         /**
          * make a withdrawal (only support USDC)
          * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#initiate-a-withdrawal-$request
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/exchange-endpoint#deposit-or-withdraw-from-a-vault
          * @param {string} $code unified currency $code
          * @param {float} $amount the $amount to withdraw
          * @param {string} $address the $address to withdraw to
          * @param {string} $tag
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->vaultAddress] vault $address withdraw from
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structure~
          */
         $this->check_required_credentials();
@@ -2570,24 +2572,39 @@ class hyperliquid extends Exchange {
                 throw new NotSupported($this->id . 'withdraw() only support USDC');
             }
         }
-        $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+        $vaultAddress = $this->format_vault_address($this->safe_string($params, 'vaultAddress'));
+        $params = $this->omit($params, 'vaultAddress');
         $nonce = $this->milliseconds();
-        $payload = array(
-            'hyperliquidChain' => $isSandboxMode ? 'Testnet' : 'Mainnet',
-            'destination' => $address,
-            'amount' => (string) $amount,
-            'time' => $nonce,
-        );
-        $sig = $this->build_withdraw_sig($payload);
-        $request = array(
-            'action' => array(
+        $action = array();
+        $sig = null;
+        if ($vaultAddress !== null) {
+            $action = array(
+                'type' => 'vaultTransfer',
+                'vaultAddress' => '0x' . $vaultAddress,
+                'isDeposit' => false,
+                'usd' => $amount,
+            );
+            $sig = $this->sign_l1_action($action, $nonce);
+        } else {
+            $isSandboxMode = $this->safe_bool($this->options, 'sandboxMode', false);
+            $payload = array(
+                'hyperliquidChain' => $isSandboxMode ? 'Testnet' : 'Mainnet',
+                'destination' => $address,
+                'amount' => (string) $amount,
+                'time' => $nonce,
+            );
+            $sig = $this->build_withdraw_sig($payload);
+            $action = array(
                 'hyperliquidChain' => $payload['hyperliquidChain'],
                 'signatureChainId' => '0x66eee', // check this out
                 'destination' => $address,
                 'amount' => (string) $amount,
                 'time' => $nonce,
                 'type' => 'withdraw3',
-            ),
+            );
+        }
+        $request = array(
+            'action' => $action,
             'nonce' => $nonce,
             'signature' => $sig,
         );
@@ -2597,29 +2614,55 @@ class hyperliquid extends Exchange {
 
     public function parse_transaction(array $transaction, ?array $currency = null): array {
         //
-        // array( status => 'ok', response => array( type => 'default' ) )
+        // array( status => 'ok', response => array( $type => 'default' ) )
         //
+        // fetchDeposits / fetchWithdrawals
+        // {
+        //     "time":1724762307531,
+        //     "hash":"0x620a234a7e0eb7930575040f59482a01050058b0802163b4767bfd9033e77781",
+        //     "delta":{
+        //         "type":"accountClassTransfer",
+        //         "usdc":"50.0",
+        //         "toPerp":false
+        //     }
+        // }
+        //
+        $timestamp = $this->safe_integer($transaction, 'time');
+        $delta = $this->safe_dict($transaction, 'delta', array());
+        $fee = null;
+        $feeCost = $this->safe_integer($delta, 'fee');
+        if ($feeCost !== null) {
+            $fee = array(
+                'currency' => 'USDC',
+                'cost' => $feeCost,
+            );
+        }
+        $internal = null;
+        $type = $this->safe_string($delta, 'type');
+        if ($type !== null) {
+            $internal = ($type === 'internalTransfer');
+        }
         return array(
             'info' => $transaction,
             'id' => null,
-            'txid' => null,
-            'timestamp' => null,
-            'datetime' => null,
+            'txid' => $this->safe_string($transaction, 'hash'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
             'network' => null,
             'address' => null,
-            'addressTo' => null,
-            'addressFrom' => null,
+            'addressTo' => $this->safe_string($delta, 'destination'),
+            'addressFrom' => $this->safe_string($delta, 'user'),
             'tag' => null,
             'tagTo' => null,
             'tagFrom' => null,
             'type' => null,
-            'amount' => null,
+            'amount' => $this->safe_integer($delta, 'usdc'),
             'currency' => null,
             'status' => $this->safe_string($transaction, 'status'),
             'updated' => null,
             'comment' => null,
-            'internal' => null,
-            'fee' => null,
+            'internal' => $internal,
+            'fee' => $fee,
         );
     }
 
@@ -2727,6 +2770,197 @@ class hyperliquid extends Exchange {
             'percentage' => null,
             'tierBased' => null,
         );
+    }
+
+    public function fetch_ledger(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered the balance of the user
+         * @param {string} $code unified currency $code
+         * @param {int} [$since] timestamp in ms of the earliest ledger entry
+         * @param {int} [$limit] max number of ledger entrys to return
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest ledger entry
+         * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
+         */
+        $this->load_markets();
+        $userAddress = null;
+        list($userAddress, $params) = $this->handle_public_address('fetchLedger', $params);
+        $request = array(
+            'type' => 'userNonFundingLedgerUpdates',
+            'user' => $userAddress,
+        );
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $request['endTime'] = $until;
+            $params = $this->omit($params, array( 'until' ));
+        }
+        $response = $this->publicPostInfo ($this->extend($request, $params));
+        //
+        // array(
+        //     {
+        //         "time":1724762307531,
+        //         "hash":"0x620a234a7e0eb7930575040f59482a01050058b0802163b4767bfd9033e77781",
+        //         "delta":{
+        //             "type":"accountClassTransfer",
+        //             "usdc":"50.0",
+        //             "toPerp":false
+        //         }
+        //     }
+        // )
+        //
+        return $this->parse_ledger($response, null, $since, $limit);
+    }
+
+    public function parse_ledger_entry(array $item, ?array $currency = null) {
+        //
+        // {
+        //     "time":1724762307531,
+        //     "hash":"0x620a234a7e0eb7930575040f59482a01050058b0802163b4767bfd9033e77781",
+        //     "delta":{
+        //         "type":"accountClassTransfer",
+        //         "usdc":"50.0",
+        //         "toPerp":false
+        //     }
+        // }
+        //
+        $timestamp = $this->safe_integer($item, 'time');
+        $delta = $this->safe_dict($item, 'delta', array());
+        $fee = null;
+        $feeCost = $this->safe_integer($delta, 'fee');
+        if ($feeCost !== null) {
+            $fee = array(
+                'currency' => 'USDC',
+                'cost' => $feeCost,
+            );
+        }
+        $type = $this->safe_string($delta, 'type');
+        $amount = $this->safe_string($delta, 'usdc');
+        return array(
+            'id' => $this->safe_string($item, 'hash'),
+            'direction' => null,
+            'account' => null,
+            'referenceAccount' => $this->safe_string($delta, 'user'),
+            'referenceId' => $this->safe_string($item, 'hash'),
+            'type' => $this->parse_ledger_entry_type($type),
+            'currency' => null,
+            'amount' => $this->parse_number($amount),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'before' => null,
+            'after' => null,
+            'status' => null,
+            'fee' => $fee,
+            'info' => $item,
+        );
+    }
+
+    public function parse_ledger_entry_type($type) {
+        $ledgerType = array(
+            'internalTransfer' => 'transfer',
+            'accountClassTransfer' => 'transfer',
+        );
+        return $this->safe_string($ledgerType, $type, $type);
+    }
+
+    public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()) {
+        /**
+         * fetch all $deposits made to an account
+         * @param {string} $code unified currency $code
+         * @param {int} [$since] the earliest time in ms to fetch $deposits for
+         * @param {int} [$limit] the maximum number of $deposits structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch withdrawals for
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         */
+        $this->load_markets();
+        $userAddress = null;
+        list($userAddress, $params) = $this->handle_public_address('fetchDepositsWithdrawals', $params);
+        $request = array(
+            'type' => 'userNonFundingLedgerUpdates',
+            'user' => $userAddress,
+        );
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $request['endTime'] = $until;
+            $params = $this->omit($params, array( 'until' ));
+        }
+        $response = $this->publicPostInfo ($this->extend($request, $params));
+        //
+        // array(
+        //     {
+        //         "time":1724762307531,
+        //         "hash":"0x620a234a7e0eb7930575040f59482a01050058b0802163b4767bfd9033e77781",
+        //         "delta":{
+        //             "type":"accountClassTransfer",
+        //             "usdc":"50.0",
+        //             "toPerp":false
+        //         }
+        //     }
+        // )
+        //
+        $records = $this->extract_type_from_delta($response);
+        $deposits = $this->filter_by_array($records, 'type', array( 'deposit' ), false);
+        return $this->parse_transactions($deposits, null, $since, $limit);
+    }
+
+    public function fetch_withdrawals(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+        /**
+         * fetch all $withdrawals made from an account
+         * @param {string} $code unified currency $code
+         * @param {int} [$since] the earliest time in ms to fetch $withdrawals for
+         * @param {int} [$limit] the maximum number of $withdrawals structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] the latest time in ms to fetch $withdrawals for
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=transaction-structure transaction structures~
+         */
+        $this->load_markets();
+        $userAddress = null;
+        list($userAddress, $params) = $this->handle_public_address('fetchDepositsWithdrawals', $params);
+        $request = array(
+            'type' => 'userNonFundingLedgerUpdates',
+            'user' => $userAddress,
+        );
+        if ($since !== null) {
+            $request['startTime'] = $since;
+        }
+        $until = $this->safe_integer($params, 'until');
+        if ($until !== null) {
+            $request['endTime'] = $until;
+            $params = $this->omit($params, array( 'until' ));
+        }
+        $response = $this->publicPostInfo ($this->extend($request, $params));
+        //
+        // array(
+        //     {
+        //         "time":1724762307531,
+        //         "hash":"0x620a234a7e0eb7930575040f59482a01050058b0802163b4767bfd9033e77781",
+        //         "delta":{
+        //             "type":"accountClassTransfer",
+        //             "usdc":"50.0",
+        //             "toPerp":false
+        //         }
+        //     }
+        // )
+        //
+        $records = $this->extract_type_from_delta($response);
+        $withdrawals = $this->filter_by_array($records, 'type', array( 'withdraw' ), false);
+        return $this->parse_transactions($withdrawals, null, $since, $limit);
+    }
+
+    public function extract_type_from_delta($data = []) {
+        $records = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $record = $data[$i];
+            $record['type'] = $record['delta']['type'];
+            $records[] = $record;
+        }
+        return $records;
     }
 
     public function format_vault_address(?string $address = null) {

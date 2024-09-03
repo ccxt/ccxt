@@ -6395,7 +6395,7 @@ public partial class bybit : Exchange
             }
         } else
         {
-            response = await this.privateGetV2PrivateWalletFundRecords(this.extend(request, parameters));
+            response = await this.privateGetV5AccountContractTransactionLog(this.extend(request, parameters));
         }
         //
         //     {
