@@ -812,6 +812,153 @@
         ],
         "fetchTickers": [
 
+        ],
+
+        "fetchDeposits": [
+            {
+                "description": "user deposits",
+                "method": "fetchDeposits",
+                "input": [
+                    "USDC"
+                ],
+                "httpResponse": [
+                    {
+                        "time": 1725369558702,
+                        "hash": "0xa1eee9b39bb871d5c0c91892c457fdb78fd65f804502d1a09f0a9b80a5c43a81",
+                        "delta": {
+                            "type": "withdraw",
+                            "usdc": "9.0",
+                            "nonce": 1725369497528000,
+                            "fee": "1.0"
+                        }
+                    },
+                    {
+                        "time": 1725278637122,
+                        "hash": "0xed134b02d611cd53fd3e040f7ca6f00113008084ddf8009455ffc1f657df209e",
+                        "delta": {
+                            "type": "accountClassTransfer",
+                            "usdc": "4.0",
+                            "toPerp": true
+                        }
+                    },
+                    {
+                        "time": 1719366450777,
+                        "hash": "0xb17ab23a7006fe26145857954e728c72a118563deb7e32f80e317bb5b0fab955",
+                        "delta": {
+                            "type": "deposit",
+                            "usdc": "105.0"
+                        }
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                      "info": {
+                          "time": 1719366450777,
+                          "hash": "0xb17ab23a7006fe26145857954e728c72a118563deb7e32f80e317bb5b0fab955",
+                          "delta": {
+                              "type": "deposit",
+                              "usdc": "105.0"
+                          },
+                          "type": "deposit"
+                      },
+                      "id": null,
+                      "txid": "0xb17ab23a7006fe26145857954e728c72a118563deb7e32f80e317bb5b0fab955",
+                      "timestamp": 1719366450777,
+                      "datetime": "2024-06-26T01:47:30.777Z",
+                      "network": null,
+                      "address": null,
+                      "addressTo": null,
+                      "addressFrom": null,
+                      "tag": null,
+                      "tagTo": null,
+                      "tagFrom": null,
+                      "type": null,
+                      "amount": 105,
+                      "currency": null,
+                      "status": null,
+                      "updated": null,
+                      "comment": null,
+                      "internal": false,
+                      "fee": null
+                  }
+                ]
+            }
+        ],
+
+        "fetchWithdrawals": [
+            {
+                "description": "user withdrawals",
+                "method": "fetchWithdrawals",
+                "input": [
+                    "USDC"
+                ],
+                "httpResponse": [
+                    {
+                        "time": 1725369558702,
+                        "hash": "0xa1eee9b39bb871d5c0c91892c457fdb78fd65f804502d1a09f0a9b80a5c43a81",
+                        "delta": {
+                            "type": "withdraw",
+                            "usdc": "9.0",
+                            "nonce": 1725369497528000,
+                            "fee": "1.0"
+                        }
+                    },
+                    {
+                        "time": 1725278637122,
+                        "hash": "0xed134b02d611cd53fd3e040f7ca6f00113008084ddf8009455ffc1f657df209e",
+                        "delta": {
+                            "type": "accountClassTransfer",
+                            "usdc": "4.0",
+                            "toPerp": true
+                        }
+                    },
+                    {
+                        "time": 1719366450777,
+                        "hash": "0xb17ab23a7006fe26145857954e728c72a118563deb7e32f80e317bb5b0fab955",
+                        "delta": {
+                            "type": "deposit",
+                            "usdc": "105.0"
+                        }
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                      "info": {
+                          "time": 1725369558702,
+                          "hash": "0xa1eee9b39bb871d5c0c91892c457fdb78fd65f804502d1a09f0a9b80a5c43a81",
+                          "delta": {
+                              "type": "withdraw",
+                              "usdc": "9.0",
+                              "nonce": 1725369497528000,
+                              "fee": "1.0"
+                          },
+                          "type": "withdraw"
+                      },
+                      "id": null,
+                      "txid": "0xa1eee9b39bb871d5c0c91892c457fdb78fd65f804502d1a09f0a9b80a5c43a81",
+                      "timestamp": 1725369558702,
+                      "datetime": "2024-09-03T13:19:18.702Z",
+                      "network": null,
+                      "address": null,
+                      "addressTo": null,
+                      "addressFrom": null,
+                      "tag": null,
+                      "tagTo": null,
+                      "tagFrom": null,
+                      "type": null,
+                      "amount": 9,
+                      "currency": null,
+                      "status": null,
+                      "updated": null,
+                      "comment": null,
+                      "internal": false,
+                      "fee": {
+                          "currency": "USDC",
+                          "cost": 1
+                      }
+                  }
+                ]
+            }
         ]
     }
 }

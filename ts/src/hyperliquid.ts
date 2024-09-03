@@ -2638,8 +2638,8 @@ export default class hyperliquid extends Exchange {
         const feeCost = this.safeInteger (delta, 'fee');
         if (feeCost !== undefined) {
             fee = {
-                currency: 'USDC',
-                cost: feeCost,
+                'currency': 'USDC',
+                'cost': feeCost,
             };
         }
         let internal = undefined;
