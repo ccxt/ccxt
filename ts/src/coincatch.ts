@@ -116,36 +116,20 @@ export default class coincatch extends Exchange {
                 'withdraw': true,
             },
             'timeframes': {
-                'spot': {
-                    '1m': '1min',
-                    '5m': '5min',
-                    '15m': '15min',
-                    '30m': '30min',
-                    '1h': '1h',
-                    '4h': '4h',
-                    '6h': '6h',
-                    '12h': '12h',
-                    '1d': '1day',
-                    '3d': '3day',
-                    '1w': '1week',
-                    '1M': '1M',
-                },
-                'swap': {
-                    '1m': '1m',
-                    '3m': '3m',
-                    '5m': '5m',
-                    '15': '15m',
-                    '30': '30m',
-                    '1h': '1H',
-                    '2h': '2H',
-                    '4h': '4H',
-                    '6h': '6H',
-                    '12h': '12H',
-                    '1d': '1D',
-                    '3d': '3D',
-                    '1w': '1W',
-                    '1M': '1M',
-                },
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '15': '15m',
+                '30': '30m',
+                '1h': '1H',
+                '2h': '2H',
+                '4h': '4H',
+                '6h': '6H',
+                '12h': '12H',
+                '1d': '1D',
+                '3d': '3D',
+                '1w': '1W',
+                '1M': '1M',
             },
             'urls': {
                 'logo': '',
@@ -276,6 +260,38 @@ export default class coincatch extends Exchange {
                 },
             },
             'options': {
+                'timeframes': {
+                    'spot': {
+                        '1m': '1min',
+                        '5m': '5min',
+                        '15m': '15min',
+                        '30m': '30min',
+                        '1h': '1h',
+                        '4h': '4h',
+                        '6h': '6h',
+                        '12h': '12h',
+                        '1d': '1day',
+                        '3d': '3day',
+                        '1w': '1week',
+                        '1M': '1M',
+                    },
+                    'swap': {
+                        '1m': '1m',
+                        '3m': '3m',
+                        '5m': '5m',
+                        '15': '15m',
+                        '30': '30m',
+                        '1h': '1H',
+                        '2h': '2H',
+                        '4h': '4H',
+                        '6h': '6H',
+                        '12h': '12H',
+                        '1d': '1D',
+                        '3d': '3D',
+                        '1w': '1W',
+                        '1M': '1M',
+                    },
+                },
                 'currencyIdsListForParseMarket': undefined,
                 'broker': '',
                 'networks': {
@@ -1122,7 +1138,8 @@ export default class coincatch extends Exchange {
         }
         let until: Int = undefined;
         [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
-        const timeframes = this.safeDict (this.timeframes, market['type']);
+        const marketType = market['type'];
+        const timeframes = this.options['timeframes'][marketType];
         let response = undefined;
         if (market['spot']) {
             request['period'] = this.safeString (timeframes, timeframe, timeframe);
