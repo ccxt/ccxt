@@ -4038,7 +4038,7 @@ export default class Exchange {
             results.push (this.parseOHLCV (ohlcvs[i], market));
         }
         const sorted = this.sortBy (results, 0);
-        return this.filterBySinceLimit (sorted, since, limit, 0) as any;
+        return this.filterBySinceLimit (sorted, since, limit, 0, true) as any;
     }
 
     parseLeverageTiers (response: any, symbols: string[] = undefined, marketIdKey = undefined): LeverageTiers {
