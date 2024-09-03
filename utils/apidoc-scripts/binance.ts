@@ -1,12 +1,12 @@
 
 
-import jsYaml from 'js-yaml';
-// https://github.com/binance/binance-api-swagger
+import markdownIt from 'markdown-it';
 
 class RLParser  {
 
     type = 'spot';
-    url = 'https://raw.githubusercontent.com/binance/binance-api-swagger/master/spot_api.yaml';
+    url = 'https://raw.githubusercontent.com/binance/binance-spot-api-docs/master/rest-api.md';
+    baseUrl = 'https://api.binance.com';
 
     async fetchData () {
         if (!this.url) {
@@ -17,68 +17,35 @@ class RLParser  {
         return data;
     }
 
-    sortObjectByAlhpabet (obj) {
-        const sortedKeys = Object.keys(obj).sort();
-        const sortedObj = {};
-        for (const key of sortedKeys) {
-            sortedObj[key] = obj[key];
-        }
-        return sortedObj;
-    }
-
-    swaggerYamlToJson (data: string) {
-        return jsYaml.load (data);
-    }
-
     async init () {
         const data = await this.fetchData ();
-        const json = this.swaggerYamlToJson (data);
-        const result = this.generator (json);
-        return result;
-    }
-
-    generator (json) {
-        const paths = json.paths;
-        //
-        // {
-        //     '/api/v3/account': ..
-        //     '/sapi/v1/accountSnapshot': ..
-        //     '/sapi/v2/accountSnapshot': 
-        //     ...
-        // }
-        //
+        const regex2 = /\n(GET|POST|PUT|DELETE)\s+(.+)((.|\n)*?)Weight(.*?)\s+(\d+)/g;
+        const matches = data.matchAll(regex2);
+        const matchesArray = [...matches];
         const apiTree = {};
-        for (const [path, datas] of Object.entries (paths)) {
+        for (const match of matchesArray) {
+            if (match.length != 7) {
+                console.log('match length is not 7', match);
+                continue;
+            }
+            const method = match[1];
+            const endpoint = match[2]; // sometimes needed
             // eg: path = '/sapi/v2/account/balance'
-            const parts = path.split ('/');
-            const kind = parts[1]; // 'sapi'
+            const parts = endpoint.split ('/');
+            const kind = parts[1]; // eg: 'sapi'
             if (!(kind in apiTree)) {
                 apiTree[kind] = {};
             }
-            const endpoint = parts.slice(2).join ('/'); // 'v2/account/balance'
-            for (const [method, value] of Object.entries (datas as any)) {
-                // method can be `get`, `post, etc
-                const methodUppercase = method.toUpperCase ();
-                if (!(methodUppercase in apiTree[kind])) {
-                    apiTree[kind][methodUppercase] = {};
-                }
-                const description = (value as any).description;
-                apiTree[kind][methodUppercase][endpoint] = this.getWeightFromText (description);
+            const rl = parseInt (match[6]);
+            if (!(method in apiTree[kind])) {
+                apiTree[kind][method] = {};
             }
-            
+            const path = endpoint.substring(1 + kind.length + 1);
+            apiTree[kind][method][path] = rl;
         }
         return apiTree;
     }
 
-    getWeightFromText (text: string) {
-        // such text: 'whatever xyz xyz\nWeight(IP): 1'
-        const regex = /Weight\(IP\): (\d+)/;
-        const match = text.match (regex);
-        if (match) {
-            return parseInt (match[1]);
-        }
-        return undefined;
-    }
 }
 
 
