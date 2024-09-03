@@ -3,22 +3,43 @@
 import jsYaml from 'js-yaml';
 // https://github.com/binance/binance-api-swagger
 
-class RLParser {
-    url = 'https://raw.githubusercontent.com/binance/binance-api-swagger/master/spot_api.yaml';
+class baseParser {
+    type: string;
+    subType: string;
+    url: string;
 
     async fetchData () {
+        if (!this.url) {
+            throw new Error ('URL not set');
+        }
         const response = await fetch (this.url);
         const data = await response.text ();
         return data;
     }
 
-    parseToJSON (data: string) {
+    sortObjectByAlhpabet (obj) {
+        const sortedKeys = Object.keys(obj).sort();
+        const sortedObj = {};
+        for (const key of sortedKeys) {
+            sortedObj[key] = obj[key];
+        }
+        return sortedObj;
+    }
+}
+
+
+class RLParser extends baseParser {
+
+    type = 'spot';
+    url = 'https://raw.githubusercontent.com/binance/binance-api-swagger/master/spot_api.yaml';
+
+    swaggerYamlToJson (data: string) {
         return jsYaml.load (data);
     }
 
     async init () {
         const data = await this.fetchData ();
-        const json = this.parseToJSON (data);
+        const json = this.swaggerYamlToJson (data);
         const result = this.generator (json);
         return result;
     }
@@ -34,7 +55,7 @@ class RLParser {
         // }
         //
         const apiTree = {};
-        for (const [path, obj] of Object.entries (paths)) {
+        for (const [path, datas] of Object.entries (paths)) {
             // eg: path = '/sapi/v2/account/balance'
             const parts = path.split ('/');
             const kind = parts[1]; // 'sapi'
@@ -42,9 +63,7 @@ class RLParser {
                 apiTree[kind] = {};
             }
             const endpoint = parts.slice(2).join ('/'); // 'v2/account/balance'
-            //
-            const requestMethods = Object.entries (obj as any);
-            for (const [method, value] of requestMethods) {
+            for (const [method, value] of Object.entries (datas as any)) {
                 // method can be `get`, `post, etc
                 const methodUppercase = method.toUpperCase ();
                 if (!(methodUppercase in apiTree[kind])) {
@@ -53,6 +72,7 @@ class RLParser {
                 const description = (value as any).description;
                 apiTree[kind][methodUppercase][endpoint] = this.getWeightFromText (description);
             }
+            
         }
         return apiTree;
     }
