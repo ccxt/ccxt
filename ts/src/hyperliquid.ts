@@ -2037,6 +2037,8 @@ export default class hyperliquid extends Exchange {
         if (side !== undefined) {
             side = (side === 'A') ? 'sell' : 'buy';
         }
+        const totalAmount = this.safeString2 (entry, 'origSz', 'totalSz');
+        const remaining = this.safeString (entry, 'sz');
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (entry, 'oid'),
@@ -2051,13 +2053,13 @@ export default class hyperliquid extends Exchange {
             'postOnly': undefined,
             'reduceOnly': this.safeBool (entry, 'reduceOnly'),
             'side': side,
-            'price': this.safeNumber (entry, 'limitPx'),
+            'price': this.safeString (entry, 'limitPx'),
             'triggerPrice': this.safeBool (entry, 'isTrigger') ? this.safeNumber (entry, 'triggerPx') : undefined,
-            'amount': this.safeNumber2 (entry, 'sz', 'totalSz'),
+            'amount': totalAmount,
             'cost': undefined,
-            'average': this.safeNumber (entry, 'avgPx'),
-            'filled': undefined,
-            'remaining': undefined,
+            'average': this.safeString (entry, 'avgPx'),
+            'filled': Precise.stringSub (totalAmount, remaining),
+            'remaining': remaining,
             'status': this.parseOrderStatus (status),
             'fee': undefined,
             'trades': undefined,
