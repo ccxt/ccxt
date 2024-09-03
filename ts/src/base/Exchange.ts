@@ -2661,7 +2661,7 @@ export default class Exchange {
 
     generateFeatures () {
         //
-        // the exchange-specific features can be something like this, where we support 'string' aliases too:  
+        // the exchange-specific features can be something like this, where we support 'string' aliases too:
         //
         //     {
         //         'myItem' : {
@@ -2701,8 +2701,7 @@ export default class Exchange {
         this.features = {};
         const unifiedMarketTypes = [ 'spot', 'swap', 'future', 'option' ];
         const subTypes = [ 'linear', 'inverse' ];
-        // atm only support basic methods to avoid to be able to maintain
-        const supportedMethods = [ 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades' ];
+        // atm only support basic methods to avoid to be able to maintain, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
         for (let i = 0; i < unifiedMarketTypes.length; i++) {
             const marketType = unifiedMarketTypes[i];
             // if marketType is not filled for this exchange, don't add that in `features`
