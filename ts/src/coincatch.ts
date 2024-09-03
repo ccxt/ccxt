@@ -6,7 +6,7 @@ import { NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Bool, Currency, Currencies, Dict, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Bool, Currency, Currencies, Dict, FundingRate, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1174,10 +1174,10 @@ export default class coincatch extends Exchange {
             return this.parseOHLCVs (data, market, timeframe, since, limit);
         } else if (market['swap']) {
             request['granularity'] = this.safeString (timeframes, timeframe, timeframe);
+            if (until === undefined) {
+                until = this.milliseconds ();
+            }
             if (since === undefined) {
-                if (until === undefined) {
-                    until = this.milliseconds ();
-                }
                 limit = limit ? limit : 100;
                 const duration = this.parseTimeframe (timeframe);
                 since = until - (duration * limit * 1000);
@@ -1227,6 +1227,7 @@ export default class coincatch extends Exchange {
          * @name coincatch#fetchTrades
          * @description get the list of most recent trades for a particular symbol
          * @see https://coincatch.github.io/github.io/en/spot/#get-recent-trades
+         * @see https://coincatch.github.io/github.io/en/mix/#get-fills
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -1344,6 +1345,65 @@ export default class coincatch extends Exchange {
             'fee': undefined,
             'info': trade,
         }, market);
+    }
+
+    async fetchFundingRate (symbol: string, params = {}): Promise<FundingRate> {
+        /**
+         * @method
+         * @name coincatch#fetchFundingRate
+         * @description fetch the current funding rate
+         * @see https://coincatch.github.io/github.io/en/mix/#get-current-funding-rate
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/#/?id=funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketId = market['id'];
+        const parts = marketId.split ('_');
+        const request: Dict = {
+            'symbol': marketId,
+            'productType': this.safeString (parts, 1),
+        };
+        const response = await this.publicGetApiMixV1MarketCurrentFundRate (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1725402130395,
+        //         "data": {
+        //             "symbol": "BTCUSDT_UMCBL",
+        //             "fundingRate": "0.000043"
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseFundingRate (data, market);
+    }
+
+    parseFundingRate (contract, market: Market = undefined) {
+        const marketId = this.safeString (contract, 'symbol');
+        market = this.safeMarket (marketId, market, undefined, 'swap');
+        const fundingRate = this.safeNumber (contract, 'fundingRate');
+        return {
+            'info': contract,
+            'symbol': market['symbol'],
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': fundingRate,
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+        };
     }
 
     async fetchBalance (params = {}): Promise<Balances> {
