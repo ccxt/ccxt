@@ -1095,6 +1095,8 @@ export default class mexc extends Exchange {
          * @method
          * @name mexc#fetchMarkets
          * @description retrieves data on all markets for mexc
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
