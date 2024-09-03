@@ -844,6 +844,7 @@ export default class hyperliquid extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const until = this.safeInteger (params, 'until', this.milliseconds ());
+        const useTail = (since === undefined);
         if (since === undefined) {
             since = 0;
         }
@@ -874,7 +875,7 @@ export default class hyperliquid extends Exchange {
         //         }
         //     ]
         //
-        return this.parseOHLCVs (response, market, timeframe, since, limit);
+        return this.parseOHLCVs (response, market, timeframe, since, limit, useTail);
     }
 
     parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
