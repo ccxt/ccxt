@@ -1167,22 +1167,18 @@ export default class okx extends Exchange {
                         'timeInForce': [ 'GTC', 'IOC', 'FOK', 'PO' ],
                         'selfTradePrevention': true,
                         'hedged': true,
-                        'method': [ 'privatePostTradeBatchOrders', 'privatePostTradeOrder', 'privatePostTradeOrderAlgo' ],
                     },
                     'fetchOpenOrders': {
                         'supportedFlags': [ 'trigger', 'trailing' ],
-                        'method': [ 'privateGetTradeOrdersAlgoPending', 'privateGetTradeOrdersPending' ],
                         'limit': 100,
                     },
                     'fetchClosedOrders': {
                         'supportedFlags': [ 'trigger', 'trailing' ],
-                        'method': [ 'privateGetTradeOrdersAlgoHistory', 'privateGetTradeOrdersHistory' ],
                         'daysBack': 90, // 3 months
                         'limit': 100,
                     },
                     'fetchOrder': {
                         'flags': [ 'trigger' ],
-                        'method': [ 'privateGetTradeOrderAlgo', 'privateGetTradeOrder' ],
                     },
                     'fetchMyTrades': {
                         'until': true,
