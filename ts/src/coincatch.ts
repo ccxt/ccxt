@@ -474,6 +474,7 @@ export default class coincatch extends Exchange {
          * @name coincatch#fetchMarkets
          * @description retrieves data on all markets for the exchange
          * @see https://coincatch.github.io/github.io/en/spot/#get-all-tickers
+         * @see https://coincatch.github.io/github.io/en/mix/#get-all-symbols
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -770,6 +771,7 @@ export default class coincatch extends Exchange {
          * @name coincatch#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @see https://coincatch.github.io/github.io/en/spot/#get-single-ticker
+         * @see https://coincatch.github.io/github.io/en/mix/#get-single-symbol-ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -851,6 +853,7 @@ export default class coincatch extends Exchange {
          * @name coincatch#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          * @see https://coincatch.github.io/github.io/en/spot/#get-all-tickers
+         * @see https://coincatch.github.io/github.io/en/mix/#get-all-symbol-ticker
          * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.type] 'spot' or 'swap' (default 'spot')
@@ -1043,22 +1046,29 @@ export default class coincatch extends Exchange {
         if (precision !== undefined) {
             request['precision'] = precision;
         }
-        const response = await this.publicGetApiSpotV1MarketMergeDepth (this.extend (request, params));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1725137170814,
-        //         "data": {
-        //             "asks": [ [ 2507.07, 0.4248 ] ],
-        //             "bids": [ [ 2507.05, 0.1198 ] ],
-        //             "ts": "1725137170850",
-        //             "scale": "0.01",
-        //             "precision": "scale0",
-        //             "isMaxPrecision": "NO"
-        //         }
-        //     }
-        //
+        let response = undefined;
+        if (market['spot']) {
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1725137170814,
+            //         "data": {
+            //             "asks": [ [ 2507.07, 0.4248 ] ],
+            //             "bids": [ [ 2507.05, 0.1198 ] ],
+            //             "ts": "1725137170850",
+            //             "scale": "0.01",
+            //             "precision": "scale0",
+            //             "isMaxPrecision": "NO"
+            //         }
+            //     }
+            //
+            response = await this.publicGetApiSpotV1MarketMergeDepth (this.extend (request, params));
+        } else if (market['swap']) {
+            response = await this.publicGetApiMixV1MarketMergeDepth (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + market['type'] + ' type of markets');
+        }
         const data = this.safeDict (response, 'data', {});
         const timestamp = this.safeInteger (data, 'ts');
         return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks');
