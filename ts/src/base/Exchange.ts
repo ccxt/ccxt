@@ -2661,7 +2661,26 @@ export default class Exchange {
 
     generateFeatures () {
         //
-        // this method would generate the blank features tree, eg:
+        // the exchange-specific features can be something like this, where we support 'string' aliases too:  
+        //
+        //     {
+        //         'myItem' : {
+        //             'createOrder' : {...},
+        //             'fetchOrders' : {...},
+        //         },
+        //         'swap': {
+        //             'linear': 'myItem',
+        //             'inverse': 'myItem',
+        //         },
+        //         'future': {
+        //             'linear': 'myItem',
+        //             'inverse': 'myItem',
+        //         }
+        //     }
+        //
+        //
+        //
+        // this method would regenerate the blank features tree, eg:
         //
         //     {
         //         "spot": {
@@ -2674,19 +2693,64 @@ export default class Exchange {
         //         }
         //     }
         //
+        const populatedFeatures = this.features;
+        if (populatedFeatures === undefined) {
+            return;
+        }
+        // else reconstruct
+        this.features = {};
         const unifiedMarketTypes = [ 'spot', 'swap', 'future', 'option' ];
-        const unifiedMethods = this.unifiedMethods ();
-        const skipKeys = unifiedMarketTypes.concat ([ 'publicAPI', 'privateAPI', 'margin' ]);
-        const keys = Object.keys (unifiedMethods);
+        const subTypes = [ 'linear', 'inverse' ];
+        // atm only support basic methods to avoid to be able to maintain
+        const supportedMethods = [ 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades' ];
         for (let i = 0; i < unifiedMarketTypes.length; i++) {
             const marketType = unifiedMarketTypes[i];
-            this.features[marketType] = {};
-            for (let j = 0; j < keys.length; j++) {
-                const key = keys[j];
-                if (!this.inArray (key, skipKeys)) {
-                    this.features[marketType][key] = undefined; // set empty by default
+            // if marketType is not filled for this exchange, don't add that in `features`
+            if (!(marketType in populatedFeatures)) {
+                this.features[marketType] = undefined;
+            } else {
+                if (marketType === 'spot') {
+                    const valueDict = this.safeDict (populatedFeatures, marketType);
+                    if (valueDict !== undefined) {
+                        // if it's dict, assign directly
+                        this.features[marketType] = valueDict;
+                    } else {
+                        // if it's string, then it's alias
+                        const valueString = this.safeString (populatedFeatures, marketType);
+                        this.features[marketType] = populatedFeatures[valueString];
+                    }
+                } else {
+                    this.features[marketType] = {};
+                    for (let j = 0; j < subTypes.length; j++) {
+                        const subType = subTypes[j];
+                        const valueDict = this.safeDict (populatedFeatures[marketType], subType);
+                        if (valueDict !== undefined) {
+                            // if it's dict, assign directly
+                            this.features[marketType] = valueDict;
+                        } else {
+                            // if it's string, then it's alias
+                            const valueString = this.safeString (populatedFeatures[marketType], subType);
+                            this.features[marketType][subType] = populatedFeatures[valueString];
+                        }
+                    }
                 }
             }
+        }
+    }
+
+    getFeatureValue (featuresContainer, marketType, subType = undefined) {
+        const initialValue = this.safeDict (featuresContainer, marketType);
+        let finalValue = initialValue;
+        if (subType !== undefined) {
+            finalValue = this.safeDict (initialValue, subType);
+        }
+        if (finalValue !== undefined) {
+            // if it's dict, assign directly
+            return finalValue;
+        } else {
+            // if it's string, then it's alias
+            const stringValue = this.safeString (finalValue, marketType);
+            return featuresContainer[stringValue];
         }
     }
 
