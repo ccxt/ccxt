@@ -62,7 +62,8 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'fetchBorrowInterest': False,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
-                'fetchCanceledOrders': False,
+                'fetchCanceledAndClosedOrders': True,
+                'fetchCanceledOrders': True,
                 'fetchClosedOrders': True,
                 'fetchCrossBorrowRate': False,
                 'fetchCrossBorrowRates': False,
@@ -95,7 +96,7 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrders': False,
+                'fetchOrders': True,
                 'fetchOrderTrades': False,
                 'fetchPosition': True,
                 'fetchPositionMode': False,
@@ -815,6 +816,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         await self.load_markets()
         market = self.market(symbol)
         until = self.safe_integer(params, 'until', self.milliseconds())
+        useTail = (since is None)
         if since is None:
             since = 0
         params = self.omit(params, ['until'])
@@ -844,7 +846,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+        return self.parse_ohlcvs(response, market, timeframe, since, limit, useTail)
 
     def parse_ohlcv(self, ohlcv, market: Market = None) -> list:
         #
@@ -1645,7 +1647,14 @@ class hyperliquid(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        return self.parse_orders(response, market, since, limit)
+        orderWithStatus = []
+        for i in range(0, len(response)):
+            order = response[i]
+            extendOrder = {}
+            if self.safe_string(order, 'status') is None:
+                extendOrder['ccxtStatus'] = 'open'
+            orderWithStatus.append(self.extend(order, extendOrder))
+        return self.parse_orders(orderWithStatus, market, since, limit)
 
     async def fetch_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
         """
@@ -1657,8 +1666,53 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param str [params.user]: user address, will default to self.walletAddress if not provided
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
         """
+        await self.load_markets()
+        orders = await self.fetch_orders(symbol, None, None, params)  # don't filter here because we don't want to catch open orders
+        closedOrders = self.filter_by_array(orders, 'status', ['closed'], False)
+        return self.filter_by_symbol_since_limit(closedOrders, symbol, since, limit)
+
+    async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        fetch all canceled orders
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.user]: user address, will default to self.walletAddress if not provided
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        orders = await self.fetch_orders(symbol, None, None, params)  # don't filter here because we don't want to catch open orders
+        closedOrders = self.filter_by_array(orders, 'status', ['canceled'], False)
+        return self.filter_by_symbol_since_limit(closedOrders, symbol, since, limit)
+
+    async def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        fetch all closed and canceled orders
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.user]: user address, will default to self.walletAddress if not provided
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
+        await self.load_markets()
+        orders = await self.fetch_orders(symbol, None, None, params)  # don't filter here because we don't want to catch open orders
+        closedOrders = self.filter_by_array(orders, 'status', ['canceled', 'closed', 'rejected'], False)
+        return self.filter_by_symbol_since_limit(closedOrders, symbol, since, limit)
+
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+        """
+        fetch all orders
+        :param str symbol: unified market symbol
+        :param int [since]: the earliest time in ms to fetch open orders for
+        :param int [limit]: the maximum number of open orders structures to retrieve
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.user]: user address, will default to self.walletAddress if not provided
+        :returns Order[]: a list of `order structures <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         userAddress = None
-        userAddress, params = self.handle_public_address('fetchClosedOrders', params)
+        userAddress, params = self.handle_public_address('fetchOrders', params)
         await self.load_markets()
         market = self.safe_market(symbol)
         request: dict = {
@@ -1839,10 +1893,13 @@ class hyperliquid(Exchange, ImplicitAPI):
             market = self.safe_market(marketId, market)
         symbol = market['symbol']
         timestamp = self.safe_integer_2(order, 'timestamp', 'statusTimestamp')
-        status = self.safe_string(order, 'status')
+        status = self.safe_string_2(order, 'status', 'ccxtStatus')
+        order = self.omit(order, ['ccxtStatus'])
         side = self.safe_string(entry, 'side')
         if side is not None:
             side = 'sell' if (side == 'A') else 'buy'
+        totalAmount = self.safe_string_2(entry, 'origSz', 'totalSz')
+        remaining = self.safe_string(entry, 'sz')
         return self.safe_order({
             'info': order,
             'id': self.safe_string(entry, 'oid'),
@@ -1857,13 +1914,13 @@ class hyperliquid(Exchange, ImplicitAPI):
             'postOnly': None,
             'reduceOnly': self.safe_bool(entry, 'reduceOnly'),
             'side': side,
-            'price': self.safe_number(entry, 'limitPx'),
+            'price': self.safe_string(entry, 'limitPx'),
             'triggerPrice': self.safe_number(entry, 'triggerPx') if self.safe_bool(entry, 'isTrigger') else None,
-            'amount': self.safe_number_2(entry, 'sz', 'totalSz'),
+            'amount': totalAmount,
             'cost': None,
-            'average': self.safe_number(entry, 'avgPx'),
-            'filled': None,
-            'remaining': None,
+            'average': self.safe_string(entry, 'avgPx'),
+            'filled': Precise.string_sub(totalAmount, remaining),
+            'remaining': remaining,
             'status': self.parse_order_status(status),
             'fee': None,
             'trades': None,

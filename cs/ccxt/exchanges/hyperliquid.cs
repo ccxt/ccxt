@@ -45,7 +45,8 @@ public partial class hyperliquid : Exchange
                 { "fetchBorrowInterest", false },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
-                { "fetchCanceledOrders", false },
+                { "fetchCanceledAndClosedOrders", true },
+                { "fetchCanceledOrders", true },
                 { "fetchClosedOrders", true },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
@@ -78,7 +79,7 @@ public partial class hyperliquid : Exchange
                 { "fetchOpenOrders", true },
                 { "fetchOrder", true },
                 { "fetchOrderBook", true },
-                { "fetchOrders", false },
+                { "fetchOrders", true },
                 { "fetchOrderTrades", false },
                 { "fetchPosition", true },
                 { "fetchPositionMode", false },
@@ -859,6 +860,7 @@ public partial class hyperliquid : Exchange
         await this.loadMarkets();
         object market = this.market(symbol);
         object until = this.safeInteger(parameters, "until", this.milliseconds());
+        object useTail = (isEqual(since, null));
         if (isTrue(isEqual(since, null)))
         {
             since = 0;
@@ -890,7 +892,7 @@ public partial class hyperliquid : Exchange
         //         }
         //     ]
         //
-        return this.parseOHLCVs(response, market, timeframe, since, limit);
+        return this.parseOHLCVs(response, market, timeframe, since, limit, useTail);
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -1878,7 +1880,18 @@ public partial class hyperliquid : Exchange
         //         }
         //     ]
         //
-        return this.parseOrders(response, market, since, limit);
+        object orderWithStatus = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        {
+            object order = getValue(response, i);
+            object extendOrder = new Dictionary<string, object>() {};
+            if (isTrue(isEqual(this.safeString(order, "status"), null)))
+            {
+                ((IDictionary<string,object>)extendOrder)["ccxtStatus"] = "open";
+            }
+            ((IList<object>)orderWithStatus).Add(this.extend(order, extendOrder));
+        }
+        return this.parseOrders(orderWithStatus, market, since, limit);
     }
 
     public async override Task<object> fetchClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
@@ -1895,8 +1908,68 @@ public partial class hyperliquid : Exchange
         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
         */
         parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object orders = await this.fetchOrders(symbol, null, null, parameters); // don't filter here because we don't want to catch open orders
+        object closedOrders = this.filterByArray(orders, "status", new List<object>() {"closed"}, false);
+        return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
+    }
+
+    public async virtual Task<object> fetchCanceledOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name hyperliquid#fetchCanceledOrders
+        * @description fetch all canceled orders
+        * @param {string} symbol unified market symbol
+        * @param {int} [since] the earliest time in ms to fetch open orders for
+        * @param {int} [limit] the maximum number of open orders structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object orders = await this.fetchOrders(symbol, null, null, parameters); // don't filter here because we don't want to catch open orders
+        object closedOrders = this.filterByArray(orders, "status", new List<object>() {"canceled"}, false);
+        return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
+    }
+
+    public async override Task<object> fetchCanceledAndClosedOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name hyperliquid#fetchCanceledAndClosedOrders
+        * @description fetch all closed and canceled orders
+        * @param {string} symbol unified market symbol
+        * @param {int} [since] the earliest time in ms to fetch open orders for
+        * @param {int} [limit] the maximum number of open orders structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object orders = await this.fetchOrders(symbol, null, null, parameters); // don't filter here because we don't want to catch open orders
+        object closedOrders = this.filterByArray(orders, "status", new List<object>() {"canceled", "closed", "rejected"}, false);
+        return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
+    }
+
+    public async override Task<object> fetchOrders(object symbol = null, object since = null, object limit = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name hyperliquid#fetchOrders
+        * @description fetch all orders
+        * @param {string} symbol unified market symbol
+        * @param {int} [since] the earliest time in ms to fetch open orders for
+        * @param {int} [limit] the maximum number of open orders structures to retrieve
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+        * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
         object userAddress = null;
-        var userAddressparametersVariable = this.handlePublicAddress("fetchClosedOrders", parameters);
+        var userAddressparametersVariable = this.handlePublicAddress("fetchOrders", parameters);
         userAddress = ((IList<object>)userAddressparametersVariable)[0];
         parameters = ((IList<object>)userAddressparametersVariable)[1];
         await this.loadMarkets();
@@ -2098,12 +2171,15 @@ public partial class hyperliquid : Exchange
         }
         object symbol = getValue(market, "symbol");
         object timestamp = this.safeInteger2(order, "timestamp", "statusTimestamp");
-        object status = this.safeString(order, "status");
+        object status = this.safeString2(order, "status", "ccxtStatus");
+        order = this.omit(order, new List<object>() {"ccxtStatus"});
         object side = this.safeString(entry, "side");
         if (isTrue(!isEqual(side, null)))
         {
             side = ((bool) isTrue((isEqual(side, "A")))) ? "sell" : "buy";
         }
+        object totalAmount = this.safeString2(entry, "origSz", "totalSz");
+        object remaining = this.safeString(entry, "sz");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", this.safeString(entry, "oid") },
@@ -2118,13 +2194,13 @@ public partial class hyperliquid : Exchange
             { "postOnly", null },
             { "reduceOnly", this.safeBool(entry, "reduceOnly") },
             { "side", side },
-            { "price", this.safeNumber(entry, "limitPx") },
+            { "price", this.safeString(entry, "limitPx") },
             { "triggerPrice", ((bool) isTrue(this.safeBool(entry, "isTrigger"))) ? this.safeNumber(entry, "triggerPx") : null },
-            { "amount", this.safeNumber2(entry, "sz", "totalSz") },
+            { "amount", totalAmount },
             { "cost", null },
-            { "average", this.safeNumber(entry, "avgPx") },
-            { "filled", null },
-            { "remaining", null },
+            { "average", this.safeString(entry, "avgPx") },
+            { "filled", Precise.stringSub(totalAmount, remaining) },
+            { "remaining", remaining },
             { "status", this.parseOrderStatus(status) },
             { "fee", null },
             { "trades", null },

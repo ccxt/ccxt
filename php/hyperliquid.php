@@ -49,7 +49,8 @@ class hyperliquid extends Exchange {
                 'fetchBorrowInterest' => false,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
-                'fetchCanceledOrders' => false,
+                'fetchCanceledAndClosedOrders' => true,
+                'fetchCanceledOrders' => true,
                 'fetchClosedOrders' => true,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
@@ -82,7 +83,7 @@ class hyperliquid extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
-                'fetchOrders' => false,
+                'fetchOrders' => true,
                 'fetchOrderTrades' => false,
                 'fetchPosition' => true,
                 'fetchPositionMode' => false,
@@ -821,6 +822,7 @@ class hyperliquid extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $until = $this->safe_integer($params, 'until', $this->milliseconds());
+        $useTail = ($since === null);
         if ($since === null) {
             $since = 0;
         }
@@ -851,7 +853,7 @@ class hyperliquid extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit, $useTail);
     }
 
     public function parse_ohlcv($ohlcv, ?array $market = null): array {
@@ -1692,7 +1694,7 @@ class hyperliquid extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
          * @param {string} [$params->method] 'openOrders' or 'frontendOpenOrders' default is 'frontendOpenOrders'
-         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=$order-structure $order structures~
          */
         $userAddress = null;
         list($userAddress, $params) = $this->handle_public_address('fetchOpenOrders', $params);
@@ -1718,12 +1720,69 @@ class hyperliquid extends Exchange {
         //         }
         //     )
         //
-        return $this->parse_orders($response, $market, $since, $limit);
+        $orderWithStatus = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $order = $response[$i];
+            $extendOrder = array();
+            if ($this->safe_string($order, 'status') === null) {
+                $extendOrder['ccxtStatus'] = 'open';
+            }
+            $orderWithStatus[] = $this->extend($order, $extendOrder);
+        }
+        return $this->parse_orders($orderWithStatus, $market, $since, $limit);
     }
 
     public function fetch_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
-         * fetch all unfilled currently closed orders
+         * fetch all unfilled currently closed $orders
+         * @param {string} $symbol unified market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch open $orders for
+         * @param {int} [$limit] the maximum number of open $orders structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
+        $this->load_markets();
+        $orders = $this->fetch_orders($symbol, null, null, $params); // don't filter here because we don't want to catch open $orders
+        $closedOrders = $this->filter_by_array($orders, 'status', array( 'closed' ), false);
+        return $this->filter_by_symbol_since_limit($closedOrders, $symbol, $since, $limit);
+    }
+
+    public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+        /**
+         * fetch all canceled $orders
+         * @param {string} $symbol unified market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch open $orders for
+         * @param {int} [$limit] the maximum number of open $orders structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
+        $this->load_markets();
+        $orders = $this->fetch_orders($symbol, null, null, $params); // don't filter here because we don't want to catch open $orders
+        $closedOrders = $this->filter_by_array($orders, 'status', array( 'canceled' ), false);
+        return $this->filter_by_symbol_since_limit($closedOrders, $symbol, $since, $limit);
+    }
+
+    public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+        /**
+         * fetch all closed and canceled $orders
+         * @param {string} $symbol unified market $symbol
+         * @param {int} [$since] the earliest time in ms to fetch open $orders for
+         * @param {int} [$limit] the maximum number of open $orders structures to retrieve
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->user] user address, will default to $this->walletAddress if not provided
+         * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
+         */
+        $this->load_markets();
+        $orders = $this->fetch_orders($symbol, null, null, $params); // don't filter here because we don't want to catch open $orders
+        $closedOrders = $this->filter_by_array($orders, 'status', array( 'canceled', 'closed', 'rejected' ), false);
+        return $this->filter_by_symbol_since_limit($closedOrders, $symbol, $since, $limit);
+    }
+
+    public function fetch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()): array {
+        /**
+         * fetch all orders
          * @param {string} $symbol unified $market $symbol
          * @param {int} [$since] the earliest time in ms to fetch open orders for
          * @param {int} [$limit] the maximum number of open orders structures to retrieve
@@ -1732,7 +1791,7 @@ class hyperliquid extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/#/?id=order-structure order structures~
          */
         $userAddress = null;
-        list($userAddress, $params) = $this->handle_public_address('fetchClosedOrders', $params);
+        list($userAddress, $params) = $this->handle_public_address('fetchOrders', $params);
         $this->load_markets();
         $market = $this->safe_market($symbol);
         $request = array(
@@ -1919,11 +1978,14 @@ class hyperliquid extends Exchange {
         }
         $symbol = $market['symbol'];
         $timestamp = $this->safe_integer_2($order, 'timestamp', 'statusTimestamp');
-        $status = $this->safe_string($order, 'status');
+        $status = $this->safe_string_2($order, 'status', 'ccxtStatus');
+        $order = $this->omit($order, array( 'ccxtStatus' ));
         $side = $this->safe_string($entry, 'side');
         if ($side !== null) {
             $side = ($side === 'A') ? 'sell' : 'buy';
         }
+        $totalAmount = $this->safe_string_2($entry, 'origSz', 'totalSz');
+        $remaining = $this->safe_string($entry, 'sz');
         return $this->safe_order(array(
             'info' => $order,
             'id' => $this->safe_string($entry, 'oid'),
@@ -1938,13 +2000,13 @@ class hyperliquid extends Exchange {
             'postOnly' => null,
             'reduceOnly' => $this->safe_bool($entry, 'reduceOnly'),
             'side' => $side,
-            'price' => $this->safe_number($entry, 'limitPx'),
+            'price' => $this->safe_string($entry, 'limitPx'),
             'triggerPrice' => $this->safe_bool($entry, 'isTrigger') ? $this->safe_number($entry, 'triggerPx') : null,
-            'amount' => $this->safe_number_2($entry, 'sz', 'totalSz'),
+            'amount' => $totalAmount,
             'cost' => null,
-            'average' => $this->safe_number($entry, 'avgPx'),
-            'filled' => null,
-            'remaining' => null,
+            'average' => $this->safe_string($entry, 'avgPx'),
+            'filled' => Precise::string_sub($totalAmount, $remaining),
+            'remaining' => $remaining,
             'status' => $this->parse_order_status($status),
             'fee' => null,
             'trades' => null,
