@@ -841,6 +841,38 @@
                 ],
                 "output": "{\"type\":\"userNonFundingLedgerUpdates\",\"user\":\"0x15f43D1f2DeE81424aFd891943262aa90F22cc2A\",\"startTime\":1725278637122}"
             }
+        ],
+        "fetchDeposits": [
+            {
+                "description": "fetchDeposits",
+                "method": "fetchDeposits",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "USDC",
+                    1725278637122,
+                    10,
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": "{\"type\":\"userNonFundingLedgerUpdates\",\"user\":\"0x15f43D1f2DeE81424aFd891943262aa90F22cc2A\",\"startTime\":1725278637122}"
+            }
+        ],
+        "fetchWithdrawals": [
+            {
+                "description": "fetchWithdrawals",
+                "method": "fetchWithdrawals",
+                "url": "https://api.hyperliquid.xyz/info",
+                "input": [
+                    "USDC",
+                    1725278637122,
+                    10,
+                    {
+                        "user": "0x15f43D1f2DeE81424aFd891943262aa90F22cc2A"
+                    }
+                ],
+                "output": "{\"type\":\"userNonFundingLedgerUpdates\",\"user\":\"0x15f43D1f2DeE81424aFd891943262aa90F22cc2A\",\"startTime\":1725278637122}"
+            }
         ]
     }
 }

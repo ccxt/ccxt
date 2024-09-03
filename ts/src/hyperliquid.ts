@@ -2640,7 +2640,7 @@ export default class hyperliquid extends Exchange {
             fee = {
                 currency: 'USDC',
                 cost: feeCost,
-            }
+            };
         }
         let internal = undefined;
         const type = this.safeString (delta, 'type');
