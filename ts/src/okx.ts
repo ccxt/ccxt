@@ -1152,6 +1152,54 @@ export default class okx extends Exchange {
                 },
                 'brokerId': 'e847386590ce4dBC',
             },
+            'features': {
+                'default': {
+                    'sandbox': true,
+                    'createOrder': {
+                        'triggerPrice': true,
+                        'stopLossPrice': true,
+                        'takeProfitPrice': true,
+                        'attachedStopLossTakeProfit': {
+                            'supported': true,
+                            'limitPrice': true,
+                            'triggerPriceType': [ 'last', 'mark', 'index' ],
+                        },
+                        'timeInForce': [ 'GTC', 'IOC', 'FOK', 'PO' ],
+                        'selfTradePrevention': true,
+                        'hedged': true,
+                        'method': [ 'privatePostTradeBatchOrders', 'privatePostTradeOrder', 'privatePostTradeOrderAlgo' ],
+                    },
+                    'fetchOpenOrders': {
+                        'supportedFlags': [ 'trigger', 'trailing' ],
+                        'method': [ 'privateGetTradeOrdersAlgoPending', 'privateGetTradeOrdersPending' ],
+                        'limit': 100,
+                    },
+                    'fetchClosedOrders': {
+                        'supportedFlags': [ 'trigger', 'trailing' ],
+                        'method': [ 'privateGetTradeOrdersAlgoHistory', 'privateGetTradeOrdersHistory' ],
+                        'daysBack': 90, // 3 months
+                        'limit': 100,
+                    },
+                    'fetchOrder': {
+                        'flags': [ 'trigger' ],
+                        'method': [ 'privateGetTradeOrderAlgo', 'privateGetTradeOrder' ],
+                    },
+                    'fetchMyTrades': {
+                        'until': true,
+                        'daysBack': 90, // 3 months
+                        'limit': 100,
+                    },
+                },
+                'spot': 'default',
+                'swap': {
+                    'linear': 'default',
+                    'inverse': 'default',
+                },
+                'future': {
+                    'linear': 'default',
+                    'inverse': 'default',
+                },
+            },
             'commonCurrencies': {
                 // the exchange refers to ERC20 version of Aeternity (AEToken)
                 'AE': 'AET', // https://github.com/ccxt/ccxt/issues/4981
