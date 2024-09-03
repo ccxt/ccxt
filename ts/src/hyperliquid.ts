@@ -2883,6 +2883,7 @@ export default class hyperliquid extends Exchange {
          * @param {int} [since] the earliest time in ms to fetch deposits for
          * @param {int} [limit] the maximum number of deposits structures to retrieve
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch withdrawals for
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         await this.loadMarkets ();
@@ -2914,14 +2915,65 @@ export default class hyperliquid extends Exchange {
         //     }
         // ]
         //
+        const records = this.extractTypeFromDelta (response);
+        const deposits = this.filterByArray (records, 'type', [ 'deposit' ], false);
+        return this.parseTransactions (deposits, undefined, since, limit);
+    }
+
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
+        /**
+         * @method
+         * @name hyperliquid#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @param {string} code unified currency code
+         * @param {int} [since] the earliest time in ms to fetch withdrawals for
+         * @param {int} [limit] the maximum number of withdrawals structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch withdrawals for
+         * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
+         */
+        await this.loadMarkets ();
+        let userAddress = undefined;
+        [ userAddress, params ] = this.handlePublicAddress ('fetchDepositsWithdrawals', params);
+        const request: Dict = {
+            'type': 'userNonFundingLedgerUpdates',
+            'user': userAddress,
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['endTime'] = until;
+            params = this.omit (params, [ 'until' ]);
+        }
+        const response = await this.publicPostInfo (this.extend (request, params));
+        //
+        // [
+        //     {
+        //         "time":1724762307531,
+        //         "hash":"0x620a234a7e0eb7930575040f59482a01050058b0802163b4767bfd9033e77781",
+        //         "delta":{
+        //             "type":"accountClassTransfer",
+        //             "usdc":"50.0",
+        //             "toPerp":false
+        //         }
+        //     }
+        // ]
+        //
+        const records = this.extractTypeFromDelta (response);
+        const withdrawals = this.filterByArray (records, 'type', [ 'withdraw' ], false);
+        return this.parseTransactions (withdrawals, undefined, since, limit);
+    }
+
+    extractTypeFromDelta (data = []) {
         const records = [];
-        for (let i=0; i<response.length; i++) {
-            const record = response[i];
+        for (let i=0; i<data.length; i++) {
+            const record = data[i];
             record['type'] = record['delta']['type'];
             records.push (record);
         }
-        const deposits = this.filterByArray (records, 'type', [ 'deposit' ], false);
-        return this.parseTransactions (deposits, undefined, since, limit);
+        return records;
     }
 
     formatVaultAddress (address: Str = undefined) {
