@@ -1,21 +1,26 @@
+
 // ---------------------------------------------------------------------------
+
 import Exchange from './abstract/coincatch.js';
 import { NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
+import type { Balances, Bool, Currency, Currencies, Dict, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+
 // ---------------------------------------------------------------------------
+
 /**
  * @class coincatch
  * @augments Exchange
  */
 export default class coincatch extends Exchange {
-    describe() {
-        return this.deepExtend(super.describe(), {
+    describe () {
+        return this.deepExtend (super.describe (), {
             'id': 'coincatch',
             'name': 'CoinCatch',
-            'countries': ['VG'],
-            'rateLimit': 50,
+            'countries': [ 'VG' ], // British Virgin Islands
+            'rateLimit': 50, // 20 times per second
             'version': 'v1',
             'certified': false,
             'pro': true,
@@ -265,22 +270,23 @@ export default class coincatch extends Exchange {
                         'tierBased': false,
                         'percentage': true,
                         'feeSide': 'get',
-                        'maker': this.parseNumber('0.001'),
-                        'taker': this.parseNumber('0.001'),
+                        'maker': this.parseNumber ('0.001'),
+                        'taker': this.parseNumber ('0.001'),
                     },
                 },
             },
             'options': {
                 'currencyIdsListForParseMarket': undefined,
                 'broker': '',
-                'networks': {},
+                'networks': {
+                },
                 'networksById': {
                     'BITCOIN': 'BTC',
                     'ERC20': 'ERC20',
                     'TRC20': 'TRC20',
                     'TRX(TRC20)': 'TRC20',
                     'BEP20': 'BEP20',
-                    'ArbitrumOne': 'ARB',
+                    'ArbitrumOne': 'ARB', // todo check
                     'Optimism': 'OPTIMISM',
                     'LTC': 'LTC',
                     'BCH': 'BCH',
@@ -298,24 +304,24 @@ export default class coincatch extends Exchange {
                     'TAO': 'TAO',
                     'SUI': 'SUI',
                     'SEI': 'SEI',
-                    'THORChain': 'RUNE',
+                    'THORChain': 'RUNE', // todo check
                     'ZIL': 'ZIL',
-                    'Solar': 'SXP',
+                    'Solar': 'SXP', // todo check
                     'FET': 'FET',
-                    'C-Chain': 'AVAX',
+                    'C-Chain': 'AVAX', // todo check
                     'XRP': 'XRP',
                     'EOS': 'EOS',
                     'DOGECOIN': 'DOGE',
-                    'CAP20': 'CAP20',
+                    'CAP20': 'CAP20', // todo check
                     'Polygon': 'MATIC',
                     'CSPR': 'CSPR',
                     'Moonbeam': 'GLMR',
                     'MINA': 'MINA',
-                    'CFXeSpace': 'CFX',
+                    'CFXeSpace': 'CFX', // todo check
                     'CFX': 'CFX',
-                    'StratisEVM': 'STRAT',
+                    'StratisEVM': 'STRAT', // todo check
                     'Celestia': 'TIA',
-                    'ChilizChain': 'ChilizChain',
+                    'ChilizChain': 'ChilizChain', // todo check
                     'Aptos': 'APT',
                     'Ontology': 'ONT',
                     'ICP': 'ICP',
@@ -323,7 +329,7 @@ export default class coincatch extends Exchange {
                     'FIL': 'FIL',
                     'CELO': 'CELO',
                     'DOT': 'DOT',
-                    'StellarLumens': 'XLM',
+                    'StellarLumens': 'XLM', // todo check
                     'ATOM': 'ATOM',
                     'CronosChain': 'CRO', // todo check
                 },
@@ -331,14 +337,15 @@ export default class coincatch extends Exchange {
             'commonCurrencies': {},
             'exceptions': {
                 'exact': {
-                // {"code":"40034","msg":"Parameter BTCUSDT_UMCBL does not exist","requestTime":1725380736387,"data":null}
+                    // {"code":"40034","msg":"Parameter BTCUSDT_UMCBL does not exist","requestTime":1725380736387,"data":null}
                 },
                 'broad': {},
             },
             'precisionMode': TICK_SIZE,
         });
     }
-    async fetchTime(params = {}) {
+
+    async fetchTime (params = {}) {
         /**
          * @method
          * @name coincatch#fetchTime
@@ -347,7 +354,7 @@ export default class coincatch extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.publicGetApiSpotV1PublicTime(params);
+        const response = await this.publicGetApiSpotV1PublicTime (params);
         //
         //     {
         //         "code": "00000",
@@ -356,9 +363,10 @@ export default class coincatch extends Exchange {
         //         "data": "1725046822028"
         //     }
         //
-        return this.safeInteger(response, 'data');
+        return this.safeInteger (response, 'data');
     }
-    async fetchCurrencies(params = {}) {
+
+    async fetchCurrencies (params = {}): Promise<Currencies> {
         /**
          * @method
          * @name coincatch#fetchCurrencies
@@ -367,8 +375,8 @@ export default class coincatch extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.publicGetApiSpotV1PublicCurrencies(params);
-        const data = this.safeList(response, 'data', []);
+        const response = await this.publicGetApiSpotV1PublicCurrencies (params);
+        const data = this.safeList (response, 'data', []);
         //
         //     {
         //         "code": "00000",
@@ -400,54 +408,54 @@ export default class coincatch extends Exchange {
         //         ]
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         const currenciesIds = [];
         for (let i = 0; i < data.length; i++) {
             const currecy = data[i];
-            const currencyId = this.safeString(currecy, 'coinName');
-            currenciesIds.push(currencyId);
-            const code = this.safeCurrencyCode(currencyId);
+            const currencyId = this.safeString (currecy, 'coinName');
+            currenciesIds.push (currencyId);
+            const code = this.safeCurrencyCode (currencyId);
             let allowDeposit = false;
             let allowWithdraw = false;
-            let minDeposit = undefined;
-            let minWithdraw = undefined;
-            const networks = this.safeList(currecy, 'chains');
-            const networksById = this.safeDict(this.options, 'networksById');
-            const parsedNetworks = {};
+            let minDeposit: Str = undefined;
+            let minWithdraw: Str = undefined;
+            const networks = this.safeList (currecy, 'chains');
+            const networksById = this.safeDict (this.options, 'networksById');
+            const parsedNetworks: Dict = {};
             for (let j = 0; j < networks.length; j++) {
                 const network = networks[j];
-                const networkId = this.safeString(network, 'chain');
-                const networkName = this.safeString(networksById, networkId, networkId);
-                const networkDepositString = this.safeString(network, 'rechargeable');
+                const networkId = this.safeString (network, 'chain');
+                const networkName = this.safeString (networksById, networkId, networkId);
+                const networkDepositString = this.safeString (network, 'rechargeable');
                 const networkDeposit = networkDepositString === 'true';
-                const networkWithdrawString = this.safeString(network, 'withdrawable');
+                const networkWithdrawString = this.safeString (network, 'withdrawable');
                 const networkWithdraw = networkWithdrawString === 'true';
-                const networkMinDeposit = this.safeString(network, 'minDepositAmount');
-                const networkMinWithdraw = this.safeString(network, 'minWithdrawAmount');
+                const networkMinDeposit = this.safeString (network, 'minDepositAmount');
+                const networkMinWithdraw = this.safeString (network, 'minWithdrawAmount');
                 parsedNetworks[networkId] = {
                     'id': networkId,
                     'network': networkName,
                     'limits': {
                         'deposit': {
-                            'min': this.parseNumber(networkMinDeposit),
+                            'min': this.parseNumber (networkMinDeposit),
                             'max': undefined,
                         },
                         'withdraw': {
-                            'min': this.parseNumber(networkMinWithdraw),
+                            'min': this.parseNumber (networkMinWithdraw),
                             'max': undefined,
                         },
                     },
                     'active': networkDeposit && networkWithdraw,
                     'deposit': networkDeposit,
                     'withdraw': networkWithdraw,
-                    'fee': this.safeNumber(network, 'withdrawFee'),
+                    'fee': this.safeNumber (network, 'withdrawFee'),
                     'precision': undefined,
                     'info': network,
                 };
                 allowDeposit = allowDeposit ? allowDeposit : networkDeposit;
                 allowWithdraw = allowWithdraw ? allowWithdraw : networkWithdraw;
-                minDeposit = minDeposit ? Precise.stringMin(networkMinDeposit, minDeposit) : networkMinDeposit;
-                minWithdraw = minWithdraw ? Precise.stringMin(networkMinWithdraw, minWithdraw) : networkMinWithdraw;
+                minDeposit = minDeposit ? Precise.stringMin (networkMinDeposit, minDeposit) : networkMinDeposit;
+                minWithdraw = minWithdraw ? Precise.stringMin (networkMinWithdraw, minWithdraw) : networkMinWithdraw;
             }
             result[code] = {
                 'id': currencyId,
@@ -461,11 +469,11 @@ export default class coincatch extends Exchange {
                 'fee': undefined,
                 'limits': {
                     'deposit': {
-                        'min': this.parseNumber(minDeposit),
+                        'min': this.parseNumber (minDeposit),
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.parseNumber(minWithdraw),
+                        'min': this.parseNumber (minWithdraw),
                         'max': undefined,
                     },
                 },
@@ -473,12 +481,13 @@ export default class coincatch extends Exchange {
                 'info': currecy,
             };
         }
-        if (this.safeList(this.options, 'currencyIdsListForParseMarket') === undefined) {
+        if (this.safeList (this.options, 'currencyIdsListForParseMarket') === undefined) {
             this.options['currencyIdsListForParseMarket'] = currenciesIds;
         }
         return result;
     }
-    async fetchMarkets(params = {}) {
+
+    async fetchMarkets (params = {}): Promise<Market[]> {
         /**
          * @method
          * @name coincatch#fetchMarkets
@@ -488,7 +497,7 @@ export default class coincatch extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        let response = await this.publicGetApiSpotV1MarketTickers(params);
+        let response = await this.publicGetApiSpotV1MarketTickers (params);
         //
         //     {
         //         "code": "00000",
@@ -516,16 +525,16 @@ export default class coincatch extends Exchange {
         //         ]
         //     }
         //
-        if (this.safeList(this.options, 'currencyIdsListForParseMarket') === undefined) {
-            await this.fetchCurrencies();
+        if (this.safeList (this.options, 'currencyIdsListForParseMarket') === undefined) {
+            await this.fetchCurrencies ();
         }
-        const spotMarkets = this.safeList(response, 'data', []);
-        const request = {};
-        let productType = undefined;
-        [productType, params] = this.handleOptionAndParams(params, 'fetchMarkets', 'productType', productType);
+        const spotMarkets = this.safeList (response, 'data', []);
+        const request: Dict = {};
+        let productType: Str = undefined;
+        [ productType, params ] = this.handleOptionAndParams (params, 'fetchMarkets', 'productType', productType);
         let swapMarkets = [];
         request['productType'] = 'umcbl';
-        response = await this.publicGetApiMixV1MarketContracts(this.extend(request, params));
+        response = await this.publicGetApiMixV1MarketContracts (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
@@ -561,9 +570,9 @@ export default class coincatch extends Exchange {
         //         ]
         //     }
         //
-        const swapUMCBL = this.safeList(response, 'data', []);
+        const swapUMCBL = this.safeList (response, 'data', []);
         request['productType'] = 'dmcbl';
-        response = await this.publicGetApiMixV1MarketContracts(this.extend(request, params));
+        response = await this.publicGetApiMixV1MarketContracts (this.extend (request, params));
         //
         //     {
         //         "code":"00000",
@@ -601,12 +610,13 @@ export default class coincatch extends Exchange {
         //             }
         //         ]
         //     }
-        const swapDMCBL = this.safeList(response, 'data', []);
-        swapMarkets = this.arrayConcat(swapUMCBL, swapDMCBL);
-        const markets = this.arrayConcat(spotMarkets, swapMarkets);
-        return this.parseMarkets(markets);
+        const swapDMCBL = this.safeList (response, 'data', []);
+        swapMarkets = this.arrayConcat (swapUMCBL, swapDMCBL);
+        const markets = this.arrayConcat (spotMarkets, swapMarkets);
+        return this.parseMarkets (markets);
     }
-    parseMarket(market) {
+
+    parseMarket (market: Dict): Market {
         //
         // spot
         //     {
@@ -655,44 +665,43 @@ export default class coincatch extends Exchange {
         //         "maxOrderNum": null
         //     }
         //
-        let marketId = this.safeString(market, 'symbol');
-        const tradingFees = this.safeDict(this.fees, 'trading');
-        const fees = this.safeDict(tradingFees, 'spot');
-        let baseId = this.safeString(market, 'baseCoin');
-        let quoteId = this.safeString(market, 'quoteCoin');
-        let settleId = undefined;
+        let marketId = this.safeString (market, 'symbol');
+        const tradingFees = this.safeDict (this.fees, 'trading');
+        const fees = this.safeDict (tradingFees, 'spot');
+        let baseId = this.safeString (market, 'baseCoin');
+        let quoteId = this.safeString (market, 'quoteCoin');
+        let settleId: Str = undefined;
         let suffix = '';
-        let settle = undefined;
+        let settle: Str = undefined;
         let type = 'spot';
-        let isLinear = undefined;
+        let isLinear: Bool = undefined;
         const isSpot = baseId === undefined; // for now spot markets have no properties baseCoin and quoteCoin
         if (isSpot) {
-            const parsedMarketId = this.parseSpotMarketId(marketId);
-            baseId = this.safeString(parsedMarketId, 'baseId');
-            quoteId = this.safeString(parsedMarketId, 'quoteId');
+            const parsedMarketId = this.parseSpotMarketId (marketId);
+            baseId = this.safeString (parsedMarketId, 'baseId');
+            quoteId = this.safeString (parsedMarketId, 'quoteId');
             marketId += '_SPBL'; // spot markets should have current suffix
-        }
-        else {
+        } else {
             type = 'swap';
-            fees['taker'] = this.safeNumber(market, 'takerFeeRate');
-            fees['maker'] = this.safeNumber(market, 'makerFeeRate');
-            const supportMarginCoins = this.safeList(market, 'supportMarginCoins', []);
-            settleId = this.safeString(supportMarginCoins, 0); // todo check for _DMCBL
-            settle = this.safeCurrencyCode(settleId);
+            fees['taker'] = this.safeNumber (market, 'takerFeeRate');
+            fees['maker'] = this.safeNumber (market, 'makerFeeRate');
+            const supportMarginCoins = this.safeList (market, 'supportMarginCoins', []);
+            settleId = this.safeString (supportMarginCoins, 0); // todo check for _DMCBL
+            settle = this.safeCurrencyCode (settleId);
             suffix = ':' + settle;
             isLinear = true; // todo check
         }
-        const base = this.safeCurrencyCode(baseId);
-        const quote = this.safeCurrencyCode(quoteId);
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
         const symbol = base + '/' + quote + suffix;
-        const symbolStatus = this.safeString(market, 'symbolStatus');
+        const symbolStatus = this.safeString (market, 'symbolStatus');
         const active = symbolStatus ? (symbolStatus === 'normal') : undefined;
-        const volumePlace = this.safeString(market, 'volumePlace');
-        const amountPrecisionString = this.parsePrecision(volumePlace);
-        const pricePlace = this.safeString(market, 'pricePlace');
-        const priceEndStep = this.safeString(market, 'priceEndStep');
-        const pricePrecisionString = Precise.stringMul(this.parsePrecision(pricePlace), priceEndStep);
-        return this.safeMarketStructure({
+        const volumePlace = this.safeString (market, 'volumePlace');
+        const amountPrecisionString = this.parsePrecision (volumePlace);
+        const pricePlace = this.safeString (market, 'pricePlace');
+        const priceEndStep = this.safeString (market, 'priceEndStep');
+        const pricePrecisionString = Precise.stringMul (this.parsePrecision (pricePlace), priceEndStep);
+        return this.safeMarketStructure ({
             'id': marketId,
             'symbol': symbol,
             'base': base,
@@ -701,34 +710,34 @@ export default class coincatch extends Exchange {
             'quoteId': quoteId,
             'active': active,
             'type': type,
-            'subType': isSpot ? undefined : 'linear',
+            'subType': isSpot ? undefined : 'linear', // todo check
             'spot': isSpot,
-            'margin': isSpot ? false : undefined,
+            'margin': isSpot ? false : undefined, // todo check
             'swap': !isSpot,
             'future': false,
             'option': false,
             'contract': !isSpot,
             'settle': settle,
             'settleId': settleId,
-            'contractSize': this.safeNumber(market, 'sizeMultiplier'),
+            'contractSize': this.safeNumber (market, 'sizeMultiplier'),
             'linear': isLinear,
             'inverse': isSpot ? undefined : (!isLinear),
-            'taker': this.safeNumber(fees, 'taker'),
-            'maker': this.safeNumber(fees, 'maker'),
-            'percentage': this.safeBool(fees, 'percentage'),
-            'tierBased': this.safeBool(fees, 'tierBased'),
-            'feeSide': this.safeString(fees, 'feeSide'),
+            'taker': this.safeNumber (fees, 'taker'),
+            'maker': this.safeNumber (fees, 'maker'),
+            'percentage': this.safeBool (fees, 'percentage'),
+            'tierBased': this.safeBool (fees, 'tierBased'),
+            'feeSide': this.safeString (fees, 'feeSide'),
             'expiry': undefined,
             'expiryDatetime': undefined,
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.parseNumber(amountPrecisionString),
-                'price': this.parseNumber(pricePrecisionString),
+                'amount': this.parseNumber (amountPrecisionString),
+                'price': this.parseNumber (pricePrecisionString),
             },
             'limits': {
                 'amount': {
-                    'min': this.safeNumber(market, 'minTradeNum'),
+                    'min': this.safeNumber (market, 'minTradeNum'),
                     'max': undefined,
                 },
                 'price': {
@@ -748,33 +757,34 @@ export default class coincatch extends Exchange {
             'info': market,
         });
     }
-    parseSpotMarketId(marketId) {
+
+    parseSpotMarketId (marketId) {
         let baseId = undefined;
         let quoteId = undefined;
-        const currencyIds = this.safeList(this.options, 'currencyIdsListForParseMarket', []);
+        const currencyIds = this.safeList (this.options, 'currencyIdsListForParseMarket', []);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
-            const entryIndex = marketId.indexOf(currencyId);
+            const entryIndex = marketId.indexOf (currencyId);
             if (entryIndex > -1) {
-                const restId = marketId.replace(currencyId, '');
+                const restId = marketId.replace (currencyId, '');
                 if (entryIndex === 0) {
                     baseId = currencyId;
                     quoteId = restId;
-                }
-                else {
+                } else {
                     baseId = restId;
                     quoteId = currencyId;
                 }
                 break;
             }
         }
-        const result = {
+        const result: Dict = {
             'baseId': baseId,
             'quoteId': quoteId,
         };
         return result;
     }
-    async fetchTicker(symbol, params = {}) {
+
+    async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
         /**
          * @method
          * @name coincatch#fetchTicker
@@ -785,9 +795,9 @@ export default class coincatch extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
             'symbol': market['id'],
         };
         let response = undefined;
@@ -816,9 +826,8 @@ export default class coincatch extends Exchange {
             //         }
             //     }
             //
-            response = await this.publicGetApiSpotV1MarketTicker(this.extend(request, params));
-        }
-        else if (market['swap']) {
+            response = await this.publicGetApiSpotV1MarketTicker (this.extend (request, params));
+        } else if (market['swap']) {
             //
             //     {
             //         "code": "00000",
@@ -849,15 +858,15 @@ export default class coincatch extends Exchange {
             //         }
             //     }
             //
-            response = await this.publicGetApiMixV1MarketTicker(this.extend(request, params));
+            response = await this.publicGetApiMixV1MarketTicker (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' ' + 'fetchTicker() is not supported for ' + market['type'] + ' type of markets');
         }
-        else {
-            throw new NotSupported(this.id + ' ' + 'fetchTicker() is not supported for ' + market['type'] + ' type of markets');
-        }
-        const data = this.safeDict(response, 'data', {});
-        return this.parseTicker(data, market);
+        const data = this.safeDict (response, 'data', {});
+        return this.parseTicker (data, market);
     }
-    async fetchTickers(symbols = undefined, params = {}) {
+
+    async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
          * @name coincatch#fetchTickers
@@ -871,11 +880,11 @@ export default class coincatch extends Exchange {
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
          */
         const methodName = 'fetchTickers';
-        await this.loadMarkets();
-        symbols = this.marketSymbols(symbols, undefined, true, true);
-        const market = this.getMarketFromSymbols(symbols);
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, true);
+        const market = this.getMarketFromSymbols (symbols);
         let marketType = 'spot';
-        [marketType, params] = this.handleMarketTypeAndParams(methodName, market, params, marketType);
+        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
         let response = undefined;
         if (marketType === 'spot') {
             //
@@ -905,12 +914,11 @@ export default class coincatch extends Exchange {
             //         ]
             //     }
             //
-            response = await this.publicGetApiSpotV1MarketTickers(params);
-        }
-        else if (marketType === 'swap') {
+            response = await this.publicGetApiSpotV1MarketTickers (params);
+        } else if (marketType === 'swap') {
             let productType = 'umcbl';
-            [productType, params] = this.handleOptionAndParams(params, methodName, 'productType', productType);
-            const request = {
+            [ productType, params ] = this.handleOptionAndParams (params, methodName, 'productType', productType);
+            const request: Dict = {
                 'productType': productType,
             };
             //
@@ -946,15 +954,15 @@ export default class coincatch extends Exchange {
             //         ]
             //     }
             //
-            response = await this.publicGetApiMixV1MarketTickers(this.extend(request, params));
+            response = await this.publicGetApiMixV1MarketTickers (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
         }
-        else {
-            throw new NotSupported(this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
-        }
-        const data = this.safeList(response, 'data', []);
-        return this.parseTickers(data, symbols);
+        const data = this.safeList (response, 'data', []);
+        return this.parseTickers (data, symbols);
     }
-    parseTicker(ticker, market = undefined) {
+
+    parseTicker (ticker, market: Market = undefined): Ticker {
         //
         // spot
         //     {
@@ -1000,37 +1008,38 @@ export default class coincatch extends Exchange {
         //         "deliveryStatus": "normal"
         //     }
         //
-        const timestamp = this.safeInteger2(ticker, 'ts', 'timestamp');
-        let marketId = this.safeString(ticker, 'symbol', '');
-        if (marketId.indexOf('_') < 0) {
+        const timestamp = this.safeInteger2 (ticker, 'ts', 'timestamp');
+        let marketId = this.safeString (ticker, 'symbol', '');
+        if (marketId.indexOf ('_') < 0) {
             marketId += '_SPBL'; // spot markets from tickers endpoints have no suffix specific for market id
         }
-        market = this.safeMarket(marketId, market);
-        const last = this.safeString2(ticker, 'close', 'last');
-        return this.safeTicker({
+        market = this.safeMarket (marketId, market);
+        const last = this.safeString2 (ticker, 'close', 'last');
+        return this.safeTicker ({
             'symbol': market['symbol'],
             'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
-            'high': this.safeString(ticker, 'high24h'),
-            'low': this.safeString(ticker, 'low24h'),
-            'bid': this.safeString2(ticker, 'buyOne', 'bestBid'),
-            'bidVolume': this.safeString(ticker, 'bidSz'),
-            'ask': this.safeString2(ticker, 'sellOne', 'bestAsk'),
-            'askVolume': this.safeString(ticker, 'askSz'),
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'high24h'),
+            'low': this.safeString (ticker, 'low24h'),
+            'bid': this.safeString2 (ticker, 'buyOne', 'bestBid'),
+            'bidVolume': this.safeString (ticker, 'bidSz'),
+            'ask': this.safeString2 (ticker, 'sellOne', 'bestAsk'),
+            'askVolume': this.safeString (ticker, 'askSz'),
             'vwap': undefined,
-            'open': undefined,
+            'open': undefined, // todo check
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
-            'percentage': this.safeString2(ticker, 'change', 'priceChangePercent'),
+            'change': undefined, // todo check
+            'percentage': this.safeString2 (ticker, 'change', 'priceChangePercent'),
             'average': undefined,
-            'baseVolume': this.safeString2(ticker, 'baseVol', 'baseVolume'),
-            'quoteVolume': this.safeString2(ticker, 'quoteVol', 'quoteVolume'),
+            'baseVolume': this.safeString2 (ticker, 'baseVol', 'baseVolume'),
+            'quoteVolume': this.safeString2 (ticker, 'quoteVol', 'quoteVolume'),
             'info': ticker,
         }, market);
     }
-    async fetchOrderBook(symbol, limit = undefined, params = {}) {
+
+    async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
          * @name coincatch#fetchOrderBook
@@ -1043,17 +1052,17 @@ export default class coincatch extends Exchange {
          * @param {string} [params.precision] 'scale0' (default), 'scale1', 'scale2' or 'scale3' - price accuracy, according to the selected accuracy as the step size to return the cumulative depth
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
          */
-        await this.loadMarkets();
+        await this.loadMarkets ();
         const methodName = 'fetchOrderBook';
-        const market = this.market(symbol);
-        const request = {
+        const market = this.market (symbol);
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let precision = undefined;
-        [precision, params] = this.handleOptionAndParams(params, methodName, 'precision');
+        let precision: Str = undefined;
+        [ precision, params ] = this.handleOptionAndParams (params, methodName, 'precision');
         if (precision !== undefined) {
             request['precision'] = precision;
         }
@@ -1074,19 +1083,18 @@ export default class coincatch extends Exchange {
             //         }
             //     }
             //
-            response = await this.publicGetApiSpotV1MarketMergeDepth(this.extend(request, params));
+            response = await this.publicGetApiSpotV1MarketMergeDepth (this.extend (request, params));
+        } else if (market['swap']) {
+            response = await this.publicGetApiMixV1MarketMergeDepth (this.extend (request, params));
+        } else {
+            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + market['type'] + ' type of markets');
         }
-        else if (market['swap']) {
-            response = await this.publicGetApiMixV1MarketMergeDepth(this.extend(request, params));
-        }
-        else {
-            throw new NotSupported(this.id + ' ' + methodName + '() is not supported for ' + market['type'] + ' type of markets');
-        }
-        const data = this.safeDict(response, 'data', {});
-        const timestamp = this.safeInteger(data, 'ts');
-        return this.parseOrderBook(data, symbol, timestamp, 'bids', 'asks');
+        const data = this.safeDict (response, 'data', {});
+        const timestamp = this.safeInteger (data, 'ts');
+        return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks');
     }
-    async fetchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+
+    async fetchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
          * @name coincatch#fetchOHLCV
@@ -1104,27 +1112,27 @@ export default class coincatch extends Exchange {
          */
         const methodName = 'fetchOHLCV';
         // todo add pagination
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let until = undefined;
-        [until, params] = this.handleOptionAndParams(params, methodName, 'until');
-        const timeframes = this.safeDict(this.timeframes, market['type']);
+        let until: Int = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
+        const timeframes = this.safeDict (this.timeframes, market['type']);
         let response = undefined;
         if (market['spot']) {
-            request['period'] = this.safeString(timeframes, timeframe, timeframe);
+            request['period'] = this.safeString (timeframes, timeframe, timeframe);
             if (since !== undefined) {
                 request['after'] = since;
             }
             if (until !== undefined) {
                 request['before'] = until;
             }
-            response = await this.publicGetApiSpotV1MarketCandles(this.extend(request, params));
+            response = await this.publicGetApiSpotV1MarketCandles (this.extend (request, params));
             //
             //     {
             //         "code": "00000",
@@ -1145,23 +1153,22 @@ export default class coincatch extends Exchange {
             //         ]
             //     }
             //
-            const data = this.safeList(response, 'data', []);
-            return this.parseOHLCVs(data, market, timeframe, since, limit);
-        }
-        else if (market['swap']) {
-            request['granularity'] = this.safeString(timeframes, timeframe, timeframe);
+            const data = this.safeList (response, 'data', []);
+            return this.parseOHLCVs (data, market, timeframe, since, limit);
+        } else if (market['swap']) {
+            request['granularity'] = this.safeString (timeframes, timeframe, timeframe);
             if (since === undefined) {
                 if (until === undefined) {
-                    until = this.milliseconds();
+                    until = this.milliseconds ();
                 }
                 limit = limit ? limit : 100;
-                const duration = this.parseTimeframe(timeframe);
+                const duration = this.parseTimeframe (timeframe);
                 since = until - (duration * limit * 1000);
             }
             request['startTime'] = since; // since and until are mandatory for swap
             request['endTime'] = until;
-            let priceType = undefined;
-            [priceType, params] = this.handleOptionAndParams(params, methodName, 'price');
+            let priceType: Str = undefined;
+            [ priceType, params ] = this.handleOptionAndParams (params, methodName, 'price');
             if (priceType === 'mark') {
                 request['kLineType'] = 'market mark index';
             }
@@ -1179,25 +1186,25 @@ export default class coincatch extends Exchange {
             //         ...
             //     ]
             //
-            response = await this.publicGetApiMixV1MarketCandles(this.extend(request, params));
-            return this.parseOHLCVs(response, market, timeframe, since, limit);
-        }
-        else {
-            throw new NotSupported(this.id + ' ' + methodName + '() is not supported for ' + market['type'] + ' type of markets');
+            response = await this.publicGetApiMixV1MarketCandles (this.extend (request, params));
+            return this.parseOHLCVs (response, market, timeframe, since, limit);
+        } else {
+            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + market['type'] + ' type of markets');
         }
     }
-    parseOHLCV(ohlcv, market = undefined) {
+
+    parseOHLCV (ohlcv, market: Market = undefined): OHLCV {
         return [
-            this.safeInteger2(ohlcv, 'ts', 0),
-            this.safeNumber2(ohlcv, 'open', 1),
-            this.safeNumber2(ohlcv, 'high', 2),
-            this.safeNumber2(ohlcv, 'low', 3),
-            this.safeNumber2(ohlcv, 'close', 4),
-            this.safeNumber2(ohlcv, 'baseVol', 5),
-            this.iso8601 (this.safeInteger2(ohlcv, 'ts', 0))
+            this.safeInteger2 (ohlcv, 'ts', 0),
+            this.safeNumber2 (ohlcv, 'open', 1),
+            this.safeNumber2 (ohlcv, 'high', 2),
+            this.safeNumber2 (ohlcv, 'low', 3),
+            this.safeNumber2 (ohlcv, 'close', 4),
+            this.safeNumber2 (ohlcv, 'baseVol', 5),
         ];
     }
-    async fetchTrades(symbol, since = undefined, limit = undefined, params = {}) {
+
+    async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
          * @name coincatch#fetchTrades
@@ -1211,9 +1218,9 @@ export default class coincatch extends Exchange {
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         const methodName = 'fetchTrades';
-        await this.loadMarkets();
-        const market = this.market(symbol);
-        const request = {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
             'symbol': market['id'],
         };
         if (since !== undefined) {
@@ -1222,12 +1229,12 @@ export default class coincatch extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let until = undefined;
-        [until, params] = this.handleOptionAndParams(params, methodName, 'until');
+        let until: Int = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
         if (until !== undefined) {
             request['before'] = until;
         }
-        const response = await this.publicGetApiSpotV1MarketFillsHistory(this.extend(request, params));
+        const response = await this.publicGetApiSpotV1MarketFillsHistory (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
@@ -1245,10 +1252,11 @@ export default class coincatch extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList(response, 'data', []);
-        return this.parseTrades(data, market, since, limit);
+        const data = this.safeList (response, 'data', []);
+        return this.parseTrades (data, market, since, limit);
     }
-    parseTrade(trade, market = undefined) {
+
+    parseTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // fetchTrades
         //     {
@@ -1261,22 +1269,22 @@ export default class coincatch extends Exchange {
         //     }
         //
         //
-        const marketId = this.safeString(trade, 'symbol');
-        market = this.safeMarket(marketId, market);
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const id = this.safeString(trade, 'tradeId');
-        const timestamp = this.safeInteger(trade, 'fillTime');
-        const price = this.safeString(trade, 'fillPrice');
-        const amount = this.safeString(trade, 'fillQuantity');
-        const side = this.safeString(trade, 'side');
-        return this.safeTrade({
+        const id = this.safeString (trade, 'tradeId');
+        const timestamp = this.safeInteger (trade, 'fillTime');
+        const price = this.safeString (trade, 'fillPrice');
+        const amount = this.safeString (trade, 'fillQuantity');
+        const side = this.safeString (trade, 'side');
+        return this.safeTrade ({
             'id': id,
             'order': undefined,
             'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'type': undefined,
-            'side': side.toLowerCase(),
+            'side': side.toLowerCase (),
             'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
@@ -1285,7 +1293,8 @@ export default class coincatch extends Exchange {
             'info': trade,
         }, market);
     }
-    async fetchBalance(params = {}) {
+
+    async fetchBalance (params = {}): Promise<Balances> {
         /**
          * @method
          * @name coincatch#fetchBalance
@@ -1294,8 +1303,8 @@ export default class coincatch extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
-        await this.loadMarkets();
-        const response = await this.privateGetApiSpotV1AccountAssets(params);
+        await this.loadMarkets ();
+        const response = await this.privateGetApiSpotV1AccountAssets (params);
         //
         //     {
         //         "code": "00000",
@@ -1313,10 +1322,11 @@ export default class coincatch extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList(response, 'data', []);
-        return this.parseBalance(data);
+        const data = this.safeList (response, 'data', []);
+        return this.parseBalance (data);
     }
-    parseBalance(balances) {
+
+    parseBalance (balances): Balances {
         //
         //     {
         //         "coinId": 2,
@@ -1327,22 +1337,23 @@ export default class coincatch extends Exchange {
         //         "uTime": "1724938746000"
         //     }
         //
-        const result = {};
+        const result: Dict = {};
         for (let i = 0; i < balances.length; i++) {
-            const balanceEntry = this.safeDict(balances, i, {});
-            const currencyId = this.safeString(balanceEntry, 'coinName');
-            const code = this.safeCurrencyCode(currencyId);
-            const account = this.account();
-            account['total'] = this.safeString(balanceEntry, 'available');
-            account['used'] = this.safeString(balanceEntry, 'frozen');
+            const balanceEntry = this.safeDict (balances, i, {});
+            const currencyId = this.safeString (balanceEntry, 'coinName');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeString (balanceEntry, 'available');
+            account['used'] = this.safeString (balanceEntry, 'frozen');
             if (account['total'] !== '0' || account['used'] !== '0') {
                 result[code] = account;
                 result['info'] = balanceEntry;
             }
         }
-        return this.safeBalance(result);
+        return this.safeBalance (result);
     }
-    async fetchDepositAddress(code, params = {}) {
+
+    async fetchDepositAddress (code: string, params = {}) {
         /**
          * @method
          * @name coincatch#fetchDepositAddress
@@ -1353,18 +1364,18 @@ export default class coincatch extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/#/?id=address-structure}
          */
-        await this.loadMarkets();
-        const currency = this.currency(code);
-        const request = {
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request: Dict = {
             'coin': currency['id'],
         };
-        let networkCode = undefined;
-        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        let networkCode: Str = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode === undefined) {
-            networkCode = this.defaultNetworkCode(code);
+            networkCode = this.defaultNetworkCode (code);
         }
-        request['chain'] = this.networkCodeToId(networkCode, code);
-        const response = await this.privateGetApiSpotV1WalletDepositAddress(this.extend(request, params));
+        request['chain'] = this.networkCodeToId (networkCode, code);
+        const response = await this.privateGetApiSpotV1WalletDepositAddress (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
@@ -1379,11 +1390,12 @@ export default class coincatch extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeDict(response, 'data', {});
-        const depositAddress = this.parseDepositAddress(data, currency);
+        const data = this.safeDict (response, 'data', {});
+        const depositAddress = this.parseDepositAddress (data, currency);
         return depositAddress;
     }
-    parseDepositAddress(depositAddress, currency = undefined) {
+
+    parseDepositAddress (depositAddress, currency: Currency = undefined) {
         //
         //     {
         //         "coin": "USDT",
@@ -1393,11 +1405,11 @@ export default class coincatch extends Exchange {
         //         "url": "https://tronscan.org/#/transaction/"
         //     }
         //
-        const address = this.safeString(depositAddress, 'address');
-        this.checkAddress(address);
-        const networkId = this.safeString(depositAddress, 'chain');
-        const network = this.safeString(this.options['networksById'], networkId, networkId);
-        const tag = this.safeString(depositAddress, 'tag');
+        const address = this.safeString (depositAddress, 'address');
+        this.checkAddress (address);
+        const networkId = this.safeString (depositAddress, 'chain');
+        const network = this.safeString (this.options['networksById'], networkId, networkId);
+        const tag = this.safeString (depositAddress, 'tag');
         return {
             'currency': currency['code'],
             'address': address,
@@ -1406,7 +1418,8 @@ export default class coincatch extends Exchange {
             'info': depositAddress,
         };
     }
-    async fetchDeposits(code = undefined, since = undefined, limit = undefined, params = {}) {
+
+    async fetchDeposits (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name coincatch#fetchDeposits
@@ -1422,22 +1435,22 @@ export default class coincatch extends Exchange {
          * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/#/?id=transfer-structure}
          */
         const methodName = 'fetchDeposits';
-        await this.loadMarkets();
-        const request = {};
-        let currency = undefined;
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let currency: Currency = undefined;
         if (code !== undefined) {
-            currency = this.currency(code);
+            currency = this.currency (code);
             request['coin'] = currency['id'];
         }
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        let until = undefined;
-        [until, params] = this.handleOptionAndParams(params, methodName, 'until');
+        let until: Int = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.privateGetApiSpotV1WalletDepositList(this.extend(request, params));
+        const response = await this.privateGetApiSpotV1WalletDepositList (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
@@ -1465,10 +1478,11 @@ export default class coincatch extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeList(response, 'data', []);
-        return this.parseTransactions(data, currency, since, limit);
+        const data = this.safeList (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit);
     }
-    async fetchWithdrawals(code = undefined, since = undefined, limit = undefined, params = {}) {
+
+    async fetchWithdrawals (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Transaction[]> {
         /**
          * @method
          * @name coincatch#fetchWithdrawals
@@ -1485,11 +1499,11 @@ export default class coincatch extends Exchange {
          * @returns {object[]} a list of [transaction structures]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
         const methodName = 'fetchWithdrawals';
-        await this.loadMarkets();
-        const request = {};
-        let currency = undefined;
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let currency: Currency = undefined;
         if (code !== undefined) {
-            currency = this.currency(code);
+            currency = this.currency (code);
             request['coin'] = currency['id'];
         }
         if (since !== undefined) {
@@ -1498,18 +1512,19 @@ export default class coincatch extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let until = undefined;
-        [until, params] = this.handleOptionAndParams(params, methodName, 'until');
+        let until: Int = undefined;
+        [ until, params ] = this.handleOptionAndParams (params, methodName, 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.privateGetApiSpotV1WalletWithdrawalListV2(this.extend(request, params));
+        const response = await this.privateGetApiSpotV1WalletWithdrawalListV2 (this.extend (request, params));
         // todo add after withdrawal
         //
-        const data = this.safeList(response, 'data', []);
-        return this.parseTransactions(data, currency, since, limit);
+        const data = this.safeList (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit);
     }
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+
+    async withdraw (code: string, amount: number, address: string, tag = undefined, params = {}) {
         /**
          * @method
          * @name coincatch#withdraw
@@ -1525,10 +1540,10 @@ export default class coincatch extends Exchange {
          * @param {string} [params.clientOid] custom id
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        await this.loadMarkets();
-        const currency = this.currency(code);
-        const request = {
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request: Dict = {
             'coin': currency['id'],
             'address': address,
             'amount': amount,
@@ -1536,17 +1551,18 @@ export default class coincatch extends Exchange {
         if (tag !== undefined) {
             request['tag'] = tag;
         }
-        let networkCode = undefined;
-        [networkCode, params] = this.handleNetworkCodeAndParams(params);
+        let networkCode: Str = undefined;
+        [ networkCode, params ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId(networkCode);
+            request['chain'] = this.networkCodeToId (networkCode);
         }
-        const response = await this.privatePostApiSpotV1WalletWithdrawalV2(this.extend(request, params));
+        const response = await this.privatePostApiSpotV1WalletWithdrawalV2 (this.extend (request, params));
         // todo add after withdrawal
         //
         return response;
     }
-    parseTransaction(transaction, currency = undefined) {
+
+    parseTransaction (transaction, currency: Currency = undefined): Transaction {
         //
         // fetchDeposits
         //     {
@@ -1568,23 +1584,23 @@ export default class coincatch extends Exchange {
         //         "uTime": "1724938746015"
         //     }
         //
-        const id = this.safeString(transaction, 'id');
-        let status = this.safeString(transaction, 'status');
+        const id = this.safeString (transaction, 'id');
+        let status = this.safeString (transaction, 'status');
         if (status === 'success') {
             status = 'ok';
         }
-        const txid = this.safeString(transaction, 'txId');
-        const coin = this.safeString(transaction, 'coin');
-        const code = this.safeCurrencyCode(coin, currency);
-        const timestamp = this.safeInteger(transaction, 'cTime');
-        const amount = this.safeNumber(transaction, 'amount');
-        const networkId = this.safeString(transaction, 'chain');
-        const network = this.safeString(this.options['networksById'], networkId, networkId);
-        const addressTo = this.safeString(transaction, 'toAddress');
-        const addressFrom = this.safeString(transaction, 'fromAddress');
-        const tag = this.safeString(transaction, 'tag');
-        const type = this.safeString(transaction, 'type');
-        const feeCost = this.safeNumber(transaction, 'fee');
+        const txid = this.safeString (transaction, 'txId');
+        const coin = this.safeString (transaction, 'coin');
+        const code = this.safeCurrencyCode (coin, currency);
+        const timestamp = this.safeInteger (transaction, 'cTime');
+        const amount = this.safeNumber (transaction, 'amount');
+        const networkId = this.safeString (transaction, 'chain');
+        const network = this.safeString (this.options['networksById'], networkId, networkId);
+        const addressTo = this.safeString (transaction, 'toAddress');
+        const addressFrom = this.safeString (transaction, 'fromAddress');
+        const tag = this.safeString (transaction, 'tag');
+        const type = this.safeString (transaction, 'type');
+        const feeCost = this.safeNumber (transaction, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
@@ -1597,7 +1613,7 @@ export default class coincatch extends Exchange {
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'datetime': this.iso8601 (timestamp),
             'network': network,
             'address': undefined,
             'addressTo': addressTo,
@@ -1615,35 +1631,34 @@ export default class coincatch extends Exchange {
             'fee': fee,
         };
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/' + path;
-        let query = undefined;
-        query = this.urlencode(params);
+        let query: Str = undefined;
+        query = this.urlencode (params);
         if (api === 'public') {
             if (query.length !== 0) {
                 url += '?' + query;
             }
-        }
-        else {
-            this.checkRequiredCredentials();
+        } else {
+            this.checkRequiredCredentials ();
             let endpoint = '/' + path;
             if (method !== 'GET') {
                 body = query;
-            }
-            else {
+            } else {
                 if (query.length !== 0) {
                     url += '?' + query;
                     endpoint += '?' + query;
                 }
             }
-            const timestamp = this.milliseconds().toString();
+            const timestamp = this.milliseconds ().toString ();
             let endpart = '';
             if (body !== undefined) {
-                body = this.json(query);
+                body = this.json (query);
                 endpart = body;
             }
             const payload = timestamp + method + endpoint + endpart;
-            const signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, 'base64');
+            const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
             headers = {
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-SIGN': signature,
