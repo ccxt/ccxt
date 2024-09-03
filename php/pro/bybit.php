@@ -652,6 +652,60 @@ class bybit extends \ccxt\async\bybit {
         }) ();
     }
 
+    public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array ()) {
+        return Async\async(function () use ($symbolsAndTimeframes, $params) {
+            /**
+             * unWatches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+             * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified $symbols and timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array} A list of candles ordered, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->get_list_from_object_values($symbolsAndTimeframes, 0);
+            $marketSymbols = $this->market_symbols($symbols, null, false, true, true);
+            $firstSymbol = $marketSymbols[0];
+            $url = Async\await($this->get_url_by_market_type($firstSymbol, false, 'watchOHLCVForSymbols', $params));
+            $rawHashes = array();
+            $subMessageHashes = array();
+            $messageHashes = array();
+            for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
+                $data = $symbolsAndTimeframes[$i];
+                $symbolString = $this->safe_string($data, 0);
+                $market = $this->market($symbolString);
+                $symbolString = $market['symbol'];
+                $unfiedTimeframe = $this->safe_string($data, 1);
+                $timeframeId = $this->safe_string($this->timeframes, $unfiedTimeframe, $unfiedTimeframe);
+                $rawHashes[] = 'kline.' . $timeframeId . '.' . $market['id'];
+                $subMessageHashes[] = 'ohlcv::' . $symbolString . '::' . $unfiedTimeframe;
+                $messageHashes[] = 'unsubscribe::ohlcv::' . $symbolString . '::' . $unfiedTimeframe;
+            }
+            $subExtension = array(
+                'symbolsAndTimeframes' => $symbolsAndTimeframes,
+            );
+            return Async\await($this->un_watch_topics($url, 'ohlcv', $symbols, $messageHashes, $subMessageHashes, $rawHashes, $params, $subExtension));
+        }) ();
+    }
+
+    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $timeframe, $params) {
+            /**
+             * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+             * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+             * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int} [since] timestamp in ms of the earliest candle to fetch
+             * @param {int} [limit] the maximum amount of candles to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+             */
+            $params['callerMethodName'] = 'watchOHLCV';
+            return Async\await($this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $params));
+        }) ();
+    }
+
     public function handle_ohlcv(Client $client, $message) {
         //
         //     {
@@ -1471,7 +1525,7 @@ class bybit extends \ccxt\async\bybit {
             $topic = 'liquidation.' . $market['id'];
             $newLiquidation = Async\await($this->watch_topics($url, array( $messageHash ), array( $topic ), $params));
             if ($this->newUpdates) {
-                return array( $newLiquidation );
+                return $newLiquidation;
             }
             return $this->filter_by_symbols_since_limit($this->liquidations, array( $symbol ), $since, $limit, true);
         }) ();
@@ -2183,8 +2237,8 @@ class bybit extends \ccxt\async\bybit {
         }) ();
     }
 
-    public function un_watch_topics(string $url, string $topic, array $symbols, array $messageHashes, array $subMessageHashes, $topics, $params = array ()) {
-        return Async\async(function () use ($url, $topic, $symbols, $messageHashes, $subMessageHashes, $topics, $params) {
+    public function un_watch_topics(string $url, string $topic, array $symbols, array $messageHashes, array $subMessageHashes, $topics, $params = array (), $subExtension = array ()) {
+        return Async\async(function () use ($url, $topic, $symbols, $messageHashes, $subMessageHashes, $topics, $params, $subExtension) {
             $reqId = $this->request_id();
             $request = array(
                 'op' => 'unsubscribe',
@@ -2199,7 +2253,7 @@ class bybit extends \ccxt\async\bybit {
                 'symbols' => $symbols,
             );
             $message = $this->extend($request, $params);
-            return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes, $subscription));
+            return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes, $this->extend($subscription, $subExtension)));
         }) ();
     }
 
@@ -2500,7 +2554,15 @@ class bybit extends \ccxt\async\bybit {
         $topic = $this->safe_string($subscription, 'topic');
         $symbols = $this->safe_list($subscription, 'symbols', array());
         $symbolsLength = count($symbols);
-        if ($symbolsLength > 0) {
+        if ($topic === 'ohlcv') {
+            $symbolsAndTimeFrames = $this->safe_list($subscription, 'symbolsAndTimeframes', array());
+            for ($i = 0; $i < count($symbolsAndTimeFrames); $i++) {
+                $symbolAndTimeFrame = $symbolsAndTimeFrames[$i];
+                $symbol = $this->safe_string($symbolAndTimeFrame, 0);
+                $timeframe = $this->safe_string($symbolAndTimeFrame, 1);
+                unset($this->ohlcvs[$symbol][$timeframe]);
+            }
+        } elseif ($symbolsLength > 0) {
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 if ($topic === 'trade') {

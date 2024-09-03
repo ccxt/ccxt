@@ -553,8 +553,8 @@ class alpaca(Exchange, ImplicitAPI):
         #       }
         #   }
         #
-        orderbooks = self.safe_value(response, 'orderbooks', {})
-        rawOrderbook = self.safe_value(orderbooks, id, {})
+        orderbooks = self.safe_dict(response, 'orderbooks', {})
+        rawOrderbook = self.safe_dict(orderbooks, id, {})
         timestamp = self.parse8601(self.safe_string(rawOrderbook, 't'))
         return self.parse_order_book(rawOrderbook, market['symbol'], timestamp, 'b', 'a', 'p', 's')
 

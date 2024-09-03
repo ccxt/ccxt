@@ -5988,7 +5988,7 @@ class bybit extends Exchange {
                     $response = Async\await($this->privateGetV5AccountTransactionLog ($this->extend($request, $params)));
                 }
             } else {
-                $response = Async\await($this->privateGetV2PrivateWalletFundRecords ($this->extend($request, $params)));
+                $response = Async\await($this->privateGetV5AccountContractTransactionLog ($this->extend($request, $params)));
             }
             //
             //     {

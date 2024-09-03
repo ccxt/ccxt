@@ -3518,7 +3518,13 @@ public partial class bitmart : Exchange
             object parts = ((string)chain).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
             object partsLength = getArrayLength(parts);
             object networkId = this.safeString(parts, subtract(partsLength, 1));
-            network = this.safeNetworkCode(networkId, currency);
+            if (isTrue(isEqual(networkId, this.safeString(currency, "name"))))
+            {
+                network = this.safeString(currency, "code");
+            } else
+            {
+                network = this.networkIdToCode(networkId);
+            }
         }
         this.checkAddress(address);
         return new Dictionary<string, object>() {
@@ -3528,17 +3534,6 @@ public partial class bitmart : Exchange
             { "tag", this.safeString(depositAddress, "address_memo") },
             { "network", network },
         };
-    }
-
-    public virtual object safeNetworkCode(object networkId, object currency = null)
-    {
-        object name = this.safeString(currency, "name");
-        if (isTrue(isEqual(networkId, name)))
-        {
-            object code = this.safeString(currency, "code");
-            return code;
-        }
-        return this.networkIdToCode(networkId);
     }
 
     public async override Task<object> withdraw(object code, object amount, object address, object tag = null, object parameters = null)

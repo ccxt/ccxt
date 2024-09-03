@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bitfinex2 import ImplicitAPI
+import asyncio
 import hashlib
 from ccxt.base.types import Balances, Currencies, Currency, Int, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
@@ -534,12 +535,13 @@ class bitfinex2(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        spotMarketsInfo = await self.publicGetConfPubInfoPair(params)
-        futuresMarketsInfo = await self.publicGetConfPubInfoPairFutures(params)
-        spotMarketsInfo = self.safe_value(spotMarketsInfo, 0, [])
-        futuresMarketsInfo = self.safe_value(futuresMarketsInfo, 0, [])
+        spotMarketsInfoPromise = self.publicGetConfPubInfoPair(params)
+        futuresMarketsInfoPromise = self.publicGetConfPubInfoPairFutures(params)
+        marginIdsPromise = self.publicGetConfPubListPairMargin(params)
+        spotMarketsInfo, futuresMarketsInfo, marginIds = await asyncio.gather(*[spotMarketsInfoPromise, futuresMarketsInfoPromise, marginIdsPromise])
+        spotMarketsInfo = self.safe_list(spotMarketsInfo, 0, [])
+        futuresMarketsInfo = self.safe_list(futuresMarketsInfo, 0, [])
         markets = self.array_concat(spotMarketsInfo, futuresMarketsInfo)
-        marginIds = await self.publicGetConfPubListPairMargin(params)
         marginIds = self.safe_value(marginIds, 0, [])
         #
         #    [

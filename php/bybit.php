@@ -5879,7 +5879,7 @@ class bybit extends Exchange {
                 $response = $this->privateGetV5AccountTransactionLog ($this->extend($request, $params));
             }
         } else {
-            $response = $this->privateGetV2PrivateWalletFundRecords ($this->extend($request, $params));
+            $response = $this->privateGetV5AccountContractTransactionLog ($this->extend($request, $params));
         }
         //
         //     {

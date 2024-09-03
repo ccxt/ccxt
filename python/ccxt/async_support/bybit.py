@@ -5551,7 +5551,7 @@ class bybit(Exchange, ImplicitAPI):
             else:
                 response = await self.privateGetV5AccountTransactionLog(self.extend(request, params))
         else:
-            response = await self.privateGetV2PrivateWalletFundRecords(self.extend(request, params))
+            response = await self.privateGetV5AccountContractTransactionLog(self.extend(request, params))
         #
         #     {
         #         "ret_code": 0,

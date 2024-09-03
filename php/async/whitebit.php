@@ -2665,9 +2665,11 @@ class whitebit extends Exchange {
                 if ($hasErrorStatus) {
                     $errorInfo = $status;
                 } else {
-                    $errorObject = $this->safe_value($response, 'errors');
-                    if ($errorObject !== null) {
-                        $errorKey = is_array($errorObject) ? array_keys($errorObject) : array()[0];
+                    $errorObject = $this->safe_dict($response, 'errors', array());
+                    $errorKeys = is_array($errorObject) ? array_keys($errorObject) : array();
+                    $errorsLength = count($errorKeys);
+                    if ($errorsLength > 0) {
+                        $errorKey = $errorKeys[0];
                         $errorMessageArray = $this->safe_value($errorObject, $errorKey, array());
                         $errorMessageLength = count($errorMessageArray);
                         $errorInfo = ($errorMessageLength > 0) ? $errorMessageArray[0] : $body;

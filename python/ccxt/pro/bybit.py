@@ -609,6 +609,53 @@ class bybit(ccxt.async_support.bybit):
         filtered = self.filter_by_since_limit(stored, since, limit, 0, True)
         return self.create_ohlcv_object(symbol, timeframe, filtered)
 
+    async def un_watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], params={}):
+        """
+        unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+        :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: A list of candles ordered, open, high, low, close, volume
+        """
+        await self.load_markets()
+        symbols = self.get_list_from_object_values(symbolsAndTimeframes, 0)
+        marketSymbols = self.market_symbols(symbols, None, False, True, True)
+        firstSymbol = marketSymbols[0]
+        url = await self.get_url_by_market_type(firstSymbol, False, 'watchOHLCVForSymbols', params)
+        rawHashes = []
+        subMessageHashes = []
+        messageHashes = []
+        for i in range(0, len(symbolsAndTimeframes)):
+            data = symbolsAndTimeframes[i]
+            symbolString = self.safe_string(data, 0)
+            market = self.market(symbolString)
+            symbolString = market['symbol']
+            unfiedTimeframe = self.safe_string(data, 1)
+            timeframeId = self.safe_string(self.timeframes, unfiedTimeframe, unfiedTimeframe)
+            rawHashes.append('kline.' + timeframeId + '.' + market['id'])
+            subMessageHashes.append('ohlcv::' + symbolString + '::' + unfiedTimeframe)
+            messageHashes.append('unsubscribe::ohlcv::' + symbolString + '::' + unfiedTimeframe)
+        subExtension = {
+            'symbolsAndTimeframes': symbolsAndTimeframes,
+        }
+        return await self.un_watch_topics(url, 'ohlcv', symbols, messageHashes, subMessageHashes, rawHashes, params, subExtension)
+
+    async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params={}) -> Any:
+        """
+        unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+        :see: https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int [since]: timestamp in ms of the earliest candle to fetch
+        :param int [limit]: the maximum amount of candles to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        """
+        params['callerMethodName'] = 'watchOHLCV'
+        return await self.un_watch_ohlcv_for_symbols([[symbol, timeframe]], params)
+
     def handle_ohlcv(self, client: Client, message):
         #
         #     {
@@ -1337,7 +1384,7 @@ class bybit(ccxt.async_support.bybit):
         topic = 'liquidation.' + market['id']
         newLiquidation = await self.watch_topics(url, [messageHash], [topic], params)
         if self.newUpdates:
-            return [newLiquidation]
+            return newLiquidation
         return self.filter_by_symbols_since_limit(self.liquidations, [symbol], since, limit, True)
 
     def handle_liquidation(self, client: Client, message):
@@ -1997,7 +2044,7 @@ class bybit(ccxt.async_support.bybit):
         message = self.extend(request, params)
         return await self.watch_multiple(url, messageHashes, message, messageHashes)
 
-    async def un_watch_topics(self, url: str, topic: str, symbols: List[str], messageHashes: List[str], subMessageHashes: List[str], topics, params={}):
+    async def un_watch_topics(self, url: str, topic: str, symbols: List[str], messageHashes: List[str], subMessageHashes: List[str], topics, params={}, subExtension={}):
         reqId = self.request_id()
         request: dict = {
             'op': 'unsubscribe',
@@ -2012,7 +2059,7 @@ class bybit(ccxt.async_support.bybit):
             'symbols': symbols,
         }
         message = self.extend(request, params)
-        return await self.watch_multiple(url, messageHashes, message, messageHashes, subscription)
+        return await self.watch_multiple(url, messageHashes, message, messageHashes, self.extend(subscription, subExtension))
 
     async def authenticate(self, url, params={}):
         self.check_required_credentials()
@@ -2277,7 +2324,14 @@ class bybit(ccxt.async_support.bybit):
         topic = self.safe_string(subscription, 'topic')
         symbols = self.safe_list(subscription, 'symbols', [])
         symbolsLength = len(symbols)
-        if symbolsLength > 0:
+        if topic == 'ohlcv':
+            symbolsAndTimeFrames = self.safe_list(subscription, 'symbolsAndTimeframes', [])
+            for i in range(0, len(symbolsAndTimeFrames)):
+                symbolAndTimeFrame = symbolsAndTimeFrames[i]
+                symbol = self.safe_string(symbolAndTimeFrame, 0)
+                timeframe = self.safe_string(symbolAndTimeFrame, 1)
+                del self.ohlcvs[symbol][timeframe]
+        elif symbolsLength > 0:
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
                 if topic == 'trade':

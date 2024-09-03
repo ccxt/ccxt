@@ -633,6 +633,58 @@ class bybit extends bybit$1 {
         const filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
         return this.createOHLCVObject(symbol, timeframe, filtered);
     }
+    async unWatchOHLCVForSymbols(symbolsAndTimeframes, params = {}) {
+        /**
+         * @method
+         * @name bybit#unWatchOHLCVForSymbols
+         * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+         * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets();
+        const symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
+        const marketSymbols = this.marketSymbols(symbols, undefined, false, true, true);
+        const firstSymbol = marketSymbols[0];
+        const url = await this.getUrlByMarketType(firstSymbol, false, 'watchOHLCVForSymbols', params);
+        const rawHashes = [];
+        const subMessageHashes = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const data = symbolsAndTimeframes[i];
+            let symbolString = this.safeString(data, 0);
+            const market = this.market(symbolString);
+            symbolString = market['symbol'];
+            const unfiedTimeframe = this.safeString(data, 1);
+            const timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            rawHashes.push('kline.' + timeframeId + '.' + market['id']);
+            subMessageHashes.push('ohlcv::' + symbolString + '::' + unfiedTimeframe);
+            messageHashes.push('unsubscribe::ohlcv::' + symbolString + '::' + unfiedTimeframe);
+        }
+        const subExtension = {
+            'symbolsAndTimeframes': symbolsAndTimeframes,
+        };
+        return await this.unWatchTopics(url, 'ohlcv', symbols, messageHashes, subMessageHashes, rawHashes, params, subExtension);
+    }
+    async unWatchOHLCV(symbol, timeframe = '1m', params = {}) {
+        /**
+         * @method
+         * @name bybit#unWatchOHLCV
+         * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int} [since] timestamp in ms of the earliest candle to fetch
+         * @param {int} [limit] the maximum amount of candles to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        params['callerMethodName'] = 'watchOHLCV';
+        return await this.unWatchOHLCVForSymbols([[symbol, timeframe]], params);
+    }
     handleOHLCV(client, message) {
         //
         //     {
@@ -1437,7 +1489,7 @@ class bybit extends bybit$1 {
         const topic = 'liquidation.' + market['id'];
         const newLiquidation = await this.watchTopics(url, [messageHash], [topic], params);
         if (this.newUpdates) {
-            return [newLiquidation];
+            return newLiquidation;
         }
         return this.filterBySymbolsSinceLimit(this.liquidations, [symbol], since, limit, true);
     }
@@ -2142,7 +2194,7 @@ class bybit extends bybit$1 {
         const message = this.extend(request, params);
         return await this.watchMultiple(url, messageHashes, message, messageHashes);
     }
-    async unWatchTopics(url, topic, symbols, messageHashes, subMessageHashes, topics, params = {}) {
+    async unWatchTopics(url, topic, symbols, messageHashes, subMessageHashes, topics, params = {}, subExtension = {}) {
         const reqId = this.requestId();
         const request = {
             'op': 'unsubscribe',
@@ -2157,7 +2209,7 @@ class bybit extends bybit$1 {
             'symbols': symbols,
         };
         const message = this.extend(request, params);
-        return await this.watchMultiple(url, messageHashes, message, messageHashes, subscription);
+        return await this.watchMultiple(url, messageHashes, message, messageHashes, this.extend(subscription, subExtension));
     }
     async authenticate(url, params = {}) {
         this.checkRequiredCredentials();
@@ -2450,7 +2502,16 @@ class bybit extends bybit$1 {
         const topic = this.safeString(subscription, 'topic');
         const symbols = this.safeList(subscription, 'symbols', []);
         const symbolsLength = symbols.length;
-        if (symbolsLength > 0) {
+        if (topic === 'ohlcv') {
+            const symbolsAndTimeFrames = this.safeList(subscription, 'symbolsAndTimeframes', []);
+            for (let i = 0; i < symbolsAndTimeFrames.length; i++) {
+                const symbolAndTimeFrame = symbolsAndTimeFrames[i];
+                const symbol = this.safeString(symbolAndTimeFrame, 0);
+                const timeframe = this.safeString(symbolAndTimeFrame, 1);
+                delete this.ohlcvs[symbol][timeframe];
+            }
+        }
+        else if (symbolsLength > 0) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 if (topic === 'trade') {

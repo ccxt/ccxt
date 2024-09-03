@@ -87,6 +87,7 @@ interface Exchange {
     privateGetRedeemOrders(params?: {}): Promise<implicitReturnType>;
     privateGetPurchaseOrders(params?: {}): Promise<implicitReturnType>;
     privateGetBrokerApiRebaseDownload(params?: {}): Promise<implicitReturnType>;
+    privateGetMigrateUserAccountStatus(params?: {}): Promise<implicitReturnType>;
     privateGetAffiliateInviterStatistics(params?: {}): Promise<implicitReturnType>;
     privatePostSubUserCreated(params?: {}): Promise<implicitReturnType>;
     privatePostSubApiKey(params?: {}): Promise<implicitReturnType>;

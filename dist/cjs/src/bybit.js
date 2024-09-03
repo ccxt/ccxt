@@ -5985,7 +5985,7 @@ class bybit extends bybit$1 {
             }
         }
         else {
-            response = await this.privateGetV2PrivateWalletFundRecords(this.extend(request, params));
+            response = await this.privateGetV5AccountContractTransactionLog(this.extend(request, params));
         }
         //
         //     {

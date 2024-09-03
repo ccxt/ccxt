@@ -480,7 +480,7 @@ public partial class woo : Exchange
             { "swap", swap },
             { "future", false },
             { "option", false },
-            { "active", null },
+            { "active", isEqual(this.safeString(market, "is_trading"), "1") },
             { "contract", contract },
             { "linear", linear },
             { "inverse", null },
