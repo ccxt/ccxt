@@ -56,8 +56,9 @@ export default class hyperliquid extends Exchange {
                 'fetchBorrowInterest': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
-                'fetchCanceledOrders': false,
+                'fetchCanceledOrders': true,
                 'fetchClosedOrders': true,
+                'fetchCanceledAndClosedOrders': true,
                 'fetchCrossBorrowRate': false,
                 'fetchCrossBorrowRates': false,
                 'fetchCurrencies': true,
@@ -89,7 +90,7 @@ export default class hyperliquid extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchOrderTrades': false,
                 'fetchPosition': true,
                 'fetchPositionMode': false,
@@ -1763,7 +1764,16 @@ export default class hyperliquid extends Exchange {
         //         }
         //     ]
         //
-        return this.parseOrders (response, market, since, limit);
+        const orderWithStatus = [];
+        for (let i = 0; i < response.length; i++) {
+            const order = response[i];
+            const extendOrder = {};
+            if (this.safeString (order, 'status') === undefined) {
+                extendOrder['ccxtStatus'] = 'open';
+            }
+            orderWithStatus.push (this.extend (order, extendOrder));
+        }
+        return this.parseOrders (orderWithStatus, market, since, limit);
     }
 
     async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
@@ -1778,8 +1788,62 @@ export default class hyperliquid extends Exchange {
          * @param {string} [params.user] user address, will default to this.walletAddress if not provided
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
+        await this.loadMarkets ();
+        const orders = await this.fetchOrders (symbol, undefined, undefined, params); // don't filter here because we don't want to catch open orders
+        const closedOrders = this.filterByArray (orders, 'status', [ 'closed' ], false);
+        return this.filterBySymbolSinceLimit (closedOrders, symbol, since, limit) as Order[];
+    }
+
+    async fetchCanceledOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name hyperliquid#fetchCanceledOrders
+         * @description fetch all canceled orders
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of open orders structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const orders = await this.fetchOrders (symbol, undefined, undefined, params); // don't filter here because we don't want to catch open orders
+        const closedOrders = this.filterByArray (orders, 'status', [ 'canceled' ], false);
+        return this.filterBySymbolSinceLimit (closedOrders, symbol, since, limit) as Order[];
+    }
+
+    async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name hyperliquid#fetchCanceledAndClosedOrders
+         * @description fetch all closed and canceled orders
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of open orders structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const orders = await this.fetchOrders (symbol, undefined, undefined, params); // don't filter here because we don't want to catch open orders
+        const closedOrders = this.filterByArray (orders, 'status', [ 'canceled', 'closed', 'rejected' ], false);
+        return this.filterBySymbolSinceLimit (closedOrders, symbol, since, limit) as Order[];
+    }
+
+    async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @name hyperliquid#fetchOrders
+         * @description fetch all orders
+         * @param {string} symbol unified market symbol
+         * @param {int} [since] the earliest time in ms to fetch open orders for
+         * @param {int} [limit] the maximum number of open orders structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.user] user address, will default to this.walletAddress if not provided
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
         let userAddress = undefined;
-        [ userAddress, params ] = this.handlePublicAddress ('fetchClosedOrders', params);
+        [ userAddress, params ] = this.handlePublicAddress ('fetchOrders', params);
         await this.loadMarkets ();
         const market = this.safeMarket (symbol);
         const request: Dict = {
@@ -1968,11 +2032,14 @@ export default class hyperliquid extends Exchange {
         }
         const symbol = market['symbol'];
         const timestamp = this.safeInteger2 (order, 'timestamp', 'statusTimestamp');
-        const status = this.safeString (order, 'status');
+        const status = this.safeString2 (order, 'status', 'ccxtStatus');
+        order = this.omit (order, [ 'ccxtStatus' ]);
         let side = this.safeString (entry, 'side');
         if (side !== undefined) {
             side = (side === 'A') ? 'sell' : 'buy';
         }
+        const totalAmount = this.safeString2 (entry, 'origSz', 'totalSz');
+        const remaining = this.safeString (entry, 'sz');
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (entry, 'oid'),
@@ -1987,13 +2054,13 @@ export default class hyperliquid extends Exchange {
             'postOnly': undefined,
             'reduceOnly': this.safeBool (entry, 'reduceOnly'),
             'side': side,
-            'price': this.safeNumber (entry, 'limitPx'),
+            'price': this.safeString (entry, 'limitPx'),
             'triggerPrice': this.safeBool (entry, 'isTrigger') ? this.safeNumber (entry, 'triggerPx') : undefined,
-            'amount': this.safeNumber2 (entry, 'sz', 'totalSz'),
+            'amount': totalAmount,
             'cost': undefined,
-            'average': this.safeNumber (entry, 'avgPx'),
-            'filled': undefined,
-            'remaining': undefined,
+            'average': this.safeString (entry, 'avgPx'),
+            'filled': Precise.stringSub (totalAmount, remaining),
+            'remaining': remaining,
             'status': this.parseOrderStatus (status),
             'fee': undefined,
             'trades': undefined,
