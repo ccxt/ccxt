@@ -1057,7 +1057,15 @@ class binance extends \ccxt\async\binance {
         $topic = $this->safe_string($subscription, 'topic');
         $symbols = $this->safe_list($subscription, 'symbols', array());
         $symbolsLength = count($symbols);
-        if ($symbolsLength > 0) {
+        if ($topic === 'ohlcv') {
+            $symbolsAndTimeFrames = $this->safe_list($subscription, 'symbolsAndTimeframes', array());
+            for ($i = 0; $i < count($symbolsAndTimeFrames); $i++) {
+                $symbolAndTimeFrame = $symbolsAndTimeFrames[$i];
+                $symbol = $this->safe_string($symbolAndTimeFrame, 0);
+                $timeframe = $this->safe_string($symbolAndTimeFrame, 1);
+                unset($this->ohlcvs[$symbol][$timeframe]);
+            }
+        } elseif ($symbolsLength > 0) {
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 if ($topic === 'trade') {
@@ -1526,6 +1534,95 @@ class binance extends \ccxt\async\binance {
             }
             $filtered = $this->filter_by_since_limit($candles, $since, $limit, 0, true);
             return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
+        }) ();
+    }
+
+    public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array ()) {
+        return Async\async(function () use ($symbolsAndTimeframes, $params) {
+            /**
+             * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+             * @see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
+             * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified $symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that $timezone instead of UTC, example '+08:00'
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $klineType = null;
+            list($klineType, $params) = $this->handle_param_string_2($params, 'channel', 'name', 'kline');
+            $symbols = $this->get_list_from_object_values($symbolsAndTimeframes, 0);
+            $marketSymbols = $this->market_symbols($symbols, null, false, false, true);
+            $firstMarket = $this->market($marketSymbols[0]);
+            $type = $firstMarket['type'];
+            if ($firstMarket['contract']) {
+                $type = $firstMarket['linear'] ? 'future' : 'delivery';
+            }
+            $isSpot = ($type === 'spot');
+            $timezone = null;
+            list($timezone, $params) = $this->handle_param_string($params, 'timezone', null);
+            $isUtc8 = ($timezone !== null) && (($timezone === '+08:00') || Precise::string_eq($timezone, '8'));
+            $rawHashes = array();
+            $subMessageHashes = array();
+            $messageHashes = array();
+            for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
+                $symAndTf = $symbolsAndTimeframes[$i];
+                $symbolString = $symAndTf[0];
+                $timeframeString = $symAndTf[1];
+                $interval = $this->safe_string($this->timeframes, $timeframeString, $timeframeString);
+                $market = $this->market($symbolString);
+                $marketId = $market['lowercaseId'];
+                if ($klineType === 'indexPriceKline') {
+                    // weird behavior for index price kline we can't use the perp $suffix
+                    $marketId = str_replace('_perp', '', $marketId);
+                }
+                $shouldUseUTC8 = ($isUtc8 && $isSpot);
+                $suffix = '@+08:00';
+                $utcSuffix = $shouldUseUTC8 ? $suffix : '';
+                $rawHashes[] = $marketId . '@' . $klineType . '_' . $interval . $utcSuffix;
+                $subMessageHashes[] = 'ohlcv::' . $market['symbol'] . '::' . $timeframeString;
+                $messageHashes[] = 'unsubscribe::ohlcv::' . $market['symbol'] . '::' . $timeframeString;
+            }
+            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, 'multipleOHLCV');
+            $requestId = $this->request_id($url);
+            $request = array(
+                'method' => 'UNSUBSCRIBE',
+                'params' => $rawHashes,
+                'id' => $requestId,
+            );
+            $subscribe = array(
+                'unsubscribe' => true,
+                'id' => (string) $requestId,
+                'symbols' => $symbols,
+                'symbolsAndTimeframes' => $symbolsAndTimeframes,
+                'subMessageHashes' => $subMessageHashes,
+                'messageHashes' => $messageHashes,
+                'topic' => 'ohlcv',
+            );
+            $params = $this->omit($params, 'callerMethodName');
+            return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes, $subscribe));
+        }) ();
+    }
+
+    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $timeframe, $params) {
+            /**
+             * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @see https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+             * @see https://binance-docs.github.io/apidocs/futures/en/#kline-candlestick-data
+             * @see https://binance-docs.github.io/apidocs/delivery/en/#kline-candlestick-data
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $params['callerMethodName'] = 'watchOHLCV';
+            return Async\await($this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $params));
         }) ();
     }
 
