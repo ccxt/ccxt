@@ -921,6 +921,8 @@ export default class mexc extends Exchange {
          * @method
          * @name mexc#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#check-server-time
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
