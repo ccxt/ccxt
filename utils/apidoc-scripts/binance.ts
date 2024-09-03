@@ -3,10 +3,10 @@
 import jsYaml from 'js-yaml';
 // https://github.com/binance/binance-api-swagger
 
-class baseParser {
-    type: string;
-    subType: string;
-    url: string;
+class RLParser  {
+
+    type = 'spot';
+    url = 'https://raw.githubusercontent.com/binance/binance-api-swagger/master/spot_api.yaml';
 
     async fetchData () {
         if (!this.url) {
@@ -25,13 +25,6 @@ class baseParser {
         }
         return sortedObj;
     }
-}
-
-
-class RLParser extends baseParser {
-
-    type = 'spot';
-    url = 'https://raw.githubusercontent.com/binance/binance-api-swagger/master/spot_api.yaml';
 
     swaggerYamlToJson (data: string) {
         return jsYaml.load (data);
