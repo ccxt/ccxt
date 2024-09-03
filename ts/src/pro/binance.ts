@@ -1056,7 +1056,7 @@ export default class binance extends binanceRest {
         const symbols = this.safeList (subscription, 'symbols', []);
         const symbolsLength = symbols.length;
         if (topic === 'ohlcv') {
-            const symbolsAndTimeFrames = this.safeList (subscription, 'symbolsAndTimeFrames', []);
+            const symbolsAndTimeFrames = this.safeList (subscription, 'symbolsAndTimeframes', []);
             for (let i = 0; i < symbolsAndTimeFrames.length; i++) {
                 const symbolAndTimeFrame = symbolsAndTimeFrames[i];
                 const symbol = this.safeString (symbolAndTimeFrame, 0);
