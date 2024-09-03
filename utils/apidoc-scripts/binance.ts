@@ -1,7 +1,5 @@
 
 
-import markdownIt from 'markdown-it';
-
 class RLParser  {
 
     type = 'spot';
