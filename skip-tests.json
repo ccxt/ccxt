@@ -1749,6 +1749,7 @@
     "coincatch": {
         "skipMethods": {
             "fetchCurrencies": {
+                "currencyIdAndCode": "temporary skip, because ids are numeric and we are in wip for numeric id tests",
                 "precision": "not provided"
             },
             "loadMarkets": {
