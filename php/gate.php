@@ -981,8 +981,9 @@ class gate extends Exchange {
     }
 
     public function fetch_spot_markets($params = array ()) {
-        $marginResponse = $this->publicMarginGetCurrencyPairs ($params);
-        $spotMarketsResponse = $this->publicSpotGetCurrencyPairs ($params);
+        $marginPromise = $this->publicMarginGetCurrencyPairs ($params);
+        $spotMarketsPromise = $this->publicSpotGetCurrencyPairs ($params);
+        list($marginResponse, $spotMarketsResponse) = array( $marginPromise, $spotMarketsPromise );
         $marginMarkets = $this->index_by($marginResponse, 'id');
         //
         //  Spot

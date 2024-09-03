@@ -394,7 +394,7 @@ class ascendex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
-        assets = self.v1PublicGetAssets(params)
+        assetsPromise = self.v1PublicGetAssets(params)
         #
         #     {
         #         "code":0,
@@ -411,7 +411,7 @@ class ascendex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        margin = self.v1PublicGetMarginAssets(params)
+        marginPromise = self.v1PublicGetMarginAssets(params)
         #
         #     {
         #         "code":0,
@@ -431,7 +431,7 @@ class ascendex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        cash = self.v1PublicGetCashAssets(params)
+        cashPromise = self.v1PublicGetCashAssets(params)
         #
         #     {
         #         "code":0,
@@ -448,6 +448,7 @@ class ascendex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
+        assets, margin, cash = [assetsPromise, marginPromise, cashPromise]
         assetsData = self.safe_list(assets, 'data', [])
         marginData = self.safe_list(margin, 'data', [])
         cashData = self.safe_list(cash, 'data', [])
@@ -499,7 +500,7 @@ class ascendex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        products = self.v1PublicGetProducts(params)
+        productsPromise = self.v1PublicGetProducts(params)
         #
         #     {
         #         "code": 0,
@@ -520,7 +521,7 @@ class ascendex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        cash = self.v1PublicGetCashProducts(params)
+        cashPromise = self.v1PublicGetCashProducts(params)
         #
         #     {
         #         "code": 0,
@@ -550,7 +551,7 @@ class ascendex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        perpetuals = self.v2PublicGetFuturesContract(params)
+        perpetualsPromise = self.v2PublicGetFuturesContract(params)
         #
         #    {
         #        "code": 0,
@@ -588,6 +589,7 @@ class ascendex(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
+        products, cash, perpetuals = [productsPromise, cashPromise, perpetualsPromise]
         productsData = self.safe_list(products, 'data', [])
         productsById = self.index_by(productsData, 'symbol')
         cashData = self.safe_list(cash, 'data', [])

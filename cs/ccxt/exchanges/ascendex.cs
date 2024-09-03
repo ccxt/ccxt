@@ -376,7 +376,7 @@ public partial class ascendex : Exchange
         * @returns {object} an associative dictionary of currencies
         */
         parameters ??= new Dictionary<string, object>();
-        object assets = await this.v1PublicGetAssets(parameters);
+        object assetsPromise = this.v1PublicGetAssets(parameters);
         //
         //     {
         //         "code":0,
@@ -393,7 +393,7 @@ public partial class ascendex : Exchange
         //         ]
         //     }
         //
-        object margin = await this.v1PublicGetMarginAssets(parameters);
+        object marginPromise = this.v1PublicGetMarginAssets(parameters);
         //
         //     {
         //         "code":0,
@@ -413,7 +413,7 @@ public partial class ascendex : Exchange
         //         ]
         //     }
         //
-        object cash = await this.v1PublicGetCashAssets(parameters);
+        object cashPromise = this.v1PublicGetCashAssets(parameters);
         //
         //     {
         //         "code":0,
@@ -430,6 +430,10 @@ public partial class ascendex : Exchange
         //         ]
         //     }
         //
+        var assetsmargincashVariable = await promiseAll(new List<object>() {assetsPromise, marginPromise, cashPromise});
+        var assets = ((IList<object>) assetsmargincashVariable)[0];
+        var margin = ((IList<object>) assetsmargincashVariable)[1];
+        var cash = ((IList<object>) assetsmargincashVariable)[2];
         object assetsData = this.safeList(assets, "data", new List<object>() {});
         object marginData = this.safeList(margin, "data", new List<object>() {});
         object cashData = this.safeList(cash, "data", new List<object>() {});
@@ -488,7 +492,7 @@ public partial class ascendex : Exchange
         * @returns {object[]} an array of objects representing market data
         */
         parameters ??= new Dictionary<string, object>();
-        object products = await this.v1PublicGetProducts(parameters);
+        object productsPromise = this.v1PublicGetProducts(parameters);
         //
         //     {
         //         "code": 0,
@@ -509,7 +513,7 @@ public partial class ascendex : Exchange
         //         ]
         //     }
         //
-        object cash = await this.v1PublicGetCashProducts(parameters);
+        object cashPromise = this.v1PublicGetCashProducts(parameters);
         //
         //     {
         //         "code": 0,
@@ -539,7 +543,7 @@ public partial class ascendex : Exchange
         //         ]
         //     }
         //
-        object perpetuals = await this.v2PublicGetFuturesContract(parameters);
+        object perpetualsPromise = this.v2PublicGetFuturesContract(parameters);
         //
         //    {
         //        "code": 0,
@@ -577,6 +581,10 @@ public partial class ascendex : Exchange
         //        ]
         //    }
         //
+        var productscashperpetualsVariable = await promiseAll(new List<object>() {productsPromise, cashPromise, perpetualsPromise});
+        var products = ((IList<object>) productscashperpetualsVariable)[0];
+        var cash = ((IList<object>) productscashperpetualsVariable)[1];
+        var perpetuals = ((IList<object>) productscashperpetualsVariable)[2];
         object productsData = this.safeList(products, "data", new List<object>() {});
         object productsById = this.indexBy(productsData, "symbol");
         object cashData = this.safeList(cash, "data", new List<object>() {});

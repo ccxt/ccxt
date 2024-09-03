@@ -5,6 +5,7 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.ascendex import ImplicitAPI
+import asyncio
 import hashlib
 from ccxt.base.types import Account, Balances, Currencies, Currency, Int, Leverage, Leverages, LeverageTier, LeverageTiers, MarginMode, MarginModes, MarginModification, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from typing import List
@@ -394,7 +395,7 @@ class ascendex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an associative dictionary of currencies
         """
-        assets = await self.v1PublicGetAssets(params)
+        assetsPromise = self.v1PublicGetAssets(params)
         #
         #     {
         #         "code":0,
@@ -411,7 +412,7 @@ class ascendex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        margin = await self.v1PublicGetMarginAssets(params)
+        marginPromise = self.v1PublicGetMarginAssets(params)
         #
         #     {
         #         "code":0,
@@ -431,7 +432,7 @@ class ascendex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        cash = await self.v1PublicGetCashAssets(params)
+        cashPromise = self.v1PublicGetCashAssets(params)
         #
         #     {
         #         "code":0,
@@ -448,6 +449,7 @@ class ascendex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
+        assets, margin, cash = await asyncio.gather(*[assetsPromise, marginPromise, cashPromise])
         assetsData = self.safe_list(assets, 'data', [])
         marginData = self.safe_list(margin, 'data', [])
         cashData = self.safe_list(cash, 'data', [])
@@ -499,7 +501,7 @@ class ascendex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        products = await self.v1PublicGetProducts(params)
+        productsPromise = self.v1PublicGetProducts(params)
         #
         #     {
         #         "code": 0,
@@ -520,7 +522,7 @@ class ascendex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        cash = await self.v1PublicGetCashProducts(params)
+        cashPromise = self.v1PublicGetCashProducts(params)
         #
         #     {
         #         "code": 0,
@@ -550,7 +552,7 @@ class ascendex(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        perpetuals = await self.v2PublicGetFuturesContract(params)
+        perpetualsPromise = self.v2PublicGetFuturesContract(params)
         #
         #    {
         #        "code": 0,
@@ -588,6 +590,7 @@ class ascendex(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
+        products, cash, perpetuals = await asyncio.gather(*[productsPromise, cashPromise, perpetualsPromise])
         productsData = self.safe_list(products, 'data', [])
         productsById = self.index_by(productsData, 'symbol')
         cashData = self.safe_list(cash, 'data', [])
