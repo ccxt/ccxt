@@ -2,9 +2,7 @@ import fs from 'fs';
 import { fileURLToPath, pathToFileURL } from 'url';
 const DIR_NAME = fileURLToPath (new URL ('.', import.meta.url));
 class ParserBase {
-    
-    exchangeId = '';
-    type = '';
+
     url = '';
     baseUrl = '';
     rateLimitMultiplier = 0;
@@ -35,24 +33,25 @@ class ParserBase {
 
 
     // cache methods
-    cachePath () {
+    cachePath (exchangeId = undefined) {
         // get constructor name
-        return DIR_NAME + '/' + this.exchangeId + '-' + this.type + '-cache.json';
+        return DIR_NAME + '/' + (exchangeId ? exchangeId : this.constructor.name) + '-cache.json';
     }
 
-    cacheExists () {
+    cacheExists (exchangeId = undefined) {
         // if fetched once and mtime is less than 12 hour, then cache it temporarily
         const cacheHours = 12;
-        return (fs.existsSync (this.cachePath()) && fs.statSync (this.cachePath()).mtimeMs > Date.now () - cacheHours * 60 * 60 * 1000);
+        const path = this.cachePath(exchangeId);
+        return (fs.existsSync (path) && fs.statSync (path).mtimeMs > Date.now () - cacheHours * 60 * 60 * 1000);
     }
     
-    cacheSet (data) {
-        fs.writeFileSync (this.cachePath(), JSON.stringify(data, null, 2));
+    cacheGet (exchangeId = undefined) {
+        const filedata = fs.readFileSync(this.cachePath(exchangeId), 'utf8');
+        return JSON.parse(filedata);
     }
 
-    cacheGet () {
-        const filedata = fs.readFileSync(this.cachePath(), 'utf8');
-        return JSON.parse(filedata);
+    cacheSet (data, exchangeId = undefined) {
+        fs.writeFileSync (this.cachePath(exchangeId), JSON.stringify(data, null, 2));
     }
 }
 
