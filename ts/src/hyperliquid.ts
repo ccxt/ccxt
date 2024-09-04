@@ -3065,7 +3065,7 @@ export default class hyperliquid extends Exchange {
     }
 
     coinToMarketId (coin: Str) {
-        if (coin.indexOf ('/') > -1) {
+        if (coin.indexOf ('/') > -1 || coin.indexOf ('@') > -1) {
             return coin; // spot
         }
         return coin + '/USDC:USDC';
