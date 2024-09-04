@@ -2,28 +2,53 @@
 import ParserBase from './_base';
 
 
+const RateLimitBase = 10;
+
 
 
 
 
 class binance extends ParserBase {
 
-    RateLimitBases = {
-        'api': 10, // 6000 req/s ( https://api.binance.com/api/v3/exchangeInfo )
-        'sapi': 10, // same
-        'dapi': 25, // 2400 req/s ( https://dapi.binance.com/dapi/v1/exchangeInfo )
-        'fapi': 25, // 2400 req/s ( https://fapi.binance.com/fapi/v1/exchangeInfo )
-        'eapi': 150, // 400 req/s ( https://eapi.binance.com/eapi/v1/exchangeInfo )
-        'papi': 25, // seems belongs to futures api, even though separate url
+    exchangeInfos = {
+        'api': 'https://api.binance.com/api/v3/exchangeInfo',
+        'sapi': 'https://api.binance.com/api/v3/exchangeInfo',
+        'dapi': 'https://dapi.binance.com/dapi/v1/exchangeInfo',
+        'fapi': 'https://fapi.binance.com/fapi/v1/exchangeInfo',
+        'eapi': 'https://eapi.binance.com/eapi/v1/exchangeInfo',
+        'papi': 'https://fapi.binance.com/fapi/v1/exchangeInfo', // seems belongs to futures api, even though separate url
     };
 
+    RateLimits = {};
+
     async init () {
+        await this.initRateLimitValues ();
         const newDocs = await this.retrieveNewDocs ();
         const spotDocs = await this.retrieveSpotDocs ();
         const tree = Object.assign (spotDocs, newDocs);
         return tree;
     }
 
+    
+    async initRateLimitValues () {
+        const marketTypes = Object.keys (this.exchangeInfos);
+        const promises = [];
+        for (const type of marketTypes) {
+            const url = this.exchangeInfos[type];
+            promises.push (this.fetchData (url));
+        }
+        const results = await Promise.all (promises);
+        for (let i = 0; i < marketTypes.length; i++) {
+            const type = marketTypes[i];
+            const data = JSON.parse (results[i]);
+            const rateLimitsInfo = data['rateLimits'];
+            const minuteInfo= rateLimitsInfo.find (obj => obj.interval === 'MINUTE');
+            const limit = minuteInfo['limit'];
+            const callsPer1000Ms = limit / 60;
+            const oneCallMs = 1000 / callsPer1000Ms;
+            this.RateLimits[type] = oneCallMs;
+        }
+    }
 
     // we have separate SPOT docs url, which has different page format and needs to be fetched separately
     async retrieveSpotDocs () {
