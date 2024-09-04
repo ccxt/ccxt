@@ -645,6 +645,7 @@ class kucoin(Exchange, ImplicitAPI):
                 'KALT': 'ALT',  # ALTLAYER
             },
             'options': {
+                'hf': False,
                 'version': 'v1',
                 'symbolSeparator': '-',
                 'fetchMyTradesMethod': 'private_get_fills',
@@ -1228,9 +1229,8 @@ class kucoin(Exchange, ImplicitAPI):
             status: Int = self.safe_integer(data, 'status')
             self.options['hfMigrated'] = (status == 2)
 
-    async def handle_hf_and_params(self, params={}):
-        await self.load_migration_status()
-        migrated: Bool = self.safe_bool(self.options, 'hfMigrated')
+    def handle_hf_and_params(self, params={}):
+        migrated: Bool = self.safe_bool_2(self.options, 'hfMigrated', 'hf', False)
         loadedHf: Bool = None
         if migrated is not None:
             if migrated:
@@ -2068,7 +2068,7 @@ class kucoin(Exchange, ImplicitAPI):
         testOrder = self.safe_bool(params, 'test', False)
         params = self.omit(params, 'test')
         hf = None
-        hf, params = await self.handle_hf_and_params(params)
+        hf, params = self.handle_hf_and_params(params)
         useSync = False
         useSync, params = self.handle_option_and_params(params, 'createOrder', 'sync', False)
         triggerPrice, stopLossPrice, takeProfitPrice = self.handle_trigger_prices(params)
@@ -2184,7 +2184,7 @@ class kucoin(Exchange, ImplicitAPI):
             'orderList': ordersRequests,
         }
         hf = None
-        hf, params = await self.handle_hf_and_params(params)
+        hf, params = self.handle_hf_and_params(params)
         useSync = False
         useSync, params = self.handle_option_and_params(params, 'createOrders', 'sync', False)
         response = None
@@ -2356,7 +2356,7 @@ class kucoin(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
         stop = self.safe_bool_2(params, 'stop', 'trigger', False)
         hf = None
-        hf, params = await self.handle_hf_and_params(params)
+        hf, params = self.handle_hf_and_params(params)
         useSync = False
         useSync, params = self.handle_option_and_params(params, 'cancelOrder', 'sync', False)
         if hf or useSync:
@@ -2464,7 +2464,7 @@ class kucoin(Exchange, ImplicitAPI):
         request: dict = {}
         stop = self.safe_bool(params, 'stop', False)
         hf = None
-        hf, params = await self.handle_hf_and_params(params)
+        hf, params = self.handle_hf_and_params(params)
         params = self.omit(params, 'stop')
         marginMode, query = self.handle_margin_mode_and_params('cancelAllOrders', params)
         if symbol is not None:
@@ -2513,7 +2513,7 @@ class kucoin(Exchange, ImplicitAPI):
         until = self.safe_integer(params, 'until')
         stop = self.safe_bool_2(params, 'stop', 'trigger', False)
         hf = None
-        hf, params = await self.handle_hf_and_params(params)
+        hf, params = self.handle_hf_and_params(params)
         if hf and (symbol is None):
             raise ArgumentsRequired(self.id + ' fetchOrdersByStatus() requires a symbol parameter for hf orders')
         params = self.omit(params, ['stop', 'trigger', 'till', 'until'])
@@ -2675,7 +2675,7 @@ class kucoin(Exchange, ImplicitAPI):
         clientOrderId = self.safe_string_2(params, 'clientOid', 'clientOrderId')
         stop = self.safe_bool_2(params, 'stop', 'trigger', False)
         hf = None
-        hf, params = await self.handle_hf_and_params(params)
+        hf, params = self.handle_hf_and_params(params)
         market = None
         if symbol is not None:
             market = self.market(symbol)
@@ -2926,7 +2926,7 @@ class kucoin(Exchange, ImplicitAPI):
             return await self.fetch_paginated_call_dynamic('fetchMyTrades', symbol, since, limit, params)
         request: dict = {}
         hf = None
-        hf, params = await self.handle_hf_and_params(params)
+        hf, params = self.handle_hf_and_params(params)
         if hf and symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol parameter for hf orders')
         market = None
@@ -3601,7 +3601,7 @@ class kucoin(Exchange, ImplicitAPI):
         type = self.safe_string(accountsByType, requestedType, requestedType)
         params = self.omit(params, 'type')
         hf = None
-        hf, params = await self.handle_hf_and_params(params)
+        hf, params = self.handle_hf_and_params(params)
         if hf:
             type = 'trade_hf'
         marginMode, query = self.handle_margin_mode_and_params('fetchBalance', params)
@@ -4030,7 +4030,7 @@ class kucoin(Exchange, ImplicitAPI):
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchLedger', 'paginate')
         hf = None
-        hf, params = await self.handle_hf_and_params(params)
+        hf, params = self.handle_hf_and_params(params)
         if paginate:
             return await self.fetch_paginated_call_dynamic('fetchLedger', code, since, limit, params)
         request: dict = {

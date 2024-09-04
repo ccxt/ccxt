@@ -959,7 +959,7 @@ class binance(ccxt.async_support.binance):
             error = UnsubscribeError(self.id + ' ' + subHash)
             client.reject(error, subHash)
             client.resolve(True, unsubHash)
-            self.clean_cache(subscription)
+        self.clean_cache(subscription)
 
     def clean_cache(self, subscription: dict):
         topic = self.safe_string(subscription, 'topic')
@@ -971,7 +971,8 @@ class binance(ccxt.async_support.binance):
                 symbolAndTimeFrame = symbolsAndTimeFrames[i]
                 symbol = self.safe_string(symbolAndTimeFrame, 0)
                 timeframe = self.safe_string(symbolAndTimeFrame, 1)
-                del self.ohlcvs[symbol][timeframe]
+                if timeframe in self.ohlcvs[symbol]:
+                    del self.ohlcvs[symbol][timeframe]
         elif symbolsLength > 0:
             for i in range(0, len(symbols)):
                 symbol = symbols[i]

@@ -1035,8 +1035,8 @@ export default class binance extends binanceRest {
             const error = new UnsubscribeError(this.id + ' ' + subHash);
             client.reject(error, subHash);
             client.resolve(true, unsubHash);
-            this.cleanCache(subscription);
         }
+        this.cleanCache(subscription);
     }
     cleanCache(subscription) {
         const topic = this.safeString(subscription, 'topic');
@@ -1048,7 +1048,9 @@ export default class binance extends binanceRest {
                 const symbolAndTimeFrame = symbolsAndTimeFrames[i];
                 const symbol = this.safeString(symbolAndTimeFrame, 0);
                 const timeframe = this.safeString(symbolAndTimeFrame, 1);
-                delete this.ohlcvs[symbol][timeframe];
+                if (timeframe in this.ohlcvs[symbol]) {
+                    delete this.ohlcvs[symbol][timeframe];
+                }
             }
         }
         else if (symbolsLength > 0) {

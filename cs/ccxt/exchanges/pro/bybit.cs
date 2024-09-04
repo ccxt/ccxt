@@ -2753,8 +2753,8 @@ public partial class bybit : ccxt.bybit
                     var error = new UnsubscribeError(add(add(this.id, " "), messageHash));
                     ((WebSocketClient)client).reject(error, subHash);
                     callDynamically(client as WebSocketClient, "resolve", new object[] {true, unsubHash});
-                    this.cleanCache(subscription);
                 }
+                this.cleanCache(subscription);
             }
         }
         return message;

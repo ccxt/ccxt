@@ -17,7 +17,7 @@ export default class kucoin extends Exchange {
     }>;
     fetchMarkets(params?: {}): Promise<Market[]>;
     loadMigrationStatus(force?: boolean): Promise<void>;
-    handleHfAndParams(params?: {}): Promise<{}[]>;
+    handleHfAndParams(params?: {}): {}[];
     fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchAccounts(params?: {}): Promise<Account[]>;
     fetchTransactionFee(code: string, params?: {}): Promise<{
