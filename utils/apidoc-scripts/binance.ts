@@ -34,18 +34,22 @@ class ParserBase {
 
 
 
-    // cache
+    // cache methods
     cachePath () {
         // get constructor name
         return DIR_NAME + '/' + this.exchangeId + '-' + this.type + '-cache.json';
     }
+
     cacheExists () {
+        // if fetched once and mtime is less than 12 hour, then cache it temporarily
         const cacheHours = 12;
         return (fs.existsSync (this.cachePath()) && fs.statSync (this.cachePath()).mtimeMs > Date.now () - cacheHours * 60 * 60 * 1000);
     }
+    
     cacheSet (data) {
         fs.writeFileSync (this.cachePath(), JSON.stringify(data, null, 2));
     }
+
     cacheGet () {
         const filedata = fs.readFileSync(this.cachePath(), 'utf8');
         return JSON.parse(filedata);
@@ -53,15 +57,28 @@ class ParserBase {
 }
 
 
-class BinanceSpot extends ParserBase {
 
+
+class BinanceAll extends ParserBase {
+    
     exchangeId = 'binance';
-    type = 'spot';
-    url = 'https://raw.githubusercontent.com/binance/binance-spot-api-docs/master/rest-api.md';
-    rateLimitMultiplier = 1;
+    type = 'all';
+    baseUrl = 'https://developers.binance.com';
+
+    verbose = false;
 
     async init () {
-        const data = await this.fetchData (this.url);
+        const newDocs = await this.retrieveNewDocs ();
+        const spotDocs = await this.retrieveSpotDocs ();
+        const tree = Object.assign (spotDocs, newDocs);
+        return tree;
+    }
+
+
+    // we have separate SPOT docs url, which has different page format and needs to be fetched separately
+    async retrieveSpotDocs () {
+        const spotDocsUrl = 'https://raw.githubusercontent.com/binance/binance-spot-api-docs/master/rest-api.md';
+        const data = await this.fetchData (spotDocsUrl);
         const regex2 = /\n(GET|POST|PUT|DELETE)\s+(.+)((.|\n)*?)Weight(.*?)\s+(\d+)/g;
         const matches = data.matchAll(regex2);
         const matchesArray = [...matches];
@@ -84,71 +101,55 @@ class BinanceSpot extends ParserBase {
                 apiTree[kind][method] = {};
             }
             const path = endpoint.substring(1 + kind.length + 1);
-            apiTree[kind][method][path] = rl * this.rateLimitMultiplier;
+            apiTree[kind][method][path] = rl;
         }
         return apiTree;
     }
 
-}
 
-
-
-
-class BinanceAll extends ParserBase {
-    
-    exchangeId = 'binance';
-    type = 'all';
-    baseUrl = 'https://developers.binance.com';
-    rateLimitMultiplier = 1;
-
-    async init () {
-        await this.retrieveAll ();
-        return this.parseDatas ();
+    // here we fetch all other markets (but ignore included SPOT docs, as we already have it)
+    async retrieveNewDocs () {
+        if (!this.cacheExists ()) {
+            const data = await this.fetchData (this.baseUrl + '/docs/');
+            const mainJsPattern = /<script src="(\/docs\/assets\/js\/main(.*?)\.js)"/g;
+            const match = mainJsPattern.exec(data);
+            if (!match) {
+                throw new Error ('main.js not found');
+            }
+            const mainJs = match[1];
+            const mainJsUrl = this.baseUrl + mainJs;
+            const response = await this.fetchData (mainJsUrl);
+            const regex2 = /\)\.then\(a\.bind\(a,(.*?)"@(.*?)"/g;
+            const matches = response.matchAll(regex2);
+            const matchesArray = [...matches];
+            const skips = ['theme/NotFound', 'autogen_index', '@iterator'];
+            const urls: string[] = [];
+            for (const match of matchesArray) {
+                const arr = [...match];
+                if (arr.length != 3) {
+                    console.log('match length is not 3', arr);
+                    continue;
+                }
+                const path = arr[2];
+                if (skips.some (skip => path.includes (skip))) {
+                    continue;
+                }
+                const url = this.baseUrl + '/' + arr[2].replace('site/', '').replace('.md', '');
+                urls.push(url);
+            }
+            let i = 0;
+            const promises = urls.map(async (url) => {
+                i++;
+                await this.sleep(10 * i);
+                return this.fetchData(url);
+            });
+            const responses = await Promise.all (promises);
+            this.cacheSet (responses);
+        }
+        return this.parseNewDocs ();
     }
 
-    async retrieveAll () {
-        // if fetched once and mtime is less than 12 hour, then cache it temporarily
-        if (this.cacheExists ()) {
-            return;
-        }
-        const data = await this.fetchData (this.baseUrl + '/docs/');
-        const mainJsPattern = /<script src="(\/docs\/assets\/js\/main(.*?)\.js)"/g;
-        const match = mainJsPattern.exec(data);
-        if (!match) {
-            throw new Error ('main.js not found');
-        }
-        const mainJs = match[1];
-        const mainJsUrl = this.baseUrl + mainJs;
-        const response = await this.fetchData (mainJsUrl);
-        const regex2 = /\)\.then\(a\.bind\(a,(.*?)"@(.*?)"/g;
-        const matches = response.matchAll(regex2);
-        const matchesArray = [...matches];
-        const skips = ['theme/NotFound', 'autogen_index', '@iterator'];
-        const urls: string[] = [];
-        for (const match of matchesArray) {
-            const arr = [...match];
-            if (arr.length != 3) {
-                console.log('match length is not 3', arr);
-                continue;
-            }
-            const path = arr[2];
-            if (skips.some (skip => path.includes (skip))) {
-                continue;
-            }
-            const url = this.baseUrl + '/' + arr[2].replace('site/', '').replace('.md', '');
-            urls.push(url);
-        }
-        let i = 0;
-        const promises = urls.map(async (url) => {
-            i++;
-            await this.sleep(10 * i);
-            return this.fetchData(url);
-          });
-        const responses = await Promise.all (promises);
-        this.cacheSet (responses);
-    }
-
-    parseDatas() {
+    parseNewDocs() {
         const responses = this.cacheGet ();
         const apiTree = {};
         const skipedUrls = [ 'binance-spot-api-docs/rest-api', 'binance-spot-api-docs/testnet/rest-api', '/docs/spot/en', '/change-log' ];
@@ -204,20 +205,19 @@ class BinanceAll extends ParserBase {
                 if (!(path in apiTree[kind][reqMethod])) {
                     apiTree[kind][reqMethod][path] = rateLimit;
                 } else {
-                    console.log('duplicate path',  kind, reqMethod, path); // seems only for coinm-vs-usdm
+                    if (this.verbose) {
+                        console.log('duplicate path',  kind, reqMethod, path, mainUrl); // seems only few exceptions
+                    }
                 }
             }
         }
-        delete apiTree['futures']; // odd
-        debugger;
+        delete apiTree['futures']; // it's odd atm
+        return apiTree;
     }
 }
 
 
 
-const binSpot = new BinanceSpot();
-const binAll = new BinanceAll();
-await binAll.init ();
-const tree =  bin.parseDatas ();
+const tree = await (new BinanceAll()).init ();
 // comment below
 console.log(JSON.stringify(tree, null, 2));
