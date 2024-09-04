@@ -458,29 +458,19 @@ export default class okx extends okxRest {
         //     }
         //
         const arg = this.safeValue (message, 'arg', {});
+        const marketId = this.safeString (arg, 'instId');
+        const market = this.safeMarket (marketId, undefined, '-');
+        const symbol = market['symbol'];
         const channel = this.safeString (arg, 'channel');
         const data = this.safeValue (message, 'data', []);
         const newTickers = [];
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseTicker (data[i]);
-            const symbol = ticker['symbol'];
             this.tickers[symbol] = ticker;
             newTickers.push (ticker);
         }
-        const messageHashes = this.findMessageHashes (client, channel + '::');
-        for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            const parts = messageHash.split ('::');
-            const symbolsString = parts[1];
-            const symbols = symbolsString.split (',');
-            const tickers = this.filterByArray (newTickers, 'symbol', symbols);
-            const tickersSymbols = Object.keys (tickers);
-            const numTickers = tickersSymbols.length;
-            if (numTickers > 0) {
-                client.resolve (tickers, messageHash);
-            }
-        }
-        return message;
+        const messageHash = channel + '::' + symbol;
+        client.resolve (newTickers, messageHash);
     }
 
     async watchLiquidationsForSymbols (symbols: string[] = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Liquidation[]> {
@@ -1549,6 +1539,9 @@ export default class okx extends okxRest {
         //    }
         //
         const arg = this.safeValue (message, 'arg', {});
+        const marketId = this.safeString (arg, 'instId');
+        const market = this.safeMarket (marketId, undefined, '-');
+        const symbol = market['symbol'];
         const channel = this.safeString (arg, 'channel', '');
         const data = this.safeValue (message, 'data', []);
         if (this.positions === undefined) {
@@ -1569,18 +1562,11 @@ export default class okx extends okxRest {
             newPositions.push (position);
             cache.append (position);
         }
-        const messageHashes = this.findMessageHashes (client, channel + '::');
-        for (let i = 0; i < messageHashes.length; i++) {
-            const messageHash = messageHashes[i];
-            const parts = messageHash.split ('::');
-            const symbolsString = parts[1];
-            const symbols = symbolsString.split (',');
-            const positions = this.filterByArray (newPositions, 'symbol', symbols, false);
-            if (!this.isEmpty (positions)) {
-                client.resolve (positions, messageHash);
-            }
+        let messageHash = channel;
+        if (symbol !== undefined) {
+            messageHash = channel + '::' + symbol;
         }
-        client.resolve (newPositions, channel);
+        client.resolve (newPositions, messageHash);
     }
 
     async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
