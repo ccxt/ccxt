@@ -2302,7 +2302,7 @@ export default class hyperliquid extends Exchange {
         //
         const entry = this.safeDict (position, 'position', {});
         const coin = this.safeString (entry, 'coin');
-        const marketId = coin + '/USDC:USDC';
+        const marketId = this.coinToMarketId (coin);
         market = this.safeMarket (marketId, undefined);
         const symbol = market['symbol'];
         const leverage = this.safeDict (entry, 'leverage', {});
