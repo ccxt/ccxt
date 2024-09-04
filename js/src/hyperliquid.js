@@ -1985,12 +1985,7 @@ export default class hyperliquid extends Exchange {
         const coin = this.safeString(entry, 'coin');
         let marketId = undefined;
         if (coin !== undefined) {
-            if (coin.indexOf('/') > -1) {
-                marketId = coin;
-            }
-            else {
-                marketId = coin + '/USDC:USDC';
-            }
+            marketId = this.coinToMarketId(coin);
         }
         if (this.safeString(entry, 'id') === undefined) {
             market = this.safeMarket(marketId, undefined);
@@ -2127,7 +2122,7 @@ export default class hyperliquid extends Exchange {
         const price = this.safeString(trade, 'px');
         const amount = this.safeString(trade, 'sz');
         const coin = this.safeString(trade, 'coin');
-        const marketId = coin + '/USDC:USDC';
+        const marketId = this.coinToMarketId(coin);
         market = this.safeMarket(marketId, undefined);
         const symbol = market['symbol'];
         const id = this.safeString(trade, 'tid');
@@ -2267,7 +2262,7 @@ export default class hyperliquid extends Exchange {
         //
         const entry = this.safeDict(position, 'position', {});
         const coin = this.safeString(entry, 'coin');
-        const marketId = coin + '/USDC:USDC';
+        const marketId = this.coinToMarketId(coin);
         market = this.safeMarket(marketId, undefined);
         const symbol = market['symbol'];
         const leverage = this.safeDict(entry, 'leverage', {});
@@ -3011,7 +3006,7 @@ export default class hyperliquid extends Exchange {
         throw new ArgumentsRequired(this.id + ' ' + methodName + '() requires a user parameter inside \'params\' or the wallet address set');
     }
     coinToMarketId(coin) {
-        if (coin.indexOf('/') > -1) {
+        if (coin.indexOf('/') > -1 || coin.indexOf('@') > -1) {
             return coin; // spot
         }
         return coin + '/USDC:USDC';

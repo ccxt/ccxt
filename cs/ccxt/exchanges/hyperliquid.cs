@@ -2154,13 +2154,7 @@ public partial class hyperliquid : Exchange
         object marketId = null;
         if (isTrue(!isEqual(coin, null)))
         {
-            if (isTrue(isGreaterThan(getIndexOf(coin, "/"), -1)))
-            {
-                marketId = coin;
-            } else
-            {
-                marketId = add(coin, "/USDC:USDC");
-            }
+            marketId = this.coinToMarketId(coin);
         }
         if (isTrue(isEqual(this.safeString(entry, "id"), null)))
         {
@@ -2312,7 +2306,7 @@ public partial class hyperliquid : Exchange
         object price = this.safeString(trade, "px");
         object amount = this.safeString(trade, "sz");
         object coin = this.safeString(trade, "coin");
-        object marketId = add(coin, "/USDC:USDC");
+        object marketId = this.coinToMarketId(coin);
         market = this.safeMarket(marketId, null);
         object symbol = getValue(market, "symbol");
         object id = this.safeString(trade, "tid");
@@ -2467,7 +2461,7 @@ public partial class hyperliquid : Exchange
         //
         object entry = this.safeDict(position, "position", new Dictionary<string, object>() {});
         object coin = this.safeString(entry, "coin");
-        object marketId = add(coin, "/USDC:USDC");
+        object marketId = this.coinToMarketId(coin);
         market = this.safeMarket(marketId, null);
         object symbol = getValue(market, "symbol");
         object leverage = this.safeDict(entry, "leverage", new Dictionary<string, object>() {});
@@ -3304,7 +3298,7 @@ public partial class hyperliquid : Exchange
 
     public virtual object coinToMarketId(object coin)
     {
-        if (isTrue(isGreaterThan(getIndexOf(coin, "/"), -1)))
+        if (isTrue(isTrue(isGreaterThan(getIndexOf(coin, "/"), -1)) || isTrue(isGreaterThan(getIndexOf(coin, "@"), -1))))
         {
             return coin;  // spot
         }

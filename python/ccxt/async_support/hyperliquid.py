@@ -1883,10 +1883,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         coin = self.safe_string(entry, 'coin')
         marketId = None
         if coin is not None:
-            if coin.find('/') > -1:
-                marketId = coin
-            else:
-                marketId = coin + '/USDC:USDC'
+            marketId = self.coin_to_market_id(coin)
         if self.safe_string(entry, 'id') is None:
             market = self.safe_market(marketId, None)
         else:
@@ -2014,7 +2011,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         price = self.safe_string(trade, 'px')
         amount = self.safe_string(trade, 'sz')
         coin = self.safe_string(trade, 'coin')
-        marketId = coin + '/USDC:USDC'
+        marketId = self.coin_to_market_id(coin)
         market = self.safe_market(marketId, None)
         symbol = market['symbol']
         id = self.safe_string(trade, 'tid')
@@ -2148,7 +2145,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         #
         entry = self.safe_dict(position, 'position', {})
         coin = self.safe_string(entry, 'coin')
-        marketId = coin + '/USDC:USDC'
+        marketId = self.coin_to_market_id(coin)
         market = self.safe_market(marketId, None)
         symbol = market['symbol']
         leverage = self.safe_dict(entry, 'leverage', {})
@@ -2839,7 +2836,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a user parameter inside \'params\' or the wallet address set')
 
     def coin_to_market_id(self, coin: Str):
-        if coin.find('/') > -1:
+        if coin.find('/') > -1 or coin.find('@') > -1:
             return coin  # spot
         return coin + '/USDC:USDC'
 

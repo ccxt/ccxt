@@ -606,6 +606,8 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#fetchStatus
         * @description the latest known information on the availability of the exchange API
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#test-connectivity
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
         */
@@ -649,6 +651,8 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#fetchTime
         * @description fetches the current integer timestamp in milliseconds from the exchange server
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#check-server-time
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {int} the current integer timestamp in milliseconds from the exchange server
         */
@@ -838,6 +842,8 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#fetchMarkets
         * @description retrieves data on all markets for mexc
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} an array of objects representing market data
         */
