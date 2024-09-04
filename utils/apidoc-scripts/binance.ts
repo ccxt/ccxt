@@ -70,7 +70,7 @@ class binance extends ParserBase {
                 console.log('match length is not 7', match);
                 continue;
             }
-            const method = match[1];
+            const reqMethod = match[1].toLowerCase ();
             const endpoint = match[2]; // sometimes needed
             // eg: path = '/sapi/v2/account/balance'
             const parts = endpoint.split ('/');
@@ -78,11 +78,11 @@ class binance extends ParserBase {
             if (!(kind in apiTree)) {
                 apiTree[kind] = {};
             }
-            if (!(method in apiTree[kind])) {
-                apiTree[kind][method] = {};
+            if (!(reqMethod in apiTree[kind])) {
+                apiTree[kind][reqMethod] = {};
             }
             const path = endpoint.substring(1 + kind.length + 1);
-            apiTree[kind][method][path] = this.rateLimitValue (kind, match[6]);
+            apiTree[kind][reqMethod][path] = this.rateLimitValue (kind, match[6]);
         }
         return apiTree;
     }
@@ -165,7 +165,7 @@ class binance extends ParserBase {
                 // 1 = '/sapi/v1/algo/futures/newOrderVp'
                 // 2 = 'UID'
                 // 3 = '300'
-                const reqMethod = match[0];
+                const reqMethod = match[0].toLowerCase ();
                 const rawEndpoint = match[1];
                 const isUID = match[2].includes('UID');
                 const rateLimit = match[4];
