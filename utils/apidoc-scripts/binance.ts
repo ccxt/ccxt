@@ -2,11 +2,6 @@
 import ParserBase from './_base';
 
 
-const RateLimitBase = 10;
-
-
-
-
 
 class binance extends ParserBase {
 
@@ -19,7 +14,9 @@ class binance extends ParserBase {
         'papi': 'https://fapi.binance.com/fapi/v1/exchangeInfo', // seems belongs to futures api, even though separate url
     };
 
-    RateLimits = {};
+    RateLimitBaseValue = 10; // hardcoded
+    RateLimitBases = {}; // will be filled dynamically
+
 
     async init () {
         await this.initRateLimitValues ();
@@ -46,9 +43,19 @@ class binance extends ParserBase {
             const limit = minuteInfo['limit'];
             const callsPer1000Ms = limit / 60;
             const oneCallMs = 1000 / callsPer1000Ms;
-            this.RateLimits[type] = oneCallMs;
+            this.RateLimitBases[type] = oneCallMs;
         }
     }
+
+    rateLimitValue (type, weightNum) {
+        if (weightNum === undefined) {
+            return undefined;
+        }
+        const weight = parseInt (weightNum);
+        const multiplier = this.RateLimitBases[type] / this.RateLimitBaseValue;
+        return weight * multiplier;
+    }
+
 
     // we have separate SPOT docs url, which has different page format and needs to be fetched separately
     async retrieveSpotDocs () {
@@ -71,12 +78,11 @@ class binance extends ParserBase {
             if (!(kind in apiTree)) {
                 apiTree[kind] = {};
             }
-            const rl = parseInt (match[6]);
             if (!(method in apiTree[kind])) {
                 apiTree[kind][method] = {};
             }
             const path = endpoint.substring(1 + kind.length + 1);
-            apiTree[kind][method][path] = rl;
+            apiTree[kind][method][path] = this.rateLimitValue (kind, match[6]);
         }
         return apiTree;
     }
@@ -178,7 +184,7 @@ class binance extends ParserBase {
                 }
                 const path = endpoint.substring(1 + kind.length + 1); // remove the prefix (eg '/sapi')
                 if (!(path in apiTree[kind][reqMethod])) {
-                    apiTree[kind][reqMethod][path] = rateLimit;
+                    apiTree[kind][reqMethod][path] = this.rateLimitValue (kind, rateLimit);
                 } else {
                     //console.log('duplicate path',  kind, reqMethod, path, mainUrl); // seems only few exceptions
                 }
