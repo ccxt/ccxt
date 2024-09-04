@@ -47,20 +47,21 @@ class binance extends ParserBase {
         }
     }
 
-    rateLimitValue (type, weightNum, url = undefined) {
-        if (weightNum === undefined) {
-            // for temporary purposes, just to simplify for us to open RL doc manually
-            return url;
-        }
-        const weight = parseInt (weightNum);
+    rateLimitValue (type, weightNum, url = undefined, isPrivateLimit = undefined) {
         const multiplier = this.RateLimitBases[type] / this.RateLimitBaseValue;
-        return weight * multiplier;
+        const rlValue = (weightNum ? parseInt (weightNum) * multiplier : undefined);
+        return {
+            value: rlValue,
+            url: url,
+            isAccountRL: (isPrivateLimit === true ? true: undefined) // only set to true if we are sure. otherwise undefined
+        };
     }
 
 
     // we have separate SPOT docs url, which has different page format and needs to be fetched separately
     async retrieveSpotDocs () {
-        const spotDocsUrl = 'https://raw.githubusercontent.com/binance/binance-spot-api-docs/master/rest-api.md';
+        const webLink = 'https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md'
+        const spotDocsUrl = webLink.replace('github.com', 'raw.githubusercontent.com').replace('blob/', '');
         const data = await this.fetchData (spotDocsUrl);
         const regex2 = /\n(GET|POST|PUT|DELETE)\s+(.+)((.|\n)*?)Weight(.*?)\s+(\d+)/g;
         const matches = data.matchAll(regex2);
@@ -83,7 +84,7 @@ class binance extends ParserBase {
                 apiTree[kind][reqMethod] = {};
             }
             const path = endpoint.substring(1 + kind.length + 1);
-            apiTree[kind][reqMethod][path] = this.rateLimitValue (kind, match[6]);
+            apiTree[kind][reqMethod][path] = this.rateLimitValue (kind, match[6], webLink);
         }
         return apiTree;
     }
@@ -168,7 +169,7 @@ class binance extends ParserBase {
                 // 3 = '300'
                 const reqMethod = match[0].toLowerCase ();
                 const rawEndpoint = match[1];
-                const isUID = match[2].includes('UID');
+                const isPrivateLimit = match[2].includes('UID');
                 const rateLimit = match[4];
                 //
                 if (!rawEndpoint.includes('/')) {
@@ -185,7 +186,7 @@ class binance extends ParserBase {
                 }
                 const path = endpoint.substring(1 + kind.length + 1); // remove the prefix (eg '/sapi')
                 if (!(path in apiTree[kind][reqMethod])) {
-                    apiTree[kind][reqMethod][path] = this.rateLimitValue (kind, rateLimit, mainUrl);
+                    apiTree[kind][reqMethod][path] = this.rateLimitValue (kind, rateLimit, mainUrl, isPrivateLimit);
                 } else {
                     //console.log('duplicate path',  kind, reqMethod, path, mainUrl); // seems only few exceptions
                 }
