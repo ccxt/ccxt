@@ -1499,7 +1499,8 @@ class kucoinfutures(kucoin):
         isActive = self.safe_value(order, 'isActive', False)
         cancelExist = self.safe_value(order, 'cancelExist', False)
         status = 'open' if isActive else 'closed'
-        status = 'canceled' if cancelExist else status
+        if status == 'closed' and cancelExist:
+            status = 'canceled'
         fee = {
             'currency': feeCurrency,
             'cost': feeCost,
