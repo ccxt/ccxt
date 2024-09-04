@@ -2019,11 +2019,7 @@ class hyperliquid extends Exchange {
         $coin = $this->safe_string($entry, 'coin');
         $marketId = null;
         if ($coin !== null) {
-            if (mb_strpos($coin, '/') > -1) {
-                $marketId = $coin;
-            } else {
-                $marketId = $coin . '/USDC:USDC';
-            }
+            $marketId = $this->coin_to_market_id($coin);
         }
         if ($this->safe_string($entry, 'id') === null) {
             $market = $this->safe_market($marketId, null);
@@ -2162,7 +2158,7 @@ class hyperliquid extends Exchange {
         $price = $this->safe_string($trade, 'px');
         $amount = $this->safe_string($trade, 'sz');
         $coin = $this->safe_string($trade, 'coin');
-        $marketId = $coin . '/USDC:USDC';
+        $marketId = $this->coin_to_market_id($coin);
         $market = $this->safe_market($marketId, null);
         $symbol = $market['symbol'];
         $id = $this->safe_string($trade, 'tid');
@@ -2305,7 +2301,7 @@ class hyperliquid extends Exchange {
         //
         $entry = $this->safe_dict($position, 'position', array());
         $coin = $this->safe_string($entry, 'coin');
-        $marketId = $coin . '/USDC:USDC';
+        $marketId = $this->coin_to_market_id($coin);
         $market = $this->safe_market($marketId, null);
         $symbol = $market['symbol'];
         $leverage = $this->safe_dict($entry, 'leverage', array());
@@ -3070,7 +3066,7 @@ class hyperliquid extends Exchange {
     }
 
     public function coin_to_market_id(?string $coin) {
-        if (mb_strpos($coin, '/') > -1) {
+        if (mb_strpos($coin, '/') > -1 || mb_strpos($coin, '@') > -1) {
             return $coin; // spot
         }
         return $coin . '/USDC:USDC';

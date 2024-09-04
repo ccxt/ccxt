@@ -73,6 +73,74 @@
                         ]
                     }
                 ]
+            },
+            {
+                "description": "user trades",
+                "method": "fetchMyTrades",
+                "input": [
+                    "PURR/USDC",
+                    null,
+                    1
+                ],
+                "httpResponse": [
+                  {
+                    "coin": "PURR/USDC",
+                    "px": "0.9641",
+                    "sz": "49.0",
+                    "side": "A",
+                    "time": 1724762433070,
+                    "startPosition": "49.98251",
+                    "dir": "Sell",
+                    "closedPnl": "-0.489055",
+                    "hash": "0xbad70c993ee12880ecca040f594b120109003159efb9e090eccb4868a17d56cd",
+                    "oid": 13981880088,
+                    "crossed": true,
+                    "fee": "0.016534",
+                    "tid": 1107801776196793,
+                    "feeToken": "USDC"
+                  }
+                ],
+                "parsedResponse": [
+                    {
+                      "info": {
+                          "coin": "PURR/USDC",
+                          "px": "0.9641",
+                          "sz": "49.0",
+                          "side": "A",
+                          "time": 1724762433070,
+                          "startPosition": "49.98251",
+                          "dir": "Sell",
+                          "closedPnl": "-0.489055",
+                          "hash": "0xbad70c993ee12880ecca040f594b120109003159efb9e090eccb4868a17d56cd",
+                          "oid": 13981880088,
+                          "crossed": true,
+                          "fee": "0.016534",
+                          "tid": 1107801776196793,
+                          "feeToken": "USDC"
+                      },
+                      "timestamp": 1724762433070,
+                      "datetime": "2024-08-27T12:40:33.070Z",
+                      "symbol": "PURR/USDC",
+                      "id": "1107801776196793",
+                      "order": "13981880088",
+                      "type": null,
+                      "side": "sell",
+                      "takerOrMaker": null,
+                      "price": 0.9641,
+                      "amount": 49.0,
+                      "cost": 47.2409,
+                      "fee": {
+                          "currency": "USDC",
+                          "cost": 0.016534
+                      },
+                      "fees": [
+                          {
+                              "currency": "USDC",
+                              "cost": 0.016534
+                          }
+                      ]
+                  }
+                ]
             }
         ],
         "fetchClosedOrders": [

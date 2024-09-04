@@ -2527,8 +2527,8 @@ export default class bybit extends bybitRest {
                     const error = new UnsubscribeError (this.id + ' ' + messageHash);
                     client.reject (error, subHash);
                     client.resolve (true, unsubHash);
-                    this.cleanCache (subscription);
                 }
+                this.cleanCache (subscription);
             }
         }
         return message;
