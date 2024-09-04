@@ -1,6 +1,7 @@
+// once there was also swagger version, but it was outdated and I've removed it in this commit: https://github.com/ccxt/ccxt/pull/23632/commits/1d7bd4e14a6baa1e56649c7f3ef9d4b06882611d
+
 
 import ParserBase from './_base';
-
 
 class binance extends ParserBase {
 
@@ -193,7 +194,6 @@ class binance extends ParserBase {
         return apiTree;
     }
 
-    // swagger parser (outdated) removed in this commit: https://github.com/ccxt/ccxt/pull/23632/commits/1d7bd4e14a6baa1e56649c7f3ef9d4b06882611d
 }
 
 
