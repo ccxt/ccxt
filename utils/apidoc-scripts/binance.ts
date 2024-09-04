@@ -61,8 +61,8 @@ class binance extends ParserBase {
     // we have separate SPOT docs url, which has different page format and needs to be fetched separately
     async retrieveSpotDocs () {
         const webLink = 'https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md'
-        const spotDocsUrl = webLink.replace('github.com', 'raw.githubusercontent.com').replace('blob/', '');
-        const data = await this.fetchData (spotDocsUrl);
+        const sourceUrl = webLink.replace('github.com', 'raw.githubusercontent.com').replace('blob/', '');
+        const data = await this.fetchData (sourceUrl);
         const regex2 = /\n(GET|POST|PUT|DELETE)\s+(.+)((.|\n)*?)Weight(.*?)\s+(\d+)/g;
         const matches = data.matchAll(regex2);
         const matchesArray = [...matches];
