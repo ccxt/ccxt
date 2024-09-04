@@ -2,11 +2,11 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/coincatch.js';
-import { NotSupported } from './base/errors.js';
+import { ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Bool, Currency, Currencies, Dict, FundingRate, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Bool, Currency, Currencies, Dict, FundingRate, FundingRateHistory, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1404,6 +1404,84 @@ export default class coincatch extends Exchange {
             'previousFundingTimestamp': undefined,
             'previousFundingDatetime': undefined,
         };
+    }
+
+    handleOptionParamsAndRequest (params: object, methodName: string, optionName: string, request: object, requestProperty: string, defaultValue = undefined) {
+        const [ option, paramsOmited ] = this.handleOptionAndParams (params, methodName, optionName, defaultValue);
+        if (option !== undefined) {
+            request[requestProperty] = option;
+        }
+        return [ request, paramsOmited ];
+    }
+
+    async fetchFundingRateHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+        /**
+         * @method
+         * @name coincatch#fetchFundingRateHistory
+         * @description fetches historical funding rate prices
+         * @see https://coincatch.github.io/github.io/en/mix/#get-history-funding-rate
+         * @param {string} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
+         * @param {int} [limit] the maximum amount of entries to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
+         * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/#/?id=funding-rate-history-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        const methodName = 'fetchFundingRateHistory';
+        await this.loadMarkets ();
+        const timeframe = '8h';
+        const maxEntriesPerRequest = 100;
+        let paginate = false;
+        [ paginate, params ] = this.handleOptionAndParams (params, methodName, 'paginate');
+        if (paginate) {
+            return await this.fetchPaginatedCallDeterministic (methodName, symbol, since, limit, timeframe, params, maxEntriesPerRequest) as FundingRateHistory[];
+        }
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            const timeDelta = this.milliseconds () - since;
+            const duration = this.parseTimeframe (timeframe);
+            const pageNo = this.parseToInt (timeDelta / (duration * maxEntriesPerRequest * 1000));
+            request['pageNo'] = pageNo;
+        }
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        const response = await this.publicGetApiMixV1MarketHistoryFundRate (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1725455810888,
+        //         "data": [
+        //             {
+        //                 "symbol": "BTCUSD",
+        //                 "fundingRate": "0.000635",
+        //                 "settleTime": "1724889600000"
+        //             }
+        //         ]
+        //     }
+        //
+        const data = this.safeList (response, 'data', []);
+        const rates = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const timestamp = this.safeInteger (entry, 'settleTime');
+            rates.push ({
+                'info': entry,
+                'symbol': this.safeSymbol (this.safeString (entry, 'symbol'), market, undefined, 'swap'),
+                'fundingRate': this.safeNumber (entry, 'fundingRate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySinceLimit (sorted, since, limit) as FundingRateHistory[];
     }
 
     async fetchBalance (params = {}): Promise<Balances> {
