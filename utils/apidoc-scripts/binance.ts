@@ -1,12 +1,21 @@
 
 import ParserBase from './_base';
 
-class BinanceAll extends ParserBase {
-    
-    exchangeId = 'binance';
-    type = 'all';
 
-    verbose = false;
+
+
+
+
+class binance extends ParserBase {
+
+    RateLimitBases = {
+        'api': 10, // 6000 req/s ( https://api.binance.com/api/v3/exchangeInfo )
+        'sapi': 10, // same
+        'dapi': 25, // 2400 req/s ( https://dapi.binance.com/dapi/v1/exchangeInfo )
+        'fapi': 25, // 2400 req/s ( https://fapi.binance.com/fapi/v1/exchangeInfo )
+        'eapi': 150, // 400 req/s ( https://eapi.binance.com/eapi/v1/exchangeInfo )
+        'papi': 25, // seems belongs to futures api, even though separate url
+    };
 
     async init () {
         const newDocs = await this.retrieveNewDocs ();
@@ -146,9 +155,7 @@ class BinanceAll extends ParserBase {
                 if (!(path in apiTree[kind][reqMethod])) {
                     apiTree[kind][reqMethod][path] = rateLimit;
                 } else {
-                    if (this.verbose) {
-                        console.log('duplicate path',  kind, reqMethod, path, mainUrl); // seems only few exceptions
-                    }
+                    //console.log('duplicate path',  kind, reqMethod, path, mainUrl); // seems only few exceptions
                 }
             }
         }
@@ -159,6 +166,6 @@ class BinanceAll extends ParserBase {
 
 
 
-const tree = await (new BinanceAll()).init ();
+const tree = await (new binance()).init ();
 // comment below
 console.log(JSON.stringify(tree, null, 2));
