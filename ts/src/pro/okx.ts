@@ -465,11 +465,11 @@ export default class okx extends okxRest {
         const symbol = market['symbol'];
         const channel = this.safeString (arg, 'channel');
         const data = this.safeValue (message, 'data', []);
-        const newTickers = [];
+        const newTickers: Dict = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseTicker (data[i]);
             this.tickers[symbol] = ticker;
-            newTickers.push (ticker);
+            newTickers[symbol] = ticker;
         }
         const messageHash = channel + '::' + symbol;
         client.resolve (newTickers, messageHash);
