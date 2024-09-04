@@ -557,6 +557,29 @@ export default class cryptocom extends cryptocomRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
+    async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
+        /**
+         * @method
+         * @name cryptocom#unWatchOHLCV
+         * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#candlestick-time_frame-instrument_name
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
+        const subMessageHash = 'candlestick' + '.' + interval + '.' + market['id'];
+        const messageHash = 'unsubscribe:ohlcv:' + market['symbol'] + ':' + timeframe;
+        const subExtend = {
+            'symbolsAndTimeframes': [ [ market['symbol'], timeframe ] ],
+        };
+        return await this.unWatchPublicMultiple ('ohlcv', [ market['symbol'] ], [ messageHash ], [ subMessageHash ], [ subMessageHash ], params, subExtend);
+    }
+
     handleOHLCV (client: Client, message) {
         //
         //  {
@@ -1002,7 +1025,7 @@ export default class cryptocom extends cryptocomRest {
         return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
-    async unWatchPublicMultiple (topic: string, symbols: string[], messageHashes: string[], subMessageHashes: string[], topics: string[], params = {}) {
+    async unWatchPublicMultiple (topic: string, symbols: string[], messageHashes: string[], subMessageHashes: string[], topics: string[], params = {}, subExtend = {}) {
         const url = this.urls['api']['ws']['public'];
         const id = this.nonce ();
         const request: Dict = {
@@ -1021,7 +1044,7 @@ export default class cryptocom extends cryptocomRest {
             'messageHashes': messageHashes,
         };
         const message = this.deepExtend (request, params);
-        return await this.watchMultiple (url, messageHashes, message, messageHashes, subscription);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes, this.extend (subscription, subExtend));
     }
 
     async watchPrivateRequest (nonce, params = {}) {
@@ -1245,7 +1268,17 @@ export default class cryptocom extends cryptocomRest {
         const topic = this.safeString (subscription, 'topic');
         const symbols = this.safeList (subscription, 'symbols', []);
         const symbolsLength = symbols.length;
-        if (symbolsLength > 0) {
+        if (topic === 'ohlcv') {
+            const symbolsAndTimeFrames = this.safeList (subscription, 'symbolsAndTimeframes', []);
+            for (let i = 0; i < symbolsAndTimeFrames.length; i++) {
+                const symbolAndTimeFrame = symbolsAndTimeFrames[i];
+                const symbol = this.safeString (symbolAndTimeFrame, 0);
+                const timeframe = this.safeString (symbolAndTimeFrame, 1);
+                if (timeframe in this.ohlcvs[symbol]) {
+                    delete this.ohlcvs[symbol][timeframe];
+                }
+            }
+        } else if (symbolsLength > 0) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 if (topic === 'trade') {

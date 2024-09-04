@@ -1061,7 +1061,9 @@ export default class binance extends binanceRest {
                 const symbolAndTimeFrame = symbolsAndTimeFrames[i];
                 const symbol = this.safeString (symbolAndTimeFrame, 0);
                 const timeframe = this.safeString (symbolAndTimeFrame, 1);
-                delete this.ohlcvs[symbol][timeframe];
+                if (timeframe in this.ohlcvs[symbol]) {
+                    delete this.ohlcvs[symbol][timeframe];
+                }
             }
         } else if (symbolsLength > 0) {
             for (let i = 0; i < symbols.length; i++) {
