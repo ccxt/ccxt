@@ -1,69 +1,10 @@
-import fs from 'fs';
-import { fileURLToPath, pathToFileURL } from 'url';
-const DIR_NAME = fileURLToPath (new URL ('.', import.meta.url));
-class ParserBase {
-    
-    exchangeId = '';
-    type = '';
-    url = '';
-    baseUrl = '';
-    rateLimitMultiplier = 0;
 
-    async fetchData (url) {
-        if (!url) {
-            throw new Error ('URL not set');
-        }
-        const response = await fetch (url);
-        const data = await response.text ();
-        return data;
-    }
-
-    async sleep (ms) {
-        return new Promise (resolve => setTimeout (resolve, ms));
-    }
-
-    stripTags (input) {
-        return input.replace(/<[^>]*>?/gm, '');
-    }
-
-    sanitizeEndpoint (input) {
-        const sanitized = this.stripTags(input).trim ();
-        // add slash in the beginning
-        return sanitized.startsWith ('/') ? sanitized : '/' + sanitized;
-    }
-
-
-
-    // cache methods
-    cachePath () {
-        // get constructor name
-        return DIR_NAME + '/' + this.exchangeId + '-' + this.type + '-cache.json';
-    }
-
-    cacheExists () {
-        // if fetched once and mtime is less than 12 hour, then cache it temporarily
-        const cacheHours = 12;
-        return (fs.existsSync (this.cachePath()) && fs.statSync (this.cachePath()).mtimeMs > Date.now () - cacheHours * 60 * 60 * 1000);
-    }
-    
-    cacheSet (data) {
-        fs.writeFileSync (this.cachePath(), JSON.stringify(data, null, 2));
-    }
-
-    cacheGet () {
-        const filedata = fs.readFileSync(this.cachePath(), 'utf8');
-        return JSON.parse(filedata);
-    }
-}
-
-
-
+import ParserBase from './_base';
 
 class BinanceAll extends ParserBase {
     
     exchangeId = 'binance';
     type = 'all';
-    baseUrl = 'https://developers.binance.com';
 
     verbose = false;
 
@@ -109,15 +50,16 @@ class BinanceAll extends ParserBase {
 
     // here we fetch all other markets (but ignore included SPOT docs, as we already have it)
     async retrieveNewDocs () {
+        const baseUrl = 'https://developers.binance.com';
         if (!this.cacheExists ()) {
-            const data = await this.fetchData (this.baseUrl + '/docs/');
+            const data = await this.fetchData (baseUrl + '/docs/');
             const mainJsPattern = /<script src="(\/docs\/assets\/js\/main(.*?)\.js)"/g;
             const match = mainJsPattern.exec(data);
             if (!match) {
                 throw new Error ('main.js not found');
             }
             const mainJs = match[1];
-            const mainJsUrl = this.baseUrl + mainJs;
+            const mainJsUrl = baseUrl + mainJs;
             const response = await this.fetchData (mainJsUrl);
             const regex2 = /\)\.then\(a\.bind\(a,(.*?)"@(.*?)"/g;
             const matches = response.matchAll(regex2);
@@ -134,7 +76,7 @@ class BinanceAll extends ParserBase {
                 if (skips.some (skip => path.includes (skip))) {
                     continue;
                 }
-                const url = this.baseUrl + '/' + arr[2].replace('site/', '').replace('.md', '');
+                const url = baseUrl + '/' + arr[2].replace('site/', '').replace('.md', '');
                 urls.push(url);
             }
             let i = 0;
@@ -154,7 +96,6 @@ class BinanceAll extends ParserBase {
         const apiTree = {};
         const skipedUrls = [ 'binance-spot-api-docs/rest-api', 'binance-spot-api-docs/testnet/rest-api', '/docs/spot/en', '/change-log' ];
         for (const res of responses) {
-            // regex match url in res: 'property="og:url" content="https://developers.binance.com/docs/derivatives/change-log"'
             const regex = /property="og:url" content="(.*?)"/g;
             let mainUrl = regex.exec(res);
             if (!mainUrl) {
@@ -201,7 +142,7 @@ class BinanceAll extends ParserBase {
                 if (!(reqMethod in apiTree[kind])) {
                     apiTree[kind][reqMethod] = {};
                 }
-                const path = endpoint.substring(1 + kind.length + 1);
+                const path = endpoint.substring(1 + kind.length + 1); // remove the prefix (eg '/sapi')
                 if (!(path in apiTree[kind][reqMethod])) {
                     apiTree[kind][reqMethod][path] = rateLimit;
                 } else {
