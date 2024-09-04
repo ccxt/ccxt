@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import cryptocomRest from '../cryptocom.js';
-import { AuthenticationError, ChecksumError, ExchangeError, NetworkError } from '../base/errors.js';
+import { AuthenticationError, ChecksumError, ExchangeError, NetworkError, UnsubscribeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, OHLCV, Position, Balances, Num, Dict } from '../base/types.js';
@@ -257,6 +257,21 @@ export default class cryptocom extends cryptocomRest {
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
+    async unWatchTrades (symbol: string, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name cryptocom#unWatchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        return await this.unWatchTradesForSymbols ([ symbol ], params);
+    }
+
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
@@ -285,6 +300,30 @@ export default class cryptocom extends cryptocomRest {
             limit = trades.getLimit (tradeSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
+        /**
+         * @method
+         * @name cryptocom#unWatchTradesForSymbols
+         * @description get the list of most recent trades for a particular symbol
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const currentTopic = 'trade' + '.' + market['id'];
+            messageHashes.push ('unsubscribe:trades:' + market['symbol']);
+            topics.push (currentTopic);
+        }
+        return await this.unWatchPublicMultiple ('trade', symbols, messageHashes, topics, topics, params);
     }
 
     handleTrades (client: Client, message) {
@@ -884,6 +923,28 @@ export default class cryptocom extends cryptocomRest {
         return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
+    async unWatchPublicMultiple (topic: string, symbols: string[], messageHashes: string[], subMessageHashes: string[], topics: string[], params = {}) {
+        const url = this.urls['api']['ws']['public'];
+        const id = this.nonce ();
+        const request: Dict = {
+            'method': 'unsubscribe',
+            'params': {
+                'channels': topics,
+            },
+            'nonce': id,
+            'id': id.toString (),
+        };
+        const subscription = {
+            'id': id.toString (),
+            'topic': topic,
+            'symbols': symbols,
+            'subMessageHashes': subMessageHashes,
+            'messageHashes': messageHashes,
+        };
+        const message = this.deepExtend (request, params);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes, subscription);
+    }
+
     async watchPrivateRequest (nonce, params = {}) {
         await this.authenticate ();
         const url = this.urls['api']['ws']['private'];
@@ -1005,6 +1066,9 @@ export default class cryptocom extends cryptocomRest {
         //           "channel":"ticker",
         //           "data":[ { } ]
         //
+        // handle unsubscribe
+        // {"id":1725448572836,"method":"unsubscribe","code":0}
+        //
         if (this.handleErrorMessage (client, message)) {
             return;
         }
@@ -1018,6 +1082,7 @@ export default class cryptocom extends cryptocomRest {
             'private/cancel-all-orders': this.handleCancelAllOrders,
             'private/close-position': this.handleOrder,
             'subscribe': this.handleSubscribe,
+            'unsubscribe': this.handleUnsubscribe,
         };
         const callMethod = this.safeValue (methods, method);
         if (callMethod !== undefined) {
@@ -1060,5 +1125,58 @@ export default class cryptocom extends cryptocomRest {
         //
         const future = this.safeValue (client.futures, 'authenticated');
         future.resolve (true);
+    }
+
+    handleUnsubscribe (client: Client, message) {
+        const id = this.safeString (message, 'id');
+        const keys = Object.keys (client.subscriptions);
+        for (let i = 0; i < keys.length; i++) {
+            const messageHash = keys[i];
+            if (!(messageHash in client.subscriptions)) {
+                continue;
+                // the previous iteration can have deleted the messageHash from the subscriptions
+            }
+            if (messageHash.startsWith ('unsubscribe')) {
+                const subscription = client.subscriptions[messageHash];
+                const subId = this.safeString (subscription, 'id');
+                if (id !== subId) {
+                    continue;
+                }
+                const messageHashes = this.safeList (subscription, 'messageHashes', []);
+                const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+                for (let j = 0; j < messageHashes.length; j++) {
+                    const unsubHash = messageHashes[j];
+                    const subHash = subMessageHashes[j];
+                    if (unsubHash in client.subscriptions) {
+                        delete client.subscriptions[unsubHash];
+                    }
+                    if (subHash in client.subscriptions) {
+                        delete client.subscriptions[subHash];
+                    }
+                    const error = new UnsubscribeError (this.id + ' ' + subHash);
+                    client.reject (error, subHash);
+                    client.resolve (true, unsubHash);
+                }
+                this.cleanCache (subscription);
+            }
+        }
+    }
+
+    cleanCache (subscription: Dict) {
+        const topic = this.safeString (subscription, 'topic');
+        const symbols = this.safeList (subscription, 'symbols', []);
+        const symbolsLength = symbols.length;
+        if (symbolsLength > 0) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                if (topic === 'trade') {
+                    delete this.trades[symbol];
+                } else if (topic === 'orderbook') {
+                    delete this.orderbooks[symbol];
+                } else if (topic === 'ticker') {
+                    delete this.tickers[symbol];
+                }
+            }
+        }
     }
 }
