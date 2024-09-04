@@ -47,9 +47,10 @@ class binance extends ParserBase {
         }
     }
 
-    rateLimitValue (type, weightNum) {
+    rateLimitValue (type, weightNum, url = undefined) {
         if (weightNum === undefined) {
-            return undefined;
+            // for temporary purposes, just to simplify for us to open RL doc manually
+            return url;
         }
         const weight = parseInt (weightNum);
         const multiplier = this.RateLimitBases[type] / this.RateLimitBaseValue;
@@ -184,7 +185,7 @@ class binance extends ParserBase {
                 }
                 const path = endpoint.substring(1 + kind.length + 1); // remove the prefix (eg '/sapi')
                 if (!(path in apiTree[kind][reqMethod])) {
-                    apiTree[kind][reqMethod][path] = this.rateLimitValue (kind, rateLimit);
+                    apiTree[kind][reqMethod][path] = this.rateLimitValue (kind, rateLimit, mainUrl);
                 } else {
                     //console.log('duplicate path',  kind, reqMethod, path, mainUrl); // seems only few exceptions
                 }
