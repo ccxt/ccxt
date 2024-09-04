@@ -1047,8 +1047,8 @@ export default class binance extends binanceRest {
             const error = new UnsubscribeError (this.id + ' ' + subHash);
             client.reject (error, subHash);
             client.resolve (true, unsubHash);
-            this.cleanCache (subscription);
         }
+        this.cleanCache (subscription);
     }
 
     cleanCache (subscription: Dict) {
