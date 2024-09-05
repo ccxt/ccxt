@@ -354,7 +354,7 @@ class binance(Exchange, ImplicitAPI):
                         'capital/deposit/hisrec': 0.1,
                         'capital/deposit/subAddress': 0.1,
                         'capital/deposit/subHisrec': 0.1,
-                        'capital/withdraw/history': 1800,  # Weight(IP): 18000 => cost = 0.1 * 18000 = 1800
+                        'capital/withdraw/history': 2,  # Weight(UID): 18000 + (Additional: 10 requests per second => cost = ( 1000 / rateLimit ) / 10 = 2
                         'capital/withdraw/address/list': 10,
                         'capital/contract/convertible-coins': 4.0002,  # Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
                         'convert/tradeFlow': 20.001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
@@ -3761,12 +3761,14 @@ class binance(Exchange, ImplicitAPI):
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market, None, marketType)
         last = self.safe_string(ticker, 'lastPrice')
+        wAvg = self.safe_string(ticker, 'weightedAvgPrice')
         isCoinm = ('baseVolume' in ticker)
         baseVolume = None
         quoteVolume = None
         if isCoinm:
             baseVolume = self.safe_string(ticker, 'baseVolume')
-            quoteVolume = self.safe_string(ticker, 'volume')
+            # 'volume' field in inverse markets is not quoteVolume, but traded amount(per contracts)
+            quoteVolume = Precise.string_mul(baseVolume, wAvg)
         else:
             baseVolume = self.safe_string(ticker, 'volume')
             quoteVolume = self.safe_string_2(ticker, 'quoteVolume', 'amount')
@@ -3780,7 +3782,7 @@ class binance(Exchange, ImplicitAPI):
             'bidVolume': self.safe_string(ticker, 'bidQty'),
             'ask': self.safe_string(ticker, 'askPrice'),
             'askVolume': self.safe_string(ticker, 'askQty'),
-            'vwap': self.safe_string(ticker, 'weightedAvgPrice'),
+            'vwap': wAvg,
             'open': self.safe_string_2(ticker, 'openPrice', 'open'),
             'close': last,
             'last': last,
@@ -4119,6 +4121,8 @@ class binance(Exchange, ImplicitAPI):
         price = self.safe_string(params, 'price')
         until = self.safe_integer(params, 'until')
         params = self.omit(params, ['price', 'until'])
+        if since is not None and until is not None and limit is None:
+            limit = maxLimit
         limit = defaultLimit if (limit is None) else min(limit, maxLimit)
         request: dict = {
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),

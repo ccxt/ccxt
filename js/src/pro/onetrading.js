@@ -19,6 +19,7 @@ export default class onetrading extends onetradingRest {
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': false,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': true,
                 'watchOrders': true,
                 'watchOrderBook': true,

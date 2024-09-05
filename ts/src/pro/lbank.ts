@@ -20,6 +20,7 @@ export default class lbank extends lbankRest {
                 'watchTicker': true,
                 'watchTickers': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': false,
                 'watchOrders': true,
                 'watchOrderBook': true,
@@ -519,7 +520,7 @@ export default class lbank extends lbankRest {
         /**
          * @method
          * @name lbank#watchOrders
-         * @see https://github.com/LBank-exchange/lbank-official-api-docs/blob/master/API-For-Spot-EN/WebSocket%20API(Asset%20%26%20Order).md#websocketsubscribeunsubscribe
+         * @see https://www.lbank.com/en-US/docs/index.html#update-subscribed-orders
          * @description get the list of trades associated with the user
          * @param {string} [symbol] unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -686,7 +687,7 @@ export default class lbank extends lbankRest {
     async fetchOrderBookWs (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
-         * @name lbank#watchOrderBook
+         * @name lbank#fetchOrderBookWs
          * @see https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
@@ -717,7 +718,6 @@ export default class lbank extends lbankRest {
          * @method
          * @name lbank#watchOrderBook
          * @see https://www.lbank.com/en-US/docs/index.html#market-depth
-         * @see https://www.lbank.com/en-US/docs/index.html#market-increment-depth
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return

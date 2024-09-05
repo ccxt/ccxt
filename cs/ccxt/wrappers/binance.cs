@@ -225,14 +225,20 @@ public partial class binance
     /// fetches the last price for multiple markets
     /// </summary>
     /// <remarks>
-    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=8cb81024-77b5-11ed-9966-0242ac110003"/>  <br/>
-    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=28c2e8fc-77ae-11ed-9966-0242ac110003"/>  <br/>
-    /// See <see href="https://www.htx.com/en-us/opend/newApiPages/?id=5d517ef5-77b6-11ed-9966-0242ac110003"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/binance-spot-api-docs/rest-api#symbol-price-ticker"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Price-Ticker"/>  <br/>
+    /// See <see href="https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Symbol-Price-Ticker"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
     /// <description>
     /// object : extra parameters specific to the exchange API endpoint
+    /// </description>
+    /// </item>
+    /// <item>
+    /// <term>params.subType</term>
+    /// <description>
+    /// string : "linear" or "inverse"
     /// </description>
     /// </item>
     /// </list>

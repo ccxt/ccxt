@@ -167,7 +167,6 @@ public partial class Exchange
                 { "fetchOrdersWs", null },
                 { "fetchOrderTrades", null },
                 { "fetchOrderWs", null },
-                { "fetchPermissions", null },
                 { "fetchPosition", null },
                 { "fetchPositionHistory", null },
                 { "fetchPositionsHistory", null },
@@ -2787,7 +2786,7 @@ public partial class Exchange
                 object currencies = new List<object>(((IDictionary<string,object>)this.currencies).Values);
                 for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
                 {
-                    object currency = new List<object>() {i};
+                    object currency = getValue(currencies, i);
                     object networks = this.safeDict(currency, "networks");
                     object network = this.safeDict(networks, networkCode);
                     networkId = this.safeString(network, "id");
@@ -2970,16 +2969,17 @@ public partial class Exchange
         });
     }
 
-    public virtual object parseOHLCVs(object ohlcvs, object market = null, object timeframe = null, object since = null, object limit = null)
+    public virtual object parseOHLCVs(object ohlcvs, object market = null, object timeframe = null, object since = null, object limit = null, object tail = null)
     {
         timeframe ??= "1m";
+        tail ??= false;
         object results = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(ohlcvs)); postFixIncrement(ref i))
         {
             ((IList<object>)results).Add(this.parseOHLCV(getValue(ohlcvs, i), market));
         }
         object sorted = this.sortBy(results, 0);
-        return ((object)this.filterBySinceLimit(sorted, since, limit, 0));
+        return ((object)this.filterBySinceLimit(sorted, since, limit, 0, tail));
     }
 
     public virtual object parseLeverageTiers(object response, object symbols = null, object marketIdKey = null)
@@ -3495,12 +3495,6 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         await this.cancelOrderWs(id, symbol);
         return await this.createOrderWs(symbol, type, side, amount, price, parameters);
-    }
-
-    public async virtual Task<object> fetchPermissions(object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " fetchPermissions() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchPosition(object symbol, object parameters = null)
@@ -6270,7 +6264,7 @@ public partial class Exchange
                     errors = 0;
                     result = this.arrayConcat(result, response);
                     object last = this.safeValue(response, subtract(responseLength, 1));
-                    paginationTimestamp = subtract(this.safeInteger(last, "timestamp"), 1);
+                    paginationTimestamp = add(this.safeInteger(last, "timestamp"), 1);
                     if (isTrue(isTrue((!isEqual(until, null))) && isTrue((isGreaterThanOrEqual(paginationTimestamp, until)))))
                     {
                         break;
@@ -6414,7 +6408,7 @@ public partial class Exchange
                 if (isTrue(isEqual(method, "fetchAccounts")))
                 {
                     response = await ((Task<object>)callDynamically(this, method, new object[] { parameters }));
-                } else if (isTrue(isEqual(method, "getLeverageTiersPaginated")))
+                } else if (isTrue(isTrue(isEqual(method, "getLeverageTiersPaginated")) || isTrue(isEqual(method, "fetchPositions"))))
                 {
                     response = await ((Task<object>)callDynamically(this, method, new object[] { symbol, parameters }));
                 } else
@@ -6847,7 +6841,7 @@ public partial class Exchange
         if (isTrue(getValue(this.has, "fetchPositionsHistory")))
         {
             object positions = await this.fetchPositionsHistory(new List<object>() {symbol}, since, limit, parameters);
-            return this.safeDict(positions, 0);
+            return positions;
         } else
         {
             throw new NotSupported ((string)add(this.id, " fetchPositionHistory () is not supported yet")) ;

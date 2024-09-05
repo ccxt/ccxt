@@ -237,7 +237,13 @@ class CancelPending extends OperationFailed {
         this.name = 'CancelPending';
     }
 }
-var errors = { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending };
+class UnsubscribeError extends BaseError {
+    constructor(message) {
+        super(message);
+        this.name = 'UnsubscribeError';
+    }
+}
+var errors = { BaseError, ExchangeError, AuthenticationError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, OperationRejected, NoChange, MarginModeAlreadySet, MarketClosed, ManualInteractionNeeded, InsufficientFunds, InvalidAddress, AddressPending, InvalidOrder, OrderNotFound, OrderNotCached, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, ContractUnavailable, NotSupported, InvalidProxySettings, ExchangeClosedByUser, OperationFailed, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, ChecksumError, RequestTimeout, BadResponse, NullResponse, CancelPending, UnsubscribeError };
 
 exports.AccountNotEnabled = AccountNotEnabled;
 exports.AccountSuspended = AccountSuspended;
@@ -278,4 +284,5 @@ exports.OrderNotFound = OrderNotFound;
 exports.PermissionDenied = PermissionDenied;
 exports.RateLimitExceeded = RateLimitExceeded;
 exports.RequestTimeout = RequestTimeout;
+exports.UnsubscribeError = UnsubscribeError;
 exports["default"] = errors;

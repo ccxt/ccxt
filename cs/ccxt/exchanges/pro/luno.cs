@@ -15,6 +15,7 @@ public partial class luno : ccxt.luno
                 { "watchTicker", false },
                 { "watchTickers", false },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchMyTrades", false },
                 { "watchOrders", null },
                 { "watchOrderBook", true },

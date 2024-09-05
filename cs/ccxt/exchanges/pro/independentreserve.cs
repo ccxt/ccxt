@@ -16,6 +16,7 @@ public partial class independentreserve : ccxt.independentreserve
                 { "watchTicker", false },
                 { "watchTickers", false },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchMyTrades", false },
                 { "watchOrders", false },
                 { "watchOrderBook", true },

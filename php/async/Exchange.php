@@ -44,11 +44,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.3.84';
+$version = '4.3.96';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.3.84';
+    const VERSION = '4.3.96';
 
     public $browser;
     public $marketsLoading = null;
@@ -561,7 +561,6 @@ class Exchange extends \ccxt\Exchange {
                 'fetchOrdersWs' => null,
                 'fetchOrderTrades' => null,
                 'fetchOrderWs' => null,
-                'fetchPermissions' => null,
                 'fetchPosition' => null,
                 'fetchPositionHistory' => null,
                 'fetchPositionsHistory' => null,
@@ -2920,7 +2919,7 @@ class Exchange extends \ccxt\Exchange {
             if ($currencyCode === null) {
                 $currencies = is_array($this->currencies) ? array_values($this->currencies) : array();
                 for ($i = 0; $i < count($currencies); $i++) {
-                    $currency = array( $i );
+                    $currency = $currencies[$i];
                     $networks = $this->safe_dict($currency, 'networks');
                     $network = $this->safe_dict($networks, $networkCode);
                     $networkId = $this->safe_string($network, 'id');
@@ -3065,13 +3064,13 @@ class Exchange extends \ccxt\Exchange {
         );
     }
 
-    public function parse_ohlcvs(mixed $ohlcvs, mixed $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null) {
+    public function parse_ohlcvs(mixed $ohlcvs, mixed $market = null, string $timeframe = '1m', ?int $since = null, ?int $limit = null, Bool $tail = false) {
         $results = array();
         for ($i = 0; $i < count($ohlcvs); $i++) {
             $results[] = $this->parse_ohlcv($ohlcvs[$i], $market);
         }
         $sorted = $this->sort_by($results, 0);
-        return $this->filter_by_since_limit($sorted, $since, $limit, 0);
+        return $this->filter_by_since_limit($sorted, $since, $limit, 0, $tail);
     }
 
     public function parse_leverage_tiers(mixed $response, ?array $symbols = null, $marketIdKey = null) {
@@ -3494,10 +3493,6 @@ class Exchange extends \ccxt\Exchange {
             Async\await($this->cancel_order_ws($id, $symbol));
             return Async\await($this->create_order_ws($symbol, $type, $side, $amount, $price, $params));
         }) ();
-    }
-
-    public function fetch_permissions($params = array ()) {
-        throw new NotSupported($this->id . ' fetchPermissions() is not supported yet');
     }
 
     public function fetch_position(string $symbol, $params = array ()) {
@@ -5891,7 +5886,7 @@ class Exchange extends \ccxt\Exchange {
                         $errors = 0;
                         $result = $this->array_concat($result, $response);
                         $last = $this->safe_value($response, $responseLength - 1);
-                        $paginationTimestamp = $this->safe_integer($last, 'timestamp') - 1;
+                        $paginationTimestamp = $this->safe_integer($last, 'timestamp') + 1;
                         if (($until !== null) && ($paginationTimestamp >= $until)) {
                             break;
                         }
@@ -6000,7 +5995,7 @@ class Exchange extends \ccxt\Exchange {
                     $response = null;
                     if ($method === 'fetchAccounts') {
                         $response = Async\await($this->$method ($params));
-                    } elseif ($method === 'getLeverageTiersPaginated') {
+                    } elseif ($method === 'getLeverageTiersPaginated' || $method === 'fetchPositions') {
                         $response = Async\await($this->$method ($symbol, $params));
                     } else {
                         $response = Async\await($this->$method ($symbol, $since, $maxEntriesPerRequest, $params));
@@ -6351,7 +6346,7 @@ class Exchange extends \ccxt\Exchange {
              */
             if ($this->has['fetchPositionsHistory']) {
                 $positions = Async\await($this->fetch_positions_history(array( $symbol ), $since, $limit, $params));
-                return $this->safe_dict($positions, 0);
+                return $positions;
             } else {
                 throw new NotSupported($this->id . ' fetchPositionHistory () is not supported yet');
             }

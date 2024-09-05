@@ -26,6 +26,7 @@ public partial class poloniexfutures : ccxt.poloniexfutures
                 { "watchTicker", true },
                 { "watchTickers", false },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchBalance", true },
                 { "watchOrders", true },
                 { "watchMyTrades", false },

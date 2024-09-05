@@ -30,7 +30,6 @@ export default class cryptocom extends Exchange {
     withdraw(code: string, amount: number, address: string, tag?: any, params?: {}): Promise<Transaction>;
     fetchDepositAddressesByNetwork(code: string, params?: {}): Promise<Dict>;
     fetchDepositAddress(code: string, params?: {}): Promise<any>;
-    safeNetwork(networkId: any): string;
     fetchDeposits(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     fetchWithdrawals(code?: Str, since?: Int, limit?: Int, params?: {}): Promise<Transaction[]>;
     parseTicker(ticker: Dict, market?: Market): Ticker;

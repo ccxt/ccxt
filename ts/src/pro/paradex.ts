@@ -19,6 +19,7 @@ export default class paradex extends paradexRest {
                 'watchOrderBook': true,
                 'watchOrders': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchBalance': false,
                 'watchOHLCV': false,
             },

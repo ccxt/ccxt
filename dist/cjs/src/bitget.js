@@ -4001,7 +4001,7 @@ class bitget extends bitget$1 {
         if (feeCostString !== undefined) {
             // swap
             fee = {
-                'cost': this.parseNumber(Precise["default"].stringAbs(feeCostString)),
+                'cost': this.parseNumber(Precise["default"].stringNeg(feeCostString)),
                 'currency': market['settle'],
             };
         }
@@ -4018,7 +4018,7 @@ class bitget extends bitget$1 {
                 }
             }
             fee = {
-                'cost': this.parseNumber(Precise["default"].stringAbs(this.safeString(feeObject, 'totalFee'))),
+                'cost': this.parseNumber(Precise["default"].stringNeg(this.safeString(feeObject, 'totalFee'))),
                 'currency': this.safeCurrencyCode(this.safeString(feeObject, 'feeCoinCode')),
             };
         }
@@ -5101,6 +5101,7 @@ class bitget extends bitget$1 {
          * @description fetches information on an order made by the user
          * @see https://www.bitget.com/api-doc/spot/trade/Get-Order-Info
          * @see https://www.bitget.com/api-doc/contract/trade/Get-Order-Details
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

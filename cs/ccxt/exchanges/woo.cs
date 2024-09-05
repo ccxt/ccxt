@@ -480,7 +480,7 @@ public partial class woo : Exchange
             { "swap", swap },
             { "future", false },
             { "option", false },
-            { "active", null },
+            { "active", isEqual(this.safeString(market, "is_trading"), "1") },
             { "contract", contract },
             { "linear", linear },
             { "inverse", null },
@@ -1452,6 +1452,7 @@ public partial class woo : Exchange
         * @see https://docs.woo.org/#get-algo-order
         * @see https://docs.woo.org/#get-order
         * @description fetches information on an order made by the user
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.stop] whether the order is a stop/algo order

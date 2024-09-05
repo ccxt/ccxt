@@ -1204,6 +1204,7 @@ class bitso extends Exchange {
             /**
              * fetches information on an order made by the user
              * @see https://docs.bitso.com/bitso-api/docs/look-up-orders
+             * @param {string} $id the order $id
              * @param {string} $symbol not used by bitso fetchOrder
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~

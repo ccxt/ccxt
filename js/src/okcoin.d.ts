@@ -9,7 +9,6 @@ export default class okcoin extends Exchange {
     fetchTime(params?: {}): Promise<number>;
     fetchMarkets(params?: {}): Promise<Market[]>;
     parseMarket(market: Dict): Market;
-    safeNetwork(networkId: any): string;
     fetchCurrencies(params?: {}): Promise<Currencies>;
     fetchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     parseTicker(ticker: Dict, market?: Market): Ticker;

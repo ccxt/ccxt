@@ -490,6 +490,12 @@ public partial class binance
     /// watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
     /// </summary>
     /// <remarks>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-mini-ticker-stream"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/spot/en/#individual-symbol-ticker-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#all-market-mini-tickers-stream"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/futures/en/#individual-symbol-ticker-streams"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#all-market-mini-tickers-stream"/>  <br/>
+    /// See <see href="https://binance-docs.github.io/apidocs/delivery/en/#individual-symbol-ticker-streams"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

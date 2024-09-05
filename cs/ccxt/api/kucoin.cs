@@ -441,6 +441,11 @@ public partial class kucoin : Exchange
         return await this.callAsync ("privateGetBrokerApiRebaseDownload",parameters);
     }
 
+    public async Task<object> privateGetMigrateUserAccountStatus (object parameters = null)
+    {
+        return await this.callAsync ("privateGetMigrateUserAccountStatus",parameters);
+    }
+
     public async Task<object> privateGetAffiliateInviterStatistics (object parameters = null)
     {
         return await this.callAsync ("privateGetAffiliateInviterStatistics",parameters);
@@ -989,6 +994,11 @@ public partial class kucoin : Exchange
     public async Task<object> brokerGetBrokerNdRebaseDownload (object parameters = null)
     {
         return await this.callAsync ("brokerGetBrokerNdRebaseDownload",parameters);
+    }
+
+    public async Task<object> brokerGetAssetNdbrokerDepositList (object parameters = null)
+    {
+        return await this.callAsync ("brokerGetAssetNdbrokerDepositList",parameters);
     }
 
     public async Task<object> brokerGetBrokerNdTransferDetail (object parameters = null)

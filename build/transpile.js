@@ -2708,7 +2708,7 @@ if (isMainEntry(import.meta.url)) {
     if (test) {
         transpiler.transpileTests ()
     } else if (errors) {
-        transpiler.transpileErrorHierarchy ({ tsFilename })
+        transpiler.transpileErrorHierarchy ()
     } else if (multiprocess) {
         parallelizeTranspiling (exchangeIds, undefined, force)
     } else {

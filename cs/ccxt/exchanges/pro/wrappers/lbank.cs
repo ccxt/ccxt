@@ -180,7 +180,7 @@ public partial class lbank
     /// get the list of trades associated with the user
     /// </summary>
     /// <remarks>
-    /// See <see href="https://github.com/LBank-exchange/lbank-official-api-docs/blob/master/API-For-Spot-EN/WebSocket%20API(Asset%20%26%20Order).md#websocketsubscribeunsubscribe"/>  <br/>
+    /// See <see href="https://www.lbank.com/en-US/docs/index.html#update-subscribed-orders"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>symbol</term>
@@ -210,6 +210,15 @@ public partial class lbank
         var res = await this.watchOrders(symbol, since, limit, parameters);
         return ((IList<object>)res).Select(item => new Order(item)).ToList<Order>();
     }
+    /// <summary>
+    /// watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://www.lbank.com/en-US/docs/index.html#request-amp-subscription-instruction"/>  <br/>
+    /// <list type="table">
+    /// </list>
+    /// </remarks>
+    /// <returns> <term>object</term> A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols.</returns>
     public async Task<OrderBook> FetchOrderBookWs(string symbol, Int64? limit2 = 0, Dictionary<string, object> parameters = null)
     {
         var limit = limit2 == 0 ? null : (object)limit2;
@@ -221,7 +230,6 @@ public partial class lbank
     /// </summary>
     /// <remarks>
     /// See <see href="https://www.lbank.com/en-US/docs/index.html#market-depth"/>  <br/>
-    /// See <see href="https://www.lbank.com/en-US/docs/index.html#market-increment-depth"/>  <br/>
     /// <list type="table">
     /// </list>
     /// </remarks>

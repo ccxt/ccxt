@@ -378,6 +378,25 @@ class bitfinex2 extends bitfinex2$1 {
                 'withdraw': {
                     'includeFee': false,
                 },
+                'networks': {
+                    'BTC': 'BITCOIN',
+                    'LTC': 'LITECOIN',
+                    'ERC20': 'ETHEREUM',
+                    'OMNI': 'TETHERUSO',
+                    'LIQUID': 'TETHERUSL',
+                    'TRC20': 'TETHERUSX',
+                    'EOS': 'TETHERUSS',
+                    'AVAX': 'TETHERUSDTAVAX',
+                    'SOL': 'TETHERUSDTSOL',
+                    'ALGO': 'TETHERUSDTALG',
+                    'BCH': 'TETHERUSDTBCH',
+                    'KSM': 'TETHERUSDTKSM',
+                    'DVF': 'TETHERUSDTDVF',
+                    'OMG': 'TETHERUSDTOMG',
+                },
+                'networksById': {
+                    'TETHERUSE': 'ERC20',
+                },
             },
             'exceptions': {
                 'exact': {
@@ -501,12 +520,13 @@ class bitfinex2 extends bitfinex2$1 {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        let spotMarketsInfo = await this.publicGetConfPubInfoPair(params);
-        let futuresMarketsInfo = await this.publicGetConfPubInfoPairFutures(params);
-        spotMarketsInfo = this.safeValue(spotMarketsInfo, 0, []);
-        futuresMarketsInfo = this.safeValue(futuresMarketsInfo, 0, []);
+        const spotMarketsInfoPromise = this.publicGetConfPubInfoPair(params);
+        const futuresMarketsInfoPromise = this.publicGetConfPubInfoPairFutures(params);
+        const marginIdsPromise = this.publicGetConfPubListPairMargin(params);
+        let [spotMarketsInfo, futuresMarketsInfo, marginIds] = await Promise.all([spotMarketsInfoPromise, futuresMarketsInfoPromise, marginIdsPromise]);
+        spotMarketsInfo = this.safeList(spotMarketsInfo, 0, []);
+        futuresMarketsInfo = this.safeList(futuresMarketsInfo, 0, []);
         const markets = this.arrayConcat(spotMarketsInfo, futuresMarketsInfo);
-        let marginIds = await this.publicGetConfPubListPairMargin(params);
         marginIds = this.safeValue(marginIds, 0, []);
         //
         //    [
@@ -786,7 +806,7 @@ class bitfinex2 extends bitfinex2$1 {
                 const networkId = this.safeString(pair, 0);
                 const currencyId = this.safeString(this.safeValue(pair, 1, []), 0);
                 if (currencyId === cleanId) {
-                    const network = this.safeNetwork(networkId);
+                    const network = this.networkIdToCode(networkId);
                     networks[network] = {
                         'info': networkId,
                         'id': networkId.toLowerCase(),
@@ -812,26 +832,6 @@ class bitfinex2 extends bitfinex2$1 {
             }
         }
         return result;
-    }
-    safeNetwork(networkId) {
-        const networksById = {
-            'BITCOIN': 'BTC',
-            'LITECOIN': 'LTC',
-            'ETHEREUM': 'ERC20',
-            'TETHERUSE': 'ERC20',
-            'TETHERUSO': 'OMNI',
-            'TETHERUSL': 'LIQUID',
-            'TETHERUSX': 'TRC20',
-            'TETHERUSS': 'EOS',
-            'TETHERUSDTAVAX': 'AVAX',
-            'TETHERUSDTSOL': 'SOL',
-            'TETHERUSDTALG': 'ALGO',
-            'TETHERUSDTBCH': 'BCH',
-            'TETHERUSDTKSM': 'KSM',
-            'TETHERUSDTDVF': 'DVF',
-            'TETHERUSDTOMG': 'OMG',
-        };
-        return this.safeString(networksById, networkId, networkId);
     }
     async fetchBalance(params = {}) {
         /**
@@ -2371,7 +2371,7 @@ class bitfinex2 extends bitfinex2$1 {
             const currencyId = this.safeString(transaction, 1);
             code = this.safeCurrencyCode(currencyId, currency);
             const networkId = this.safeString(transaction, 2);
-            network = this.safeNetwork(networkId);
+            network = this.networkIdToCode(networkId);
             timestamp = this.safeInteger(transaction, 5);
             updated = this.safeInteger(transaction, 6);
             status = this.parseTransactionStatus(this.safeString(transaction, 9));

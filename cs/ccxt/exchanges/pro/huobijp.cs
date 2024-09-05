@@ -16,6 +16,7 @@ public partial class huobijp : ccxt.huobijp
                 { "watchTickers", false },
                 { "watchTicker", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchBalance", false },
                 { "watchOHLCV", true },
             } },

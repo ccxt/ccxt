@@ -1415,8 +1415,10 @@ class hitbtc extends hitbtc$1 {
     }
     parseTransactionStatus(status) {
         const statuses = {
+            'CREATED': 'pending',
             'PENDING': 'pending',
             'FAILED': 'failed',
+            'ROLLED_BACK': 'failed',
             'SUCCESS': 'ok',
         };
         return this.safeString(statuses, status, status);

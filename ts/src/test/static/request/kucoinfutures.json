@@ -251,6 +251,9 @@
             {
                 "description": "fetch USDT ledger",
                 "method": "fetchLedger",
+                "options": {
+                    "hfMigrated": false
+                },
                 "url": "https://openapi-v2.kucoin.com/api/v1/accounts/ledgers?currency=USDT",
                 "input": [
                     "USDT"

@@ -333,7 +333,7 @@ export default class binance extends Exchange {
                         'capital/deposit/hisrec': 0.1,
                         'capital/deposit/subAddress': 0.1,
                         'capital/deposit/subHisrec': 0.1,
-                        'capital/withdraw/history': 1800,
+                        'capital/withdraw/history': 2,
                         'capital/withdraw/address/list': 10,
                         'capital/contract/convertible-coins': 4.0002,
                         'convert/tradeFlow': 20.001,
@@ -3855,12 +3855,14 @@ export default class binance extends Exchange {
         const marketId = this.safeString(ticker, 'symbol');
         const symbol = this.safeSymbol(marketId, market, undefined, marketType);
         const last = this.safeString(ticker, 'lastPrice');
+        const wAvg = this.safeString(ticker, 'weightedAvgPrice');
         const isCoinm = ('baseVolume' in ticker);
         let baseVolume = undefined;
         let quoteVolume = undefined;
         if (isCoinm) {
             baseVolume = this.safeString(ticker, 'baseVolume');
-            quoteVolume = this.safeString(ticker, 'volume');
+            // 'volume' field in inverse markets is not quoteVolume, but traded amount (per contracts)
+            quoteVolume = Precise.stringMul(baseVolume, wAvg);
         }
         else {
             baseVolume = this.safeString(ticker, 'volume');
@@ -3876,7 +3878,7 @@ export default class binance extends Exchange {
             'bidVolume': this.safeString(ticker, 'bidQty'),
             'ask': this.safeString(ticker, 'askPrice'),
             'askVolume': this.safeString(ticker, 'askQty'),
-            'vwap': this.safeString(ticker, 'weightedAvgPrice'),
+            'vwap': wAvg,
             'open': this.safeString2(ticker, 'openPrice', 'open'),
             'close': last,
             'last': last,
@@ -4250,6 +4252,9 @@ export default class binance extends Exchange {
         const price = this.safeString(params, 'price');
         const until = this.safeInteger(params, 'until');
         params = this.omit(params, ['price', 'until']);
+        if (since !== undefined && until !== undefined && limit === undefined) {
+            limit = maxLimit;
+        }
         limit = (limit === undefined) ? defaultLimit : Math.min(limit, maxLimit);
         const request = {
             'interval': this.safeString(this.timeframes, timeframe, timeframe),

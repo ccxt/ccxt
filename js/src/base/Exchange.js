@@ -1420,7 +1420,6 @@ export default class Exchange {
                 'fetchOrdersWs': undefined,
                 'fetchOrderTrades': undefined,
                 'fetchOrderWs': undefined,
-                'fetchPermissions': undefined,
                 'fetchPosition': undefined,
                 'fetchPositionHistory': undefined,
                 'fetchPositionsHistory': undefined,
@@ -3453,7 +3452,7 @@ export default class Exchange {
             if (currencyCode === undefined) {
                 const currencies = Object.values(this.currencies);
                 for (let i = 0; i < currencies.length; i++) {
-                    const currency = [i];
+                    const currency = currencies[i];
                     const networks = this.safeDict(currency, 'networks');
                     const network = this.safeDict(networks, networkCode);
                     networkId = this.safeString(network, 'id');
@@ -3598,13 +3597,13 @@ export default class Exchange {
             'nonce': undefined,
         };
     }
-    parseOHLCVs(ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+    parseOHLCVs(ohlcvs, market = undefined, timeframe = '1m', since = undefined, limit = undefined, tail = false) {
         const results = [];
         for (let i = 0; i < ohlcvs.length; i++) {
             results.push(this.parseOHLCV(ohlcvs[i], market));
         }
         const sorted = this.sortBy(results, 0);
-        return this.filterBySinceLimit(sorted, since, limit, 0);
+        return this.filterBySinceLimit(sorted, since, limit, 0, tail);
     }
     parseLeverageTiers(response, symbols = undefined, marketIdKey = undefined) {
         // marketIdKey should only be undefined when response is a dictionary
@@ -3982,9 +3981,6 @@ export default class Exchange {
     async editOrderWs(id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.cancelOrderWs(id, symbol);
         return await this.createOrderWs(symbol, type, side, amount, price, params);
-    }
-    async fetchPermissions(params = {}) {
-        throw new NotSupported(this.id + ' fetchPermissions() is not supported yet');
     }
     async fetchPosition(symbol, params = {}) {
         throw new NotSupported(this.id + ' fetchPosition() is not supported yet');
@@ -5982,7 +5978,7 @@ export default class Exchange {
                     errors = 0;
                     result = this.arrayConcat(result, response);
                     const last = this.safeValue(response, responseLength - 1);
-                    paginationTimestamp = this.safeInteger(last, 'timestamp') - 1;
+                    paginationTimestamp = this.safeInteger(last, 'timestamp') + 1;
                     if ((until !== undefined) && (paginationTimestamp >= until)) {
                         break;
                     }
@@ -6087,7 +6083,7 @@ export default class Exchange {
                 if (method === 'fetchAccounts') {
                     response = await this[method](params);
                 }
-                else if (method === 'getLeverageTiersPaginated') {
+                else if (method === 'getLeverageTiersPaginated' || method === 'fetchPositions') {
                     response = await this[method](symbol, params);
                 }
                 else {
@@ -6432,7 +6428,7 @@ export default class Exchange {
          */
         if (this.has['fetchPositionsHistory']) {
             const positions = await this.fetchPositionsHistory([symbol], since, limit, params);
-            return this.safeDict(positions, 0);
+            return positions;
         }
         else {
             throw new NotSupported(this.id + ' fetchPositionHistory () is not supported yet');
