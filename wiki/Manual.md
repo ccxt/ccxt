@@ -4293,7 +4293,7 @@ params = {
 }
 ```
 
-Note, you can also add `reduceOnly: true` param to trigger order, so it can act like "stop-loss" or "take-profit" order (however, some exchanges have dedicated "stop-loss" and "take-profit" methods, see them below)
+Note, you can also add `reduceOnly: true` param to the trigger order (with a possible `triggerDirection: 'above/below'` param), so it would act as "stop-loss" or "take-profit" order. However, for some exchanges we support "stop-loss" and "take-profit" trigger order types, which automatically involve `reduceOnly` and `triggerDirection` handling (see them below).
 
 ##### Stop Loss Orders
 
