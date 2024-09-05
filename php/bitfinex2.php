@@ -520,12 +520,13 @@ class bitfinex2 extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing $market data
          */
-        $spotMarketsInfo = $this->publicGetConfPubInfoPair ($params);
-        $futuresMarketsInfo = $this->publicGetConfPubInfoPairFutures ($params);
-        $spotMarketsInfo = $this->safe_value($spotMarketsInfo, 0, array());
-        $futuresMarketsInfo = $this->safe_value($futuresMarketsInfo, 0, array());
+        $spotMarketsInfoPromise = $this->publicGetConfPubInfoPair ($params);
+        $futuresMarketsInfoPromise = $this->publicGetConfPubInfoPairFutures ($params);
+        $marginIdsPromise = $this->publicGetConfPubListPairMargin ($params);
+        list($spotMarketsInfo, $futuresMarketsInfo, $marginIds) = array( $spotMarketsInfoPromise, $futuresMarketsInfoPromise, $marginIdsPromise );
+        $spotMarketsInfo = $this->safe_list($spotMarketsInfo, 0, array());
+        $futuresMarketsInfo = $this->safe_list($futuresMarketsInfo, 0, array());
         $markets = $this->array_concat($spotMarketsInfo, $futuresMarketsInfo);
-        $marginIds = $this->publicGetConfPubListPairMargin ($params);
         $marginIds = $this->safe_value($marginIds, 0, array());
         //
         //    array(

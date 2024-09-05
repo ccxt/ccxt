@@ -3885,7 +3885,7 @@ export default class Exchange {
             if (currencyCode === undefined) {
                 const currencies = Object.values (this.currencies);
                 for (let i = 0; i < currencies.length; i++) {
-                    const currency = [ i ];
+                    const currency = currencies[i];
                     const networks = this.safeDict (currency, 'networks');
                     const network = this.safeDict (networks, networkCode);
                     networkId = this.safeString (network, 'id');
@@ -4032,13 +4032,13 @@ export default class Exchange {
         } as any;
     }
 
-    parseOHLCVs (ohlcvs: object[], market: any = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined): OHLCV[] {
+    parseOHLCVs (ohlcvs: object[], market: any = undefined, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, tail: Bool = false): OHLCV[] {
         const results = [];
         for (let i = 0; i < ohlcvs.length; i++) {
             results.push (this.parseOHLCV (ohlcvs[i], market));
         }
         const sorted = this.sortBy (results, 0);
-        return this.filterBySinceLimit (sorted, since, limit, 0) as any;
+        return this.filterBySinceLimit (sorted, since, limit, 0, tail) as any;
     }
 
     parseLeverageTiers (response: any, symbols: string[] = undefined, marketIdKey = undefined): LeverageTiers {

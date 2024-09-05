@@ -451,164 +451,82 @@ export default class mexc extends Exchange {
                     'LTC': 'LTC',
                 },
                 'networks': {
-                    'ABBC': 'ABBC',
+                    'TRC20': 'TRX',
+                    'TON': 'TONCOIN',
+                    'AVAXC': 'AVAX_CCHAIN',
+                    'ERC20': 'ETH',
                     'ACA': 'ACALA',
-                    'ADA': 'Cardano(ADA)',
-                    'AE': 'AE',
-                    'ALGO': 'Algorand(ALGO)',
-                    'ALPH': 'Alephium(ALPH)',
-                    'AME': 'AME',
-                    'AOK': 'AOK',
-                    'APT': 'APTOS(APT)',
-                    'AR': 'AR',
-                    'ARB': 'Arbitrum One(ARB)',
-                    'ARBNOVA': 'ARBNOVA',
-                    'ARBONE': 'ArbitrumOne(ARB)',
-                    'ARK': 'ARK',
+                    // 'ADA': 'Cardano(ADA)',
+                    // 'AE': 'AE',
+                    // 'ALGO': 'Algorand(ALGO)',
+                    // 'ALPH': 'Alephium(ALPH)',
+                    // 'ARB': 'Arbitrum One(ARB)',
+                    // 'ARBONE': 'ArbitrumOne(ARB)',
                     'ASTR': 'ASTAR',
-                    'ATOM': 'Cosmos(ATOM)',
-                    'AVAXC': 'Avalanche C Chain(AVAX CCHAIN)',
-                    'AVAXX': 'Avalanche X Chain(AVAX XCHAIN)',
-                    'AZERO': 'Aleph Zero(AZERO)',
-                    'BCH': 'Bitcoin Cash(BCH)',
-                    'BDX': 'BDX',
-                    'BEAM': 'BEAM',
-                    'BEP2': 'BNB Beacon Chain(BEP2)',
-                    'BEP20': 'BNB Smart Chain(BEP20)',
-                    'BITCI': 'BITCI',
-                    'BNC': 'BNC',
-                    'BNCDOT': 'BNCPOLKA',
-                    'BOBA': 'BOBA',
-                    'BSC': 'BEP20(BSC)',
-                    'BSV': 'Bitcoin SV(BSV)',
-                    'BTC': 'Bitcoin(BTC)',
+                    // 'ATOM': 'Cosmos(ATOM)',
+                    // 'AVAXC': 'Avalanche C Chain(AVAX CCHAIN)',
+                    // 'AVAXX': 'Avalanche X Chain(AVAX XCHAIN)',
+                    // 'AZERO': 'Aleph Zero(AZERO)',
+                    // 'BCH': 'Bitcoin Cash(BCH)',
+                    // 'BNCDOT': 'BNCPOLKA',
+                    // 'BSV': 'Bitcoin SV(BSV)',
+                    // 'BTC': 'Bitcoin(BTC)',
                     'BTM': 'BTM2',
-                    'CELO': 'CELO',
-                    'CFX': 'CFX',
-                    'CHZ': 'Chiliz Legacy Chain(CHZ)',
-                    'CHZ2': 'Chiliz Chain(CHZ2)',
-                    'CKB': 'CKB',
-                    'CLORE': 'Clore.ai(CLORE)',
+                    // 'CHZ': 'Chiliz Legacy Chain(CHZ)',
+                    // 'CHZ2': 'Chiliz Chain(CHZ2)',
+                    // 'CLORE': 'Clore.ai(CLORE)',
                     'CRC20': 'CRONOS',
-                    'CSPR': 'CSPR',
-                    'DASH': 'DASH',
-                    'DC': 'Dogechain(DC)',
-                    'DCR': 'DCR',
-                    'DNX': 'Dynex(DNX)',
-                    'DOGE': 'Dogecoin(DOGE)',
-                    'DOT': 'Polkadot(DOT)',
-                    'DYM': 'Dymension(DYM)',
-                    'EDG': 'EDG',
-                    'EGLD': 'EGLD',
-                    'EOS': 'EOS',
-                    'ERC20': 'Ethereum(ERC20)',
-                    'ETC': 'Ethereum Classic(ETC)',
+                    // 'DC': 'Dogechain(DC)',
+                    // 'DNX': 'Dynex(DNX)',
+                    // 'DOGE': 'Dogecoin(DOGE)',
+                    // 'DOT': 'Polkadot(DOT)',
+                    // 'DYM': 'Dymension(DYM)',
                     'ETHF': 'ETF',
-                    'ETHW': 'ETHW',
-                    'EVER': 'EVER',
-                    'FET': 'FET',
-                    'FIL': 'FIL',
-                    'FIO': 'FIO',
-                    'FLOW': 'FLOW',
-                    'FSN': 'FSN',
-                    'FTM': 'Fantom(FTM)',
-                    'FUSE': 'FUSE',
-                    'GLMR': 'GLMR',
-                    'GRIN': 'GRIN',
-                    'HBAR': 'Hedera(HBAR)',
-                    'HIVE': 'HIVE',
                     'HRC20': 'HECO',
-                    'HYDRA': 'HYDRA',
-                    'ICP': 'Internet Computer(ICP)',
-                    'INDEX': 'Index Chain',
-                    'IOST': 'IOST',
-                    'IOTA': 'IOTA',
-                    'IOTX': 'IOTX',
-                    'IRIS': 'IRIS',
-                    'KAR': 'KAR',
-                    'KAS': 'Kaspa(KAS)',
-                    'KAVA': 'KAVA',
-                    'KDA': 'KDA',
-                    'KILT': 'KILT',
-                    'KLAY': 'Klaytn(KLAY)',
-                    'KMA': 'KMA',
-                    'KSM': 'KSM',
-                    'LAT': 'LAT',
-                    'LAVA': 'Elysium(LAVA)',
-                    'LTC': 'Litecoin(LTC)',
-                    'LUNA': 'Terra(LUNA)',
-                    'MASS': 'MASS',
-                    'MATIC': 'Polygon(MATIC)',
-                    'MCOIN': 'Mcoin Network',
-                    'METIS': 'METIS',
-                    'MINA': 'MINA',
-                    'MNT': 'Mantle(MNT)',
-                    'MOVR': 'MOVR',
-                    'MTRG': 'Meter(MTRG)',
-                    'NAS': 'NAS',
-                    'NEAR': 'NEAR Protocol(NEAR)',
-                    'NEBL': 'NEBL',
-                    'NEM': 'NEM',
-                    'NEO': 'NEO',
-                    'NEO3': 'NEO3',
-                    'NEOXA': 'Neoxa Network',
-                    'NULS': 'NULS',
+                    // 'KLAY': 'Klaytn(KLAY)',
                     'OASIS': 'ROSE',
-                    'OASYS': 'OASYS',
                     'OKC': 'OKT',
-                    'OMN': 'Omega Network(OMN)',
-                    'OMNI': 'OMNI',
-                    'ONE': 'ONE',
-                    'ONT': 'ONT',
-                    'OPTIMISM': 'Optimism(OP)',
-                    'OSMO': 'OSMO',
-                    'PLCU': 'PLCU',
-                    'POKT': 'POKT',
-                    'QKC': 'QKC',
-                    'QTUM': 'QTUM',
-                    'RAP20': 'RAP20' + ' ' + '(Rangers Mainnet)',
-                    'REI': 'REI',
                     'RSK': 'RBTC',
-                    'RVN': 'Ravencoin(RVN)',
-                    'SATOX': 'Satoxcoin(SATOX)',
-                    'SC': 'SC',
-                    'SCRT': 'SCRT',
-                    'SDN': 'SDN',
-                    'SGB': 'SGB',
-                    'SOL': 'Solana(SOL)',
-                    'STAR': 'STAR',
-                    'STARK': 'Starknet(STARK)',
-                    'STEEM': 'STEEM',
-                    'SYS': 'SYS',
-                    'TAO': 'Bittensor(TAO)',
-                    'TIA': 'Celestia(TIA)',
-                    'TOMO': 'TOMO',
-                    'TON': 'Toncoin(TON)',
-                    'TRC10': 'TRC10',
-                    'TRC20': 'Tron(TRC20)',
-                    'UGAS': 'UGAS(Ultrain)',
-                    'VET': 'VeChain(VET)',
-                    'VEX': 'Vexanium(VEX)',
-                    'VSYS': 'VSYS',
-                    'WAVES': 'WAVES',
-                    'WAX': 'WAX',
-                    'WEMIX': 'WEMIX',
-                    'XCH': 'Chia(XCH)',
-                    'XDC': 'XDC',
-                    'XEC': 'XEC',
-                    'XLM': 'Stellar(XLM)',
-                    'XMR': 'Monero(XMR)',
-                    'XNA': 'Neurai(XNA)',
-                    'XPR': 'XPR Network',
-                    'XRD': 'XRD',
-                    'XRP': 'Ripple(XRP)',
-                    'XTZ': 'XTZ',
-                    'XVG': 'XVG',
-                    'XYM': 'XYM',
-                    'ZEC': 'ZEC',
-                    'ZEN': 'ZEN',
-                    'ZIL': 'Zilliqa(ZIL)',
-                    'ZTG': 'ZTG',
+                    // 'RVN': 'Ravencoin(RVN)',
+                    // 'SATOX': 'Satoxcoin(SATOX)',
+                    // 'SC': 'SC',
+                    // 'SCRT': 'SCRT',
+                    // 'SDN': 'SDN',
+                    // 'SGB': 'SGB',
+                    // 'SOL': 'Solana(SOL)',
+                    // 'STAR': 'STAR',
+                    // 'STARK': 'Starknet(STARK)',
+                    // 'STEEM': 'STEEM',
+                    // 'SYS': 'SYS',
+                    // 'TAO': 'Bittensor(TAO)',
+                    // 'TIA': 'Celestia(TIA)',
+                    // 'TOMO': 'TOMO',
+                    // 'TON': 'Toncoin(TON)',
+                    // 'TRC10': 'TRC10',
+                    // 'TRC20': 'Tron(TRC20)',
+                    // 'UGAS': 'UGAS(Ultrain)',
+                    // 'VET': 'VeChain(VET)',
+                    // 'VEX': 'Vexanium(VEX)',
+                    // 'VSYS': 'VSYS',
+                    // 'WAVES': 'WAVES',
+                    // 'WAX': 'WAX',
+                    // 'WEMIX': 'WEMIX',
+                    // 'XCH': 'Chia(XCH)',
+                    // 'XDC': 'XDC',
+                    // 'XEC': 'XEC',
+                    // 'XLM': 'Stellar(XLM)',
+                    // 'XMR': 'Monero(XMR)',
+                    // 'XNA': 'Neurai(XNA)',
+                    // 'XPR': 'XPR Network',
+                    // 'XRD': 'XRD',
+                    // 'XRP': 'Ripple(XRP)',
+                    // 'XTZ': 'XTZ',
+                    // 'XVG': 'XVG',
+                    // 'XYM': 'XYM',
+                    // 'ZEC': 'ZEC',
+                    // 'ZEN': 'ZEN',
+                    // 'ZIL': 'Zilliqa(ZIL)',
+                    // 'ZTG': 'ZTG',
                     // todo: uncomment below after concensus
                     // 'ALAYA': 'ATP',
                     // 'ANDUSCHAIN': 'DEB',
@@ -882,6 +800,8 @@ export default class mexc extends Exchange {
          * @method
          * @name mexc#fetchStatus
          * @description the latest known information on the availability of the exchange API
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#test-connectivity
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
          */
@@ -919,6 +839,8 @@ export default class mexc extends Exchange {
          * @method
          * @name mexc#fetchTime
          * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#check-server-time
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
@@ -1011,7 +933,7 @@ export default class mexc extends Exchange {
             const chains = this.safeValue(currency, 'networkList', []);
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
-                const networkId = this.safeString2(chain, 'network', 'netWork');
+                const networkId = this.safeString2(chain, 'netWork', 'network');
                 const network = this.networkIdToCode(networkId);
                 const isDepositEnabled = this.safeBool(chain, 'depositEnable', false);
                 const isWithdrawEnabled = this.safeBool(chain, 'withdrawEnable', false);
@@ -1090,6 +1012,8 @@ export default class mexc extends Exchange {
          * @method
          * @name mexc#fetchMarkets
          * @description retrieves data on all markets for mexc
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
@@ -4394,7 +4318,7 @@ export default class mexc extends Exchange {
         //
         const address = this.safeString(depositAddress, 'address');
         const currencyId = this.safeString(depositAddress, 'coin');
-        const networkId = this.safeString(depositAddress, 'network');
+        const networkId = this.safeString(depositAddress, 'netWork');
         this.checkAddress(address);
         return {
             'currency': this.safeCurrencyCode(currencyId, currency),
@@ -5175,14 +5099,14 @@ export default class mexc extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
          */
+        await this.loadMarkets();
+        const currency = this.currency(code);
         [tag, params] = this.handleWithdrawTagAndParams(tag, params);
         const networks = this.safeDict(this.options, 'networks', {});
         let network = this.safeString2(params, 'network', 'netWork'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
-        network = this.networkIdToCode(network);
+        network = this.networkCodeToId(network, currency['code']);
         this.checkAddress(address);
-        await this.loadMarkets();
-        const currency = this.currency(code);
         const request = {
             'coin': currency['id'],
             'address': address,

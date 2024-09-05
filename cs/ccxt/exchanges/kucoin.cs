@@ -557,6 +557,7 @@ public partial class kucoin : Exchange
                 { "KALT", "ALT" },
             } },
             { "options", new Dictionary<string, object>() {
+                { "hf", false },
                 { "version", "v1" },
                 { "symbolSeparator", "-" },
                 { "fetchMyTradesMethod", "private_get_fills" },
@@ -1037,11 +1038,10 @@ public partial class kucoin : Exchange
         }
     }
 
-    public async virtual Task<object> handleHfAndParams(object parameters = null)
+    public virtual object handleHfAndParams(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        await this.loadMigrationStatus();
-        object migrated = this.safeBool(this.options, "hfMigrated");
+        object migrated = this.safeBool2(this.options, "hfMigrated", "hf", false);
         object loadedHf = null;
         if (isTrue(!isEqual(migrated, null)))
         {
@@ -2022,7 +2022,7 @@ public partial class kucoin : Exchange
         object testOrder = this.safeBool(parameters, "test", false);
         parameters = this.omit(parameters, "test");
         object hf = null;
-        var hfparametersVariable = await this.handleHfAndParams(parameters);
+        var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
         parameters = ((IList<object>)hfparametersVariable)[1];
         object useSync = false;
@@ -2185,7 +2185,7 @@ public partial class kucoin : Exchange
             { "orderList", ordersRequests },
         };
         object hf = null;
-        var hfparametersVariable = await this.handleHfAndParams(parameters);
+        var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
         parameters = ((IList<object>)hfparametersVariable)[1];
         object useSync = false;
@@ -2418,7 +2418,7 @@ public partial class kucoin : Exchange
         object clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
         object stop = this.safeBool2(parameters, "stop", "trigger", false);
         object hf = null;
-        var hfparametersVariable = await this.handleHfAndParams(parameters);
+        var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
         parameters = ((IList<object>)hfparametersVariable)[1];
         object useSync = false;
@@ -2513,7 +2513,7 @@ public partial class kucoin : Exchange
         object request = new Dictionary<string, object>() {};
         object stop = this.safeBool(parameters, "stop", false);
         object hf = null;
-        var hfparametersVariable = await this.handleHfAndParams(parameters);
+        var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
         parameters = ((IList<object>)hfparametersVariable)[1];
         parameters = this.omit(parameters, "stop");
@@ -2584,7 +2584,7 @@ public partial class kucoin : Exchange
         object until = this.safeInteger(parameters, "until");
         object stop = this.safeBool2(parameters, "stop", "trigger", false);
         object hf = null;
-        var hfparametersVariable = await this.handleHfAndParams(parameters);
+        var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
         parameters = ((IList<object>)hfparametersVariable)[1];
         if (isTrue(isTrue(hf) && isTrue((isEqual(symbol, null)))))
@@ -2795,7 +2795,7 @@ public partial class kucoin : Exchange
         object clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
         object stop = this.safeBool2(parameters, "stop", "trigger", false);
         object hf = null;
-        var hfparametersVariable = await this.handleHfAndParams(parameters);
+        var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
         parameters = ((IList<object>)hfparametersVariable)[1];
         object market = null;
@@ -3101,7 +3101,7 @@ public partial class kucoin : Exchange
         }
         object request = new Dictionary<string, object>() {};
         object hf = null;
-        var hfparametersVariable = await this.handleHfAndParams(parameters);
+        var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
         parameters = ((IList<object>)hfparametersVariable)[1];
         if (isTrue(isTrue(hf) && isTrue(isEqual(symbol, null))))
@@ -3913,7 +3913,7 @@ public partial class kucoin : Exchange
         object type = this.safeString(accountsByType, requestedType, requestedType);
         parameters = this.omit(parameters, "type");
         object hf = null;
-        var hfparametersVariable = await this.handleHfAndParams(parameters);
+        var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
         parameters = ((IList<object>)hfparametersVariable)[1];
         if (isTrue(hf))
@@ -4398,7 +4398,7 @@ public partial class kucoin : Exchange
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         object hf = null;
-        var hfparametersVariable = await this.handleHfAndParams(parameters);
+        var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
         parameters = ((IList<object>)hfparametersVariable)[1];
         if (isTrue(paginate))

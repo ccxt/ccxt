@@ -994,8 +994,9 @@ class gate(Exchange, ImplicitAPI):
         return self.array_concat(markets, optionMarkets)
 
     async def fetch_spot_markets(self, params={}):
-        marginResponse = await self.publicMarginGetCurrencyPairs(params)
-        spotMarketsResponse = await self.publicSpotGetCurrencyPairs(params)
+        marginPromise = self.publicMarginGetCurrencyPairs(params)
+        spotMarketsPromise = self.publicSpotGetCurrencyPairs(params)
+        marginResponse, spotMarketsResponse = await asyncio.gather(*[marginPromise, spotMarketsPromise])
         marginMarkets = self.index_by(marginResponse, 'id')
         #
         #  Spot

@@ -710,6 +710,17 @@ class okx(ccxt.async_support.okx):
             limit = ohlcv.getLimit(symbol, limit)
         return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
 
+    async def un_watch_ohlcv(self, symbol: str, timeframe='1m', params={}) -> Any:
+        """
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        """
+        await self.load_markets()
+        return await self.un_watch_ohlcv_for_symbols([[symbol, timeframe]], params)
+
     async def watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], since: Int = None, limit: Int = None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
@@ -748,6 +759,39 @@ class okx(ccxt.async_support.okx):
             limit = candles.getLimit(symbol, limit)
         filtered = self.filter_by_since_limit(candles, since, limit, 0, True)
         return self.create_ohlcv_object(symbol, timeframe, filtered)
+
+    async def un_watch_ohlcv_for_symbols(self, symbolsAndTimeframes: List[List[str]], params={}):
+        """
+        unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        """
+        symbolsLength = len(symbolsAndTimeframes)
+        if symbolsLength == 0 or not isinstance(symbolsAndTimeframes[0], list):
+            raise ArgumentsRequired(self.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")
+        await self.load_markets()
+        topics = []
+        messageHashes = []
+        for i in range(0, len(symbolsAndTimeframes)):
+            symbolAndTimeframe = symbolsAndTimeframes[i]
+            sym = symbolAndTimeframe[0]
+            tf = symbolAndTimeframe[1]
+            marketId = self.market_id(sym)
+            interval = self.safe_string(self.timeframes, tf, tf)
+            channel = 'candle' + interval
+            topic: dict = {
+                'channel': channel,
+                'instId': marketId,
+            }
+            topics.append(topic)
+            messageHashes.append('unsubscribe:multi:' + channel + ':' + sym)
+        request: dict = {
+            'op': 'unsubscribe',
+            'args': topics,
+        }
+        url = self.get_url('candle', 'public')
+        return await self.watch_multiple(url, messageHashes, request, messageHashes)
 
     def handle_ohlcv(self, client: Client, message):
         #
@@ -2008,6 +2052,21 @@ class okx(ccxt.async_support.okx):
         client.reject(error, subMessageHash)
         client.resolve(True, messageHash)
 
+    def handle_unsubscription_ohlcv(self, client: Client, symbol: str, channel: str):
+        tf = channel.replace('candle', '')
+        timeframe = self.find_timeframe(tf)
+        subMessageHash = 'multi:' + channel + ':' + symbol
+        messageHash = 'unsubscribe:' + subMessageHash
+        if subMessageHash in client.subscriptions:
+            del client.subscriptions[subMessageHash]
+        if messageHash in client.subscriptions:
+            del client.subscriptions[messageHash]
+        if timeframe in self.ohlcvs[symbol]:
+            del self.ohlcvs[symbol][timeframe]
+        error = UnsubscribeError(self.id + ' ' + subMessageHash)
+        client.reject(error, subMessageHash)
+        client.resolve(True, messageHash)
+
     def handle_unsubscription(self, client: Client, message):
         #
         # {
@@ -2027,3 +2086,5 @@ class okx(ccxt.async_support.okx):
             self.handle_un_subscription_trades(client, symbol)
         elif channel.startswith('bbo') or channel.startswith('book'):
             self.handle_unsubscription_order_book(client, symbol, channel)
+        elif channel.startswith('candle'):
+            self.handle_unsubscription_ohlcv(client, symbol, channel)
