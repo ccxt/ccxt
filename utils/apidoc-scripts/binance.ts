@@ -3,6 +3,7 @@
 
 import ParserBase from './_base';
 
+import manualOverrides from './binance-ts-overrides';
 class binance extends ParserBase {
 
     exchangeInfos = {
@@ -29,12 +30,18 @@ class binance extends ParserBase {
     
     async initRateLimitValues () {
         const marketTypes = Object.keys (this.exchangeInfos);
-        const promises = [];
-        for (const type of marketTypes) {
-            const url = this.exchangeInfos[type];
-            promises.push (this.fetchData (url));
+        let results : any[] = [];
+        if (this.cacheExists ('binanceinfos')) {
+            results = this.cacheGet ('binanceinfos');
+        } else {
+            const promises: any[] = [];
+            for (const type of marketTypes) {
+                const url = this.exchangeInfos[type];
+                promises.push (this.fetchData (url));
+            }
+            results = await Promise.all (promises);
+            this.cacheSet ('binanceinfos', results);
         }
-        const results = await Promise.all (promises);
         for (let i = 0; i < marketTypes.length; i++) {
             const type = marketTypes[i];
             const data = JSON.parse (results[i]);
@@ -47,14 +54,13 @@ class binance extends ParserBase {
         }
     }
 
-    rateLimitValue (type, weightNum, url = undefined, isPrivateLimit = undefined) {
+    rateLimitValue (type, weightNum, url = undefined) {
         const multiplier = this.RateLimitBases[type] / this.RateLimitBaseValue;
-        const rlValue = (weightNum ? parseInt (weightNum) * multiplier : undefined);
-        return {
-            value: rlValue,
-            url: url,
-            isAccountRL: (isPrivateLimit === true ? true: undefined) // only set to true if we are sure. otherwise undefined
-        };
+        if (weightNum) {
+            return parseInt (weightNum) * multiplier;
+        } else {
+            return url;
+        }
     }
 
 
@@ -63,10 +69,11 @@ class binance extends ParserBase {
         const webLink = 'https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md'
         const sourceUrl = webLink.replace('github.com', 'raw.githubusercontent.com').replace('blob/', '');
         const data = await this.fetchData (sourceUrl);
-        const regex2 = /\n(GET|POST|PUT|DELETE)\s+(.+)((.|\n)*?)Weight(.*?)\s+(\d+)/g;
+        const regex2 = /\n(GET|POST|PUT|DELETE)\s+(.+)((.|\n)*?)Weight(.*)\s+(.*)\s+/g;
+        const publicEndpoints = [ 'ping', 'time', 'exchangeInfo', 'depth', 'trades', 'historicalTrades', 'aggTrades', 'klines', 'uiKlines', 'avgPrice', 'ticker' ];
         const matches = data.matchAll(regex2);
         const matchesArray = [...matches];
-        const apiTree = {};
+        let apiTree = {};
         for (const match of matchesArray) {
             if (match.length != 7) {
                 console.log('match length is not 7', match);
@@ -77,15 +84,23 @@ class binance extends ParserBase {
             // eg: path = '/sapi/v2/account/balance'
             const parts = endpoint.split ('/');
             const kind = parts[1]; // eg: 'sapi'
-            if (!(kind in apiTree)) {
-                apiTree[kind] = {};
+            const version = parts[2];
+            const rateLimit = match[6].trim();
+            const rateLimitFinal = (parseInt(rateLimit).toString () === rateLimit) ? parseInt(rateLimit) : undefined; // ensure it's a number
+            let path = endpoint.substring(1 + kind.length + 1);
+            path = path.substring (version.length + 1); // hack for binance.ts
+            const isPublic = publicEndpoints.some (publicEndpoint => path.startsWith ( publicEndpoint));
+            const publicOrPrivate = isPublic ? 'public' : 'private';
+            const keyNameInTree = publicOrPrivate; // kind
+            if (!(keyNameInTree in apiTree)) {
+                apiTree[keyNameInTree] = {};
             }
-            if (!(reqMethod in apiTree[kind])) {
-                apiTree[kind][reqMethod] = {};
+            if (!(reqMethod in apiTree[keyNameInTree])) {
+                apiTree[keyNameInTree][reqMethod] = {};
             }
-            const path = endpoint.substring(1 + kind.length + 1);
-            apiTree[kind][reqMethod][path] = this.rateLimitValue (kind, match[6], webLink);
+            apiTree[keyNameInTree][reqMethod][path] = this.rateLimitValue (kind, rateLimitFinal, webLink);
         }
+        apiTree = this.deepExtend (apiTree, manualOverrides['api']);
         return apiTree;
     }
 
@@ -128,7 +143,7 @@ class binance extends ParserBase {
                 return this.fetchData(url);
             });
             const responses = await Promise.all (promises);
-            this.cacheSet (responses);
+            this.cacheSet (undefined, responses);
         }
         return this.parseNewDocs ();
     }
@@ -169,7 +184,7 @@ class binance extends ParserBase {
                 // 3 = '300'
                 const reqMethod = match[0].toLowerCase ();
                 const rawEndpoint = match[1];
-                const isPrivateLimit = match[2].includes('UID');
+                const isPrivateRL = match[2].includes('UID');
                 const rateLimit = match[4];
                 //
                 if (!rawEndpoint.includes('/')) {
@@ -186,7 +201,7 @@ class binance extends ParserBase {
                 }
                 const path = endpoint.substring(1 + kind.length + 1); // remove the prefix (eg '/sapi')
                 if (!(path in apiTree[kind][reqMethod])) {
-                    apiTree[kind][reqMethod][path] = this.rateLimitValue (kind, rateLimit, mainUrl, isPrivateLimit);
+                    apiTree[kind][reqMethod][path] = this.rateLimitValue (kind, rateLimit, mainUrl, isPrivateRL);
                 } else {
                     //console.log('duplicate path',  kind, reqMethod, path, mainUrl); // seems only few exceptions
                 }
@@ -203,3 +218,6 @@ class binance extends ParserBase {
 const tree = await (new binance()).init ();
 // comment below
 console.log(JSON.stringify(tree, null, 2));
+
+
+
