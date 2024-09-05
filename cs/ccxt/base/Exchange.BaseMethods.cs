@@ -167,7 +167,6 @@ public partial class Exchange
                 { "fetchOrdersWs", null },
                 { "fetchOrderTrades", null },
                 { "fetchOrderWs", null },
-                { "fetchPermissions", null },
                 { "fetchPosition", null },
                 { "fetchPositionHistory", null },
                 { "fetchPositionsHistory", null },
@@ -3496,12 +3495,6 @@ public partial class Exchange
         parameters ??= new Dictionary<string, object>();
         await this.cancelOrderWs(id, symbol);
         return await this.createOrderWs(symbol, type, side, amount, price, parameters);
-    }
-
-    public async virtual Task<object> fetchPermissions(object parameters = null)
-    {
-        parameters ??= new Dictionary<string, object>();
-        throw new NotSupported ((string)add(this.id, " fetchPermissions() is not supported yet")) ;
     }
 
     public async virtual Task<object> fetchPosition(object symbol, object parameters = null)

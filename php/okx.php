@@ -106,7 +106,6 @@ class okx extends Exchange {
                 'fetchOrderBooks' => false,
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
-                'fetchPermissions' => null,
                 'fetchPosition' => true,
                 'fetchPositionHistory' => 'emulated',
                 'fetchPositions' => true,

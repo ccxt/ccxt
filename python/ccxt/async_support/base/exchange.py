@@ -875,9 +875,6 @@ class Exchange(BaseExchange):
         await self.cancel_order_ws(id, symbol)
         return await self.create_order_ws(symbol, type, side, amount, price, params)
 
-    async def fetch_permissions(self, params={}):
-        raise NotSupported(self.id + ' fetchPermissions() is not supported yet')
-
     async def fetch_position(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchPosition() is not supported yet')
 

@@ -346,7 +346,6 @@ class Exchange {
         'bingx',
         'bit2c',
         'bitbank',
-        'bitbay',
         'bitbns',
         'bitcoincom',
         'bitfinex',
@@ -396,7 +395,6 @@ class Exchange {
         'gemini',
         'hashkey',
         'hitbtc',
-        'hitbtc3',
         'hollaex',
         'htx',
         'huobi',
@@ -2405,7 +2403,6 @@ class Exchange {
                 'fetchOrdersWs' => null,
                 'fetchOrderTrades' => null,
                 'fetchOrderWs' => null,
-                'fetchPermissions' => null,
                 'fetchPosition' => null,
                 'fetchPositionHistory' => null,
                 'fetchPositionsHistory' => null,
@@ -5079,10 +5076,6 @@ class Exchange {
     public function edit_order_ws(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array ()) {
         $this->cancel_order_ws($id, $symbol);
         return $this->create_order_ws($symbol, $type, $side, $amount, $price, $params);
-    }
-
-    public function fetch_permissions($params = array ()) {
-        throw new NotSupported($this->id . ' fetchPermissions() is not supported yet');
     }
 
     public function fetch_position(string $symbol, $params = array ()) {
