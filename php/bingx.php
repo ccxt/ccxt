@@ -455,11 +455,13 @@ class bingx extends Exchange {
                     '100419' => '\\ccxt\\PermissionDenied', // array("code":100419,"msg":"IP does not match IP whitelist","success":false,"timestamp":1705274099347)
                     '100437' => '\\ccxt\\BadRequest', // array("code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845)
                     '101204' => '\\ccxt\\InsufficientFunds', // array("code":101204,"msg":"","data":array())
+                    '110425' => '\\ccxt\\InvalidOrder', // array("code":110425,"msg":"Please ensure that the minimum nominal value of the order placed must be greater than 2u","data":array())
                 ),
                 'broad' => array(),
             ),
             'commonCurrencies' => array(
                 'SNOW' => 'Snowman', // Snowman vs SnowSwap conflict
+                'OMNI' => 'OmniCat',
             ),
             'options' => array(
                 'defaultType' => 'spot',
@@ -2508,6 +2510,7 @@ class bingx extends Exchange {
             $positionSide = null;
             $hedged = $this->safe_bool($params, 'hedged', false);
             if ($hedged) {
+                $params = $this->omit($params, 'reduceOnly');
                 if ($reduceOnly) {
                     $positionSide = ($side === 'buy') ? 'SHORT' : 'LONG';
                 } else {
@@ -2519,7 +2522,7 @@ class bingx extends Exchange {
             $request['positionSide'] = $positionSide;
             $request['quantity'] = ($market['inverse']) ? $amount : $this->parse_to_numeric($this->amount_to_precision($symbol, $amount)); // precision not available for inverse contracts
         }
-        $params = $this->omit($params, array( 'hedged', 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ));
+        $params = $this->omit($params, array( 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId' ));
         return $this->extend($request, $params);
     }
 

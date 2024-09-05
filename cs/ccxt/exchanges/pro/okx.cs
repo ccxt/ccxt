@@ -815,6 +815,23 @@ public partial class okx : ccxt.okx
         return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
     }
 
+    public async virtual Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#unWatchOHLCV
+        * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+        * @param {string} timeframe the length of time each candle represents
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+        */
+        timeframe ??= "1m";
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        return await this.unWatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframe}}, parameters);
+    }
+
     public async override Task<object> watchOHLCVForSymbols(object symbolsAndTimeframes, object since = null, object limit = null, object parameters = null)
     {
         /**
@@ -866,6 +883,48 @@ public partial class okx : ccxt.okx
         }
         object filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
         return this.createOHLCVObject(symbol, timeframe, filtered);
+    }
+
+    public async virtual Task<object> unWatchOHLCVForSymbols(object symbolsAndTimeframes, object parameters = null)
+    {
+        /**
+        * @method
+        * @name okx#unWatchOHLCVForSymbols
+        * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+        */
+        parameters ??= new Dictionary<string, object>();
+        object symbolsLength = getArrayLength(symbolsAndTimeframes);
+        if (isTrue(isTrue(isEqual(symbolsLength, 0)) || !isTrue(((getValue(symbolsAndTimeframes, 0) is IList<object>) || (getValue(symbolsAndTimeframes, 0).GetType().IsGenericType && getValue(symbolsAndTimeframes, 0).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))))
+        {
+            throw new ArgumentsRequired ((string)add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [[\'BTC/USDT\', \'1m\'], [\'LTC/USDT\', \'5m\']]")) ;
+        }
+        await this.loadMarkets();
+        object topics = new List<object>() {};
+        object messageHashes = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
+        {
+            object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
+            object sym = getValue(symbolAndTimeframe, 0);
+            object tf = getValue(symbolAndTimeframe, 1);
+            object marketId = this.marketId(sym);
+            object interval = this.safeString(this.timeframes, tf, tf);
+            object channel = add("candle", interval);
+            object topic = new Dictionary<string, object>() {
+                { "channel", channel },
+                { "instId", marketId },
+            };
+            ((IList<object>)topics).Add(topic);
+            ((IList<object>)messageHashes).Add(add(add(add("unsubscribe:multi:", channel), ":"), sym));
+        }
+        object request = new Dictionary<string, object>() {
+            { "op", "unsubscribe" },
+            { "args", topics },
+        };
+        object url = this.getUrl("candle", "public");
+        return await this.watchMultiple(url, messageHashes, request, messageHashes);
     }
 
     public virtual void handleOHLCV(WebSocketClient client, object message)
@@ -2419,6 +2478,29 @@ public partial class okx : ccxt.okx
         callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
     }
 
+    public virtual void handleUnsubscriptionOHLCV(WebSocketClient client, object symbol, object channel)
+    {
+        object tf = ((string)channel).Replace((string)"candle", (string)"");
+        object timeframe = this.findTimeframe(tf);
+        object subMessageHash = add(add(add("multi:", channel), ":"), symbol);
+        object messageHash = add("unsubscribe:", subMessageHash);
+        if (isTrue(inOp(((WebSocketClient)client).subscriptions, subMessageHash)))
+        {
+
+        }
+        if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
+        {
+
+        }
+        if (isTrue(inOp(getValue(this.ohlcvs, symbol), timeframe)))
+        {
+
+        }
+        var error = new UnsubscribeError(add(add(this.id, " "), subMessageHash));
+        ((WebSocketClient)client).reject(error, subMessageHash);
+        callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
+    }
+
     public virtual void handleUnsubscription(WebSocketClient client, object message)
     {
         //
@@ -2441,6 +2523,9 @@ public partial class okx : ccxt.okx
         } else if (isTrue(isTrue(((string)channel).StartsWith(((string)"bbo"))) || isTrue(((string)channel).StartsWith(((string)"book")))))
         {
             this.handleUnsubscriptionOrderBook(client as WebSocketClient, symbol, channel);
+        } else if (isTrue(((string)channel).StartsWith(((string)"candle"))))
+        {
+            this.handleUnsubscriptionOHLCV(client as WebSocketClient, symbol, channel);
         }
     }
 }

@@ -451,11 +451,13 @@ public partial class bingx : Exchange
                     { "100419", typeof(PermissionDenied) },
                     { "100437", typeof(BadRequest) },
                     { "101204", typeof(InsufficientFunds) },
+                    { "110425", typeof(InvalidOrder) },
                 } },
                 { "broad", new Dictionary<string, object>() {} },
             } },
             { "commonCurrencies", new Dictionary<string, object>() {
                 { "SNOW", "Snowman" },
+                { "OMNI", "OmniCat" },
             } },
             { "options", new Dictionary<string, object>() {
                 { "defaultType", "spot" },
@@ -2546,6 +2548,7 @@ public partial class bingx : Exchange
             object hedged = this.safeBool(parameters, "hedged", false);
             if (isTrue(hedged))
             {
+                parameters = this.omit(parameters, "reduceOnly");
                 if (isTrue(reduceOnly))
                 {
                     positionSide = ((bool) isTrue((isEqual(side, "buy")))) ? "SHORT" : "LONG";
@@ -2560,7 +2563,7 @@ public partial class bingx : Exchange
             ((IDictionary<string,object>)request)["positionSide"] = positionSide;
             ((IDictionary<string,object>)request)["quantity"] = ((bool) isTrue((getValue(market, "inverse")))) ? amount : this.parseToNumeric(this.amountToPrecision(symbol, amount)); // precision not available for inverse contracts
         }
-        parameters = this.omit(parameters, new List<object>() {"hedged", "reduceOnly", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "takeProfit", "stopLoss", "clientOrderId"});
+        parameters = this.omit(parameters, new List<object>() {"hedged", "triggerPrice", "stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingType", "takeProfit", "stopLoss", "clientOrderId"});
         return this.extend(request, parameters);
     }
 

@@ -24,7 +24,9 @@ export default class okx extends okxRest {
     parseWsMyLiquidation(liquidation: any, market?: any): Liquidation;
     parseWsLiquidation(liquidation: any, market?: any): Liquidation;
     watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    unWatchOHLCV(symbol: string, timeframe?: string, params?: {}): Promise<any>;
     watchOHLCVForSymbols(symbolsAndTimeframes: string[][], since?: Int, limit?: Int, params?: {}): Promise<import("../base/types.js").Dictionary<import("../base/types.js").Dictionary<OHLCV[]>>>;
+    unWatchOHLCVForSymbols(symbolsAndTimeframes: string[][], params?: {}): Promise<any>;
     handleOHLCV(client: Client, message: any): void;
     watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
     watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
@@ -60,5 +62,6 @@ export default class okx extends okxRest {
     handleMessage(client: Client, message: any): void;
     handleUnSubscriptionTrades(client: Client, symbol: string): void;
     handleUnsubscriptionOrderBook(client: Client, symbol: string, channel: string): void;
+    handleUnsubscriptionOHLCV(client: Client, symbol: string, channel: string): void;
     handleUnsubscription(client: Client, message: any): void;
 }

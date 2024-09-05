@@ -920,6 +920,9 @@ class testMainClass(baseMainTestClass):
                 is_disabled = exchange.safe_bool(result, 'disabled', False)
                 if is_disabled:
                     continue
+                disabled_string = exchange.safe_string(result, 'disabled', '')
+                if disabled_string != '':
+                    continue
                 is_disabled_c_sharp = exchange.safe_bool(result, 'disabledCS', False)
                 if is_disabled_c_sharp and (self.lang == 'C#'):
                     continue

@@ -685,6 +685,66 @@ public partial class bybit : ccxt.bybit
         return this.createOHLCVObject(symbol, timeframe, filtered);
     }
 
+    public async virtual Task<object> unWatchOHLCVForSymbols(object symbolsAndTimeframes, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#unWatchOHLCVForSymbols
+        * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+        * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+        * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} A list of candles ordered as timestamp, open, high, low, close, volume
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
+        object marketSymbols = this.marketSymbols(symbols, null, false, true, true);
+        object firstSymbol = getValue(marketSymbols, 0);
+        object url = await this.getUrlByMarketType(firstSymbol, false, "watchOHLCVForSymbols", parameters);
+        object rawHashes = new List<object>() {};
+        object subMessageHashes = new List<object>() {};
+        object messageHashes = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
+        {
+            object data = getValue(symbolsAndTimeframes, i);
+            object symbolString = this.safeString(data, 0);
+            object market = this.market(symbolString);
+            symbolString = getValue(market, "symbol");
+            object unfiedTimeframe = this.safeString(data, 1);
+            object timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            ((IList<object>)rawHashes).Add(add(add(add("kline.", timeframeId), "."), getValue(market, "id")));
+            ((IList<object>)subMessageHashes).Add(add(add(add("ohlcv::", symbolString), "::"), unfiedTimeframe));
+            ((IList<object>)messageHashes).Add(add(add(add("unsubscribe::ohlcv::", symbolString), "::"), unfiedTimeframe));
+        }
+        object subExtension = new Dictionary<string, object>() {
+            { "symbolsAndTimeframes", symbolsAndTimeframes },
+        };
+        return await this.unWatchTopics(url, "ohlcv", symbols, messageHashes, subMessageHashes, rawHashes, parameters, subExtension);
+    }
+
+    public async virtual Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name bybit#unWatchOHLCV
+        * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        * @see https://bybit-exchange.github.io/docs/v5/websocket/public/kline
+        * @see https://bybit-exchange.github.io/docs/v5/websocket/public/etp-kline
+        * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+        * @param {string} timeframe the length of time each candle represents
+        * @param {int} [since] timestamp in ms of the earliest candle to fetch
+        * @param {int} [limit] the maximum amount of candles to fetch
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+        */
+        timeframe ??= "1m";
+        parameters ??= new Dictionary<string, object>();
+        ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOHLCV";
+        return await this.unWatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframe}}, parameters);
+    }
+
     public virtual void handleOHLCV(WebSocketClient client, object message)
     {
         //
@@ -2354,9 +2414,10 @@ public partial class bybit : ccxt.bybit
         return await this.watchMultiple(url, messageHashes, message, messageHashes);
     }
 
-    public async virtual Task<object> unWatchTopics(object url, object topic, object symbols, object messageHashes, object subMessageHashes, object topics, object parameters = null)
+    public async virtual Task<object> unWatchTopics(object url, object topic, object symbols, object messageHashes, object subMessageHashes, object topics, object parameters = null, object subExtension = null)
     {
         parameters ??= new Dictionary<string, object>();
+        subExtension ??= new Dictionary<string, object>();
         object reqId = this.requestId();
         object request = new Dictionary<string, object>() {
             { "op", "unsubscribe" },
@@ -2371,7 +2432,7 @@ public partial class bybit : ccxt.bybit
             { "symbols", symbols },
         };
         object message = this.extend(request, parameters);
-        return await this.watchMultiple(url, messageHashes, message, messageHashes, subscription);
+        return await this.watchMultiple(url, messageHashes, message, messageHashes, this.extend(subscription, subExtension));
     }
 
     public async virtual Task<object> authenticate(object url, object parameters = null)
@@ -2692,8 +2753,8 @@ public partial class bybit : ccxt.bybit
                     var error = new UnsubscribeError(add(add(this.id, " "), messageHash));
                     ((WebSocketClient)client).reject(error, subHash);
                     callDynamically(client as WebSocketClient, "resolve", new object[] {true, unsubHash});
-                    this.cleanCache(subscription);
                 }
+                this.cleanCache(subscription);
             }
         }
         return message;
@@ -2704,7 +2765,17 @@ public partial class bybit : ccxt.bybit
         object topic = this.safeString(subscription, "topic");
         object symbols = this.safeList(subscription, "symbols", new List<object>() {});
         object symbolsLength = getArrayLength(symbols);
-        if (isTrue(isGreaterThan(symbolsLength, 0)))
+        if (isTrue(isEqual(topic, "ohlcv")))
+        {
+            object symbolsAndTimeFrames = this.safeList(subscription, "symbolsAndTimeframes", new List<object>() {});
+            for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeFrames)); postFixIncrement(ref i))
+            {
+                object symbolAndTimeFrame = getValue(symbolsAndTimeFrames, i);
+                object symbol = this.safeString(symbolAndTimeFrame, 0);
+                object timeframe = this.safeString(symbolAndTimeFrame, 1);
+
+            }
+        } else if (isTrue(isGreaterThan(symbolsLength, 0)))
         {
             for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {

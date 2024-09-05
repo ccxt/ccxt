@@ -457,12 +457,14 @@ class bingx extends bingx$1 {
                     '100414': errors.AccountSuspended,
                     '100419': errors.PermissionDenied,
                     '100437': errors.BadRequest,
-                    '101204': errors.InsufficientFunds, // {"code":101204,"msg":"","data":{}}
+                    '101204': errors.InsufficientFunds,
+                    '110425': errors.InvalidOrder, // {"code":110425,"msg":"Please ensure that the minimum nominal value of the order placed must be greater than 2u","data":{}}
                 },
                 'broad': {},
             },
             'commonCurrencies': {
-                'SNOW': 'Snowman', // Snowman vs SnowSwap conflict
+                'SNOW': 'Snowman',
+                'OMNI': 'OmniCat',
             },
             'options': {
                 'defaultType': 'spot',
@@ -2556,6 +2558,7 @@ class bingx extends bingx$1 {
             let positionSide = undefined;
             const hedged = this.safeBool(params, 'hedged', false);
             if (hedged) {
+                params = this.omit(params, 'reduceOnly');
                 if (reduceOnly) {
                     positionSide = (side === 'buy') ? 'SHORT' : 'LONG';
                 }
@@ -2569,7 +2572,7 @@ class bingx extends bingx$1 {
             request['positionSide'] = positionSide;
             request['quantity'] = (market['inverse']) ? amount : this.parseToNumeric(this.amountToPrecision(symbol, amount)); // precision not available for inverse contracts
         }
-        params = this.omit(params, ['hedged', 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId']);
+        params = this.omit(params, ['hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId']);
         return this.extend(request, params);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {

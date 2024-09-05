@@ -1,3 +1,64 @@
+## 4.3.92 (2024-08-31)
+
+*  4.3.91 [4ca3a23b24](https://github.com/ccxt/ccxt/commits/4ca3a23b240aa53f893f76979bb18372115c6bdf)
+*  fix(hyperliquid): fetchOrder with clientOrderId (#23595) [4082f15369](https://github.com/ccxt/ccxt/commits/4082f153695b87545609e41c12ddeb500de9aa42)
+*  fix(hyperliquid): fetchOrder with clientOrderId (#23595) [5d7691a478](https://github.com/ccxt/ccxt/commits/5d7691a478c40fd4e57f3af5d15ee08ae6099f01)
+*  4.3.92 [339247b989](https://github.com/ccxt/ccxt/commits/339247b9894b8e905e0f7faedf7b5acfe09de09f)
+
+
+## 4.3.91 (2024-08-30)
+
+*  4.3.90 [9d52802808](https://github.com/ccxt/ccxt/commits/9d5280280817d14754e6c1968b23195dfb2d11e5)
+*  hitbtc transaction status (#23578) [f68cac80b4](https://github.com/ccxt/ccxt/commits/f68cac80b4368d4e9fef6c536e6c74d359ed194b)
+*  feat(kucoinfutures): add fetchBidsAsks (#23579) [27a742ed2b](https://github.com/ccxt/ccxt/commits/27a742ed2bd4b14f5a21e6c227ad161670526ad7)
+*  feat(woo): add active flag (#23583) [eda95025f6](https://github.com/ccxt/ccxt/commits/eda95025f638976f6b2c5c1b2cf9c98fc0c39e8b)
+*  feat(woo): add active flag (#23583) [4a3ae9f8e5](https://github.com/ccxt/ccxt/commits/4a3ae9f8e5376eff203cfc98b64525f2c48177e5)
+*  fix(binance): update rl for withdraw history api (#23585) [5fb6bf30dd](https://github.com/ccxt/ccxt/commits/5fb6bf30dd6c47a2a9cfe222536917265e279236)
+*  4.3.91 [c7659d117e](https://github.com/ccxt/ccxt/commits/c7659d117e2298ce20e970e1333babd793eff9e3)
+
+
+## 4.3.90 (2024-08-29)
+
+*  4.3.89 [e95a9e4598](https://github.com/ccxt/ccxt/commits/e95a9e4598ad83c31c15ee1ff0f814d36ab9d9ea)
+*  feat(binance): add some unSub methods (#23550) [d2b4276912](https://github.com/ccxt/ccxt/commits/d2b42769120116adddc3d218f8725e83c9af6630)
+*  feat(binance): add some unSub methods (#23550) [8007207379](https://github.com/ccxt/ccxt/commits/8007207379253b314d4617384ed9fd59d4fa7682)
+*  feat(okx): add unWatchTrades/OrderBook (#23553) [ec90ef8f74](https://github.com/ccxt/ccxt/commits/ec90ef8f748a7679007663d72dfd5ecbbabc7cc6)
+*  feat(okx): add unWatchTrades/OrderBook (#23553) [1f89265c9f](https://github.com/ccxt/ccxt/commits/1f89265c9f627491a4e3a7e3b2f58dc8e325e67c)
+*  fix(bitget): fees signal (#23561) [f62b35c212](https://github.com/ccxt/ccxt/commits/f62b35c212039bbc63ca43e69d3d5f218d9c8d50)
+*  hitbtc transaction status (#23558) [6dbcef756c](https://github.com/ccxt/ccxt/commits/6dbcef756c724f03497f2175dde0f3d22c76c4c5)
+*  latoken transaction status (#23557) [724238f630](https://github.com/ccxt/ccxt/commits/724238f63063d8b711f8d25cd287dc4008158242)
+*  latoken transaction status (#23557) [7359dc5257](https://github.com/ccxt/ccxt/commits/7359dc52571c6c7119c5676a1989ec2e937eec70)
+*  Safe value to safe dict/list/bool (#23552) [efbe113b29](https://github.com/ccxt/ccxt/commits/efbe113b297cfd4ba1fe042c4a623b559783a786)
+*  Safe value to safe dict/list/bool (#23552) [8209844c32](https://github.com/ccxt/ccxt/commits/8209844c3224a81b129d5f74cc499f3fcc7e767b)
+*  bingx: websocket pro, inverse swap support (#23336) [07919756dd](https://github.com/ccxt/ccxt/commits/07919756ddaf56b80fba28608f264f20e9388ee4)
+*  bingx: websocket pro, inverse swap support (#23336) [9a2bbd619c](https://github.com/ccxt/ccxt/commits/9a2bbd619cf05cf57f06cb458b82e7d0a1a06bb3)
+*  fix(whitebit) error handling (#23565) [db362c92ee](https://github.com/ccxt/ccxt/commits/db362c92ee8b133947c9ae61d2bbfa13b095cc91)
+*  fix(whitebit) error handling (#23565) [8d6bff547e](https://github.com/ccxt/ccxt/commits/8d6bff547e0d33e79317e4d71b8dbf73f1079858)
+*  feat(bingx): createOrder, add hedged param and default to one way mode (#23564) [0a3d554b3f](https://github.com/ccxt/ccxt/commits/0a3d554b3fdd59644bbb4b40eedf379897b13e2b)
+*  feat(coinex): upgrade pro to v2 (#23189) [62cfa57403](https://github.com/ccxt/ccxt/commits/62cfa57403c5914c19a5cc574baac83e0f5c2c41)
+*  feat(coinex): upgrade pro to v2 (#23189) [99234e7750](https://github.com/ccxt/ccxt/commits/99234e7750234029d32ac77a5986e4a8cce2aa46)
+*  bithumb: update doc (#23570) [fb5fe02645](https://github.com/ccxt/ccxt/commits/fb5fe0264559672374776b0ddaa3a65ef67e3c53)
+*  fix(bybit): update watchLiquidations (#23572) [f3e9a09fb4](https://github.com/ccxt/ccxt/commits/f3e9a09fb41cc161ca62dd86af2230c36bbaa40b)
+*  htx: update doc (#23571) [2da8c5baae](https://github.com/ccxt/ccxt/commits/2da8c5baae37e2dc99d91f0a7eaaa41fc285314e)
+*  lbank: update doc (#23569) [92b767ab6f](https://github.com/ccxt/ccxt/commits/92b767ab6fe5aeb20fbfb14e67cf55054b489ce6)
+*  4.3.90 [d387bf653e](https://github.com/ccxt/ccxt/commits/d387bf653ede4c2418a1a6d72da41d11776ce50b)
+
+
+## 4.3.89 (2024-08-26)
+
+*  4.3.88 [103a57a47d](https://github.com/ccxt/ccxt/commits/103a57a47df98cf3315e7d3a195496bb4ce271ef)
+*  remove cs Sending (#23521) [7dbe2a0874](https://github.com/ccxt/ccxt/commits/7dbe2a08744a113a7ad250d633c92725f5453b07)
+*  fix(docs): fetchOrder jsdoc (#23526) [0d7e2631ee](https://github.com/ccxt/ccxt/commits/0d7e2631ee175e41247e598efa68f6e5aa76963d)
+*  chore: update changelog (#23531) [45cae10740](https://github.com/ccxt/ccxt/commits/45cae107406526a53829bb1d2643b29a05e66f37)
+*  fix(kraken,mexc): network space fix (#23532) [3dd2f09f6d](https://github.com/ccxt/ccxt/commits/3dd2f09f6dd36975f4adeac25fc68d2647a09744)
+*  fix(kraken, mexc): networks (#23546) [33ec19a51f](https://github.com/ccxt/ccxt/commits/33ec19a51f48e5831cefdfd33be15316d2fee244)
+*  fix(kraken, mexc): networks (#23546) [c4cbfe6882](https://github.com/ccxt/ccxt/commits/c4cbfe6882ca97eab6d1da1047c69803477bca0d)
+*  fix(base): get_object_value_from_key_list (#23549) [42d51f2a25](https://github.com/ccxt/ccxt/commits/42d51f2a25503f94bd872a4b692acf2ca59a30cf)
+*  feat(bybit): unWatchTrades/OrderBook/ticker (#23513) [4753f6d126](https://github.com/ccxt/ccxt/commits/4753f6d126eb4f3d3314b1eae06b81558694e36a)
+*  feat(bybit): unWatchTrades/OrderBook/ticker (#23513) [10c197de4c](https://github.com/ccxt/ccxt/commits/10c197de4c01d739ac8e7339a60263adb4a2decc)
+*  4.3.89 [f6c7c0568c](https://github.com/ccxt/ccxt/commits/f6c7c0568cfdd46c3cb385a940da7f0965357173)
+
+
 ## 4.3.88 (2024-08-23)
 
 *  4.3.87 [089d967332](https://github.com/ccxt/ccxt/commits/089d967332857af438c1ca1cb3f22b90128281f1)

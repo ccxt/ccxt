@@ -18,6 +18,7 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
+from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import OperationFailed
@@ -473,11 +474,13 @@ class bingx(Exchange, ImplicitAPI):
                     '100419': PermissionDenied,  # {"code":100419,"msg":"IP does not match IP whitelist","success":false,"timestamp":1705274099347}
                     '100437': BadRequest,  # {"code":100437,"msg":"The withdrawal amount is lower than the minimum limit, please re-enter.","timestamp":1689258588845}
                     '101204': InsufficientFunds,  # {"code":101204,"msg":"","data":{}}
+                    '110425': InvalidOrder,  # {"code":110425,"msg":"Please ensure that the minimum nominal value of the order placed must be greater than 2u","data":{}}
                 },
                 'broad': {},
             },
             'commonCurrencies': {
                 'SNOW': 'Snowman',  # Snowman vs SnowSwap conflict
+                'OMNI': 'OmniCat',
             },
             'options': {
                 'defaultType': 'spot',
@@ -2408,6 +2411,7 @@ class bingx(Exchange, ImplicitAPI):
             positionSide = None
             hedged = self.safe_bool(params, 'hedged', False)
             if hedged:
+                params = self.omit(params, 'reduceOnly')
                 if reduceOnly:
                     positionSide = 'SHORT' if (side == 'buy') else 'LONG'
                 else:
@@ -2416,7 +2420,7 @@ class bingx(Exchange, ImplicitAPI):
                 positionSide = 'BOTH'
             request['positionSide'] = positionSide
             request['quantity'] = amount if (market['inverse']) else self.parse_to_numeric(self.amount_to_precision(symbol, amount))  # precision not available for inverse contracts
-        params = self.omit(params, ['hedged', 'reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId'])
+        params = self.omit(params, ['hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId'])
         return self.extend(request, params)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
