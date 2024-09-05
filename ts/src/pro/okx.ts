@@ -410,6 +410,20 @@ export default class okx extends okxRest {
         return this.safeValue (ticker, symbol);
     }
 
+    async unWatchTicker (symbol: string, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name okx#unWatchTicker
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
+         * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        return await this.unWatchTickers ([ symbol ], params);
+    }
+
     async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         /**
          * @method
@@ -430,6 +444,41 @@ export default class okx extends okxRest {
             return newTickers;
         }
         return this.filterByArray (this.tickers, 'symbol', symbols);
+    }
+
+    async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name okx#unWatchTickers
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-ws-tickers-channel
+         * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @param {string[]} [symbols] unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.channel] the channel to subscribe to, tickers by default. Can be tickers, sprd-tickers, index-tickers, block-tickers
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        let channel = undefined;
+        [ channel, params ] = this.handleOptionAndParams (params, 'watchTickers', 'channel', 'tickers');
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            messageHashes.push ('unsubscribe:ticker:' + symbol);
+            const marketId = this.marketId (symbol);
+            const topic: Dict = {
+                'channel': channel,
+                'instId': marketId,
+            };
+            topics.push (topic);
+        }
+        const request: Dict = {
+            'op': 'unsubscribe',
+            'args': topics,
+        };
+        const url = this.getUrl (channel, 'public');
+        return await this.watchMultiple (url, messageHashes, request, messageHashes);
     }
 
     handleTicker (client: Client, message) {
@@ -2308,6 +2357,23 @@ export default class okx extends okxRest {
         client.resolve (true, messageHash);
     }
 
+    handleUnsubscriptionTicker (client: Client, symbol: string, channel) {
+        const subMessageHash = channel + ':' + symbol;
+        const messageHash = 'unsubscribe:ticker:' + symbol;
+        if (subMessageHash in client.subscriptions) {
+            delete client.subscriptions[subMessageHash];
+        }
+        if (messageHash in client.subscriptions) {
+            delete client.subscriptions[messageHash];
+        }
+        if (symbol in this.tickers) {
+            delete this.tickers[symbol];
+        }
+        const error = new UnsubscribeError (this.id + ' ' + subMessageHash);
+        client.reject (error, subMessageHash);
+        client.resolve (true, messageHash);
+    }
+
     handleUnsubscription (client: Client, message) {
         //
         // {
@@ -2320,13 +2386,15 @@ export default class okx extends okxRest {
         // }
         // arg might be an array or list
         const arg = this.safeDict (message, 'arg', {});
-        const channel = this.safeString (arg, 'channel');
+        const channel = this.safeString (arg, 'channel', '');
         const marketId = this.safeString (arg, 'instId');
         const symbol = this.safeSymbol (marketId);
         if (channel === 'trades') {
             this.handleUnSubscriptionTrades (client, symbol);
         } else if (channel.startsWith ('bbo') || channel.startsWith ('book')) {
             this.handleUnsubscriptionOrderBook (client, symbol, channel);
+        } else if (channel.indexOf ('tickers') > -1) {
+            this.handleUnsubscriptionTicker (client, symbol, channel);
         }
     }
 }
