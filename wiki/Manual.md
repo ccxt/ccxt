@@ -4334,9 +4334,9 @@ exchange.create_limit_sell_order (symbol, amount, price[, params])
 Coming from traditional trading, the term "Stop" order has been a bit ambigious, so instead of it, in CCXT we use term "Trigger" order. When symbol's price reaches your "trigger"("stop") price, the order is activated as `market` or `limit` order, depending which one you had chosen.
 
 We have different classification of trigger orders:
-* stand-alone [Trigger order](#trigger-orders) to buy/sell coin (open/close position)
-* stand-alone [Stop-Loss](#stop-loss-orders) or [Take-Profit](#take-profit-orders) order which are only designed to close an open position.
-* an attached Stop-Loss or Take-Profit order into a primary order ([Conditional Trigger Order](#stopLoss-and-takeProfit-orders-attached-to-a-position)).
+1) stand-alone [Trigger order](#trigger-orders) to buy/sell coin (open/close position)
+2) stand-alone [Stop-Loss](#stop-loss-orders) or [Take-Profit](#take-profit-orders) order which are only designed to close an open position.
+3) an attached Stop-Loss or Take-Profit order into a primary order ([Conditional Trigger Order](#stopLoss-and-takeProfit-orders-attached-to-a-position)).
 
 
 ##### Trigger Orders
