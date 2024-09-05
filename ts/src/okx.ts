@@ -1165,7 +1165,7 @@ export default class okx extends Exchange {
                             'triggerPriceType': [ 'last', 'mark', 'index' ],
                         },
                         'timeInForce': [ 'GTC', 'IOC', 'FOK', 'PO' ],
-                        'selfTradePrevention': true,
+                        // 'selfTradePrevention': true, // supported, but not unified
                         'hedged': true,
                     },
                     'fetchOpenOrders': {
