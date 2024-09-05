@@ -895,8 +895,8 @@ export default class kucoin extends kucoinRest {
                     delete client.subscriptions[subHash];
                 }
                 const error = new UnsubscribeError (this.id + ' ' + subHash);
-                client.reject (error, messageHash);
-                client.resolve (true, subHash);
+                client.reject (error, subHash);
+                client.resolve (true, messageHash);
                 this.cleanCache (subscription);
             }
         }
@@ -909,12 +909,18 @@ export default class kucoin extends kucoinRest {
         if (symbolsLength > 0) {
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
-                if (topic === 'trade') {
-                    delete this.trades[symbol];
+                if (topic === 'trades') {
+                    if (symbol in this.trades) {
+                        delete this.trades[symbol];
+                    }
                 } else if (topic === 'orderbook') {
-                    delete this.orderbooks[symbol];
+                    if (symbol in this.orderbooks) {
+                        delete this.orderbooks[symbol];
+                    }
                 } else if (topic === 'ticker') {
-                    delete this.tickers[symbol];
+                    if (symbol in this.tickers) {
+                        delete this.tickers[symbol];
+                    }
                 }
             }
         } else {
