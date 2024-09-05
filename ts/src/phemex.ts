@@ -2539,10 +2539,34 @@ export default class phemex extends Exchange {
             // 'posSide': Position direction - "Merged" for oneway mode , "Long" / "Short" for hedge mode
         };
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
-        const stopLoss = this.safeValue (params, 'stopLoss');
-        const stopLossDefined = (stopLoss !== undefined);
-        const takeProfit = this.safeValue (params, 'takeProfit');
-        const takeProfitDefined = (takeProfit !== undefined);
+        let stopLoss = this.safeValue (params, 'stopLoss');
+        let stopLossDefined = (stopLoss !== undefined);
+        let takeProfit = this.safeValue (params, 'takeProfit');
+        let takeProfitDefined = (takeProfit !== undefined);
+        // backwards compatibility for sl/tp - migrate them into unified format
+        const stopLossPrice = this.safeNumber (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        if (stopLossPrice !== undefined) {
+            if (stopLossDefined) {
+                throw new InvalidOrder (this.id + ' createOrder() - you have conflicting settings, please use either "stopLoss" unified param or old "stopLossPrice" param');
+            }
+            params = this.omit (params, 'stopLossPrice');
+            stopLoss = {
+                'triggerPrice': stopLossPrice,
+            };
+            stopLossDefined = true;
+        }
+        if (takeProfitPrice !== undefined) {
+            if (takeProfitDefined) {
+                throw new InvalidOrder (this.id + ' createOrder() - you have conflicting settings, please use either "takeProfit" unified param or old "takeProfitPrice" param');
+            }
+            params = this.omit (params, 'takeProfitPrice');
+            takeProfit = {
+                'triggerPrice': takeProfitPrice,
+            };
+            takeProfitDefined = true;
+        }
+        // end of support sl/tp
         if (clientOrderId === undefined) {
             const brokerId = this.safeString (this.options, 'brokerId', 'CCXT123456');
             if (brokerId !== undefined) {
@@ -2617,6 +2641,20 @@ export default class phemex extends Exchange {
                 request['triggerType'] = triggerType;
             }
             if (stopLossDefined || takeProfitDefined) {
+                const triggerPriceTypesMap = {
+                    'mark': 'ByMarkPrice',
+                    'ByMarkPrice': 'ByMarkPrice',
+                    'last': 'ByLastPrice',
+                    'ByLastPrice': 'ByLastPrice',
+                    'index': 'ByIndexPrice',
+                    'ByIndexPrice': 'ByIndexPrice',
+                    'ask': 'ByAskPrice',
+                    'ByAskPrice': 'ByAskPrice',
+                    'bid': 'ByBidPrice',
+                    'ByBidPrice': 'ByBidPrice',
+                    'ByMarkPriceLimit': 'ByMarkPriceLimit',
+                    'ByLastPriceLimit': 'ByLastPriceLimit',
+                };
                 if (stopLossDefined) {
                     const stopLossTriggerPrice = this.safeValue2 (stopLoss, 'triggerPrice', 'stopPrice');
                     if (stopLossTriggerPrice === undefined) {
@@ -2627,15 +2665,16 @@ export default class phemex extends Exchange {
                     } else {
                         request['stopLossEp'] = this.toEp (stopLossTriggerPrice, market);
                     }
-                    const stopLossTriggerPriceType = this.safeString2 (stopLoss, 'triggerPriceType', 'slTrigger');
+                    let stopLossTriggerPriceType = this.safeString2 (stopLoss, 'triggerPriceType', 'slTrigger');
+                    stopLossTriggerPriceType = this.safeString (triggerPriceTypesMap, stopLossTriggerPriceType, stopLossTriggerPriceType); // support for unified values
                     if (stopLossTriggerPriceType !== undefined) {
                         if (market['settle'] === 'USDT') {
-                            if ((stopLossTriggerPriceType !== 'ByMarkPrice') && (stopLossTriggerPriceType !== 'ByLastPrice') && (stopLossTriggerPriceType !== 'ByIndexPrice') && (stopLossTriggerPriceType !== 'ByAskPrice') && (stopLossTriggerPriceType !== 'ByBidPrice') && (stopLossTriggerPriceType !== 'ByMarkPriceLimit') && (stopLossTriggerPriceType !== 'ByLastPriceLimit')) {
-                                throw new InvalidOrder (this.id + ' createOrder() take profit trigger price type must be one of "ByMarkPrice", "ByIndexPrice", "ByAskPrice", "ByBidPrice", "ByMarkPriceLimit", "ByLastPriceLimit" or "ByLastPrice"');
+                            if (!(stopLossTriggerPriceType in triggerPriceTypesMap)) {
+                                throw new InvalidOrder (this.id + ' createOrder() stop-loss trigger price type must be one of ' + this.json (triggerPriceTypesMap));
                             }
                         } else {
                             if ((stopLossTriggerPriceType !== 'ByMarkPrice') && (stopLossTriggerPriceType !== 'ByLastPrice')) {
-                                throw new InvalidOrder (this.id + ' createOrder() take profit trigger price type must be one of "ByMarkPrice", or "ByLastPrice"');
+                                throw new InvalidOrder (this.id + ' createOrder() stop-loss trigger price type must be one of "ByMarkPrice", or "ByLastPrice"');
                             }
                         }
                         request['slTrigger'] = stopLossTriggerPriceType;
@@ -2651,11 +2690,12 @@ export default class phemex extends Exchange {
                     } else {
                         request['takeProfitEp'] = this.toEp (takeProfitTriggerPrice, market);
                     }
-                    const takeProfitTriggerPriceType = this.safeString2 (stopLoss, 'triggerPriceType', 'tpTrigger');
+                    let takeProfitTriggerPriceType = this.safeString2 (stopLoss, 'triggerPriceType', 'tpTrigger');
+                    takeProfitTriggerPriceType = this.safeString (triggerPriceTypesMap, takeProfitTriggerPriceType, takeProfitTriggerPriceType); // support for unified values
                     if (takeProfitTriggerPriceType !== undefined) {
                         if (market['settle'] === 'USDT') {
-                            if ((takeProfitTriggerPriceType !== 'ByMarkPrice') && (takeProfitTriggerPriceType !== 'ByLastPrice') && (takeProfitTriggerPriceType !== 'ByIndexPrice') && (takeProfitTriggerPriceType !== 'ByAskPrice') && (takeProfitTriggerPriceType !== 'ByBidPrice') && (takeProfitTriggerPriceType !== 'ByMarkPriceLimit') && (takeProfitTriggerPriceType !== 'ByLastPriceLimit')) {
-                                throw new InvalidOrder (this.id + ' createOrder() take profit trigger price type must be one of "ByMarkPrice", "ByIndexPrice", "ByAskPrice", "ByBidPrice", "ByMarkPriceLimit", "ByLastPriceLimit" or "ByLastPrice"');
+                            if (!(takeProfitTriggerPriceType in triggerPriceTypesMap)) {
+                                throw new InvalidOrder (this.id + ' createOrder() take-profit trigger price type must be one of ' + this.json (triggerPriceTypesMap));
                             }
                         } else {
                             if ((takeProfitTriggerPriceType !== 'ByMarkPrice') && (takeProfitTriggerPriceType !== 'ByLastPrice')) {
@@ -2674,24 +2714,6 @@ export default class phemex extends Exchange {
                 const priceString = this.numberToString (price);
                 request['priceEp'] = this.toEp (priceString, market);
             }
-        }
-        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
-        if (takeProfitPrice !== undefined) {
-            if (market['settle'] === 'USDT') {
-                request['takeProfitRp'] = this.priceToPrecision (symbol, takeProfitPrice);
-            } else {
-                request['takeProfitEp'] = this.toEp (takeProfitPrice, market);
-            }
-            params = this.omit (params, 'takeProfitPrice');
-        }
-        const stopLossPrice = this.safeString (params, 'stopLossPrice');
-        if (stopLossPrice !== undefined) {
-            if (market['settle'] === 'USDT') {
-                request['stopLossRp'] = this.priceToPrecision (symbol, stopLossPrice);
-            } else {
-                request['stopLossEp'] = this.toEp (stopLossPrice, market);
-            }
-            params = this.omit (params, 'stopLossPrice');
         }
         params = this.omit (params, 'reduceOnly');
         let response = undefined;
