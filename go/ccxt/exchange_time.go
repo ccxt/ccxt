@@ -56,7 +56,8 @@ func (this *Exchange) Iso8601(ts interface{}) string {
 }
 
 // ymdhms converts a timestamp to a formatted date string "yyyy-MM-dd HH:mm:ss".
-func (this *Exchange) Ymdhms(ts interface{}, infix interface{}) string {
+func (this *Exchange) Ymdhms(ts interface{}, args ...interface{}) string {
+	infix := GetArg(args, 1, nil)
 	if infix == nil {
 		infix = " "
 	}
@@ -69,7 +70,8 @@ func (this *Exchange) Ymdhms(ts interface{}, infix interface{}) string {
 }
 
 // yyyymmdd converts a timestamp to a formatted date string "yyyy-MM-dd".
-func (this *Exchange) Yyyymmdd(ts interface{}, infix interface{}) string {
+func (this *Exchange) Yyyymmdd(ts interface{}, args ...interface{}) string {
+	infix := GetArg(args, 1, nil)
 	if infix == nil {
 		infix = "-"
 	}

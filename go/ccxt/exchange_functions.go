@@ -1,10 +1,18 @@
 package ccxt
 
 import (
+	"encoding/json"
 	"reflect"
 	"regexp"
 	"sort"
 )
+
+func (this *Exchange) Ordered(a interface{}) interface{} {
+	if reflect.TypeOf(a).Kind() == reflect.Map {
+		return this.Keysort(a)
+	}
+	return a
+}
 
 // keysort sorts the keys of a map and returns a new map with the sorted keys.
 func (this *Exchange) Keysort(parameters2 interface{}) map[string]interface{} {
@@ -154,4 +162,27 @@ func (this *Exchange) ExtractParams(str2 interface{}) []interface{} {
 	}
 
 	return outList
+}
+
+func Json(obj interface{}) string {
+	if obj == nil {
+		return ""
+	}
+
+	// Check if the object is an error (Go's equivalent of an exception)
+	if err, ok := obj.(error); ok {
+		// Create an anonymous struct with the error type name
+		errorObj := struct {
+			Name string `json:"name"`
+		}{
+			Name: reflect.TypeOf(err).Name(),
+		}
+		// Serialize the error object to JSON
+		jsonData, _ := json.Marshal(errorObj)
+		return string(jsonData)
+	}
+
+	// Serialize the object to JSON
+	jsonData, _ := json.Marshal(obj)
+	return string(jsonData)
 }

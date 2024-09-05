@@ -104,7 +104,8 @@ func signHMACMD5(data, secret []byte) []byte {
 	return h.Sum(nil)
 }
 
-func (this *Exchange) Hash(request2 interface{}, hash func() string, digest2 interface{}) interface{} {
+func (this *Exchange) Hash(request2 interface{}, hash func() string, args ...interface{}) interface{} {
+	digest2 := GetArg(args, 0, "hex")
 	return Hash(request2, hash, digest2)
 }
 
@@ -196,7 +197,13 @@ func signKeccak(data interface{}) []byte {
 	return msg
 }
 
-func Jwt(data interface{}, secret interface{}, hash func() string, isRsa bool, options map[string]interface{}) string {
+func Jwt(data interface{}, secret interface{}, hash func() string, optionalArgs ...interface{}) string {
+	isRsa := GetArg(optionalArgs, 0, false).(bool)
+	params := GetArg(optionalArgs, 2, map[string]interface{}{}).(map[string]interface{})
+	return JwtFull(data, secret, hash, isRsa, params)
+}
+
+func JwtFull(data interface{}, secret interface{}, hash func() string, isRsa bool, options map[string]interface{}) string {
 	if options == nil {
 		options = make(map[string]interface{})
 	}
@@ -308,5 +315,9 @@ func Rsa(data2 interface{}, publicKey2 interface{}, hashAlgorithm2 interface{}) 
 }
 
 func Eddsa(data2 interface{}, publicKey2 interface{}, hashAlgorithm2 interface{}) string {
+	return ""
+}
+
+func Ecdsa(request interface{}, secret interface{}, alg interface{}, hash interface{}) string {
 	return ""
 }

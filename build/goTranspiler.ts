@@ -967,7 +967,7 @@ class NewTranspiler {
             exchanges = fs.readdirSync (jsFolder).filter (file => file.match (regex) && (!ids || ids.includes (basename (file, '.ts'))))
         }
 
-        // exchanges = ['binance.ts']
+        // exchanges = ['bitmart.ts']
         // transpile using webworker
         const allFilesPath = exchanges.map (file => jsFolder + file );
         // const transpiledFiles =  await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig());
@@ -1006,8 +1006,12 @@ class NewTranspiler {
         // const baseWsClass = baseWsClassExec ? baseWsClassExec[2] : '';
         if (!ws) {
             content = content.replace(/base\./gm, "this.Exchange.");
+            content = content.replace(/"\0"/gm, '"\/\/\" + "0"'); // check this later in bl3p
             content = content.replace(/new Precise/gm, "NewPrecise");
             content = content.replace(/var precise interface\{\} = /gm, "precise := ");
+            content = content.replace(/var preciseAmount interface\{\} = /gm, "preciseAmount := ");
+            content = content.replace(/binaryMessage.ByteLength/gm, 'GetValue(binaryMessage, "byteLength")'); // idex tmp fix
+
         } else {
             // const wsParent =  baseWsClass.endsWith('Rest') ? 'ccxt.' + baseWsClass.replace('Rest', '') : baseWsClass;
             // content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, `public partial class $1 : ${wsParent}`);

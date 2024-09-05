@@ -1152,3 +1152,37 @@ func OpNeg(value interface{}) interface{} {
 		return nil // Unsupported type, return nil
 	}
 }
+
+func JsonStringify(obj interface{}) string {
+	if obj == nil {
+		return ""
+	}
+
+	// Check if the object is an error (Go's equivalent of an exception)
+	if err, ok := obj.(error); ok {
+		// Create an anonymous struct with the error type name
+		errorObj := struct {
+			Name string `json:"name"`
+		}{
+			Name: reflect.TypeOf(err).Name(),
+		}
+		// Serialize the error object to JSON
+		jsonData, _ := json.Marshal(errorObj)
+		return string(jsonData)
+	}
+
+	// Serialize the object to JSON
+	jsonData, _ := json.Marshal(obj)
+	return string(jsonData)
+}
+
+func toFixed(number interface{}, decimals interface{}) float64 {
+	// Assert that the number is a float64 or convert it
+	num := ToFloat64(number)
+
+	// Assert that the decimals is an int or convert it
+	dec := ParseInt(decimals)
+	// Calculate the rounding multiplier
+	multiplier := math.Pow(10, float64(dec))
+	return math.Round(num*multiplier) / multiplier
+}

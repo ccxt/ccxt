@@ -266,8 +266,8 @@ function createGoHeader(exchange, parent){
 
 async function main() {
     log.bright.cyan ('Exporting TypeScript implicit api methods')
-    // const exchanges = ccxt.exchanges;
-    const exchanges = ['binance']; // tmp
+    const exchanges = ccxt.exchanges;
+    // const exchanges = ['binance']; // tmp
     for (const index in exchanges) {
         const exchange = exchanges[index];
         const exchangeClass = ccxt[exchange]

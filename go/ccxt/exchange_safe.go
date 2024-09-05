@@ -158,6 +158,10 @@ func SafeFloat(obj interface{}, key interface{}, defaultValue interface{}) inter
 	return SafeFloatN(obj, []interface{}{key}, defaultValue)
 }
 
+func SafeFloat2(obj interface{}, key interface{}, key2 interface{}, defaultValue interface{}) interface{} {
+	return SafeFloatN(obj, []interface{}{key, key2}, defaultValue)
+}
+
 // SafeInteger retrieves an int64 value from a nested structure
 func SafeInteger(obj interface{}, key interface{}, defaultValue interface{}) interface{} {
 	return SafeIntegerN(obj, []interface{}{key}, defaultValue)
@@ -294,12 +298,33 @@ func (this *Exchange) SafeStringN(obj interface{}, keys2 interface{}, defaultVal
 	return SafeStringN(obj, keys, defVal)
 }
 
+func (this *Exchange) SafeStringLowerN(obj interface{}, keys2 interface{}, defaultValue ...interface{}) interface{} {
+	keys := keys2.([]interface{})
+	var defVal interface{} = nil
+	if len(defaultValue) > 0 {
+		defVal = defaultValue[0]
+	}
+	res := SafeStringN(obj, keys, defVal)
+	if res != "" && res != nil {
+		return strings.ToLower(res.(string))
+	}
+	return defVal
+}
+
 func (this *Exchange) SafeFloat(obj interface{}, key interface{}, defaultValue ...interface{}) interface{} {
 	var defVal interface{} = nil
 	if len(defaultValue) > 0 {
 		defVal = defaultValue[0]
 	}
 	return SafeFloat(obj, key, defVal)
+}
+
+func (this *Exchange) SafeFloat2(obj interface{}, key interface{}, key2 interface{}, defaultValue ...interface{}) interface{} {
+	var defVal interface{} = nil
+	if len(defaultValue) > 0 {
+		defVal = defaultValue[0]
+	}
+	return SafeFloat2(obj, key, key2, defVal)
 }
 
 func (this *Exchange) SafeFloatN(obj interface{}, keys []interface{}, defaultValue ...interface{}) interface{} {

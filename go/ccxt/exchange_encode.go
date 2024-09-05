@@ -195,7 +195,7 @@ func (e *Exchange) UrlencodeWithArrayRepeat(parameters2 interface{}) string {
 	return strings.Join(outList, "&")
 }
 
-func (e *Exchange) UrlEncodeNested(parameters2 interface{}) string {
+func (e *Exchange) UrlencodeNested(parameters2 interface{}) string {
 	parameters := parameters2.(map[string]interface{})
 	queryString := url.Values{}
 	for key, value := range parameters {
@@ -247,7 +247,7 @@ func (e *Exchange) EncodeURIComponent(str interface{}) string {
 	return result.String()
 }
 
-func (e *Exchange) Urlencodebase64(s interface{}) string {
+func (e *Exchange) UrlencodeBase64(s interface{}) string {
 	return Base64urlencode(s)
 }
 
@@ -259,4 +259,16 @@ func Base64urlencode(s interface{}) string {
 		str = base64.StdEncoding.EncodeToString(s.([]byte))
 	}
 	return strings.TrimRight(strings.ReplaceAll(strings.ReplaceAll(str, "+", "-"), "/", "_"), "=")
+}
+
+func (e *Exchange) stringToCharsArray(str interface{}) interface{} {
+	// Convert the input to a string
+	inputStr := fmt.Sprintf("%v", str)
+	// Create a slice to hold the result
+	res := make([]string, len(inputStr))
+	// Iterate over each character in the string and add it to the result slice
+	for i, ch := range inputStr {
+		res[i] = string(ch)
+	}
+	return res
 }

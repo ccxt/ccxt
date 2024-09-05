@@ -1,6 +1,8 @@
 package ccxt
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	j "encoding/json"
 	"errors"
 	"fmt"
@@ -60,10 +62,12 @@ type Exchange struct {
 	LastRestRequestTimestamp int64
 	LastRequestHeaders       interface{}
 	Last_request_headers     interface{}
+	Last_http_response       interface{}
 	LastRequestBody          interface{}
 	Last_request_body        interface{}
 	Last_request_url         interface{}
 	LastRequestUrl           interface{}
+	Headers                  interface{}
 
 	// type check this
 	Number interface{}
@@ -195,6 +199,10 @@ func NewError(err interface{}, v ...interface{}) string {
 	// 	str += str + ToString(v[i])
 	// } // to do check this out later
 	return str
+}
+
+func Exception(v ...interface{}) interface{} {
+	return NewError("Exception", v...)
 }
 
 func ToSafeFloat(v interface{}) (float64, error) {
@@ -531,6 +539,33 @@ func parseCost(costStr string) float64 {
 // 	return nil
 // }
 
+func (this *Exchange) CheckRequiredDependencies() {
+	// to do
+}
+
+func (this *Exchange) FixStringifiedJsonMembers(a interface{}) string {
+	return a.(string) // to do
+}
+
+func (this *Exchange) IsEmpty(a interface{}) bool {
+	if a == nil {
+		return true
+	}
+
+	v := reflect.ValueOf(a)
+
+	switch v.Kind() {
+	case reflect.String:
+		return v.Len() == 0
+	case reflect.Slice, reflect.Array:
+		return v.Len() == 0
+	case reflect.Map:
+		return v.Len() == 0
+	default:
+		return false
+	}
+}
+
 func (this *Exchange) callInternal(name2 string, args ...interface{}) interface{} {
 	name := Capitalize(name2)
 	baseType := reflect.TypeOf(this.Itf)
@@ -597,6 +632,70 @@ func Capitalize(s string) string {
 	firstLetter := strings.ToUpper(string(s[0]))
 	// Combine the uppercase first letter with the rest of the string
 	return firstLetter + s[1:]
+}
+
+func (this *Exchange) RandomBytes(length interface{}) string {
+	var byteLength int
+
+	// Handle different types for the length parameter
+	switch v := length.(type) {
+	case int:
+		byteLength = v
+	case int32:
+		byteLength = int(v)
+	case int64:
+		byteLength = int(v)
+	case float32:
+		byteLength = int(v)
+	case float64:
+		byteLength = int(v)
+	default:
+		panic(fmt.Sprintf("unsupported length type: %v", reflect.TypeOf(length)))
+	}
+
+	if byteLength <= 0 {
+		panic("length must be greater than 0")
+	}
+
+	x := make([]byte, byteLength)
+	_, err := rand.Read(x)
+	if err != nil {
+		panic(fmt.Sprintf("failed to generate random bytes: %v", err))
+	}
+
+	return hex.EncodeToString(x)
+}
+
+func (this *Exchange) IsJsonEncodedObject(str interface{}) bool {
+	// Attempt to assert the input to a string type
+	str2, ok := str.(string)
+	if !ok {
+		return false
+	}
+
+	// Check if the string starts with "{" or "["
+	if strings.HasPrefix(str2, "{") || strings.HasPrefix(str2, "[") {
+		return true
+	}
+	return false
+}
+
+func (this *Exchange) StringToCharsArray(value interface{}) []string {
+	// Attempt to assert the input to a string type
+	str, ok := value.(string)
+	if !ok {
+		panic(fmt.Sprintf("unsupported type: %v, expected string", reflect.TypeOf(value)))
+	}
+
+	// Initialize a slice to hold the characters
+	chars := make([]string, len(str))
+
+	// Loop through each character in the string and add it to the slice
+	for i, char := range str {
+		chars[i] = string(char)
+	}
+
+	return chars
 }
 
 // func (this *Exchange) callInternal(name2 string, args ...interface{}) interface{} {
