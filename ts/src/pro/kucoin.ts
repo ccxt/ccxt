@@ -567,8 +567,7 @@ export default class kucoin extends kucoinRest {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             messageHashes.push ('unsubscribe:trades:' + symbol);
-            const marketId = marketIds[i];
-            subscriptionHashes.push ('/market/match:' + marketId);
+            subscriptionHashes.push ('trades:' + symbol);
         }
         const subscription = {
             'messageHashes': messageHashes,
