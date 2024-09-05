@@ -1169,16 +1169,16 @@ export default class okx extends Exchange {
                         'hedged': true,
                     },
                     'fetchOpenOrders': {
-                        'supportedFlags': [ 'trigger', 'trailing' ],
+                        'supportedParams': [ 'trigger', 'trailing' ],
                         'limit': 100,
                     },
                     'fetchClosedOrders': {
-                        'supportedFlags': [ 'trigger', 'trailing' ],
+                        'supportedParams': [ 'trigger', 'trailing' ],
                         'daysBack': 90, // 3 months
                         'limit': 100,
                     },
                     'fetchOrder': {
-                        'supportedFlags': [ 'trigger' ],
+                        'supportedParams': [ 'trigger' ],
                     },
                     'fetchMyTrades': {
                         'until': true,
