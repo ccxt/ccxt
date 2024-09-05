@@ -15,6 +15,7 @@ public partial class hitbtc : ccxt.hitbtc
                 { "watchTicker", true },
                 { "watchTickers", true },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchOrderBook", true },
                 { "watchBalance", true },
                 { "watchOrders", true },

@@ -116,7 +116,6 @@ class okx extends Exchange {
                 'fetchOrderBooks' => false,
                 'fetchOrders' => false,
                 'fetchOrderTrades' => true,
-                'fetchPermissions' => null,
                 'fetchPosition' => true,
                 'fetchPositionHistory' => 'emulated',
                 'fetchPositions' => true,
@@ -331,6 +330,7 @@ class okx extends Exchange {
                         'account/account-position-risk' => 2,
                         'account/bills' => 5 / 3,
                         'account/bills-archive' => 5 / 3,
+                        'account/bills-history-archive' => 2,
                         'account/config' => 4,
                         'account/max-size' => 1,
                         'account/max-avail-size' => 1,
@@ -485,6 +485,7 @@ class okx extends Exchange {
                         'account/fixed-loan/amend-borrowing-order' => 5,
                         'account/fixed-loan/manual-reborrow' => 5,
                         'account/fixed-loan/repay-borrowing-order' => 5,
+                        'account/bills-history-archive' => 72000, // 12 req/day
                         // subaccount
                         'users/subaccount/modify-apikey' => 10,
                         'asset/subaccount/transfer' => 10,
@@ -1046,6 +1047,7 @@ class okx extends Exchange {
                     'ZEC' => 'Zcash',
                     'ZIL' => 'Zilliqa',
                     'ZKSYNC' => 'ZKSYNC',
+                    'OMNI' => 'Omni',
                     // 'NEON3' => 'N3', // tbd
                     // undetermined : "CELO-TOKEN", "Digital Cash", Khala
                     // todo => uncomment below after consensus
@@ -1606,15 +1608,6 @@ class okx extends Exchange {
             $dataResponse = $this->safe_list($response, 'data', array());
             return $this->parse_markets($dataResponse);
         }) ();
-    }
-
-    public function safe_network($networkId) {
-        $networksById = array(
-            'Bitcoin' => 'BTC',
-            'Omni' => 'OMNI',
-            'TRON' => 'TRC20',
-        );
-        return $this->safe_string($networksById, $networkId, $networkId);
     }
 
     public function fetch_currencies($params = array ()): PromiseInterface {

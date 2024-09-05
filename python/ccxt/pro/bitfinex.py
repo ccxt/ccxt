@@ -24,6 +24,7 @@ class bitfinex(ccxt.async_support.bitfinex):
                 'watchTickers': False,
                 'watchOrderBook': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchBalance': False,  # for now
                 'watchOHLCV': False,  # missing on the exchange side in v1
             },

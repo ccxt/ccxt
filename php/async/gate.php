@@ -995,8 +995,9 @@ class gate extends Exchange {
 
     public function fetch_spot_markets($params = array ()) {
         return Async\async(function () use ($params) {
-            $marginResponse = Async\await($this->publicMarginGetCurrencyPairs ($params));
-            $spotMarketsResponse = Async\await($this->publicSpotGetCurrencyPairs ($params));
+            $marginPromise = $this->publicMarginGetCurrencyPairs ($params);
+            $spotMarketsPromise = $this->publicSpotGetCurrencyPairs ($params);
+            list($marginResponse, $spotMarketsResponse) = Async\await(Promise\all(array( $marginPromise, $spotMarketsPromise )));
             $marginMarkets = $this->index_by($marginResponse, 'id');
             //
             //  Spot
@@ -4242,9 +4243,9 @@ class gate extends Exchange {
                 $request['amount'] = $this->amount_to_precision($symbol, $amount);
             } else {
                 if ($side === 'sell') {
-                    $request['size'] = Precise::string_neg($this->amount_to_precision($symbol, $amount));
+                    $request['size'] = $this->parse_to_numeric(Precise::string_neg($this->amount_to_precision($symbol, $amount)));
                 } else {
-                    $request['size'] = $this->amount_to_precision($symbol, $amount);
+                    $request['size'] = $this->parse_to_numeric($this->amount_to_precision($symbol, $amount));
                 }
             }
         }

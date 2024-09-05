@@ -20,6 +20,7 @@ class paradex extends \ccxt\async\paradex {
                 'watchOrderBook' => true,
                 'watchOrders' => false,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchBalance' => false,
                 'watchOHLCV' => false,
             ),

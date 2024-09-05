@@ -48,42 +48,108 @@
         ],
         "fetchDepositAddress": [
             {
-                "description": "fetch USDT address (should return ERC20 address)",
+                "description": "fetch USDT address (should return erc20)",
                 "method": "fetchDepositAddress",
                 "input": [
-                    "USDT"
+                  "USDT"
                 ],
                 "httpResponse": [
-                    {
-                        "coin": "USDT",
-                        "network": "BNB Smart Chain(BEP20)",
-                        "address": "XXXXXXXXXXXXYYY",
-                        "memo": null
-                    },
-                    {
-                        "coin": "USDT",
-                        "network": "Ethereum(ERC20)",
-                        "address": "XXXXXXXXXXXXYYY",
-                        "memo": null
-                    },
-                    {
-                        "coin": "USDT",
-                        "network": "Tron(TRC20)",
-                        "address": "YYYYEEEE",
-                        "memo": null
-                    }
+                  {
+                    "coin": "USDT",
+                    "network": "BNB Smart Chain(BEP20)",
+                    "address": "0x49a2c0925196e4dca05445f57f690153191fbaab",
+                    "memo": null,
+                    "chainName": "BNB Smart Chain(BEP20)",
+                    "chainDisplayName": "BNB Smart Chain(BEP20)",
+                    "netWork": "BSC"
+                  },
+                  {
+                    "coin": "USDT",
+                    "network": "Ethereum(ERC20)",
+                    "address": "0x49a2c0925196e4dca05445f57f690153191fbaab",
+                    "memo": null,
+                    "chainName": "Ethereum(ERC20)",
+                    "chainDisplayName": "Ethereum(ERC20)",
+                    "netWork": "ETH"
+                  },
+                  {
+                    "coin": "USDT",
+                    "network": "Tron(TRC20)",
+                    "address": "TGKyBGx7m3QGNJcteeS1eEr7eVMJQB3afC",
+                    "memo": null,
+                    "chainName": "Tron(TRC20)",
+                    "chainDisplayName": "Tron(TRC20)",
+                    "netWork": "TRX"
+                  }
                 ],
                 "parsedResponse": {
-                    "currency": "USDT",
-                    "address": "XXXXXXXXXXXXYYY",
-                    "tag": null,
-                    "network": "ERC20",
-                    "info": {
-                        "coin": "USDT",
-                        "network": "Ethereum(ERC20)",
-                        "address": "XXXXXXXXXXXXYYY",
-                        "memo": null
-                    }
+                  "currency": "USDT",
+                  "address": "0x49a2c0925196e4dca05445f57f690153191fbaab",
+                  "tag": null,
+                  "network": "ERC20",
+                  "info": {
+                    "coin": "USDT",
+                    "network": "Ethereum(ERC20)",
+                    "address": "0x49a2c0925196e4dca05445f57f690153191fbaab",
+                    "memo": null,
+                    "chainName": "Ethereum(ERC20)",
+                    "chainDisplayName": "Ethereum(ERC20)",
+                    "netWork": "ETH"
+                  }
+                }
+            },
+            {
+                "description": "fetch usdt trc20 address",
+                "method": "fetchDepositAddress",
+                "input": [
+                  "USDT",
+                  {
+                    "network": "TRC20"
+                  }
+                ],
+                "httpResponse": [
+                  {
+                    "coin": "USDT",
+                    "network": "BNB Smart Chain(BEP20)",
+                    "address": "0x49a2c0925196e4dcf05a45367fa91153190fbaab",
+                    "memo": null,
+                    "chainName": "BNB Smart Chain(BEP20)",
+                    "chainDisplayName": "BNB Smart Chain(BEP20)",
+                    "netWork": "BSC"
+                  },
+                  {
+                    "coin": "USDT",
+                    "network": "Ethereum(ERC20)",
+                    "address": "0x49a2c0925196e4dcf05a45367fa91153190fbaab",
+                    "memo": null,
+                    "chainName": "Ethereum(ERC20)",
+                    "chainDisplayName": "Ethereum(ERC20)",
+                    "netWork": "ETH"
+                  },
+                  {
+                    "coin": "USDT",
+                    "network": "Tron(TRC20)",
+                    "address": "TGKyBGx7m3QGNJcteeF1eEr7eAMJQA33AD",
+                    "memo": null,
+                    "chainName": "Tron(TRC20)",
+                    "chainDisplayName": "Tron(TRC20)",
+                    "netWork": "TRX"
+                  }
+                ],
+                "parsedResponse": {
+                  "currency": "USDT",
+                  "address": "TGKyBGx7m3QGNJcteeF1eEr7eAMJQA33AD",
+                  "tag": null,
+                  "network": "TRC20",
+                  "info": {
+                    "coin": "USDT",
+                    "network": "Tron(TRC20)",
+                    "address": "TGKyBGx7m3QGNJcteeF1eEr7eAMJQA33AD",
+                    "memo": null,
+                    "chainName": "Tron(TRC20)",
+                    "chainDisplayName": "Tron(TRC20)",
+                    "netWork": "TRX"
+                  }
                 }
             }
         ],

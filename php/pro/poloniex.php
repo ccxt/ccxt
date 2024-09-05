@@ -25,6 +25,7 @@ class poloniex extends \ccxt\async\poloniex {
                 'watchTicker' => true,
                 'watchTickers' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => true,
                 'watchBalance' => true,
                 'watchStatus' => false,
                 'watchOrders' => true,
@@ -403,20 +404,53 @@ class poloniex extends \ccxt\async\poloniex {
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * get the list of most recent $trades for a particular $symbol
+             * get the list of most recent trades for a particular $symbol
+             * @see https://api-docs.poloniex.com/spot/websocket/market-data#trades
+             * @param {string} $symbol unified $symbol of the market to fetch trades for
+             * @param {int} [$since] timestamp in ms of the earliest trade to fetch
+             * @param {int} [$limit] the maximum amount of trades to fetch
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
+             */
+            return Async\await($this->watch_trades_for_symbols(array( $symbol ), $since, $limit, $params));
+        }) ();
+    }
+
+    public function watch_trades_for_symbols(array $symbols, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbols, $since, $limit, $params) {
+            /**
+             * get the list of most recent $trades for a list of $symbols
              * @see https://api-docs.poloniex.com/spot/websocket/market-data#$trades
-             * @param {string} $symbol unified $symbol of the market to fetch $trades for
+             * @param {string[]} $symbols unified symbol of the market to fetch $trades for
              * @param {int} [$since] timestamp in ms of the earliest trade to fetch
              * @param {int} [$limit] the maximum amount of $trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-$trades trade structures~
              */
             Async\await($this->load_markets());
-            $symbol = $this->symbol($symbol);
+            $symbols = $this->market_symbols($symbols, null, false, true, true);
             $name = 'trades';
-            $trades = Async\await($this->subscribe($name, $name, false, array( $symbol ), $params));
+            $url = $this->urls['api']['ws']['public'];
+            $marketIds = $this->market_ids($symbols);
+            $subscribe = array(
+                'event' => 'subscribe',
+                'channel' => array(
+                    $name,
+                ),
+                'symbols' => $marketIds,
+            );
+            $request = $this->extend($subscribe, $params);
+            $messageHashes = array();
+            if ($symbols !== null) {
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $messageHashes[] = $name . '::' . $symbols[$i];
+                }
+            }
+            $trades = Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
             if ($this->newUpdates) {
-                $limit = $trades->getLimit ($symbol, $limit);
+                $first = $this->safe_value($trades, 0);
+                $tradeSymbol = $this->safe_string($first, 'symbol');
+                $limit = $trades->getLimit ($tradeSymbol, $limit);
             }
             return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
         }) ();

@@ -462,164 +462,82 @@ class mexc(Exchange, ImplicitAPI):
                     'LTC': 'LTC',
                 },
                 'networks': {
-                    'ABBC': 'ABBC',
+                    'TRC20': 'TRX',
+                    'TON': 'TONCOIN',
+                    'AVAXC': 'AVAX_CCHAIN',
+                    'ERC20': 'ETH',
                     'ACA': 'ACALA',
-                    'ADA': 'Cardano(ADA)',
-                    'AE': 'AE',
-                    'ALGO': 'Algorand(ALGO)',
-                    'ALPH': 'Alephium(ALPH)',
-                    'AME': 'AME',
-                    'AOK': 'AOK',
-                    'APT': 'APTOS(APT)',
-                    'AR': 'AR',
-                    'ARB': 'Arbitrum One(ARB)',
-                    'ARBNOVA': 'ARBNOVA',
-                    'ARBONE': 'ArbitrumOne(ARB)',
-                    'ARK': 'ARK',
+                    # 'ADA': 'Cardano(ADA)',
+                    # 'AE': 'AE',
+                    # 'ALGO': 'Algorand(ALGO)',
+                    # 'ALPH': 'Alephium(ALPH)',
+                    # 'ARB': 'Arbitrum One(ARB)',
+                    # 'ARBONE': 'ArbitrumOne(ARB)',
                     'ASTR': 'ASTAR',  # ASTAREVM is different
-                    'ATOM': 'Cosmos(ATOM)',
-                    'AVAXC': 'Avalanche C Chain(AVAX CCHAIN)',
-                    'AVAXX': 'Avalanche X Chain(AVAX XCHAIN)',
-                    'AZERO': 'Aleph Zero(AZERO)',
-                    'BCH': 'Bitcoin Cash(BCH)',
-                    'BDX': 'BDX',
-                    'BEAM': 'BEAM',
-                    'BEP2': 'BNB Beacon Chain(BEP2)',
-                    'BEP20': 'BNB Smart Chain(BEP20)',
-                    'BITCI': 'BITCI',
-                    'BNC': 'BNC',
-                    'BNCDOT': 'BNCPOLKA',
-                    'BOBA': 'BOBA',
-                    'BSC': 'BEP20(BSC)',
-                    'BSV': 'Bitcoin SV(BSV)',
-                    'BTC': 'Bitcoin(BTC)',
+                    # 'ATOM': 'Cosmos(ATOM)',
+                    # 'AVAXC': 'Avalanche C Chain(AVAX CCHAIN)',
+                    # 'AVAXX': 'Avalanche X Chain(AVAX XCHAIN)',
+                    # 'AZERO': 'Aleph Zero(AZERO)',
+                    # 'BCH': 'Bitcoin Cash(BCH)',
+                    # 'BNCDOT': 'BNCPOLKA',
+                    # 'BSV': 'Bitcoin SV(BSV)',
+                    # 'BTC': 'Bitcoin(BTC)',
                     'BTM': 'BTM2',
-                    'CELO': 'CELO',
-                    'CFX': 'CFX',
-                    'CHZ': 'Chiliz Legacy Chain(CHZ)',
-                    'CHZ2': 'Chiliz Chain(CHZ2)',
-                    'CKB': 'CKB',
-                    'CLORE': 'Clore.ai(CLORE)',
+                    # 'CHZ': 'Chiliz Legacy Chain(CHZ)',
+                    # 'CHZ2': 'Chiliz Chain(CHZ2)',
+                    # 'CLORE': 'Clore.ai(CLORE)',
                     'CRC20': 'CRONOS',
-                    'CSPR': 'CSPR',
-                    'DASH': 'DASH',
-                    'DC': 'Dogechain(DC)',
-                    'DCR': 'DCR',
-                    'DNX': 'Dynex(DNX)',
-                    'DOGE': 'Dogecoin(DOGE)',
-                    'DOT': 'Polkadot(DOT)',
-                    'DYM': 'Dymension(DYM)',
-                    'EDG': 'EDG',
-                    'EGLD': 'EGLD',
-                    'EOS': 'EOS',
-                    'ERC20': 'Ethereum(ERC20)',
-                    'ETC': 'Ethereum Classic(ETC)',
+                    # 'DC': 'Dogechain(DC)',
+                    # 'DNX': 'Dynex(DNX)',
+                    # 'DOGE': 'Dogecoin(DOGE)',
+                    # 'DOT': 'Polkadot(DOT)',
+                    # 'DYM': 'Dymension(DYM)',
                     'ETHF': 'ETF',
-                    'ETHW': 'ETHW',
-                    'EVER': 'EVER',
-                    'FET': 'FET',
-                    'FIL': 'FIL',
-                    'FIO': 'FIO',
-                    'FLOW': 'FLOW',
-                    'FSN': 'FSN',
-                    'FTM': 'Fantom(FTM)',
-                    'FUSE': 'FUSE',
-                    'GLMR': 'GLMR',
-                    'GRIN': 'GRIN',
-                    'HBAR': 'Hedera(HBAR)',
-                    'HIVE': 'HIVE',
                     'HRC20': 'HECO',
-                    'HYDRA': 'HYDRA',
-                    'ICP': 'Internet Computer(ICP)',
-                    'INDEX': 'Index Chain',
-                    'IOST': 'IOST',
-                    'IOTA': 'IOTA',
-                    'IOTX': 'IOTX',
-                    'IRIS': 'IRIS',
-                    'KAR': 'KAR',
-                    'KAS': 'Kaspa(KAS)',
-                    'KAVA': 'KAVA',
-                    'KDA': 'KDA',
-                    'KILT': 'KILT',
-                    'KLAY': 'Klaytn(KLAY)',
-                    'KMA': 'KMA',
-                    'KSM': 'KSM',
-                    'LAT': 'LAT',
-                    'LAVA': 'Elysium(LAVA)',
-                    'LTC': 'Litecoin(LTC)',
-                    'LUNA': 'Terra(LUNA)',
-                    'MASS': 'MASS',
-                    'MATIC': 'Polygon(MATIC)',
-                    'MCOIN': 'Mcoin Network',
-                    'METIS': 'METIS',
-                    'MINA': 'MINA',
-                    'MNT': 'Mantle(MNT)',
-                    'MOVR': 'MOVR',
-                    'MTRG': 'Meter(MTRG)',
-                    'NAS': 'NAS',
-                    'NEAR': 'NEAR Protocol(NEAR)',
-                    'NEBL': 'NEBL',
-                    'NEM': 'NEM',
-                    'NEO': 'NEO',
-                    'NEO3': 'NEO3',
-                    'NEOXA': 'Neoxa Network',
-                    'NULS': 'NULS',
+                    # 'KLAY': 'Klaytn(KLAY)',
                     'OASIS': 'ROSE',
-                    'OASYS': 'OASYS',
                     'OKC': 'OKT',
-                    'OMN': 'Omega Network(OMN)',
-                    'OMNI': 'OMNI',
-                    'ONE': 'ONE',
-                    'ONT': 'ONT',
-                    'OPTIMISM': 'Optimism(OP)',
-                    'OSMO': 'OSMO',
-                    'PLCU': 'PLCU',
-                    'POKT': 'POKT',
-                    'QKC': 'QKC',
-                    'QTUM': 'QTUM',
-                    'RAP20': 'RAP20(Rangers Mainnet)',
-                    'REI': 'REI',
                     'RSK': 'RBTC',
-                    'RVN': 'Ravencoin(RVN)',
-                    'SATOX': 'Satoxcoin(SATOX)',
-                    'SC': 'SC',
-                    'SCRT': 'SCRT',
-                    'SDN': 'SDN',
-                    'SGB': 'SGB',
-                    'SOL': 'Solana(SOL)',
-                    'STAR': 'STAR',
-                    'STARK': 'Starknet(STARK)',
-                    'STEEM': 'STEEM',
-                    'SYS': 'SYS',
-                    'TAO': 'Bittensor(TAO)',
-                    'TIA': 'Celestia(TIA)',
-                    'TOMO': 'TOMO',
-                    'TON': 'Toncoin(TON)',
-                    'TRC10': 'TRC10',
-                    'TRC20': 'Tron(TRC20)',
-                    'UGAS': 'UGAS(Ultrain)',
-                    'VET': 'VeChain(VET)',
-                    'VEX': 'Vexanium(VEX)',
-                    'VSYS': 'VSYS',
-                    'WAVES': 'WAVES',
-                    'WAX': 'WAX',
-                    'WEMIX': 'WEMIX',
-                    'XCH': 'Chia(XCH)',
-                    'XDC': 'XDC',
-                    'XEC': 'XEC',
-                    'XLM': 'Stellar(XLM)',
-                    'XMR': 'Monero(XMR)',
-                    'XNA': 'Neurai(XNA)',
-                    'XPR': 'XPR Network',
-                    'XRD': 'XRD',
-                    'XRP': 'Ripple(XRP)',
-                    'XTZ': 'XTZ',
-                    'XVG': 'XVG',
-                    'XYM': 'XYM',
-                    'ZEC': 'ZEC',
-                    'ZEN': 'ZEN',
-                    'ZIL': 'Zilliqa(ZIL)',
-                    'ZTG': 'ZTG',
+                    # 'RVN': 'Ravencoin(RVN)',
+                    # 'SATOX': 'Satoxcoin(SATOX)',
+                    # 'SC': 'SC',
+                    # 'SCRT': 'SCRT',
+                    # 'SDN': 'SDN',
+                    # 'SGB': 'SGB',
+                    # 'SOL': 'Solana(SOL)',
+                    # 'STAR': 'STAR',
+                    # 'STARK': 'Starknet(STARK)',
+                    # 'STEEM': 'STEEM',
+                    # 'SYS': 'SYS',
+                    # 'TAO': 'Bittensor(TAO)',
+                    # 'TIA': 'Celestia(TIA)',
+                    # 'TOMO': 'TOMO',
+                    # 'TON': 'Toncoin(TON)',
+                    # 'TRC10': 'TRC10',
+                    # 'TRC20': 'Tron(TRC20)',
+                    # 'UGAS': 'UGAS(Ultrain)',
+                    # 'VET': 'VeChain(VET)',
+                    # 'VEX': 'Vexanium(VEX)',
+                    # 'VSYS': 'VSYS',
+                    # 'WAVES': 'WAVES',
+                    # 'WAX': 'WAX',
+                    # 'WEMIX': 'WEMIX',
+                    # 'XCH': 'Chia(XCH)',
+                    # 'XDC': 'XDC',
+                    # 'XEC': 'XEC',
+                    # 'XLM': 'Stellar(XLM)',
+                    # 'XMR': 'Monero(XMR)',
+                    # 'XNA': 'Neurai(XNA)',
+                    # 'XPR': 'XPR Network',
+                    # 'XRD': 'XRD',
+                    # 'XRP': 'Ripple(XRP)',
+                    # 'XTZ': 'XTZ',
+                    # 'XVG': 'XVG',
+                    # 'XYM': 'XYM',
+                    # 'ZEC': 'ZEC',
+                    # 'ZEN': 'ZEN',
+                    # 'ZIL': 'Zilliqa(ZIL)',
+                    # 'ZTG': 'ZTG',
                     # todo: uncomment below after concensus
                     # 'ALAYA': 'ATP',
                     # 'ANDUSCHAIN': 'DEB',
@@ -727,69 +645,9 @@ class mexc(Exchange, ImplicitAPI):
                     # OKB <> OKT(for usdt it's exception) for OKC, PMEER, FLARE, STRD, ZEL, FUND, "NONE", CRING, FREETON, QTZ  (probably unique network is meant), HT, BSC(RACAV1), BSC(RACAV2), AMBROSUS, BAJUN, NOM. their individual info is at https://www.mexc.com/api/platform/asset/spot/{COINNAME}
                 },
                 'networksById': {
-                    'Aleph Zero(AZERO)': 'AZERO',
-                    'Alephium(ALPH)': 'ALPH',
-                    'Algorand(ALGO)': 'ALGO',
-                    'APTOS(APT)': 'APT',
-                    'Arbitrum One(ARB)': 'ARB',
-                    'Avalanche C Chain(AVAX CCHAIN)': 'AVAXC',
-                    'Avalanche X Chain(AVAX XCHAIN)': 'AVAXX',
-                    'BEP20(BSC)': 'BSC',
-                    'Bitcoin Cash(BCH)': 'BCH',
-                    'Bitcoin SV(BSV)': 'BSV',
-                    'Bitcoin(BTC)': 'BTC',
-                    'Bittensor(TAO)': 'TAO',
-                    'BNB Beacon Chain(BEP2)': 'BEP2',
                     'BNB Smart Chain(BEP20-RACAV1)': 'BSC',
                     'BNB Smart Chain(BEP20-RACAV2)': 'BSC',
                     'BNB Smart Chain(BEP20)': 'BSC',
-                    'Cardano(ADA)': 'ADA',
-                    'Celestia(TIA)': 'TIA',
-                    'Chia(XCH)': 'XCH',
-                    'Chiliz Chain(CHZ2)': 'CHZ2',
-                    'Chiliz Legacy Chain(CHZ)': 'CHZ',
-                    'Clore.ai(CLORE)': 'CLORE',
-                    'Cosmos(ATOM)': 'ATOM',
-                    'Dogechain(DC)': 'DC',
-                    'Dogecoin(DOGE)': 'DOGE',
-                    'Dymension(DYM)': 'DYM',
-                    'Dynex(DNX)': 'DNX',
-                    'Elysium(LAVA)': 'LAVA',
-                    'Ethereum Classic(ETC)': 'ETC',
-                    'Ethereum(ERC20)': 'ERC20',
-                    'Fantom(FTM)': 'FTM',
-                    'Hedera(HBAR)': 'HBAR',
-                    'Index Chain': 'INDEX',
-                    'Internet Computer(ICP)': 'ICP',
-                    'Kaspa(KAS)': 'KAS',
-                    'Klaytn(KLAY)': 'KLAY',
-                    'Litecoin(LTC)': 'LTC',
-                    'Mantle(MNT)': 'MNT',
-                    'Mcoin Network': 'MCOIN',
-                    'Meter(MTRG)': 'MTRG',
-                    'Monero(XMR)': 'XMR',
-                    'NEAR Protocol(NEAR)': 'NEAR',
-                    'Neoxa Network': 'NEOXA',
-                    'Neurai(XNA)': 'XNA',
-                    'Omega Network(OMN)': 'OMN',
-                    'Optimism(OP)': 'OPTIMISM',
-                    'Polkadot(DOT)': 'DOT',
-                    'Polygon(MATIC)': 'MATIC',
-                    'RAP20(Rangers Mainnet)': 'RAP20',
-                    'Ravencoin(RVN)': 'RVN',
-                    'Ripple(XRP)': 'XRP',
-                    'Satoxcoin(SATOX)': 'SATOX',
-                    'Solana(SOL)': 'SOL',
-                    'Starknet(STARK)': 'STARK',
-                    'Stellar(XLM)': 'XLM',
-                    'Terra(LUNA)': 'LUNA',
-                    'Toncoin(TON)': 'TON',
-                    'Tron(TRC20)': 'TRC20',
-                    'UGAS(Ultrain)': 'UGAS',
-                    'VeChain(VET)': 'VET',
-                    'Vexanium(VEX)': 'VEX',
-                    'XPR Network': 'XPR',
-                    'Zilliqa(ZIL)': 'ZIL',
                     # TODO: uncomment below after deciding unified name
                     # 'PEPE COIN BSC':
                     # 'SMART BLOCKCHAIN':
@@ -951,6 +809,8 @@ class mexc(Exchange, ImplicitAPI):
     def fetch_status(self, params={}):
         """
         the latest known information on the availability of the exchange API
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#test-connectivity
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
         """
@@ -984,6 +844,8 @@ class mexc(Exchange, ImplicitAPI):
     def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#check-server-time
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -1071,7 +933,7 @@ class mexc(Exchange, ImplicitAPI):
             chains = self.safe_value(currency, 'networkList', [])
             for j in range(0, len(chains)):
                 chain = chains[j]
-                networkId = self.safe_string_2(chain, 'network', 'netWork')
+                networkId = self.safe_string_2(chain, 'netWork', 'network')
                 network = self.network_id_to_code(networkId)
                 isDepositEnabled = self.safe_bool(chain, 'depositEnable', False)
                 isWithdrawEnabled = self.safe_bool(chain, 'withdrawEnable', False)
@@ -1140,6 +1002,8 @@ class mexc(Exchange, ImplicitAPI):
     def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for mexc
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
@@ -1158,7 +1022,7 @@ class mexc(Exchange, ImplicitAPI):
         #         "symbols": [
         #           {
         #                "symbol": "OGNUSDT",
-        #                "status": "ENABLED",
+        #                "status": "1",
         #                "baseAsset": "OGN",
         #                "baseAssetPrecision": "2",
         #                "quoteAsset": "USDT",
@@ -1203,7 +1067,7 @@ class mexc(Exchange, ImplicitAPI):
             status = self.safe_string(market, 'status')
             isSpotTradingAllowed = self.safe_value(market, 'isSpotTradingAllowed')
             active = False
-            if (status == 'ENABLED') and (isSpotTradingAllowed):
+            if (status == '1') and (isSpotTradingAllowed):
                 active = True
             isMarginTradingAllowed = self.safe_value(market, 'isMarginTradingAllowed')
             makerCommission = self.safe_number(market, 'makerCommission')
@@ -4180,7 +4044,7 @@ class mexc(Exchange, ImplicitAPI):
         #
         address = self.safe_string(depositAddress, 'address')
         currencyId = self.safe_string(depositAddress, 'coin')
-        networkId = self.safe_string(depositAddress, 'network')
+        networkId = self.safe_string(depositAddress, 'netWork')
         self.check_address(address)
         return {
             'currency': self.safe_currency_code(currencyId, currency),
@@ -4904,14 +4768,14 @@ class mexc(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `transaction structure <https://docs.ccxt.com/#/?id=transaction-structure>`
         """
+        self.load_markets()
+        currency = self.currency(code)
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         networks = self.safe_dict(self.options, 'networks', {})
         network = self.safe_string_2(params, 'network', 'netWork')  # self line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network, network)  # handle ETH > ERC-20 alias
-        network = self.network_id_to_code(network)
+        network = self.network_code_to_id(network, currency['code'])
         self.check_address(address)
-        self.load_markets()
-        currency = self.currency(code)
         request: dict = {
             'coin': currency['id'],
             'address': address,

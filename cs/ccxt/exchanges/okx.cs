@@ -102,7 +102,6 @@ public partial class okx : Exchange
                 { "fetchOrderBooks", false },
                 { "fetchOrders", false },
                 { "fetchOrderTrades", true },
-                { "fetchPermissions", null },
                 { "fetchPosition", true },
                 { "fetchPositionHistory", "emulated" },
                 { "fetchPositions", true },
@@ -305,6 +304,7 @@ public partial class okx : Exchange
                         { "account/account-position-risk", 2 },
                         { "account/bills", divide(5, 3) },
                         { "account/bills-archive", divide(5, 3) },
+                        { "account/bills-history-archive", 2 },
                         { "account/config", 4 },
                         { "account/max-size", 1 },
                         { "account/max-avail-size", 1 },
@@ -447,6 +447,7 @@ public partial class okx : Exchange
                         { "account/fixed-loan/amend-borrowing-order", 5 },
                         { "account/fixed-loan/manual-reborrow", 5 },
                         { "account/fixed-loan/repay-borrowing-order", 5 },
+                        { "account/bills-history-archive", 72000 },
                         { "users/subaccount/modify-apikey", 10 },
                         { "asset/subaccount/transfer", 10 },
                         { "users/subaccount/set-transfer-out", 10 },
@@ -990,6 +991,7 @@ public partial class okx : Exchange
                     { "ZEC", "Zcash" },
                     { "ZIL", "Zilliqa" },
                     { "ZKSYNC", "ZKSYNC" },
+                    { "OMNI", "Omni" },
                 } },
                 { "fetchOpenInterestHistory", new Dictionary<string, object>() {
                     { "timeframes", new Dictionary<string, object>() {
@@ -1554,16 +1556,6 @@ public partial class okx : Exchange
         //
         object dataResponse = this.safeList(response, "data", new List<object>() {});
         return this.parseMarkets(dataResponse);
-    }
-
-    public virtual object safeNetwork(object networkId)
-    {
-        object networksById = new Dictionary<string, object>() {
-            { "Bitcoin", "BTC" },
-            { "Omni", "OMNI" },
-            { "TRON", "TRC20" },
-        };
-        return this.safeString(networksById, networkId, networkId);
     }
 
     public async override Task<object> fetchCurrencies(object parameters = null)

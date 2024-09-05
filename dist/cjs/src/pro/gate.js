@@ -1514,7 +1514,7 @@ class gate extends gate$1 {
         const errs = this.safeDict(data, 'errs');
         const error = this.safeDict(message, 'error', errs);
         const code = this.safeString2(error, 'code', 'label');
-        const id = this.safeString2(message, 'id', 'requestId');
+        const id = this.safeStringN(message, ['id', 'requestId', 'request_id']);
         if (error !== undefined) {
             const messageHash = this.safeString(client.subscriptions, id);
             try {
@@ -1530,7 +1530,7 @@ class gate extends gate$1 {
                     delete client.subscriptions[messageHash];
                 }
             }
-            if (id !== undefined) {
+            if ((id !== undefined) && (id in client.subscriptions)) {
                 delete client.subscriptions[id];
             }
             return true;
@@ -1818,7 +1818,7 @@ class gate extends gate$1 {
             'event': event,
             'payload': payload,
         };
-        return await this.watch(url, messageHash, request, messageHash);
+        return await this.watch(url, messageHash, request, messageHash, requestId);
     }
     async subscribePrivate(url, messageHash, payload, channel, params, requiresUid = false) {
         this.checkRequiredCredentials();
@@ -1862,7 +1862,7 @@ class gate extends gate$1 {
             client.subscriptions[tempSubscriptionHash] = messageHash;
         }
         const message = this.extend(request, params);
-        return await this.watch(url, messageHash, message, messageHash);
+        return await this.watch(url, messageHash, message, messageHash, messageHash);
     }
 }
 

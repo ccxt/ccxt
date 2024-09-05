@@ -46,6 +46,7 @@ class kucoinfutures extends kucoin {
                 'createTriggerOrder' => true,
                 'fetchAccounts' => true,
                 'fetchBalance' => true,
+                'fetchBidsAsks' => true,
                 'fetchBorrowRateHistories' => false,
                 'fetchBorrowRateHistory' => false,
                 'fetchClosedOrders' => true,
@@ -122,6 +123,7 @@ class kucoinfutures extends kucoin {
                         'contracts/{symbol}' => 1,
                         'contracts/risk-limit/{symbol}' => 1,
                         'ticker' => 1,
+                        'allTickers' => 1,
                         'level2/snapshot' => 1.33,
                         'level2/depth{limit}' => 1,
                         'level2/message/query' => 1,
@@ -165,6 +167,7 @@ class kucoinfutures extends kucoin {
                         'trade-statistics' => 1,
                         'trade-fees' => 1,
                         'history-positions' => 1,
+                        'getMaxOpenSize' => 1,
                     ),
                     'post' => array(
                         'withdrawals' => 1,
@@ -310,6 +313,9 @@ class kucoinfutures extends kucoin {
                 // endpoint versions
                 'versions' => array(
                     'futuresPrivate' => array(
+                        'GET' => array(
+                            'getMaxOpenSize' => 'v2',
+                        ),
                         'POST' => array(
                             'transfer-out' => 'v2',
                         ),
@@ -754,11 +760,19 @@ class kucoinfutures extends kucoin {
          * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-$symbols-list
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->method] the $method to use, futuresPublicGetAllTickers or futuresPublicGetContractsActive
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
-        $response = $this->futuresPublicGetContractsActive ($params);
+        $method = null;
+        list($method, $params) = $this->handle_option_and_params($params, 'fetchTickers', 'method', 'futuresPublicGetContractsActive');
+        $response = null;
+        if ($method === 'futuresPublicGetAllTickers') {
+            $response = $this->futuresPublicGetAllTickers ($params);
+        } else {
+            $response = $this->futuresPublicGetContractsActive ($params);
+        }
         //
         //    {
         //        "code" => "200000",
@@ -821,7 +835,7 @@ class kucoinfutures extends kucoin {
         //        }
         //    }
         //
-        $data = $this->safe_list($response, 'data', array());
+        $data = $this->safe_list($response, 'data');
         $tickers = $this->parse_tickers($data, $symbols);
         return $this->filter_by_array_tickers($tickers, 'symbol', $symbols);
     }
@@ -931,6 +945,19 @@ class kucoinfutures extends kucoin {
             'quoteVolume' => $this->safe_string($ticker, 'turnoverOf24h'),
             'info' => $ticker,
         ), $market);
+    }
+
+    public function fetch_bids_asks(?array $symbols = null, $params = array ()) {
+        /**
+         * fetches the bid and ask price and volume for multiple markets
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/#/?id=ticker-structure ticker structures~
+         */
+        $request = array(
+            'method' => 'futuresPublicGetAllTickers',
+        );
+        return $this->fetch_tickers($symbols, $this->extend($request, $params));
     }
 
     public function fetch_funding_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array ()) {

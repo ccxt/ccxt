@@ -42,6 +42,7 @@ public partial class kucoinfutures : kucoin
                 { "createTriggerOrder", true },
                 { "fetchAccounts", true },
                 { "fetchBalance", true },
+                { "fetchBidsAsks", true },
                 { "fetchBorrowRateHistories", false },
                 { "fetchBorrowRateHistory", false },
                 { "fetchClosedOrders", true },
@@ -115,6 +116,7 @@ public partial class kucoinfutures : kucoin
                         { "contracts/{symbol}", 1 },
                         { "contracts/risk-limit/{symbol}", 1 },
                         { "ticker", 1 },
+                        { "allTickers", 1 },
                         { "level2/snapshot", 1.33 },
                         { "level2/depth{limit}", 1 },
                         { "level2/message/query", 1 },
@@ -158,6 +160,7 @@ public partial class kucoinfutures : kucoin
                         { "trade-statistics", 1 },
                         { "trade-fees", 1 },
                         { "history-positions", 1 },
+                        { "getMaxOpenSize", 1 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "withdrawals", 1 },
@@ -274,6 +277,9 @@ public partial class kucoinfutures : kucoin
                 { "marginTypes", new Dictionary<string, object>() {} },
                 { "versions", new Dictionary<string, object>() {
                     { "futuresPrivate", new Dictionary<string, object>() {
+                        { "GET", new Dictionary<string, object>() {
+                            { "getMaxOpenSize", "v2" },
+                        } },
                         { "POST", new Dictionary<string, object>() {
                             { "transfer-out", "v2" },
                         } },
@@ -759,12 +765,24 @@ public partial class kucoinfutures : kucoin
         * @see https://www.kucoin.com/docs/rest/futures-trading/market-data/get-symbols-list
         * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @param {string} [params.method] the method to use, futuresPublicGetAllTickers or futuresPublicGetContractsActive
         * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
         */
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
         symbols = this.marketSymbols(symbols);
-        object response = await this.futuresPublicGetContractsActive(parameters);
+        object method = null;
+        var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchTickers", "method", "futuresPublicGetContractsActive");
+        method = ((IList<object>)methodparametersVariable)[0];
+        parameters = ((IList<object>)methodparametersVariable)[1];
+        object response = null;
+        if (isTrue(isEqual(method, "futuresPublicGetAllTickers")))
+        {
+            response = await this.futuresPublicGetAllTickers(parameters);
+        } else
+        {
+            response = await this.futuresPublicGetContractsActive(parameters);
+        }
         //
         //    {
         //        "code": "200000",
@@ -827,7 +845,7 @@ public partial class kucoinfutures : kucoin
         //        }
         //    }
         //
-        object data = this.safeList(response, "data", new List<object>() {});
+        object data = this.safeList(response, "data");
         object tickers = this.parseTickers(data, symbols);
         return this.filterByArrayTickers(tickers, "symbol", symbols);
     }
@@ -938,6 +956,23 @@ public partial class kucoinfutures : kucoin
             { "quoteVolume", this.safeString(ticker, "turnoverOf24h") },
             { "info", ticker },
         }, market);
+    }
+
+    public async override Task<object> fetchBidsAsks(object symbols = null, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoinfutures#fetchBidsAsks
+        * @description fetches the bid and ask price and volume for multiple markets
+        * @param {string[]} [symbols] unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+        */
+        parameters ??= new Dictionary<string, object>();
+        object request = new Dictionary<string, object>() {
+            { "method", "futuresPublicGetAllTickers" },
+        };
+        return await this.fetchTickers(symbols, this.extend(request, parameters));
     }
 
     public async override Task<object> fetchFundingHistory(object symbol = null, object since = null, object limit = null, object parameters = null)

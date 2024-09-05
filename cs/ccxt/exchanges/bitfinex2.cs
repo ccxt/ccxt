@@ -294,7 +294,9 @@ public partial class bitfinex2 : Exchange
             { "options", new Dictionary<string, object>() {
                 { "precision", "R0" },
                 { "exchangeTypes", new Dictionary<string, object>() {
+                    { "MARKET", "market" },
                     { "EXCHANGE MARKET", "market" },
+                    { "LIMIT", "limit" },
                     { "EXCHANGE LIMIT", "limit" },
                     { "EXCHANGE STOP", "market" },
                     { "EXCHANGE FOK", "limit" },
@@ -323,6 +325,25 @@ public partial class bitfinex2 : Exchange
                 } },
                 { "withdraw", new Dictionary<string, object>() {
                     { "includeFee", false },
+                } },
+                { "networks", new Dictionary<string, object>() {
+                    { "BTC", "BITCOIN" },
+                    { "LTC", "LITECOIN" },
+                    { "ERC20", "ETHEREUM" },
+                    { "OMNI", "TETHERUSO" },
+                    { "LIQUID", "TETHERUSL" },
+                    { "TRC20", "TETHERUSX" },
+                    { "EOS", "TETHERUSS" },
+                    { "AVAX", "TETHERUSDTAVAX" },
+                    { "SOL", "TETHERUSDTSOL" },
+                    { "ALGO", "TETHERUSDTALG" },
+                    { "BCH", "TETHERUSDTBCH" },
+                    { "KSM", "TETHERUSDTKSM" },
+                    { "DVF", "TETHERUSDTDVF" },
+                    { "OMG", "TETHERUSDTOMG" },
+                } },
+                { "networksById", new Dictionary<string, object>() {
+                    { "TETHERUSE", "ERC20" },
                 } },
             } },
             { "exceptions", new Dictionary<string, object>() {
@@ -466,12 +487,16 @@ public partial class bitfinex2 : Exchange
         * @returns {object[]} an array of objects representing market data
         */
         parameters ??= new Dictionary<string, object>();
-        object spotMarketsInfo = await this.publicGetConfPubInfoPair(parameters);
-        object futuresMarketsInfo = await this.publicGetConfPubInfoPairFutures(parameters);
-        spotMarketsInfo = this.safeValue(spotMarketsInfo, 0, new List<object>() {});
-        futuresMarketsInfo = this.safeValue(futuresMarketsInfo, 0, new List<object>() {});
+        object spotMarketsInfoPromise = this.publicGetConfPubInfoPair(parameters);
+        object futuresMarketsInfoPromise = this.publicGetConfPubInfoPairFutures(parameters);
+        object marginIdsPromise = this.publicGetConfPubListPairMargin(parameters);
+        var spotMarketsInfofuturesMarketsInfomarginIdsVariable = await promiseAll(new List<object>() {spotMarketsInfoPromise, futuresMarketsInfoPromise, marginIdsPromise});
+        var spotMarketsInfo = ((IList<object>) spotMarketsInfofuturesMarketsInfomarginIdsVariable)[0];
+        var futuresMarketsInfo = ((IList<object>) spotMarketsInfofuturesMarketsInfomarginIdsVariable)[1];
+        var marginIds = ((IList<object>) spotMarketsInfofuturesMarketsInfomarginIdsVariable)[2];
+        spotMarketsInfo = this.safeList(spotMarketsInfo, 0, new List<object>() {});
+        futuresMarketsInfo = this.safeList(futuresMarketsInfo, 0, new List<object>() {});
         object markets = this.arrayConcat(spotMarketsInfo, futuresMarketsInfo);
-        object marginIds = await this.publicGetConfPubListPairMargin(parameters);
         marginIds = this.safeValue(marginIds, 0, new List<object>() {});
         //
         //    [
@@ -752,7 +777,7 @@ public partial class bitfinex2 : Exchange
                 object currencyId = this.safeString(this.safeValue(pair, 1, new List<object>() {}), 0);
                 if (isTrue(isEqual(currencyId, cleanId)))
                 {
-                    object network = this.safeNetwork(networkId);
+                    object network = this.networkIdToCode(networkId);
                     ((IDictionary<string,object>)networks)[(string)network] = new Dictionary<string, object>() {
                         { "info", networkId },
                         { "id", ((string)networkId).ToLower() },
@@ -779,28 +804,6 @@ public partial class bitfinex2 : Exchange
             }
         }
         return result;
-    }
-
-    public virtual object safeNetwork(object networkId)
-    {
-        object networksById = new Dictionary<string, object>() {
-            { "BITCOIN", "BTC" },
-            { "LITECOIN", "LTC" },
-            { "ETHEREUM", "ERC20" },
-            { "TETHERUSE", "ERC20" },
-            { "TETHERUSO", "OMNI" },
-            { "TETHERUSL", "LIQUID" },
-            { "TETHERUSX", "TRC20" },
-            { "TETHERUSS", "EOS" },
-            { "TETHERUSDTAVAX", "AVAX" },
-            { "TETHERUSDTSOL", "SOL" },
-            { "TETHERUSDTALG", "ALGO" },
-            { "TETHERUSDTBCH", "BCH" },
-            { "TETHERUSDTKSM", "KSM" },
-            { "TETHERUSDTDVF", "DVF" },
-            { "TETHERUSDTOMG", "OMG" },
-        };
-        return this.safeString(networksById, networkId, networkId);
     }
 
     public async override Task<object> fetchBalance(object parameters = null)
@@ -2529,7 +2532,7 @@ public partial class bitfinex2 : Exchange
             object currencyId = this.safeString(transaction, 1);
             code = this.safeCurrencyCode(currencyId, currency);
             object networkId = this.safeString(transaction, 2);
-            network = this.safeNetwork(networkId);
+            network = this.networkIdToCode(networkId);
             timestamp = this.safeInteger(transaction, 5);
             updated = this.safeInteger(transaction, 6);
             status = this.parseTransactionStatus(this.safeString(transaction, 9));

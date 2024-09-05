@@ -314,7 +314,7 @@ public partial class binance : Exchange
                         { "capital/deposit/hisrec", 0.1 },
                         { "capital/deposit/subAddress", 0.1 },
                         { "capital/deposit/subHisrec", 0.1 },
-                        { "capital/withdraw/history", 1800 },
+                        { "capital/withdraw/history", 2 },
                         { "capital/withdraw/address/list", 10 },
                         { "capital/contract/convertible-coins", 4.0002 },
                         { "convert/tradeFlow", 20.001 },
@@ -3433,7 +3433,18 @@ public partial class binance : Exchange
         } else if (isTrue(this.isLinear(type, subType)))
         {
             type = "linear";
-            response = await this.fapiPrivateV3GetAccount(this.extend(request, query));
+            object useV2 = null;
+            var useV2parametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "useV2", false);
+            useV2 = ((IList<object>)useV2parametersVariable)[0];
+            parameters = ((IList<object>)useV2parametersVariable)[1];
+            parameters = this.extend(request, query);
+            if (!isTrue(useV2))
+            {
+                response = await this.fapiPrivateV3GetAccount(parameters);
+            } else
+            {
+                response = await this.fapiPrivateV2GetAccount(parameters);
+            }
         } else if (isTrue(this.isInverse(type, subType)))
         {
             type = "inverse";
@@ -3856,13 +3867,15 @@ public partial class binance : Exchange
         object marketId = this.safeString(ticker, "symbol");
         object symbol = this.safeSymbol(marketId, market, null, marketType);
         object last = this.safeString(ticker, "lastPrice");
+        object wAvg = this.safeString(ticker, "weightedAvgPrice");
         object isCoinm = (inOp(ticker, "baseVolume"));
         object baseVolume = null;
         object quoteVolume = null;
         if (isTrue(isCoinm))
         {
             baseVolume = this.safeString(ticker, "baseVolume");
-            quoteVolume = this.safeString(ticker, "volume");
+            // 'volume' field in inverse markets is not quoteVolume, but traded amount (per contracts)
+            quoteVolume = Precise.stringMul(baseVolume, wAvg);
         } else
         {
             baseVolume = this.safeString(ticker, "volume");
@@ -3878,7 +3891,7 @@ public partial class binance : Exchange
             { "bidVolume", this.safeString(ticker, "bidQty") },
             { "ask", this.safeString(ticker, "askPrice") },
             { "askVolume", this.safeString(ticker, "askQty") },
-            { "vwap", this.safeString(ticker, "weightedAvgPrice") },
+            { "vwap", wAvg },
             { "open", this.safeString2(ticker, "openPrice", "open") },
             { "close", last },
             { "last", last },
@@ -10625,6 +10638,7 @@ public partial class binance : Exchange
         * @param {string[]} [symbols] list of unified market symbols
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {string} [method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
+        * @param {bool} [params.useV2] set to true if you want to use the obsolete endpoint, where some more additional fields were provided
         * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/#/?id=position-structure}
         */
         parameters ??= new Dictionary<string, object>();
@@ -10757,6 +10771,7 @@ public partial class binance : Exchange
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch positions for a portfolio margin account
         * @param {string} [params.subType] "linear" or "inverse"
+        * @param {bool} [params.useV2] set to true if you want to use the obsolete endpoint, where some more additional fields were provided
         * @returns {object} data on the positions risk
         */
         parameters ??= new Dictionary<string, object>();
@@ -10790,7 +10805,18 @@ public partial class binance : Exchange
                 response = await this.papiGetUmPositionRisk(this.extend(request, parameters));
             } else
             {
-                response = await this.fapiPrivateV3GetPositionRisk(this.extend(request, parameters));
+                object useV2 = null;
+                var useV2parametersVariable = this.handleOptionAndParams(parameters, "fetchPositionsRisk", "useV2", false);
+                useV2 = ((IList<object>)useV2parametersVariable)[0];
+                parameters = ((IList<object>)useV2parametersVariable)[1];
+                parameters = this.extend(request, parameters);
+                if (!isTrue(useV2))
+                {
+                    response = await this.fapiPrivateV3GetPositionRisk(parameters);
+                } else
+                {
+                    response = await this.fapiPrivateV2GetPositionRisk(parameters);
+                }
             }
         } else if (isTrue(this.isInverse(type, subType)))
         {
@@ -11278,7 +11304,7 @@ public partial class binance : Exchange
         object longLeverage = null;
         object shortLeverage = null;
         object leverageValue = this.safeInteger(leverage, "leverage");
-        if (isTrue(isEqual(side, "both")))
+        if (isTrue(isTrue((isEqual(side, null))) || isTrue((isEqual(side, "both")))))
         {
             longLeverage = leverageValue;
             shortLeverage = leverageValue;
@@ -11811,7 +11837,7 @@ public partial class binance : Exchange
             if (isTrue(isTrue((isEqual(api, "sapi"))) && isTrue((isEqual(path, "asset/dust")))))
             {
                 query = this.urlencodeWithArrayRepeat(extendedParams);
-            } else if (isTrue(isTrue(isTrue(isTrue((isEqual(path, "batchOrders"))) || isTrue((isGreaterThanOrEqual(getIndexOf(path, "sub-account"), 0)))) || isTrue((isEqual(path, "capital/withdraw/apply")))) || isTrue((isGreaterThanOrEqual(getIndexOf(path, "staking"), 0)))))
+            } else if (isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(path, "batchOrders"))) || isTrue((isGreaterThanOrEqual(getIndexOf(path, "sub-account"), 0)))) || isTrue((isEqual(path, "capital/withdraw/apply")))) || isTrue((isGreaterThanOrEqual(getIndexOf(path, "staking"), 0)))) || isTrue((isGreaterThanOrEqual(getIndexOf(path, "simple-earn"), 0)))))
             {
                 if (isTrue(isTrue((isEqual(method, "DELETE"))) && isTrue((isEqual(path, "batchOrders")))))
                 {
@@ -13862,7 +13888,7 @@ public partial class binance : Exchange
         {
             ((IDictionary<string,object>)request)["startTime"] = subtract(now, msInThirtyDays);
         }
-        object endTime = this.safeString2(parameters, "endTime", "until");
+        object endTime = this.safeInteger2(parameters, "endTime", "until");
         if (isTrue(!isEqual(endTime, null)))
         {
             ((IDictionary<string,object>)request)["endTime"] = endTime;
@@ -13889,6 +13915,10 @@ public partial class binance : Exchange
             response = await this.sapiGetAssetConvertTransferQueryByPage(this.extend(request, parameters));
         } else
         {
+            if (isTrue(isGreaterThan((subtract(getValue(request, "endTime"), getValue(request, "startTime"))), msInThirtyDays)))
+            {
+                throw new BadRequest ((string)add(this.id, " fetchConvertTradeHistory () the max interval between startTime and endTime is 30 days.")) ;
+            }
             if (isTrue(!isEqual(limit, null)))
             {
                 ((IDictionary<string,object>)request)["limit"] = limit;

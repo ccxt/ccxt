@@ -2116,7 +2116,7 @@ public partial class upbit : Exchange
             }
             if (isTrue(hasQuery))
             {
-                auth = this.urlencode(query);
+                auth = this.rawencode(query);
             }
             if (isTrue(!isEqual(auth, null)))
             {

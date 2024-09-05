@@ -31,6 +31,7 @@ class phemex(ccxt.async_support.phemex):
                 'watchOrderBookForSymbols': False,
                 'watchTradesForSymbols': False,
                 'watchOHLCVForSymbols': False,
+                'watchBalance': True,
             },
             'urls': {
                 'test': {

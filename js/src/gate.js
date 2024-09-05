@@ -984,8 +984,9 @@ export default class gate extends Exchange {
         return this.arrayConcat(markets, optionMarkets);
     }
     async fetchSpotMarkets(params = {}) {
-        const marginResponse = await this.publicMarginGetCurrencyPairs(params);
-        const spotMarketsResponse = await this.publicSpotGetCurrencyPairs(params);
+        const marginPromise = this.publicMarginGetCurrencyPairs(params);
+        const spotMarketsPromise = this.publicSpotGetCurrencyPairs(params);
+        const [marginResponse, spotMarketsResponse] = await Promise.all([marginPromise, spotMarketsPromise]);
         const marginMarkets = this.indexBy(marginResponse, 'id');
         //
         //  Spot
@@ -4246,10 +4247,10 @@ export default class gate extends Exchange {
             }
             else {
                 if (side === 'sell') {
-                    request['size'] = Precise.stringNeg(this.amountToPrecision(symbol, amount));
+                    request['size'] = this.parseToNumeric(Precise.stringNeg(this.amountToPrecision(symbol, amount)));
                 }
                 else {
-                    request['size'] = this.amountToPrecision(symbol, amount);
+                    request['size'] = this.parseToNumeric(this.amountToPrecision(symbol, amount));
                 }
             }
         }

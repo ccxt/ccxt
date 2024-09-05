@@ -915,6 +915,7 @@ public partial class bitmex : Exchange
         * @name bitmex#fetchOrder
         * @description fetches information on an order made by the user
         * @see https://www.bitmex.com/api/explorer/#!/Order/Order_getOrders
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2636,6 +2637,10 @@ public partial class bitmex : Exchange
             { "address", address },
             { "network", this.networkCodeToId(networkCode, getValue(currency, "code")) },
         };
+        if (isTrue(!isEqual(this.twofa, null)))
+        {
+            ((IDictionary<string,object>)request)["otpToken"] = totp(this.twofa);
+        }
         object response = await this.privatePostUserRequestWithdrawal(this.extend(request, parameters));
         //
         //     {

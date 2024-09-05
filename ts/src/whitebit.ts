@@ -2662,9 +2662,11 @@ export default class whitebit extends Exchange {
                 if (hasErrorStatus) {
                     errorInfo = status;
                 } else {
-                    const errorObject = this.safeValue (response, 'errors');
-                    if (errorObject !== undefined) {
-                        const errorKey = Object.keys (errorObject)[0];
+                    const errorObject = this.safeDict (response, 'errors', {});
+                    const errorKeys = Object.keys (errorObject);
+                    const errorsLength = errorKeys.length;
+                    if (errorsLength > 0) {
+                        const errorKey = errorKeys[0];
                         const errorMessageArray = this.safeValue (errorObject, errorKey, []);
                         const errorMessageLength = errorMessageArray.length;
                         errorInfo = (errorMessageLength > 0) ? errorMessageArray[0] : body;

@@ -17,6 +17,7 @@ export default class wazirx extends wazirxRest {
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': true,
                 'watchOrders': true,
                 'watchOrderBook': true,
@@ -297,6 +298,7 @@ export default class wazirx extends wazirxRest {
          * @method
          * @name wazirx#watchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.wazirx.com/#trade-streams
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
@@ -397,6 +399,7 @@ export default class wazirx extends wazirxRest {
          * @method
          * @name wazirx#watchOHLCV
          * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.wazirx.com/#kline-candlestick-stream
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int} [since] timestamp in ms of the earliest candle to fetch

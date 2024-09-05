@@ -16,6 +16,7 @@ class onetrading extends onetrading$1 {
                 'watchTicker': true,
                 'watchTickers': true,
                 'watchTrades': false,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': true,
                 'watchOrders': true,
                 'watchOrderBook': true,

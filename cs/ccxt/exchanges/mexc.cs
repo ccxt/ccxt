@@ -437,229 +437,24 @@ public partial class mexc : Exchange
                     { "LTC", "LTC" },
                 } },
                 { "networks", new Dictionary<string, object>() {
-                    { "ABBC", "ABBC" },
+                    { "TRC20", "TRX" },
+                    { "TON", "TONCOIN" },
+                    { "AVAXC", "AVAX_CCHAIN" },
+                    { "ERC20", "ETH" },
                     { "ACA", "ACALA" },
-                    { "ADA", "Cardano(ADA)" },
-                    { "AE", "AE" },
-                    { "ALGO", "Algorand(ALGO)" },
-                    { "ALPH", "Alephium(ALPH)" },
-                    { "AME", "AME" },
-                    { "AOK", "AOK" },
-                    { "APT", "APTOS(APT)" },
-                    { "AR", "AR" },
-                    { "ARB", "Arbitrum One(ARB)" },
-                    { "ARBNOVA", "ARBNOVA" },
-                    { "ARBONE", "ArbitrumOne(ARB)" },
-                    { "ARK", "ARK" },
                     { "ASTR", "ASTAR" },
-                    { "ATOM", "Cosmos(ATOM)" },
-                    { "AVAXC", "Avalanche C Chain(AVAX CCHAIN)" },
-                    { "AVAXX", "Avalanche X Chain(AVAX XCHAIN)" },
-                    { "AZERO", "Aleph Zero(AZERO)" },
-                    { "BCH", "Bitcoin Cash(BCH)" },
-                    { "BDX", "BDX" },
-                    { "BEAM", "BEAM" },
-                    { "BEP2", "BNB Beacon Chain(BEP2)" },
-                    { "BEP20", "BNB Smart Chain(BEP20)" },
-                    { "BITCI", "BITCI" },
-                    { "BNC", "BNC" },
-                    { "BNCDOT", "BNCPOLKA" },
-                    { "BOBA", "BOBA" },
-                    { "BSC", "BEP20(BSC)" },
-                    { "BSV", "Bitcoin SV(BSV)" },
-                    { "BTC", "Bitcoin(BTC)" },
                     { "BTM", "BTM2" },
-                    { "CELO", "CELO" },
-                    { "CFX", "CFX" },
-                    { "CHZ", "Chiliz Legacy Chain(CHZ)" },
-                    { "CHZ2", "Chiliz Chain(CHZ2)" },
-                    { "CKB", "CKB" },
-                    { "CLORE", "Clore.ai(CLORE)" },
                     { "CRC20", "CRONOS" },
-                    { "CSPR", "CSPR" },
-                    { "DASH", "DASH" },
-                    { "DC", "Dogechain(DC)" },
-                    { "DCR", "DCR" },
-                    { "DNX", "Dynex(DNX)" },
-                    { "DOGE", "Dogecoin(DOGE)" },
-                    { "DOT", "Polkadot(DOT)" },
-                    { "DYM", "Dymension(DYM)" },
-                    { "EDG", "EDG" },
-                    { "EGLD", "EGLD" },
-                    { "EOS", "EOS" },
-                    { "ERC20", "Ethereum(ERC20)" },
-                    { "ETC", "Ethereum Classic(ETC)" },
                     { "ETHF", "ETF" },
-                    { "ETHW", "ETHW" },
-                    { "EVER", "EVER" },
-                    { "FET", "FET" },
-                    { "FIL", "FIL" },
-                    { "FIO", "FIO" },
-                    { "FLOW", "FLOW" },
-                    { "FSN", "FSN" },
-                    { "FTM", "Fantom(FTM)" },
-                    { "FUSE", "FUSE" },
-                    { "GLMR", "GLMR" },
-                    { "GRIN", "GRIN" },
-                    { "HBAR", "Hedera(HBAR)" },
-                    { "HIVE", "HIVE" },
                     { "HRC20", "HECO" },
-                    { "HYDRA", "HYDRA" },
-                    { "ICP", "Internet Computer(ICP)" },
-                    { "INDEX", "Index Chain" },
-                    { "IOST", "IOST" },
-                    { "IOTA", "IOTA" },
-                    { "IOTX", "IOTX" },
-                    { "IRIS", "IRIS" },
-                    { "KAR", "KAR" },
-                    { "KAS", "Kaspa(KAS)" },
-                    { "KAVA", "KAVA" },
-                    { "KDA", "KDA" },
-                    { "KILT", "KILT" },
-                    { "KLAY", "Klaytn(KLAY)" },
-                    { "KMA", "KMA" },
-                    { "KSM", "KSM" },
-                    { "LAT", "LAT" },
-                    { "LAVA", "Elysium(LAVA)" },
-                    { "LTC", "Litecoin(LTC)" },
-                    { "LUNA", "Terra(LUNA)" },
-                    { "MASS", "MASS" },
-                    { "MATIC", "Polygon(MATIC)" },
-                    { "MCOIN", "Mcoin Network" },
-                    { "METIS", "METIS" },
-                    { "MINA", "MINA" },
-                    { "MNT", "Mantle(MNT)" },
-                    { "MOVR", "MOVR" },
-                    { "MTRG", "Meter(MTRG)" },
-                    { "NAS", "NAS" },
-                    { "NEAR", "NEAR Protocol(NEAR)" },
-                    { "NEBL", "NEBL" },
-                    { "NEM", "NEM" },
-                    { "NEO", "NEO" },
-                    { "NEO3", "NEO3" },
-                    { "NEOXA", "Neoxa Network" },
-                    { "NULS", "NULS" },
                     { "OASIS", "ROSE" },
-                    { "OASYS", "OASYS" },
                     { "OKC", "OKT" },
-                    { "OMN", "Omega Network(OMN)" },
-                    { "OMNI", "OMNI" },
-                    { "ONE", "ONE" },
-                    { "ONT", "ONT" },
-                    { "OPTIMISM", "Optimism(OP)" },
-                    { "OSMO", "OSMO" },
-                    { "PLCU", "PLCU" },
-                    { "POKT", "POKT" },
-                    { "QKC", "QKC" },
-                    { "QTUM", "QTUM" },
-                    { "RAP20", "RAP20 (Rangers Mainnet)" },
-                    { "REI", "REI" },
                     { "RSK", "RBTC" },
-                    { "RVN", "Ravencoin(RVN)" },
-                    { "SATOX", "Satoxcoin(SATOX)" },
-                    { "SC", "SC" },
-                    { "SCRT", "SCRT" },
-                    { "SDN", "SDN" },
-                    { "SGB", "SGB" },
-                    { "SOL", "Solana(SOL)" },
-                    { "STAR", "STAR" },
-                    { "STARK", "Starknet(STARK)" },
-                    { "STEEM", "STEEM" },
-                    { "SYS", "SYS" },
-                    { "TAO", "Bittensor(TAO)" },
-                    { "TIA", "Celestia(TIA)" },
-                    { "TOMO", "TOMO" },
-                    { "TON", "Toncoin(TON)" },
-                    { "TRC10", "TRC10" },
-                    { "TRC20", "Tron(TRC20)" },
-                    { "UGAS", "UGAS(Ultrain)" },
-                    { "VET", "VeChain(VET)" },
-                    { "VEX", "Vexanium(VEX)" },
-                    { "VSYS", "VSYS" },
-                    { "WAVES", "WAVES" },
-                    { "WAX", "WAX" },
-                    { "WEMIX", "WEMIX" },
-                    { "XCH", "Chia(XCH)" },
-                    { "XDC", "XDC" },
-                    { "XEC", "XEC" },
-                    { "XLM", "Stellar(XLM)" },
-                    { "XMR", "Monero(XMR)" },
-                    { "XNA", "Neurai(XNA)" },
-                    { "XPR", "XPR Network" },
-                    { "XRD", "XRD" },
-                    { "XRP", "Ripple(XRP)" },
-                    { "XTZ", "XTZ" },
-                    { "XVG", "XVG" },
-                    { "XYM", "XYM" },
-                    { "ZEC", "ZEC" },
-                    { "ZEN", "ZEN" },
-                    { "ZIL", "Zilliqa(ZIL)" },
-                    { "ZTG", "ZTG" },
                 } },
                 { "networksById", new Dictionary<string, object>() {
-                    { "Aleph Zero(AZERO)", "AZERO" },
-                    { "Alephium(ALPH)", "ALPH" },
-                    { "Algorand(ALGO)", "ALGO" },
-                    { "APTOS(APT)", "APT" },
-                    { "Arbitrum One(ARB)", "ARB" },
-                    { "Avalanche C Chain(AVAX CCHAIN)", "AVAXC" },
-                    { "Avalanche X Chain(AVAX XCHAIN)", "AVAXX" },
-                    { "BEP20(BSC)", "BSC" },
-                    { "Bitcoin Cash(BCH)", "BCH" },
-                    { "Bitcoin SV(BSV)", "BSV" },
-                    { "Bitcoin(BTC)", "BTC" },
-                    { "Bittensor(TAO)", "TAO" },
-                    { "BNB Beacon Chain(BEP2)", "BEP2" },
                     { "BNB Smart Chain(BEP20-RACAV1)", "BSC" },
                     { "BNB Smart Chain(BEP20-RACAV2)", "BSC" },
                     { "BNB Smart Chain(BEP20)", "BSC" },
-                    { "Cardano(ADA)", "ADA" },
-                    { "Celestia(TIA)", "TIA" },
-                    { "Chia(XCH)", "XCH" },
-                    { "Chiliz Chain(CHZ2)", "CHZ2" },
-                    { "Chiliz Legacy Chain(CHZ)", "CHZ" },
-                    { "Clore.ai(CLORE)", "CLORE" },
-                    { "Cosmos(ATOM)", "ATOM" },
-                    { "Dogechain(DC)", "DC" },
-                    { "Dogecoin(DOGE)", "DOGE" },
-                    { "Dymension(DYM)", "DYM" },
-                    { "Dynex(DNX)", "DNX" },
-                    { "Elysium(LAVA)", "LAVA" },
-                    { "Ethereum Classic(ETC)", "ETC" },
-                    { "Ethereum(ERC20)", "ERC20" },
-                    { "Fantom(FTM)", "FTM" },
-                    { "Hedera(HBAR)", "HBAR" },
-                    { "Index Chain", "INDEX" },
-                    { "Internet Computer(ICP)", "ICP" },
-                    { "Kaspa(KAS)", "KAS" },
-                    { "Klaytn(KLAY)", "KLAY" },
-                    { "Litecoin(LTC)", "LTC" },
-                    { "Mantle(MNT)", "MNT" },
-                    { "Mcoin Network", "MCOIN" },
-                    { "Meter(MTRG)", "MTRG" },
-                    { "Monero(XMR)", "XMR" },
-                    { "NEAR Protocol(NEAR)", "NEAR" },
-                    { "Neoxa Network", "NEOXA" },
-                    { "Neurai(XNA)", "XNA" },
-                    { "Omega Network(OMN)", "OMN" },
-                    { "Optimism(OP)", "OPTIMISM" },
-                    { "Polkadot(DOT)", "DOT" },
-                    { "Polygon(MATIC)", "MATIC" },
-                    { "RAP20 (Rangers Mainnet)", "RAP20" },
-                    { "Ravencoin(RVN)", "RVN" },
-                    { "Ripple(XRP)", "XRP" },
-                    { "Satoxcoin(SATOX)", "SATOX" },
-                    { "Solana(SOL)", "SOL" },
-                    { "Starknet(STARK)", "STARK" },
-                    { "Stellar(XLM)", "XLM" },
-                    { "Terra(LUNA)", "LUNA" },
-                    { "Toncoin(TON)", "TON" },
-                    { "Tron(TRC20)", "TRC20" },
-                    { "UGAS(Ultrain)", "UGAS" },
-                    { "VeChain(VET)", "VET" },
-                    { "Vexanium(VEX)", "VEX" },
-                    { "XPR Network", "XPR" },
-                    { "Zilliqa(ZIL)", "ZIL" },
                 } },
                 { "recvWindow", multiply(5, 1000) },
                 { "maxTimeTillEnd", subtract(multiply(multiply(90, 86400), 1000), 1) },
@@ -811,6 +606,8 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#fetchStatus
         * @description the latest known information on the availability of the exchange API
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#test-connectivity
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} a [status structure]{@link https://docs.ccxt.com/#/?id=exchange-status-structure}
         */
@@ -854,6 +651,8 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#fetchTime
         * @description fetches the current integer timestamp in milliseconds from the exchange server
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#check-server-time
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {int} the current integer timestamp in milliseconds from the exchange server
         */
@@ -956,7 +755,7 @@ public partial class mexc : Exchange
             for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
             {
                 object chain = getValue(chains, j);
-                object networkId = this.safeString2(chain, "network", "netWork");
+                object networkId = this.safeString2(chain, "netWork", "network");
                 object network = this.networkIdToCode(networkId);
                 object isDepositEnabled = this.safeBool(chain, "depositEnable", false);
                 object isWithdrawEnabled = this.safeBool(chain, "withdrawEnable", false);
@@ -1043,6 +842,8 @@ public partial class mexc : Exchange
         * @method
         * @name mexc#fetchMarkets
         * @description retrieves data on all markets for mexc
+        * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information
+        * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} an array of objects representing market data
         */
@@ -1065,7 +866,7 @@ public partial class mexc : Exchange
         //         "symbols": [
         //           {
         //                "symbol": "OGNUSDT",
-        //                "status": "ENABLED",
+        //                "status": "1",
         //                "baseAsset": "OGN",
         //                "baseAssetPrecision": "2",
         //                "quoteAsset": "USDT",
@@ -1111,7 +912,7 @@ public partial class mexc : Exchange
             object status = this.safeString(market, "status");
             object isSpotTradingAllowed = this.safeValue(market, "isSpotTradingAllowed");
             object active = false;
-            if (isTrue(isTrue((isEqual(status, "ENABLED"))) && isTrue((isSpotTradingAllowed))))
+            if (isTrue(isTrue((isEqual(status, "1"))) && isTrue((isSpotTradingAllowed))))
             {
                 active = true;
             }
@@ -4418,7 +4219,7 @@ public partial class mexc : Exchange
         //
         object address = this.safeString(depositAddress, "address");
         object currencyId = this.safeString(depositAddress, "coin");
-        object networkId = this.safeString(depositAddress, "network");
+        object networkId = this.safeString(depositAddress, "netWork");
         this.checkAddress(address);
         return new Dictionary<string, object>() {
             { "currency", this.safeCurrencyCode(currencyId, currency) },
@@ -5244,16 +5045,16 @@ public partial class mexc : Exchange
         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/#/?id=transaction-structure}
         */
         parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        object currency = this.currency(code);
         var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
         tag = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
         object network = this.safeString2(parameters, "network", "netWork"); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
-        network = this.networkIdToCode(network);
+        network = this.networkCodeToId(network, getValue(currency, "code"));
         this.checkAddress(address);
-        await this.loadMarkets();
-        object currency = this.currency(code);
         object request = new Dictionary<string, object>() {
             { "coin", getValue(currency, "id") },
             { "address", address },

@@ -2472,9 +2472,11 @@ class whitebit(Exchange, ImplicitAPI):
                 if hasErrorStatus:
                     errorInfo = status
                 else:
-                    errorObject = self.safe_value(response, 'errors')
-                    if errorObject is not None:
-                        errorKey = list(errorObject.keys())[0]
+                    errorObject = self.safe_dict(response, 'errors', {})
+                    errorKeys = list(errorObject.keys())
+                    errorsLength = len(errorKeys)
+                    if errorsLength > 0:
+                        errorKey = errorKeys[0]
                         errorMessageArray = self.safe_value(errorObject, errorKey, [])
                         errorMessageLength = len(errorMessageArray)
                         errorInfo = errorMessageArray[0] if (errorMessageLength > 0) else body

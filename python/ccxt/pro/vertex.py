@@ -28,6 +28,7 @@ class vertex(ccxt.async_support.vertex):
                 'watchTicker': True,
                 'watchTickers': False,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchPositions': True,
             },
             'urls': {

@@ -1,0 +1,34 @@
+import hashkeyRest from '../hashkey.js';
+import type { Balances, Dict, Int, Market, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Trade } from '../base/types.js';
+import Client from '../base/ws/Client.js';
+export default class hashkey extends hashkeyRest {
+    describe(): any;
+    wathPublic(market: Market, topic: string, messageHash: string, params?: {}): Promise<any>;
+    watchPrivate(messageHash: any): Promise<any>;
+    getPrivateUrl(listenKey: any): string;
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: {}): Promise<OHLCV[]>;
+    handleOHLCV(client: Client, message: any): void;
+    parseWsOHLCV(ohlcv: any, market?: Market): OHLCV;
+    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    handleTicker(client: Client, message: any): void;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    handleTrades(client: Client, message: any): void;
+    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    handleOrderBook(client: Client, message: any): void;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    handleOrder(client: Client, message: any): void;
+    parseWsOrder(order: Dict, market?: Market): Order;
+    watchMyTrades(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    handleMyTrade(client: Client, message: any, subscription?: {}): void;
+    parseWsTrade(trade: any, market?: any): Trade;
+    watchPositions(symbols?: Strings, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
+    handlePosition(client: Client, message: any): void;
+    parseWsPosition(position: any, market?: Market): Position;
+    watchBalance(params?: {}): Promise<Balances>;
+    setBalanceCache(client: Client, type: any, subscribeHash: any): void;
+    loadBalanceSnapshot(client: any, messageHash: any, type: any): Promise<void>;
+    handleBalance(client: Client, message: any): void;
+    authenticate(params?: {}): Promise<string>;
+    keepAliveListenKey(listenKey: any, params?: {}): Promise<void>;
+    handleMessage(client: Client, message: any): void;
+}
