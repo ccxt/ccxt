@@ -1178,7 +1178,7 @@ export default class okx extends Exchange {
                         'limit': 100,
                     },
                     'fetchOrder': {
-                        'flags': [ 'trigger' ],
+                        'supportedFlags': [ 'trigger' ],
                     },
                     'fetchMyTrades': {
                         'until': true,
