@@ -1171,16 +1171,16 @@ export default class okx extends Exchange {
                         'supportedTypes': [ 'TRAILING', 'TWAP', 'ICEBERG' ], // even though not unified, let uses know, that exchange supports them
                     },
                     'fetchOpenOrders': {
-                        'supportedParams': [ 'trigger', 'trailing' ],
+                        'dedicatedParams': [ 'trigger', 'trailing' ],
                         'limit': 100,
                     },
                     'fetchClosedOrders': {
-                        'supportedParams': [ 'trigger', 'trailing' ],
+                        'dedicatedParams': [ 'trigger', 'trailing' ],
                         'daysBack': 90, // 3 months
                         'limit': 100,
                     },
                     'fetchOrder': {
-                        'supportedParams': [ 'trigger' ],
+                        'dedicatedParams': [ 'trigger' ],
                     },
                     'fetchMyTrades': {
                         'until': true,
