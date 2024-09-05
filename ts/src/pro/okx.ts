@@ -2358,7 +2358,7 @@ export default class okx extends okxRest {
     }
 
     handleUnsubscriptionTicker (client: Client, symbol: string, channel) {
-        const subMessageHash = channel + ':' + symbol;
+        const subMessageHash = channel + '::' + symbol;
         const messageHash = 'unsubscribe:ticker:' + symbol;
         if (subMessageHash in client.subscriptions) {
             delete client.subscriptions[subMessageHash];
