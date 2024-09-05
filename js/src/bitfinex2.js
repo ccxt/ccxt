@@ -523,12 +523,13 @@ export default class bitfinex2 extends Exchange {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} an array of objects representing market data
          */
-        let spotMarketsInfo = await this.publicGetConfPubInfoPair(params);
-        let futuresMarketsInfo = await this.publicGetConfPubInfoPairFutures(params);
-        spotMarketsInfo = this.safeValue(spotMarketsInfo, 0, []);
-        futuresMarketsInfo = this.safeValue(futuresMarketsInfo, 0, []);
+        const spotMarketsInfoPromise = this.publicGetConfPubInfoPair(params);
+        const futuresMarketsInfoPromise = this.publicGetConfPubInfoPairFutures(params);
+        const marginIdsPromise = this.publicGetConfPubListPairMargin(params);
+        let [spotMarketsInfo, futuresMarketsInfo, marginIds] = await Promise.all([spotMarketsInfoPromise, futuresMarketsInfoPromise, marginIdsPromise]);
+        spotMarketsInfo = this.safeList(spotMarketsInfo, 0, []);
+        futuresMarketsInfo = this.safeList(futuresMarketsInfo, 0, []);
         const markets = this.arrayConcat(spotMarketsInfo, futuresMarketsInfo);
-        let marginIds = await this.publicGetConfPubListPairMargin(params);
         marginIds = this.safeValue(marginIds, 0, []);
         //
         //    [

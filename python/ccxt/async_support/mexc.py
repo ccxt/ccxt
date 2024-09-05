@@ -809,6 +809,8 @@ class mexc(Exchange, ImplicitAPI):
     async def fetch_status(self, params={}):
         """
         the latest known information on the availability of the exchange API
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#test-connectivity
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/#/?id=exchange-status-structure>`
         """
@@ -842,6 +844,8 @@ class mexc(Exchange, ImplicitAPI):
     async def fetch_time(self, params={}):
         """
         fetches the current integer timestamp in milliseconds from the exchange server
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#check-server-time
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
@@ -998,6 +1002,8 @@ class mexc(Exchange, ImplicitAPI):
     async def fetch_markets(self, params={}) -> List[Market]:
         """
         retrieves data on all markets for mexc
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """

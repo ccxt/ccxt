@@ -803,6 +803,8 @@ class mexc extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * the latest known information on the availability of the exchange API
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#test-connectivity
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} a ~@link https://docs.ccxt.com/#/?id=exchange-$status-structure $status structure~
              */
@@ -840,6 +842,8 @@ class mexc extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * fetches the current integer timestamp in milliseconds from the exchange server
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#check-server-time
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
@@ -1012,6 +1016,8 @@ class mexc extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves data on all markets for mexc
+             * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information
+             * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing market data
              */

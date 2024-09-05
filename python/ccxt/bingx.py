@@ -479,6 +479,7 @@ class bingx(Exchange, ImplicitAPI):
             },
             'commonCurrencies': {
                 'SNOW': 'Snowman',  # Snowman vs SnowSwap conflict
+                'OMNI': 'OmniCat',
             },
             'options': {
                 'defaultType': 'spot',

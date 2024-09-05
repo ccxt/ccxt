@@ -5825,11 +5825,17 @@ class bybit extends Exchange {
          * @param {string} $code unified $currency $code, default is null
          * @param {int} [$since] timestamp in ms of the earliest ledger entry, default is null
          * @param {int} [$limit] max number of ledger entrys to return, default is null
-         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @param {string} [$params->subType] if inverse will use v5/account/contract-transaction-log
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/#/?id=ledger-structure ledger structure~
          */
         $this->load_markets();
+        $paginate = false;
+        list($paginate, $params) = $this->handle_option_and_params($params, 'fetchLedger', 'paginate');
+        if ($paginate) {
+            return $this->fetch_paginated_call_cursor('fetchLedger', $code, $since, $limit, $params, 'nextPageCursor', 'cursor', null, 50);
+        }
         $request = array(
             // 'coin' => $currency['id'],
             // 'currency' => $currency['id'], // alias
@@ -5879,7 +5885,7 @@ class bybit extends Exchange {
                 $response = $this->privateGetV5AccountTransactionLog ($this->extend($request, $params));
             }
         } else {
-            $response = $this->privateGetV2PrivateWalletFundRecords ($this->extend($request, $params));
+            $response = $this->privateGetV5AccountContractTransactionLog ($this->extend($request, $params));
         }
         //
         //     {
