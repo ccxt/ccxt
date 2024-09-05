@@ -773,6 +773,20 @@ export default class okx extends okxRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
+    async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
+        /**
+         * @method
+         * @name okx#unWatchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        return await this.unWatchOHLCVForSymbols ([ [ symbol, timeframe ] ], params);
+    }
+
     async watchOHLCVForSymbols (symbolsAndTimeframes: string[][], since: Int = undefined, limit: Int = undefined, params = {}) {
         /**
          * @method
@@ -816,6 +830,44 @@ export default class okx extends okxRest {
         }
         const filtered = this.filterBySinceLimit (candles, since, limit, 0, true);
         return this.createOHLCVObject (symbol, timeframe, filtered);
+    }
+
+    async unWatchOHLCVForSymbols (symbolsAndTimeframes: string[][], params = {}) {
+        /**
+         * @method
+         * @name okx#unWatchOHLCVForSymbols
+         * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string[][]} symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        const symbolsLength = symbolsAndTimeframes.length;
+        if (symbolsLength === 0 || !Array.isArray (symbolsAndTimeframes[0])) {
+            throw new ArgumentsRequired (this.id + " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
+        }
+        await this.loadMarkets ();
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbolsAndTimeframes.length; i++) {
+            const symbolAndTimeframe = symbolsAndTimeframes[i];
+            const sym = symbolAndTimeframe[0];
+            const tf = symbolAndTimeframe[1];
+            const marketId = this.marketId (sym);
+            const interval = this.safeString (this.timeframes, tf, tf);
+            const channel = 'candle' + interval;
+            const topic: Dict = {
+                'channel': channel,
+                'instId': marketId,
+            };
+            topics.push (topic);
+            messageHashes.push ('unsubscribe:multi:' + channel + ':' + sym);
+        }
+        const request: Dict = {
+            'op': 'unsubscribe',
+            'args': topics,
+        };
+        const url = this.getUrl ('candle', 'public');
+        return await this.watchMultiple (url, messageHashes, request, messageHashes);
     }
 
     handleOHLCV (client: Client, message) {
@@ -2214,6 +2266,25 @@ export default class okx extends okxRest {
         client.resolve (true, messageHash);
     }
 
+    handleUnsubscriptionOHLCV (client: Client, symbol: string, channel: string) {
+        const tf = channel.replace ('candle', '');
+        const timeframe = this.findTimeframe (tf);
+        const subMessageHash = 'multi:' + channel + ':' + symbol;
+        const messageHash = 'unsubscribe:' + subMessageHash;
+        if (subMessageHash in client.subscriptions) {
+            delete client.subscriptions[subMessageHash];
+        }
+        if (messageHash in client.subscriptions) {
+            delete client.subscriptions[messageHash];
+        }
+        if (timeframe in this.ohlcvs[symbol]) {
+            delete this.ohlcvs[symbol][timeframe];
+        }
+        const error = new UnsubscribeError (this.id + ' ' + subMessageHash);
+        client.reject (error, subMessageHash);
+        client.resolve (true, messageHash);
+    }
+
     handleUnsubscription (client: Client, message) {
         //
         // {
@@ -2233,6 +2304,8 @@ export default class okx extends okxRest {
             this.handleUnSubscriptionTrades (client, symbol);
         } else if (channel.startsWith ('bbo') || channel.startsWith ('book')) {
             this.handleUnsubscriptionOrderBook (client, symbol, channel);
+        } else if (channel.startsWith ('candle')) {
+            this.handleUnsubscriptionOHLCV (client, symbol, channel);
         }
     }
 }

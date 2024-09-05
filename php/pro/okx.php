@@ -784,6 +784,20 @@ class okx extends \ccxt\async\okx {
         }) ();
     }
 
+    public function un_watch_ohlcv(string $symbol, $timeframe = '1m', $params = array ()): PromiseInterface {
+        return Async\async(function () use ($symbol, $timeframe, $params) {
+            /**
+             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+             * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            return Async\await($this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $params));
+        }) ();
+    }
+
     public function watch_ohlcv_for_symbols(array $symbolsAndTimeframes, ?int $since = null, ?int $limit = null, $params = array ()) {
         return Async\async(function () use ($symbolsAndTimeframes, $since, $limit, $params) {
             /**
@@ -826,6 +840,44 @@ class okx extends \ccxt\async\okx {
             }
             $filtered = $this->filter_by_since_limit($candles, $since, $limit, 0, true);
             return $this->create_ohlcv_object($symbol, $timeframe, $filtered);
+        }) ();
+    }
+
+    public function un_watch_ohlcv_for_symbols(array $symbolsAndTimeframes, $params = array ()) {
+        return Async\async(function () use ($symbolsAndTimeframes, $params) {
+            /**
+             * unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+             * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
+             * @param {array} [$params] extra parameters specific to the exchange API endpoint
+             * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+             */
+            $symbolsLength = count($symbolsAndTimeframes);
+            if ($symbolsLength === 0 || gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0]))) {
+                throw new ArgumentsRequired($this->id . " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]");
+            }
+            Async\await($this->load_markets());
+            $topics = array();
+            $messageHashes = array();
+            for ($i = 0; $i < count($symbolsAndTimeframes); $i++) {
+                $symbolAndTimeframe = $symbolsAndTimeframes[$i];
+                $sym = $symbolAndTimeframe[0];
+                $tf = $symbolAndTimeframe[1];
+                $marketId = $this->market_id($sym);
+                $interval = $this->safe_string($this->timeframes, $tf, $tf);
+                $channel = 'candle' . $interval;
+                $topic = array(
+                    'channel' => $channel,
+                    'instId' => $marketId,
+                );
+                $topics[] = $topic;
+                $messageHashes[] = 'unsubscribe:multi:' . $channel . ':' . $sym;
+            }
+            $request = array(
+                'op' => 'unsubscribe',
+                'args' => $topics,
+            );
+            $url = $this->get_url('candle', 'public');
+            return Async\await($this->watch_multiple($url, $messageHashes, $request, $messageHashes));
         }) ();
     }
 
@@ -2227,6 +2279,25 @@ class okx extends \ccxt\async\okx {
         $client->resolve (true, $messageHash);
     }
 
+    public function handle_unsubscription_ohlcv(Client $client, string $symbol, string $channel) {
+        $tf = str_replace('candle', '', $channel);
+        $timeframe = $this->find_timeframe($tf);
+        $subMessageHash = 'multi:' . $channel . ':' . $symbol;
+        $messageHash = 'unsubscribe:' . $subMessageHash;
+        if (is_array($client->subscriptions) && array_key_exists($subMessageHash, $client->subscriptions)) {
+            unset($client->subscriptions[$subMessageHash]);
+        }
+        if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
+            unset($client->subscriptions[$messageHash]);
+        }
+        if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol])) {
+            unset($this->ohlcvs[$symbol][$timeframe]);
+        }
+        $error = new UnsubscribeError ($this->id . ' ' . $subMessageHash);
+        $client->reject ($error, $subMessageHash);
+        $client->resolve (true, $messageHash);
+    }
+
     public function handle_unsubscription(Client $client, $message) {
         //
         // {
@@ -2246,6 +2317,8 @@ class okx extends \ccxt\async\okx {
             $this->handle_un_subscription_trades($client, $symbol);
         } elseif (str_starts_with($channel, 'bbo') || str_starts_with($channel, 'book')) {
             $this->handle_unsubscription_order_book($client, $symbol, $channel);
+        } elseif (str_starts_with($channel, 'candle')) {
+            $this->handle_unsubscription_ohlcv($client, $symbol, $channel);
         }
     }
 }

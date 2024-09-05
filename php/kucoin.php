@@ -622,6 +622,7 @@ class kucoin extends Exchange {
                 'KALT' => 'ALT', // ALTLAYER
             ),
             'options' => array(
+                'hf' => false,
                 'version' => 'v1',
                 'symbolSeparator' => '-',
                 'fetchMyTradesMethod' => 'private_get_fills',
@@ -1216,8 +1217,7 @@ class kucoin extends Exchange {
     }
 
     public function handle_hf_and_params($params = array ()) {
-        $this->load_migration_status();
-        $migrated = $this->safe_bool($this->options, 'hfMigrated');
+        $migrated = $this->safe_bool_2($this->options, 'hfMigrated', 'hf', false);
         $loadedHf = null;
         if ($migrated !== null) {
             if ($migrated) {

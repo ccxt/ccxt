@@ -487,12 +487,16 @@ public partial class bitfinex2 : Exchange
         * @returns {object[]} an array of objects representing market data
         */
         parameters ??= new Dictionary<string, object>();
-        object spotMarketsInfo = await this.publicGetConfPubInfoPair(parameters);
-        object futuresMarketsInfo = await this.publicGetConfPubInfoPairFutures(parameters);
-        spotMarketsInfo = this.safeValue(spotMarketsInfo, 0, new List<object>() {});
-        futuresMarketsInfo = this.safeValue(futuresMarketsInfo, 0, new List<object>() {});
+        object spotMarketsInfoPromise = this.publicGetConfPubInfoPair(parameters);
+        object futuresMarketsInfoPromise = this.publicGetConfPubInfoPairFutures(parameters);
+        object marginIdsPromise = this.publicGetConfPubListPairMargin(parameters);
+        var spotMarketsInfofuturesMarketsInfomarginIdsVariable = await promiseAll(new List<object>() {spotMarketsInfoPromise, futuresMarketsInfoPromise, marginIdsPromise});
+        var spotMarketsInfo = ((IList<object>) spotMarketsInfofuturesMarketsInfomarginIdsVariable)[0];
+        var futuresMarketsInfo = ((IList<object>) spotMarketsInfofuturesMarketsInfomarginIdsVariable)[1];
+        var marginIds = ((IList<object>) spotMarketsInfofuturesMarketsInfomarginIdsVariable)[2];
+        spotMarketsInfo = this.safeList(spotMarketsInfo, 0, new List<object>() {});
+        futuresMarketsInfo = this.safeList(futuresMarketsInfo, 0, new List<object>() {});
         object markets = this.arrayConcat(spotMarketsInfo, futuresMarketsInfo);
-        object marginIds = await this.publicGetConfPubListPairMargin(parameters);
         marginIds = this.safeValue(marginIds, 0, new List<object>() {});
         //
         //    [

@@ -534,12 +534,13 @@ class bitfinex2(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: an array of objects representing market data
         """
-        spotMarketsInfo = self.publicGetConfPubInfoPair(params)
-        futuresMarketsInfo = self.publicGetConfPubInfoPairFutures(params)
-        spotMarketsInfo = self.safe_value(spotMarketsInfo, 0, [])
-        futuresMarketsInfo = self.safe_value(futuresMarketsInfo, 0, [])
+        spotMarketsInfoPromise = self.publicGetConfPubInfoPair(params)
+        futuresMarketsInfoPromise = self.publicGetConfPubInfoPairFutures(params)
+        marginIdsPromise = self.publicGetConfPubListPairMargin(params)
+        spotMarketsInfo, futuresMarketsInfo, marginIds = [spotMarketsInfoPromise, futuresMarketsInfoPromise, marginIdsPromise]
+        spotMarketsInfo = self.safe_list(spotMarketsInfo, 0, [])
+        futuresMarketsInfo = self.safe_list(futuresMarketsInfo, 0, [])
         markets = self.array_concat(spotMarketsInfo, futuresMarketsInfo)
-        marginIds = self.publicGetConfPubListPairMargin(params)
         marginIds = self.safe_value(marginIds, 0, [])
         #
         #    [

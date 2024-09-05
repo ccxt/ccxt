@@ -466,6 +466,7 @@ export default class bingx extends Exchange {
             },
             'commonCurrencies': {
                 'SNOW': 'Snowman', // Snowman vs SnowSwap conflict
+                'OMNI': 'OmniCat',
             },
             'options': {
                 'defaultType': 'spot',

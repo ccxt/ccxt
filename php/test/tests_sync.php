@@ -1119,6 +1119,10 @@ class testMainClass extends baseMainTestClass {
                 if ($is_disabled) {
                     continue;
                 }
+                $disabled_string = $exchange->safe_string($result, 'disabled', '');
+                if ($disabled_string !== '') {
+                    continue;
+                }
                 $is_disabled_c_sharp = $exchange->safe_bool($result, 'disabledCS', false);
                 if ($is_disabled_c_sharp && ($this->lang === 'C#')) {
                     continue;
