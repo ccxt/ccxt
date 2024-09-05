@@ -1166,7 +1166,8 @@ export default class okx extends Exchange {
                         },
                         'timeInForce': [ 'GTC', 'IOC', 'FOK', 'PO' ],
                         // 'selfTradePrevention': true, // supported, but not unified
-                        'hedged': true,
+                        'positionModes': [ 'oneWay', 'hedged' ],
+                        'supportedTypes': [ 'TRAILING', 'TWAP', 'ICEBERG' ], // even though not unified, let uses know, that exchange supports them
                     },
                     'fetchOpenOrders': {
                         'supportedParams': [ 'trigger', 'trailing' ],
