@@ -72,7 +72,7 @@ public struct MarketMarginModes
     public bool? isolated;
     public MarketMarginModes(object marginModes2)
     {
-        var marginModes = (Dictionary<string, object>)marginMode2;
+        var marginModes = (Dictionary<string, object>)marginModes2;
         cross = Exchange.SafeBool(marginModes, "cross");
         isolated = Exchange.SafeBool(marginModes, "isolated");
     }
