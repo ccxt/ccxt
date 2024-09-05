@@ -610,8 +610,7 @@ public partial class kucoin : ccxt.kucoin
         {
             object symbol = getValue(symbols, i);
             ((IList<object>)messageHashes).Add(add("unsubscribe:trades:", symbol));
-            object marketId = getValue(marketIds, i);
-            ((IList<object>)subscriptionHashes).Add(add("/market/match:", marketId));
+            ((IList<object>)subscriptionHashes).Add(add("trades:", symbol));
         }
         object subscription = new Dictionary<string, object>() {
             { "messageHashes", messageHashes },
@@ -979,8 +978,8 @@ public partial class kucoin : ccxt.kucoin
 
                 }
                 var error = new UnsubscribeError(add(add(this.id, " "), subHash));
-                ((WebSocketClient)client).reject(error, messageHash);
-                callDynamically(client as WebSocketClient, "resolve", new object[] {true, subHash});
+                ((WebSocketClient)client).reject(error, subHash);
+                callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
                 this.cleanCache(subscription);
             }
         }
