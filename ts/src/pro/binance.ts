@@ -704,7 +704,7 @@ export default class binance extends binanceRest {
             subParams.push (symbolHash);
         }
         const messageHashesLength = subMessageHashes.length;
-        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, streamHash, messageHashesLength);
+        const url = this.urls['api']['ws'][type] + '/' + this.streamId (type, streamHash, messageHashesLength);
         const requestId = this.requestId (url);
         const request: Dict = {
             'method': 'UNSUBSCRIBE',
@@ -1216,7 +1216,7 @@ export default class binance extends binanceRest {
         }
         const query = this.omit (params, 'type');
         const subParamsLength = subParams.length;
-        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, streamHash, subParamsLength);
+        const url = this.urls['api']['ws'][type] + '/' + this.streamId (type, streamHash, subParamsLength);
         const requestId = this.requestId (url);
         const request: Dict = {
             'method': 'UNSUBSCRIBE',
@@ -1595,7 +1595,7 @@ export default class binance extends binanceRest {
             subMessageHashes.push ('ohlcv::' + market['symbol'] + '::' + timeframeString);
             messageHashes.push ('unsubscribe::ohlcv::' + market['symbol'] + '::' + timeframeString);
         }
-        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, 'multipleOHLCV');
+        const url = this.urls['api']['ws'][type] + '/' + this.streamId (type, 'multipleOHLCV');
         const requestId = this.requestId (url);
         const request = {
             'method': 'UNSUBSCRIBE',
@@ -1958,7 +1958,7 @@ export default class binance extends binanceRest {
         if (symbolsDefined) {
             streamHash = channelName + '::' + symbols.join (',');
         }
-        const url = this.urls['api']['ws'][rawMarketType] + '/' + this.stream (rawMarketType, streamHash);
+        const url = this.urls['api']['ws'][rawMarketType] + '/' + this.streamId (rawMarketType, streamHash);
         const requestId = this.requestId (url);
         const request: Dict = {
             'method': 'UNSUBSCRIBE',
