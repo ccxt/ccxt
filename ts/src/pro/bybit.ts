@@ -25,6 +25,7 @@ export default class bybit extends bybitRest {
                 'fetchTradesWs': false,
                 'fetchBalanceWs': false,
                 'watchBalance': true,
+                'watchBidsAsks': true,
                 'watchLiquidations': true,
                 'watchLiquidationsForSymbols': false,
                 'watchMyLiquidations': false,
@@ -587,6 +588,52 @@ export default class bybit extends bybitRest {
         client.resolve (this.tickers[symbol], messageHash);
     }
 
+    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name bybit#watchBidsAsks
+         * @description watches best bid & ask for symbols
+         * @see https://bybit-exchange.github.io/docs/v5/websocket/public/orderbook
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, false);
+        const messageHashes = [];
+        const url = await this.getUrlByMarketType (symbols[0], false, 'watchBidsAsks', params);
+        params = this.cleanParams (params);
+        const marketIds = this.marketIds (symbols);
+        const topics = [ ];
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
+            const topic = 'orderbook.1.' + marketId;
+            topics.push (topic);
+            messageHashes.push ('bidask:' + symbols[i]);
+        }
+        const ticker = await this.watchTopics (url, messageHashes, topics, params);
+        if (this.newUpdates) {
+            return ticker;
+        }
+        return this.filterByArray (this.bidsasks, 'symbol', symbols);
+    }
+
+    parseWsBidAsk (orderbook, market = undefined) {
+        const timestamp = this.safeInteger (orderbook, 'timestamp');
+        const bids = this.safeList (this.safeList (orderbook, 'bids', []), 0, []);
+        const asks = this.safeList (this.safeList (orderbook, 'asks', []), 0, []);
+        return this.safeTicker ({
+            'symbol': market['symbol'],
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'ask': this.safeNumber (asks, 0),
+            'askVolume': this.safeNumber (asks, 1),
+            'bid': this.safeNumber (bids, 0),
+            'bidVolume': this.safeNumber (bids, 1),
+            'info': orderbook,
+        }, market);
+    }
+
     async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
         /**
          * @method
@@ -919,6 +966,8 @@ export default class bybit extends bybitRest {
         //         }
         //     }
         //
+        const topic = this.safeString (message, 'topic');
+        const limit = topic.split ('.')[1];
         const isSpot = client.url.indexOf ('spot') >= 0;
         const type = this.safeString (message, 'type');
         const isSnapshot = (type === 'snapshot');
@@ -946,6 +995,11 @@ export default class bybit extends bybitRest {
         const messageHash = 'orderbook' + ':' + symbol;
         this.orderbooks[symbol] = orderbook;
         client.resolve (orderbook, messageHash);
+        if (limit === '1') {
+            const bidask = this.parseWsBidAsk (this.orderbooks[symbol], market);
+            this.bidsasks[symbol] = bidask;
+            client.resolve (bidask, 'bidask:' + symbol);
+        }
     }
 
     handleDelta (bookside, delta) {
