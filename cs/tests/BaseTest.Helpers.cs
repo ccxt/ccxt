@@ -20,6 +20,7 @@ public partial class testMainClass : BaseTest
     public object publicTests = null;
     public object checkedPublicTests = null;
     public bool sandbox = false;
+    public int LOG_CHARS_LENGTH = 10000;
     public object envVars = null;
     public dict testFiles = new dict();
     public bool privateTestOnly = Tests.privateOnly;
@@ -277,7 +278,8 @@ public partial class testMainClass : BaseTest
     {
         try
         {
-            exchange.GetType().GetProperty(prop as string).SetValue(exchange, value);
+            var obj = exchange.GetType().GetProperty(prop as string);
+            if (obj != null) obj.SetValue(exchange, value);
         }
         catch (Exception)
         {
@@ -299,7 +301,13 @@ public partial class testMainClass : BaseTest
     public string exceptionMessage(object exc)
     {
         var e = exc as Exception;
-        return e.Message;
+        var message = e.StackTrace;
+        // if (e is AggregateException) {
+        //     foreach (var innerExc in e.InnerExceptions) {
+        //         message += innerExc.Message + '\n';
+        //     }
+        // }
+        return "[" + e.GetType().Name + "] " + message.Substring(0, LOG_CHARS_LENGTH);
     }
 
     public System.Exception getRootException(Exception exc)
