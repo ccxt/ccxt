@@ -1743,7 +1743,7 @@ export default class gate extends gateRest {
             if (topic.endsWith ('trades')) {
                 // don't reset this.myTrades directly here
                 // because in c# we need to use a different object
-                const keys = Object.keys (this.myTrades);
+                const keys = Object.keys (this.trades);
                 for (let i = 0; i < keys.length; i++) {
                     delete this.trades[keys[i]];
                 }
