@@ -7,7 +7,6 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Balances, Bool, Currency, Currencies, Dict, FundingRate, FundingRateHistory, Int, Leverage, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
-import { req } from './static_dependencies/proxies/agent-base/helpers.js';
 
 // ---------------------------------------------------------------------------
 
