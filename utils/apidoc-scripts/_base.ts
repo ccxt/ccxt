@@ -50,11 +50,11 @@ class ParserBase {
     }
 
     stripTags (input) {
-        return input.replace(/<[^>]*>?/gm, '');
+        return input.replace(/<[^>]*>?/gm, '').trim ();
     }
 
     sanitizeEndpoint (input) {
-        const sanitized = this.stripTags(input).trim ();
+        const sanitized = this.stripTags(input);
         // add slash in the beginning
         return sanitized.startsWith ('/') ? sanitized : '/' + sanitized;
     }

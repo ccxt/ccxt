@@ -21,7 +21,7 @@ class binance extends ParserBase {
 
     async init () {
         await this.initRateLimitValues ();
-        const newDocs = await this.retrieveNewDocs ();
+        const newDocs = await this.retrievePortalDocs ();
         const spotDocs = await this.retrieveSpotDocs ();
         const tree = Object.assign (spotDocs, newDocs);
         return tree;
@@ -83,22 +83,13 @@ class binance extends ParserBase {
             const endpoint = match[2]; // sometimes needed
             // eg: path = '/sapi/v2/account/balance'
             const parts = endpoint.split ('/');
-            const kind = parts[1]; // eg: 'sapi'
+            const apyType = parts[1]; // eg: 'sapi'
             const version = parts[2];
-            const rateLimit = match[6].trim();
-            const rateLimitFinal = (parseInt(rateLimit).toString () === rateLimit) ? parseInt(rateLimit) : undefined; // ensure it's a number
-            let path = endpoint.substring(1 + kind.length + 1);
+            let path = endpoint.substring(1 + apyType.length + 1);
             path = path.substring (version.length + 1); // hack for binance.ts
             const isPublic = publicEndpoints.some (publicEndpoint => path.startsWith ( publicEndpoint));
-            const publicOrPrivate = isPublic ? 'public' : 'private';
-            const keyNameInTree = publicOrPrivate; // kind
-            if (!(keyNameInTree in apiTree)) {
-                apiTree[keyNameInTree] = {};
-            }
-            if (!(reqMethod in apiTree[keyNameInTree])) {
-                apiTree[keyNameInTree][reqMethod] = {};
-            }
-            apiTree[keyNameInTree][reqMethod][path] = this.rateLimitValue (kind, rateLimitFinal, webLink);
+            const rootKeySuffix = (isPublic? 'public':'private');
+            this.setEndpoint (apiTree, apyType, rootKeySuffix, reqMethod, path, webLink, match[6]);
         }
         apiTree = this.deepExtend (apiTree, manualOverrides['api']);
         return apiTree;
@@ -106,7 +97,7 @@ class binance extends ParserBase {
 
 
     // here we fetch all other markets (but ignore included SPOT docs, as we already have it)
-    async retrieveNewDocs () {
+    async retrievePortalDocs () {
         const baseUrl = 'https://developers.binance.com';
         if (!this.cacheExists ()) {
             const data = await this.fetchData (baseUrl + '/docs/');
@@ -145,70 +136,75 @@ class binance extends ParserBase {
             const responses = await Promise.all (promises);
             this.cacheSet (undefined, responses);
         }
-        return this.parseNewDocs ();
-    }
-
-    parseNewDocs() {
         const responses = this.cacheGet ();
         const apiTree = {};
-        const skipedUrls = [ 'binance-spot-api-docs/rest-api', 'binance-spot-api-docs/testnet/rest-api', '/docs/spot/en', '/change-log' ];
-        for (const res of responses) {
-            const regex = /property="og:url" content="(.*?)"/g;
-            let mainUrl = regex.exec(res);
-            if (!mainUrl) {
+        const skippedPages = [ 'binance-spot-api-docs/rest-api', 'binance-spot-api-docs/testnet/rest-api', '/docs/spot/en', '/change-log' ];
+        for (const page of responses) {
+            let docContent;
+            let mainUrl:any = (/property="og:url" content="(.*?)"/g).exec(page);
+            if (
+                !mainUrl // if url not found
+                    ||
+                skippedPages.some (skipPage => mainUrl.includes (skipPage)) // if skipped page
+                    ||
+                !( docContent = (/<h1>(.*?)<\/h1>((.|\n)*?)Parameters/g).exec(page)) // if api paragraph not found, then it's not specifications page
+            ){
                 continue;
             }
             mainUrl = mainUrl[1];
-            if (skipedUrls.some (skip => mainUrl.includes (skip))) {
+            const heading = docContent[1];
+            const apiParagraph = docContent[2];
+            const endpointCollections = apiParagraph.matchAll(/\n(<p>|<p><code>|<code>)(GET|POST|PUT|DELETE)\b(?!\b|\s)*?([\s\S]*?)<\/code>[\s\S]*?Weight(.*?UID|\b)([\s\S]*?<p><strong>(.*)\n|)/g);
+            const matches = [...endpointCollections];
+            if (matches.length !== 1) continue;
+            let match = matches[0];
+            if (match.length !== 7) continue;
+            // remove first two from match
+            if (match.length != 7) {
+                console.log('endpoint data match length is incorrect', match);
                 continue;
             }
-            // remove content only between <h1> and "Request Parameters" section
-            let apiParagraph = res.match(/<h1>(.*?)<\/h1>((.|\n)*?)Parameters/g);
-            if (!apiParagraph) {
-                // if api paragraph not found, then it's not specifications page
+            // [ 'POST',  '/sapi/v1/algo/futures/newOrderVp', 'UID', '300' ]
+            const reqMethod = match[2].toLowerCase ();
+            const rawEndpoint = match[3]; if (!rawEndpoint.includes('/')) continue; 
+            const isPublic = ! match[4].includes ('UID') && !docContent[0].includes('(USER_DATA)');
+            const weight = match[6];
+            const endpoint = this.sanitizeEndpoint(rawEndpoint);
+            const parts = endpoint.split ('/');
+            const apiType = parts[1]; // eg: 'sapi' 
+            const version = parts[2]; // eg: 'v2' 
+            const path = endpoint.substring(1 + apiType.length + 1); // eg: remove 'sapi/' from beggining
+            let apiRootKey = apiType;
+            if (apiType.startsWith('sapi')) {
+                apiRootKey += version.toUpperCase().replace('V1'); // no need `sapiV1`
+            } else if (apiType.startsWith('papi')) {
+                // nothing needed
+            } else if (['fapi','dapi','eapi'].includes(apiType)) {
+                apiRootKey += ( isPublic ? 'Public': 'Private'); // eg: fapiPublic
+            } else {
+                // console.log('undetected path', match, mainUrl); // seems only few exceptions
                 continue;
             }
-            apiParagraph = apiParagraph[0];
-            const endpointDatas = apiParagraph.matchAll(/\n(<p>|<p><code>|<code>)(GET|POST|PUT|DELETE)\b(?!\b|\s)*?([\s\S]*?)<\/code>[\s\S]*?Weight(.*?UID|)(\b[\s\S]*?<p><strong>(\d+)|)/g);
-            const array = [...endpointDatas];
-            for (let match of array) {
-                // remove first two from match
-                match = match.slice(2);
-                if (match.length != 5) {
-                    console.log('endpoint data match length is incorrect', match);
-                    continue;
-                }
-                // 0 ='POST'
-                // 1 = '/sapi/v1/algo/futures/newOrderVp'
-                // 2 = 'UID'
-                // 3 = '300'
-                const reqMethod = match[0].toLowerCase ();
-                const rawEndpoint = match[1];
-                const isPrivateRL = match[2].includes('UID');
-                const rateLimit = match[4];
-                //
-                if (!rawEndpoint.includes('/')) {
-                    continue;
-                }
-                const endpoint = this.sanitizeEndpoint(rawEndpoint);
-                const parts = endpoint.split ('/');
-                const kind = parts[1]; // eg: 'sapi'
-                if (!(kind in apiTree)) {
-                    apiTree[kind] = {};
-                }
-                if (!(reqMethod in apiTree[kind])) {
-                    apiTree[kind][reqMethod] = {};
-                }
-                const path = endpoint.substring(1 + kind.length + 1); // remove the prefix (eg '/sapi')
-                if (!(path in apiTree[kind][reqMethod])) {
-                    apiTree[kind][reqMethod][path] = this.rateLimitValue (kind, rateLimit, mainUrl, isPrivateRL);
-                } else {
-                    //console.log('duplicate path',  kind, reqMethod, path, mainUrl); // seems only few exceptions
-                }
-            }
+            this.setEndpoint (apiTree, apiType, apiRootKey, reqMethod, path, mainUrl, weight);
         }
-        delete apiTree['futures']; // it's odd atm
         return apiTree;
+    }
+
+    
+    setEndpoint (apiTreeRef, apiType = 'api|fapi|...', rootKeyNameInCcxt, reqMethod = 'post|get|..', path, linkToDoc, rateLimitRaw ){
+        const rateLimit = this.stripTags (rateLimitRaw ?? '');
+        const rateLimitFinal = (parseInt(rateLimit).toString () === rateLimit) ? parseInt(rateLimit) : undefined; // ensure it's a number
+        if (!(rootKeyNameInCcxt in apiTreeRef)) {
+            apiTreeRef[rootKeyNameInCcxt] = {};
+        }
+        if (!(reqMethod in apiTreeRef[rootKeyNameInCcxt])) {
+            apiTreeRef[rootKeyNameInCcxt][reqMethod] = {};
+        }
+        if (!(path in apiTreeRef[rootKeyNameInCcxt][reqMethod])) {
+            apiTreeRef[rootKeyNameInCcxt][reqMethod][path] = this.rateLimitValue (apiType, rateLimitFinal, linkToDoc);
+        } else {
+            //console.log('duplicate path',  kind, reqMethod, path, mainUrl); // seems only few exceptions
+        }
     }
 
 }
