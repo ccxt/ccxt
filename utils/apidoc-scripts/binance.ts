@@ -59,16 +59,6 @@ class binance extends ParserBase {
         }
     }
 
-    rateLimitValue (type, weightNum, url = undefined) {
-        const multiplier = this.RateLimitBases[type] / this.RateLimitBaseValue;
-        if (weightNum) {
-            return parseInt (weightNum) * multiplier;
-        } else {
-            return url;
-        }
-    }
-
-
     // we have separate SPOT docs url, which has different page format and needs to be fetched separately
     async retrieveSpotDocs () {
         const webLink = 'https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md'
@@ -94,7 +84,8 @@ class binance extends ParserBase {
             path = path.substring (version.length + 1); // hack for binance.ts
             const isPublic = publicEndpoints.some (publicEndpoint => path.startsWith ( publicEndpoint));
             const rootKeySuffix = (isPublic? 'public':'private');
-            this.setEndpoint (apiTree, apyType, rootKeySuffix, reqMethod, path, webLink, match[6]);
+            const weight = this.stripTags (match[6] ?? '');
+            this.setEndpoint (apiTree, apyType, rootKeySuffix, reqMethod, path, webLink, weight);
         }
         return apiTree;
     }
@@ -158,24 +149,32 @@ class binance extends ParserBase {
             mainUrl = mainUrl[1];
             // const heading = docContent[1];
             const apiParagraph = docContent[2];
-            const endpointCollections = apiParagraph.matchAll(/\n(<p>|<p><code>|<code>)(GET|POST|PUT|DELETE)\b(?!\b|\s)*?([\s\S]*?)<\/code>[\s\S]*?Weight\b([\s\S]*?\n)(.*?)\n/g);
+            const endpointCollections = apiParagraph.matchAll(/\n(<p>|<p><code>|<code>)(GET|POST|PUT|DELETE)\b(?!\b|\s)*?([\s\S]*?)<\/code>[\s\S]*?Weight\b([\s\S]*?\n)([\s\S]*?\<h2|(.*?)\n)/g);
             const matches = [...endpointCollections];
             if (matches.length !== 1) continue;
             let match = matches[0];
-            if (match.length !==  6) {
+            if (match.length !== 7) {
                 this.exit('endpoint data match length is incorrect', match);
             }
             // [ 'POST',  '/sapi/v1/algo/futures/newOrderVp', '(UID)', '300' ]
             const reqMethod = match[2].toLowerCase ();
             const rawEndpoint = match[3]; if (!rawEndpoint.includes('/')) continue;
-            const isPrivate = (match[4] + match[5]).includes ('(UID)') || docContent[0].includes('(USER_DATA)');
-            const weight = this.stripTags((match[5]??'').replace('(UID)','').replace('(IP)',''));
+            const weightParagraph = match[5];
+            let weight = this.stripTags((weightParagraph??'').replace('(UID)','').replace('(IP)',''));
+            const multipleWeights = /(\d+)(.*?)symbol(.*?)(\d+)(.*?)(omit|without symbol)/.exec (weightParagraph);
+            if (multipleWeights) {
+                weight = {
+                    'cost': parseInt(multipleWeights[1]),
+                    'noSymbol': parseInt(multipleWeights[4]),
+                };
+            }
             const endpoint = this.sanitizeEndpoint(rawEndpoint);
             const parts = endpoint.split ('/');
             const apiType = parts[1]; // eg: 'sapi' 
             const version = parts[2]; // eg: 'v2' 
             let apiRootKey = apiType;
             const versionSuffix = version.toUpperCase().replace('V1', ''); // we dont have `v1` suffixes from keys
+            const isPrivate = weightParagraph.includes ('(UID)') || docContent[0].includes('(USER_DATA)');
             if (apiType.startsWith('sapi')) {
                 apiRootKey += versionSuffix;
             } else if (apiType.startsWith('papi')) {
@@ -193,9 +192,15 @@ class binance extends ParserBase {
     }
 
     
-    setEndpoint (apiTreeRef, apiType = 'api|fapi|...', rootKeyNameInCcxt, reqMethod = 'post|get|..', path, linkToDoc, rateLimitRaw ){
-        const rateLimit = this.stripTags (rateLimitRaw ?? '');
-        const rateLimitFinal = (parseInt(rateLimit).toString () === rateLimit) ? parseInt(rateLimit) : undefined; // ensure it's a number
+    setEndpoint (apiTreeRef, apiType = 'api|fapi|...', rootKeyNameInCcxt, reqMethod = 'post|get|..', path, linkToDoc, weightValue ){
+        let rl_value = undefined;
+        if (typeof weightValue === 'object') {
+            // eg: { 'cost': 2, 'noSymbol': 4 }
+            rl_value = weightValue;
+        } else {
+            // ensure it's a number
+            rl_value = (parseInt(weightValue).toString () === weightValue) ? parseInt(weightValue) : undefined;
+        }
         if (!(rootKeyNameInCcxt in apiTreeRef)) {
             apiTreeRef[rootKeyNameInCcxt] = {};
         }
@@ -203,12 +208,12 @@ class binance extends ParserBase {
             apiTreeRef[rootKeyNameInCcxt][reqMethod] = {};
         }
         if (!(path in apiTreeRef[rootKeyNameInCcxt][reqMethod])) {
-            apiTreeRef[rootKeyNameInCcxt][reqMethod][path] = this.rateLimitValue (apiType, rateLimitFinal, linkToDoc);
+            // const multiplier = this.RateLimitBases[type] / this.RateLimitBaseValue; // no longer need
+            apiTreeRef[rootKeyNameInCcxt][reqMethod][path] = rl_value ?? linkToDoc; //
         } else {
             //console.log('duplicate path',  kind, reqMethod, path, mainUrl); // seems only few exceptions
         }
     }
-
 
 }
 
