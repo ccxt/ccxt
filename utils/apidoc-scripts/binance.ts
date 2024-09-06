@@ -22,16 +22,16 @@ class binance extends ParserBase {
 
     async init () {
         await this.parseExchangeInfos ();
-        const newDocs = await this.retrievePortalDocs ();
-        const spotDocs = await this.retrieveSpotDocs ();
-        const tree = Object.assign (spotDocs, newDocs);
-        const correctedTree = this.deepExtend (tree, manualOverrides);
-        const generatedResults = this.compareGeneratedApi (correctedTree);
+        const spot = await this.retrieveSpotDocs ();
+        const misc = await this.retrievePortalDocs ();
+        const all = Object.assign (spot, misc);
+        const generatedTree = this.deepExtend (all, manualOverrides);
+        const apiDiffs = this.createApiDiff (generatedTree);
         const final = {
-            'fresh': correctedTree,
+            '_not_in_fetched': apiDiffs.removed,
+            '_not_in_existing': apiDiffs.added,
             'coefficients': this.RateLimitCoefficients,
-            '_added': generatedResults[0],
-            '_removed': generatedResults[1],
+            'newApi':  this.deepExtend (apiDiffs, apiDiffs.removed),
         };
         return final;
     }

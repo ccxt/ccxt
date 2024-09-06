@@ -66,17 +66,18 @@ class ParserBase {
     }
     //
 
-    compareGeneratedApi (generated) {
+    createApiDiff (generated) {
         const ex = new ccxt[this.exchangeId] ();
         const existing = ex.api;
         // we need to create a new object, which have three keys:
         //   removed - the endpoints that are missing from "generated", but exist in "existing"
         //   added - the endpoints that are missing from "existing", but exist in "generated"
-        const res = this.generateDiff (generated, existing);
+        const res = this.runDiff (generated, existing);
         return res;
     }
 
-    generateDiff (obj1, obj2) {
+    runDiff (obj1, obj2) {
+        // 3 levels depth comparison, this method can be improved ofc, but recursive method would be tricky and will need more time to code
         let result = {};
         const keys = Object.keys(obj2).concat(Object.keys(obj1));
         for (const key1 of keys) {
