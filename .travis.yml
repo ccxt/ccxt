@@ -1,3 +1,5 @@
+os: linux # added default to trigger a build
+
 language: python
 dist: jammy
 python:
