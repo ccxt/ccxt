@@ -782,7 +782,6 @@ export default class binance extends Exchange {
                         'exchangeInfo': 1,
                         'depth': { 'cost': 2, 'byLimit': [ [ 50, 2 ], [ 100, 5 ], [ 500, 10 ], [ 1000, 20 ] ] },
                         'trades': 5,
-                        'historicalTrades': 20,
                         'aggTrades': 20,
                         'klines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] },
                         'continuousKlines': { 'cost': 1, 'byLimit': [ [ 99, 1 ], [ 499, 2 ], [ 1000, 5 ], [ 10000, 10 ] ] },
@@ -854,6 +853,7 @@ export default class binance extends Exchange {
                         'feeBurn': 1,
                         'symbolConfig': 5,
                         'accountConfig': 5,
+                        'historicalTrades': 20,
                     },
                     'post': {
                         'batchOrders': 5,
