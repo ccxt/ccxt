@@ -25,8 +25,9 @@ class binance extends ParserBase {
         const newDocs = await this.retrievePortalDocs ();
         const spotDocs = await this.retrieveSpotDocs ();
         const tree = Object.assign (spotDocs, newDocs);
+        const correctedTree = this.deepExtend (tree, manualOverrides);
         return {
-            'fresh': tree,
+            'fresh': correctedTree,
             'differences': this.compareGeneratedApi (tree),
         };
     }
@@ -95,7 +96,6 @@ class binance extends ParserBase {
             const rootKeySuffix = (isPublic? 'public':'private');
             this.setEndpoint (apiTree, apyType, rootKeySuffix, reqMethod, path, webLink, match[6]);
         }
-        apiTree = this.deepExtend (apiTree, manualOverrides['api']);
         return apiTree;
     }
 
@@ -177,7 +177,6 @@ class binance extends ParserBase {
             const parts = endpoint.split ('/');
             const apiType = parts[1]; // eg: 'sapi' 
             const version = parts[2]; // eg: 'v2' 
-            const path = endpoint.substring(1 + apiType.length + 1); // eg: remove 'sapi/' from beggining
             let apiRootKey = apiType;
             const versionSuffix = version.toUpperCase().replace('V1', ''); // we dont have `v1` suffixes from keys
             if (apiType.startsWith('sapi')) {
@@ -190,6 +189,7 @@ class binance extends ParserBase {
                 // console.log('undetected path', match, mainUrl); // seems only few exceptions
                 continue;
             }
+            const path = endpoint.replace ('/'+ apiType + '/' + version + '/', ''); // eg: remove 'sapi/v2' from beggining
             this.setEndpoint (apiTree, apiType, apiRootKey, reqMethod, path, mainUrl, weight);
         }
         return apiTree;
