@@ -7,6 +7,7 @@ import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import type { Balances, Bool, Currency, Currencies, Dict, FundingRate, FundingRateHistory, Int, Leverage, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import { req } from './static_dependencies/proxies/agent-base/helpers.js';
 
 // ---------------------------------------------------------------------------
 
@@ -182,8 +183,8 @@ export default class coincatch extends Exchange {
                         'api/spot/v1/account/getInfo': 1,
                         'api/spot/v1/account/assets': 2, // done
                         'api/spot/v1/account/transferRecords': 1,
-                        'api/mix/v1/account/account': 1,
-                        'api/mix/v1/account/accounts': 1,
+                        'api/mix/v1/account/account': 1, // not used
+                        'api/mix/v1/account/accounts': 1, // done but should be checked
                         'api/mix/v1/position/singlePosition-v2': 1,
                         'api/mix/v1/position/allPosition-v2': 1,
                         'api/mix/v1/account/accountBill': 1,
@@ -1535,29 +1536,74 @@ export default class coincatch extends Exchange {
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://coincatch.github.io/github.io/en/spot/#get-account-assets
          * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch balance for (default 'spot')
+         * @param {string} [params.symbol] symbol Id (for swap)
+         * @param {string} [params.marginCoin] margin coin (for swap)
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privateGetApiSpotV1AccountAssets (params);
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1725202685986,
-        //         "data": [
-        //             {
-        //                 "coinId": 2,
-        //                 "coinName": "USDT",
-        //                 "available": "99.20000000",
-        //                 "frozen": "0.00000000",
-        //                 "lock": "0.00000000",
-        //                 "uTime": "1724938746000"
-        //             }
-        //         ]
-        //     }
-        //
-        const data = this.safeList (response, 'data', []);
-        return this.parseBalance (data);
+        const methodName = 'fetchBalance';
+        let marketType = 'spot';
+        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, undefined, params, marketType);
+        if (marketType === 'swap') {
+            let productType = 'umcbl';
+            [ productType, params ] = this.handleOptionAndParams (params, methodName, 'productType', productType);
+            const request: Dict = {
+                'productType': productType,
+            };
+            const response = await this.privateGetApiMixV1AccountAccounts (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1725656055089,
+            //         "data": [
+            //             {
+            //                 "marginCoin": "USDT",
+            //                 "locked": "0",
+            //                 "available": "0",
+            //                 "crossMaxAvailable": "0",
+            //                 "fixedMaxAvailable": "0",
+            //                 "maxTransferOut": "0",
+            //                 "equity": "0",
+            //                 "usdtEquity": "0",
+            //                 "btcEquity": "0",
+            //                 "crossRiskRate": "0",
+            //                 "unrealizedPL": "0",
+            //                 "bonus": "0",
+            //                 "crossedUnrealizedPL": null,
+            //                 "isolatedUnrealizedPL": null
+            //             }
+            //         ]
+            //     }
+            //
+            const data = this.safeList (response, 'data', []);
+            const balance = this.safeDict (data, 0, {});
+            return this.parseSwapBalance (balance);
+        } else if (marketType === 'spot') {
+            const response = await this.privateGetApiSpotV1AccountAssets (params);
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1725202685986,
+            //         "data": [
+            //             {
+            //                 "coinId": 2,
+            //                 "coinName": "USDT",
+            //                 "available": "99.20000000",
+            //                 "frozen": "0.00000000",
+            //                 "lock": "0.00000000",
+            //                 "uTime": "1724938746000"
+            //             }
+            //         ]
+            //     }
+            //
+            const data = this.safeList (response, 'data', []);
+            return this.parseBalance (data);
+        } else {
+            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
+        }
     }
 
     parseBalance (balances): Balances {
@@ -1584,6 +1630,38 @@ export default class coincatch extends Exchange {
                 result['info'] = balanceEntry;
             }
         }
+        return this.safeBalance (result);
+    }
+
+    parseSwapBalance (balance): Balances {
+        //
+        //     {
+        //         "marginCoin": "USDT",
+        //         "locked": "0",
+        //         "available": "0",
+        //         "crossMaxAvailable": "0",
+        //         "fixedMaxAvailable": "0",
+        //         "maxTransferOut": "0",
+        //         "equity": "0",
+        //         "usdtEquity": "0",
+        //         "btcEquity": "0",
+        //         "crossRiskRate": "0",
+        //         "unrealizedPL": "0",
+        //         "bonus": "0",
+        //         "crossedUnrealizedPL": null,
+        //         "isolatedUnrealizedPL": null
+        //     }
+        //
+        const currencyId = this.safeString (balance, 'marginCoin');
+        const code = this.safeCurrencyCode (currencyId);
+        const account = this.account ();
+        account['total'] = this.safeString (balance, 'usdtEquity');
+        const positionMargin = this.safeString (balance, 'crossMaxAvailable');
+        account['used'] = Precise.stringAdd (positionMargin, positionMargin); // todo check after getting balance on swap
+        const result: Dict = {
+            'info': balance,
+        };
+        result[code] = account;
         return this.safeBalance (result);
     }
 
