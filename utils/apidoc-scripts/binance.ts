@@ -5,6 +5,7 @@ import ParserBase from './_base';
 
 import manualOverrides from './binance-ts-overrides';
 class binance extends ParserBase {
+    exchangeId = 'binance';
 
     exchangeInfos = {
         'api': 'https://api.binance.com/api/v3/exchangeInfo',
@@ -20,15 +21,18 @@ class binance extends ParserBase {
 
 
     async init () {
-        await this.initRateLimitValues ();
+        await this.parseExchangeInfos ();
         const newDocs = await this.retrievePortalDocs ();
         const spotDocs = await this.retrieveSpotDocs ();
         const tree = Object.assign (spotDocs, newDocs);
-        return tree;
+        return {
+            'fresh': tree,
+            'differences': this.compareGeneratedApi (tree),
+        };
     }
 
     
-    async initRateLimitValues () {
+    async parseExchangeInfos () {
         const marketTypes = Object.keys (this.exchangeInfos);
         let results : any[] = [];
         if (this.cacheExists ('binanceinfos')) {
@@ -175,12 +179,13 @@ class binance extends ParserBase {
             const version = parts[2]; // eg: 'v2' 
             const path = endpoint.substring(1 + apiType.length + 1); // eg: remove 'sapi/' from beggining
             let apiRootKey = apiType;
+            const versionSuffix = version.toUpperCase().replace('V1', ''); // we dont have `v1` suffixes from keys
             if (apiType.startsWith('sapi')) {
-                apiRootKey += version.toUpperCase().replace('V1'); // no need `sapiV1`
+                apiRootKey += versionSuffix;
             } else if (apiType.startsWith('papi')) {
                 // nothing needed
             } else if (['fapi','dapi','eapi'].includes(apiType)) {
-                apiRootKey += ( isPublic ? 'Public': 'Private'); // eg: fapiPublic
+                apiRootKey += ( isPublic ? 'Public': 'Private') + versionSuffix; // eg: fapiPublic
             } else {
                 // console.log('undetected path', match, mainUrl); // seems only few exceptions
                 continue;
@@ -206,6 +211,7 @@ class binance extends ParserBase {
             //console.log('duplicate path',  kind, reqMethod, path, mainUrl); // seems only few exceptions
         }
     }
+
 
 }
 

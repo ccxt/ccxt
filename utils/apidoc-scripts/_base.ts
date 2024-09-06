@@ -2,19 +2,13 @@ import fs from 'fs';
 import { fileURLToPath, pathToFileURL } from 'url';
 const DIR_NAME = fileURLToPath (new URL ('.', import.meta.url));
 
-type Str = string | undefined;
-const isNumber = Number.isFinite;
-const isInteger = Number.isInteger;
-const isArray = Array.isArray;
-const hasProps = (o: any) => ((o !== undefined) && (o !== null));
-const isString = (s: any) => (typeof s === 'string');
-const isObject = (o: any) => ((o !== null) && (typeof o === 'object'));
-const isRegExp = (o: any) => (o instanceof RegExp);
-const isDictionary = (o: any) => (isObject (o) && (Object.getPrototypeOf (o) === Object.prototype) && !isArray (o) && !isRegExp (o));
+import ccxt from '../../ts/ccxt';
 
+type Str = string | undefined;
 
 class ParserBase {
 
+    exchangeId = '';
     url = '';
     baseUrl = '';
     rateLimitMultiplier = 0;
@@ -29,24 +23,11 @@ class ParserBase {
     }
 
     async sleep (ms) {
-        return new Promise (resolve => setTimeout (resolve, ms));
+        return await ccxt.sleep (ms);
     }
 
     deepExtend (...xs: any) {
-        let out = undefined;
-        for (const x of xs) {
-            if (isDictionary (x)) {
-                if (!isDictionary (out)) {
-                    out = {};
-                }
-                for (const k in x) {
-                    out[k] = this.deepExtend (out[k], x[k]);
-                }
-            } else {
-                out = x;
-            }
-        }
-        return out;
+        return ccxt.deepExtend (...xs);
     }
 
     stripTags (input) {
@@ -63,8 +44,7 @@ class ParserBase {
 
     // cache methods
     cachePath (filename: Str = undefined) {
-        // get constructor name
-        return DIR_NAME + '/cache-' + (filename ? filename : this.constructor.name) + '.json';
+        return DIR_NAME + '/cache-' + (filename ? filename : this.exchangeId) + '.json';
     }
 
     cacheExists (filename: Str = undefined) {
@@ -82,7 +62,14 @@ class ParserBase {
     cacheSet (filename: Str = undefined, data = {}) {
         fs.writeFileSync (this.cachePath(filename), JSON.stringify(data, null, 2));
     }
+    //
+
+    compareGeneratedApi (tree) {
+        const ex = new ccxt[this.exchangeId] ();
+        const generated = ex.api;
+    }
 }
+
 
 
 export default ParserBase;
