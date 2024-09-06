@@ -72,43 +72,59 @@ class ParserBase {
         // we need to create a new object, which have three keys:
         //   removed - the endpoints that are missing from "generated", but exist in "existing"
         //   added - the endpoints that are missing from "existing", but exist in "generated"
-        return {
-            'first': this.generateDiff (generated, existing),
-            'second': this.generateDiff (existing, generated),
-        }
+        const res = this.generateDiff (generated, existing);
+        return res;
     }
 
     generateDiff (obj1, obj2) {
-        const result = {
-          'existing': {},
-          'generated': {},
-        };
-        for (const key in obj1) {
-          if (key in obj1) {
-            if (!(key in obj2)) {
-              result['existing'][key] = obj1[key];
-            } else if (typeof obj1[key] === 'object' && typeof obj2[key] === 'object') {
-              const subResult = this.generateDiff(obj1[key], obj2[key]);
-              if (Object.keys(subResult['existing']).length > 0) {
-                result['existing'][key] = subResult['existing'];
-              }
-              if (Object.keys(subResult['generated']).length > 0) {
-                result['generated'][key] = subResult['generated'];
-              }
-            } else if (obj1[key] !== obj2[key]) {
-              result['existing'][key] = obj1[key];
+        let result = {};
+        const keys = Object.keys(obj2).concat(Object.keys(obj1));
+        for (const key1 of keys) {
+            if (!(key1 in obj1)) {
+                result['removed'] = result['removed'] || {};
+                result['removed'][key1] = obj2[key1];
+            } else if (!(key1 in obj2)) {
+                result['added'] = result['added'] || {};
+                result['added'][key1] = obj1[key1];
+            } else {
+                if (typeof obj1[key1] === 'object' && typeof obj2[key1] === 'object') {
+                    //
+                    const keys2 = Object.keys(obj1[key1]).concat(Object.keys(obj2[key1]));
+                    for (const key2 of keys2) {
+                        if (!(key2 in obj1[key1])) {
+                            result['removed']             = result['removed'] || {};
+                            result['removed'][key1]       = result['removed'][key1] || {};
+                            result['removed'][key1][key2] = obj2[key1][key2];
+                        } else if (!(key2 in obj2[key1])) {
+                            result['added']             = result['added'] || {};
+                            result['added'][key1]       = result['added'][key1] || {};
+                            result['added'][key1][key2] = obj1[key1][key2];
+                        } else {
+                            //
+                            const keys3 = Object.keys(obj1[key1][key2]).concat(Object.keys(obj2[key1][key2]));
+                            for (const key3 of keys3) {
+                                if (!(key3 in obj1[key1][key2])) {
+                                    result['removed']             = result['removed'] || {};
+                                    result['removed'][key1]       = result['removed'][key1] || {};
+                                    result['removed'][key1][key2] = result['removed'][key1][key2] || {};
+                                    result['removed'][key1][key2][key3] = obj2[key1][key2][key3];
+                                } else if (!(key3 in obj2[key1][key2])) {
+                                    result['added']             = result['added'] || {};
+                                    result['added'][key1]       = result['added'][key1] || {};
+                                    result['added'][key1][key2] = result['added'][key1][key2] || {};
+                                    result['added'][key1][key2][key3] = obj1[key1][key2][key3];
+                                } else {
+                                    // no need after 3rd depth
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+                }
             }
-          }
         }
-      
-        for (const key in obj2) {
-          if (key in obj2 && !(key in obj1)) {
-            result['generated'][key] = obj2[key];
-          }
-        }
-      
         return result;
-      }
+    }
 
     exit(...args) {
         console.log(...args);

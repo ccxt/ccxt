@@ -97,63 +97,25 @@ class binance extends ParserBase {
 
     // here we fetch all other markets (but ignore included SPOT docs, as we already have it)
     async retrievePortalDocs () {
-        const baseUrl = 'https://developers.binance.com';
-        if (!this.cacheExists ()) {
-            const data = await this.fetchData (baseUrl + '/docs/');
-            const mainJsPattern = /<script src="(\/docs\/assets\/js\/main(.*?)\.js)"/g;
-            const match = mainJsPattern.exec(data);
-            if (!match) {
-                throw new Error ('main.js not found');
-            }
-            const mainJs = match[1];
-            const mainJsUrl = baseUrl + mainJs;
-            const response = await this.fetchData (mainJsUrl);
-            const regex2 = /\)\.then\(a\.bind\(a,(.*?)"@(.*?)"/g;
-            const matches = response.matchAll(regex2);
-            const matchesArray = [...matches];
-            const skips = ['theme/NotFound', 'autogen_index', '@iterator'];
-            const urls: string[] = [];
-            for (const match of matchesArray) {
-                const arr = [...match];
-                if (arr.length != 3) {
-                    console.log('match length is not 3', arr);
-                    continue;
-                }
-                const path = arr[2];
-                if (skips.some (skip => path.includes (skip))) {
-                    continue;
-                }
-                const url = baseUrl + '/' + arr[2].replace('site/', '').replace('.md', '');
-                urls.push(url);
-            }
-            let i = 0;
-            const promises = urls.map(async (url) => {
-                i++;
-                await this.sleep(10 * i);
-                return this.fetchData(url);
-            });
-            const responses = await Promise.all (promises);
-            this.cacheSet (undefined, responses);
-        }
-        const responses = this.cacheGet ();
+        const responses = await this.fetchPortalData();
         const apiTree = {};
         const skippedPages = [ 'binance-spot-api-docs/rest-api', 'binance-spot-api-docs/testnet/rest-api', '/docs/spot/en', '/change-log' ];
         for (const page of responses) {
-            let docContent;
-            let mainUrl:any = (/property="og:url" content="(.*?)"/g).exec(page);
+            const _mainContent = (/<h1>(.*?)<\/h1>((.|\n)*?)(Parameters|Response Example)/g).exec(page);
+            const h1 = _mainContent ? _mainContent[1] : undefined;
+            const mainContent = _mainContent ? _mainContent[2] : undefined;
+            const _mainUrl = (/property="og:url" content="(.*?)"/g).exec(page);
+            const mainUrl = _mainUrl ? _mainUrl[1] : undefined;
             if (
                 !mainUrl // if url not found
                     ||
                 skippedPages.some (skipPage => mainUrl.includes (skipPage)) // if skipped page
                     ||
-                !( docContent = (/<h1>(.*?)<\/h1>((.|\n)*?)Parameters/g).exec(page)) // if api paragraph not found, then it's not specifications page
+                !mainContent // if doc content not found
             ){
                 continue;
             }
-            mainUrl = mainUrl[1];
-            // const heading = docContent[1];
-            const apiParagraph = docContent[2];
-            const endpointCollections = apiParagraph.matchAll(/\n(<p>|<p><code>|<code>)(GET|POST|PUT|DELETE)\b(?!\b|\s)*?([\s\S]*?)<\/code>[\s\S]*?Weight\b([\s\S]*?\n)([\s\S]*?\<h2|(.*?)\n)/g);
+            const endpointCollections = mainContent.matchAll(/\n(<p>|<p><code>|<code>)(GET|POST|PUT|DELETE)\b(?!\b|\s)*?([\s\S]*?)<\/code>[\s\S]*?Weight\b([\s\S]*?\n)([\s\S]*?\<h2|(.*?)\n)/g);
             const matches = [...endpointCollections];
             if (matches.length !== 1) continue;
             let match = matches[0];
@@ -164,7 +126,7 @@ class binance extends ParserBase {
             const reqMethod = match[2].toLowerCase ();
             const rawEndpoint = match[3]; if (!rawEndpoint.includes('/')) continue;
             const weightParagraph = match[5];
-            let weight = this.stripTags((weightParagraph??'').replace('(UID)','').replace('(IP)',''));
+            let weight = this.stripTags((weightParagraph??'').replace('(UID)','').replace('(IP)','')).replace ('<h2','');
             const multipleWeights = /(\d+)(.*?)symbol([\s\S]*?)(\d+)(.*?)(omitted|without symbol|no symbol)/.exec (weightParagraph);
             if (multipleWeights) {
                 weight = {
@@ -178,7 +140,8 @@ class binance extends ParserBase {
             const version = parts[2]; // eg: 'v2' 
             let apiRootKey = apiType;
             const versionSuffix = version.toUpperCase().replace('V1', ''); // we dont have `v1` suffixes from keys
-            const isPrivate = weightParagraph.includes ('(UID)') || docContent[0].includes('(USER_DATA)');
+            const isPrivate = 
+                weightParagraph.includes ('(UID)') || ['(USER_DATA)', '(USER_STREAM)', '(MARKET_DATA)', '(TRADE)'].some (str => h1.includes (str));
             if (apiType.startsWith('sapi')) {
                 apiRootKey += versionSuffix;
             } else if (apiType.startsWith('papi')) {
@@ -220,6 +183,49 @@ class binance extends ParserBase {
         }
     }
 
+
+    async fetchPortalData () {
+        // fetches and saves cache
+        const baseUrl = 'https://developers.binance.com';
+        if (!this.cacheExists ()) {
+            const data = await this.fetchData (baseUrl + '/docs/');
+            const mainJsPattern = /<script src="(\/docs\/assets\/js\/main(.*?)\.js)"/g;
+            const match = mainJsPattern.exec(data);
+            if (!match) {
+                throw new Error ('main.js not found');
+            }
+            const mainJs = match[1];
+            const mainJsUrl = baseUrl + mainJs;
+            const response = await this.fetchData (mainJsUrl);
+            const regex2 = /\)\.then\(a\.bind\(a,(.*?)"@(.*?)"/g;
+            const matches = response.matchAll(regex2);
+            const matchesArray = [...matches];
+            const skips = ['theme/NotFound', 'autogen_index', '@iterator'];
+            const urls: string[] = [];
+            for (const match of matchesArray) {
+                const arr = [...match];
+                if (arr.length != 3) {
+                    console.log('match length is not 3', arr);
+                    continue;
+                }
+                const path = arr[2];
+                if (skips.some (skip => path.includes (skip))) {
+                    continue;
+                }
+                const url = baseUrl + '/' + arr[2].replace('site/', '').replace('.md', '');
+                urls.push(url);
+            }
+            let i = 0;
+            const promises = urls.map(async (url) => {
+                i++;
+                await this.sleep(10 * i);
+                return this.fetchData(url);
+            });
+            const responses = await Promise.all (promises);
+            this.cacheSet (undefined, responses);
+        }
+        return this.cacheGet ();
+    }
 }
 
 
