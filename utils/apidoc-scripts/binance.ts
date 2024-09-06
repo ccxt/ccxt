@@ -161,7 +161,7 @@ class binance extends ParserBase {
             const rawEndpoint = match[3]; if (!rawEndpoint.includes('/')) continue;
             const weightParagraph = match[5];
             let weight = this.stripTags((weightParagraph??'').replace('(UID)','').replace('(IP)',''));
-            const multipleWeights = /(\d+)(.*?)symbol(.*?)(\d+)(.*?)(omit|without symbol)/.exec (weightParagraph);
+            const multipleWeights = /(\d+)(.*?)symbol([\s\S]*?)(\d+)(.*?)(omitted|without symbol|no symbol)/.exec (weightParagraph);
             if (multipleWeights) {
                 weight = {
                     'cost': parseInt(multipleWeights[1]),
@@ -199,7 +199,8 @@ class binance extends ParserBase {
             rl_value = weightValue;
         } else {
             // ensure it's a number
-            rl_value = (parseInt(weightValue).toString () === weightValue) ? parseInt(weightValue) : undefined;
+            const num = parseInt(weightValue);
+            rl_value = (num !== 0 && num.toString () === weightValue) ? num : undefined;
         }
         if (!(rootKeyNameInCcxt in apiTreeRef)) {
             apiTreeRef[rootKeyNameInCcxt] = {};
