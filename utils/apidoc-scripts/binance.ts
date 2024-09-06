@@ -26,11 +26,14 @@ class binance extends ParserBase {
         const spotDocs = await this.retrieveSpotDocs ();
         const tree = Object.assign (spotDocs, newDocs);
         const correctedTree = this.deepExtend (tree, manualOverrides);
-        return {
-            '_fresh': correctedTree,
+        const generatedResults = this.compareGeneratedApi (correctedTree);
+        const final = {
+            'fresh': correctedTree,
             'coefficients': this.RateLimitCoefficients,
-            'differences': this.compareGeneratedApi (tree),
+            '_added': generatedResults[0],
+            '_removed': generatedResults[1],
         };
+        return final;
     }
 
     

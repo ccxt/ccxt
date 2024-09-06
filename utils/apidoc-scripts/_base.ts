@@ -66,15 +66,55 @@ class ParserBase {
     }
     //
 
-    compareGeneratedApi (tree) {
+    compareGeneratedApi (generated) {
         const ex = new ccxt[this.exchangeId] ();
-        const generated = ex.api;
+        const existing = ex.api;
+        // we need to create a new object, which have three keys:
+        //   removed - the endpoints that are missing from "generated", but exist in "existing"
+        //   added - the endpoints that are missing from "existing", but exist in "generated"
+        return {
+            'first': this.generateDiff (generated, existing),
+            'second': this.generateDiff (existing, generated),
+        }
     }
+
+    generateDiff (obj1, obj2) {
+        const result = {
+          'existing': {},
+          'generated': {},
+        };
+        for (const key in obj1) {
+          if (key in obj1) {
+            if (!(key in obj2)) {
+              result['existing'][key] = obj1[key];
+            } else if (typeof obj1[key] === 'object' && typeof obj2[key] === 'object') {
+              const subResult = this.generateDiff(obj1[key], obj2[key]);
+              if (Object.keys(subResult['existing']).length > 0) {
+                result['existing'][key] = subResult['existing'];
+              }
+              if (Object.keys(subResult['generated']).length > 0) {
+                result['generated'][key] = subResult['generated'];
+              }
+            } else if (obj1[key] !== obj2[key]) {
+              result['existing'][key] = obj1[key];
+            }
+          }
+        }
+      
+        for (const key in obj2) {
+          if (key in obj2 && !(key in obj1)) {
+            result['generated'][key] = obj2[key];
+          }
+        }
+      
+        return result;
+      }
 
     exit(...args) {
         console.log(...args);
         process.exit(0);
     }
+
 }
 
 
