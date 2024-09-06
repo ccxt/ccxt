@@ -1,6 +1,8 @@
 
 
-// this is temporary file, before we merge the correct values, we should read this instaed of binance.ts. Note:  fapi/dapi need to be multiplied by 2.5 coefficient (RL=25), compared to spot (RL=10)
+// this is temporary file, before we merge the correct values, we should read this instaed of binance.ts.
+// at this moment, fapi/dapi need to be multiplied by 2.5 coefficient (RL=25), compared to spot (RL=10)
+const k = 2.5;
 
 const manualOverrides = {
     'public': {
@@ -25,24 +27,23 @@ const manualOverrides = {
             'orderList/otoco': 1,
         }
     },
-    // fapi/dapi need to be multiplied by 2.5 coefficient (RL=25), compared to spot (RL=10)
-    'fapiPublicV2': {
-        'get': {
-            'ticker/price': { 'cost': 2 * 2.5, 'noSymbol': 4 * 2.5 },
-        }
-    },
     "sapi": {
         "get": {
-            "margin/isolatedMarginData": "https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Fee-Data",
-            "margin/crossMarginData": "https://developers.binance.com/docs/margin_trading/account/Query-Cross-Margin-Fee-Data",
-            "portfolio/asset-index-price": "https://developers.binance.com/docs/derivatives/portfolio-margin-pro/market-data/Query-Portfolio-Margin-Asset-Index-Price",
+            "margin/isolatedMarginData":  { 'cost': 1, 'noSymbol': 10 },
+            "margin/crossMarginData": 1, // max 5
+            "portfolio/asset-index-price": 1, // max 50
         },
     },
     "fapiPrivate": {
         "get": {
-            "apiTradingStatus": "https://developers.binance.com/docs/derivatives/usds-margined-futures/account/rest-api/Futures-Trading-Quantitative-Rules-Indicators",
-            "forceOrders": "https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Users-Force-Orders",
-            "openOrders": "https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Current-All-Open-Orders",
+            "apiTradingStatus": { 'cost': 1 * k, 'noSymbol': 10 * k },
+            "forceOrders": { 'cost': 20 * k, 'noSymbol': 50 * k },
+            "openOrders": { 'cost': 1 * k, 'noSymbol': 40 * k },
+        }
+    },
+    'fapiPublicV2': {
+        'get': {
+            'ticker/price': { 'cost': 2 * k, 'noSymbol': 4 * k },
         }
     },
     "fapiPublic": {
