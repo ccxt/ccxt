@@ -698,7 +698,6 @@ export default class binance extends Exchange {
                         'exchangeInfo': 1,
                         'depth': { 'cost': 2, 'byLimit': [ [ 50, 2 ], [ 100, 5 ], [ 500, 10 ], [ 1000, 20 ] ] },
                         'trades': 5,
-                        'historicalTrades': 20,
                         'aggTrades': 20,
                         'premiumIndex': 10,
                         'fundingRate': 1,
@@ -747,6 +746,7 @@ export default class binance extends Exchange {
                         'income/asyn/id': 5,
                         'pmExchangeInfo': 0.5, // Weight(IP): 5 => cost = 0.1 * 5 = 0.5
                         'pmAccountInfo': 0.5, // Weight(IP): 5 => cost = 0.1 * 5 = 0.5
+                        'historicalTrades': 20,
                     },
                     'post': {
                         'positionSide/dual': 1,
