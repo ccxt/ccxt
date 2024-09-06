@@ -1178,7 +1178,10 @@ public partial class coinex : Exchange
         //         "side": "buy",
         //         "order_id": 136915589622,
         //         "price": "64376",
-        //         "amount": "0.0001"
+        //         "amount": "0.0001",
+        //         "role": "taker",
+        //         "fee": "0.0299",
+        //         "fee_ccy": "USDT"
         //     }
         //
         object timestamp = this.safeInteger(trade, "created_at");
@@ -1189,6 +1192,17 @@ public partial class coinex : Exchange
         }
         object marketId = this.safeString(trade, "market");
         market = this.safeMarket(marketId, market, null, defaultType);
+        object feeCostString = this.safeString(trade, "fee");
+        object fee = null;
+        if (isTrue(!isEqual(feeCostString, null)))
+        {
+            object feeCurrencyId = this.safeString(trade, "fee_ccy");
+            object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            fee = new Dictionary<string, object>() {
+                { "cost", feeCostString },
+                { "currency", feeCurrencyCode },
+            };
+        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "timestamp", timestamp },
@@ -1198,11 +1212,11 @@ public partial class coinex : Exchange
             { "order", this.safeString(trade, "order_id") },
             { "type", null },
             { "side", this.safeString(trade, "side") },
-            { "takerOrMaker", null },
+            { "takerOrMaker", this.safeString(trade, "role") },
             { "price", this.safeString(trade, "price") },
             { "amount", this.safeString(trade, "amount") },
             { "cost", this.safeString(trade, "deal_money") },
-            { "fee", null },
+            { "fee", fee },
         }, market);
     }
 

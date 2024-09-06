@@ -1144,8 +1144,8 @@ public partial class binance : ccxt.binance
             var error = new UnsubscribeError(add(add(this.id, " "), subHash));
             ((WebSocketClient)client).reject(error, subHash);
             callDynamically(client as WebSocketClient, "resolve", new object[] {true, unsubHash});
-            this.cleanCache(subscription);
         }
+        this.cleanCache(subscription);
     }
 
     public virtual void cleanCache(object subscription)
@@ -1161,7 +1161,10 @@ public partial class binance : ccxt.binance
                 object symbolAndTimeFrame = getValue(symbolsAndTimeFrames, i);
                 object symbol = this.safeString(symbolAndTimeFrame, 0);
                 object timeframe = this.safeString(symbolAndTimeFrame, 1);
+                if (isTrue(inOp(getValue(this.ohlcvs, symbol), timeframe)))
+                {
 
+                }
             }
         } else if (isTrue(isGreaterThan(symbolsLength, 0)))
         {

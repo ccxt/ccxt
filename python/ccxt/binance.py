@@ -4120,6 +4120,8 @@ class binance(Exchange, ImplicitAPI):
         price = self.safe_string(params, 'price')
         until = self.safe_integer(params, 'until')
         params = self.omit(params, ['price', 'until'])
+        if since is not None and until is not None and limit is None:
+            limit = maxLimit
         limit = defaultLimit if (limit is None) else min(limit, maxLimit)
         request: dict = {
             'interval': self.safe_string(self.timeframes, timeframe, timeframe),

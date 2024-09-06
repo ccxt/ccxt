@@ -40,7 +40,7 @@ import {BaseError, ExchangeError, AuthenticationError, PermissionDenied, Account
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '4.3.95';
+const version = '4.3.96';
 
 (Exchange as any).ccxtVersion = version
 
@@ -58,7 +58,6 @@ import binanceusdm from  './src/binanceusdm.js'
 import bingx from  './src/bingx.js'
 import bit2c from  './src/bit2c.js'
 import bitbank from  './src/bitbank.js'
-import bitbay from  './src/bitbay.js'
 import bitbns from  './src/bitbns.js'
 import bitcoincom from  './src/bitcoincom.js'
 import bitfinex from  './src/bitfinex.js'
@@ -108,7 +107,6 @@ import gateio from  './src/gateio.js'
 import gemini from  './src/gemini.js'
 import hashkey from  './src/hashkey.js'
 import hitbtc from  './src/hitbtc.js'
-import hitbtc3 from  './src/hitbtc3.js'
 import hollaex from  './src/hollaex.js'
 import htx from  './src/htx.js'
 import huobi from  './src/huobi.js'
@@ -244,7 +242,6 @@ const exchanges = {
     'bingx':                  bingx,
     'bit2c':                  bit2c,
     'bitbank':                bitbank,
-    'bitbay':                 bitbay,
     'bitbns':                 bitbns,
     'bitcoincom':             bitcoincom,
     'bitfinex':               bitfinex,
@@ -294,7 +291,6 @@ const exchanges = {
     'gemini':                 gemini,
     'hashkey':                hashkey,
     'hitbtc':                 hitbtc,
-    'hitbtc3':                hitbtc3,
     'hollaex':                hollaex,
     'htx':                    htx,
     'huobi':                  huobi,
@@ -567,7 +563,6 @@ export {
     bingx,
     bit2c,
     bitbank,
-    bitbay,
     bitbns,
     bitcoincom,
     bitfinex,
@@ -617,7 +612,6 @@ export {
     gemini,
     hashkey,
     hitbtc,
-    hitbtc3,
     hollaex,
     htx,
     huobi,

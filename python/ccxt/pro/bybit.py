@@ -2317,7 +2317,7 @@ class bybit(ccxt.async_support.bybit):
                     error = UnsubscribeError(self.id + ' ' + messageHash)
                     client.reject(error, subHash)
                     client.resolve(True, unsubHash)
-                    self.clean_cache(subscription)
+                self.clean_cache(subscription)
         return message
 
     def clean_cache(self, subscription: dict):

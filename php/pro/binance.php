@@ -1049,8 +1049,8 @@ class binance extends \ccxt\async\binance {
             $error = new UnsubscribeError ($this->id . ' ' . $subHash);
             $client->reject ($error, $subHash);
             $client->resolve (true, $unsubHash);
-            $this->clean_cache($subscription);
         }
+        $this->clean_cache($subscription);
     }
 
     public function clean_cache(array $subscription) {
@@ -1063,7 +1063,9 @@ class binance extends \ccxt\async\binance {
                 $symbolAndTimeFrame = $symbolsAndTimeFrames[$i];
                 $symbol = $this->safe_string($symbolAndTimeFrame, 0);
                 $timeframe = $this->safe_string($symbolAndTimeFrame, 1);
-                unset($this->ohlcvs[$symbol][$timeframe]);
+                if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol])) {
+                    unset($this->ohlcvs[$symbol][$timeframe]);
+                }
             }
         } elseif ($symbolsLength > 0) {
             for ($i = 0; $i < count($symbols); $i++) {

@@ -4218,6 +4218,9 @@ export default class binance extends Exchange {
         const price = this.safeString (params, 'price');
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, [ 'price', 'until' ]);
+        if (since !== undefined && until !== undefined && limit === undefined) {
+            limit = maxLimit;
+        }
         limit = (limit === undefined) ? defaultLimit : Math.min (limit, maxLimit);
         const request: Dict = {
             'interval': this.safeString (this.timeframes, timeframe, timeframe),

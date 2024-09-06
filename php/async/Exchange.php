@@ -43,11 +43,11 @@ use React\EventLoop\Loop;
 
 use Exception;
 
-$version = '4.3.95';
+$version = '4.3.96';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '4.3.95';
+    const VERSION = '4.3.96';
 
     public $browser;
     public $marketsLoading = null;
@@ -499,7 +499,6 @@ class Exchange extends \ccxt\Exchange {
                 'fetchOrdersWs' => null,
                 'fetchOrderTrades' => null,
                 'fetchOrderWs' => null,
-                'fetchPermissions' => null,
                 'fetchPosition' => null,
                 'fetchPositionHistory' => null,
                 'fetchPositionsHistory' => null,
@@ -3205,10 +3204,6 @@ class Exchange extends \ccxt\Exchange {
             Async\await($this->cancel_order_ws($id, $symbol));
             return Async\await($this->create_order_ws($symbol, $type, $side, $amount, $price, $params));
         }) ();
-    }
-
-    public function fetch_permissions($params = array ()) {
-        throw new NotSupported($this->id . ' fetchPermissions() is not supported yet');
     }
 
     public function fetch_position(string $symbol, $params = array ()) {

@@ -2543,8 +2543,8 @@ class bybit extends \ccxt\async\bybit {
                     $error = new UnsubscribeError ($this->id . ' ' . $messageHash);
                     $client->reject ($error, $subHash);
                     $client->resolve (true, $unsubHash);
-                    $this->clean_cache($subscription);
                 }
+                $this->clean_cache($subscription);
             }
         }
         return $message;

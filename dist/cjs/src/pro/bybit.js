@@ -2492,8 +2492,8 @@ class bybit extends bybit$1 {
                     const error = new errors.UnsubscribeError(this.id + ' ' + messageHash);
                     client.reject(error, subHash);
                     client.resolve(true, unsubHash);
-                    this.cleanCache(subscription);
                 }
+                this.cleanCache(subscription);
             }
         }
         return message;
