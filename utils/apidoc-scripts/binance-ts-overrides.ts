@@ -59,7 +59,6 @@ const manualOverrides = {
             "batchOrders": 1, // dynamic: "https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Multiple-Orders",
         }
     },
-    
     "dapiPrivate": {
         "get": {
             "openOrders": { 'cost': 1, 'noSymbol': 40 }, // "https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Current-All-Open-Orders"

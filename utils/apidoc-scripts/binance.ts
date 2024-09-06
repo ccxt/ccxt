@@ -17,7 +17,7 @@ class binance extends ParserBase {
     };
 
     RateLimitBaseValue = 10; // hardcoded
-    RateLimitBases = {}; // will be filled dynamically
+    RateLimitCoefficients = {}; // will be filled dynamically
 
 
     async init () {
@@ -27,7 +27,8 @@ class binance extends ParserBase {
         const tree = Object.assign (spotDocs, newDocs);
         const correctedTree = this.deepExtend (tree, manualOverrides);
         return {
-            'fresh': correctedTree,
+            '_fresh': correctedTree,
+            'coefficients': this.RateLimitCoefficients,
             'differences': this.compareGeneratedApi (tree),
         };
     }
@@ -52,10 +53,10 @@ class binance extends ParserBase {
             const data = JSON.parse (results[i]);
             const rateLimitsInfo = data['rateLimits'];
             const minuteInfo= rateLimitsInfo.find (obj => obj.interval === 'MINUTE');
-            const limit = minuteInfo['limit'];
-            const callsPer1000Ms = limit / 60;
-            const oneCallMs = 1000 / callsPer1000Ms;
-            this.RateLimitBases[type] = oneCallMs;
+            const minuteQuota = minuteInfo['limit'];
+            const callsPer1000Ms = minuteQuota / 60;
+            const msForOneCall = 1000 / callsPer1000Ms;
+            this.RateLimitCoefficients[type] = msForOneCall / this.RateLimitBaseValue;
         }
     }
 
