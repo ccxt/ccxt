@@ -6,7 +6,7 @@ import { ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Bool, Currency, Currencies, Dict, FundingRate, FundingRateHistory, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Bool, Currency, Currencies, Dict, FundingRate, FundingRateHistory, Int, Leverage, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -75,7 +75,7 @@ export default class coincatch extends Exchange {
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': false,
-                'fetchLeverage': false,
+                'fetchLeverage': true,
                 'fetchLeverageTiers': false,
                 'fetchMarginAdjustmentHistory': false,
                 'fetchMarginMode': false,
@@ -169,7 +169,7 @@ export default class coincatch extends Exchange {
                         'api/mix/v1/market/current-fundRate': 1, // done
                         'api/mix/v1/market/open-interest': 1,
                         'api/mix/v1/market/mark-price': 1,
-                        'api/mix/v1/market/symbol-leverage': 1,
+                        'api/mix/v1/market/symbol-leverage': 1, // done
                         'api/mix/v1/market/queryPositionLever': 1,
                     },
                 },
@@ -1482,6 +1482,50 @@ export default class coincatch extends Exchange {
         }
         const sorted = this.sortBy (rates, 'timestamp');
         return this.filterBySinceLimit (sorted, since, limit) as FundingRateHistory[];
+    }
+
+    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
+        /**
+         * @method
+         * @name coincatch#fetchLeverage
+         * @description fetch the set leverage for a market
+         * @see https://coincatch.github.io/github.io/en/mix/#get-symbol-leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetApiMixV1MarketSymbolLeverage (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "requestTime": 1725652304131,
+        //         "data": {
+        //             "symbol": "ETHUSDT_UMCBL",
+        //             "minLeverage": "1",
+        //             "maxLeverage": "150"
+        //         }
+        //     }
+        //
+        const data = this.safeDict (response, 'data', {});
+        return this.parseLeverage (data, market);
+    }
+
+    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
+        const longLeverage = this.safeNumber (leverage, 'minLeverage');
+        const shortLeverage = this.safeNumber (leverage, 'maxLeverage');
+        return {
+            'info': leverage,
+            'symbol': market['symbol'],
+            'marginMode': undefined,
+            'longLeverage': longLeverage,
+            'shortLeverage': shortLeverage,
+        } as Leverage;
     }
 
     async fetchBalance (params = {}): Promise<Balances> {
