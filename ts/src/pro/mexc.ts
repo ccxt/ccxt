@@ -2,10 +2,10 @@
 //  ---------------------------------------------------------------------------
 
 import mexcRest from '../mexc.js';
-import { AuthenticationError } from '../base/errors.js';
+import { AuthenticationError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
-import type { Int, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances, Dict } from '../base/types.js';
+import type { Int, OHLCV, Str, OrderBook, Order, Trade, Ticker, Balances, Dict, Tickers, Strings } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -31,6 +31,7 @@ export default class mexc extends mexcRest {
                 'watchOrders': true,
                 'watchTicker': true,
                 'watchTickers': false,
+                'watchBidsAsks': true,
                 'watchTrades': true,
                 'watchTradesForSymbols': false,
             },
@@ -112,6 +113,7 @@ export default class mexc extends mexcRest {
         //        "t": 1678643605721
         //    }
         //
+        this.handleBidAsk (client, message);
         const rawTicker = this.safeValue2 (message, 'd', 'data');
         const marketId = this.safeString2 (message, 's', 'symbol');
         const timestamp = this.safeInteger (message, 't');
@@ -159,6 +161,84 @@ export default class mexc extends mexcRest {
             'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': undefined,
+            'info': ticker,
+        }, market);
+    }
+
+    async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name mexc#watchBidsAsks
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#individual-symbol-book-ticker-streams
+         * @description watches best bid & ask for symbols
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true, false, true);
+        const markets = this.marketsForSymbols (symbols);
+        const isSpot = markets[0]['spot'];
+        const messageHashes = [];
+        const topics = [];
+        for (let i = 0; i < symbols.length; i++) {
+            if (isSpot) {
+                topics.push ('spot@public.bookTicker.v3.api@' + markets[i]['id']);
+            }
+            messageHashes.push ('bidask:' + symbols[i]);
+        }
+        if (!isSpot) {
+            throw new NotSupported (this.id + 'watchBidsAsks only support spot market');
+        }
+        const url = this.urls['api']['ws']['spot'];
+        const request: Dict = {
+            'method': 'SUBSCRIPTION',
+            'params': topics,
+        };
+        const ticker = await this.watchMultiple (url, messageHashes, this.extend (request, params), messageHashes);
+        if (this.newUpdates) {
+            const tickers: Dict = {};
+            tickers[ticker['symbol']] = ticker;
+            return tickers;
+        }
+        return this.filterByArray (this.bidsasks, 'symbol', symbols);
+    }
+
+    handleBidAsk (client: Client, message) {
+        //
+        //    {
+        //        "c": "spot@public.bookTicker.v3.api@BTCUSDT",
+        //        "d": {
+        //            "A": "4.70432",
+        //            "B": "6.714863",
+        //            "a": "20744.54",
+        //            "b": "20744.17"
+        //        },
+        //        "s": "BTCUSDT",
+        //        "t": 1678643605721
+        //    }
+        //
+        const parsedTicker = this.parseWsBidAsk (message);
+        const symbol = parsedTicker['symbol'];
+        this.bidsasks[symbol] = parsedTicker;
+        const messageHash = 'bidask:' + symbol;
+        client.resolve (parsedTicker, messageHash);
+    }
+
+    parseWsBidAsk (ticker, market = undefined) {
+        const data = this.safeDict (ticker, 'd');
+        const marketId = this.safeString (ticker, 's');
+        market = this.safeMarket (marketId, market);
+        const symbol = this.safeString (market, 'symbol');
+        const timestamp = this.safeInteger (ticker, 't');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'ask': this.safeNumber (data, 'a'),
+            'askVolume': this.safeNumber (data, 'A'),
+            'bid': this.safeNumber (data, 'b'),
+            'bidVolume': this.safeNumber (data, 'B'),
             'info': ticker,
         }, market);
     }
