@@ -4012,7 +4012,7 @@ export default class gate extends Exchange {
                     request['settle'] = market['settleId']; // filled in prepareRequest above
                 }
                 if (isMarketOrder) {
-                    request['price'] = price; // set to 0 for market orders
+                    request['price'] = '0'; // set to 0 for market orders
                 } else {
                     request['price'] = (price === 0) ? '0' : this.priceToPrecision (symbol, price);
                 }
