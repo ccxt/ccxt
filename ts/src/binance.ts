@@ -894,9 +894,6 @@ export default class binance extends Exchange {
                         'positionRisk': 1,
                     },
                 },
-                'fapiPublicV3': {
-                    'get': {},
-                },
                 'fapiPrivateV3': {
                     'get': {
                         'account': 1,
@@ -976,15 +973,6 @@ export default class binance extends Exchange {
                         'exchangeInfo': 4, // Weight(IP): 20 => cost = 0.2 * 20 = 4
                         'avgPrice': 0.4,
                     },
-                    'put': {
-                        'userDataStream': 0.4,
-                    },
-                    'post': {
-                        'userDataStream': 0.4,
-                    },
-                    'delete': {
-                        'userDataStream': 0.4,
-                    },
                 },
                 'private': {
                     'get': {
@@ -1011,11 +999,16 @@ export default class binance extends Exchange {
                         'order': 0.2,
                         'order/cancelReplace': 0.2,
                         'order/test': 0.2,
+                        'userDataStream': 0.4,
                     },
                     'delete': {
                         'openOrders': 0.2,
                         'orderList': 0.2, // oco
                         'order': 0.2,
+                        'userDataStream': 0.4,
+                    },
+                    'put': {
+                        'userDataStream': 0.4,
                     },
                 },
                 'papi': {
