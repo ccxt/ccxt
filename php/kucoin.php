@@ -3757,7 +3757,7 @@ class kucoin extends Exchange {
         $params = $this->omit($params, 'type');
         $hf = null;
         list($hf, $params) = $this->handle_hf_and_params($params);
-        if ($hf) {
+        if ($hf && ($type !== 'main')) {
             $type = 'trade_hf';
         }
         list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchBalance', $params);
