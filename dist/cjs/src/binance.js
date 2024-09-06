@@ -4249,6 +4249,9 @@ class binance extends binance$1 {
         const price = this.safeString(params, 'price');
         const until = this.safeInteger(params, 'until');
         params = this.omit(params, ['price', 'until']);
+        if (since !== undefined && until !== undefined && limit === undefined) {
+            limit = maxLimit;
+        }
         limit = (limit === undefined) ? defaultLimit : Math.min(limit, maxLimit);
         const request = {
             'interval': this.safeString(this.timeframes, timeframe, timeframe),

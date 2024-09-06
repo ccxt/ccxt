@@ -4222,6 +4222,9 @@ class binance extends Exchange {
             $price = $this->safe_string($params, 'price');
             $until = $this->safe_integer($params, 'until');
             $params = $this->omit($params, array( 'price', 'until' ));
+            if ($since !== null && $until !== null && $limit === null) {
+                $limit = $maxLimit;
+            }
             $limit = ($limit === null) ? $defaultLimit : min ($limit, $maxLimit);
             $request = array(
                 'interval' => $this->safe_string($this->timeframes, $timeframe, $timeframe),

@@ -8,8 +8,10 @@ from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById,
 from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
+from typing import Any
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
+from ccxt.base.errors import UnsubscribeError
 
 
 class kucoin(ccxt.async_support.kucoin):
@@ -146,6 +148,24 @@ class kucoin(ccxt.async_support.kucoin):
             'response': True,
         }
         message = self.extend(request, params)
+        client = self.client(url)
+        for i in range(0, len(subscriptionHashes)):
+            subscriptionHash = subscriptionHashes[i]
+            if not (subscriptionHash in client.subscriptions):
+                client.subscriptions[requestId] = subscriptionHash
+        return await self.watch_multiple(url, messageHashes, message, subscriptionHashes, subscription)
+
+    async def un_subscribe_multiple(self, url, messageHashes, topic, subscriptionHashes, params={}, subscription: dict = None):
+        requestId = str(self.request_id())
+        request: dict = {
+            'id': requestId,
+            'type': 'unsubscribe',
+            'topic': topic,
+            'response': True,
+        }
+        message = self.extend(request, params)
+        if subscription is not None:
+            subscription[requestId] = requestId
         client = self.client(url)
         for i in range(0, len(subscriptionHashes)):
             subscriptionHash = subscriptionHashes[i]
@@ -477,6 +497,46 @@ class kucoin(ccxt.async_support.kucoin):
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
+    async def un_watch_trades_for_symbols(self, symbols: List[str], params={}) -> Any:
+        """
+        unWatches trades stream
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int [since]: timestamp in ms of the earliest trade to fetch
+        :param int [limit]: the maximum amount of trades to fetch
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        marketIds = self.market_ids(symbols)
+        url = await self.negotiate(False)
+        messageHashes = []
+        subscriptionHashes = []
+        topic = '/market/match:' + ','.join(marketIds)
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            messageHashes.append('unsubscribe:trades:' + symbol)
+            subscriptionHashes.append('trades:' + symbol)
+        subscription = {
+            'messageHashes': messageHashes,
+            'subMessageHashes': subscriptionHashes,
+            'topic': 'trades',
+            'unsubscribe': True,
+            'symbols': symbols,
+        }
+        return await self.un_subscribe_multiple(url, messageHashes, topic, messageHashes, params, subscription)
+
+    async def un_watch_trades(self, symbol: str, params={}) -> Any:
+        """
+        unWatches trades stream
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        """
+        return await self.un_watch_trades_for_symbols([symbol], params)
+
     def handle_trade(self, client: Client, message):
         #
         #     {
@@ -731,6 +791,53 @@ class kucoin(ccxt.async_support.kucoin):
         method = self.safe_value(subscription, 'method')
         if method is not None:
             method(client, message, subscription)
+        isUnSub = self.safe_bool(subscription, 'unsubscribe', False)
+        if isUnSub:
+            messageHashes = self.safe_list(subscription, 'messageHashes', [])
+            subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])
+            for i in range(0, len(messageHashes)):
+                messageHash = messageHashes[i]
+                subHash = subMessageHashes[i]
+                if messageHash in client.subscriptions:
+                    del client.subscriptions[messageHash]
+                if subHash in client.subscriptions:
+                    del client.subscriptions[subHash]
+                error = UnsubscribeError(self.id + ' ' + subHash)
+                client.reject(error, subHash)
+                client.resolve(True, messageHash)
+                self.clean_cache(subscription)
+
+    def clean_cache(self, subscription: dict):
+        topic = self.safe_string(subscription, 'topic')
+        symbols = self.safe_list(subscription, 'symbols', [])
+        symbolsLength = len(symbols)
+        if symbolsLength > 0:
+            for i in range(0, len(symbols)):
+                symbol = symbols[i]
+                if topic == 'trades':
+                    if symbol in self.trades:
+                        del self.trades[symbol]
+                elif topic == 'orderbook':
+                    if symbol in self.orderbooks:
+                        del self.orderbooks[symbol]
+                elif topic == 'ticker':
+                    if symbol in self.tickers:
+                        del self.tickers[symbol]
+        else:
+            if topic == 'myTrades':
+                # don't reset self.myTrades directly here
+                # because in c# we need to use a different object
+                keys = list(self.myTrades.keys())
+                for i in range(0, len(keys)):
+                    del self.myTrades[keys[i]]
+            elif topic == 'orders':
+                orderSymbols = list(self.orders.keys())
+                for i in range(0, len(orderSymbols)):
+                    del self.orders[orderSymbols[i]]
+            elif topic == 'ticker':
+                tickerSymbols = list(self.tickers.keys())
+                for i in range(0, len(tickerSymbols)):
+                    del self.tickers[tickerSymbols[i]]
 
     def handle_system_status(self, client: Client, message):
         #

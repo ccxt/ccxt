@@ -15,8 +15,13 @@ export default class okx extends okxRest {
     watchFundingRates(symbols: string[], params?: {}): Promise<FundingRates>;
     handleFundingRate(client: Client, message: any): void;
     watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    unWatchTicker(symbol: string, params?: {}): Promise<any>;
     watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
-    handleTicker(client: Client, message: any): any;
+    unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
+    handleTicker(client: Client, message: any): void;
+    watchBidsAsks(symbols?: Strings, params?: {}): Promise<Tickers>;
+    handleBidAsk(client: Client, message: any): void;
+    parseWsBidAsk(ticker: any, market?: any): Ticker;
     watchLiquidationsForSymbols(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
     handleLiquidation(client: Client, message: any): void;
     watchMyLiquidationsForSymbols(symbols?: string[], since?: Int, limit?: Int, params?: {}): Promise<Liquidation[]>;
@@ -63,5 +68,6 @@ export default class okx extends okxRest {
     handleUnSubscriptionTrades(client: Client, symbol: string): void;
     handleUnsubscriptionOrderBook(client: Client, symbol: string, channel: string): void;
     handleUnsubscriptionOHLCV(client: Client, symbol: string, channel: string): void;
+    handleUnsubscriptionTicker(client: Client, symbol: string, channel: any): void;
     handleUnsubscription(client: Client, message: any): void;
 }

@@ -77,7 +77,6 @@ class tradeogre extends tradeogre$1 {
                 'fetchOrderBooks': false,
                 'fetchOrders': false,
                 'fetchOrderTrades': false,
-                'fetchPermissions': false,
                 'fetchPosition': false,
                 'fetchPositionHistory': false,
                 'fetchPositionMode': false,

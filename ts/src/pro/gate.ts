@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import gateRest from '../gate.js';
-import { AuthenticationError, BadRequest, ArgumentsRequired, ChecksumError, ExchangeError, NotSupported } from '../base/errors.js';
+import { AuthenticationError, BadRequest, ArgumentsRequired, ChecksumError, ExchangeError, NotSupported, UnsubscribeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation, OrderType, OrderSide, Num, Market, MarketType, OrderRequest } from '../base/types.js';
@@ -399,6 +399,35 @@ export default class gate extends gateRest {
         return orderbook.limit ();
     }
 
+    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name gate#unWatchOrderBook
+         * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const marketId = market['id'];
+        let interval = '100ms';
+        [ interval, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'interval', interval);
+        const messageType = this.getTypeByMarket (market);
+        const channel = messageType + '.order_book_update';
+        const subMessageHash = 'orderbook' + ':' + symbol;
+        const messageHash = 'unsubscribe:orderbook' + ':' + symbol;
+        const url = this.getUrlByMarket (market);
+        const payload = [ marketId, interval ];
+        const limit = this.safeInteger (params, 'limit', 100);
+        if (market['contract']) {
+            const stringLimit = limit.toString ();
+            payload.push (stringLimit);
+        }
+        return await this.unSubscribePublicMultiple (url, 'orderbook', [ symbol ], [ messageHash ], [ subMessageHash ], payload, channel, params);
+    }
+
     handleOrderBookSubscription (client: Client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
@@ -737,6 +766,44 @@ export default class gate extends gateRest {
             limit = trades.getLimit (tradeSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
+        /**
+         * @method
+         * @name gate#unWatchTradesForSymbols
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const marketIds = this.marketIds (symbols);
+        const market = this.market (symbols[0]);
+        const messageType = this.getTypeByMarket (market);
+        const channel = messageType + '.trades';
+        const subMessageHashes = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            subMessageHashes.push ('trades:' + symbol);
+            messageHashes.push ('unsubscribe:trades:' + symbol);
+        }
+        const url = this.getUrlByMarket (market);
+        return await this.unSubscribePublicMultiple (url, 'trades', symbols, messageHashes, subMessageHashes, marketIds, channel, params);
+    }
+
+    async unWatchTrades (symbol: string, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name gate#unWatchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        return await this.unWatchTradesForSymbols ([ symbol ], params);
     }
 
     handleTrades (client: Client, message) {
@@ -1596,6 +1663,94 @@ export default class gate extends gateRest {
         }
     }
 
+    handleUnSubscribe (client: Client, message) {
+        //
+        // {
+        //     "time":1725534679,
+        //     "time_ms":1725534679786,
+        //     "id":2,
+        //     "conn_id":"fac539b443fd7002",
+        //     "trace_id":"efe1d282b630b4aa266b84bee177791a",
+        //     "channel":"spot.trades",
+        //     "event":"unsubscribe",
+        //     "payload":[
+        //        "LTC_USDT"
+        //     ],
+        //     "result":{
+        //        "status":"success"
+        //     },
+        //     "requestId":"efe1d282b630b4aa266b84bee177791a"
+        // }
+        //
+        const id = this.safeString (message, 'id');
+        const keys = Object.keys (client.subscriptions);
+        for (let i = 0; i < keys.length; i++) {
+            const messageHash = keys[i];
+            if (!(messageHash in client.subscriptions)) {
+                continue;
+                // the previous iteration can have deleted the messageHash from the subscriptions
+            }
+            if (messageHash.startsWith ('unsubscribe')) {
+                const subscription = client.subscriptions[messageHash];
+                const subId = this.safeString (subscription, 'id');
+                if (id !== subId) {
+                    continue;
+                }
+                const messageHashes = this.safeList (subscription, 'messageHashes', []);
+                const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+                for (let j = 0; j < messageHashes.length; j++) {
+                    const unsubHash = messageHashes[j];
+                    const subHash = subMessageHashes[j];
+                    if (unsubHash in client.subscriptions) {
+                        delete client.subscriptions[unsubHash];
+                    }
+                    if (subHash in client.subscriptions) {
+                        delete client.subscriptions[subHash];
+                    }
+                    const error = new UnsubscribeError (this.id + ' ' + messageHash);
+                    client.reject (error, subHash);
+                    client.resolve (true, unsubHash);
+                }
+                this.cleanCache (subscription);
+            }
+        }
+    }
+
+    cleanCache (subscription: Dict) {
+        const topic = this.safeString (subscription, 'topic', '');
+        const symbols = this.safeList (subscription, 'symbols', []);
+        const symbolsLength = symbols.length;
+        if (topic === 'ohlcv') {
+            const symbolsAndTimeFrames = this.safeList (subscription, 'symbolsAndTimeframes', []);
+            for (let i = 0; i < symbolsAndTimeFrames.length; i++) {
+                const symbolAndTimeFrame = symbolsAndTimeFrames[i];
+                const symbol = this.safeString (symbolAndTimeFrame, 0);
+                const timeframe = this.safeString (symbolAndTimeFrame, 1);
+                delete this.ohlcvs[symbol][timeframe];
+            }
+        } else if (symbolsLength > 0) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                if (topic.endsWith ('trades')) {
+                    delete this.trades[symbol];
+                } else if (topic === 'orderbook') {
+                    delete this.orderbooks[symbol];
+                } else if (topic === 'ticker') {
+                    delete this.tickers[symbol];
+                }
+            }
+        } else {
+            if (topic.endsWith ('trades')) {
+                // don't reset this.myTrades directly here
+                // because in c# we need to use a different object
+                const keys = Object.keys (this.trades);
+                for (let i = 0; i < keys.length; i++) {
+                    delete this.trades[keys[i]];
+                }
+            }
+        }
+    }
+
     handleMessage (client: Client, message) {
         //
         // subscribe
@@ -1692,6 +1847,10 @@ export default class gate extends gateRest {
         const event = this.safeString (message, 'event');
         if (event === 'subscribe') {
             this.handleSubscriptionStatus (client, message);
+            return;
+        }
+        if (event === 'unsubscribe') {
+            this.handleUnSubscribe (client, message);
             return;
         }
         const channel = this.safeString (message, 'channel', '');
@@ -1815,6 +1974,28 @@ export default class gate extends gateRest {
         };
         const message = this.extend (request, params);
         return await this.watchMultiple (url, messageHashes, message, messageHashes);
+    }
+
+    async unSubscribePublicMultiple (url, topic, symbols, messageHashes, subMessageHashes, payload, channel, params = {}) {
+        const requestId = this.requestId ();
+        const time = this.seconds ();
+        const request: Dict = {
+            'id': requestId,
+            'time': time,
+            'channel': channel,
+            'event': 'unsubscribe',
+            'payload': payload,
+        };
+        const sub = {
+            'id': requestId.toString (),
+            'topic': topic,
+            'unsubscribe': true,
+            'messageHashes': messageHashes,
+            'subMessageHashes': subMessageHashes,
+            'symbols': symbols,
+        };
+        const message = this.extend (request, params);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes, sub);
     }
 
     async authenticate (url, messageType) {

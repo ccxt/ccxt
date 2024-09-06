@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import kucoinRest from '../kucoin.js';
-import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
+import { ExchangeError, ArgumentsRequired, UnsubscribeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 export default class kucoin extends kucoinRest {
@@ -148,6 +148,27 @@ export default class kucoin extends kucoinRest {
             'response': true,
         };
         const message = this.extend(request, params);
+        const client = this.client(url);
+        for (let i = 0; i < subscriptionHashes.length; i++) {
+            const subscriptionHash = subscriptionHashes[i];
+            if (!(subscriptionHash in client.subscriptions)) {
+                client.subscriptions[requestId] = subscriptionHash;
+            }
+        }
+        return await this.watchMultiple(url, messageHashes, message, subscriptionHashes, subscription);
+    }
+    async unSubscribeMultiple(url, messageHashes, topic, subscriptionHashes, params = {}, subscription = undefined) {
+        const requestId = this.requestId().toString();
+        const request = {
+            'id': requestId,
+            'type': 'unsubscribe',
+            'topic': topic,
+            'response': true,
+        };
+        const message = this.extend(request, params);
+        if (subscription !== undefined) {
+            subscription[requestId] = requestId;
+        }
         const client = this.client(url);
         for (let i = 0; i < subscriptionHashes.length; i++) {
             const subscriptionHash = subscriptionHashes[i];
@@ -510,6 +531,51 @@ export default class kucoin extends kucoinRest {
         }
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
+    async unWatchTradesForSymbols(symbols, params = {}) {
+        /**
+         * @method
+         * @name kucoin#unWatchTradesForSymbols
+         * @description unWatches trades stream
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const marketIds = this.marketIds(symbols);
+        const url = await this.negotiate(false);
+        const messageHashes = [];
+        const subscriptionHashes = [];
+        const topic = '/market/match:' + marketIds.join(',');
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            messageHashes.push('unsubscribe:trades:' + symbol);
+            subscriptionHashes.push('trades:' + symbol);
+        }
+        const subscription = {
+            'messageHashes': messageHashes,
+            'subMessageHashes': subscriptionHashes,
+            'topic': 'trades',
+            'unsubscribe': true,
+            'symbols': symbols,
+        };
+        return await this.unSubscribeMultiple(url, messageHashes, topic, messageHashes, params, subscription);
+    }
+    async unWatchTrades(symbol, params = {}) {
+        /**
+         * @method
+         * @name kucoin#unWatchTrades
+         * @description unWatches trades stream
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        return await this.unWatchTradesForSymbols([symbol], params);
+    }
     handleTrade(client, message) {
         //
         //     {
@@ -793,6 +859,72 @@ export default class kucoin extends kucoinRest {
         const method = this.safeValue(subscription, 'method');
         if (method !== undefined) {
             method.call(this, client, message, subscription);
+        }
+        const isUnSub = this.safeBool(subscription, 'unsubscribe', false);
+        if (isUnSub) {
+            const messageHashes = this.safeList(subscription, 'messageHashes', []);
+            const subMessageHashes = this.safeList(subscription, 'subMessageHashes', []);
+            for (let i = 0; i < messageHashes.length; i++) {
+                const messageHash = messageHashes[i];
+                const subHash = subMessageHashes[i];
+                if (messageHash in client.subscriptions) {
+                    delete client.subscriptions[messageHash];
+                }
+                if (subHash in client.subscriptions) {
+                    delete client.subscriptions[subHash];
+                }
+                const error = new UnsubscribeError(this.id + ' ' + subHash);
+                client.reject(error, subHash);
+                client.resolve(true, messageHash);
+                this.cleanCache(subscription);
+            }
+        }
+    }
+    cleanCache(subscription) {
+        const topic = this.safeString(subscription, 'topic');
+        const symbols = this.safeList(subscription, 'symbols', []);
+        const symbolsLength = symbols.length;
+        if (symbolsLength > 0) {
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                if (topic === 'trades') {
+                    if (symbol in this.trades) {
+                        delete this.trades[symbol];
+                    }
+                }
+                else if (topic === 'orderbook') {
+                    if (symbol in this.orderbooks) {
+                        delete this.orderbooks[symbol];
+                    }
+                }
+                else if (topic === 'ticker') {
+                    if (symbol in this.tickers) {
+                        delete this.tickers[symbol];
+                    }
+                }
+            }
+        }
+        else {
+            if (topic === 'myTrades') {
+                // don't reset this.myTrades directly here
+                // because in c# we need to use a different object
+                const keys = Object.keys(this.myTrades);
+                for (let i = 0; i < keys.length; i++) {
+                    delete this.myTrades[keys[i]];
+                }
+            }
+            else if (topic === 'orders') {
+                const orderSymbols = Object.keys(this.orders);
+                for (let i = 0; i < orderSymbols.length; i++) {
+                    delete this.orders[orderSymbols[i]];
+                }
+            }
+            else if (topic === 'ticker') {
+                const tickerSymbols = Object.keys(this.tickers);
+                for (let i = 0; i < tickerSymbols.length; i++) {
+                    delete this.tickers[tickerSymbols[i]];
+                }
+            }
         }
     }
     handleSystemStatus(client, message) {

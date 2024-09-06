@@ -134,7 +134,6 @@ class okx(Exchange, ImplicitAPI):
                 'fetchOrderBooks': False,
                 'fetchOrders': False,
                 'fetchOrderTrades': True,
-                'fetchPermissions': None,
                 'fetchPosition': True,
                 'fetchPositionHistory': 'emulated',
                 'fetchPositions': True,

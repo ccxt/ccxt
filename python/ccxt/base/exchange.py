@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.3.95'
+__version__ = '4.3.96'
 
 # -----------------------------------------------------------------------------
 
@@ -1930,7 +1930,6 @@ class Exchange(object):
                 'fetchOrdersWs': None,
                 'fetchOrderTrades': None,
                 'fetchOrderWs': None,
-                'fetchPermissions': None,
                 'fetchPosition': None,
                 'fetchPositionHistory': None,
                 'fetchPositionsHistory': None,
@@ -4137,9 +4136,6 @@ class Exchange(object):
     def edit_order_ws(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
         self.cancel_order_ws(id, symbol)
         return self.create_order_ws(symbol, type, side, amount, price, params)
-
-    def fetch_permissions(self, params={}):
-        raise NotSupported(self.id + ' fetchPermissions() is not supported yet')
 
     def fetch_position(self, symbol: str, params={}):
         raise NotSupported(self.id + ' fetchPosition() is not supported yet')
