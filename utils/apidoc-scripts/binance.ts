@@ -156,23 +156,20 @@ class binance extends ParserBase {
                 continue;
             }
             mainUrl = mainUrl[1];
-            const heading = docContent[1];
+            // const heading = docContent[1];
             const apiParagraph = docContent[2];
-            const endpointCollections = apiParagraph.matchAll(/\n(<p>|<p><code>|<code>)(GET|POST|PUT|DELETE)\b(?!\b|\s)*?([\s\S]*?)<\/code>[\s\S]*?Weight(.*?UID|\b)([\s\S]*?<p><strong>(.*)\n|)/g);
+            const endpointCollections = apiParagraph.matchAll(/\n(<p>|<p><code>|<code>)(GET|POST|PUT|DELETE)\b(?!\b|\s)*?([\s\S]*?)<\/code>[\s\S]*?Weight\b([\s\S]*?\n)(.*?)\n/g);
             const matches = [...endpointCollections];
             if (matches.length !== 1) continue;
             let match = matches[0];
-            if (match.length !== 7) continue;
-            // remove first two from match
-            if (match.length != 7) {
-                console.log('endpoint data match length is incorrect', match);
-                continue;
+            if (match.length !==  6) {
+                this.exit('endpoint data match length is incorrect', match);
             }
-            // [ 'POST',  '/sapi/v1/algo/futures/newOrderVp', 'UID', '300' ]
+            // [ 'POST',  '/sapi/v1/algo/futures/newOrderVp', '(UID)', '300' ]
             const reqMethod = match[2].toLowerCase ();
-            const rawEndpoint = match[3]; if (!rawEndpoint.includes('/')) continue; 
-            const isPublic = ! match[4].includes ('UID') && !docContent[0].includes('(USER_DATA)');
-            const weight = match[6];
+            const rawEndpoint = match[3]; if (!rawEndpoint.includes('/')) continue;
+            const isPrivate = (match[4] + match[5]).includes ('(UID)') || docContent[0].includes('(USER_DATA)');
+            const weight = this.stripTags((match[5]??'').replace('(UID)','').replace('(IP)',''));
             const endpoint = this.sanitizeEndpoint(rawEndpoint);
             const parts = endpoint.split ('/');
             const apiType = parts[1]; // eg: 'sapi' 
@@ -184,7 +181,7 @@ class binance extends ParserBase {
             } else if (apiType.startsWith('papi')) {
                 // nothing needed
             } else if (['fapi','dapi','eapi'].includes(apiType)) {
-                apiRootKey += ( isPublic ? 'Public': 'Private') + versionSuffix; // eg: fapiPublic
+                apiRootKey += ( isPrivate ? 'Private': 'Public') + versionSuffix; // eg: fapiPublic
             } else {
                 // console.log('undetected path', match, mainUrl); // seems only few exceptions
                 continue;

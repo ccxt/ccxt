@@ -35,7 +35,9 @@ class ParserBase {
     }
 
     sanitizeEndpoint (input) {
-        const sanitized = this.stripTags(input);
+        let sanitized = input;
+        sanitized = sanitized.replace (/\((.*?)\)/,''); // few exceptional cases, to remove bracketed content
+        sanitized = this.stripTags(sanitized);
         // add slash in the beginning
         return sanitized.startsWith ('/') ? sanitized : '/' + sanitized;
     }
@@ -67,6 +69,11 @@ class ParserBase {
     compareGeneratedApi (tree) {
         const ex = new ccxt[this.exchangeId] ();
         const generated = ex.api;
+    }
+
+    exit(...args) {
+        console.log(...args);
+        process.exit(0);
     }
 }
 
