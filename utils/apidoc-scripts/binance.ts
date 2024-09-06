@@ -25,14 +25,16 @@ class binance extends ParserBase {
         const spot = await this.retrieveSpotDocs ();
         const misc = await this.retrievePortalDocs ();
         const all = Object.assign (spot, misc);
-        const generatedTree = this.deepExtend (all, manualOverrides);
-        const apiDiffs = this.createApiDiff (generatedTree);
+        const generatedApiTree = this.deepExtend (all, manualOverrides);
+        const apiDiffs = this.createApiDiff (generatedApiTree);
         const final = {
             '_not_in_fetched': apiDiffs.removed,
             '_not_in_existing': apiDiffs.added,
             'coefficients': this.RateLimitCoefficients,
-            'newApi':  this.deepExtend (apiDiffs, apiDiffs.removed),
         };
+        // some endpoints are missing in generatedTree, so add them from binance.ts
+        const completeApi = this.deepExtend (generatedApiTree, apiDiffs.removed);
+        final['completeApi'] = completeApi;
         return final;
     }
 
