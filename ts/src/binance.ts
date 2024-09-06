@@ -912,6 +912,7 @@ export default class binance extends Exchange {
                         'depth': 1,
                         'klines': 1,
                         'trades': 5,
+                        'historicalTrades': 20,
                         'exerciseHistory': 3,
                         'openInterest': 3,
                     },
@@ -931,7 +932,6 @@ export default class binance extends Exchange {
                         'mmp': 1,
                         'countdownCancelAll': 1,
                         'order': 1,
-                        'historicalTrades': 20,
                     },
                     'post': {
                         'order': 1,
