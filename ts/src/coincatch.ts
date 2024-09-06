@@ -66,12 +66,12 @@ export default class coincatch extends Exchange {
                 'fetchConvertTrade': false,
                 'fetchConvertTradeHistory': false,
                 'fetchCurrencies': true,
-                'fetchDepositAddress': false,
+                'fetchDepositAddress': true,
                 'fetchDeposits': true,
                 'fetchDepositsWithdrawals': false,
                 'fetchFundingHistory': false,
-                'fetchFundingRate': false,
-                'fetchFundingRateHistory': false,
+                'fetchFundingRate': true,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
                 'fetchLedger': false,
@@ -145,28 +145,28 @@ export default class coincatch extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        'api/spot/v1/public/time': 1,
-                        'api/spot/v1/public/currencies': 20 / 3,
-                        'api/spot/v1/market/ticker': 1,
-                        'api/spot/v1/market/tickers': 1,
-                        'api/spot/v1/market/fills': 2,
-                        'api/spot/v1/market/fills-history': 2,
-                        'api/spot/v1/market/candles': 1,
-                        'api/spot/v1/market/history-candles': 1,
-                        'api/spot/v1/market/depth': 1,
-                        'api/spot/v1/market/merge-depth': 1,
-                        'api/mix/v1/market/contracts': 1,
-                        'api/mix/v1/market/merge-depth': 1,
-                        'api/mix/v1/market/depth': 1,
-                        'api/mix/v1/market/ticker': 1,
-                        'api/mix/v1/market/tickers': 1,
-                        'api/mix/v1/market/fills': 1,
-                        'api/mix/v1/market/fills-history': 1,
-                        'api/mix/v1/market/candles': 1,
+                        'api/spot/v1/public/time': 1, // done
+                        'api/spot/v1/public/currencies': 20 / 3, // done
+                        'api/spot/v1/market/ticker': 1, // done
+                        'api/spot/v1/market/tickers': 1, // done
+                        'api/spot/v1/market/fills': 2, // not used
+                        'api/spot/v1/market/fills-history': 2, // done
+                        'api/spot/v1/market/candles': 1, // done
+                        'api/spot/v1/market/history-candles': 1, // not used
+                        'api/spot/v1/market/depth': 1, // not used
+                        'api/spot/v1/market/merge-depth': 1, // done
+                        'api/mix/v1/market/contracts': 1, // done
+                        'api/mix/v1/market/merge-depth': 1, // done
+                        'api/mix/v1/market/depth': 1, // not used
+                        'api/mix/v1/market/ticker': 1, // done
+                        'api/mix/v1/market/tickers': 1, // done
+                        'api/mix/v1/market/fills': 1, // not used
+                        'api/mix/v1/market/fills-history': 1, // done
+                        'api/mix/v1/market/candles': 1, // done
                         'pi/mix/v1/market/index': 1,
                         'api/mix/v1/market/funding-time': 1,
-                        'api/mix/v1/market/history-fundRate': 1,
-                        'api/mix/v1/market/current-fundRate': 1,
+                        'api/mix/v1/market/history-fundRate': 1, // done
+                        'api/mix/v1/market/current-fundRate': 1, // done
                         'api/mix/v1/market/open-interest': 1,
                         'api/mix/v1/market/mark-price': 1,
                         'api/mix/v1/market/symbol-leverage': 1,
@@ -175,12 +175,12 @@ export default class coincatch extends Exchange {
                 },
                 'private': {
                     'get': {
-                        'api/spot/v1/wallet/deposit-address': 4,
-                        'pi/spot/v1/wallet/withdrawal-list': 1,
-                        'api/spot/v1/wallet/withdrawal-list-v2': 1,
-                        'api/spot/v1/wallet/deposit-list': 1,
+                        'api/spot/v1/wallet/deposit-address': 4, // done
+                        'pi/spot/v1/wallet/withdrawal-list': 1, // nor used
+                        'api/spot/v1/wallet/withdrawal-list-v2': 1, // done but should be checked
+                        'api/spot/v1/wallet/deposit-list': 1, // done
                         'api/spot/v1/account/getInfo': 1,
-                        'api/spot/v1/account/assets': 2,
+                        'api/spot/v1/account/assets': 2, // done
                         'api/spot/v1/account/transferRecords': 1,
                         'api/mix/v1/account/account': 1,
                         'api/mix/v1/account/accounts': 1,
@@ -200,7 +200,7 @@ export default class coincatch extends Exchange {
                     },
                     'post': {
                         'api/spot/v1/wallet/transfer-v2': 1,
-                        'api/spot/v1/wallet/withdrawal-v2': 4,
+                        'api/spot/v1/wallet/withdrawal-v2': 4, // done but should be checked
                         'api/spot/v1/wallet/withdrawal-inner-v2': 1,
                         'api/spot/v1/account/bills': 1,
                         'api/spot/v1/trade/orders': 1,
