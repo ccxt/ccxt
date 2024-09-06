@@ -1,7 +1,6 @@
 
 
 // this is temporary file, before we merge the correct values, we should read this instaed of binance.ts.
-// at this moment, fapi/dapi need to be multiplied by 2.5 coefficient (RL=25), compared to spot (RL=10)
 
 const manualOverrides = {
     'public': {
@@ -31,64 +30,64 @@ const manualOverrides = {
             "margin/isolatedMarginData":  { 'cost': 1, 'noSymbol': 10 }, // https://developers.binance.com/docs/margin_trading/account/Query-Isolated-Margin-Fee-Data#http-request
             "margin/crossMarginData": 1, // max 5 : https://developers.binance.com/docs/margin_trading/account/Query-Cross-Margin-Fee-Data#http-request
             "portfolio/asset-index-price": 1, // max 50 : https://developers.binance.com/docs/derivatives/portfolio-margin-pro/market-data/Query-Portfolio-Margin-Asset-Index-Price
-            "localentity/withdraw/history": 4, // 10r/s: "https://developers.binance.com/docs/wallet/travel-rule/
-            "capital/withdraw/history": 4, // 10r/s:  "https://developers.binance.com/docs/wallet/capital/withdraw-history",
+            "localentity/withdraw/history": 4, // 10r/s: https://developers.binance.com/docs/wallet/travel-rule/
+            "capital/withdraw/history": 4, // 10r/s: https://developers.binance.com/docs/wallet/capital/withdraw-history
 
         },
         "post": {
-            "giftcard/buyCode": 1, // "https://developers.binance.com/docs/gift_card/market-data/Create-a-dual-token-gift-card",
-            "giftcard/createCode": 1, // "https://developers.binance.com/docs/gift_card/market-data/Create-a-single-token-gift-card",
+            "giftcard/buyCode": 1, // https://developers.binance.com/docs/gift_card/market-data/Create-a-dual-token-gift-card
+            "giftcard/createCode": 1, // https://developers.binance.com/docs/gift_card/market-data/Create-a-single-token-gift-card
         }
     },
     "fapiPublic": {
         "get": {
-            "klines": 1, // max 10 : "https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Kline-Candlestick-Data",
-            "premiumIndexKlines": 1, // max 10 : "https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Premium-Index-Kline-Data",
-            "depth": 2, // max 20 : "https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book",
-            "fundingRate": 1, // 0 ? : "https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Rate-History",
-            "markPriceKlines": 1, // max 10 : "https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data",
-            "indexPriceKlines": 1, // max 10: "https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data",
-            "continuousKlines": 1, // max 10 : "https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Continuous-Contract-Kline-Candlestick-Data",
+            "klines": 1, // max 10 : https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Kline-Candlestick-Data
+            "premiumIndexKlines": 1, // max 10 : https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Premium-Index-Kline-Data
+            "depth": 2, // max 20 : https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Order-Book
+            "fundingRate": 1, // 0 ? : https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Get-Funding-Rate-History
+            "markPriceKlines": 1, // max 10 : https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Mark-Price-Kline-Candlestick-Data
+            "indexPriceKlines": 1, // max 10: https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Index-Price-Kline-Candlestick-Data
+            "continuousKlines": 1, // max 10 : https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Continuous-Contract-Kline-Candlestick-Data
         },
         "post": {
-            "order": 1, // dynamic: "https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order",
-            "batchOrders": 1, // dynamic: "https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Place-Multiple-Orders",
+            "order": 1, // dynamic: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/New-Order
+            "batchOrders": 1, // dynamic: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Place-Multiple-Orders
         },
         "put": {
-            "order": 1, // dynamic: "https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order",
-            "batchOrders": 1, // dynamic: "https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Multiple-Orders",
+            "order": 1, // dynamic: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Order
+            "batchOrders": 1, // dynamic: https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Modify-Multiple-Orders
         }
     },
     "dapiPrivate": {
         "get": {
-            "openOrders": { 'cost': 1, 'noSymbol': 40 }, // "https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Current-All-Open-Orders"
-            "userTrades": 20, // dynamic : "https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Account-Trade-List"
+            "openOrders": { 'cost': 1, 'noSymbol': 40 }, // https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Current-All-Open-Orders"
+            "userTrades": 20, // dynamic : https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/Account-Trade-List"
             "allOrders": 20, // dynamic : https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/All-Orders
         }
     },
     "papi": {
         "get": {
-            "cm/userTrades": 20, // dynamic: "https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Account-Trade-List",
-            "cm/allOrders": 20, // dynamic : "https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders",
+            "cm/userTrades": 20, // dynamic: https://developers.binance.com/docs/derivatives/portfolio-margin/trade/CM-Account-Trade-List
+            "cm/allOrders": 20, // dynamic : https://developers.binance.com/docs/derivatives/portfolio-margin/trade/Query-All-CM-Orders
         },
     },
     "eapiPublic": {
         "get": {
-            "depth": 2, // max 20: "https://developers.binance.com/docs/derivatives/option/market-data/Order-Book",
-            "openInterest": 1, // ? "https://developers.binance.com/docs/derivatives/option/market-data/Open-Interest",
+            "depth": 2, // max 20: https://developers.binance.com/docs/derivatives/option/market-data/Order-Book
+            "openInterest": 1, // ? "https://developers.binance.com/docs/derivatives/option/market-data/Open-Interest
         },
     },
     "dapiPublic": {
         "get": {
-            "premiumIndexKlines": 1, // max 10 : "https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Premium-Index-Kline-Data",
-            "klines": 1, // max 5: "https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Kline-Candlestick-Data",
-            "continuousKlines": 1, // max 5: "https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Continuous-Contract-Kline-Candlestick-Data",
-            "depth": 2, // max 20 : "https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Order-Book",
-            "indexPriceKlines": 1, // max 5 : "https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-Kline-Candlestick-Data",
-            "markPriceKlines": 1, // max 5 : "https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Mark-Price-Kline-Candlestick-Data"
+            "premiumIndexKlines": 1, // max 10 : https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Premium-Index-Kline-Data
+            "klines": 1, // max 5: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Kline-Candlestick-Data
+            "continuousKlines": 1, // max 5: https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Continuous-Contract-Kline-Candlestick-Data
+            "depth": 2, // max 20 : https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Order-Book
+            "indexPriceKlines": 1, // max 5 : https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Index-Price-Kline-Candlestick-Data
+            "markPriceKlines": 1, // max 5 : https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/Mark-Price-Kline-Candlestick-Data"
         },
         "post": {
-            "order": 1, // ? "https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/New-Order",
+            "order": 1, // ? "https://developers.binance.com/docs/derivatives/coin-margined-futures/trade/New-Order
         },
     },
 };

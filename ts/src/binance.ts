@@ -233,15 +233,7 @@ export default class binance extends Exchange {
                 'fees': 'https://www.binance.com/en/fee/schedule',
             },
             'rateLimit': 10,
-            'rateLimitMultipliers': {
-                'api': 1,
-                'sapi': 1,
-                'dapi': 2.5,
-                'fapi': 2.5,
-                'eapi': 15,
-                'papi': 2.5,
-            },
-            // there are only these domains: api, sapi, fapi, dapi, papi, eapi
+            // these are the base domains: api, sapi, fapi, dapi, papi, eapi
             'apiDomainMap': {
                 'public': 'api',
                 'private': 'api',
@@ -258,6 +250,14 @@ export default class binance extends Exchange {
                 'fapiPrivate': 'fapi',
                 'fapiPublicV2': 'fapi',
                 'fapiPrivateV2': 'fapi',
+            },
+            'rateLimitMultipliers': {
+                'api': 1,
+                'sapi': 1,
+                'dapi': 2.5,
+                'fapi': 2.5,
+                'eapi': 15,
+                'papi': 2.5,
             },
             'api': {
                 // the API structure below will need 3-layer apidefs
