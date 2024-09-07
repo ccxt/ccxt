@@ -1838,6 +1838,8 @@ export default class mexc extends Exchange {
          * @method
          * @name mexc#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#24hr-ticker-price-change-statistics
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-trend-data
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
