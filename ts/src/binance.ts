@@ -234,6 +234,14 @@ export default class binance extends Exchange {
             },
             'rateLimit': 10,
             // these are the base domains: api, sapi, fapi, dapi, papi, eapi
+            'rateLimits': {
+                'api': 10,
+                'sapi': 10,
+                'dapi': 25,
+                'fapi': 25,
+                'eapi': 150,
+                'papi': 25,
+            },
             'apiDomainMap': {
                 'public': 'api',
                 'private': 'api',
@@ -250,14 +258,6 @@ export default class binance extends Exchange {
                 'fapiPrivate': 'fapi',
                 'fapiPublicV2': 'fapi',
                 'fapiPrivateV2': 'fapi',
-            },
-            'rateLimitMultipliers': {
-                'api': 1,
-                'sapi': 1,
-                'dapi': 2.5,
-                'fapi': 2.5,
-                'eapi': 15,
-                'papi': 2.5,
             },
             'api': {
                 // the API structure below will need 3-layer apidefs
@@ -11535,8 +11535,8 @@ export default class binance extends Exchange {
         if (domain === undefined) {
             return value;
         } else {
-            const multipliers = this.getProperty (this, 'rateLimitMultipliers', {});
-            const multiplier = this.safeValue (multipliers, domain, 1);
+            const rateLimits = this.getProperty (this, 'rateLimits', {});
+            const multiplier = this.safeInteger (rateLimits, domain, 1);
             return value * multiplier;
         }
     }

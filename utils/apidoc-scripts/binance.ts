@@ -17,7 +17,7 @@ class binance extends ParserBase {
     };
 
     RateLimitBaseValue = 10; // hardcoded
-    RateLimitCoefficients = {}; // will be filled dynamically
+    RateLimitBases = {}; // will be filled dynamically
 
 
     async init () {
@@ -30,7 +30,7 @@ class binance extends ParserBase {
         const final = {
             '_not_in_fetched': apiDiffs.removed,
             '_not_in_existing': apiDiffs.added,
-            'coefficients': this.RateLimitCoefficients,
+            'rateLimitBases': this.RateLimitBases,
         };
         // some endpoints are missing in generatedTree, so add them from binance.ts
         const completeApi = this.deepExtend (generatedApiTree, apiDiffs.removed);
@@ -61,7 +61,7 @@ class binance extends ParserBase {
             const minuteQuota = minuteInfo['limit'];
             const callsPer1000Ms = minuteQuota / 60;
             const msForOneCall = 1000 / callsPer1000Ms;
-            this.RateLimitCoefficients[type] = msForOneCall / this.RateLimitBaseValue;
+            this.RateLimitBases[type] = msForOneCall;
         }
     }
 
