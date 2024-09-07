@@ -662,12 +662,12 @@ export default class kucoin extends kucoinRest {
     async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
         /**
          * @method
-         * @name kucoin#watchOrderBook
+         * @name kucoin#unWatchOrderBook
          * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
          * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
          * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
          * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
-         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
