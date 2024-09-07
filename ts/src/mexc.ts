@@ -1024,6 +1024,15 @@ export default class mexc extends Exchange {
     }
 
     async fetchSpotMarkets (params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @name mexc#fetchMarkets
+         * @description retrieves data on all spot markets for mexc
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} an array of objects representing market data
+         */
         const response = await this.spotPublicGetExchangeInfo (params);
         //
         //     {
@@ -1142,6 +1151,15 @@ export default class mexc extends Exchange {
     }
 
     async fetchSwapMarkets (params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @name mexc#fetchMarkets
+         * @description retrieves data on all swap markets for mexc
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} an array of objects representing market data
+         */
         const response = await this.contractPublicGetDetail (params);
         //
         //     {
@@ -1730,6 +1748,8 @@ export default class mexc extends Exchange {
          * @method
          * @name mexc#fetchTickers
          * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#24hr-ticker-price-change-statistics
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-trend-data
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -1818,6 +1838,8 @@ export default class mexc extends Exchange {
          * @method
          * @name mexc#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#24hr-ticker-price-change-statistics
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-trend-data
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
@@ -2008,6 +2030,7 @@ export default class mexc extends Exchange {
          * @method
          * @name mexc#fetchBidsAsks
          * @description fetches the bid and ask price and volume for multiple markets
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#symbol-order-book-ticker
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
