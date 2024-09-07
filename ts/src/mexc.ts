@@ -2030,6 +2030,7 @@ export default class mexc extends Exchange {
          * @method
          * @name mexc#fetchBidsAsks
          * @description fetches the bid and ask price and volume for multiple markets
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#symbol-order-book-ticker
          * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/#/?id=ticker-structure}
