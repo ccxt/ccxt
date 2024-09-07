@@ -638,6 +638,22 @@ class kucoin extends kucoin$1 {
         //
         return await this.watchOrderBookForSymbols([symbol], limit, params);
     }
+    async unWatchOrderBook(symbol, params = {}) {
+        /**
+         * @method
+         * @name kucoin#unWatchOrderBook
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+         * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        return await this.unWatchOrderBookForSymbols([symbol], params);
+    }
     async watchOrderBookForSymbols(symbols, limit = undefined, params = {}) {
         /**
          * @method
@@ -690,6 +706,49 @@ class kucoin extends kucoin$1 {
         }
         const orderbook = await this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, params, subscription);
         return orderbook.limit();
+    }
+    async unWatchOrderBookForSymbols(symbols, params = {}) {
+        /**
+         * @method
+         * @name kucoin#unWatchOrderBookForSymbols
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
+         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+         * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string[]} symbols unified array of symbols
+         * @param {int} [limit] the maximum amount of order book entries to return
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.method] either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        const limit = this.safeInteger(params, 'limit');
+        params = this.omit(params, 'limit');
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, undefined, false);
+        const marketIds = this.marketIds(symbols);
+        const url = await this.negotiate(false);
+        let method = undefined;
+        [method, params] = this.handleOptionAndParams(params, 'watchOrderBook', 'method', '/market/level2');
+        if ((limit === 5) || (limit === 50)) {
+            method = '/spotMarket/level2Depth' + limit.toString();
+        }
+        const topic = method + ':' + marketIds.join(',');
+        const messageHashes = [];
+        const subscriptionHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            messageHashes.push('unsubscribe:orderbook:' + symbol);
+            subscriptionHashes.push('orderbook:' + symbol);
+        }
+        const subscription = {
+            'messageHashes': messageHashes,
+            'symbols': symbols,
+            'unsubscribe': true,
+            'topic': 'orderbook',
+            'subMessageHashes': subscriptionHashes,
+        };
+        return await this.unSubscribeMultiple(url, messageHashes, topic, messageHashes, params, subscription);
     }
     handleOrderBook(client, message) {
         //

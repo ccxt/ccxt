@@ -599,6 +599,20 @@ class kucoin(ccxt.async_support.kucoin):
         #
         return await self.watch_order_book_for_symbols([symbol], limit, params)
 
+    async def un_watch_order_book(self, symbol: str, params={}) -> Any:
+        """
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+        unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.method]: either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        return await self.un_watch_order_book_for_symbols([symbol], params)
+
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
         :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
@@ -643,6 +657,45 @@ class kucoin(ccxt.async_support.kucoin):
             }
         orderbook = await self.subscribe_multiple(url, messageHashes, topic, subscriptionHashes, params, subscription)
         return orderbook.limit()
+
+    async def un_watch_order_book_for_symbols(self, symbols: List[str], params={}) -> Any:
+        """
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+        unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str[] symbols: unified array of symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.method]: either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        limit = self.safe_integer(params, 'limit')
+        params = self.omit(params, 'limit')
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        marketIds = self.market_ids(symbols)
+        url = await self.negotiate(False)
+        method: Str = None
+        method, params = self.handle_option_and_params(params, 'watchOrderBook', 'method', '/market/level2')
+        if (limit == 5) or (limit == 50):
+            method = '/spotMarket/level2Depth' + str(limit)
+        topic = method + ':' + ','.join(marketIds)
+        messageHashes = []
+        subscriptionHashes = []
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            messageHashes.append('unsubscribe:orderbook:' + symbol)
+            subscriptionHashes.append('orderbook:' + symbol)
+        subscription = {
+            'messageHashes': messageHashes,
+            'symbols': symbols,
+            'unsubscribe': True,
+            'topic': 'orderbook',
+            'subMessageHashes': subscriptionHashes,
+        }
+        return await self.un_subscribe_multiple(url, messageHashes, topic, messageHashes, params, subscription)
 
     def handle_order_book(self, client: Client, message):
         #
