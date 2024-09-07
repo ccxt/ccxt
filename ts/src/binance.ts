@@ -11536,7 +11536,7 @@ export default class binance extends Exchange {
             return value;
         } else {
             const rateLimits = this.getProperty (this, 'rateLimits', {});
-            const rateLimitForDomain = this.safeInteger (rateLimits, domain, 1);
+            const rateLimitForDomain = this.safeInteger (rateLimits, domain);
             const multiplier = rateLimitForDomain / this.rateLimit;
             return value * multiplier;
         }
