@@ -274,7 +274,7 @@ export default class hyperliquid extends hyperliquidRest {
         return this.tickers;
     }
 
-    async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
         /**
          * @method
          * @name hyperliquid#unWatchTickers
