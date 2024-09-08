@@ -1305,10 +1305,11 @@ class bitget extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'commonCurrencies' => array(
-                'JADE' => 'Jade Protocol',
+                'APX' => 'AstroPepeX',
                 'DEGEN' => 'DegenReborn',
-                'TONCOIN' => 'TON',
+                'JADE' => 'Jade Protocol',
                 'OMNI' => 'omni', // conflict with Omni Network
+                'TONCOIN' => 'TON',
             ),
             'options' => array(
                 'timeframes' => array(

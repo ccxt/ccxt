@@ -1330,10 +1330,11 @@ class bitget(Exchange, ImplicitAPI):
             },
             'precisionMode': TICK_SIZE,
             'commonCurrencies': {
-                'JADE': 'Jade Protocol',
+                'APX': 'AstroPepeX',
                 'DEGEN': 'DegenReborn',
-                'TONCOIN': 'TON',
+                'JADE': 'Jade Protocol',
                 'OMNI': 'omni',  # conflict with Omni Network
+                'TONCOIN': 'TON',
             },
             'options': {
                 'timeframes': {

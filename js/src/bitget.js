@@ -1311,10 +1311,11 @@ export default class bitget extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'commonCurrencies': {
-                'JADE': 'Jade Protocol',
+                'APX': 'AstroPepeX',
                 'DEGEN': 'DegenReborn',
+                'JADE': 'Jade Protocol',
+                'OMNI': 'omni',
                 'TONCOIN': 'TON',
-                'OMNI': 'omni', // conflict with Omni Network
             },
             'options': {
                 'timeframes': {
