@@ -6,7 +6,7 @@ import { ArgumentsRequired, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Bool, Currency, Currencies, Dict, FundingRate, FundingRateHistory, Int, Leverage, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
+import type { Balances, Bool, Currency, Currencies, Dict, FundingRate, FundingRateHistory, Int, Market, OHLCV, OrderBook, Str, Strings, Ticker, Tickers, Trade, Transaction } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1232,7 +1232,7 @@ export default class coincatch extends Exchange {
          * @param {int} [since] timestamp in ms of the earliest trade to fetch
          * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @param {string} [params.tradeId] trade ID to fetch from
+         * @param {int} [params.until] timestamp in ms of the latest entry to fetch
          * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
         const methodName = 'fetchTrades';
@@ -1446,10 +1446,12 @@ export default class coincatch extends Exchange {
         if (since !== undefined) {
             const timeDelta = this.milliseconds () - since;
             const duration = this.parseTimeframe (timeframe);
-            const pageNo = this.parseToInt (timeDelta / (duration * maxEntriesPerRequest * 1000));
+            const currentLimit = limit ? limit : maxEntriesPerRequest;
+            const pageNo = this.parseToInt (timeDelta / (duration * currentLimit * 1000));
+            // todo handle pagination
             request['pageNo'] = pageNo;
-        }
-        if (limit !== undefined) {
+            request['pageSize'] = currentLimit;
+        } else if (limit !== undefined) {
             request['pageSize'] = limit;
         }
         const response = await this.publicGetApiMixV1MarketHistoryFundRate (this.extend (request, params));
@@ -1482,50 +1484,6 @@ export default class coincatch extends Exchange {
         }
         const sorted = this.sortBy (rates, 'timestamp');
         return this.filterBySinceLimit (sorted, since, limit) as FundingRateHistory[];
-    }
-
-    async fetchLeverage (symbol: string, params = {}): Promise<Leverage> {
-        /**
-         * @method
-         * @name coincatch#fetchLeverage
-         * @description fetch the set leverage for a market
-         * @see https://coincatch.github.io/github.io/en/mix/#get-symbol-leverage
-         * @param {string} symbol unified market symbol
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/#/?id=leverage-structure}
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request: Dict = {
-            'symbol': market['id'],
-        };
-        const response = await this.publicGetApiMixV1MarketSymbolLeverage (this.extend (request, params));
-        //
-        //     {
-        //         "code": "00000",
-        //         "msg": "success",
-        //         "requestTime": 1725652304131,
-        //         "data": {
-        //             "symbol": "ETHUSDT_UMCBL",
-        //             "minLeverage": "1",
-        //             "maxLeverage": "150"
-        //         }
-        //     }
-        //
-        const data = this.safeDict (response, 'data', {});
-        return this.parseLeverage (data, market);
-    }
-
-    parseLeverage (leverage: Dict, market: Market = undefined): Leverage {
-        const longLeverage = this.safeNumber (leverage, 'minLeverage');
-        const shortLeverage = this.safeNumber (leverage, 'maxLeverage');
-        return {
-            'info': leverage,
-            'symbol': market['symbol'],
-            'marginMode': undefined,
-            'longLeverage': longLeverage,
-            'shortLeverage': shortLeverage,
-        } as Leverage;
     }
 
     async fetchBalance (params = {}): Promise<Balances> {
@@ -1944,31 +1902,22 @@ export default class coincatch extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + path;
-        let query: Str = undefined;
-        query = this.urlencode (params);
-        if (api === 'public') {
+        let endpoint = '/' + path;
+        if (method === 'GET') {
+            const query = this.urlencode (params);
             if (query.length !== 0) {
-                url += '?' + query;
+                endpoint += '?' + query;
             }
-        } else {
+        }
+        if (api === 'private') {
             this.checkRequiredCredentials ();
-            let endpoint = '/' + path;
-            if (method !== 'GET') {
-                body = query;
-            } else {
-                if (query.length !== 0) {
-                    url += '?' + query;
-                    endpoint += '?' + query;
-                }
-            }
             const timestamp = this.milliseconds ().toString ();
-            let endpart = '';
-            if (body !== undefined) {
-                body = this.json (query);
-                endpart = body;
+            let suffix = '';
+            if (method !== 'GET') {
+                body = this.json (params);
+                suffix = body;
             }
-            const payload = timestamp + method + endpoint + endpart;
+            const payload = timestamp + method + endpoint + suffix;
             const signature = this.hmac (this.encode (payload), this.encode (this.secret), sha256, 'base64');
             headers = {
                 'ACCESS-KEY': this.apiKey,
@@ -1978,6 +1927,7 @@ export default class coincatch extends Exchange {
                 'Content-Type': 'application/json',
             };
         }
+        const url = this.urls['api'][api] + endpoint;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 }
