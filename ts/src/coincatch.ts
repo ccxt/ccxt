@@ -628,7 +628,19 @@ export default class coincatch extends Exchange {
         //         ]
         //     }
         const swapDMCBL = this.safeList (response, 'data', []);
-        swapMarkets = this.arrayConcat (swapUMCBL, swapDMCBL);
+        const swapDMCBLExtended = [];
+        for (let i = 0; i < swapDMCBL.length; i++) {
+            const market = swapDMCBL[i];
+            const supportMarginCoins = this.safeList (market, 'supportMarginCoins', []);
+            for (let j = 0; j < supportMarginCoins.length; j++) {
+                const settle = supportMarginCoins[j];
+                const obj = {
+                    'supportMarginCoins': [ settle ],
+                };
+                swapDMCBLExtended.push (this.extend (market, obj));
+            }
+        }
+        swapMarkets = this.arrayConcat (swapUMCBL, swapDMCBLExtended);
         const markets = this.arrayConcat (spotMarkets, swapMarkets);
         return this.parseMarkets (markets);
     }
