@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import hyperliquidRest from '../hyperliquid.js';
-import { ExchangeError } from '../base/errors.js';
+import { ExchangeError, UnsubscribeError } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
 import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
@@ -167,6 +167,35 @@ export default class hyperliquid extends hyperliquidRest {
         const message = this.extend (request, params);
         const orderbook = await this.watch (url, messageHash, message, messageHash);
         return orderbook.limit ();
+    }
+
+    async unWatchOrderBook (symbol: string, params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name hyperliquid#unWatchOrderBook
+         * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const subMessageHash = 'orderbook:' + symbol;
+        const messageHash = 'unsubscribe:' + subMessageHash;
+        const url = this.urls['api']['ws']['public'];
+        const id = this.nonce ().toString ();
+        const request: Dict = {
+            'id': id,
+            'method': 'unsubscribe',
+            'subscription': {
+                'type': 'l2Book',
+                'coin': market['swap'] ? market['base'] : market['id'],
+            },
+        };
+        const message = this.extend (request, params);
+        return await this.watch (url, messageHash, message, messageHash);
     }
 
     handleOrderBook (client, message) {
@@ -747,7 +776,73 @@ export default class hyperliquid extends hyperliquidRest {
         }
     }
 
+    handleOrderBookUnsubscription (client: Client, subscription: Dict) {
+        //
+        //        "subscription":{
+        //           "type":"l2Book",
+        //           "coin":"BTC",
+        //           "nSigFigs":5,
+        //           "mantissa":null
+        //        }
+        //
+        const coin = this.safeString (subscription, 'coin');
+        const marketId = this.coinToMarketId (coin);
+        const symbol = this.safeSymbol (marketId);
+        const subMessageHash = 'orderbook:' + symbol;
+        const messageHash = 'unsubscribe:' + subMessageHash;
+        if (messageHash in client.subscriptions) {
+            delete client.subscriptions[messageHash];
+        }
+        if (subMessageHash in client.subscriptions) {
+            delete client.subscriptions[subMessageHash];
+        }
+        const error = new UnsubscribeError (this.id + ' ' + subMessageHash);
+        client.reject (error, subMessageHash);
+        client.resolve (true, messageHash);
+        if (symbol in this.orderbooks) {
+            delete this.orderbooks[symbol];
+        }
+    }
+
+    handleSubscriptionResponse (client: Client, message) {
+        // {
+        //     "channel":"subscriptionResponse",
+        //     "data":{
+        //        "method":"unsubscribe",
+        //        "subscription":{
+        //           "type":"l2Book",
+        //           "coin":"BTC",
+        //           "nSigFigs":5,
+        //           "mantissa":null
+        //        }
+        //     }
+        // }
+        const data = this.safeDict (message, 'data', {});
+        const method = this.safeString (data, 'method');
+        if (method === 'unsubscribe') {
+            const subscription = this.safeDict (data, 'subscription', {});
+            const type = this.safeString (subscription, 'type');
+            if (type === 'l2Book') {
+                this.handleOrderBookUnsubscription (client, subscription);
+            }
+        }
+    }
+
     handleMessage (client: Client, message) {
+        //
+        // {
+        //     "channel":"subscriptionResponse",
+        //     "data":{
+        //        "method":"unsubscribe",
+        //        "subscription":{
+        //           "type":"l2Book",
+        //           "coin":"BTC",
+        //           "nSigFigs":5,
+        //           "mantissa":null
+        //        }
+        //     }
+        // }
+        //
         if (this.handleErrorMessage (client, message)) {
             return;
         }
@@ -761,6 +856,7 @@ export default class hyperliquid extends hyperliquidRest {
             'userFills': this.handleMyTrades,
             'webData2': this.handleWsTickers,
             'post': this.handleWsPost,
+            'subscriptionResponse': this.handleSubscriptionResponse,
         };
         const exacMethod = this.safeValue (methods, topic);
         if (exacMethod !== undefined) {
