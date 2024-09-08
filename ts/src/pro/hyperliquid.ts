@@ -274,6 +274,31 @@ export default class hyperliquid extends hyperliquidRest {
         return this.tickers;
     }
 
+    async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+        /**
+         * @method
+         * @name hyperliquid#unWatchTickers
+         * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+         * @param {string[]} symbols unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols, undefined, true);
+        const subMessageHash = 'tickers';
+        const messageHash = 'unsubscribe:' + subMessageHash;
+        const url = this.urls['api']['ws']['public'];
+        const request: Dict = {
+            'method': 'unsubscribe',
+            'subscription': {
+                'type': 'webData2', // allMids
+                'user': '0x0000000000000000000000000000000000000000',
+            },
+        };
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
+    }
+
     async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
@@ -852,6 +877,25 @@ export default class hyperliquid extends hyperliquidRest {
         }
     }
 
+    handleTickersUnsubscription (client: Client, subscription: Dict) {
+        //
+        const subMessageHash = 'tickers';
+        const messageHash = 'unsubscribe:' + subMessageHash;
+        if (messageHash in client.subscriptions) {
+            delete client.subscriptions[messageHash];
+        }
+        if (subMessageHash in client.subscriptions) {
+            delete client.subscriptions[subMessageHash];
+        }
+        const error = new UnsubscribeError (this.id + ' ' + subMessageHash);
+        client.reject (error, subMessageHash);
+        client.resolve (true, messageHash);
+        const symbols = Object.keys (this.tickers);
+        for (let i = 0; i < symbols.length; i++) {
+            delete this.tickers[symbols[i]];
+        }
+    }
+
     handleSubscriptionResponse (client: Client, message) {
         // {
         //     "channel":"subscriptionResponse",
@@ -886,6 +930,8 @@ export default class hyperliquid extends hyperliquidRest {
                 this.handleOrderBookUnsubscription (client, subscription);
             } else if (type === 'trades') {
                 this.handleTradesUnsubscription (client, subscription);
+            } else if (type === 'webData2') {
+                this.handleTickersUnsubscription (client, subscription);
             }
         }
     }
