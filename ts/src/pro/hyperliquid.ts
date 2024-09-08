@@ -169,7 +169,7 @@ export default class hyperliquid extends hyperliquidRest {
         return orderbook.limit ();
     }
 
-    async unWatchOrderBook (symbol: string, params = {}): Promise<OrderBook> {
+    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
         /**
          * @method
          * @name hyperliquid#unWatchOrderBook
@@ -450,17 +450,17 @@ export default class hyperliquid extends hyperliquidRest {
     }
 
     async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        /**
-         * @method
-         * @name hyperliquid#watchTrades
-         * @description watches information on multiple trades made in a market
-         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
-         * @param {string} symbol unified market symbol of the market trades were made in
-         * @param {int} [since] the earliest time in ms to fetch trades for
-         * @param {int} [limit] the maximum number of trade structures to retrieve
-         * @param {object} [params] extra parameters specific to the exchange API endpoint
-         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
-         */
+        // s
+        // @method
+        // @name hyperliquid#watchTrades
+        // @description watches information on multiple trades made in a market
+        // @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+        // @param {string} symbol unified market symbol of the market trades were made in
+        // @param {int} [since] the earliest time in ms to fetch trades for
+        // @param {int} [limit] the maximum number of trade structures to retrieve
+        // @param {object} [params] extra parameters specific to the exchange API endpoint
+        // @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+        //
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -479,6 +479,33 @@ export default class hyperliquid extends hyperliquidRest {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    async unWatchTrades (symbol: string, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name hyperliquid#unWatchTrades
+         * @description unWatches information on multiple trades made in a market
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+         * @param {string} symbol unified market symbol of the market trades were made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=trade-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const subMessageHash = 'trade:' + symbol;
+        const messageHash = 'unsubscribe:' + subMessageHash;
+        const url = this.urls['api']['ws']['public'];
+        const request: Dict = {
+            'method': 'unsubscribe',
+            'subscription': {
+                'type': 'trades',
+                'coin': market['swap'] ? market['base'] : market['id'],
+            },
+        };
+        const message = this.extend (request, params);
+        return await this.watch (url, messageHash, message, messageHash);
     }
 
     handleTrades (client: Client, message) {
@@ -804,6 +831,27 @@ export default class hyperliquid extends hyperliquidRest {
         }
     }
 
+    handleTradesUnsubscription (client: Client, subscription: Dict) {
+        //
+        const coin = this.safeString (subscription, 'coin');
+        const marketId = this.coinToMarketId (coin);
+        const symbol = this.safeSymbol (marketId);
+        const subMessageHash = 'trade:' + symbol;
+        const messageHash = 'unsubscribe:' + subMessageHash;
+        if (messageHash in client.subscriptions) {
+            delete client.subscriptions[messageHash];
+        }
+        if (subMessageHash in client.subscriptions) {
+            delete client.subscriptions[subMessageHash];
+        }
+        const error = new UnsubscribeError (this.id + ' ' + subMessageHash);
+        client.reject (error, subMessageHash);
+        client.resolve (true, messageHash);
+        if (symbol in this.trades) {
+            delete this.trades[symbol];
+        }
+    }
+
     handleSubscriptionResponse (client: Client, message) {
         // {
         //     "channel":"subscriptionResponse",
@@ -817,6 +865,18 @@ export default class hyperliquid extends hyperliquidRest {
         //        }
         //     }
         // }
+        //
+        //  {
+        //      "channel":"subscriptionResponse",
+        //      "data":{
+        //         "method":"unsubscribe",
+        //         "subscription":{
+        //            "type":"trades",
+        //            "coin":"PURR/USDC"
+        //         }
+        //      }
+        //  }
+        //
         const data = this.safeDict (message, 'data', {});
         const method = this.safeString (data, 'method');
         if (method === 'unsubscribe') {
@@ -824,6 +884,8 @@ export default class hyperliquid extends hyperliquidRest {
             const type = this.safeString (subscription, 'type');
             if (type === 'l2Book') {
                 this.handleOrderBookUnsubscription (client, subscription);
+            } else if (type === 'trades') {
+                this.handleTradesUnsubscription (client, subscription);
             }
         }
     }
