@@ -2175,6 +2175,23 @@ export default class mexc extends Exchange {
     }
 
     async createSpotOrder (market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @name mexc#createSpotOrder
+         * @description create a trade order
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
         await this.loadMarkets ();
         const request = this.createSpotOrderRequest (market, type, side, amount, price, marginMode, params);
         const response = await this.spotPrivatePostOrder (this.extend (request, params));
@@ -2206,6 +2223,32 @@ export default class mexc extends Exchange {
     }
 
     async createSwapOrder (market, type, side, amount, price = undefined, marginMode = undefined, params = {}) {
+        /**
+         * @ignore
+         * @method
+         * @name mexc#createOrder
+         * @description create a trade order
+         * @see https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
+         * @see https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
+         * @param {float} [params.triggerPrice] The price at which a trigger order is triggered at
+         * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
+         * @param {bool} [params.reduceOnly] indicates if this order is to reduce the size of a position
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} [params.leverage] leverage is necessary on isolated margin
+         * @param {long} [params.positionId] it is recommended to fill in this parameter when closing a position
+         * @param {string} [params.externalOid] external order ID
+         * @param {int} [params.positionMode] 1:hedge, 2:one-way, default: the user's current config
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
         await this.loadMarkets ();
         const symbol = market['symbol'];
         const unavailableContracts = this.safeValue (this.options, 'unavailableContracts', {});
