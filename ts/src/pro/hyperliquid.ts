@@ -736,7 +736,7 @@ export default class hyperliquid extends hyperliquidRest {
         client.resolve (ohlcv, messageHash);
     }
 
-    handleWsPost (client: Client, message: any) {
+    handleWsPost (client: Client, message: Dict) {
         //    {
         //         channel: "post",
         //         data: {
