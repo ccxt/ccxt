@@ -669,6 +669,35 @@ export default class hyperliquid extends hyperliquidRest {
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
     }
 
+    async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
+        /**
+         * @method
+         * @name hyperliquid#unWatchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, close price, and the volume of a market
+         * @see https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/api/websocket/subscriptions
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const url = this.urls['api']['ws']['public'];
+        const request: Dict = {
+            'method': 'unsubscribe',
+            'subscription': {
+                'type': 'candle',
+                'coin': market['swap'] ? market['base'] : market['id'],
+                'interval': timeframe,
+            },
+        };
+        const subMessageHash = 'candles:' + timeframe + ':' + symbol;
+        const messagehash = 'unsubscribe:' + subMessageHash;
+        const message = this.extend (request, params);
+        return await this.watch (url, messagehash, message, messagehash);
+    }
+
     handleOHLCV (client: Client, message) {
         //
         //     {
@@ -896,6 +925,30 @@ export default class hyperliquid extends hyperliquidRest {
         }
     }
 
+    handleOHLCVUnsubscription (client: Client, subscription: Dict) {
+        const coin = this.safeString (subscription, 'coin');
+        const marketId = this.coinToMarketId (coin);
+        const symbol = this.safeSymbol (marketId);
+        const interval = this.safeString (subscription, 'interval');
+        const timeframe = this.findTimeframe (interval);
+        const subMessageHash = 'candles:' + timeframe + ':' + symbol;
+        const messageHash = 'unsubscribe:' + subMessageHash;
+        if (messageHash in client.subscriptions) {
+            delete client.subscriptions[messageHash];
+        }
+        if (subMessageHash in client.subscriptions) {
+            delete client.subscriptions[subMessageHash];
+        }
+        const error = new UnsubscribeError (this.id + ' ' + subMessageHash);
+        client.reject (error, subMessageHash);
+        client.resolve (true, messageHash);
+        if (symbol in this.ohlcvs) {
+            if (timeframe in this.ohlcvs[symbol]) {
+                delete this.ohlcvs[symbol][timeframe];
+            }
+        }
+    }
+
     handleSubscriptionResponse (client: Client, message) {
         // {
         //     "channel":"subscriptionResponse",
@@ -932,6 +985,8 @@ export default class hyperliquid extends hyperliquidRest {
                 this.handleTradesUnsubscription (client, subscription);
             } else if (type === 'webData2') {
                 this.handleTickersUnsubscription (client, subscription);
+            } else if (type === 'candle') {
+                this.handleOHLCVUnsubscription (client, subscription);
             }
         }
     }
