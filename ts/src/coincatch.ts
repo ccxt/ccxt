@@ -111,6 +111,7 @@ export default class coincatch extends Exchange {
                 'sandbox': false,
                 'setLeverage': false,
                 'setMargin': false,
+                'setMarginMode': true,
                 'setPositionMode': false,
                 'transfer': false,
                 'withdraw': true,
