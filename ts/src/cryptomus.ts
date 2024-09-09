@@ -5,8 +5,9 @@ import Exchange from './abstract/cryptomus.js';
 // import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ContractUnavailable, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidNonce, InvalidOrder, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
 // import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { md5 } from './static_dependencies/noble-hashes/md5.js';
 // import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Currencies, Dict, Int, Market, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Currencies, Dict, Int, Market, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -56,7 +57,7 @@ export default class cryptomus extends Exchange {
                 'createTrailingPercentOrder': false,
                 'createTriggerOrder': false,
                 'fetchAccounts': false,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchCanceledAndClosedOrders': false,
                 'fetchCanceledOrders': false,
                 'fetchClosedOrder': false,
@@ -582,13 +583,79 @@ export default class cryptomus extends Exchange {
         }, market);
     }
 
+    async fetchBalance (params = {}): Promise<Balances> {
+        /**
+         * @method
+         * @name cryptomus#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://doc.cryptomus.com/personal/converts/balance
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/#/?id=balance-structure}
+         */
+        await this.loadMarkets ();
+        const request: Dict = {};
+        const response = await this.privateGetV2UserApiBalance (this.extend (request, params));
+        //
+        //
+        return this.parseBalance (response);
+    }
+
+    parseBalance (balance): Balances {
+        //
+        //     {
+        //         "balances": [
+        //             {
+        //                 "asset":"USDT",
+        //                 "assetId":"USDT",
+        //                 "assetName":"USDT",
+        //                 "total":"40",
+        //                 "free":"40",
+        //                 "locked":"0"
+        //             },
+        //             ...
+        //         ],
+        //         "userId": "1732885739572845312"
+        //     }
+        //
+        const result: Dict = {
+            'info': balance,
+        };
+        const balances = this.safeList (balance, 'balances', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balanceEntry = balances[i];
+            const currencyId = this.safeString (balanceEntry, 'asset');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeString (balanceEntry, 'total');
+            account['free'] = this.safeString (balanceEntry, 'free');
+            account['used'] = this.safeString (balanceEntry, 'locked');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const endpoint = this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         let url = this.urls['api'][api] + '/' + endpoint;
-        const query = this.urlencode (params);
-        if (query.length !== 0) {
-            url += '?' + query;
+        if (api === 'private') {
+            this.checkRequiredCredentials ();
+            let jsonParams = '';
+            if (method !== 'GET') {
+                jsonParams = this.json (params);
+                body = jsonParams;
+            }
+            const signature = this.hmac (this.encode (jsonParams), this.encode (this.secret), md5);
+            headers = {
+                'userId': this.apiKey,
+                'sign': signature,
+                'Content-Type': 'application/json',
+            };
+        } else {
+            const query = this.urlencode (params);
+            if (query.length !== 0) {
+                url += '?' + query;
+            }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
