@@ -7121,7 +7121,7 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchTransfers () is not supported yet');
     }
 
-    cleanUnsubscription (client: Client, subHash: string, unsubHash: string) {
+    cleanUnsubscription (client, subHash: string, unsubHash: string) {
         if (unsubHash in client.subscriptions) {
             delete client.subscriptions[unsubHash];
         }
