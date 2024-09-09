@@ -607,6 +607,7 @@ class gate extends gate$1 {
                 'MPH': 'MORPHER',
                 'POINT': 'GATEPOINT',
                 'RAI': 'RAIREFLEXINDEX',
+                'RED': 'RedLang',
                 'SBTC': 'SUPERBITCOIN',
                 'TNC': 'TRINITYNETWORKCREDIT',
                 'VAI': 'VAIOT',

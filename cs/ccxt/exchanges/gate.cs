@@ -597,6 +597,7 @@ public partial class gate : Exchange
                 { "MPH", "MORPHER" },
                 { "POINT", "GATEPOINT" },
                 { "RAI", "RAIREFLEXINDEX" },
+                { "RED", "RedLang" },
                 { "SBTC", "SUPERBITCOIN" },
                 { "TNC", "TRINITYNETWORKCREDIT" },
                 { "VAI", "VAIOT" },
