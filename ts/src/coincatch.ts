@@ -356,6 +356,7 @@ export default class coincatch extends Exchange {
             'exceptions': {
                 'exact': {
                     // {"code":"40034","msg":"Parameter BTCUSDT_UMCBL does not exist","requestTime":1725380736387,"data":null}
+                    // {"code":"40808","msg":"Parameter verification exception size checkBDScale error value=0.00001 checkScale=4","requestTime":1725916628171,"data":null}
                 },
                 'broad': {},
             },
@@ -2108,48 +2109,6 @@ export default class coincatch extends Exchange {
         return this.extend (request, params);
     }
 
-    parseOrder (order, market = undefined): Order {
-        //
-        // createOrder spot
-        //     {
-        //         "orderId": "1217143186968068096",
-        //         "clientOrderId": "8fa3eb89-2377-4519-a199-35d5db9ed262"
-        //     }
-        //
-        market = this.safeMarket (undefined, market);
-        return this.safeOrder ({
-            'id': this.safeString (order, 'orderId'),
-            'clientOrderId': this.safeString (order, 'clientOrderId'),
-            'datetime': undefined,
-            'timestamp': undefined,
-            'lastTradeTimestamp': undefined,
-            'lastUpdateTimestamp': undefined,
-            'status': undefined,
-            'symbol': market['symbol'],
-            'type': undefined,
-            'timeInForce': undefined,
-            'side': undefined,
-            'price': undefined,
-            'average': undefined,
-            'amount': undefined,
-            'filled': undefined,
-            'remaining': undefined,
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
-            'takeProfitPrice': undefined,
-            'stopLossPrice': undefined,
-            'cost': undefined,
-            'trades': undefined,
-            'fee': {
-                'currency': undefined,
-                'amount': undefined,
-            },
-            'reduceOnly': undefined,
-            'postOnly': undefined,
-            'info': order,
-        }, market);
-    }
-
     encodeTimeInForce (timeInForce: Str): Str {
         const timeInForceMap = {
             'GTC': 'normal',
@@ -2158,6 +2117,218 @@ export default class coincatch extends Exchange {
             'PO': 'post_only',
         };
         return this.safeString (timeInForceMap, timeInForce, timeInForce);
+    }
+
+    async fetchOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name coincatch#fetchOrder
+         * @description fetches information on an order made by the user
+         * @see https://coincatch.github.io/github.io/en/spot/#get-order-details
+         * @see https://coincatch.github.io/github.io/en/mix/#get-order-details
+         * @param {string} id the order id
+         * @param {string} symbol unified symbol of the market the order was made in (is mandatory for swap)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.type] 'spot' or 'swap' - the type of the market to fetch entry for (default 'spot')
+         * @param {string} [params.clientOrderId] a unique id for the order that can be used as an alternative for the id
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        const methodName = 'fetchOrder';
+        await this.loadMarkets ();
+        const request: Dict = {};
+        let clientOrderId: Str = undefined;
+        [ clientOrderId, params ] = this.handleParamString (params, 'clientOrderId');
+        if (clientOrderId === undefined) {
+            request['orderId'] = id;
+        }
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let marketType = 'spot';
+        [ marketType, params ] = this.handleMarketTypeAndParams (methodName, market, params, marketType);
+        let response = undefined;
+        let order: Dict = undefined;
+        if (marketType === 'spot') {
+            // user could query cancelled/filled order details within 24 hours; Noted that after 24 hours should use fetchOrders
+            response = await this.privatePostApiSpotV1TradeOrderInfo (this.extend (request, params));
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1725918004434,
+            //         "data": [
+            //             {
+            //                 "accountId": "1002820815393",
+            //                 "symbol": "ETHUSDT_SPBL",
+            //                 "orderId": "1217143186968068096",
+            //                 "clientOrderId": "8fa3eb89-2377-4519-a199-35d5db9ed262",
+            //                 "price": "0",
+            //                 "quantity": "10.0000000000000000",
+            //                 "orderType": "market",
+            //                 "side": "buy",
+            //                 "status": "full_fill",
+            //                 "fillPrice": "2340.5500000000000000",
+            //                 "fillQuantity": "0.0042000000000000",
+            //                 "fillTotalAmount": "9.8303100000000000",
+            //                 "enterPointSource": "API",
+            //                 "feeDetail": "{
+            //                     \"ETH\": {
+            //                         \"deduction\": false,
+            //                         \"feeCoinCode\": \"ETH\",
+            //                         \"totalDeductionFee\": 0,
+            //                         \"totalFee\": -0.0000042000000000},
+            //                         \"newFees\": {
+            //                         \"c\": 0,
+            //                         \"d\": 0,
+            //                         \"deduction\": false,
+            //                         \"r\": -0.0000042,
+            //                         \"t\": -0.0000042,
+            //                         \"totalDeductionFee\": 0
+            //                     }
+            //                 }",
+            //                 "orderSource": "market",
+            //                 "cTime": "1725915469877"
+            //             }
+            //         ]
+            //     }
+            //
+            const data = this.safeList (response, 'data', []);
+            order = this.safeDict (data, 0, {});
+        } else if (marketType === 'swap') {
+            if (market === undefined) {
+                throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a symbol argument for ' + marketType + ' type of markets');
+            }
+            request['symbol'] = market['id'];
+            if (clientOrderId !== undefined) {
+                request['clientOid'] = clientOrderId;
+            }
+            response = await this.privateGetApiMixV1OrderDetail (this.extend (request, params));
+            //
+            //
+            order = this.safeDict (response, 'data', {});
+        } else {
+            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
+        }
+        return this.parseOrder (order, market);
+    }
+
+    parseOrder (order, market = undefined): Order {
+        //
+        // createOrder spot
+        //     {
+        //         "orderId": "1217143186968068096",
+        //         "clientOrderId": "8fa3eb89-2377-4519-a199-35d5db9ed262"
+        //     }
+        //
+        // privatePostApiSpotV1TradeOrderInfo
+        //     {
+        //         "accountId": "1002820815393",
+        //         "symbol": "ETHUSDT_SPBL",
+        //         "orderId": "1217143186968068096",
+        //         "clientOrderId": "8fa3eb89-2377-4519-a199-35d5db9ed262",
+        //         "price": "0",
+        //         "quantity": "10.0000000000000000",
+        //         "orderType": "market",
+        //         "side": "buy",
+        //         "status": "full_fill",
+        //         "fillPrice": "2340.5500000000000000",
+        //         "fillQuantity": "0.0042000000000000",
+        //         "fillTotalAmount": "9.8303100000000000",
+        //         "enterPointSource": "API",
+        //         "feeDetail": "{
+        //             \"ETH\": {
+        //                 \"deduction\": false,
+        //                 \"feeCoinCode\": \"ETH\",
+        //                 \"totalDeductionFee\": 0,
+        //                 \"totalFee\": -0.0000042000000000},
+        //                 \"newFees\": {
+        //                     \"c\": 0,
+        //                     \"d\": 0,
+        //                     \"deduction\": false,
+        //                     \"r\": -0.0000042,
+        //                     \"t\": -0.0000042,
+        //                     \"totalDeductionFee\": 0
+        //             }
+        //         }",
+        //         "orderSource": "market",
+        //         "cTime": "1725915469877"
+        //     }
+        //
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (order, 'cTime');
+        const price = this.omitZero (this.safeString (order, 'price')); // price is zero for market orders
+        const type = this.safeString (order, 'orderType');
+        const side = this.safeString (order, 'side');
+        let amount = this.safeString (order, 'quantity');
+        if ((type === 'market') && (side === 'buy')) {
+            amount = undefined; // cost is used instead of amount for market buy orders
+        }
+        const status = this.safeString (order, 'status');
+        const feeDetailString = this.safeString (order, 'feeDetail');
+        let feeCurrency = undefined;
+        let feeAmount = undefined;
+        if (feeDetailString !== undefined) {
+            [ feeCurrency, feeAmount ] = this.parseFeeDetailString (feeDetailString);
+        }
+        return this.safeOrder ({
+            'id': this.safeString (order, 'orderId'),
+            'clientOrderId': this.safeString (order, 'clientOrderId'),
+            'datetime': this.iso8601 (timestamp),
+            'timestamp': timestamp,
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': undefined,
+            'status': this.parseOrderStatus (status),
+            'symbol': market['symbol'],
+            'type': type,
+            'timeInForce': undefined,
+            'side': side,
+            'price': price,
+            'average': this.safeString (order, 'fillPrice'),
+            'amount': amount,
+            'filled': this.safeString (order, 'fillQuantity'),
+            'remaining': undefined,
+            'stopPrice': undefined,
+            'triggerPrice': undefined,
+            'takeProfitPrice': undefined,
+            'stopLossPrice': undefined,
+            'cost': this.safeString (order, 'fillTotalAmount'),
+            'trades': undefined,
+            'fee': {
+                'currency': feeCurrency,
+                'amount': feeAmount,
+            },
+            'reduceOnly': undefined,
+            'postOnly': undefined,
+            'info': order,
+        }, market);
+    }
+
+    parseOrderStatus (status: Str): Str {
+        const satuses = {
+            'init': 'open',
+            'new': 'open',
+            'partially_filled': 'open',
+            'full_fill': 'closed',
+            'filled': 'closed',
+            'canceled': 'canceled',
+        };
+        return this.safeString (satuses, status, status); // todo check other statuses
+    }
+
+    parseFeeDetailString (feeDetailString: Str): [ Str, Str] {
+        let feeCurrency: Str = undefined;
+        let feeAmount: Str = undefined;
+        const feeDetail = this.parseJson (feeDetailString);
+        if (feeDetail) {
+            const keys = Object.keys (feeDetail);
+            const feeCurrencyId = this.safeString (keys, 0);
+            feeCurrency = this.safeCurrencyCode (feeCurrencyId);
+            const feeEntry = this.safeValue (feeDetail, feeCurrencyId, {});
+            feeAmount = this.safeString (feeEntry, 'totalFee');
+        }
+        return [ feeCurrency, feeAmount ];
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
