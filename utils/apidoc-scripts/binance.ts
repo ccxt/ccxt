@@ -25,7 +25,8 @@ class binance extends ParserBase {
         const spot = await this.retrieveSpotDocs ();
         const misc = await this.retrievePortalDocs ();
         const all = Object.assign (spot, misc);
-        const generatedApiTree = this.deepExtend (all, manualOverrides);
+        let generatedApiTree = this.deepExtend (all, manualOverrides);
+        generatedApiTree = this.multiplyRateLimits (generatedApiTree);
         const apiDiffs = this.createApiDiff (generatedApiTree);
         const final = {
             '_not_in_fetched': apiDiffs.removed,
@@ -227,6 +228,48 @@ class binance extends ParserBase {
             this.cacheSet (undefined, responses);
         }
         return this.cacheGet ();
+    }
+
+    multiplyRateLimits (generatedApiTree) {
+        const apiDomainMap = {
+            'public': 'api',
+            'private': 'api',
+            'sapi': 'sapi',
+            'sapiV1': 'sapi',
+            'sapiV2': 'sapi',
+            'sapiV3': 'sapi',
+            'sapiV4': 'sapi',
+            'dapiPublic': 'dapi',
+            'dapiPrivate': 'dapi',
+            'dapiPublicV2': 'dapi',
+            'dapiPrivateV2': 'dapi',
+            'fapiPublic': 'fapi',
+            'fapiPrivate': 'fapi',
+            'fapiPublicV2': 'fapi',
+            'fapiPrivateV2': 'fapi',
+        };
+        const rootKeys = Object.keys (generatedApiTree);
+        for (const rootKey of rootKeys) {
+            const root = generatedApiTree[rootKey];
+            const apiDomain = apiDomainMap[rootKey];
+            const rlBase = apiDomain ? this.RateLimitBases[apiDomain] : this.RateLimitBaseValue;
+            const coefficient = rlBase / this.RateLimitBaseValue;
+            const reqMethods = Object.keys (root);
+            for (const reqMethod of reqMethods) {
+                const endpoints = root[reqMethod];
+                const paths = Object.keys (endpoints);
+                for (const path of paths) {
+                    const endpoint = endpoints[path];
+                    if (typeof endpoint === 'object') {
+                        endpoint['cost'] *= coefficient;
+                        endpoint['noSymbol'] *= coefficient;
+                    } else {
+                        endpoints[path] *= coefficient;
+                    }
+                }
+            }
+        }
+        return generatedApiTree;
     }
 }
 

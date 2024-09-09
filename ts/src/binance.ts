@@ -23,6 +23,7 @@ export default class binance extends Exchange {
             'id': 'binance',
             'name': 'Binance',
             'countries': [ 'JP', 'MT' ], // Japan, Malta
+            'rateLimit': 10,
             'certified': true,
             'pro': true,
             // new metainfo2 interface
@@ -231,33 +232,6 @@ export default class binance extends Exchange {
                 ],
                 'api_management': 'https://www.binance.com/en/usercenter/settings/api-management',
                 'fees': 'https://www.binance.com/en/fee/schedule',
-            },
-            'rateLimit': 10,
-            // these are the base domains: api, sapi, fapi, dapi, papi, eapi
-            'rateLimits': {
-                'api': 10,
-                'sapi': 10,
-                'dapi': 25,
-                'fapi': 25,
-                'eapi': 150,
-                'papi': 25,
-            },
-            'apiDomainMap': {
-                'public': 'api',
-                'private': 'api',
-                'sapi': 'sapi',
-                'sapiV1': 'sapi',
-                'sapiV2': 'sapi',
-                'sapiV3': 'sapi',
-                'sapiV4': 'sapi',
-                'dapiPublic': 'dapi',
-                'dapiPrivate': 'dapi',
-                'dapiPublicV2': 'dapi',
-                'dapiPrivateV2': 'dapi',
-                'fapiPublic': 'fapi',
-                'fapiPrivate': 'fapi',
-                'fapiPublicV2': 'fapi',
-                'fapiPrivateV2': 'fapi',
             },
             'api': {
                 // the API structure below will need 3-layer apidefs
@@ -11508,7 +11482,7 @@ export default class binance extends Exchange {
         return undefined;
     }
 
-    calculateRateLimiterCostInner (api, method, path, params, config = {}) {
+    calculateRateLimiterCost (api, method, path, params, config = {}) {
         if (('noCoin' in config) && !('coin' in params)) {
             return config['noCoin'];
         } else if (('noSymbol' in config) && !('symbol' in params)) {
@@ -11526,20 +11500,6 @@ export default class binance extends Exchange {
             }
         }
         return this.safeValue (config, 'cost', 1);
-    }
-
-    calculateRateLimiterCost (api, method, path, params, config = {}) {
-        const value = this.calculateRateLimiterCostInner (api, method, path, params, config);
-        const existingMap = this.getProperty (this, 'apiDomainMap', {});
-        const domain = this.safeString (existingMap, api);
-        if (domain === undefined) {
-            return value;
-        } else {
-            const rateLimits = this.getProperty (this, 'rateLimits', {});
-            const rateLimitForDomain = this.safeInteger (rateLimits, domain);
-            const multiplier = rateLimitForDomain / this.rateLimit;
-            return value * multiplier;
-        }
     }
 
     async request (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined, config = {}) {
