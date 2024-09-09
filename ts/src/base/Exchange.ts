@@ -2743,7 +2743,6 @@ export default class Exchange {
                 featuresContainer['createOrder']['stopLoss'] = value;
                 featuresContainer['createOrder']['takeProfit'] = value;
             }
-            featuresContainer['createOrder'] = this.omit (featuresContainer['createOrder'], 'attachedStopLossTakeProfit');
         }
         return featuresContainer;
     }
