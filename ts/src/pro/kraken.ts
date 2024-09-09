@@ -897,7 +897,7 @@ export default class kraken extends krakenRest {
             },
         };
         const request = this.deepExtend (subscribe, params);
-        const result = await this.watch (url, messageHash, request, subscriptionHash);
+        const result = await this.watch (url, messageHash, request, subscriptionHash, request);
         if (this.newUpdates) {
             limit = result.getLimit (symbol, limit);
         }
@@ -1505,10 +1505,24 @@ export default class kraken extends krakenRest {
                     exception = new broad[broadKey] (errorMessage);
                 }
                 client.reject (exception, requestId);
+                this.rejectClientByRequestId (client, requestId, exception);
                 return false;
             }
         }
         return true;
+    }
+
+    rejectClientByRequestId (client: Client, requestId: any = undefined, exception: any = undefined) {
+        if (!this.valueIsDefined (requestId)) {
+            return;
+        }
+        const keys = Object.keys (client.subscriptions);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            if (client.subscriptions[key]['reqid'] === requestId) {
+                client.reject (exception, key);
+            }
+        }
     }
 
     handleMessage (client: Client, message) {
