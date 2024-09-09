@@ -552,8 +552,6 @@ export default class kucoin extends kucoinRest {
          * @description unWatches trades stream
          * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
