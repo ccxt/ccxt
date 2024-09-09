@@ -1505,14 +1505,14 @@ export default class kraken extends krakenRest {
                     exception = new broad[broadKey] (errorMessage);
                 }
                 client.reject (exception, requestId);
-                this.rejectClientByRequestId (client, requestId, exception);
+                this.clientRejectByRequestId (client, requestId, exception);
                 return false;
             }
         }
         return true;
     }
 
-    rejectClientByRequestId (client: Client, requestId: any = undefined, exception: any = undefined) {
+    clientRejectByRequestId (client: Client, requestId: any = undefined, exception: any = undefined) {
         if (!this.valueIsDefined (requestId)) {
             return;
         }
