@@ -75,9 +75,6 @@ function assertStructure (exchange: Exchange, skippedProperties: object, method:
                 continue;
             }
             assert (key in entry, '"' + stringValue (key) + '" key is missing from structure' + logText);
-            if (key in skippedProperties) {
-                continue;
-            }
             const emptyAllowedForThisKey = exchange.inArray (key, emptyAllowedFor);
             const value = entry[key];
             // check when:

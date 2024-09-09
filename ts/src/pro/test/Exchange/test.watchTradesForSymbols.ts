@@ -25,11 +25,11 @@ async function testWatchTradesForSymbols (exchange: Exchange, skippedProperties:
         for (let i = 0; i < response.length; i++) {
             const trade = response[i];
             symbol = trade['symbol'];
-            testTrade (exchange, skippedProperties, method, trade, symbol, now);
+            testTrade (exchange, skippedProperties, method, trade, symbol, now, true);
             testSharedMethods.assertInArray (exchange, skippedProperties, method, trade, 'symbol', symbols);
         }
         if (!('timestamp' in skippedProperties)) {
-            testSharedMethods.assertTimestampOrder (exchange, method, symbol, response);
+            testSharedMethods.assertTimestampOrder (exchange, method, symbol, response, true);
         }
     }
 }

@@ -21,7 +21,7 @@ async function testWatchMyTrades (exchange: Exchange, skippedProperties: object,
         testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, response, symbol);
         now = exchange.milliseconds ();
         for (let i = 0; i < response.length; i++) {
-            testTrade (exchange, skippedProperties, method, response[i], symbol, now);
+            testTrade (exchange, skippedProperties, method, response[i], symbol, now, false);
         }
         testSharedMethods.assertTimestampOrder (exchange, method, symbol, response);
     }

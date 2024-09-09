@@ -1,7 +1,7 @@
 import { Exchange } from "../../../../ccxt";
 import testSharedMethods from './test.sharedMethods.js';
 
-function testTrade (exchange: Exchange, skippedProperties: object, method: string, entry: object, symbol: string, now: number) {
+function testTrade (exchange: Exchange, skippedProperties: object, method: string, entry: object, symbol: string, now: number, isPublicTrade: boolean) {
     const format = {
         'info': { },
         'id': '12345-67890:09876/54321', // string trade id
@@ -18,14 +18,19 @@ function testTrade (exchange: Exchange, skippedProperties: object, method: strin
         'fee': {},
     };
     // todo: add takeOrMaker as mandatory (atm, many exchanges fail)
-    // removed side because some public endpoints return trades without side
     const emptyAllowedFor = [ 'fees', 'fee', 'symbol', 'order', 'id', 'takerOrMaker', 'timestamp', 'datetime' ];
     testSharedMethods.assertStructure (exchange, skippedProperties, method, entry, format, emptyAllowedFor);
     testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, entry, now);
     testSharedMethods.assertSymbol (exchange, skippedProperties, method, entry, 'symbol', symbol);
     //
     testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'side', [ 'buy', 'sell' ]);
-    testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'takerOrMaker', [ 'taker', 'maker' ]);
+    if (isPublicTrade) {
+        // for public trades (fetchTrades & watchTrades), it must be either 'taker' or undefined
+        testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'takerOrMaker', [ 'taker', undefined ]);
+    } else {
+        // for private trades (fetchMyTrades & watchMyTrades), it can be any
+        testSharedMethods.assertInArray (exchange, skippedProperties, method, entry, 'takerOrMaker', [ 'taker', 'maker', undefined ]);
+    }
     testSharedMethods.assertFeeStructure (exchange, skippedProperties, method, entry, 'fee');
     if (!('fees' in skippedProperties)) {
         // todo: remove undefined check and probably non-empty array check later
