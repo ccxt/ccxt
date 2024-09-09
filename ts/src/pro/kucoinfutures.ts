@@ -597,7 +597,7 @@ export default class kucoinfutures extends kucoinfuturesRest {
         /**
          * @method
          * @name kucoinfutures#unWatchTrades
-         * @descriptionunWatches trades stream
+         * @description unWatches trades stream
          * @see https://docs.kucoin.com/futures/#execution-data
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {object} [params] extra parameters specific to the exchange API endpoint
