@@ -1312,18 +1312,9 @@ export default class kucoinfutures extends kucoinfuturesRest {
             for (let i = 0; i < messageHashes.length; i++) {
                 const messageHash = messageHashes[i];
                 const subHash = subMessageHashes[i];
-                if (messageHash in client.subscriptions) {
-                    delete client.subscriptions[messageHash];
-                }
-                if (subHash in client.subscriptions) {
-                    delete client.subscriptions[subHash];
-                }
-                const error = new UnsubscribeError (this.id + ' ' + subHash);
-                client.reject (error, subHash);
-                client.resolve (true, messageHash);
-                // add cleanSubscription here.
-                // this.cleanCache (subscription);
+                this.cleanUnsubscription (client, subHash, messageHash);
             }
+            this.cleanCache (subscription);
         }
     }
 
