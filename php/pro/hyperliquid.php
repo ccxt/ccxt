@@ -7,7 +7,6 @@ namespace ccxt\pro;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\UnsubscribeError;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -876,15 +875,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $symbol = $this->safe_symbol($marketId);
         $subMessageHash = 'orderbook:' . $symbol;
         $messageHash = 'unsubscribe:' . $subMessageHash;
-        if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
-            unset($client->subscriptions[$messageHash]);
-        }
-        if (is_array($client->subscriptions) && array_key_exists($subMessageHash, $client->subscriptions)) {
-            unset($client->subscriptions[$subMessageHash]);
-        }
-        $error = new UnsubscribeError ($this->id . ' ' . $subMessageHash);
-        $client->reject ($error, $subMessageHash);
-        $client->resolve (true, $messageHash);
+        $this->clean_unsubscription($client, $subMessageHash, $messageHash);
         if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
             unset($this->orderbooks[$symbol]);
         }
@@ -897,15 +888,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $symbol = $this->safe_symbol($marketId);
         $subMessageHash = 'trade:' . $symbol;
         $messageHash = 'unsubscribe:' . $subMessageHash;
-        if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
-            unset($client->subscriptions[$messageHash]);
-        }
-        if (is_array($client->subscriptions) && array_key_exists($subMessageHash, $client->subscriptions)) {
-            unset($client->subscriptions[$subMessageHash]);
-        }
-        $error = new UnsubscribeError ($this->id . ' ' . $subMessageHash);
-        $client->reject ($error, $subMessageHash);
-        $client->resolve (true, $messageHash);
+        $this->clean_unsubscription($client, $subMessageHash, $messageHash);
         if (is_array($this->trades) && array_key_exists($symbol, $this->trades)) {
             unset($this->trades[$symbol]);
         }
@@ -915,15 +898,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         //
         $subMessageHash = 'tickers';
         $messageHash = 'unsubscribe:' . $subMessageHash;
-        if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
-            unset($client->subscriptions[$messageHash]);
-        }
-        if (is_array($client->subscriptions) && array_key_exists($subMessageHash, $client->subscriptions)) {
-            unset($client->subscriptions[$subMessageHash]);
-        }
-        $error = new UnsubscribeError ($this->id . ' ' . $subMessageHash);
-        $client->reject ($error, $subMessageHash);
-        $client->resolve (true, $messageHash);
+        $this->clean_unsubscription($client, $subMessageHash, $messageHash);
         $symbols = is_array($this->tickers) ? array_keys($this->tickers) : array();
         for ($i = 0; $i < count($symbols); $i++) {
             unset($this->tickers[$symbols[$i]]);
@@ -938,15 +913,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $timeframe = $this->find_timeframe($interval);
         $subMessageHash = 'candles:' . $timeframe . ':' . $symbol;
         $messageHash = 'unsubscribe:' . $subMessageHash;
-        if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
-            unset($client->subscriptions[$messageHash]);
-        }
-        if (is_array($client->subscriptions) && array_key_exists($subMessageHash, $client->subscriptions)) {
-            unset($client->subscriptions[$subMessageHash]);
-        }
-        $error = new UnsubscribeError ($this->id . ' ' . $subMessageHash);
-        $client->reject ($error, $subMessageHash);
-        $client->resolve (true, $messageHash);
+        $this->clean_unsubscription($client, $subMessageHash, $messageHash);
         if (is_array($this->ohlcvs) && array_key_exists($symbol, $this->ohlcvs)) {
             if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol])) {
                 unset($this->ohlcvs[$symbol][$timeframe]);

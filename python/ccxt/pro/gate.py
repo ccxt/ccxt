@@ -16,7 +16,6 @@ from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ChecksumError
-from ccxt.base.errors import UnsubscribeError
 from ccxt.base.precise import Precise
 
 
@@ -1539,13 +1538,7 @@ class gate(ccxt.async_support.gate):
                 for j in range(0, len(messageHashes)):
                     unsubHash = messageHashes[j]
                     subHash = subMessageHashes[j]
-                    if unsubHash in client.subscriptions:
-                        del client.subscriptions[unsubHash]
-                    if subHash in client.subscriptions:
-                        del client.subscriptions[subHash]
-                    error = UnsubscribeError(self.id + ' ' + messageHash)
-                    client.reject(error, subHash)
-                    client.resolve(True, unsubHash)
+                    self.clean_unsubscription(client, subHash, unsubHash)
                 self.clean_cache(subscription)
 
     def clean_cache(self, subscription: dict):

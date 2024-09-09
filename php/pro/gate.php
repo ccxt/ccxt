@@ -11,7 +11,6 @@ use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\NotSupported;
 use ccxt\ChecksumError;
-use ccxt\UnsubscribeError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -1709,15 +1708,7 @@ class gate extends \ccxt\async\gate {
                 for ($j = 0; $j < count($messageHashes); $j++) {
                     $unsubHash = $messageHashes[$j];
                     $subHash = $subMessageHashes[$j];
-                    if (is_array($client->subscriptions) && array_key_exists($unsubHash, $client->subscriptions)) {
-                        unset($client->subscriptions[$unsubHash]);
-                    }
-                    if (is_array($client->subscriptions) && array_key_exists($subHash, $client->subscriptions)) {
-                        unset($client->subscriptions[$subHash]);
-                    }
-                    $error = new UnsubscribeError ($this->id . ' ' . $messageHash);
-                    $client->reject ($error, $subHash);
-                    $client->resolve (true, $unsubHash);
+                    $this->clean_unsubscription($client, $subHash, $unsubHash);
                 }
                 $this->clean_cache($subscription);
             }

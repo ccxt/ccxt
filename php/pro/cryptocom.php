@@ -10,7 +10,6 @@ use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\NetworkError;
 use ccxt\ChecksumError;
-use ccxt\UnsubscribeError;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -391,7 +390,7 @@ class cryptocom extends \ccxt\async\cryptocom {
                 $messageHashes[] = 'unsubscribe:trades:' . $market['symbol'];
                 $topics[] = $currentTopic;
             }
-            return Async\await($this->un_watch_public_multiple('trade', $symbols, $messageHashes, $topics, $topics, $params));
+            return Async\await($this->un_watch_public_multiple('trades', $symbols, $messageHashes, $topics, $topics, $params));
         }) ();
     }
 
@@ -1270,45 +1269,9 @@ class cryptocom extends \ccxt\async\cryptocom {
                 for ($j = 0; $j < count($messageHashes); $j++) {
                     $unsubHash = $messageHashes[$j];
                     $subHash = $subMessageHashes[$j];
-                    if (is_array($client->subscriptions) && array_key_exists($unsubHash, $client->subscriptions)) {
-                        unset($client->subscriptions[$unsubHash]);
-                    }
-                    if (is_array($client->subscriptions) && array_key_exists($subHash, $client->subscriptions)) {
-                        unset($client->subscriptions[$subHash]);
-                    }
-                    $error = new UnsubscribeError ($this->id . ' ' . $subHash);
-                    $client->reject ($error, $subHash);
-                    $client->resolve (true, $unsubHash);
+                    $this->clean_unsubscription($client, $subHash, $unsubHash);
                 }
                 $this->clean_cache($subscription);
-            }
-        }
-    }
-
-    public function clean_cache(array $subscription) {
-        $topic = $this->safe_string($subscription, 'topic');
-        $symbols = $this->safe_list($subscription, 'symbols', array());
-        $symbolsLength = count($symbols);
-        if ($topic === 'ohlcv') {
-            $symbolsAndTimeFrames = $this->safe_list($subscription, 'symbolsAndTimeframes', array());
-            for ($i = 0; $i < count($symbolsAndTimeFrames); $i++) {
-                $symbolAndTimeFrame = $symbolsAndTimeFrames[$i];
-                $symbol = $this->safe_string($symbolAndTimeFrame, 0);
-                $timeframe = $this->safe_string($symbolAndTimeFrame, 1);
-                if (is_array($this->ohlcvs[$symbol]) && array_key_exists($timeframe, $this->ohlcvs[$symbol])) {
-                    unset($this->ohlcvs[$symbol][$timeframe]);
-                }
-            }
-        } elseif ($symbolsLength > 0) {
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                if ($topic === 'trade') {
-                    unset($this->trades[$symbol]);
-                } elseif ($topic === 'orderbook') {
-                    unset($this->orderbooks[$symbol]);
-                } elseif ($topic === 'ticker') {
-                    unset($this->tickers[$symbol]);
-                }
             }
         }
     }

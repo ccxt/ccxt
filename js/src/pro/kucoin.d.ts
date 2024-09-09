@@ -33,7 +33,6 @@ export default class kucoin extends kucoinRest {
     handleBidAsks(bookSide: any, bidAsks: any): void;
     handleOrderBookSubscription(client: Client, message: any, subscription: any): void;
     handleSubscriptionStatus(client: Client, message: any): void;
-    cleanCache(subscription: Dict): void;
     handleSystemStatus(client: Client, message: any): any;
     watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
     parseWsOrderStatus(status: any): string;

@@ -593,8 +593,6 @@ public partial class kucoin : ccxt.kucoin
         * @description unWatches trades stream
         * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
         * @param {string} symbol unified symbol of the market to fetch trades for
-        * @param {int} [since] timestamp in ms of the earliest trade to fetch
-        * @param {int} [limit] the maximum amount of trades to fetch
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
         */
@@ -1038,78 +1036,9 @@ public partial class kucoin : ccxt.kucoin
             {
                 object messageHash = getValue(messageHashes, i);
                 object subHash = getValue(subMessageHashes, i);
-                if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
-                {
-
-                }
-                if (isTrue(inOp(((WebSocketClient)client).subscriptions, subHash)))
-                {
-
-                }
-                var error = new UnsubscribeError(add(add(this.id, " "), subHash));
-                ((WebSocketClient)client).reject(error, subHash);
-                callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
-                this.cleanCache(subscription);
+                this.cleanUnsubscription(client as WebSocketClient, subHash, messageHash);
             }
-        }
-    }
-
-    public virtual void cleanCache(object subscription)
-    {
-        object topic = this.safeString(subscription, "topic");
-        object symbols = this.safeList(subscription, "symbols", new List<object>() {});
-        object symbolsLength = getArrayLength(symbols);
-        if (isTrue(isGreaterThan(symbolsLength, 0)))
-        {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
-            {
-                object symbol = getValue(symbols, i);
-                if (isTrue(isEqual(topic, "trades")))
-                {
-                    if (isTrue(inOp(this.trades, symbol)))
-                    {
-
-                    }
-                } else if (isTrue(isEqual(topic, "orderbook")))
-                {
-                    if (isTrue(inOp(this.orderbooks, symbol)))
-                    {
-
-                    }
-                } else if (isTrue(isEqual(topic, "ticker")))
-                {
-                    if (isTrue(inOp(this.tickers, symbol)))
-                    {
-
-                    }
-                }
-            }
-        } else
-        {
-            if (isTrue(isEqual(topic, "myTrades")))
-            {
-                // don't reset this.myTrades directly here
-                // because in c# we need to use a different object
-                object keys = new List<object>(((IDictionary<string,object>)this.myTrades).Keys);
-                for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
-                {
-
-                }
-            } else if (isTrue(isEqual(topic, "orders")))
-            {
-                object orderSymbols = new List<object>(((IDictionary<string,object>)this.orders).Keys);
-                for (object i = 0; isLessThan(i, getArrayLength(orderSymbols)); postFixIncrement(ref i))
-                {
-
-                }
-            } else if (isTrue(isEqual(topic, "ticker")))
-            {
-                object tickerSymbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
-                for (object i = 0; isLessThan(i, getArrayLength(tickerSymbols)); postFixIncrement(ref i))
-                {
-
-                }
-            }
+            this.cleanCache(subscription);
         }
     }
 

@@ -938,17 +938,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         object symbol = this.safeSymbol(marketId);
         object subMessageHash = add("orderbook:", symbol);
         object messageHash = add("unsubscribe:", subMessageHash);
-        if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
-        {
-
-        }
-        if (isTrue(inOp(((WebSocketClient)client).subscriptions, subMessageHash)))
-        {
-
-        }
-        var error = new UnsubscribeError(add(add(this.id, " "), subMessageHash));
-        ((WebSocketClient)client).reject(error, subMessageHash);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
+        this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
         if (isTrue(inOp(this.orderbooks, symbol)))
         {
 
@@ -963,17 +953,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         object symbol = this.safeSymbol(marketId);
         object subMessageHash = add("trade:", symbol);
         object messageHash = add("unsubscribe:", subMessageHash);
-        if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
-        {
-
-        }
-        if (isTrue(inOp(((WebSocketClient)client).subscriptions, subMessageHash)))
-        {
-
-        }
-        var error = new UnsubscribeError(add(add(this.id, " "), subMessageHash));
-        ((WebSocketClient)client).reject(error, subMessageHash);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
+        this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
         if (isTrue(inOp(this.trades, symbol)))
         {
 
@@ -985,17 +965,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         //
         object subMessageHash = "tickers";
         object messageHash = add("unsubscribe:", subMessageHash);
-        if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
-        {
-
-        }
-        if (isTrue(inOp(((WebSocketClient)client).subscriptions, subMessageHash)))
-        {
-
-        }
-        var error = new UnsubscribeError(add(add(this.id, " "), subMessageHash));
-        ((WebSocketClient)client).reject(error, subMessageHash);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
+        this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
         object symbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
@@ -1012,17 +982,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         object timeframe = this.findTimeframe(interval);
         object subMessageHash = add(add(add("candles:", timeframe), ":"), symbol);
         object messageHash = add("unsubscribe:", subMessageHash);
-        if (isTrue(inOp(((WebSocketClient)client).subscriptions, messageHash)))
-        {
-
-        }
-        if (isTrue(inOp(((WebSocketClient)client).subscriptions, subMessageHash)))
-        {
-
-        }
-        var error = new UnsubscribeError(add(add(this.id, " "), subMessageHash));
-        ((WebSocketClient)client).reject(error, subMessageHash);
-        callDynamically(client as WebSocketClient, "resolve", new object[] {true, messageHash});
+        this.cleanUnsubscription(client as WebSocketClient, subMessageHash, messageHash);
         if (isTrue(inOp(this.ohlcvs, symbol)))
         {
             if (isTrue(inOp(getValue(this.ohlcvs, symbol), timeframe)))

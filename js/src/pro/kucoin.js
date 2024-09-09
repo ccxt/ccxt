@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import kucoinRest from '../kucoin.js';
-import { ExchangeError, ArgumentsRequired, UnsubscribeError } from '../base/errors.js';
+import { ExchangeError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 export default class kucoin extends kucoinRest {
@@ -538,8 +538,6 @@ export default class kucoin extends kucoinRest {
          * @description unWatches trades stream
          * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
          * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int} [since] timestamp in ms of the earliest trade to fetch
-         * @param {int} [limit] the maximum amount of trades to fetch
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
          */
@@ -926,64 +924,9 @@ export default class kucoin extends kucoinRest {
             for (let i = 0; i < messageHashes.length; i++) {
                 const messageHash = messageHashes[i];
                 const subHash = subMessageHashes[i];
-                if (messageHash in client.subscriptions) {
-                    delete client.subscriptions[messageHash];
-                }
-                if (subHash in client.subscriptions) {
-                    delete client.subscriptions[subHash];
-                }
-                const error = new UnsubscribeError(this.id + ' ' + subHash);
-                client.reject(error, subHash);
-                client.resolve(true, messageHash);
-                this.cleanCache(subscription);
+                this.cleanUnsubscription(client, subHash, messageHash);
             }
-        }
-    }
-    cleanCache(subscription) {
-        const topic = this.safeString(subscription, 'topic');
-        const symbols = this.safeList(subscription, 'symbols', []);
-        const symbolsLength = symbols.length;
-        if (symbolsLength > 0) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                if (topic === 'trades') {
-                    if (symbol in this.trades) {
-                        delete this.trades[symbol];
-                    }
-                }
-                else if (topic === 'orderbook') {
-                    if (symbol in this.orderbooks) {
-                        delete this.orderbooks[symbol];
-                    }
-                }
-                else if (topic === 'ticker') {
-                    if (symbol in this.tickers) {
-                        delete this.tickers[symbol];
-                    }
-                }
-            }
-        }
-        else {
-            if (topic === 'myTrades') {
-                // don't reset this.myTrades directly here
-                // because in c# we need to use a different object
-                const keys = Object.keys(this.myTrades);
-                for (let i = 0; i < keys.length; i++) {
-                    delete this.myTrades[keys[i]];
-                }
-            }
-            else if (topic === 'orders') {
-                const orderSymbols = Object.keys(this.orders);
-                for (let i = 0; i < orderSymbols.length; i++) {
-                    delete this.orders[orderSymbols[i]];
-                }
-            }
-            else if (topic === 'ticker') {
-                const tickerSymbols = Object.keys(this.tickers);
-                for (let i = 0; i < tickerSymbols.length; i++) {
-                    delete this.tickers[tickerSymbols[i]];
-                }
-            }
+            this.cleanCache(subscription);
         }
     }
     handleSystemStatus(client, message) {

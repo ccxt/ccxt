@@ -11,7 +11,6 @@ from typing import List
 from typing import Any
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
-from ccxt.base.errors import UnsubscribeError
 
 
 class kucoin(ccxt.async_support.kucoin):
@@ -502,8 +501,6 @@ class kucoin(ccxt.async_support.kucoin):
         unWatches trades stream
         :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
         :param str symbol: unified symbol of the market to fetch trades for
-        :param int [since]: timestamp in ms of the earliest trade to fetch
-        :param int [limit]: the maximum amount of trades to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
         """
@@ -851,46 +848,8 @@ class kucoin(ccxt.async_support.kucoin):
             for i in range(0, len(messageHashes)):
                 messageHash = messageHashes[i]
                 subHash = subMessageHashes[i]
-                if messageHash in client.subscriptions:
-                    del client.subscriptions[messageHash]
-                if subHash in client.subscriptions:
-                    del client.subscriptions[subHash]
-                error = UnsubscribeError(self.id + ' ' + subHash)
-                client.reject(error, subHash)
-                client.resolve(True, messageHash)
-                self.clean_cache(subscription)
-
-    def clean_cache(self, subscription: dict):
-        topic = self.safe_string(subscription, 'topic')
-        symbols = self.safe_list(subscription, 'symbols', [])
-        symbolsLength = len(symbols)
-        if symbolsLength > 0:
-            for i in range(0, len(symbols)):
-                symbol = symbols[i]
-                if topic == 'trades':
-                    if symbol in self.trades:
-                        del self.trades[symbol]
-                elif topic == 'orderbook':
-                    if symbol in self.orderbooks:
-                        del self.orderbooks[symbol]
-                elif topic == 'ticker':
-                    if symbol in self.tickers:
-                        del self.tickers[symbol]
-        else:
-            if topic == 'myTrades':
-                # don't reset self.myTrades directly here
-                # because in c# we need to use a different object
-                keys = list(self.myTrades.keys())
-                for i in range(0, len(keys)):
-                    del self.myTrades[keys[i]]
-            elif topic == 'orders':
-                orderSymbols = list(self.orders.keys())
-                for i in range(0, len(orderSymbols)):
-                    del self.orders[orderSymbols[i]]
-            elif topic == 'ticker':
-                tickerSymbols = list(self.tickers.keys())
-                for i in range(0, len(tickerSymbols)):
-                    del self.tickers[tickerSymbols[i]]
+                self.clean_unsubscription(client, subHash, messageHash)
+            self.clean_cache(subscription)
 
     def handle_system_status(self, client: Client, message):
         #

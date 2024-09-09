@@ -10,7 +10,6 @@ from ccxt.async_support.base.ws.client import Client
 from typing import List
 from typing import Any
 from ccxt.base.errors import ExchangeError
-from ccxt.base.errors import UnsubscribeError
 
 
 class hyperliquid(ccxt.async_support.hyperliquid):
@@ -805,13 +804,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         symbol = self.safe_symbol(marketId)
         subMessageHash = 'orderbook:' + symbol
         messageHash = 'unsubscribe:' + subMessageHash
-        if messageHash in client.subscriptions:
-            del client.subscriptions[messageHash]
-        if subMessageHash in client.subscriptions:
-            del client.subscriptions[subMessageHash]
-        error = UnsubscribeError(self.id + ' ' + subMessageHash)
-        client.reject(error, subMessageHash)
-        client.resolve(True, messageHash)
+        self.clean_unsubscription(client, subMessageHash, messageHash)
         if symbol in self.orderbooks:
             del self.orderbooks[symbol]
 
@@ -822,13 +815,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         symbol = self.safe_symbol(marketId)
         subMessageHash = 'trade:' + symbol
         messageHash = 'unsubscribe:' + subMessageHash
-        if messageHash in client.subscriptions:
-            del client.subscriptions[messageHash]
-        if subMessageHash in client.subscriptions:
-            del client.subscriptions[subMessageHash]
-        error = UnsubscribeError(self.id + ' ' + subMessageHash)
-        client.reject(error, subMessageHash)
-        client.resolve(True, messageHash)
+        self.clean_unsubscription(client, subMessageHash, messageHash)
         if symbol in self.trades:
             del self.trades[symbol]
 
@@ -836,13 +823,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         #
         subMessageHash = 'tickers'
         messageHash = 'unsubscribe:' + subMessageHash
-        if messageHash in client.subscriptions:
-            del client.subscriptions[messageHash]
-        if subMessageHash in client.subscriptions:
-            del client.subscriptions[subMessageHash]
-        error = UnsubscribeError(self.id + ' ' + subMessageHash)
-        client.reject(error, subMessageHash)
-        client.resolve(True, messageHash)
+        self.clean_unsubscription(client, subMessageHash, messageHash)
         symbols = list(self.tickers.keys())
         for i in range(0, len(symbols)):
             del self.tickers[symbols[i]]
@@ -855,13 +836,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         timeframe = self.find_timeframe(interval)
         subMessageHash = 'candles:' + timeframe + ':' + symbol
         messageHash = 'unsubscribe:' + subMessageHash
-        if messageHash in client.subscriptions:
-            del client.subscriptions[messageHash]
-        if subMessageHash in client.subscriptions:
-            del client.subscriptions[subMessageHash]
-        error = UnsubscribeError(self.id + ' ' + subMessageHash)
-        client.reject(error, subMessageHash)
-        client.resolve(True, messageHash)
+        self.clean_unsubscription(client, subMessageHash, messageHash)
         if symbol in self.ohlcvs:
             if timeframe in self.ohlcvs[symbol]:
                 del self.ohlcvs[symbol][timeframe]

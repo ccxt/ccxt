@@ -8,7 +8,6 @@ namespace ccxt\pro;
 use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
-use ccxt\UnsubscribeError;
 use React\Async;
 use React\Promise\PromiseInterface;
 
@@ -567,8 +566,6 @@ class kucoin extends \ccxt\async\kucoin {
              * unWatches trades stream
              * @see https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
              * @param {string} $symbol unified $symbol of the market to fetch trades for
-             * @param {int} [since] timestamp in ms of the earliest trade to fetch
-             * @param {int} [limit] the maximum amount of trades to fetch
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} a list of ~@link https://docs.ccxt.com/#/?id=public-trades trade structures~
              */
@@ -964,60 +961,9 @@ class kucoin extends \ccxt\async\kucoin {
             for ($i = 0; $i < count($messageHashes); $i++) {
                 $messageHash = $messageHashes[$i];
                 $subHash = $subMessageHashes[$i];
-                if (is_array($client->subscriptions) && array_key_exists($messageHash, $client->subscriptions)) {
-                    unset($client->subscriptions[$messageHash]);
-                }
-                if (is_array($client->subscriptions) && array_key_exists($subHash, $client->subscriptions)) {
-                    unset($client->subscriptions[$subHash]);
-                }
-                $error = new UnsubscribeError ($this->id . ' ' . $subHash);
-                $client->reject ($error, $subHash);
-                $client->resolve (true, $messageHash);
-                $this->clean_cache($subscription);
+                $this->clean_unsubscription($client, $subHash, $messageHash);
             }
-        }
-    }
-
-    public function clean_cache(array $subscription) {
-        $topic = $this->safe_string($subscription, 'topic');
-        $symbols = $this->safe_list($subscription, 'symbols', array());
-        $symbolsLength = count($symbols);
-        if ($symbolsLength > 0) {
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                if ($topic === 'trades') {
-                    if (is_array($this->trades) && array_key_exists($symbol, $this->trades)) {
-                        unset($this->trades[$symbol]);
-                    }
-                } elseif ($topic === 'orderbook') {
-                    if (is_array($this->orderbooks) && array_key_exists($symbol, $this->orderbooks)) {
-                        unset($this->orderbooks[$symbol]);
-                    }
-                } elseif ($topic === 'ticker') {
-                    if (is_array($this->tickers) && array_key_exists($symbol, $this->tickers)) {
-                        unset($this->tickers[$symbol]);
-                    }
-                }
-            }
-        } else {
-            if ($topic === 'myTrades') {
-                // don't reset $this->myTrades directly here
-                // because in c# we need to use a different object
-                $keys = is_array($this->myTrades) ? array_keys($this->myTrades) : array();
-                for ($i = 0; $i < count($keys); $i++) {
-                    unset($this->myTrades[$keys[$i]]);
-                }
-            } elseif ($topic === 'orders') {
-                $orderSymbols = is_array($this->orders) ? array_keys($this->orders) : array();
-                for ($i = 0; $i < count($orderSymbols); $i++) {
-                    unset($this->orders[$orderSymbols[$i]]);
-                }
-            } elseif ($topic === 'ticker') {
-                $tickerSymbols = is_array($this->tickers) ? array_keys($this->tickers) : array();
-                for ($i = 0; $i < count($tickerSymbols); $i++) {
-                    unset($this->tickers[$tickerSymbols[$i]]);
-                }
-            }
+            $this->clean_cache($subscription);
         }
     }
 
