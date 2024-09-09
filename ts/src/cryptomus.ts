@@ -596,25 +596,34 @@ export default class cryptomus extends Exchange {
         const request: Dict = {};
         const response = await this.privateGetV2UserApiBalance (this.extend (request, params));
         //
+        //     {
+        //         "state": 0,
+        //         "result":
+        //         ...
+        //         {
+        //             "balances": [
+        //                 {
+        //                     "walletUuid": "cc94572d-beaf-4c12-90cb-09507451dd3a",
+        //                     "currency_code": "USDT",
+        //                     "balance": "49.20000000",
+        //                     "balanceUsd": "49.20"
+        //                 }
+        //             ]
+        //         }
+        //         ...
+        //     }
         //
-        return this.parseBalance (response);
+        const result = this.safeDict (response, 'result', {});
+        return this.parseBalance (result);
     }
 
     parseBalance (balance): Balances {
         //
         //     {
-        //         "balances": [
-        //             {
-        //                 "asset":"USDT",
-        //                 "assetId":"USDT",
-        //                 "assetName":"USDT",
-        //                 "total":"40",
-        //                 "free":"40",
-        //                 "locked":"0"
-        //             },
-        //             ...
-        //         ],
-        //         "userId": "1732885739572845312"
+        //         "walletUuid": "cc94572d-beaf-4c12-90cb-09507451dd3a",
+        //         "currency_code": "USDT",
+        //         "balance": "49.20000000",
+        //         "balanceUsd": "49.20"
         //     }
         //
         const result: Dict = {
@@ -623,12 +632,10 @@ export default class cryptomus extends Exchange {
         const balances = this.safeList (balance, 'balances', []);
         for (let i = 0; i < balances.length; i++) {
             const balanceEntry = balances[i];
-            const currencyId = this.safeString (balanceEntry, 'asset');
+            const currencyId = this.safeString (balanceEntry, 'currency_code');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['total'] = this.safeString (balanceEntry, 'total');
-            account['free'] = this.safeString (balanceEntry, 'free');
-            account['used'] = this.safeString (balanceEntry, 'locked');
+            account['total'] = this.safeString (balanceEntry, 'balance');
             result[code] = account;
         }
         return this.safeBalance (result);
