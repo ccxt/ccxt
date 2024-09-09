@@ -645,9 +645,11 @@ export default class cryptomus extends Exchange {
                 jsonParams = this.json (params);
                 body = jsonParams;
             }
-            const signature = this.hmac (this.encode (jsonParams), this.encode (this.secret), md5);
+            const jsonParamsBase64 = this.stringToBase64 (jsonParams);
+            const stringToSign = jsonParamsBase64 + this.secret;
+            const signature = this.hash (this.encode (stringToSign), md5);
             headers = {
-                'userId': this.apiKey,
+                'userId': this.uid, // the correct parameter name is 'userId' in camelcase regardless of their API docs
                 'sign': signature,
                 'Content-Type': 'application/json',
             };
