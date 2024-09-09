@@ -2715,7 +2715,7 @@ export default class Exchange {
                     } else {
                         // if it's string, then it's alias
                         const valueString = this.safeString (populatedFeatures, marketType);
-                        this.features[marketType] = populatedFeatures[valueString];
+                        this.features[marketType] = this.featureCorrection (populatedFeatures[valueString]);
                     }
                 } else {
                     this.features[marketType] = {};
@@ -2728,7 +2728,7 @@ export default class Exchange {
                         } else {
                             // if it's string, then it's alias
                             const valueString = this.safeString (populatedFeatures[marketType], subType);
-                            this.features[marketType][subType] = populatedFeatures[valueString];
+                            this.features[marketType][subType] = this.featureCorrection (populatedFeatures[valueString]);
                         }
                     }
                 }
@@ -2736,20 +2736,16 @@ export default class Exchange {
         }
     }
 
-    getFeatureValue (featuresContainer, marketType, subType = undefined) {
-        const initialValue = this.safeDict (featuresContainer, marketType);
-        let finalValue = initialValue;
-        if (subType !== undefined) {
-            finalValue = this.safeDict (initialValue, subType);
+    featureCorrection (featuresContainer) {
+        if ('createOrder' in featuresContainer) {
+            const value = this.safeDict (featuresContainer['createOrder'], 'attachedStopLossTakeProfit');
+            if (value !== undefined) {
+                featuresContainer['createOrder']['stopLoss'] = value;
+                featuresContainer['createOrder']['takeProfit'] = value;
+            }
+            featuresContainer['createOrder'] = this.omit (featuresContainer['createOrder'], 'attachedStopLossTakeProfit');
         }
-        if (finalValue !== undefined) {
-            // if it's dict, assign directly
-            return finalValue;
-        } else {
-            // if it's string, then it's alias
-            const stringValue = this.safeString (finalValue, marketType);
-            return featuresContainer[stringValue];
-        }
+        return featuresContainer;
     }
 
     orderbookChecksumMessage (symbol:Str) {
