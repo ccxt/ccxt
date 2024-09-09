@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import okxRest from '../okx.js';
-import { ArgumentsRequired, BadRequest, ExchangeError, ChecksumError, AuthenticationError, InvalidNonce, UnsubscribeError } from '../base/errors.js';
+import { ArgumentsRequired, BadRequest, ExchangeError, ChecksumError, AuthenticationError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha256 } from '../static_dependencies/noble-hashes/sha256.js';
 import type { Int, OrderSide, OrderType, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Num, FundingRate, FundingRates, Dict, Liquidation } from '../base/types.js';
@@ -2382,31 +2382,19 @@ export default class okx extends okxRest {
     handleUnSubscriptionTrades (client: Client, symbol: string) {
         const subMessageHash = 'trades:' + symbol;
         const messageHash = 'unsubscribe:trades:' + symbol;
-        if (subMessageHash in client.subscriptions) {
-            delete client.subscriptions[subMessageHash];
+        this.cleanUnsubscription (client, subMessageHash, messageHash);
+        if (symbol in this.trades) {
+            delete this.trades[symbol];
         }
-        if (messageHash in client.subscriptions) {
-            delete client.subscriptions[messageHash];
-        }
-        delete this.trades[symbol];
-        const error = new UnsubscribeError (this.id + ' ' + subMessageHash);
-        client.reject (error, subMessageHash);
-        client.resolve (true, messageHash);
     }
 
     handleUnsubscriptionOrderBook (client: Client, symbol: string, channel: string) {
         const subMessageHash = channel + ':' + symbol;
         const messageHash = 'unsubscribe:orderbook:' + symbol;
-        if (subMessageHash in client.subscriptions) {
-            delete client.subscriptions[subMessageHash];
+        this.cleanUnsubscription (client, subMessageHash, messageHash);
+        if (symbol in this.orderbooks) {
+            delete this.orderbooks[symbol];
         }
-        if (messageHash in client.subscriptions) {
-            delete client.subscriptions[messageHash];
-        }
-        delete this.orderbooks[symbol];
-        const error = new UnsubscribeError (this.id + ' ' + subMessageHash);
-        client.reject (error, subMessageHash);
-        client.resolve (true, messageHash);
     }
 
     handleUnsubscriptionOHLCV (client: Client, symbol: string, channel: string) {
@@ -2414,35 +2402,19 @@ export default class okx extends okxRest {
         const timeframe = this.findTimeframe (tf);
         const subMessageHash = 'multi:' + channel + ':' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
-        if (subMessageHash in client.subscriptions) {
-            delete client.subscriptions[subMessageHash];
-        }
-        if (messageHash in client.subscriptions) {
-            delete client.subscriptions[messageHash];
-        }
+        this.cleanUnsubscription (client, subMessageHash, messageHash);
         if (timeframe in this.ohlcvs[symbol]) {
             delete this.ohlcvs[symbol][timeframe];
         }
-        const error = new UnsubscribeError (this.id + ' ' + subMessageHash);
-        client.reject (error, subMessageHash);
-        client.resolve (true, messageHash);
     }
 
     handleUnsubscriptionTicker (client: Client, symbol: string, channel) {
         const subMessageHash = channel + '::' + symbol;
         const messageHash = 'unsubscribe:ticker:' + symbol;
-        if (subMessageHash in client.subscriptions) {
-            delete client.subscriptions[subMessageHash];
-        }
-        if (messageHash in client.subscriptions) {
-            delete client.subscriptions[messageHash];
-        }
+        this.cleanUnsubscription (client, subMessageHash, messageHash);
         if (symbol in this.tickers) {
             delete this.tickers[symbol];
         }
-        const error = new UnsubscribeError (this.id + ' ' + subMessageHash);
-        client.reject (error, subMessageHash);
-        client.resolve (true, messageHash);
     }
 
     handleUnsubscription (client: Client, message) {

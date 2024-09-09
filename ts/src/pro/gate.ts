@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import gateRest from '../gate.js';
-import { AuthenticationError, BadRequest, ArgumentsRequired, ChecksumError, ExchangeError, NotSupported, UnsubscribeError } from '../base/errors.js';
+import { AuthenticationError, BadRequest, ArgumentsRequired, ChecksumError, ExchangeError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { sha512 } from '../static_dependencies/noble-hashes/sha512.js';
 import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Position, Balances, Dict, Liquidation, OrderType, OrderSide, Num, Market, MarketType, OrderRequest } from '../base/types.js';
@@ -1701,15 +1701,7 @@ export default class gate extends gateRest {
                 for (let j = 0; j < messageHashes.length; j++) {
                     const unsubHash = messageHashes[j];
                     const subHash = subMessageHashes[j];
-                    if (unsubHash in client.subscriptions) {
-                        delete client.subscriptions[unsubHash];
-                    }
-                    if (subHash in client.subscriptions) {
-                        delete client.subscriptions[subHash];
-                    }
-                    const error = new UnsubscribeError (this.id + ' ' + messageHash);
-                    client.reject (error, subHash);
-                    client.resolve (true, unsubHash);
+                    this.cleanUnsubscription (client, subHash, unsubHash);
                 }
                 this.cleanCache (subscription);
             }

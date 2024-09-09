@@ -1,7 +1,7 @@
 //  ---------------------------------------------------------------------------
 
 import hyperliquidRest from '../hyperliquid.js';
-import { ExchangeError, UnsubscribeError } from '../base/errors.js';
+import { ExchangeError } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
 import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, type OrderRequest } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
@@ -871,15 +871,7 @@ export default class hyperliquid extends hyperliquidRest {
         const symbol = this.safeSymbol (marketId);
         const subMessageHash = 'orderbook:' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
-        if (messageHash in client.subscriptions) {
-            delete client.subscriptions[messageHash];
-        }
-        if (subMessageHash in client.subscriptions) {
-            delete client.subscriptions[subMessageHash];
-        }
-        const error = new UnsubscribeError (this.id + ' ' + subMessageHash);
-        client.reject (error, subMessageHash);
-        client.resolve (true, messageHash);
+        this.cleanUnsubscription (client, subMessageHash, messageHash);
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
@@ -892,15 +884,7 @@ export default class hyperliquid extends hyperliquidRest {
         const symbol = this.safeSymbol (marketId);
         const subMessageHash = 'trade:' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
-        if (messageHash in client.subscriptions) {
-            delete client.subscriptions[messageHash];
-        }
-        if (subMessageHash in client.subscriptions) {
-            delete client.subscriptions[subMessageHash];
-        }
-        const error = new UnsubscribeError (this.id + ' ' + subMessageHash);
-        client.reject (error, subMessageHash);
-        client.resolve (true, messageHash);
+        this.cleanUnsubscription (client, subMessageHash, messageHash);
         if (symbol in this.trades) {
             delete this.trades[symbol];
         }
@@ -910,15 +894,7 @@ export default class hyperliquid extends hyperliquidRest {
         //
         const subMessageHash = 'tickers';
         const messageHash = 'unsubscribe:' + subMessageHash;
-        if (messageHash in client.subscriptions) {
-            delete client.subscriptions[messageHash];
-        }
-        if (subMessageHash in client.subscriptions) {
-            delete client.subscriptions[subMessageHash];
-        }
-        const error = new UnsubscribeError (this.id + ' ' + subMessageHash);
-        client.reject (error, subMessageHash);
-        client.resolve (true, messageHash);
+        this.cleanUnsubscription (client, subMessageHash, messageHash);
         const symbols = Object.keys (this.tickers);
         for (let i = 0; i < symbols.length; i++) {
             delete this.tickers[symbols[i]];
@@ -933,15 +909,7 @@ export default class hyperliquid extends hyperliquidRest {
         const timeframe = this.findTimeframe (interval);
         const subMessageHash = 'candles:' + timeframe + ':' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
-        if (messageHash in client.subscriptions) {
-            delete client.subscriptions[messageHash];
-        }
-        if (subMessageHash in client.subscriptions) {
-            delete client.subscriptions[subMessageHash];
-        }
-        const error = new UnsubscribeError (this.id + ' ' + subMessageHash);
-        client.reject (error, subMessageHash);
-        client.resolve (true, messageHash);
+        this.cleanUnsubscription (client, subMessageHash, messageHash);
         if (symbol in this.ohlcvs) {
             if (timeframe in this.ohlcvs[symbol]) {
                 delete this.ohlcvs[symbol][timeframe];
