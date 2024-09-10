@@ -43,6 +43,21 @@ class ParserBase {
     }
 
 
+    // this method turns the JSON object into ready-made CCXT api format
+    stringifyAsCcxtObject (obj: string) {
+        // have 4 spaced indentation
+        let input = JSON.stringify (obj, null, 4);
+        // adds commas in the line endings:
+        //
+        // {
+        //     "a": 1,
+        // }
+        //
+        input = input.replace (/(?<!(\{|\,))\n/g, ',\n');
+        // replace double quotes with single quotes
+        input = input.replace (/"/g, "'"); 
+        return input;
+    }
 
     // cache methods
     cachePath (filename: Str = undefined) {

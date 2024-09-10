@@ -69,10 +69,9 @@ class binance extends ParserBase {
         if (!this.readableValues) {
             return tree;
         }
-        let output = JSON.stringify (tree, null, 4);
-        const regex = new RegExp(`${this.delimiter}"|"${this.delimiter}`, 'g');
+        let output = this.stringifyAsCcxtObject (tree);
+        const regex = new RegExp(`${this.delimiter}'|'${this.delimiter}`, 'g');
         output = output.replace (regex, "");
-        output = output.replace (/"/g, "'");
         return output;
     }
 
