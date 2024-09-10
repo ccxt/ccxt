@@ -502,6 +502,7 @@ export {
     MinMax,
     FeeInterface,
     TradingFeeInterface,
+    MarketMarginModes,
     MarketInterface,
     Trade,
     Order,
