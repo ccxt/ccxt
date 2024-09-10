@@ -32,7 +32,7 @@ export default class coincatch extends Exchange {
                 'future': false,
                 'option': false,
                 'addMargin': false,
-                'cancelAllOrders': false,
+                'cancelAllOrders': true,
                 'cancelAllOrdersAfter': false,
                 'cancelOrder': true,
                 'cancelOrders': false,
@@ -208,7 +208,7 @@ export default class coincatch extends Exchange {
                         'api/spot/v1/trade/batch-orders': 1,
                         'api/spot/v1/trade/cancel-order': 1,
                         'api/spot/v1/trade/cancel-order-v2': 2, // done
-                        'api/spot/v1/trade/cancel-symbol-orders': 1,
+                        'api/spot/v1/trade/cancel-symbol-order': 2, // done
                         'api/spot/v1/trade/cancel-batch-orders': 1,
                         'api/spot/v1/trade/cancel-batch-orders-v2': 1,
                         'api/spot/v1/trade/orderInfo': 1, // done
@@ -2430,6 +2430,9 @@ export default class coincatch extends Exchange {
          * @name coincatch#cancelOrder
          * @description cancels an open order
          * @see https://coincatch.github.io/github.io/en/spot/#cancel-order-v2
+         * @see https://coincatch.github.io/github.io/en/spot/#cancel-plan-order
+         * @see https://coincatch.github.io/github.io/en/mix/#cancel-order
+         * @see https://coincatch.github.io/github.io/en/mix/#cancel-plan-order-tpsl
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2444,9 +2447,7 @@ export default class coincatch extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request: Dict = {
-            'symbol': market['id'],
-        };
+        const request: Dict = {};
         let clientOrderId: Str = undefined;
         [ clientOrderId, params ] = this.handleParamString (params, 'clientOrderId');
         if ((id === undefined) && (clientOrderId === undefined)) {
@@ -2461,6 +2462,9 @@ export default class coincatch extends Exchange {
         let trigger = false;
         [ trigger, params ] = this.handleOptionAndParams2 (params, methodName, 'trigger', 'stop', trigger);
         let response = undefined;
+        if (!trigger || (marketType !== 'spot')) {
+            request['symbol'] = market['id'];
+        }
         if (marketType === 'spot') {
             if (trigger) {
                 response = await this.privatePostApiSpotV1PlanCancelPlan (this.extend (request, params));
@@ -2468,7 +2472,9 @@ export default class coincatch extends Exchange {
                 response = await this.privatePostApiSpotV1TradeCancelOrderV2 (this.extend (request, params));
             }
         } else if (marketType === 'swap') {
+            request['marginCoin'] = market['settleId'];
             if (trigger) {
+                // todo add planType
                 response = await this.privatePostApiMixV1PlanCancelPlan (this.extend (request, params));
             } else {
                 response = await this.privatePostApiMixV1OrderCancelOrder (this.extend (request, params));
@@ -2478,6 +2484,53 @@ export default class coincatch extends Exchange {
         }
         const data = this.safeDict (response, 'data', {});
         return this.parseOrder (data, market);
+    }
+
+    async cancelAllOrders (symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name coincatch#cancelAllOrders
+         * @description cancels all open orders for a specific market
+         * @see https://coincatch.github.io/github.io/en/spot/#cancel-all-orders
+         * @param {string} [symbol] unified symbol of the market the orders were made in
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {bool} [params.trigger] true for canceling a trigger orders (default false)
+         * @param {bool} [params.stop] *swap markets only* an alternative for trigger param
+         * @returns {object} response from the exchange
+         */
+        const methodName = 'cancelAllOrders';
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + methodName + ' () requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const marketType = market['type'];
+        let trigger = false;
+        [ trigger, params ] = this.handleOptionAndParams2 (params, methodName, 'trigger', 'stop', trigger);
+        let response = undefined;
+        if (marketType === 'spot') {
+            if (trigger) {
+                throw new NotSupported (this.id + methodName + '() does not support trigger orders for ' + marketType + ' type of markets');
+            }
+            //
+            //     {
+            //         "code": "00000",
+            //         "msg": "success",
+            //         "requestTime": 1725989560461,
+            //         "data": "ETHUSDT_SPBL"
+            //     }
+            //
+            response = await this.privatePostApiSpotV1TradeCancelSymbolOrder (this.extend (request, params));
+        } else {
+            // add swap
+            throw new NotSupported (this.id + methodName + '() is not supported for ' + marketType + ' type of markets');
+        }
+        const order = this.safeOrder (response);
+        order['info'] = response;
+        return [ order ];
     }
 
     parseOrder (order, market = undefined): Order {
