@@ -26,6 +26,7 @@ class htx extends htx$1 {
                 'watchTickers': false,
                 'watchTicker': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchMyTrades': true,
                 'watchBalance': true,
                 'watchOHLCV': true,

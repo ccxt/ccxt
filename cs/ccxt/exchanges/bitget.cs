@@ -1192,6 +1192,8 @@ public partial class bitget : Exchange
                     { "40714", typeof(ExchangeError) },
                     { "40762", typeof(InsufficientFunds) },
                     { "40768", typeof(OrderNotFound) },
+                    { "40808", typeof(InvalidOrder) },
+                    { "41103", typeof(InvalidOrder) },
                     { "41114", typeof(OnMaintenance) },
                     { "43011", typeof(InvalidOrder) },
                     { "43012", typeof(InsufficientFunds) },
@@ -1267,10 +1269,11 @@ public partial class bitget : Exchange
             } },
             { "precisionMode", TICK_SIZE },
             { "commonCurrencies", new Dictionary<string, object>() {
-                { "JADE", "Jade Protocol" },
+                { "APX", "AstroPepeX" },
                 { "DEGEN", "DegenReborn" },
-                { "TONCOIN", "TON" },
+                { "JADE", "Jade Protocol" },
                 { "OMNI", "omni" },
+                { "TONCOIN", "TON" },
             } },
             { "options", new Dictionary<string, object>() {
                 { "timeframes", new Dictionary<string, object>() {
@@ -4183,7 +4186,7 @@ public partial class bitget : Exchange
         {
             // swap
             fee = new Dictionary<string, object>() {
-                { "cost", this.parseNumber(Precise.stringAbs(feeCostString)) },
+                { "cost", this.parseNumber(Precise.stringNeg(feeCostString)) },
                 { "currency", getValue(market, "settle") },
             };
         }
@@ -4203,7 +4206,7 @@ public partial class bitget : Exchange
                 }
             }
             fee = new Dictionary<string, object>() {
-                { "cost", this.parseNumber(Precise.stringAbs(this.safeString(feeObject, "totalFee"))) },
+                { "cost", this.parseNumber(Precise.stringNeg(this.safeString(feeObject, "totalFee"))) },
                 { "currency", this.safeCurrencyCode(this.safeString(feeObject, "feeCoinCode")) },
             };
         }
@@ -5403,6 +5406,7 @@ public partial class bitget : Exchange
         * @description fetches information on an order made by the user
         * @see https://www.bitget.com/api-doc/spot/trade/Get-Order-Info
         * @see https://www.bitget.com/api-doc/contract/trade/Get-Order-Details
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

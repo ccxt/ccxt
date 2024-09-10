@@ -15,6 +15,7 @@ class paradex extends paradex$1 {
                 'watchOrderBook': true,
                 'watchOrders': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchBalance': false,
                 'watchOHLCV': false,
             },

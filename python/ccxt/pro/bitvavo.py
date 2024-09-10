@@ -602,6 +602,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         """
         :see: https://docs.bitvavo.com/#tag/General/paths/~1assets/get
         fetches information on an order made by the user
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the bitvavo api endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`

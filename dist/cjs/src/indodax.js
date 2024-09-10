@@ -868,6 +868,9 @@ class indodax extends indodax$1 {
         else if (type === 'limit') {
             priceIsRequired = true;
             quantityIsRequired = true;
+            if (side === 'buy') {
+                request[market['quoteId']] = this.parseToNumeric(Precise["default"].stringMul(this.numberToString(amount), this.numberToString(price)));
+            }
         }
         if (priceIsRequired) {
             if (price === undefined) {

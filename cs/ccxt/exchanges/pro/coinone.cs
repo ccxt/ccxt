@@ -15,6 +15,7 @@ public partial class coinone : ccxt.coinone
                 { "watchOrderBook", true },
                 { "watchOrders", false },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchOHLCV", false },
                 { "watchTicker", true },
                 { "watchTickers", false },

@@ -3111,6 +3111,7 @@ public partial class phemex : Exchange
         * @name phemex#fetchOrder
         * @see https://phemex-docs.github.io/#query-orders-by-ids
         * @description fetches information on an order made by the user
+        * @param {string} id the order id
         * @param {string} symbol unified symbol of the market the order was made in
         * @param {object} [params] extra parameters specific to the exchange API endpoint
         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

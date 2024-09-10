@@ -24,6 +24,7 @@ class bitopro extends \ccxt\async\bitopro {
                 'watchTicker' => true,
                 'watchTickers' => false,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
             ),
             'urls' => array(
                 'ws' => array(

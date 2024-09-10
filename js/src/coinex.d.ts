@@ -55,8 +55,6 @@ export default class coinex extends Exchange {
         tag: any;
         network: any;
     }>;
-    safeNetwork(networkId: any, currency?: Currency): any;
-    safeNetworkCode(networkId: any, currency?: Currency): any;
     parseDepositAddress(depositAddress: any, currency?: Currency): {
         info: any;
         currency: string;
@@ -157,7 +155,7 @@ export default class coinex extends Exchange {
     parseDepositWithdrawFee(fee: any, currency?: Currency): Dict;
     fetchLeverage(symbol: string, params?: {}): Promise<Leverage>;
     parseLeverage(leverage: Dict, market?: Market): Leverage;
-    fetchPositionHistory(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Position>;
+    fetchPositionHistory(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Position[]>;
     handleMarginModeAndParams(methodName: any, params?: {}, defaultValue?: any): any[];
     nonce(): number;
     sign(path: any, api?: any[], method?: string, params?: {}, headers?: any, body?: any): {

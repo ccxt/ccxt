@@ -115,11 +115,15 @@ public partial class independentreserve : Exchange
         * @returns {object[]} an array of objects representing market data
         */
         parameters ??= new Dictionary<string, object>();
-        object baseCurrencies = await this.publicGetGetValidPrimaryCurrencyCodes(parameters);
+        object baseCurrenciesPromise = this.publicGetGetValidPrimaryCurrencyCodes(parameters);
         //     ['Xbt', 'Eth', 'Usdt', ...]
-        object quoteCurrencies = await this.publicGetGetValidSecondaryCurrencyCodes(parameters);
+        object quoteCurrenciesPromise = this.publicGetGetValidSecondaryCurrencyCodes(parameters);
         //     ['Aud', 'Usd', 'Nzd', 'Sgd']
-        object limits = await this.publicGetGetOrderMinimumVolumes(parameters);
+        object limitsPromise = this.publicGetGetOrderMinimumVolumes(parameters);
+        var baseCurrenciesquoteCurrencieslimitsVariable = await promiseAll(new List<object>() {baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise});
+        var baseCurrencies = ((IList<object>) baseCurrenciesquoteCurrencieslimitsVariable)[0];
+        var quoteCurrencies = ((IList<object>) baseCurrenciesquoteCurrencieslimitsVariable)[1];
+        var limits = ((IList<object>) baseCurrenciesquoteCurrencieslimitsVariable)[2];
         //
         //     {
         //         "Xbt": 0.0001,

@@ -831,6 +831,8 @@ class indodax(Exchange, ImplicitAPI):
         elif type == 'limit':
             priceIsRequired = True
             quantityIsRequired = True
+            if side == 'buy':
+                request[market['quoteId']] = self.parse_to_numeric(Precise.string_mul(self.number_to_string(amount), self.number_to_string(price)))
         if priceIsRequired:
             if price is None:
                 raise InvalidOrder(self.id + ' createOrder() requires a price argument for a ' + type + ' order')

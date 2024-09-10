@@ -12,6 +12,7 @@ use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
+use React\Promise;
 use React\Promise\PromiseInterface;
 
 class bitfinex extends Exchange {
@@ -568,11 +569,11 @@ class bitfinex extends Exchange {
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array[]} an array of objects representing $market data
              */
-            $ids = Async\await($this->publicGetSymbols ());
+            $idsPromise = $this->publicGetSymbols ();
             //
             //     array( "btcusd", "ltcusd", "ltcbtc" )
             //
-            $details = Async\await($this->publicGetSymbolsDetails ());
+            $detailsPromise = $this->publicGetSymbolsDetails ();
             //
             //     array(
             //         array(
@@ -587,6 +588,7 @@ class bitfinex extends Exchange {
             //         ),
             //     )
             //
+            list($ids, $details) = Async\await(Promise\all(array( $idsPromise, $detailsPromise )));
             $result = array();
             for ($i = 0; $i < count($details); $i++) {
                 $market = $details[$i];
@@ -1357,6 +1359,7 @@ class bitfinex extends Exchange {
             /**
              * fetches information on an order made by the user
              * @see https://docs.bitfinex.com/v1/reference/rest-auth-order-status
+             * @param {string} $id the order $id
              * @param {string} $symbol not used by bitfinex fetchOrder
              * @param {array} [$params] extra parameters specific to the exchange API endpoint
              * @return {array} An ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~

@@ -22,6 +22,7 @@ class hashkey extends \ccxt\async\hashkey {
                 'watchOrders' => true,
                 'watchTicker' => true,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchPositions' => false,
             ),
             'urls' => array(

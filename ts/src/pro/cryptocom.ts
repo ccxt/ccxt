@@ -86,6 +86,21 @@ export default class cryptocom extends cryptocomRest {
         return await this.watchOrderBookForSymbols ([ symbol ], limit, params);
     }
 
+    async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name cryptocom#unWatchOrderBook
+         * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {string} [params.bookSubscriptionType] The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
+         * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        return await this.unWatchOrderBookForSymbols ([ symbol ], params);
+    }
+
     async watchOrderBookForSymbols (symbols: string[], limit: Int = undefined, params = {}): Promise<OrderBook> {
         /**
          * @method
@@ -132,6 +147,53 @@ export default class cryptocom extends cryptocomRest {
         }
         const orderbook = await this.watchPublicMultiple (messageHashes, topics, params);
         return orderbook.limit ();
+    }
+
+    async unWatchOrderBookForSymbols (symbols: string[], params = {}): Promise<OrderBook> {
+        /**
+         * @method
+         * @name cryptocom#unWatchOrderBookForSymbols
+         * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#book-instrument_name
+         * @param {string[]} symbols unified array of symbols
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.limit] orderbook limit, default is 50
+         * @param {string} [params.bookSubscriptionType] The subscription type. Allowed values: SNAPSHOT full snapshot. This is the default if not specified. SNAPSHOT_AND_UPDATE delta updates
+         * @param {int} [params.bookUpdateFrequency] Book update interval in ms. Allowed values: 100 for snapshot subscription 10 for delta subscription
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const topics = [];
+        const subMessageHashes = [];
+        const messageHashes = [];
+        const limit = this.safeInteger (params, 'limit', 50);
+        const topicParams = this.safeValue (params, 'params');
+        if (topicParams === undefined) {
+            params['params'] = {};
+        }
+        let bookSubscriptionType = undefined;
+        let bookSubscriptionType2 = undefined;
+        [ bookSubscriptionType, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookSubscriptionType', 'SNAPSHOT_AND_UPDATE');
+        [ bookSubscriptionType2, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookSubscriptionType', bookSubscriptionType);
+        params['params']['bookSubscriptionType'] = bookSubscriptionType2;
+        let bookUpdateFrequency = undefined;
+        let bookUpdateFrequency2 = undefined;
+        [ bookUpdateFrequency, params ] = this.handleOptionAndParams (params, 'watchOrderBook', 'bookUpdateFrequency');
+        [ bookUpdateFrequency2, params ] = this.handleOptionAndParams (params, 'watchOrderBookForSymbols', 'bookUpdateFrequency', bookUpdateFrequency);
+        if (bookUpdateFrequency2 !== undefined) {
+            params['params']['bookSubscriptionType'] = bookUpdateFrequency2;
+        }
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const currentTopic = 'book' + '.' + market['id'] + '.' + limit.toString ();
+            const messageHash = 'orderbook:' + market['symbol'];
+            subMessageHashes.push (messageHash);
+            messageHashes.push ('unsubscribe:' + messageHash);
+            topics.push (currentTopic);
+        }
+        return await this.unWatchPublicMultiple ('orderbook', symbols, messageHashes, subMessageHashes, topics, params);
     }
 
     handleDelta (bookside, delta) {
@@ -257,6 +319,21 @@ export default class cryptocom extends cryptocomRest {
         return await this.watchTradesForSymbols ([ symbol ], since, limit, params);
     }
 
+    async unWatchTrades (symbol: string, params = {}): Promise<Trade[]> {
+        /**
+         * @method
+         * @name cryptocom#unWatchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int} [since] timestamp in ms of the earliest trade to fetch
+         * @param {int} [limit] the maximum amount of trades to fetch
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        return await this.unWatchTradesForSymbols ([ symbol ], params);
+    }
+
     async watchTradesForSymbols (symbols: string[], since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
         /**
          * @method
@@ -285,6 +362,30 @@ export default class cryptocom extends cryptocomRest {
             limit = trades.getLimit (tradeSymbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    async unWatchTradesForSymbols (symbols: string[], params = {}): Promise<any> {
+        /**
+         * @method
+         * @name cryptocom#unWatchTradesForSymbols
+         * @description get the list of most recent trades for a particular symbol
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#trade-instrument_name
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const topics = [];
+        const messageHashes = [];
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i];
+            const market = this.market (symbol);
+            const currentTopic = 'trade' + '.' + market['id'];
+            messageHashes.push ('unsubscribe:trades:' + market['symbol']);
+            topics.push (currentTopic);
+        }
+        return await this.unWatchPublicMultiple ('trades', symbols, messageHashes, topics, topics, params);
     }
 
     handleTrades (client: Client, message) {
@@ -378,6 +479,23 @@ export default class cryptocom extends cryptocomRest {
         return await this.watchPublic (messageHash, params);
     }
 
+    async unWatchTicker (symbol: string, params = {}): Promise<any> {
+        /**
+         * @method
+         * @name cryptocom#unWatchTicker
+         * @description unWatches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#ticker-instrument_name
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/#/?id=ticker-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const subMessageHash = 'ticker' + '.' + market['id'];
+        const messageHash = 'unsubscribe:ticker:' + market['symbol'];
+        return await this.unWatchPublicMultiple ('ticker', [ market['symbol'] ], [ messageHash ], [ subMessageHash ], [ subMessageHash ], params);
+    }
+
     handleTicker (client: Client, message) {
         //
         // {
@@ -437,6 +555,29 @@ export default class cryptocom extends cryptocomRest {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
+        /**
+         * @method
+         * @name cryptocom#unWatchOHLCV
+         * @description unWatches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://exchange-docs.crypto.com/exchange/v1/rest-ws/index.html#candlestick-time_frame-instrument_name
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const interval = this.safeString (this.timeframes, timeframe, timeframe);
+        const subMessageHash = 'candlestick' + '.' + interval + '.' + market['id'];
+        const messageHash = 'unsubscribe:ohlcv:' + market['symbol'] + ':' + timeframe;
+        const subExtend = {
+            'symbolsAndTimeframes': [ [ market['symbol'], timeframe ] ],
+        };
+        return await this.unWatchPublicMultiple ('ohlcv', [ market['symbol'] ], [ messageHash ], [ subMessageHash ], [ subMessageHash ], params, subExtend);
     }
 
     handleOHLCV (client: Client, message) {
@@ -884,6 +1025,28 @@ export default class cryptocom extends cryptocomRest {
         return await this.watchMultiple (url, messageHashes, message, messageHashes);
     }
 
+    async unWatchPublicMultiple (topic: string, symbols: string[], messageHashes: string[], subMessageHashes: string[], topics: string[], params = {}, subExtend = {}) {
+        const url = this.urls['api']['ws']['public'];
+        const id = this.nonce ();
+        const request: Dict = {
+            'method': 'unsubscribe',
+            'params': {
+                'channels': topics,
+            },
+            'nonce': id,
+            'id': id.toString (),
+        };
+        const subscription = {
+            'id': id.toString (),
+            'topic': topic,
+            'symbols': symbols,
+            'subMessageHashes': subMessageHashes,
+            'messageHashes': messageHashes,
+        };
+        const message = this.deepExtend (request, params);
+        return await this.watchMultiple (url, messageHashes, message, messageHashes, this.extend (subscription, subExtend));
+    }
+
     async watchPrivateRequest (nonce, params = {}) {
         await this.authenticate ();
         const url = this.urls['api']['ws']['private'];
@@ -1005,6 +1168,9 @@ export default class cryptocom extends cryptocomRest {
         //           "channel":"ticker",
         //           "data":[ { } ]
         //
+        // handle unsubscribe
+        // {"id":1725448572836,"method":"unsubscribe","code":0}
+        //
         if (this.handleErrorMessage (client, message)) {
             return;
         }
@@ -1018,6 +1184,7 @@ export default class cryptocom extends cryptocomRest {
             'private/cancel-all-orders': this.handleCancelAllOrders,
             'private/close-position': this.handleOrder,
             'subscribe': this.handleSubscribe,
+            'unsubscribe': this.handleUnsubscribe,
         };
         const callMethod = this.safeValue (methods, method);
         if (callMethod !== undefined) {
@@ -1060,5 +1227,32 @@ export default class cryptocom extends cryptocomRest {
         //
         const future = this.safeValue (client.futures, 'authenticated');
         future.resolve (true);
+    }
+
+    handleUnsubscribe (client: Client, message) {
+        const id = this.safeString (message, 'id');
+        const keys = Object.keys (client.subscriptions);
+        for (let i = 0; i < keys.length; i++) {
+            const messageHash = keys[i];
+            if (!(messageHash in client.subscriptions)) {
+                continue;
+                // the previous iteration can have deleted the messageHash from the subscriptions
+            }
+            if (messageHash.startsWith ('unsubscribe')) {
+                const subscription = client.subscriptions[messageHash];
+                const subId = this.safeString (subscription, 'id');
+                if (id !== subId) {
+                    continue;
+                }
+                const messageHashes = this.safeList (subscription, 'messageHashes', []);
+                const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+                for (let j = 0; j < messageHashes.length; j++) {
+                    const unsubHash = messageHashes[j];
+                    const subHash = subMessageHashes[j];
+                    this.cleanUnsubscription (client, subHash, unsubHash);
+                }
+                this.cleanCache (subscription);
+            }
+        }
     }
 }

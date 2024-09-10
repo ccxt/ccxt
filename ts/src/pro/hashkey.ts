@@ -20,6 +20,7 @@ export default class hashkey extends hashkeyRest {
                 'watchOrders': true,
                 'watchTicker': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchPositions': false,
             },
             'urls': {
