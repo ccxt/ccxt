@@ -2328,7 +2328,7 @@ export default class coincatch extends Exchange {
                 if (currencyId in this.currencies_by_id) {
                     const currency = this.safeCurrencyCode (currencyId);
                     const feeEntry = this.safeValue (feeDetail, currencyId, {});
-                    const amount = this.safeString (feeEntry, 'totalFee');
+                    const amount = Precise.stringMul (this.safeString (feeEntry, 'totalFee'), '-1');
                     result.push ({
                         'currency': currency,
                         'amount': amount,
