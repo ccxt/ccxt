@@ -163,7 +163,7 @@ class binance extends ParserBase {
             let apiRootKey = apiType;
             const versionSuffix = version.toUpperCase().replace('V1', ''); // we dont have `v1` suffixes from keys
             const isPrivate = 
-                weightParagraph.includes ('(UID)') || ['(USER_DATA)', '(USER_STREAM)', '(MARKET_DATA)', '(TRADE)'].some (str => h1.includes (str));
+                weightParagraph.includes ('(UID)') || ['(USER_DATA)', '(USER_STREAM)', '(MARKET_DATA)', '(TRADE)', '(MARGIN)'].some (str => h1.includes (str)); // https://binance-docs.github.io/apidocs/spot/en/#endpoint-security-type
             if (apiType.startsWith('sapi')) {
                 apiRootKey += versionSuffix;
             } else if (apiType.startsWith('papi')) {
