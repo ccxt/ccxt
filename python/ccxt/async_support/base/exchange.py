@@ -65,6 +65,7 @@ class Exchange(BaseExchange):
     ping = None
     newUpdates = True
     clients = {}
+    timeout_on_exit = 100  # to avoid https://github.com/ccxt/ccxt/issues/9218
 
     def __init__(self, config={}):
         if 'asyncio_loop' in config:
@@ -125,7 +126,7 @@ class Exchange(BaseExchange):
             self.session = None
         await self.close_connector()
         await self.close_proxy_sessions()
-        await self.sleep(100)  # avoid https://github.com/ccxt/ccxt/issues/9218
+        await self.sleep(self.timeout_on_exit)
 
     async def close_connector(self):
         if self.tcp_connector is not None:
