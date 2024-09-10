@@ -1012,6 +1012,13 @@ class mexc(Exchange, ImplicitAPI):
         return self.array_concat(spotMarket, swapMarket)
 
     def fetch_spot_markets(self, params={}):
+        """
+         * @ignore
+        retrieves data on all spot markets for mexc
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of objects representing market data
+        """
         response = self.spotPublicGetExchangeInfo(params)
         #
         #     {
@@ -1127,6 +1134,13 @@ class mexc(Exchange, ImplicitAPI):
         return result
 
     def fetch_swap_markets(self, params={}):
+        """
+         * @ignore
+        retrieves data on all swap markets for mexc
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: an array of objects representing market data
+        """
         response = self.contractPublicGetDetail(params)
         #
         #     {
@@ -1666,6 +1680,8 @@ class mexc(Exchange, ImplicitAPI):
     def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#24hr-ticker-price-change-statistics
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-trend-data
         :param str[]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -1747,6 +1763,8 @@ class mexc(Exchange, ImplicitAPI):
     def fetch_ticker(self, symbol: str, params={}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#24hr-ticker-price-change-statistics
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-contract-trend-data
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -1929,6 +1947,7 @@ class mexc(Exchange, ImplicitAPI):
     def fetch_bids_asks(self, symbols: Strings = None, params={}):
         """
         fetches the bid and ask price and volume for multiple markets
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#symbol-order-book-ticker
         :param str[]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/#/?id=ticker-structure>`
@@ -2052,6 +2071,21 @@ class mexc(Exchange, ImplicitAPI):
         return self.extend(request, params)
 
     def create_spot_order(self, market, type, side, amount, price=None, marginMode=None, params={}):
+        """
+         * @ignore
+        create a trade order
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.marginMode]: only 'isolated' is supported for spot-margin trading
+        :param float [params.triggerPrice]: The price at which a trigger order is triggered at
+        :param bool [params.postOnly]: if True, the order will only be posted if it will be a maker order
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         self.load_markets()
         request = self.create_spot_order_request(market, type, side, amount, price, marginMode, params)
         response = self.spotPrivatePostOrder(self.extend(request, params))
@@ -2082,6 +2116,30 @@ class mexc(Exchange, ImplicitAPI):
         return order
 
     def create_swap_order(self, market, type, side, amount, price=None, marginMode=None, params={}):
+        """
+         * @ignore
+        create a trade order
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#new-order
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#order-under-maintenance
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#trigger-order-under-maintenance
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.marginMode]: only 'isolated' is supported for spot-margin trading
+        :param float [params.triggerPrice]: The price at which a trigger order is triggered at
+        :param bool [params.postOnly]: if True, the order will only be posted if it will be a maker order
+        :param bool [params.reduceOnly]: indicates if self order is to reduce the size of a position
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param int [params.leverage]: leverage is necessary on isolated margin
+        :param long [params.positionId]: it is recommended to hasattr(self, fill) parameter when closing a position
+        :param str [params.externalOid]: external order ID
+        :param int [params.positionMode]: 1:hedge, 2:one-way, default: the user's current config
+        :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
+        """
         self.load_markets()
         symbol = market['symbol']
         unavailableContracts = self.safe_value(self.options, 'unavailableContracts', {})
@@ -2230,6 +2288,8 @@ class mexc(Exchange, ImplicitAPI):
     def fetch_order(self, id: str, symbol: Str = None, params={}):
         """
         fetches information on an order made by the user
+        :see: https://mexcdevelop.github.io/apidocs/spot_v3_en/#query-order
+        :see: https://mexcdevelop.github.io/apidocs/contract_v1_en/#query-the-order-based-on-the-order-number
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.marginMode]: only 'isolated' is supported, for spot-margin trading
