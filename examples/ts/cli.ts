@@ -10,6 +10,10 @@ const fsPromises = fs.promises;
 ansi.nice
 const log = ololog.configure ({ locate: false }).unlimited
 const { ExchangeError , NetworkError} = ccxt
+
+function jsonStringify (obj: any, indent = undefined) {
+    return JSON.stringify (obj, function(k, v) { return v === undefined ? null : v; }, indent);
+}
 //-----------------------------------------------------------------------------
 
 let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x => !x.startsWith ('--'))
@@ -163,7 +167,7 @@ function createResponseTemplate(exchange, methodName, args, result) {
     }
     log('Report: (paste inside static/response/' + exchange.id + '.json ->' + methodName + ')')
     log.green('-------------------------------------------')
-    log (JSON.stringify (final, function(k, v) { return v === undefined ? null : v; }, 2))
+    log (jsonStringify (final, 2))
     log.green('-------------------------------------------')
 }
 
@@ -205,7 +209,7 @@ function printUsage () {
 
 const printHumanReadable = (exchange, result) => {
     if (raw) {
-        return log (JSON.stringify(result))
+        return log (jsonStringify (result))
     }
     if (!no_table && Array.isArray (result) || table) {
         result = Object.values (result)
@@ -226,7 +230,7 @@ const printHumanReadable = (exchange, result) => {
                 dash: ('-' as any).lightGray.dim,
                 print: x => {
                     if (typeof x === 'object') {
-                        const j = JSON.stringify (x).trim ()
+                        const j = jsonStringify (x).trim ()
                         if (j.length < 100) return j
                     }
                     return String (x)
@@ -299,7 +303,7 @@ async function run () {
             } catch {
                 await exchange.loadMarkets ()
                 if (cache_markets) {
-                    await fsPromises.writeFile (path, JSON.stringify (exchange.markets))
+                    await fsPromises.writeFile (path, jsonStringify (exchange.markets))
                 }
             }
         }
