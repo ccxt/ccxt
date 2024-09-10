@@ -6,9 +6,18 @@ import ParserBase from './_base';
 import manualOverrides from './binance-ts-overrides';
 class binance extends ParserBase {
 
-    // show output values like : `klines: 10 * 2.5` instead of `klines: 25`
+    // show output values like:
+    //
+    //   fapi: {
+    //       klines: 10 * 2.5 // instead of 25, because the 2.5 coefficient makes the the maintenance helpful for users & developers
+    //   }
+    //
     readableValues = true; 
 
+    RateLimitBaseValue = 10; // hardcoded
+    RateLimitBases = {}; // will be filled dynamically
+
+    // 
     exchangeInfos = {
         'api': 'https://api.binance.com/api/v3/exchangeInfo',
         'sapi': 'https://api.binance.com/api/v3/exchangeInfo',
@@ -17,10 +26,6 @@ class binance extends ParserBase {
         'eapi': 'https://eapi.binance.com/eapi/v1/exchangeInfo',
         'papi': 'https://fapi.binance.com/fapi/v1/exchangeInfo', // seems belongs to futures api, even though separate url
     };
-
-    RateLimitBaseValue = 10; // hardcoded
-    RateLimitBases = {}; // will be filled dynamically
-
 
     async init () {
         await this.parseExchangeInfos ();
