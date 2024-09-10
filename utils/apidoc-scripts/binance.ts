@@ -276,8 +276,8 @@ class binance extends ParserBase {
 
 
 const tree = await (new binance()).init ();
-// comment below
-console.log(JSON.stringify(tree, null, 2));
+const output = JSON.stringify(tree, null, 4);
+console.log(output.replace (/"/g, "'"));
 
 
 
