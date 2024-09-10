@@ -17,6 +17,7 @@ public partial class paradex : ccxt.paradex
                 { "watchOrderBook", true },
                 { "watchOrders", false },
                 { "watchTrades", true },
+                { "watchTradesForSymbols", false },
                 { "watchBalance", false },
                 { "watchOHLCV", false },
             } },

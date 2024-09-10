@@ -17,6 +17,7 @@ class hashkey extends hashkey$1 {
                 'watchOrders': true,
                 'watchTicker': true,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchPositions': false,
             },
             'urls': {

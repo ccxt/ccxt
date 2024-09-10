@@ -18,6 +18,7 @@ class coincheck extends \ccxt\async\coincheck {
                 'watchOrderBook' => true,
                 'watchOrders' => false,
                 'watchTrades' => true,
+                'watchTradesForSymbols' => false,
                 'watchOHLCV' => false,
                 'watchTicker' => false,
                 'watchTickers' => false,

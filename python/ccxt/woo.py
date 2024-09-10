@@ -481,7 +481,7 @@ class woo(Exchange, ImplicitAPI):
             'swap': swap,
             'future': False,
             'option': False,
-            'active': None,
+            'active': self.safe_string(market, 'is_trading') == '1',
             'contract': contract,
             'linear': linear,
             'inverse': None,
@@ -1276,6 +1276,7 @@ class woo(Exchange, ImplicitAPI):
         :see: https://docs.woo.org/#get-algo-order
         :see: https://docs.woo.org/#get-order
         fetches information on an order made by the user
+        :param str id: the order id
         :param str symbol: unified symbol of the market the order was made in
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.stop]: whether the order is a stop/algo order

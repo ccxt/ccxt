@@ -10,6 +10,8 @@ public partial class mexc
     /// the latest known information on the availability of the exchange API
     /// </summary>
     /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#test-connectivity"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -29,6 +31,8 @@ public partial class mexc
     /// fetches the current integer timestamp in milliseconds from the exchange server
     /// </summary>
     /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#check-server-time"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-server-time"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>
@@ -48,6 +52,8 @@ public partial class mexc
     /// retrieves data on all markets for mexc
     /// </summary>
     /// <remarks>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/spot_v3_en/#exchange-information"/>  <br/>
+    /// See <see href="https://mexcdevelop.github.io/apidocs/contract_v1_en/#get-the-contract-information"/>  <br/>
     /// <list type="table">
     /// <item>
     /// <term>params</term>

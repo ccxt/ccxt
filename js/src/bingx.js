@@ -6,7 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import Exchange from './abstract/bingx.js';
-import { AuthenticationError, PermissionDenied, AccountSuspended, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol, ArgumentsRequired, NotSupported, OperationFailed } from './base/errors.js';
+import { AuthenticationError, PermissionDenied, AccountSuspended, ExchangeError, InsufficientFunds, BadRequest, OrderNotFound, DDoSProtection, BadSymbol, ArgumentsRequired, NotSupported, OperationFailed, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -460,12 +460,14 @@ export default class bingx extends Exchange {
                     '100414': AccountSuspended,
                     '100419': PermissionDenied,
                     '100437': BadRequest,
-                    '101204': InsufficientFunds, // {"code":101204,"msg":"","data":{}}
+                    '101204': InsufficientFunds,
+                    '110425': InvalidOrder, // {"code":110425,"msg":"Please ensure that the minimum nominal value of the order placed must be greater than 2u","data":{}}
                 },
                 'broad': {},
             },
             'commonCurrencies': {
-                'SNOW': 'Snowman', // Snowman vs SnowSwap conflict
+                'SNOW': 'Snowman',
+                'OMNI': 'OmniCat',
             },
             'options': {
                 'defaultType': 'spot',
@@ -1062,8 +1064,7 @@ export default class bingx extends Exchange {
     }
     parseTrade(trade, market = undefined) {
         //
-        // spot
-        // fetchTrades
+        // spot fetchTrades
         //
         //    {
         //        "id": 43148253,
@@ -1073,8 +1074,8 @@ export default class bingx extends Exchange {
         //        "buyerMaker": false
         //    }
         //
-        // spot
-        // fetchMyTrades
+        // spot fetchMyTrades
+        //
         //     {
         //         "symbol": "LTC-USDT",
         //         "id": 36237072,
@@ -1089,8 +1090,7 @@ export default class bingx extends Exchange {
         //         "isMaker": false
         //     }
         //
-        // swap
-        // fetchTrades
+        // swap fetchTrades
         //
         //    {
         //        "time": 1672025549368,
@@ -1100,8 +1100,7 @@ export default class bingx extends Exchange {
         //        "quoteQty": "55723.87"
         //    }
         //
-        // swap
-        // fetchMyTrades
+        // swap fetchMyTrades
         //
         //    {
         //        "volume": "0.1",
@@ -1115,10 +1114,7 @@ export default class bingx extends Exchange {
         //        "filledTime": "2023-07-04T20:56:01.000+0800"
         //    }
         //
-        //
-        // ws
-        //
-        // spot
+        // ws spot
         //
         //    {
         //        "E": 1690214529432,
@@ -1131,7 +1127,7 @@ export default class bingx extends Exchange {
         //        "t": "57903921"
         //    }
         //
-        // swap
+        // ws linear swap
         //
         //    {
         //        "q": "0.0421",
@@ -1140,6 +1136,19 @@ export default class bingx extends Exchange {
         //        "m": false,
         //        "s": "BTC-USDT"
         //    }
+        //
+        // ws inverse swap
+        //
+        //     {
+        //         "e": "trade",
+        //         "E": 1722920589665,
+        //         "s": "BTC-USD",
+        //         "t": "39125001",
+        //         "p": "55360.0",
+        //         "q": "1",
+        //         "T": 1722920589582,
+        //         "m": false
+        //     }
         //
         // inverse swap fetchMyTrades
         //
@@ -2550,16 +2559,23 @@ export default class bingx extends Exchange {
                 }
             }
             let positionSide = undefined;
-            if (reduceOnly) {
-                positionSide = (side === 'buy') ? 'SHORT' : 'LONG';
+            const hedged = this.safeBool(params, 'hedged', false);
+            if (hedged) {
+                params = this.omit(params, 'reduceOnly');
+                if (reduceOnly) {
+                    positionSide = (side === 'buy') ? 'SHORT' : 'LONG';
+                }
+                else {
+                    positionSide = (side === 'buy') ? 'LONG' : 'SHORT';
+                }
             }
             else {
-                positionSide = (side === 'buy') ? 'LONG' : 'SHORT';
+                positionSide = 'BOTH';
             }
             request['positionSide'] = positionSide;
             request['quantity'] = (market['inverse']) ? amount : this.parseToNumeric(this.amountToPrecision(symbol, amount)); // precision not available for inverse contracts
         }
-        params = this.omit(params, ['reduceOnly', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId']);
+        params = this.omit(params, ['hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'takeProfit', 'stopLoss', 'clientOrderId']);
         return this.extend(request, params);
     }
     async createOrder(symbol, type, side, amount, price = undefined, params = {}) {
@@ -2591,6 +2607,7 @@ export default class bingx extends Exchange {
          * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered
          * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
          * @param {boolean} [params.test] *swap only* whether to use the test endpoint or not, default is false
+         * @param {boolean} [params.hedged] *swap only* whether the order is in hedged mode or one way mode
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
         await this.loadMarkets();
@@ -3649,6 +3666,7 @@ export default class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs/#/en-us/spot/trade-api.html#Query%20Order%20details
          * @see https://bingx-api.github.io/docs/#/en-us/swapV2/trade-api.html#Query%20Order%20details
          * @see https://bingx-api.github.io/docs/#/en-us/cswap/trade-api.html#Query%20Order
+         * @param {string} id the order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}

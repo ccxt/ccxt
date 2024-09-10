@@ -14,6 +14,7 @@ class coincheck extends coincheck$1 {
                 'watchOrderBook': true,
                 'watchOrders': false,
                 'watchTrades': true,
+                'watchTradesForSymbols': false,
                 'watchOHLCV': false,
                 'watchTicker': false,
                 'watchTickers': false,

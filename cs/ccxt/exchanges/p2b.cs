@@ -71,7 +71,6 @@ public partial class p2b : Exchange
                 { "fetchOrderBooks", false },
                 { "fetchOrders", true },
                 { "fetchOrderTrades", true },
-                { "fetchPermissions", false },
                 { "fetchPosition", false },
                 { "fetchPositionHistory", false },
                 { "fetchPositionMode", false },

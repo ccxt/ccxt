@@ -39,6 +39,7 @@ class htx(ccxt.async_support.htx):
                 'watchTickers': False,
                 'watchTicker': True,
                 'watchTrades': True,
+                'watchTradesForSymbols': False,
                 'watchMyTrades': True,
                 'watchBalance': True,
                 'watchOHLCV': True,

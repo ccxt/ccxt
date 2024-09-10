@@ -1800,19 +1800,6 @@ class cryptocom extends Exchange {
         }) ();
     }
 
-    public function safe_network($networkId) {
-        $networksById = array(
-            'BTC' => 'BTC',
-            'ETH' => 'ETH',
-            'SOL' => 'SOL',
-            'BNB' => 'BNB',
-            'CRONOS' => 'CRONOS',
-            'MATIC' => 'MATIC',
-            'OP' => 'OP',
-        );
-        return $this->safe_string($networksById, $networkId, $networkId);
-    }
-
     public function fetch_deposits(?string $code = null, ?int $since = null, ?int $limit = null, $params = array ()): PromiseInterface {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**

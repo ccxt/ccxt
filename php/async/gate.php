@@ -616,6 +616,7 @@ class gate extends Exchange {
                 'MPH' => 'MORPHER', // conflict with 88MPH
                 'POINT' => 'GATEPOINT',
                 'RAI' => 'RAIREFLEXINDEX', // conflict with RAI Finance
+                'RED' => 'RedLang',
                 'SBTC' => 'SUPERBITCOIN',
                 'TNC' => 'TRINITYNETWORKCREDIT',
                 'VAI' => 'VAIOT',
@@ -995,8 +996,9 @@ class gate extends Exchange {
 
     public function fetch_spot_markets($params = array ()) {
         return Async\async(function () use ($params) {
-            $marginResponse = Async\await($this->publicMarginGetCurrencyPairs ($params));
-            $spotMarketsResponse = Async\await($this->publicSpotGetCurrencyPairs ($params));
+            $marginPromise = $this->publicMarginGetCurrencyPairs ($params);
+            $spotMarketsPromise = $this->publicSpotGetCurrencyPairs ($params);
+            list($marginResponse, $spotMarketsResponse) = Async\await(Promise\all(array( $marginPromise, $spotMarketsPromise )));
             $marginMarkets = $this->index_by($marginResponse, 'id');
             //
             //  Spot
@@ -4026,7 +4028,7 @@ class gate extends Exchange {
                     $request['settle'] = $market['settleId']; // filled in prepareRequest above
                 }
                 if ($isMarketOrder) {
-                    $request['price'] = $price; // set to 0 for $market orders
+                    $request['price'] = '0'; // set to 0 for $market orders
                 } else {
                     $request['price'] = ($price === 0) ? '0' : $this->price_to_precision($symbol, $price);
                 }

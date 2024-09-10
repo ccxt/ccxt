@@ -382,6 +382,9 @@ abstract class okx extends \ccxt\Exchange {
     public function private_get_account_bills_archive($params = array()) {
         return $this->request('account/bills-archive', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
+    public function private_get_account_bills_history_archive($params = array()) {
+        return $this->request('account/bills-history-archive', 'private', 'GET', $params, null, null, array("cost" => 2));
+    }
     public function private_get_account_config($params = array()) {
         return $this->request('account/config', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
@@ -801,6 +804,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function private_post_account_fixed_loan_repay_borrowing_order($params = array()) {
         return $this->request('account/fixed-loan/repay-borrowing-order', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function private_post_account_bills_history_archive($params = array()) {
+        return $this->request('account/bills-history-archive', 'private', 'POST', $params, null, null, array("cost" => 72000));
     }
     public function private_post_users_subaccount_modify_apikey($params = array()) {
         return $this->request('users/subaccount/modify-apikey', 'private', 'POST', $params, null, null, array("cost" => 10));
@@ -1345,6 +1351,9 @@ abstract class okx extends \ccxt\Exchange {
     public function privateGetAccountBillsArchive($params = array()) {
         return $this->request('account/bills-archive', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
     }
+    public function privateGetAccountBillsHistoryArchive($params = array()) {
+        return $this->request('account/bills-history-archive', 'private', 'GET', $params, null, null, array("cost" => 2));
+    }
     public function privateGetAccountConfig($params = array()) {
         return $this->request('account/config', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
@@ -1764,6 +1773,9 @@ abstract class okx extends \ccxt\Exchange {
     }
     public function privatePostAccountFixedLoanRepayBorrowingOrder($params = array()) {
         return $this->request('account/fixed-loan/repay-borrowing-order', 'private', 'POST', $params, null, null, array("cost" => 5));
+    }
+    public function privatePostAccountBillsHistoryArchive($params = array()) {
+        return $this->request('account/bills-history-archive', 'private', 'POST', $params, null, null, array("cost" => 72000));
     }
     public function privatePostUsersSubaccountModifyApikey($params = array()) {
         return $this->request('users/subaccount/modify-apikey', 'private', 'POST', $params, null, null, array("cost" => 10));

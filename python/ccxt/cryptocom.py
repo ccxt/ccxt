@@ -1673,18 +1673,6 @@ class cryptocom(Exchange, ImplicitAPI):
             keys = list(depositAddresses.keys())
             return depositAddresses[keys[0]]
 
-    def safe_network(self, networkId):
-        networksById: dict = {
-            'BTC': 'BTC',
-            'ETH': 'ETH',
-            'SOL': 'SOL',
-            'BNB': 'BNB',
-            'CRONOS': 'CRONOS',
-            'MATIC': 'MATIC',
-            'OP': 'OP',
-        }
-        return self.safe_string(networksById, networkId, networkId)
-
     def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
         """
         fetch all deposits made to an account

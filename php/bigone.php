@@ -1618,6 +1618,7 @@ class bigone extends Exchange {
         /**
          * fetches information on an $order made by the user
          * @see https://open.big.one/docs/spot_orders.html#get-one-$order
+         * @param {string} $id the $order $id
          * @param {string} $symbol not used by bigone fetchOrder
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/#/?$id=$order-structure $order structure~

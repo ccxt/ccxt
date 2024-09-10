@@ -1129,6 +1129,7 @@ class bitso(Exchange, ImplicitAPI):
         """
         fetches information on an order made by the user
         :see: https://docs.bitso.com/bitso-api/docs/look-up-orders
+        :param str id: the order id
         :param str symbol: not used by bitso fetchOrder
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: An `order structure <https://docs.ccxt.com/#/?id=order-structure>`

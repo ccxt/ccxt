@@ -3426,7 +3426,11 @@ class bitmart extends Exchange {
             $parts = explode('-', $chain);
             $partsLength = count($parts);
             $networkId = $this->safe_string($parts, $partsLength - 1);
-            $network = $this->safe_network_code($networkId, $currency);
+            if ($networkId === $this->safe_string($currency, 'name')) {
+                $network = $this->safe_string($currency, 'code');
+            } else {
+                $network = $this->network_id_to_code($networkId);
+            }
         }
         $this->check_address($address);
         return array(
@@ -3436,15 +3440,6 @@ class bitmart extends Exchange {
             'tag' => $this->safe_string($depositAddress, 'address_memo'),
             'network' => $network,
         );
-    }
-
-    public function safe_network_code($networkId, $currency = null) {
-        $name = $this->safe_string($currency, 'name');
-        if ($networkId === $name) {
-            $code = $this->safe_string($currency, 'code');
-            return $code;
-        }
-        return $this->network_id_to_code($networkId);
     }
 
     public function withdraw(string $code, float $amount, string $address, $tag = null, $params = array ()) {

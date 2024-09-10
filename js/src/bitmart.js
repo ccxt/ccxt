@@ -3438,7 +3438,12 @@ export default class bitmart extends Exchange {
             const parts = chain.split('-');
             const partsLength = parts.length;
             const networkId = this.safeString(parts, partsLength - 1);
-            network = this.safeNetworkCode(networkId, currency);
+            if (networkId === this.safeString(currency, 'name')) {
+                network = this.safeString(currency, 'code');
+            }
+            else {
+                network = this.networkIdToCode(networkId);
+            }
         }
         this.checkAddress(address);
         return {
@@ -3448,14 +3453,6 @@ export default class bitmart extends Exchange {
             'tag': this.safeString(depositAddress, 'address_memo'),
             'network': network,
         };
-    }
-    safeNetworkCode(networkId, currency = undefined) {
-        const name = this.safeString(currency, 'name');
-        if (networkId === name) {
-            const code = this.safeString(currency, 'code');
-            return code;
-        }
-        return this.networkIdToCode(networkId);
     }
     async withdraw(code, amount, address, tag = undefined, params = {}) {
         /**

@@ -8,6 +8,7 @@ from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById,
 from ccxt.base.types import Balances, Int, Order, OrderBook, Str, Strings, Ticker, Tickers, Trade
 from ccxt.async_support.base.ws.client import Client
 from typing import List
+from typing import Any
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ArgumentsRequired
 
@@ -146,6 +147,24 @@ class kucoin(ccxt.async_support.kucoin):
             'response': True,
         }
         message = self.extend(request, params)
+        client = self.client(url)
+        for i in range(0, len(subscriptionHashes)):
+            subscriptionHash = subscriptionHashes[i]
+            if not (subscriptionHash in client.subscriptions):
+                client.subscriptions[requestId] = subscriptionHash
+        return await self.watch_multiple(url, messageHashes, message, subscriptionHashes, subscription)
+
+    async def un_subscribe_multiple(self, url, messageHashes, topic, subscriptionHashes, params={}, subscription: dict = None):
+        requestId = str(self.request_id())
+        request: dict = {
+            'id': requestId,
+            'type': 'unsubscribe',
+            'topic': topic,
+            'response': True,
+        }
+        message = self.extend(request, params)
+        if subscription is not None:
+            subscription[requestId] = requestId
         client = self.client(url)
         for i in range(0, len(subscriptionHashes)):
             subscriptionHash = subscriptionHashes[i]
@@ -477,6 +496,44 @@ class kucoin(ccxt.async_support.kucoin):
             limit = trades.getLimit(tradeSymbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
+    async def un_watch_trades_for_symbols(self, symbols: List[str], params={}) -> Any:
+        """
+        unWatches trades stream
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        marketIds = self.market_ids(symbols)
+        url = await self.negotiate(False)
+        messageHashes = []
+        subscriptionHashes = []
+        topic = '/market/match:' + ','.join(marketIds)
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            messageHashes.append('unsubscribe:trades:' + symbol)
+            subscriptionHashes.append('trades:' + symbol)
+        subscription = {
+            'messageHashes': messageHashes,
+            'subMessageHashes': subscriptionHashes,
+            'topic': 'trades',
+            'unsubscribe': True,
+            'symbols': symbols,
+        }
+        return await self.un_subscribe_multiple(url, messageHashes, topic, messageHashes, params, subscription)
+
+    async def un_watch_trades(self, symbol: str, params={}) -> Any:
+        """
+        unWatches trades stream
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/match-execution-data
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `trade structures <https://docs.ccxt.com/#/?id=public-trades>`
+        """
+        return await self.un_watch_trades_for_symbols([symbol], params)
+
     def handle_trade(self, client: Client, message):
         #
         #     {
@@ -539,6 +596,20 @@ class kucoin(ccxt.async_support.kucoin):
         #
         return await self.watch_order_book_for_symbols([symbol], limit, params)
 
+    async def un_watch_order_book(self, symbol: str, params={}) -> Any:
+        """
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+        unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.method]: either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        return await self.un_watch_order_book_for_symbols([symbol], params)
+
     async def watch_order_book_for_symbols(self, symbols: List[str], limit: Int = None, params={}) -> OrderBook:
         """
         :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
@@ -583,6 +654,45 @@ class kucoin(ccxt.async_support.kucoin):
             }
         orderbook = await self.subscribe_multiple(url, messageHashes, topic, subscriptionHashes, params, subscription)
         return orderbook.limit()
+
+    async def un_watch_order_book_for_symbols(self, symbols: List[str], params={}) -> Any:
+        """
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level1-bbo-market-data
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-market-data
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-5-best-ask-bid-orders
+        :see: https://www.kucoin.com/docs/websocket/spot-trading/public-channels/level2-50-best-ask-bid-orders
+        unWatches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str[] symbols: unified array of symbols
+        :param int [limit]: the maximum amount of order book entries to return
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param str [params.method]: either '/market/level2' or '/spotMarket/level2Depth5' or '/spotMarket/level2Depth50' default is '/market/level2'
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/#/?id=order-book-structure>` indexed by market symbols
+        """
+        limit = self.safe_integer(params, 'limit')
+        params = self.omit(params, 'limit')
+        await self.load_markets()
+        symbols = self.market_symbols(symbols, None, False)
+        marketIds = self.market_ids(symbols)
+        url = await self.negotiate(False)
+        method: Str = None
+        method, params = self.handle_option_and_params(params, 'watchOrderBook', 'method', '/market/level2')
+        if (limit == 5) or (limit == 50):
+            method = '/spotMarket/level2Depth' + str(limit)
+        topic = method + ':' + ','.join(marketIds)
+        messageHashes = []
+        subscriptionHashes = []
+        for i in range(0, len(symbols)):
+            symbol = symbols[i]
+            messageHashes.append('unsubscribe:orderbook:' + symbol)
+            subscriptionHashes.append('orderbook:' + symbol)
+        subscription = {
+            'messageHashes': messageHashes,
+            'symbols': symbols,
+            'unsubscribe': True,
+            'topic': 'orderbook',
+            'subMessageHashes': subscriptionHashes,
+        }
+        return await self.un_subscribe_multiple(url, messageHashes, topic, messageHashes, params, subscription)
 
     def handle_order_book(self, client: Client, message):
         #
@@ -731,6 +841,15 @@ class kucoin(ccxt.async_support.kucoin):
         method = self.safe_value(subscription, 'method')
         if method is not None:
             method(client, message, subscription)
+        isUnSub = self.safe_bool(subscription, 'unsubscribe', False)
+        if isUnSub:
+            messageHashes = self.safe_list(subscription, 'messageHashes', [])
+            subMessageHashes = self.safe_list(subscription, 'subMessageHashes', [])
+            for i in range(0, len(messageHashes)):
+                messageHash = messageHashes[i]
+                subHash = subMessageHashes[i]
+                self.clean_unsubscription(client, subHash, messageHash)
+            self.clean_cache(subscription)
 
     def handle_system_status(self, client: Client, message):
         #

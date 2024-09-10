@@ -911,6 +911,10 @@ public partial class indodax : Exchange
         {
             priceIsRequired = true;
             quantityIsRequired = true;
+            if (isTrue(isEqual(side, "buy")))
+            {
+                ((IDictionary<string,object>)request)[(string)getValue(market, "quoteId")] = this.parseToNumeric(Precise.stringMul(this.numberToString(amount), this.numberToString(price)));
+            }
         }
         if (isTrue(priceIsRequired))
         {

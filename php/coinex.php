@@ -1201,7 +1201,10 @@ class coinex extends Exchange {
         //         "side" => "buy",
         //         "order_id" => 136915589622,
         //         "price" => "64376",
-        //         "amount" => "0.0001"
+        //         "amount" => "0.0001",
+        //         "role" => "taker",
+        //         "fee" => "0.0299",
+        //         "fee_ccy" => "USDT"
         //     }
         //
         $timestamp = $this->safe_integer($trade, 'created_at');
@@ -1211,6 +1214,16 @@ class coinex extends Exchange {
         }
         $marketId = $this->safe_string($trade, 'market');
         $market = $this->safe_market($marketId, $market, null, $defaultType);
+        $feeCostString = $this->safe_string($trade, 'fee');
+        $fee = null;
+        if ($feeCostString !== null) {
+            $feeCurrencyId = $this->safe_string($trade, 'fee_ccy');
+            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
+            $fee = array(
+                'cost' => $feeCostString,
+                'currency' => $feeCurrencyCode,
+            );
+        }
         return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -1220,11 +1233,11 @@ class coinex extends Exchange {
             'order' => $this->safe_string($trade, 'order_id'),
             'type' => null,
             'side' => $this->safe_string($trade, 'side'),
-            'takerOrMaker' => null,
+            'takerOrMaker' => $this->safe_string($trade, 'role'),
             'price' => $this->safe_string($trade, 'price'),
             'amount' => $this->safe_string($trade, 'amount'),
             'cost' => $this->safe_string($trade, 'deal_money'),
-            'fee' => null,
+            'fee' => $fee,
         ), $market);
     }
 
@@ -3686,27 +3699,9 @@ class coinex extends Exchange {
         $options = $this->safe_dict($this->options, 'fetchDepositAddress', array());
         $fillResponseFromRequest = $this->safe_bool($options, 'fillResponseFromRequest', true);
         if ($fillResponseFromRequest) {
-            $depositAddress['network'] = $this->safe_network_code($network, $currency);
+            $depositAddress['network'] = strtoupper($this->network_id_to_code($network, $currency));
         }
         return $depositAddress;
-    }
-
-    public function safe_network($networkId, ?array $currency = null) {
-        $networks = $this->safe_value($currency, 'networks', array());
-        $networksCodes = is_array($networks) ? array_keys($networks) : array();
-        $networksCodesLength = count($networksCodes);
-        if ($networkId === null && $networksCodesLength === 1) {
-            return $networks[$networksCodes[0]];
-        }
-        return array(
-            'id' => $networkId,
-            'network' => ($networkId === null) ? null : strtoupper($networkId),
-        );
-    }
-
-    public function safe_network_code($networkId, ?array $currency = null) {
-        $network = $this->safe_network($networkId, $currency);
-        return $network['network'];
     }
 
     public function parse_deposit_address($depositAddress, ?array $currency = null) {
@@ -5502,7 +5497,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function fetch_position_history(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): Position {
+    public function fetch_position_history(string $symbol, ?int $since = null, ?int $limit = null, $params = array ()): array {
         /**
          * fetches historical $positions
          * @see https://docs.coinex.com/api/v2/futures/position/http/list-finished-position

@@ -93,7 +93,6 @@ public partial class blofin : Exchange
                 { "fetchOrderBooks", false },
                 { "fetchOrders", false },
                 { "fetchOrderTrades", true },
-                { "fetchPermissions", null },
                 { "fetchPosition", true },
                 { "fetchPositions", true },
                 { "fetchPositionsForSymbol", false },

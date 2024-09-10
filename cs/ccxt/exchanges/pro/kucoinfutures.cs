@@ -166,6 +166,33 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         return await this.watchMultiple(url, messageHashes, this.extend(request, parameters), subscriptionHashes, subscriptionArgs);
     }
 
+    public async virtual Task<object> unSubscribeMultiple(object url, object messageHashes, object topic, object subscriptionHashes, object parameters = null, object subscription = null)
+    {
+        parameters ??= new Dictionary<string, object>();
+        object requestId = ((object)this.requestId()).ToString();
+        object request = new Dictionary<string, object>() {
+            { "id", requestId },
+            { "type", "unsubscribe" },
+            { "topic", topic },
+            { "response", true },
+        };
+        object message = this.extend(request, parameters);
+        if (isTrue(!isEqual(subscription, null)))
+        {
+            ((IDictionary<string,object>)subscription)[(string)requestId] = requestId;
+        }
+        var client = this.client(url);
+        for (object i = 0; isLessThan(i, getArrayLength(subscriptionHashes)); postFixIncrement(ref i))
+        {
+            object subscriptionHash = getValue(subscriptionHashes, i);
+            if (!isTrue((inOp(((WebSocketClient)client).subscriptions, subscriptionHash))))
+            {
+                ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)requestId] = subscriptionHash;
+            }
+        }
+        return await this.watchMultiple(url, messageHashes, message, subscriptionHashes, subscription);
+    }
+
     public async override Task<object> watchTicker(object symbol, object parameters = null)
     {
         /**
@@ -555,7 +582,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
     {
         /**
         * @method
-        * @name kucoinfutures#watchTrades
+        * @name kucoinfutures#watchTradesForSymbols
         * @description get the list of most recent trades for a particular symbol
         * @param {string} symbol unified symbol of the market to fetch trades for
         * @param {int} [since] timestamp in ms of the earliest trade to fetch
@@ -592,6 +619,56 @@ public partial class kucoinfutures : ccxt.kucoinfutures
             limit = callDynamically(trades, "getLimit", new object[] {tradeSymbol, limit});
         }
         return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+    }
+
+    public async virtual Task<object> unWatchTrades(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoinfutures#unWatchTrades
+        * @description unWatches trades stream
+        * @see https://docs.kucoin.com/futures/#execution-data
+        * @param {string} symbol unified symbol of the market to fetch trades for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.unWatchTradesForSymbols(new List<object>() {symbol}, parameters);
+    }
+
+    public async virtual Task<object> unWatchTradesForSymbols(object symbols, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoinfutures#unWatchTradesForSymbols
+        * @description get the list of most recent trades for a particular symbol
+        * @param {string} symbol unified symbol of the market to fetch trades for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/#/?id=public-trades}
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols, null, false);
+        object url = await this.negotiate(false);
+        symbols = this.marketSymbols(symbols);
+        object marketIds = this.marketIds(symbols);
+        object topic = add("/contractMarket/execution:", String.Join(",", ((IList<object>)marketIds).ToArray()));
+        object subscriptionHashes = new List<object>() {};
+        object messageHashes = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(symbols, i);
+            ((IList<object>)messageHashes).Add(add("unsubscribe:trades:", symbol));
+            ((IList<object>)subscriptionHashes).Add(add("trades:", symbol));
+        }
+        object subscription = new Dictionary<string, object>() {
+            { "messageHashes", messageHashes },
+            { "subMessageHashes", subscriptionHashes },
+            { "topic", "trades" },
+            { "unsubscribe", true },
+            { "symbols", symbols },
+        };
+        return await this.unSubscribeMultiple(url, messageHashes, topic, messageHashes, parameters, subscription);
     }
 
     public virtual object handleTrade(WebSocketClient client, object message)
@@ -736,6 +813,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         * @method
         * @name kucoinfutures#watchOrderBookForSymbols
         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @see https://docs.kucoin.com/futures/#level-2-market-data
         * @param {string[]} symbols unified array of symbols
         * @param {int} [limit] the maximum amount of order book entries to return
         * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -773,6 +851,55 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         }
         object orderbook = await this.subscribeMultiple(url, messageHashes, topic, subscriptionHashes, subscriptionArgs, parameters);
         return (orderbook as IOrderBook).limit();
+    }
+
+    public async virtual Task<object> unWatchOrderBook(object symbol, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoinfutures#unWatchOrderBook
+        * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @see https://docs.kucoin.com/futures/#level-2-market-data
+        * @param {string} symbol unified symbol of the market to fetch the order book for
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+        */
+        parameters ??= new Dictionary<string, object>();
+        return await this.unWatchOrderBookForSymbols(new List<object>() {symbol}, parameters);
+    }
+
+    public async virtual Task<object> unWatchOrderBookForSymbols(object symbols, object parameters = null)
+    {
+        /**
+        * @method
+        * @name kucoinfutures#unWatchOrderBookForSymbols
+        * @description unWatches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+        * @param {string[]} symbols unified array of symbols
+        * @param {object} [params] extra parameters specific to the exchange API endpoint
+        * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/#/?id=order-book-structure} indexed by market symbols
+        */
+        parameters ??= new Dictionary<string, object>();
+        await this.loadMarkets();
+        symbols = this.marketSymbols(symbols);
+        object marketIds = this.marketIds(symbols);
+        object url = await this.negotiate(false);
+        object topic = add("/contractMarket/level2:", String.Join(",", ((IList<object>)marketIds).ToArray()));
+        object subscriptionHashes = new List<object>() {};
+        object messageHashes = new List<object>() {};
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object symbol = getValue(symbols, i);
+            ((IList<object>)messageHashes).Add(add("unsubscribe:orderbook:", symbol));
+            ((IList<object>)subscriptionHashes).Add(add("orderbook:", symbol));
+        }
+        object subscription = new Dictionary<string, object>() {
+            { "messageHashes", messageHashes },
+            { "symbols", symbols },
+            { "unsubscribe", true },
+            { "topic", "orderbook" },
+            { "subMessageHashes", subscriptionHashes },
+        };
+        return await this.unSubscribeMultiple(url, messageHashes, topic, messageHashes, parameters, subscription);
     }
 
     public override void handleDelta(object orderbook, object delta)
@@ -1253,6 +1380,42 @@ public partial class kucoinfutures : ccxt.kucoinfutures
         this.handleErrors(null, null, client.url, null, null, data, message, null, null);
     }
 
+    public virtual void handleSubscriptionStatus(WebSocketClient client, object message)
+    {
+        //
+        //     {
+        //         "id": "1578090438322",
+        //         "type": "ack"
+        //     }
+        //
+        object id = this.safeString(message, "id");
+        if (!isTrue((inOp(((WebSocketClient)client).subscriptions, id))))
+        {
+            return;
+        }
+        object subscriptionHash = this.safeString(((WebSocketClient)client).subscriptions, id);
+        object subscription = this.safeValue(((WebSocketClient)client).subscriptions, subscriptionHash);
+
+        object method = this.safeValue(subscription, "method");
+        if (isTrue(!isEqual(method, null)))
+        {
+            DynamicInvoker.InvokeMethod(method, new object[] { client, message, subscription});
+        }
+        object isUnSub = this.safeBool(subscription, "unsubscribe", false);
+        if (isTrue(isUnSub))
+        {
+            object messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
+            object subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
+            for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+            {
+                object messageHash = getValue(messageHashes, i);
+                object subHash = getValue(subMessageHashes, i);
+                this.cleanUnsubscription(client as WebSocketClient, subHash, messageHash);
+            }
+            this.cleanCache(subscription);
+        }
+    }
+
     public override void handleMessage(WebSocketClient client, object message)
     {
         object type = this.safeString(message, "type");
@@ -1261,6 +1424,7 @@ public partial class kucoinfutures : ccxt.kucoinfutures
             { "message", this.handleSubject },
             { "pong", this.handlePong },
             { "error", this.handleErrorMessage },
+            { "ack", this.handleSubscriptionStatus },
         };
         object method = this.safeValue(methods, type);
         if (isTrue(!isEqual(method, null)))

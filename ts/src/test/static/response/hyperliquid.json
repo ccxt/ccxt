@@ -73,94 +73,162 @@
                         ]
                     }
                 ]
-            }
-        ],
-        "fetchClosedOrders": [
+            },
             {
-                "description": "fetchClosedOrders",
-                "method": "fetchClosedOrders",
+                "description": "user trades",
+                "method": "fetchMyTrades",
                 "input": [
-                    "SOL/USDC:USDC",
+                    "PURR/USDC",
                     null,
                     1
                 ],
                 "httpResponse": [
-                    {
-                        "order": {
-                            "children": [],
-                            "cloid": null,
-                            "coin": "SOL",
-                            "isPositionTpsl": false,
-                            "isTrigger": false,
-                            "limitPx": "60.0",
-                            "oid": "6928553534",
-                            "orderType": "Limit",
-                            "origSz": "0.1",
-                            "reduceOnly": false,
-                            "side": "B",
-                            "sz": "0.1",
-                            "tif": "Gtc",
-                            "timestamp": "1709643776949",
-                            "triggerCondition": "N/A",
-                            "triggerPx": "0.0"
-                        },
-                        "status": "open",
-                        "statusTimestamp": "1709643776949"
-                    }
+                  {
+                    "coin": "PURR/USDC",
+                    "px": "0.9641",
+                    "sz": "49.0",
+                    "side": "A",
+                    "time": 1724762433070,
+                    "startPosition": "49.98251",
+                    "dir": "Sell",
+                    "closedPnl": "-0.489055",
+                    "hash": "0xbad70c993ee12880ecca040f594b120109003159efb9e090eccb4868a17d56cd",
+                    "oid": 13981880088,
+                    "crossed": true,
+                    "fee": "0.016534",
+                    "tid": 1107801776196793,
+                    "feeToken": "USDC"
+                  }
                 ],
                 "parsedResponse": [
                     {
-                        "info": {
-                            "order": {
-                                "children": [],
-                                "cloid": null,
-                                "coin": "SOL",
-                                "isPositionTpsl": false,
-                                "isTrigger": false,
-                                "limitPx": "60.0",
-                                "oid": "6928553534",
-                                "orderType": "Limit",
-                                "origSz": "0.1",
-                                "reduceOnly": false,
-                                "side": "B",
-                                "sz": "0.1",
-                                "tif": "Gtc",
-                                "timestamp": "1709643776949",
-                                "triggerCondition": "N/A",
-                                "triggerPx": "0.0"
-                            },
-                            "status": "open",
-                            "statusTimestamp": "1709643776949"
-                        },
-                        "id": "6928553534",
-                        "clientOrderId": null,
-                        "timestamp": 1709643776949,
-                        "datetime": "2024-03-05T13:02:56.949Z",
-                        "lastTradeTimestamp": null,
-                        "lastUpdateTimestamp": null,
-                        "symbol": "SOL/USDC:USDC",
-                        "type": "limit",
-                        "timeInForce": "GTC",
-                        "postOnly": false,
-                        "reduceOnly": false,
-                        "side": "buy",
-                        "price": 60,
-                        "triggerPrice": null,
-                        "amount": 0.1,
-                        "cost": null,
-                        "average": null,
-                        "filled": null,
-                        "remaining": null,
-                        "status": "open",
-                        "fee": null,
-                        "trades": [],
-                        "fees": [],
-                        "stopPrice": null,
-                        "takeProfitPrice": null,
-                        "stopLossPrice": null
-                    }
+                      "info": {
+                          "coin": "PURR/USDC",
+                          "px": "0.9641",
+                          "sz": "49.0",
+                          "side": "A",
+                          "time": 1724762433070,
+                          "startPosition": "49.98251",
+                          "dir": "Sell",
+                          "closedPnl": "-0.489055",
+                          "hash": "0xbad70c993ee12880ecca040f594b120109003159efb9e090eccb4868a17d56cd",
+                          "oid": 13981880088,
+                          "crossed": true,
+                          "fee": "0.016534",
+                          "tid": 1107801776196793,
+                          "feeToken": "USDC"
+                      },
+                      "timestamp": 1724762433070,
+                      "datetime": "2024-08-27T12:40:33.070Z",
+                      "symbol": "PURR/USDC",
+                      "id": "1107801776196793",
+                      "order": "13981880088",
+                      "type": null,
+                      "side": "sell",
+                      "takerOrMaker": null,
+                      "price": 0.9641,
+                      "amount": 49.0,
+                      "cost": 47.2409,
+                      "fee": {
+                          "currency": "USDC",
+                          "cost": 0.016534
+                      },
+                      "fees": [
+                          {
+                              "currency": "USDC",
+                              "cost": 0.016534
+                          }
+                      ]
+                  }
                 ]
             }
+        ],
+        "fetchClosedOrders": [
+          {
+            "description": "closedOrders swap",
+            "method": "fetchClosedOrders",
+            "input": [
+              "SOL/USDC:USDC",
+              null,
+              1
+            ],
+            "httpResponse": [
+              {
+                "order": {
+                  "coin": "SOL",
+                  "side": "B",
+                  "limitPx": "183.75",
+                  "sz": "0.0",
+                  "oid": "9893803368",
+                  "timestamp": "1718099116378",
+                  "triggerCondition": "N/A",
+                  "isTrigger": false,
+                  "triggerPx": "0.0",
+                  "children": [],
+                  "isPositionTpsl": false,
+                  "reduceOnly": false,
+                  "orderType": "Limit",
+                  "origSz": "0.1",
+                  "tif": "Ioc",
+                  "cloid": null
+                },
+                "status": "filled",
+                "statusTimestamp": "1718099116378"
+              }
+            ],
+            "parsedResponse": [
+              {
+                "info": {
+                  "order": {
+                    "coin": "SOL",
+                    "side": "B",
+                    "limitPx": "183.75",
+                    "sz": "0.0",
+                    "oid": "9893803368",
+                    "timestamp": "1718099116378",
+                    "triggerCondition": "N/A",
+                    "isTrigger": false,
+                    "triggerPx": "0.0",
+                    "children": [],
+                    "isPositionTpsl": false,
+                    "reduceOnly": false,
+                    "orderType": "Limit",
+                    "origSz": "0.1",
+                    "tif": "Ioc",
+                    "cloid": null
+                  },
+                  "status": "filled",
+                  "statusTimestamp": "1718099116378"
+                },
+                "id": "9893803368",
+                "clientOrderId": null,
+                "timestamp": 1718099116378,
+                "datetime": "2024-06-11T09:45:16.378Z",
+                "lastTradeTimestamp": null,
+                "lastUpdateTimestamp": null,
+                "symbol": "SOL/USDC:USDC",
+                "type": "limit",
+                "timeInForce": "IOC",
+                "postOnly": false,
+                "reduceOnly": false,
+                "side": "buy",
+                "price": 183.75,
+                "triggerPrice": null,
+                "amount": 0.1,
+                "cost": 18.375,
+                "average": null,
+                "filled": 0.1,
+                "remaining": 0,
+                "status": "closed",
+                "fee": null,
+                "trades": [],
+                "fees": [],
+                "stopPrice": null,
+                "takeProfitPrice": null,
+                "stopLossPrice": null
+              }
+            ]
+          }
         ],
         "fetchOpenOrders": [
             {
@@ -210,9 +278,9 @@
                         "amount": 0.1,
                         "cost": null,
                         "average": null,
-                        "filled": null,
-                        "remaining": null,
-                        "status": null,
+                        "filled": 0,
+                        "remaining": 0.1,
+                        "status": "open",
                         "fee": null,
                         "trades": [],
                         "fees": [],
@@ -286,8 +354,8 @@
                   "cost": null,
                   "average": null,
                   "filled": null,
-                  "remaining": null,
-                  "status": null,
+                  "remaining": 40,
+                  "status": "open",
                   "fee": null,
                   "trades": [],
                   "fees": [],
@@ -303,7 +371,7 @@
                 "description": "fetch order",
                 "method": "fetchOrder",
                 "input": [
-                    6463065738
+                    "6463065738"
                 ],
                 "httpResponse": {
                     "order": {
@@ -367,10 +435,10 @@
                     "side": "buy",
                     "price": 1100,
                     "triggerPrice": null,
-                    "amount": null,
-                    "cost": null,
+                    "amount": 0.2,
+                    "cost": 220,
                     "average": null,
-                    "filled": null,
+                    "filled": 0.2,
                     "remaining": 0,
                     "status": "closed",
                     "fee": null,
@@ -450,10 +518,10 @@
                   "side": "buy",
                   "price": 0.01995,
                   "triggerPrice": null,
-                  "amount": null,
-                  "cost": null,
+                  "amount": 1000,
+                  "cost": 19.95,
                   "average": null,
-                  "filled": null,
+                  "filled": 1000,
                   "remaining": 0,
                   "status": "closed",
                   "fee": null,
@@ -644,70 +712,296 @@
                     0.88301
                   ]
                 ]
+            },
+            {
+              "description": "fetchOHLCV should return last 5 when no since is provided",
+              "method": "fetchOHLCV",
+              "input": [
+                "PURR/USDC",
+                "1d",
+                null,
+                5
+              ],
+              "httpResponse": [
+                {
+                  "t": "1724976000000",
+                  "T": "1725062399999",
+                  "s": "PURR/USDC",
+                  "i": "1d",
+                  "o": "0.13819",
+                  "c": "0.13472",
+                  "h": "0.1438",
+                  "l": "0.12182",
+                  "v": "39959080.0",
+                  "n": "33280"
+                },
+                {
+                  "t": "1725062400000",
+                  "T": "1725148799999",
+                  "s": "PURR/USDC",
+                  "i": "1d",
+                  "o": "0.13466",
+                  "c": "0.14098",
+                  "h": "0.147",
+                  "l": "0.12851",
+                  "v": "27090911.0",
+                  "n": "27972"
+                },
+                {
+                  "t": "1725148800000",
+                  "T": "1725235199999",
+                  "s": "PURR/USDC",
+                  "i": "1d",
+                  "o": "0.14095",
+                  "c": "0.13689",
+                  "h": "0.15401",
+                  "l": "0.13686",
+                  "v": "34088809.0",
+                  "n": "30485"
+                },
+                {
+                  "t": "1725235200000",
+                  "T": "1725321599999",
+                  "s": "PURR/USDC",
+                  "i": "1d",
+                  "o": "0.13686",
+                  "c": "0.14315",
+                  "h": "0.15091",
+                  "l": "0.13685",
+                  "v": "21404439.0",
+                  "n": "19732"
+                },
+                {
+                  "t": "1725321600000",
+                  "T": "1725407999999",
+                  "s": "PURR/USDC",
+                  "i": "1d",
+                  "o": "0.14283",
+                  "c": "0.14241",
+                  "h": "0.14523",
+                  "l": "0.14158",
+                  "v": "5507686.0",
+                  "n": "7355"
+                }
+              ],
+              "parsedResponse": [
+                [
+                  1724976000000,
+                  0.13819,
+                  0.1438,
+                  0.12182,
+                  0.13472,
+                  39959080
+                ],
+                [
+                  1725062400000,
+                  0.13466,
+                  0.147,
+                  0.12851,
+                  0.14098,
+                  27090911
+                ],
+                [
+                  1725148800000,
+                  0.14095,
+                  0.15401,
+                  0.13686,
+                  0.13689,
+                  34088809
+                ],
+                [
+                  1725235200000,
+                  0.13686,
+                  0.15091,
+                  0.13685,
+                  0.14315,
+                  21404439
+                ],
+                [
+                  1725321600000,
+                  0.14283,
+                  0.14523,
+                  0.14158,
+                  0.14241,
+                  5507686
+                ]
+              ]
+          },
+          {
+            "description": "should return first 5 when since and limit are provided",
+            "method": "fetchOHLCV",
+            "input": [
+              "PURR/USDC",
+              "1d",
+              1720915200000,
+              5
+            ],
+            "httpResponse": [
+              {
+                "t": "1720915200000",
+                "T": "1721001599999",
+                "s": "PURR/USDC",
+                "i": "1d",
+                "o": "0.19364",
+                "c": "0.20858",
+                "h": "0.20867",
+                "l": "0.18245",
+                "v": "47252285.0",
+                "n": "102308"
+              },
+              {
+                "t": "1721001600000",
+                "T": "1721087999999",
+                "s": "PURR/USDC",
+                "i": "1d",
+                "o": "0.20858",
+                "c": "0.20084",
+                "h": "0.22323",
+                "l": "0.19601",
+                "v": "65005090.0",
+                "n": "90953"
+              },
+              {
+                "t": "1721088000000",
+                "T": "1721174399999",
+                "s": "PURR/USDC",
+                "i": "1d",
+                "o": "0.20082",
+                "c": "0.20779",
+                "h": "0.21384",
+                "l": "0.19231",
+                "v": "49916617.0",
+                "n": "90051"
+              },
+              {
+                "t": "1721174400000",
+                "T": "1721260799999",
+                "s": "PURR/USDC",
+                "i": "1d",
+                "o": "0.20786",
+                "c": "0.19845",
+                "h": "0.21198",
+                "l": "0.19364",
+                "v": "39605631.0",
+                "n": "58022"
+              },
+              {
+                "t": "1721260800000",
+                "T": "1721347199999",
+                "s": "PURR/USDC",
+                "i": "1d",
+                "o": "0.19845",
+                "c": "0.20129",
+                "h": "0.20737",
+                "l": "0.1881",
+                "v": "33715191.0",
+                "n": "60376"
+              },
+              {
+                "t": "1721347200000",
+                "T": "1721433599999",
+                "s": "PURR/USDC",
+                "i": "1d",
+                "o": "0.20128",
+                "c": "0.18741",
+                "h": "0.203",
+                "l": "0.183",
+                "v": "41004996.0",
+                "n": "62979"
               }
+            ],
+            "parsedResponse": [
+              [
+                1720915200000,
+                0.19364,
+                0.20867,
+                0.18245,
+                0.20858,
+                47252285
+              ],
+              [
+                1721001600000,
+                0.20858,
+                0.22323,
+                0.19601,
+                0.20084,
+                65005090
+              ],
+              [
+                1721088000000,
+                0.20082,
+                0.21384,
+                0.19231,
+                0.20779,
+                49916617
+              ],
+              [
+                1721174400000,
+                0.20786,
+                0.21198,
+                0.19364,
+                0.19845,
+                39605631
+              ],
+              [
+                1721260800000,
+                0.19845,
+                0.20737,
+                0.1881,
+                0.20129,
+                33715191
+              ]
+            ]
+          }
         ],
         "fetchBalance": [
-            {
-                "description": "spot balance",
-                "method": "fetchBalance",
-                "input": [
-                  {
-                    "type": "spot"
-                  }
-                ],
-                "httpResponse": {
-                  "balances": [
-                    {
-                      "coin": "USDC",
-                      "hold": "0.0",
-                      "total": "1481.844"
-                    },
-                    {
-                      "coin": "PURR",
-                      "hold": "0.0",
-                      "total": "999.65004"
-                    }
-                  ]
-                },
-                "parsedResponse": {
-                  "info": {
-                    "balances": [
-                      {
-                        "coin": "USDC",
-                        "hold": "0.0",
-                        "total": "1481.844"
-                      },
-                      {
-                        "coin": "PURR",
-                        "hold": "0.0",
-                        "total": "999.65004"
-                      }
-                    ]
-                  },
-                  "USDC": {
-                    "free": 0,
-                    "used": 1481.844,
-                    "total": 1481.844
-                  },
-                  "PURR": {
-                    "free": 0,
-                    "used": 999.65004,
-                    "total": 999.65004
-                  },
-                  "free": {
-                    "USDC": 0,
-                    "PURR": 0
-                  },
-                  "used": {
-                    "USDC": 1481.844,
-                    "PURR": 999.65004
-                  },
-                  "total": {
-                    "USDC": 1481.844,
-                    "PURR": 999.65004
-                  }
+          {
+            "description": "fetchBalance spot with used",
+            "method": "fetchBalance",
+            "input": [
+              {
+                "type": "spot"
+              }
+            ],
+            "httpResponse": {
+              "balances": [
+                {
+                  "coin": "USDC",
+                  "token": "0",
+                  "total": "50.0",
+                  "hold": "10.0",
+                  "entryNtl": "0.0"
                 }
+              ]
             },
+            "parsedResponse": {
+              "info": {
+                "balances": [
+                  {
+                    "coin": "USDC",
+                    "token": "0",
+                    "total": "50.0",
+                    "hold": "10.0",
+                    "entryNtl": "0.0"
+                  }
+                ]
+              },
+              "USDC": {
+                "free": 40,
+                "used": 10,
+                "total": 50
+              },
+              "free": {
+                "USDC": 40
+              },
+              "used": {
+                "USDC": 10
+              },
+              "total": {
+                "USDC": 50
+              }
+            }
+          },
             {
                 "description": "swap balance",
                 "method": "fetchBalance",
@@ -822,6 +1116,156 @@
                     "percentage": null,
                     "tierBased": null
                 }
+            }
+        ],
+        "fetchTickers": [
+
+        ],
+
+        "fetchDeposits": [
+            {
+                "description": "user deposits",
+                "method": "fetchDeposits",
+                "input": [
+                    "USDC"
+                ],
+                "httpResponse": [
+                    {
+                        "time": 1725369558702,
+                        "hash": "0xa1eee9b39bb871d5c0c91892c457fdb78fd65f804502d1a09f0a9b80a5c43a81",
+                        "delta": {
+                            "type": "withdraw",
+                            "usdc": "9.0",
+                            "nonce": 1725369497528000,
+                            "fee": "1.0"
+                        }
+                    },
+                    {
+                        "time": 1725278637122,
+                        "hash": "0xed134b02d611cd53fd3e040f7ca6f00113008084ddf8009455ffc1f657df209e",
+                        "delta": {
+                            "type": "accountClassTransfer",
+                            "usdc": "4.0",
+                            "toPerp": true
+                        }
+                    },
+                    {
+                        "time": 1719366450777,
+                        "hash": "0xb17ab23a7006fe26145857954e728c72a118563deb7e32f80e317bb5b0fab955",
+                        "delta": {
+                            "type": "deposit",
+                            "usdc": "105.0"
+                        }
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                      "info": {
+                          "time": 1719366450777,
+                          "hash": "0xb17ab23a7006fe26145857954e728c72a118563deb7e32f80e317bb5b0fab955",
+                          "delta": {
+                              "type": "deposit",
+                              "usdc": "105.0"
+                          },
+                          "type": "deposit"
+                      },
+                      "id": null,
+                      "txid": "0xb17ab23a7006fe26145857954e728c72a118563deb7e32f80e317bb5b0fab955",
+                      "timestamp": 1719366450777,
+                      "datetime": "2024-06-26T01:47:30.777Z",
+                      "network": null,
+                      "address": null,
+                      "addressTo": null,
+                      "addressFrom": null,
+                      "tag": null,
+                      "tagTo": null,
+                      "tagFrom": null,
+                      "type": null,
+                      "amount": 105,
+                      "currency": null,
+                      "status": null,
+                      "updated": null,
+                      "comment": null,
+                      "internal": false,
+                      "fee": null
+                  }
+                ]
+            }
+        ],
+
+        "fetchWithdrawals": [
+            {
+                "description": "user withdrawals",
+                "method": "fetchWithdrawals",
+                "input": [
+                    "USDC"
+                ],
+                "httpResponse": [
+                    {
+                        "time": 1725369558702,
+                        "hash": "0xa1eee9b39bb871d5c0c91892c457fdb78fd65f804502d1a09f0a9b80a5c43a81",
+                        "delta": {
+                            "type": "withdraw",
+                            "usdc": "9.0",
+                            "nonce": 1725369497528000,
+                            "fee": "1.0"
+                        }
+                    },
+                    {
+                        "time": 1725278637122,
+                        "hash": "0xed134b02d611cd53fd3e040f7ca6f00113008084ddf8009455ffc1f657df209e",
+                        "delta": {
+                            "type": "accountClassTransfer",
+                            "usdc": "4.0",
+                            "toPerp": true
+                        }
+                    },
+                    {
+                        "time": 1719366450777,
+                        "hash": "0xb17ab23a7006fe26145857954e728c72a118563deb7e32f80e317bb5b0fab955",
+                        "delta": {
+                            "type": "deposit",
+                            "usdc": "105.0"
+                        }
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                      "info": {
+                          "time": 1725369558702,
+                          "hash": "0xa1eee9b39bb871d5c0c91892c457fdb78fd65f804502d1a09f0a9b80a5c43a81",
+                          "delta": {
+                              "type": "withdraw",
+                              "usdc": "9.0",
+                              "nonce": 1725369497528000,
+                              "fee": "1.0"
+                          },
+                          "type": "withdraw"
+                      },
+                      "id": null,
+                      "txid": "0xa1eee9b39bb871d5c0c91892c457fdb78fd65f804502d1a09f0a9b80a5c43a81",
+                      "timestamp": 1725369558702,
+                      "datetime": "2024-09-03T13:19:18.702Z",
+                      "network": null,
+                      "address": null,
+                      "addressTo": null,
+                      "addressFrom": null,
+                      "tag": null,
+                      "tagTo": null,
+                      "tagFrom": null,
+                      "type": null,
+                      "amount": 9,
+                      "currency": null,
+                      "status": null,
+                      "updated": null,
+                      "comment": null,
+                      "internal": false,
+                      "fee": {
+                          "currency": "USDC",
+                          "cost": 1
+                      }
+                  }
+                ]
             }
         ]
     }
