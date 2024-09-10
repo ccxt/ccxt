@@ -160,7 +160,7 @@ export default class bigone extends Exchange {
                 },
                 'webExchange': {
                     'get': [
-                        'uc/v2/assets',
+                        'v3/assets',
                     ],
                 },
             },
