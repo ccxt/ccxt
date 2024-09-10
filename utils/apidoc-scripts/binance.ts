@@ -35,6 +35,8 @@ class binance extends ParserBase {
         'fapiPrivate': 'fapi',
         'fapiPublicV2': 'fapi',
         'fapiPrivateV2': 'fapi',
+        'fapiPublicV3': 'fapi',
+        'fapiPrivateV3': 'fapi',
         'eapiPrivate': 'eapi',
         'eapiPublic': 'eapi',
     };
