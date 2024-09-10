@@ -2025,7 +2025,7 @@ export default class currencycom extends Exchange {
             'collateral': undefined,
             'side': side,
             // 'realizedProfit': this.safeNumber (position, 'rpl'),
-            'unrealizedProfit': unrealizedProfit,
+            'unrealizedPnl': unrealizedProfit,
             'leverage': leverage,
             'percentage': undefined,
             'marginMode': undefined,
