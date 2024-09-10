@@ -212,7 +212,7 @@ export default class coincatch extends Exchange {
                         'api/spot/v1/trade/cancel-batch-orders': 1,
                         'api/spot/v1/trade/cancel-batch-orders-v2': 1,
                         'api/spot/v1/trade/orderInfo': 1, // done
-                        'api/spot/v1/trade/open-orders': 1,
+                        'api/spot/v1/trade/open-orders': 1, // done
                         'api/spot/v1/trade/history': 1, // done
                         'api/spot/v1/trade/fills': 1,
                         'api/spot/v1/plan/placePlan': 1,
@@ -2251,9 +2251,9 @@ export default class coincatch extends Exchange {
          * @name coincatch#fetchOpenSpotOrders
          * @description fetch all unfilled currently open orders for spot markets
          * @see https://coincatch.github.io/github.io/en/spot/#get-order-list
-         * @param {string} [symbol] unified market symbol of the market orders were made in - is mandatory for swap markets
+         * @param {string} [symbol] unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve - default 500, maximum 1000
+         * @param {int} [limit] the maximum number of order structures to retrieve - default 100, maximum 500
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
          */
@@ -2304,10 +2304,10 @@ export default class coincatch extends Exchange {
          * @method
          * @name coincatch#fetchCanceledAndClosedOrders
          * @description fetches information on multiple canceled and closed orders made by the user
-         * @see https://coincatch.github.io/github.io/en/spot/#get-order-history
-         * @param {string} symbol unified market symbol of the market orders were made in
+         * @see https://coincatch.github.io/github.io/en/spot/#get-order-list
+         * @param {string} symbol *is mandatory* unified market symbol of the market orders were made in
          * @param {int} [since] the earliest time in ms to fetch orders for
-         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {int} [limit] the maximum number of order structures to retrieve - default 100, maximum 500
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @param {int} [params.until] the latest time in ms to fetch orders for
          * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
@@ -2316,6 +2316,34 @@ export default class coincatch extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + methodName + ' () requires a symbol argument');
         }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const marketType = market['type'];
+        params['methodName'] = methodName;
+        if (marketType === 'spot') {
+            return await this.fetchCanceledAndClosedSpotOrders (symbol, since, limit, params);
+        } else {
+            // return await this.fetchCanceledAndClosedSwapOrders (symbol, since, limit, params);
+            throw new NotSupported (this.id + ' ' + methodName + '() is not supported for ' + marketType + ' type of markets');
+        }
+    }
+
+    async fetchCanceledAndClosedSpotOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+        /**
+         * @method
+         * @ignore
+         * @name coincatch#fetchCanceledAndClosedSpotOrders
+         * @description fetches information on multiple canceled and closed orders made by the user
+         * @see https://coincatch.github.io/github.io/en/spot/#get-order-history
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int} [since] the earliest time in ms to fetch orders for
+         * @param {int} [limit] the maximum number of order structures to retrieve
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @param {int} [params.until] the latest time in ms to fetch orders for
+         * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        let methodName = 'fetchCanceledAndClosedSpotOrders';
+        [ methodName, params ] = this.handleParamString (params, 'methodName', methodName);
         const maxLimit = 500;
         await this.loadMarkets ();
         const market = this.market (symbol);
