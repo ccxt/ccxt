@@ -2,12 +2,11 @@
 // ---------------------------------------------------------------------------
 
 import Exchange from './abstract/cryptomus.js';
-// import { AccountNotEnabled, AccountSuspended, ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ContractUnavailable, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidAddress, InvalidNonce, InvalidOrder, NotSupported, OperationFailed, OperationRejected, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, PermissionDenied, RateLimitExceeded, RequestTimeout } from './base/errors.js';
+import { ArgumentsRequired } from './base/errors.js';
 // import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { md5 } from './static_dependencies/noble-hashes/md5.js';
-// import { sha256 } from './static_dependencies/noble-hashes/sha256.js';
-import type { Balances, Currencies, Dict, Int, Market, OrderBook, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Currencies, Dict, Int, Market, Num, Order, OrderBook, OrderType, OrderSide, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -641,6 +640,180 @@ export default class cryptomus extends Exchange {
         return this.safeBalance (result);
     }
 
+    async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
+        /**
+         * @method
+         * @name cryptomus#createOrder
+         * @description create a trade order
+         * @see https://doc.cryptomus.com/personal/converts/market-order
+         * @see https://doc.cryptomus.com/personal/converts/limit-order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit' or for spot
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of you want to trade in units of the base currency
+         * @param {float} [price] the price that the order is to be fulfilled, in units of the quote currency, ignored in market orders (only for limit orders)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const base = this.safeCurrencyCode (market['base']);
+        const quote = this.safeCurrencyCode (market['quote']);
+        const request: Dict = {};
+        if (side === 'buy') {
+            request['from'] = quote;
+            request['to'] = base;
+        } else if (side === 'sell') {
+            request['from'] = base;
+            request['to'] = quote;
+        }
+        const amountToString = this.numberToString (amount);
+        if (amount !== undefined) {
+            request['amount'] = amountToString;
+        }
+        let response = undefined;
+        if (type === 'market') {
+            response = await this.privatePostV2UserApiConvert (this.extend (request, params));
+        } else if (type === 'limit') {
+            if (price === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires a price parameter for a ' + type + ' order');
+            } else {
+                const priceToString = this.numberToString (price);
+                request['price'] = priceToString;
+            }
+            response = await this.privatePostV2UserApiConvertLimit (this.extend (request, params));
+        } else {
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a type parameter (limit or market)');
+        }
+        //
+        //     {
+        //         "state": 0,
+        //         "result": {
+        //             "order_id": 0,
+        //             "uuid": "997c8a3c-17df-407f-a971-c13c8723fb57",
+        //             "convert_amount_from": "15",
+        //             "convert_amount_to": "0.00681818",
+        //             "executed_amount_from": "15",
+        //             "executed_amount_to": "0.00681818",
+        //             "convert_currency_from": "USDT",
+        //             "convert_currency_to": "ETH",
+        //             "type": "limit",
+        //             "status": "active",
+        //             "created_at": "2024-09-10T17:37:52+03:00",
+        //             "current_rate": "2200",
+        //             "limit": "2200",
+        //             "expires_at": null
+        //         }
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        return this.parseOrder (result, market);
+    }
+
+    async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+        /**
+         * @method
+         * @name hashkey#cancelOrder
+         * @description cancels an open limit order
+         * @see https://doc.cryptomus.com/personal/converts/cancel-limit-order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market the order was made in (not used in cryptomus)
+         * @param {object} [params] extra parameters specific to the exchange API endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
+         */
+        await this.loadMarkets ();
+        const request: Dict = {};
+        request['orderUuid'] = id;
+        const response = await this.privateDeleteV2UserApiConvertOrderUuid (this.extend (request, params));
+        //
+        //     {
+        //         "state": 0,
+        //         "result": {
+        //             "order_id": 0,
+        //             "uuid": "1b96da42-c850-4543-ad10-fd78d433bfe2",
+        //             "convert_amount_from": "0.006",
+        //             "convert_amount_to": "13.2",
+        //             "executed_amount_from": "0.006",
+        //             "executed_amount_to": "13.2",
+        //             "convert_currency_from": "ETH",
+        //             "convert_currency_to": "USDT",
+        //             "type": "limit",
+        //             "status": "cancelled",
+        //             "created_at": "2024-09-10T18:26:57+03:00",
+        //             "current_rate": null,
+        //             "limit": "2200",
+        //             "expires_at": null
+        //         }
+        //     }
+        //
+        const result = this.safeDict (response, 'result', {});
+        return this.parseOrder (result);
+    }
+
+    parseOrder (order: Dict, market: Market = undefined): Order {
+        //
+        //     {
+        //         "order_id": 0,
+        //         "uuid": "997c8a3c-17df-407f-a971-c13c8723fb57",
+        //         "convert_amount_from": "15",
+        //         "convert_amount_to": "0.00681818",
+        //         "executed_amount_from": "15",
+        //         "executed_amount_to": "0.00681818",
+        //         "convert_currency_from": "USDT",
+        //         "convert_currency_to": "ETH",
+        //         "type": "limit",
+        //         "status": "active",
+        //         "created_at": "2024-09-10T17:37:52+03:00",
+        //         "current_rate": "2200",
+        //         "limit": "2200",
+        //         "expires_at": null
+        //     }
+        //
+        const id = this.safeString (order, 'uuid');
+        const dateTime = this.safeInteger (order, 'created_at');
+        const timestamp = this.parse8601 (dateTime);
+        let symbol = this.market['symbol'];
+        if (market === undefined) {
+            const baseId = this.safeString (order, 'convert_currency_from');
+            const quoteId = this.safeString (order, 'convert_currency_to');
+            symbol = this.safeCurrencyCode (baseId) + '/' + this.safeCurrencyCode (quoteId);
+        }
+        const type = this.safeString (order, 'type');
+        const price = this.safeNumber (order, 'limit');
+        const amount = this.safeNumber (order, 'convert_amount_to');
+        const cost = this.safeNumber (order, 'convert_amount_from');
+        let status = this.safeString (order, 'status');
+        if (status === 'active') {
+            status = 'open';
+        } else if (status === 'cancelled') {
+            status = 'cancelled';
+        }
+        return this.safeOrder ({
+            'id': id,
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'symbol': symbol,
+            'type': type,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': undefined,
+            'price': price,
+            'stopPrice': undefined,
+            'triggerPrice': undefined,
+            'amount': amount,
+            'cost': cost,
+            'average': undefined,
+            'filled': undefined,
+            'remaining': undefined,
+            'status': status,
+            'fee': undefined,
+            'trades': undefined,
+            'info': order,
+        }, market);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const endpoint = this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
@@ -649,8 +822,8 @@ export default class cryptomus extends Exchange {
             this.checkRequiredCredentials ();
             let jsonParams = '';
             if (method !== 'GET') {
-                jsonParams = this.json (params);
-                body = jsonParams;
+                body = this.json (params);
+                jsonParams = body;
             }
             const jsonParamsBase64 = this.stringToBase64 (jsonParams);
             const stringToSign = jsonParamsBase64 + this.secret;
