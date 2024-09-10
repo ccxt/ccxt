@@ -65,7 +65,7 @@ interface Exchange {
     privatePostApiSpotV1TradeBatchOrders (params?: {}): Promise<implicitReturnType>;
     privatePostApiSpotV1TradeCancelOrder (params?: {}): Promise<implicitReturnType>;
     privatePostApiSpotV1TradeCancelOrderV2 (params?: {}): Promise<implicitReturnType>;
-    privatePostApiSpotV1TradeCancelSymbolOrders (params?: {}): Promise<implicitReturnType>;
+    privatePostApiSpotV1TradeCancelSymbolOrder (params?: {}): Promise<implicitReturnType>;
     privatePostApiSpotV1TradeCancelBatchOrders (params?: {}): Promise<implicitReturnType>;
     privatePostApiSpotV1TradeCancelBatchOrdersV2 (params?: {}): Promise<implicitReturnType>;
     privatePostApiSpotV1TradeOrderInfo (params?: {}): Promise<implicitReturnType>;
